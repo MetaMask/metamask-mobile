@@ -4,11 +4,11 @@ import useGasPriceEstimation from './useGasPriceEstimation';
 import {
   DeepPartial,
   renderHookWithProvider,
-} from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import Engine from '../../../../core/Engine';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import Engine from '@core/Engine';
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest

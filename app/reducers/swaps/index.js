@@ -1,15 +1,15 @@
 import { createSelector } from 'reselect';
-import { isMainnetByChainId } from '../../util/networks';
-import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseEquals } from '../../util/general';
-import Engine from '../../core/Engine';
-import { lte } from '../../util/lodash';
-import { selectChainId } from '../../selectors/networkController';
-import { selectTokens } from '../../selectors/tokensController';
-import { selectContractBalances } from '../../selectors/tokenBalancesController';
+import { isMainnetByChainId } from '@util/networks';
+import { safeToChecksumAddress } from '@util/address';
+import { toLowerCaseEquals } from '@util/general';
+import Engine from '@core/Engine';
+import { lte } from '@util/lodash';
+import { selectChainId } from '@selectors/networkController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
 import { getChainFeatureFlags, getSwapsLiveness } from './utils';
-import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import { allowedTestnetChainIds } from '@components/UI/Swaps/utils';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API

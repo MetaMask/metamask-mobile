@@ -1,8 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { IconName, IconSize } from '../Icons/Icon';
-import { TextVariant, TextColor } from '../Texts/Text';
+import { IconName, IconSize } from '@Icons/Icon';
+import { TextVariant, TextColor } from '@Texts/Text';
 
 // Internal dependencies.
 import { CheckboxProps } from './Checkbox.types';

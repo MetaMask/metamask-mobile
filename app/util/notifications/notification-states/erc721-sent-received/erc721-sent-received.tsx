@@ -1,22 +1,22 @@
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
   ModalHeaderType,
   TRIGGER_TYPES,
-} from '../../constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
+} from '@constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
 import {
   label_address_from,
   label_address_to,
   NotificationState,
-} from '../types/NotificationState';
+} from '@types/NotificationState';
 import {
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-} from '../../methods/common';
-import { formatAddress } from '../../../address';
+} from '@methods/common';
+import { formatAddress } from '@address';
 
 type ERC721Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC721_RECEIVED | TRIGGER_TYPES.ERC721_SENT

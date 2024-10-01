@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SecurityOptionToggle } from '../../../../UI/SecurityOptionToggle';
-import { strings } from '../../../../../../locales/i18n';
+import { SecurityOptionToggle } from '@UI/SecurityOptionToggle';
+import { strings } from '@locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import { setAllowLoginWithRememberMe } from '../../../../../actions/security';
+import { setAllowLoginWithRememberMe } from '@actions/security';
 import { useNavigation } from '@react-navigation/native';
-import { createTurnOffRememberMeModalNavDetails } from '../../../..//UI/TurnOffRememberMeModal/TurnOffRememberMeModal';
+import { createTurnOffRememberMeModalNavDetails } from '@/UI/TurnOffRememberMeModal/TurnOffRememberMeModal';
 
-import { Authentication } from '../../../../../core';
-import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
-import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { TURN_ON_REMEMBER_ME } from '@SecuritySettings.constants';
 
 const RememberMeOptionSection = () => {
   const { navigate } = useNavigation();

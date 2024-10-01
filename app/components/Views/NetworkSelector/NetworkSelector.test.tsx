@@ -3,15 +3,15 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 // External dependencies
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import Engine from '@core/Engine';
+import { backgroundState } from '@util/test/initial-root-state';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { NetworkListModalSelectorsIDs } from '@e2e/selectors/Modals/NetworkListModal.selectors';
+import { isNetworkUiRedesignEnabled } from '@util/networks/isNetworkUiRedesignEnabled';
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -20,15 +20,15 @@ const setShowTestNetworksSpy = jest.spyOn(
 );
 
 // Mock the entire module
-jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
+jest.mock('@util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
 }));
 
-jest.mock('../../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
 }));
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     NetworkController: {

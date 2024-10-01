@@ -20,9 +20,9 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-} from '../../../app/constants/network';
-import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { getNonceLock } from '../../util/transaction-controller';
+} from '@app/constants/network';
+import { NetworkSwitchErrorType } from '@app/constants/error';
+import { getNonceLock } from '@util/transaction-controller';
 import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
@@ -52,7 +52,7 @@ jest.mock('./../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   getNonceLock: jest.fn(),
 }));

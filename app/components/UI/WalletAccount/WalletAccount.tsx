@@ -5,21 +5,21 @@ import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 
 // External dependencies
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import { useStyles } from '../../../component-library/hooks';
-import AddressCopy from '../AddressCopy';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
-import Routes from '../../../constants/navigation/Routes';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { getLabelTextByAddress } from '../../../util/address';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import useEnsNameByAddress from '../../../components/hooks/useEnsNameByAddress';
-import Logger from '../../../util/Logger';
+import { IconName } from '@component-library/components/Icons/Icon';
+import PickerAccount from '@component-library/components/Pickers/PickerAccount';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
+import { useStyles } from '@component-library/hooks';
+import AddressCopy from '@AddressCopy';
+import { isDefaultAccountName } from '@util/ENSUtils';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import { ButtonIconSizes } from '@component-library/components/Buttons/ButtonIcon';
+import Routes from '@constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
+import { getLabelTextByAddress } from '@util/address';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import useEnsNameByAddress from '@components/hooks/useEnsNameByAddress';
+import Logger from '@util/Logger';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';

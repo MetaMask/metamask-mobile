@@ -1,9 +1,9 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import AddAsset from './AddAsset';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { AddAssetViewSelectorsIDs } from '@e2e/selectors/AddAssetView.selectors';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -28,8 +28,8 @@ const mockUseParamsValues: {
   assetType: 'collectible',
 };
 
-jest.mock('../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 

@@ -3,11 +3,11 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { renderHook } from '@testing-library/react-native';
 
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
-import backgroundState from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import backgroundState from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
 import { BN } from 'ethereumjs-util';
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';

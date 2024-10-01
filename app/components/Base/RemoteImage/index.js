@@ -12,32 +12,32 @@ import FadeIn from 'react-native-fade-in-image';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import { SvgUri } from 'react-native-svg';
 import isUrl from 'is-url';
-import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
-import useIpfsGateway from '../../hooks/useIpfsGateway';
+import ComponentErrorBoundary from '@UI/ComponentErrorBoundary';
+import useIpfsGateway from '@hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import Identicon from '../../UI/Identicon';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import Identicon from '@UI/Identicon';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
+} from '@component-library/components/Badges/Badge';
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   getTestNetImageByChainId,
   isLineaMainnet,
   isMainNet,
   isTestNet,
-} from '../../../util/networks';
+} from '@util/networks';
 import images from 'images/image-icons';
-import { selectNetworkName } from '../../../selectors/networkInfos';
+import { selectNetworkName } from '@selectors/networkInfos';
 
-import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import Logger from '../../../util/Logger';
+import { BadgeAnchorElementShape } from '@component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import useSvgUriViewBox from '@hooks/useSvgUriViewBox';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
+import Logger from '@util/Logger';
 
 const createStyles = () =>
   StyleSheet.create({

@@ -16,7 +16,7 @@ import {
 import {
   BadgeProps,
   BadgeVariant,
-} from '../../../components/Badges/Badge/Badge.types';
+} from '@components/Badges/Badge/Badge.types';
 
 // Internal dependencies.
 import AccountBalance from './AccountBalance';

@@ -1,11 +1,11 @@
 import React from 'react';
 import AdvancedSettings from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
-import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import Device from '../../../../util/device';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
+import { backgroundState } from '@util/test/initial-root-state';
+import Device from '@util/device';
 
 const originalFetch = global.fetch;
 
@@ -40,7 +40,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockEngine = Engine;
 
-jest.mock('../../../../core/Engine', () => {
+jest.mock('@core/Engine', () => {
   mockSetSmartTransactionsOptInStatus = jest.fn();
   return {
     init: () => mockEngine.init({}),

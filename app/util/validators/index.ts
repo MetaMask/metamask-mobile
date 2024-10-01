@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../core/Encryptor';
-import { regex } from '../regex';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '@core/Encryptor';
+import { regex } from '@regex';
 
 export const failedSeedPhraseRequirements = (seed: string): boolean => {
   const wordCount = seed.split(/\s/u).length;

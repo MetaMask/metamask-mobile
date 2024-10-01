@@ -2,7 +2,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { AppThemeKey } from '@util/theme/models';
 import ErrorStep from './ErrorStep';
 
 const mockStore = configureMockStore();

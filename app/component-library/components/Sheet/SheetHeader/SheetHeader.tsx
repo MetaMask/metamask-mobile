@@ -5,11 +5,11 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Texts/Text';
-import Button, { ButtonVariants } from '../../Buttons/Button';
-import ButtonIcon from '../../Buttons/ButtonIcon';
-import { IconName, IconColor } from '../../Icons/Icon';
-import { useStyles } from '../../../hooks';
+import Text, { TextVariant } from '@Texts/Text';
+import Button, { ButtonVariants } from '@Buttons/Button';
+import ButtonIcon from '@Buttons/ButtonIcon';
+import { IconName, IconColor } from '@Icons/Icon';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import styleSheet from './SheetHeader.styles';

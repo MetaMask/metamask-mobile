@@ -8,52 +8,52 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import {
   TX_CONFIRMED,
   TX_PENDING,
   TX_SIGNED,
   TX_SUBMITTED,
   TX_UNAPPROVED,
-} from '../../../constants/transaction';
-import AppConstants from '../../../core/AppConstants';
+} from '@constants/transaction';
+import AppConstants from '@core/AppConstants';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
-} from '../../../reducers/swaps';
+} from '@reducers/swaps';
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectRpcUrl,
-} from '../../../selectors/networkController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { sortTransactions } from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
-import { toLowerCaseEquals } from '../../../util/general';
+} from '@selectors/networkController';
+import { selectTokens } from '@selectors/tokensController';
+import { sortTransactions } from '@util/activity';
+import { safeToChecksumAddress } from '@util/address';
+import { toLowerCaseEquals } from '@util/general';
 import {
   findBlockExplorerForRpc,
   isMainnetByChainId,
-} from '../../../util/networks';
-import { mockTheme, ThemeContext } from '../../../util/theme';
-import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import AssetOverview from '../../UI/AssetOverview';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { isSwapsAllowed } from '../../UI/Swaps/utils';
-import Transactions from '../../UI/Transactions';
+} from '@util/networks';
+import { mockTheme, ThemeContext } from '@util/theme';
+import { addAccountTimeFlagFilter } from '@util/transactions';
+import AssetOverview from '@UI/AssetOverview';
+import { getNetworkNavbarOptions } from '@UI/Navbar';
+import { isSwapsAllowed } from '@UI/Swaps/utils';
+import Transactions from '@UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/utils';
-import { getRampNetworks } from '../../../reducers/fiatOrders';
-import Device from '../../../util/device';
+import { isNetworkRampNativeTokenSupported } from '@UI/Ramp/utils';
+import { getRampNetworks } from '@reducers/fiatOrders';
+import Device from '@util/device';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { store } from '../../../store';
+} from '@selectors/currencyRateController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { updateIncomingTransactions } from '@util/transaction-controller';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { store } from '@store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import { selectSwapsTransactions } from '@selectors/transactionController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

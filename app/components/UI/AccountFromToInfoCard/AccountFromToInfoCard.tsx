@@ -2,25 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import TransactionTypes from '../../../core/TransactionTypes';
-import { strings } from '../../../../locales/i18n';
+import TransactionTypes from '@core/TransactionTypes';
+import { strings } from '@locales/i18n';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
-import { collectConfusables } from '../../../util/confusables';
-import { decodeTransferData } from '../../../util/transactions';
-import { doENSReverseLookup } from '../../../util/ENSUtils';
-import { safeToChecksumAddress } from '../../../util/address';
-import { useTheme } from '../../../util/theme';
-import InfoModal from '../Swaps/components/InfoModal';
-import useExistingAddress from '../../hooks/useExistingAddress';
-import { AddressTo } from '../AddressInputs';
+} from '@selectors/networkController';
+import { collectConfusables } from '@util/confusables';
+import { decodeTransferData } from '@util/transactions';
+import { doENSReverseLookup } from '@util/ENSUtils';
+import { safeToChecksumAddress } from '@util/address';
+import { useTheme } from '@util/theme';
+import InfoModal from '@Swaps/components/InfoModal';
+import useExistingAddress from '@hooks/useExistingAddress';
+import { AddressTo } from '@AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../util/general';
-import { RootState } from '../../../reducers';
+import { selectInternalAccounts } from '@selectors/accountsController';
+import { toLowerCaseEquals } from '@util/general';
+import { RootState } from '@reducers';
 import AddressFrom from './AddressFrom';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {

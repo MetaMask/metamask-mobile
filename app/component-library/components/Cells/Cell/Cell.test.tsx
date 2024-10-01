@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import Cell from './Cell';

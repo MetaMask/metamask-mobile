@@ -8,43 +8,43 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { fontStyles } from '../../../styles/common';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
-import { strings } from '../../../../locales/i18n';
+import { getNetworkNavbarOptions } from '@UI/Navbar';
+import { fontStyles } from '@styles/common';
+import ClipboardManager from '@core/ClipboardManager';
+import { showAlert } from '@actions/alert';
+import { strings } from '@locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
-import EthereumAddress from '../../UI/EthereumAddress';
+import EthereumAddress from '@UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
-import TokenImage from '../../UI/TokenImage';
-import Networks, { getDecimalChainId } from '../../../util/networks';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import NotificationManager from '../../../core/NotificationManager';
-import AppConstants from '../../../core/AppConstants';
+import TokenImage from '@UI/TokenImage';
+import Networks, { getDecimalChainId } from '@util/networks';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import NotificationManager from '@core/NotificationManager';
+import AppConstants from '@core/AppConstants';
 import { Token as TokenType } from '@metamask/assets-controllers';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
-} from '../../../util/number';
-import WarningMessage from '../confirmations/SendFlow/WarningMessage';
-import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Routes from '../../../constants/navigation/Routes';
+} from '@util/number';
+import WarningMessage from '@confirmations/SendFlow/WarningMessage';
+import { useTheme } from '@util/theme';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Routes from '@constants/navigation/Routes';
 import {
   selectChainId,
   selectProviderConfig,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@selectors/currencyRateController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
-import { Colors } from '../../../util/theme/models';
+import { Colors } from '@util/theme/models';
 import { Hex } from '@metamask/utils';
 
 const createStyles = (colors: Colors) =>

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
 import BlockaidSettings from './BlockaidSettings';
 

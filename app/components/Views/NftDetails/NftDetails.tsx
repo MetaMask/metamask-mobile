@@ -5,47 +5,47 @@ import {
   TextLayoutEventData,
   View,
 } from 'react-native';
-import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
-import Text from '../../../component-library/components/Texts/Text/Text';
+import { getNftDetailsNavbarOptions } from '@UI/Navbar';
+import Text from '@component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
-import { useStyles } from '../../../component-library/hooks';
+import { useParams } from '@util/navigation/navUtils';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './NftDetails.styles';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
-import StyledButton from '../../../components/UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
-import { renderShortAddress } from '../../../util/address';
+import { renderShortAddress } from '@util/address';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import ClipboardManager from '../../../core/ClipboardManager';
+} from '@component-library/components/Icons/Icon';
+import ClipboardManager from '@core/ClipboardManager';
 import { useDispatch, useSelector } from 'react-redux';
-import { showAlert } from '../../../actions/alert';
-import { strings } from '../../../../locales/i18n';
+import { showAlert } from '@actions/alert';
+import { strings } from '@locales/i18n';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import etherscanLink from '@metamask/etherscan-link';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { formatCurrency } from '../../../util/confirm-tx';
-import { newAssetTransaction } from '../../../actions/transaction';
-import CollectibleMedia from '../../../components/UI/CollectibleMedia';
-import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
+} from '@selectors/currencyRateController';
+import { formatCurrency } from '@util/confirm-tx';
+import { newAssetTransaction } from '@actions/transaction';
+import CollectibleMedia from '@components/UI/CollectibleMedia';
+import ContentDisplay from '@components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
-import { getDecimalChainId } from '../../../util/networks';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { renderShortText } from '../../../util/general';
-import { prefixUrlWithProtocol } from '../../../util/browser';
-import { formatTimestampToYYYYMMDD } from '../../../util/date';
+import { getDecimalChainId } from '@util/networks';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { renderShortText } from '@util/general';
+import { prefixUrlWithProtocol } from '@util/browser';
+import { formatTimestampToYYYYMMDD } from '@util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 
 const NftDetails = () => {

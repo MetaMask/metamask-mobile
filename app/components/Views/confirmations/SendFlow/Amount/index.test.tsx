@@ -3,17 +3,17 @@ import Amount from '.';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import TransactionTypes from '../../../../../core/TransactionTypes';
+import renderWithProvider from '@util/test/renderWithProvider';
+import TransactionTypes from '@core/TransactionTypes';
 
-import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+import { AmountViewSelectorsIDs } from '@e2e/selectors/SendFlow/AmountView.selectors';
 
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
 
 const mockTransactionTypes = TransactionTypes;
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(() =>
@@ -59,7 +59,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   estimateGas: jest.fn(() =>
     Promise.resolve({
@@ -173,7 +173,7 @@ describe('Amount', () => {
         selectedAsset: {
           address: '',
           isETH: true,
-          logo: '../images/eth-logo.png',
+          logo: '@images/eth-logo.png',
           name: 'Ether',
           symbol: 'ETH',
         },
@@ -219,7 +219,7 @@ describe('Amount', () => {
         selectedAsset: {
           address: '',
           isETH: true,
-          logo: '../images/eth-logo.png',
+          logo: '@images/eth-logo.png',
           name: 'Ether',
           symbol: 'ETH',
         },
@@ -283,7 +283,7 @@ describe('Amount', () => {
         selectedAsset: {
           address: '',
           isETH: true,
-          logo: '../images/eth-logo.png',
+          logo: '@images/eth-logo.png',
           name: 'Ether',
           symbol: 'ETH',
         },
@@ -343,7 +343,7 @@ describe('Amount', () => {
         selectedAsset: {
           address: '',
           isETH: true,
-          logo: '../images/eth-logo.png',
+          logo: '@images/eth-logo.png',
           name: 'Ether',
           symbol: 'ETH',
         },
@@ -449,7 +449,7 @@ describe('Amount', () => {
         selectedAsset: {
           address: '',
           isETH: true,
-          logo: '../images/eth-logo.png',
+          logo: '@images/eth-logo.png',
           name: 'Ether',
           symbol: 'ETH',
         },

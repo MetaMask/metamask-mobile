@@ -6,9 +6,9 @@ import {
 } from '@metamask/gas-fee-controller';
 
 import { BN } from 'ethereumjs-util';
-import Engine from '../../../../core/Engine';
-import { decGWEIToHexWEI } from '../../../../util/conversions';
-import { selectGasFeeControllerState } from '../../../../selectors/gasFeeController';
+import Engine from '@core/Engine';
+import { decGWEIToHexWEI } from '@util/conversions';
+import { selectGasFeeControllerState } from '@selectors/gasFeeController';
 
 const defaultGasLimit = 21000;
 

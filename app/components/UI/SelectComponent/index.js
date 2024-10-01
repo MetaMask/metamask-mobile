@@ -7,13 +7,13 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '@styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>

@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
-import { colors } from '../../../styles/common';
+import Device from '@util/device';
+import { colors } from '@styles/common';
 
 const styles = StyleSheet.create({
   bottomModal: {

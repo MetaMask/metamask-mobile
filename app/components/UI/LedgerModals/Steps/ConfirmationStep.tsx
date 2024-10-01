@@ -3,14 +3,14 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useMemo } from 'react';
 import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
-import StyledButton from '../../StyledButton';
-import Text from '../../../Base/Text';
-import { strings } from '../../../../../locales/i18n';
-import { useAssetFromTheme } from '../../../../util/theme';
+import StyledButton from '@StyledButton';
+import Text from '@Base/Text';
+import { strings } from '@locales/i18n';
+import { useAssetFromTheme } from '@util/theme';
 import { LEDGER_CONFIRMATION_STEP } from './Steps.constants';
 
-const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
-const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
+const ledgerConnectLightImage = require('@images/ledger-connect-light.png');
+const ledgerConnectDarkImage = require('@images/ledger-connect-dark.png');
 
 const createStyles = () =>
   StyleSheet.create({

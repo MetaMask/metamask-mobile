@@ -8,28 +8,28 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import StorageWrapper from '../../../store/storage-wrapper';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
-} from '../../../constants/storage';
-import StyledButton from '../StyledButton';
-import { useTheme } from '../../../util/theme';
+} from '@constants/storage';
+import StyledButton from '@StyledButton';
+import { useTheme } from '@util/theme';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
+} from '@component-library/components/Icons/Icon';
+import ReusableModal, { ReusableModalRef } from '@ReusableModal';
 import { whatsNewList } from './';
-import { Colors } from '../../../util/theme/models';
-import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
+import { Colors } from '@util/theme/models';
+import { WhatsNewModalSelectorsIDs } from '@e2e/selectors/Modals/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 

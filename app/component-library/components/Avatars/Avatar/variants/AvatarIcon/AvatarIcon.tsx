@@ -4,10 +4,10 @@
 import React from 'react';
 
 // External dependencies.
-import AvatarBase from '../../foundation/AvatarBase';
-import Icon from '../../../../Icons/Icon';
-import { useStyles } from '../../../../../hooks';
-import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
+import AvatarBase from '@foundation/AvatarBase';
+import Icon from '@Icons/Icon';
+import { useStyles } from '@hooks';
+import { ICONSIZE_BY_AVATARSIZE } from '@Avatar.constants';
 
 // Internal dependencies.
 import stylesheet from './AvatarIcon.styles';

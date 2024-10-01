@@ -1,16 +1,16 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import Engine from '../../../Engine';
-import DevLogger from '../../utils/DevLogger';
-import { waitForKeychainUnlocked } from '../../utils/wait.util';
-import { Connection } from '../Connection';
+import Engine from '@Engine';
+import DevLogger from '@utils/DevLogger';
+import { waitForKeychainUnlocked } from '@utils/wait.util';
+import { Connection } from '@Connection';
 import handleClientsConnected from './handleClientsConnected';
 
-jest.mock('../Connection');
+jest.mock('@Connection');
 jest.mock('@metamask/keyring-controller');
-jest.mock('../../../../util/Logger');
-jest.mock('../../../Engine');
-jest.mock('../../utils/DevLogger');
-jest.mock('../../utils/wait.util');
+jest.mock('@util/Logger');
+jest.mock('@Engine');
+jest.mock('@utils/DevLogger');
+jest.mock('@utils/wait.util');
 
 describe('handleClientsConnected', () => {
   let mockConnection: Connection;

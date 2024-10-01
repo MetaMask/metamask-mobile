@@ -2,21 +2,21 @@ import { toHex } from '@metamask/controller-utils';
 import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Button, {
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+} from '@component-library/components/Buttons/Button';
+import { selectNetworkConfigurations } from '@selectors/networkController';
 import {
   getBlockExplorerByChainId,
   TRIGGER_TYPES,
-} from '../../../../../util/notifications';
-import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import useStyles from '../useStyles';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { type Notification } from '../../../../../util/notifications/types';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+} from '@util/notifications';
+import { ModalFooterBlockExplorer } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import useStyles from '@useStyles';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { type Notification } from '@util/notifications/types';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
   notification: Notification;

@@ -9,7 +9,7 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-jest.mock('../../util/general', () => ({
+jest.mock('@util/general', () => ({
   deepJSONParse: jest.fn(),
 }));
 
@@ -66,7 +66,7 @@ describe('Migration #28', () => {
     const hasPropertyMock = jest.fn().mockReturnValue(false);
 
     require('@metamask/utils').isObject.mockReturnValue(true);
-    require('../../util/general').deepJSONParse = deepJSONParseMock;
+    require('@util/general').deepJSONParse = deepJSONParseMock;
     require('redux-persist-filesystem-storage').getItem = getItemMock;
     require('redux-persist-filesystem-storage').setItem = setItemMock;
     require('redux-persist-filesystem-storage').removeItem = removeItemMock;

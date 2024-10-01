@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, TouchableOpacityProps, GestureResponderEvent } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '@util/theme';
 import { Theme } from '@metamask/design-tokens';
 
 interface SelectorButtonProps {

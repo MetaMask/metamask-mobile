@@ -6,26 +6,26 @@ import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
 import { Platform, Linking } from 'react-native';
 
-import Routes from '../../../app/constants/navigation/Routes';
-import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import Device from '../../util/device';
-import Logger from '../../util/Logger';
-import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
-import Engine from '../Engine';
-import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
-import DevLogger from '../SDKConnect/utils/DevLogger';
+import Routes from '@app/constants/navigation/Routes';
+import ppomUtil from '@app/lib/ppom/ppom-util';
+import Device from '@util/device';
+import Logger from '@util/Logger';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import Engine from '@Engine';
+import getRpcMethodMiddleware from '@RPCMethods/RPCMethodMiddleware';
+import DevLogger from '@SDKConnect/utils/DevLogger';
 import METHODS_TO_REDIRECT from './wc-config';
-import { Minimizer } from '../NativeModules';
-import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
+import { Minimizer } from '@NativeModules';
+import { WALLET_CONNECT_ORIGIN } from '@app/util/walletconnect';
 import {
   selectChainId,
   selectNetworkConfigurations,
-} from '../../selectors/networkController';
-import { store } from '../../store';
-import { addTransaction } from '../../util/transaction-controller';
-import { getPermittedAccounts } from '../Permissions';
+} from '@selectors/networkController';
+import { store } from '@store';
+import { addTransaction } from '@util/transaction-controller';
+import { getPermittedAccounts } from '@Permissions';
 import { hideWCLoadingState, showWCLoadingState } from './wc-utils';
-import { getDefaultNetworkByChainId } from '../../util/networks';
+import { getDefaultNetworkByChainId } from '@util/networks';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 
 const ERROR_CODES = {

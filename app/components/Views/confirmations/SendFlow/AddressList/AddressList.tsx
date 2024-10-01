@@ -11,23 +11,23 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { AddressBookEntry } from '@metamask/address-book-controller';
 
 // External dependencies
-import { isSmartContractAddress } from '../../../../../util/transactions';
-import { strings } from '../../../../../../locales/i18n';
-import AddressElement from '../AddressElement';
-import { useTheme } from '../../../../../util/theme';
-import Text from '../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { regex } from '../../../../../util/regex';
-import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { isSmartContractAddress } from '@util/transactions';
+import { strings } from '@locales/i18n';
+import AddressElement from '@AddressElement';
+import { useTheme } from '@util/theme';
+import Text from '@component-library/components/Texts/Text/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
+import { selectChainId } from '@selectors/networkController';
+import { regex } from '@util/regex';
+import { SendViewSelectorsIDs } from '@e2e/selectors/SendView.selectors';
+import { selectInternalAccounts } from '@selectors/accountsController';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import { RootState } from '../../../../../reducers';
+import { selectAddressBook } from '@selectors/addressBookController';
+import { RootState } from '@reducers';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

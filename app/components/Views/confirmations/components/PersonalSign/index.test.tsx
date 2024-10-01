@@ -3,18 +3,18 @@ import { shallow } from 'enzyme';
 import PersonalSign from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import SignatureRequest from '../SignatureRequest';
-import Engine from '../../../../../core/Engine';
-import NotificationManager from '../../../../../core/NotificationManager';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
+import SignatureRequest from '@SignatureRequest';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
 import { InteractionManager } from 'react-native';
-import AppConstants from '../../../../../core/AppConstants';
-import { strings } from '../../../../../../locales/i18n';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import AppConstants from '@core/AppConstants';
+import { strings } from '@locales/i18n';
+import { backgroundState } from '@util/test/initial-root-state';
+import { useMetrics } from '@components/hooks/useMetrics';
 
-jest.mock('../../../../../components/hooks/useMetrics');
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@components/hooks/useMetrics');
+jest.mock('@core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
   context: {
@@ -36,7 +36,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../core/NotificationManager', () => ({
+jest.mock('@core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
@@ -77,7 +77,7 @@ jest.mock('react-redux', () => ({
     }),
 }));
 
-jest.mock('../../../../../util/address', () => ({
+jest.mock('@util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
   isExternalHardwareAccount: jest.fn().mockReturnValue(false),
 }));

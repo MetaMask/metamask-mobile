@@ -1,5 +1,5 @@
-import { NotificationTypes } from '../../../../../../util/notifications';
-import { IconName, IconSize } from '../../../../Icons/Icon/Icon.types';
+import { NotificationTypes } from '@util/notifications';
+import { IconName, IconSize } from '@Icons/Icon/Icon.types';
 
 // Internal dependencies.
 import { BadgeNotificationsProps } from './BadgeNotifications.types';

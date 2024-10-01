@@ -2,22 +2,22 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import ReusableModal, { ReusableModalRef } from '../../../UI/ReusableModal';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../hooks/useStyles';
-import { strings } from '../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Routes from '../../../../constants/navigation/Routes';
-import { SRP_GUIDE_URL } from '../../../../constants/urls';
+} from '@component-library/components/Icons/Icon';
+import { useStyles } from '@hooks/useStyles';
+import { strings } from '@locales/i18n';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Routes from '@constants/navigation/Routes';
+import { SRP_GUIDE_URL } from '@constants/urls';
 
-import { QuizStage } from '../types';
-import { QuizContent } from '../QuizContent';
+import { QuizStage } from '@types';
+import { QuizContent } from '@QuizContent';
 import stylesheet from './styles';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 import {
   SrpQuizGetStartedSelectorsIDs,
@@ -26,9 +26,9 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../../../../e2e/selectors/Modals/SrpQuizModal.selectors';
+} from '@e2e/selectors/Modals/SrpQuizModal.selectors';
 
-const introductionImg = require('../../../../images/reveal-srp.png');
+const introductionImg = require('@images/reveal-srp.png');
 
 const SRPQuiz = () => {
   const modalRef = useRef<ReusableModalRef>(null);

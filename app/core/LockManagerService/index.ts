@@ -3,11 +3,11 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import SecureKeychain from '../SecureKeychain';
+import SecureKeychain from '@SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
-import Engine from '../Engine';
-import Logger from '../../util/Logger';
-import { lockApp, interruptBiometrics } from '../../actions/user';
+import Engine from '@Engine';
+import Logger from '@util/Logger';
+import { lockApp, interruptBiometrics } from '@actions/user';
 import { Store } from 'redux';
 
 class LockManagerService {

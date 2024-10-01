@@ -5,31 +5,31 @@ import {
   CommunicationLayerMessage,
   MessageType,
 } from '@metamask/sdk-communication-layer';
-import Engine from '../../Engine';
-import { Connection } from '../Connection';
-import DevLogger from '../utils/DevLogger';
+import Engine from '@Engine';
+import { Connection } from '@Connection';
+import DevLogger from '@utils/DevLogger';
 import {
   waitForConnectionReadiness,
   waitForKeychainUnlocked,
-} from '../utils/wait.util';
+} from '@utils/wait.util';
 import checkPermissions from './checkPermissions';
 import handleConnectionMessage from './handleConnectionMessage';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
-import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { mockNetworkState } from '../../../util/test/network';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-jest.mock('../../Engine');
+jest.mock('@Engine');
 jest.mock('@metamask/keyring-controller');
 jest.mock('@metamask/network-controller');
 jest.mock('@metamask/accounts-controller');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('../utils/DevLogger');
-jest.mock('../../../util/Logger');
-jest.mock('../utils/wait.util');
+jest.mock('@utils/DevLogger');
+jest.mock('@util/Logger');
+jest.mock('@utils/wait.util');
 jest.mock('./checkPermissions');
 jest.mock('./handleCustomRpcCalls');
 jest.mock('./handleSendMessage');

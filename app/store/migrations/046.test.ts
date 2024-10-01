@@ -1,6 +1,6 @@
 import migration from './046';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -22,7 +22,7 @@ const createStyles = (colors) =>
     },
   });
 
-const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('@images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**
  * View component that displays the MetaMask fox

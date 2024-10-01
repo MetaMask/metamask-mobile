@@ -1,12 +1,12 @@
-import { ETH_ACTIONS } from '../../../constants/deeplinks';
+import { ETH_ACTIONS } from '@constants/deeplinks';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import DeeplinkManager from '../DeeplinkManager';
-import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
-import { NetworkSwitchErrorType } from '../../../constants/error';
+import { strings } from '@locales/i18n';
+import DeeplinkManager from '@DeeplinkManager';
+import formattedDeeplinkParsedValue from '@util/formattedDeeplinkParsedValue';
+import { NetworkSwitchErrorType } from '@constants/error';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { getDecimalChainId } from '../../../util/networks';
+import { getDecimalChainId } from '@util/networks';
 
 async function handleEthereumUrl({
   deeplinkManager,

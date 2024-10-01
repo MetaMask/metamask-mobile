@@ -13,69 +13,69 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { showAlert } from '../../../actions/alert';
+import { strings } from '@locales/i18n';
+import { showAlert } from '@actions/alert';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
+} from '@component-library/components/Buttons/Button';
+import { NO_RPC_BLOCK_EXPLORER, RPC } from '@constants/network';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
+import { collectibleContractsSelector } from '@reducers/collectibles';
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
-} from '../../../selectors/networkController';
-import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectTokensByAddress } from '../../../selectors/tokensController';
-import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
-import { baseStyles, fontStyles } from '../../../styles/common';
-import { isHardwareAccount } from '../../../util/address';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import Device from '../../../util/device';
-import Logger from '../../../util/Logger';
+} from '@selectors/networkController';
+import { selectPrimaryCurrency } from '@selectors/settings';
+import { selectTokensByAddress } from '@selectors/tokensController';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
+import { baseStyles, fontStyles } from '@styles/common';
+import { isHardwareAccount } from '@util/address';
+import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
+import Device from '@util/device';
+import Logger from '@util/Logger';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerAddressUrl,
   getBlockExplorerName,
   isMainnetByChainId,
-} from '../../../util/networks';
-import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
-import { mockTheme, ThemeContext } from '../../../util/theme';
-import { validateTransactionActionBalance } from '../../../util/transactions';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import TransactionActionModal from '../TransactionActionModal';
-import TransactionElement from '../TransactionElement';
-import UpdateEIP1559Tx from '../../Views/confirmations/components/UpdateEIP1559Tx';
+} from '@util/networks';
+import { addHexPrefix, hexToBN, renderFromWei } from '@util/number';
+import { mockTheme, ThemeContext } from '@util/theme';
+import { validateTransactionActionBalance } from '@util/transactions';
+import withQRHardwareAwareness from '@QRHardware/withQRHardwareAwareness';
+import TransactionActionModal from '@TransactionActionModal';
+import TransactionElement from '@TransactionElement';
+import UpdateEIP1559Tx from '@Views/confirmations/components/UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
-} from '../AssetOverview/PriceChart/PriceChart.context';
+} from '@AssetOverview/PriceChart/PriceChart.context';
 import { providerErrors } from '@metamask/rpc-errors';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+} from '@selectors/currencyRateController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import {
   TransactionError,
   CancelTransactionError,
   SpeedupTransactionError,
-} from '../../../core/Transaction/TransactionError';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+} from '@core/Transaction/TransactionError';
+import { getDeviceId } from '@core/Ledger/Ledger';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
+import { TOKEN_OVERVIEW_TXN_SCREEN } from '@wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
   speedUpTransaction,
   updateIncomingTransactions,
-} from '../../../util/transaction-controller';
-import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+} from '@util/transaction-controller';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { decGWEIToHexWEI } from '@util/conversions';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({

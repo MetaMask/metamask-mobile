@@ -2,12 +2,12 @@ import React from 'react';
 import Header from '.';
 import { render } from '@testing-library/react-native';
 
-jest.mock('../../../../../util/theme');
+jest.mock('@util/theme');
 jest.mock('@react-navigation/native');
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
+jest.mock('@component-library/components/Texts/Text', () => {
   const originalModule = jest.requireActual(
-    '../../../../../component-library/components/Texts/Text',
+    '@component-library/components/Texts/Text',
   );
   return {
     ...originalModule,

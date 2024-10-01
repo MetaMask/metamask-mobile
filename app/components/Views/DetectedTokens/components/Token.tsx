@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Token as TokenType } from '@metamask/assets-controllers';
-import EthereumAddress from '../../../UI/EthereumAddress';
+import EthereumAddress from '@UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import CheckBox from '@react-native-community/checkbox';
-import { strings } from '../../../../../locales/i18n';
-import TokenImage from '../../../UI/TokenImage';
-import { fontStyles } from '../../../../styles/common';
+import { strings } from '@locales/i18n';
+import TokenImage from '@UI/TokenImage';
+import { fontStyles } from '@styles/common';
 import { useDispatch, useSelector } from 'react-redux';
-import { showAlert } from '../../../../actions/alert';
-import ClipboardManager from '../../../../core/ClipboardManager';
+import { showAlert } from '@actions/alert';
+import ClipboardManager from '@core/ClipboardManager';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
-} from '../../../../util/number';
-import { useTheme } from '../../../../util/theme';
+} from '@util/number';
+import { useTheme } from '@util/theme';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { Colors } from '../../../../util/theme/models';
+} from '@selectors/currencyRateController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { Colors } from '@util/theme/models';
 import { Hex } from '@metamask/utils';
 
 // Replace this interface by importing from TokenRatesController when it exports it

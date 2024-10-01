@@ -1,5 +1,5 @@
-import AppConstants from '../../../../core/AppConstants';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import AppConstants from '@core/AppConstants';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
 import { Hex } from '@metamask/utils';
 
 const {

@@ -1,6 +1,6 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import Onboarding from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {

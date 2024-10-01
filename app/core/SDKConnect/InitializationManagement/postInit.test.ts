@@ -1,16 +1,16 @@
 import postInit from './postInit';
-import SDKConnect from '../SDKConnect';
+import SDKConnect from '@SDKConnect';
 import { KeyringController } from '@metamask/keyring-controller';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import { AppState } from 'react-native';
-import DevLogger from '../utils/DevLogger';
+import DevLogger from '@utils/DevLogger';
 import {
   wait,
   waitForCondition,
   waitForKeychainUnlocked,
-} from '../utils/wait.util';
+} from '@utils/wait.util';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       isUnlocked: jest.fn(),
@@ -18,9 +18,9 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 jest.mock('react-native');
-jest.mock('../SDKConnect');
-jest.mock('../utils/DevLogger');
-jest.mock('../utils/wait.util');
+jest.mock('@SDKConnect');
+jest.mock('@utils/DevLogger');
+jest.mock('@utils/wait.util');
 
 describe('postInit', () => {
   let mockInstance = {} as unknown as SDKConnect;

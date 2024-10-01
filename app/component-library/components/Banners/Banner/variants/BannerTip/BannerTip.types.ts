@@ -2,8 +2,8 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { BannerBaseProps } from '../../foundation/BannerBase/BannerBase.types';
-import { BannerVariant } from '../../Banner.types';
+import { BannerBaseProps } from '@foundation/BannerBase/BannerBase.types';
+import { BannerVariant } from '@Banner.types';
 
 /**
  * Logo Type of the BannerTip.

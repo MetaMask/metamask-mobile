@@ -6,7 +6,7 @@ import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
-import Button, { ButtonVariants } from '../Buttons/Button';
+import Button, { ButtonVariants } from '@Buttons/Button';
 
 // Internal dependencies.
 import { default as ToastComponent } from './Toast';

@@ -1,23 +1,23 @@
 'use strict';
 
 import Engine from './Engine';
-import { hexToBN, renderFromWei } from '../util/number';
-import Device from '../util/device';
+import { hexToBN, renderFromWei } from '@util/number';
+import Device from '@util/device';
 import notifee from '@notifee/react-native';
-import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
-import { strings } from '../../locales/i18n';
+import { STORAGE_IDS } from '@util/notifications/settings/storage/constants';
+import { strings } from '@locales/i18n';
 import { AppState } from 'react-native';
 
 import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
 
-} from '../util/notifications';
+} from '@util/notifications';
 
-import { safeToChecksumAddress } from '../util/address';
+import { safeToChecksumAddress } from '@util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId } from '../selectors/networkController';
-import { store } from '../store';
+import { selectChainId } from '@selectors/networkController';
+import { store } from '@store';
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {

@@ -6,17 +6,17 @@ import {
   TextInput,
 } from 'react-native';
 import React from 'react';
-import ActionModal from '../../UI/ActionModal';
-import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
+import ActionModal from '@UI/ActionModal';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Buttons/ButtonIcon';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({

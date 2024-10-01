@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { CellBaseStyleSheetVars } from './CellBase.types';
 
 // Internal dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 /**
  * Style sheet function for CellBase component.

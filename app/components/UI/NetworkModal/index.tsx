@@ -1,41 +1,41 @@
 import Modal from 'react-native-modal';
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import Text from '../../Base/Text';
+import { strings } from '@locales/i18n';
+import Text from '@Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import {
   isprivateConnection,
   toggleUseSafeChainsListValidation,
-} from '../../../util/networks';
-import getDecimalChainId from '../../../util/networks/getDecimalChainId';
+} from '@util/networks';
+import getDecimalChainId from '@util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import { isWebUri } from 'valid-url';
 import { useDispatch, useSelector } from 'react-redux';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { BannerAlertSeverity } from '@component-library/components/Banners/Banner';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
-import { useTheme } from '../../../util/theme';
-import { networkSwitched } from '../../../actions/onboardNetwork';
-import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
-import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+import { useTheme } from '@util/theme';
+import { networkSwitched } from '@actions/onboardNetwork';
+import { NetworkApprovalModalSelectorsIDs } from '@e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import { selectUseSafeChainsListValidation } from '@selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
-import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
-import NetworkVerificationInfo from '../NetworkVerificationInfo';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
+import checkSafeNetwork from '@core/RPCMethods/networkChecker.util';
+import NetworkVerificationInfo from '@NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
-import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
-import Logger from '../../../util/Logger';
+import { rpcIdentifierUtility } from '@components/hooks/useSafeChains';
+import Logger from '@util/Logger';
 
 export interface SafeChain {
   chainId: string;

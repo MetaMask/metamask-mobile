@@ -3,15 +3,15 @@ import { StyleSheet } from 'react-native';
 import {
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Buttons/Button';
+import ButtonBase from '@component-library/components/Buttons/Button/foundation/ButtonBase';
+import { IconName } from '@component-library/components/Icons/Icon';
 import {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
-import type { Colors } from '../../../../util/theme/models';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
+import type { Colors } from '@util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

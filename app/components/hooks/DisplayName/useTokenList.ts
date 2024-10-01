@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import contractMap from '@metamask/contract-metadata';
 import { TokenListToken } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { selectTokenListArray } from '../../../selectors/tokenListController';
-import { isMainnetByChainId } from '../../../util/networks';
+import { selectChainId } from '@selectors/networkController';
+import { selectUseTokenDetection } from '@selectors/preferencesController';
+import { selectTokenListArray } from '@selectors/tokenListController';
+import { isMainnetByChainId } from '@util/networks';
 
 const NORMALIZED_MAINNET_TOKEN_ARRAY = Object.values(
   contractMap,

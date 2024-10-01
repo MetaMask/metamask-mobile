@@ -1,27 +1,27 @@
 import React from 'react';
-import { processFiatOrder } from '../../index';
+import { processFiatOrder } from '@index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
   DeepPartial,
   renderScreen,
-} from '../../../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import { backgroundState } from '@util/test/initial-root-state';
+import { FiatOrder } from '@reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../../constants/on-ramp';
+} from '@constants/on-ramp';
 
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import Routes from '../../../../../constants/navigation/Routes';
-import { RampSDK } from '../../sdk';
-import { PROVIDER_LINKS } from '../../types';
-import AppConstants from '../../../../../core/AppConstants';
+import Routes from '@constants/navigation/Routes';
+import { RampSDK } from '@sdk';
+import { PROVIDER_LINKS } from '@types';
+import AppConstants from '@core/AppConstants';
 import {
   MOCK_ADDRESS_1,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
-} from '../../../../../util/test/accountsControllerTestUtils';
+} from '@util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -29,7 +29,7 @@ const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
@@ -95,7 +95,7 @@ const mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../sdk', () => ({
+jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -108,8 +108,8 @@ let mockUseParamsValues = {
   ...mockUseParamsDefaultValues,
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: () => mockUseParamsValues,
 }));
 
@@ -120,7 +120,7 @@ function mockGetUpdatedOrder(order: FiatOrder) {
   };
 }
 
-jest.mock('../../index', () => ({
+jest.mock('@index', () => ({
   processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
     const updatedOrder = mockGetUpdatedOrder(order);
     if (onSuccess) {

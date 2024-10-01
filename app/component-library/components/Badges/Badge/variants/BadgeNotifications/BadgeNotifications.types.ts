@@ -1,6 +1,6 @@
 // External dependencies.
-import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { BadgeBaseProps } from '@foundation/BadgeBase/BadgeBase.types';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 /**
  * BadgeNotifications component props.

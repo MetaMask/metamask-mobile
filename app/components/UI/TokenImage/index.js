@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import AssetIcon from '../AssetIcon';
-import Identicon from '../Identicon';
+import AssetIcon from '@AssetIcon';
+import Identicon from '@Identicon';
 import isUrl from 'is-url';
 import { connect, useSelector } from 'react-redux';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
-import { isIPFSUri } from '../../../util/general';
+import { selectTokenList } from '@selectors/tokenListController';
+import { selectIsIpfsGatewayEnabled } from '@selectors/preferencesController';
+import { isIPFSUri } from '@util/general';
 
 const styles = StyleSheet.create({
   itemLogoWrapper: {

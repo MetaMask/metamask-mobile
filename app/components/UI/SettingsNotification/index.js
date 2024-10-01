@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

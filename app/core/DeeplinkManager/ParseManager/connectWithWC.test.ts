@@ -1,7 +1,7 @@
 import connectWithWC from './connectWithWC';
-import WC2Manager from '../../WalletConnect/WalletConnectV2';
+import WC2Manager from '@WalletConnect/WalletConnectV2';
 
-jest.mock('../../../core/WalletConnect/WalletConnectV2');
+jest.mock('@core/WalletConnect/WalletConnectV2');
 jest.mock('./extractURLParams');
 
 describe('handleWCProtocol', () => {

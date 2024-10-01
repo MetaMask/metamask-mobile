@@ -1,8 +1,8 @@
 import React from 'react';
 import ErrorView from './ErrorView';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../locales/i18n';
-import { ScreenLocation } from '../types';
+import { strings } from '@locales/i18n';
+import { ScreenLocation } from '@types';
 /**
  * ErrorViewWithReporting is a functional general-purpose UI component responsible to show error details in Fiat On-Ramp
  *

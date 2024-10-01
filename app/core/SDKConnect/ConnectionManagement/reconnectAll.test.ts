@@ -1,9 +1,9 @@
-import SDKConnect from '../SDKConnect';
+import SDKConnect from '@SDKConnect';
 import reconnectAll from './reconnectAll';
 
-jest.mock('../../../util/Logger');
-jest.mock('../SDKConnect');
-jest.mock('../utils/DevLogger');
+jest.mock('@util/Logger');
+jest.mock('@SDKConnect');
+jest.mock('@utils/DevLogger');
 
 describe('reconnectAll', () => {
   let mockInstance = {} as unknown as SDKConnect;

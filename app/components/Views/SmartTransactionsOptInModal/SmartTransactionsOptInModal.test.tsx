@@ -2,12 +2,12 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import { shouldShowWhatsNewModal } from '../../../util/onboarding';
-import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
+import { shouldShowWhatsNewModal } from '@util/onboarding';
+import { updateOptInModalAppVersionSeen } from '@core/redux/slices/smartTransactions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PreferencesController: {
       setSmartTransactionsOptInStatus: jest.fn(),
@@ -30,17 +30,17 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const VERSION = '1.0.0';
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn(() => VERSION),
   setItem: jest.fn(),
   removeItem: jest.fn(),
 }));
 
-jest.mock('../../../util/onboarding', () => ({
+jest.mock('@util/onboarding', () => ({
   shouldShowWhatsNewModal: jest.fn(),
 }));
 
-jest.mock('../../../core/redux/slices/smartTransactions', () => ({
+jest.mock('@core/redux/slices/smartTransactions', () => ({
   updateOptInModalAppVersionSeen: jest.fn(() => ({ type: 'hello' })),
 }));
 

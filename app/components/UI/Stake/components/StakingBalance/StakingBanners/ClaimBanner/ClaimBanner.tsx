@@ -2,18 +2,18 @@ import React from 'react';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../../../../../component-library/components/Banners/Banner';
+} from '@component-library/components/Banners/Banner';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
 import Button, {
   ButtonVariants,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import useTooltipModal from '../../../../../../hooks/useTooltipModal';
-import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
-import { useStyles } from '../../../../../../../component-library/hooks';
+} from '@component-library/components/Buttons/Button';
+import useTooltipModal from '@hooks/useTooltipModal';
+import { BannerProps } from '@component-library/components/Banners/Banner/Banner.types';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './ClaimBanner.styles';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {

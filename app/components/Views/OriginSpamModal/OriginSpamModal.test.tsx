@@ -3,14 +3,14 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { resetOriginSpamState } from '@core/redux/slices/originThrottling';
 import OriginSpamModal, {
   BLOCK_BUTTON_TEST_ID,
   CONTINUE_BUTTON_TEST_ID,
 } from './OriginSpamModal';
-import { RootState } from '../../../reducers';
+import { RootState } from '@reducers';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -18,12 +18,12 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockAction = { type: 'MOCK_ACTION' };
-jest.mock('../../../core/redux/slices/originThrottling', () => ({
+jest.mock('@core/redux/slices/originThrottling', () => ({
   resetOriginSpamState: jest.fn().mockImplementation(() => mockAction),
 }));
 
 jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
+  '@component-library/components/BottomSheets/BottomSheet',
   () =>
     ({ children }: { children: React.ReactElement }) =>
       <>{children}</>,

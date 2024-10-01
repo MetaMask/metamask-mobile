@@ -1,6 +1,6 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import { SDK } from '../sdk';
+import { SDK } from '@sdk';
 import processCustomOrderId, {
   createCustomOrderIdData,
   MAX_ERROR_COUNT,

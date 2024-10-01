@@ -1,6 +1,6 @@
 // External dependencies.
-import { AvatarVariant, AvatarAccountType } from '../../../../Avatars/Avatar';
-import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
+import { AvatarVariant, AvatarAccountType } from '@Avatars/Avatar';
+import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { CellDisplayProps } from './CellDisplay.types';

@@ -1,20 +1,20 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@ReusableModal';
 import { createStyles } from './styles';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+} from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import { useAppThemeFromContext, mockTheme } from '@util/theme';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleSignModal } from '../../../actions/modals';
-import { RootState } from '../../../reducers';
+import { toggleSignModal } from '@actions/modals';
+import { RootState } from '@reducers';
 
-import { RPCStageTypes, iEventGroup } from '../../../reducers/rpcEvents';
-import { resetEventStage } from '../../../actions/rpcEvents';
+import { RPCStageTypes, iEventGroup } from '@reducers/rpcEvents';
+import { resetEventStage } from '@actions/rpcEvents';
 
 export interface LedgerMessageSignModalParams {
   // TODO: Replace "any" with type

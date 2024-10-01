@@ -11,28 +11,28 @@ import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Feather from 'react-native-vector-icons/Feather';
 import Box from './Box';
-import Text from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
-import { toDateFormat } from '../../../../util/date';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
+import Text from '@Base/Text';
+import BaseListItem from '@Base/ListItem';
+import { toDateFormat } from '@util/date';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
 import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../util/number';
-import { FiatOrder, getProviderName } from '../../../../reducers/fiatOrders';
-import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
-import Spinner from '../../AnimatedSpinner';
-import useAnalytics from '../hooks/useAnalytics';
-import { PROVIDER_LINKS } from '../types';
+} from '@util/number';
+import { FiatOrder, getProviderName } from '@reducers/fiatOrders';
+import useBlockExplorer from '@Swaps/utils/useBlockExplorer';
+import Spinner from '@AnimatedSpinner';
+import useAnalytics from '@hooks/useAnalytics';
+import { PROVIDER_LINKS } from '@types';
 import Account from './Account';
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
-import { getOrderAmount } from '../utils';
+import { FIAT_ORDER_STATES } from '@constants/on-ramp';
+import { getOrderAmount } from '@utils';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../../selectors/networkController';
+} from '@selectors/networkController';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');

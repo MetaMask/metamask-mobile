@@ -1,8 +1,8 @@
 import { useDispatch } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import { showAlert } from '../../../../../actions/alert';
-import { protectWalletModalVisible } from '../../../../../actions/user';
-import ClipboardManager from '../../../../../core/ClipboardManager';
+import { strings } from '@locales/i18n';
+import { showAlert } from '@actions/alert';
+import { protectWalletModalVisible } from '@actions/user';
+import ClipboardManager from '@core/ClipboardManager';
 
 export const CopyClipboardAlertMessage = {
   default: (): string => strings('notifications.copied_to_clipboard'),

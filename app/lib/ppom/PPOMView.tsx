@@ -4,7 +4,7 @@ import { WebView } from '@metamask/react-native-webview';
 import createInvoke from 'react-native-webview-invoke/native';
 import { fromByteArray } from 'react-native-quick-base64';
 
-import Logger from '../../util/Logger';
+import Logger from '@util/Logger';
 import asyncInvoke from './invoke-lib';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

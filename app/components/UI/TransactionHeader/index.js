@@ -1,22 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
-import WebsiteIcon from '../WebsiteIcon';
-import { getHost, getUrlObj } from '../../../util/browser';
+import WebsiteIcon from '@WebsiteIcon';
+import { getHost, getUrlObj } from '@util/browser';
 import networkList, {
   isMultichainVersion1Enabled,
-} from '../../../util/networks';
+} from '@util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import AppConstants from '../../../core/AppConstants';
-import { renderShortAddress } from '../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { useTheme } from '../../../util/theme';
+import AppConstants from '@core/AppConstants';
+import { renderShortAddress } from '@util/address';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
+import { useTheme } from '@util/theme';
 import {
   selectNickname,
   selectProviderType,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 

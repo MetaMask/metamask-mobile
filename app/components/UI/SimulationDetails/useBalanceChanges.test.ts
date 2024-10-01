@@ -7,8 +7,8 @@ import {
 } from '@metamask/transaction-controller';
 import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
 
-import { getTokenDetails } from '../../../util/address';
-import { selectConversionRate } from '../../../selectors/currencyRateController';
+import { getTokenDetails } from '@util/address';
+import { selectConversionRate } from '@selectors/currencyRateController';
 import useBalanceChanges from './useBalanceChanges';
 import { FIAT_UNAVAILABLE, AssetType } from './types';
 
@@ -17,16 +17,16 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockImplementation((callback) => callback()),
 }));
 
-jest.mock('../../../selectors/currencyRateController', () => ({
+jest.mock('@selectors/currencyRateController', () => ({
   selectConversionRate: jest.fn(),
   selectCurrentCurrency: jest.fn(),
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
+jest.mock('@selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 
-jest.mock('../../../util/address', () => ({
+jest.mock('@util/address', () => ({
   getTokenDetails: jest.fn(),
 }));
 

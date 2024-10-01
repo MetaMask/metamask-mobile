@@ -1,6 +1,6 @@
 import migrate from './051';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 

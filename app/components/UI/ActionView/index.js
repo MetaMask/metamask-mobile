@@ -1,5 +1,5 @@
 import React from 'react';
-import StyledButton from '../StyledButton';
+import StyledButton from '@StyledButton';
 import PropTypes from 'prop-types';
 import {
   Keyboard,
@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { baseStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
+import { baseStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 
 export const ConfirmButtonState = {
   Error: 'error',

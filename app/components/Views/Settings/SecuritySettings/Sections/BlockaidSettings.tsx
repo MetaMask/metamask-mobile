@@ -2,17 +2,17 @@ import React from 'react';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
 import { Linking, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
-import Engine from '../../../../../core/Engine';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import SECURITY_ALERTS_TOGGLE_TEST_ID from '../constants';
+import { selectIsSecurityAlertsEnabled } from '@selectors/preferencesController';
+import Engine from '@core/Engine';
+import { MetaMetricsEvents } from '@core/Analytics';
+import SECURITY_ALERTS_TOGGLE_TEST_ID from '@constants';
 import createStyles from './BlockaidSettings.styles';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const BlockaidSettings = () => {
   const theme = useTheme();

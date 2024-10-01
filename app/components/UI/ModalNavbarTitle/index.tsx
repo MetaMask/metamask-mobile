@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 
 const styles = StyleSheet.create({
   wrapper: {

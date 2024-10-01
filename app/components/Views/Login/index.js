@@ -15,50 +15,50 @@ import {
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
+} from '@component-library/components/Texts/Text';
+import StorageWrapper from '@store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from '@metamask/react-native-button';
-import StyledButton from '../../UI/StyledButton';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import { setAllowLoginWithRememberMe } from '../../../actions/security';
+import StyledButton from '@UI/StyledButton';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import FadeOutOverlay from '@UI/FadeOutOverlay';
+import setOnboardingWizardStep from '@actions/wizard';
+import { setAllowLoginWithRememberMe } from '@actions/security';
 import { connect } from 'react-redux';
-import Device from '../../../util/device';
+import Device from '@util/device';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+} from '@util/authentication';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import { BiometryButton } from '../../UI/BiometryButton';
-import Logger from '../../../util/Logger';
+import { BiometryButton } from '@UI/BiometryButton';
+import Logger from '@util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
-} from '../../../constants/storage';
-import Routes from '../../../constants/navigation/Routes';
-import { passwordRequirementsMet } from '../../../util/password';
-import ErrorBoundary from '../ErrorBoundary';
-import { toLowerCaseEquals } from '../../../util/general';
-import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
-import { parseVaultValue } from '../../../util/validators';
-import { getVaultFromBackup } from '../../../core/BackupVault';
-import { containsErrorMessage } from '../../../util/errorHandling';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
-import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { downloadStateLogs } from '../../../util/logs';
+} from '@constants/storage';
+import Routes from '@constants/navigation/Routes';
+import { passwordRequirementsMet } from '@util/password';
+import ErrorBoundary from '@ErrorBoundary';
+import { toLowerCaseEquals } from '@util/general';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { ThemeContext, mockTheme } from '@util/theme';
+import AnimatedFox from '@Base/AnimatedFox';
+import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
+import { createRestoreWalletNavDetailsNested } from '@RestoreWallet/RestoreWallet';
+import { parseVaultValue } from '@util/validators';
+import { getVaultFromBackup } from '@core/BackupVault';
+import { containsErrorMessage } from '@util/errorHandling';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { RevealSeedViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { LoginViewSelectors } from '@e2e/selectors/LoginView.selectors';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
+import { downloadStateLogs } from '@util/logs';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -528,7 +528,7 @@ class Login extends PureComponent {
               >
                 {Device.isAndroid() ? (
                   <Image
-                    source={require('../../../images/fox.png')}
+                    source={require('@images/fox.png')}
                     style={styles.image}
                     resizeMethod={'auto'}
                   />

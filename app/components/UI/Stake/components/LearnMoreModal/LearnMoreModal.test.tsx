@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import LearnMoreModal from '.';
-import { POOLED_STAKING_FAQ_URL } from '../../constants';
-import Routes from '../../../../../constants/navigation/Routes';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../../locales/i18n';
+import { POOLED_STAKING_FAQ_URL } from '@constants';
+import Routes from '@constants/navigation/Routes';
+import { renderScreen } from '@util/test/renderWithProvider';
+import { strings } from '@locales/i18n';
 
 const renderLearnMoreModal = () =>
   renderScreen(LearnMoreModal, { name: Routes.STAKING.MODALS.LEARN_MORE });

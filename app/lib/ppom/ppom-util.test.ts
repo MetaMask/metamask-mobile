@@ -1,27 +1,27 @@
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
-import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
-import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
-import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
-import Engine from '../../core/Engine';
+import * as SignatureRequestActions from '@actions/signatureRequest'; // eslint-disable-line import/no-namespace
+import * as TransactionActions from '@actions/transaction'; // eslint-disable-line import/no-namespace
+import * as NetworkControllerSelectors from '@selectors/networkController'; // eslint-disable-line import/no-namespace
+import Engine from '@core/Engine';
 import PPOMUtil from './ppom-util';
 // eslint-disable-next-line import/no-namespace
 import * as securityAlertAPI from './security-alerts-api';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { isBlockaidFeatureEnabled } from '@util/blockaid';
 import { Hex } from '@metamask/utils';
 import { NetworkClientType } from '@metamask/network-controller';
 
 const CHAIN_ID_MOCK = '0x1';
 
 jest.mock('./security-alerts-api');
-jest.mock('../../util/blockaid');
+jest.mock('@util/blockaid');
 
-jest.mock('../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   updateSecurityAlertResponse: jest.fn(),
   updateTransaction: jest.fn(),
 }));
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PreferencesController: {
       state: {

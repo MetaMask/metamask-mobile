@@ -6,8 +6,8 @@ import { Image } from 'react-native';
 import JazzIcon from 'react-native-jazzicon';
 
 // External dependencies.
-import AvatarBase from '../../foundation/AvatarBase';
-import { toDataUrl } from '../../../../../../util/blockies';
+import AvatarBase from '@foundation/AvatarBase';
+import { toDataUrl } from '@util/blockies';
 
 // Internal dependencies.
 import { AvatarAccountProps, AvatarAccountType } from './AvatarAccount.types';

@@ -1,5 +1,5 @@
 import React from 'react';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import ApprovalFlowLoader from '.';
 
 describe('ApprovalFlowLoader', () => {

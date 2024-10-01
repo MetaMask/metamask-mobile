@@ -2,8 +2,8 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
-import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
+import { Theme } from '@util/theme/models';
+import { ButtonSize, ButtonWidthTypes } from '@Button.types';
 
 // Internal dependencies.
 import { ButtonBaseStyleSheetVars } from './ButtonBase.types';

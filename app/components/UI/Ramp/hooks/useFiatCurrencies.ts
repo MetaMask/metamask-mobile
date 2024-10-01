@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useRampSDK } from '../sdk';
+import { useRampSDK } from '@sdk';
 import useSDKMethod from './useSDKMethod';
 
 export default function useFiatCurrencies() {

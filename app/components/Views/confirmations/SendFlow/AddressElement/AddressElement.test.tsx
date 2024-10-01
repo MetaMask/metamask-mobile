@@ -1,10 +1,10 @@
 import React from 'react';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 import AddressElement from '.';
-import { renderShortAddress } from '../../../../../util/address';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { mockNetworkState } from '../../../../../util/test/network';
+import { renderShortAddress } from '@util/address';
+import { backgroundState } from '@util/test/initial-root-state';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.unmock('react-redux');
@@ -16,7 +16,7 @@ const mockedNetworkControllerState = mockNetworkState({
   ticker: 'ETH',
 });
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     NetworkController: {
       getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({

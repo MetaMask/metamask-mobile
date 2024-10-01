@@ -14,10 +14,10 @@ import { JsonRpcEngine } from 'json-rpc-engine';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import { NetworksChainId } from '@metamask/controller-utils';
 
-import Engine from '../Engine';
-import { setupMultiplex } from '../../util/streams';
-import Logger from '../../util/Logger';
-import { getAllNetworks } from '../../util/networks';
+import Engine from '@Engine';
+import { setupMultiplex } from '@util/streams';
+import Logger from '@util/Logger';
+import { getAllNetworks } from '@util/networks';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 

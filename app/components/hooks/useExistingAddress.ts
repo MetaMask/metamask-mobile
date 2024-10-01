@@ -1,11 +1,11 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 
-import { selectChainId } from '../../selectors/networkController';
-import { selectInternalAccounts } from '../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../util/general';
+import { selectChainId } from '@selectors/networkController';
+import { selectInternalAccounts } from '@selectors/accountsController';
+import { toLowerCaseEquals } from '@util/general';
 import { AddressBookEntry } from '@metamask/address-book-controller';
-import { selectAddressBook } from '../../selectors/addressBookController';
+import { selectAddressBook } from '@selectors/addressBookController';
 
 type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 

@@ -5,18 +5,18 @@ import React, { forwardRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
-import Text, { TextVariant } from '../../Texts/Text';
-import { formatAddress } from '../../../../util/address';
-import { useStyles } from '../../../hooks';
-import { strings } from '../../../../../locales/i18n';
+import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
+import Text, { TextVariant } from '@Texts/Text';
+import { formatAddress } from '@util/address';
+import { useStyles } from '@hooks';
+import { strings } from '@locales/i18n';
 
 // Internal dependencies.
-import PickerBase from '../PickerBase';
+import PickerBase from '@PickerBase';
 import { PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
+import { AccountListViewSelectorsIDs } from '@e2e/selectors/AccountListView.selectors';
 
 const PickerAccount: React.ForwardRefRenderFunction<
   TouchableOpacity,

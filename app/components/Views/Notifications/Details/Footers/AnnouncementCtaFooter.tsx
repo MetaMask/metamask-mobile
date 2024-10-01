@@ -2,9 +2,9 @@ import React from 'react';
 import { Linking } from 'react-native';
 import Button, {
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import useStyles from '../useStyles';
+} from '@component-library/components/Buttons/Button';
+import { ModalFooterAnnouncementCta } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import useStyles from '@useStyles';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 

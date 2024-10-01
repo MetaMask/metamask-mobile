@@ -1,24 +1,24 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import Device from '../../../../util/device';
-import { useTheme } from '../../../../util/theme';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 
-import Spinner from '../../AnimatedSpinner';
+import Spinner from '@AnimatedSpinner';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/Buttons/Button';
+import { strings } from '@locales/i18n';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 const createStyles = (colors: ThemeColors) =>

@@ -1,10 +1,10 @@
 import {
   CONTRACT_CREATION_SIGNATURE,
   TRANSACTION_TYPES,
-} from '../../../util/transactions';
+} from '@util/transactions';
 import decodeTransaction, { decodeIncomingTransfer } from './utils';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       getQRKeyringState: async () => ({ subscribe: () => ({}) }),

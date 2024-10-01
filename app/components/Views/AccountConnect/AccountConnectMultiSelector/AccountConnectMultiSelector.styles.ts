@@ -2,8 +2,8 @@
 import { StyleSheet } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
+import { Theme } from '@util/theme/models';
+import { isMultichainVersion1Enabled } from '@util/networks';
 
 /**
  * Style sheet function for AccountConnectMultiSelector screen.

@@ -9,19 +9,19 @@ import {
   DimensionValue,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '../../UI/StyledButton';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import StyledButton from '@UI/StyledButton';
+import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
 import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import { importAccountFromPrivateKey } from '../../../util/address';
-import { useAppTheme } from '../../../util/theme';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import { importAccountFromPrivateKey } from '@util/address';
+import { useAppTheme } from '@util/theme';
 import { createStyles } from './styles';
-import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selectors/ImportAccountFromPrivateKey.selectors';
-import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import Routes from '../../../constants/navigation/Routes';
+import { ImportAccountFromPrivateKeySelectorsIDs } from '@e2e/selectors/ImportAccountFromPrivateKey.selectors';
+import { QRTabSwitcherScreens } from '@QRTabSwitcher';
+import Routes from '@constants/navigation/Routes';
 
 /**
  * View that's displayed the first time a user receives funds

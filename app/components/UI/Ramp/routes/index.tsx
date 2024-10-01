@@ -1,15 +1,15 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Regions from '../Views/Regions';
-import Quotes from '../Views/Quotes';
-import PaymentMethods from '../Views/PaymentMethods';
-import NetworkSwitcher from '../Views/NetworkSwitcher';
-import GetStarted from '../Views/GetStarted';
-import CheckoutWebView from '../Views/Checkout';
-import BuildQuote from '../Views/BuildQuote';
-import { RampType } from '../types';
-import { RampSDKProvider } from '../sdk';
-import Routes from '../../../../constants/navigation/Routes';
+import Regions from '@Views/Regions';
+import Quotes from '@Views/Quotes';
+import PaymentMethods from '@Views/PaymentMethods';
+import NetworkSwitcher from '@Views/NetworkSwitcher';
+import GetStarted from '@Views/GetStarted';
+import CheckoutWebView from '@Views/Checkout';
+import BuildQuote from '@Views/BuildQuote';
+import { RampType } from '@types';
+import { RampSDKProvider } from '@sdk';
+import Routes from '@constants/navigation/Routes';
 import { colors } from './../../../../styles/common';
 const Stack = createStackNavigator();
 

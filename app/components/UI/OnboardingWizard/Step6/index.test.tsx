@@ -1,6 +1,6 @@
 import React from 'react';
 import Step6 from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 const navigationMock = {
   navigate: jest.fn(),

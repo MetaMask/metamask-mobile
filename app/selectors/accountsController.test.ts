@@ -2,7 +2,7 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-api';
-import StorageWrapper from '../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -16,9 +16,9 @@ import {
   MOCK_ADDRESS_2,
   createMockInternalAccount,
   createMockUuidFromAddress,
-} from '../util/test/accountsControllerTestUtils';
-import { RootState } from '../reducers';
-import { AGREED } from '../constants/storage';
+} from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
+import { AGREED } from '@constants/storage';
 import {
   MOCK_KEYRINGS,
   MOCK_KEYRING_CONTROLLER,

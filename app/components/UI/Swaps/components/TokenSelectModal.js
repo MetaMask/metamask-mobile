@@ -18,48 +18,48 @@ import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
 import { isValidAddress } from 'ethereumjs-util';
 
-import Device from '../../../../util/device';
+import Device from '@util/device';
 import {
   balanceToFiat,
   hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../util/number';
-import { safeToChecksumAddress } from '../../../../util/address';
-import { isSwapsNativeAsset } from '../utils';
-import { strings } from '../../../../../locales/i18n';
-import { fontStyles } from '../../../../styles/common';
+} from '@util/number';
+import { safeToChecksumAddress } from '@util/address';
+import { isSwapsNativeAsset } from '@utils';
+import { strings } from '@locales/i18n';
+import { fontStyles } from '@styles/common';
 
-import Text from '../../../Base/Text';
-import ListItem from '../../../Base/ListItem';
-import ModalDragger from '../../../Base/ModalDragger';
+import Text from '@Base/Text';
+import ListItem from '@Base/ListItem';
+import ModalDragger from '@Base/ModalDragger';
 import TokenIcon from './TokenIcon';
-import Alert from '../../../Base/Alert';
-import useBlockExplorer from '../utils/useBlockExplorer';
-import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
-import useModalHandler from '../../../Base/hooks/useModalHandler';
+import Alert from '@Base/Alert';
+import useBlockExplorer from '@utils/useBlockExplorer';
+import useFetchTokenMetadata from '@utils/useFetchTokenMetadata';
+import useModalHandler from '@Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+} from '@selectors/currencyRateController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { useMetrics } from '@components/hooks/useMetrics';
 
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useTheme } from '../../../../util/theme';
-import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { getDecimalChainId } from '../../../../util/networks';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useTheme } from '@util/theme';
+import { QuoteViewSelectorIDs } from '@e2e/selectors/swaps/QuoteView.selectors';
+import { getDecimalChainId } from '@util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({

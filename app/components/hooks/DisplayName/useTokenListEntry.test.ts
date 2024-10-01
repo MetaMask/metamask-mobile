@@ -1,5 +1,5 @@
 import { TokenListToken } from '@metamask/assets-controllers';
-import { NameType } from '../../UI/Name/Name.types';
+import { NameType } from '@UI/Name/Name.types';
 import { useTokenListEntry } from './useTokenListEntry';
 import useTokenList from './useTokenList';
 

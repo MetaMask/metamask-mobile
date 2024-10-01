@@ -1,14 +1,14 @@
 import React, { useCallback } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import StyledButton from '../../StyledButton';
-import AssetIcon from '../../AssetIcon';
-import { fontStyles } from '../../../../styles/common';
-import Identicon from '../../Identicon';
-import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
+import StyledButton from '@StyledButton';
+import AssetIcon from '@AssetIcon';
+import { fontStyles } from '@styles/common';
+import Identicon from '@Identicon';
+import NetworkMainAssetLogo from '@NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { useTheme } from '../../../../util/theme';
-import { selectTokenList } from '../../../../selectors/tokenListController';
+import { useTheme } from '@util/theme';
+import { selectTokenList } from '@selectors/tokenListController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

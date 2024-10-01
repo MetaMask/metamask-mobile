@@ -15,7 +15,7 @@ import {
   CryptoCurrency,
 } from '@consensys/on-ramp-sdk';
 
-import Logger from '../../../../util/Logger';
+import Logger from '@util/Logger';
 
 import {
   selectedAddressSelector,
@@ -29,13 +29,13 @@ import {
   networkShortNameSelector,
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
-} from '../../../../reducers/fiatOrders';
-import { RampIntent, RampType, Region } from '../types';
+} from '@reducers/fiatOrders';
+import { RampIntent, RampType, Region } from '@types';
 
-import I18n, { I18nEvents } from '../../../../../locales/i18n';
-import Device from '../../../../util/device';
-import useActivationKeys from '../hooks/useActivationKeys';
-import { selectNickname } from '../../../../selectors/networkController';
+import I18n, { I18nEvents } from '@locales/i18n';
+import Device from '@util/device';
+import useActivationKeys from '@hooks/useActivationKeys';
+import { selectNickname } from '@selectors/networkController';
 
 const isDevelopment =
   process.env.NODE_ENV !== 'production' ||

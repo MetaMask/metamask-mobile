@@ -6,15 +6,15 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import { fontStyles } from '../../../../../../styles/common';
-import StyledButton from '../../../../../UI/StyledButton';
-import { strings } from '../../../../../../../locales/i18n';
-import { isNumber } from '../../../../../../util/number';
-import ConnectHeader from '../../../../../UI/ConnectHeader';
-import Device from '../../../../../../util/device';
-import ErrorMessage from '../../../SendFlow/ErrorMessage';
-import { useTheme } from '../../../../../../util/theme';
-import formatNumber from '../../../../../../util/formatNumber';
+import { fontStyles } from '@styles/common';
+import StyledButton from '@UI/StyledButton';
+import { strings } from '@locales/i18n';
+import { isNumber } from '@util/number';
+import ConnectHeader from '@UI/ConnectHeader';
+import Device from '@util/device';
+import ErrorMessage from '@SendFlow/ErrorMessage';
+import { useTheme } from '@util/theme';
+import formatNumber from '@util/formatNumber';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

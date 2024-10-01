@@ -1,13 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { memo } from 'react';
 import { Image, ImageStyle, View } from 'react-native';
-import { toDataUrl } from '../../../util/blockies';
+import { toDataUrl } from '@util/blockies';
 import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
-import { useTheme } from '../../../util/theme';
-import { useTokenListEntry } from '../../../components/hooks/DisplayName/useTokenListEntry';
-import { NameType } from '../../UI/Name/Name.types';
+import { useTheme } from '@util/theme';
+import { useTokenListEntry } from '@components/hooks/DisplayName/useTokenListEntry';
+import { NameType } from '@UI/Name/Name.types';
 
 interface IdenticonProps {
   /**

@@ -7,31 +7,31 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Engine from '../../../core/Engine';
-import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
-import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
+import Engine from '@core/Engine';
+import AnimatedQRScannerModal from '@UI/QRHardware/AnimatedQRScanner';
+import AccountSelector from '@UI/HardwareWallet/AccountSelector';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import BlockingActionModal from '../../UI/BlockingActionModal';
-import { strings } from '../../../../locales/i18n';
+import BlockingActionModal from '@UI/BlockingActionModal';
+import { strings } from '@locales/i18n';
 import { UR } from '@ngraveio/bc-ur';
-import Alert, { AlertType } from '../../Base/Alert';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import Alert, { AlertType } from '@Base/Alert';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Device from '../../../util/device';
-import { useTheme } from '../../../util/theme';
-import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
-import { fontStyles } from '../../../styles/common';
-import Logger from '../../../util/Logger';
-import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { safeToChecksumAddress } from '../../../util/address';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
+import { SUPPORTED_UR_TYPE } from '@constants/qr';
+import { fontStyles } from '@styles/common';
+import Logger from '@util/Logger';
+import { removeAccountsFromPermissions } from '@core/Permissions';
+import { safeToChecksumAddress } from '@util/address';
+import { useMetrics } from '@components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { HardwareDeviceTypes } from '@constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
-import PAGINATION_OPERATIONS from '../../../constants/pagination';
+import PAGINATION_OPERATIONS from '@constants/pagination';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type

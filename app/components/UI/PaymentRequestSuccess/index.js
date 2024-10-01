@@ -11,26 +11,26 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../styles/common';
-import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
+import { fontStyles } from '@styles/common';
+import { getPaymentRequestSuccessOptionsTitle } from '@UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import StyledButton from '../StyledButton';
+import StyledButton from '@StyledButton';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import { showAlert } from '../../../actions/alert';
-import Logger from '../../../util/Logger';
+import { showAlert } from '@actions/alert';
+import Logger from '@util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
-import { renderNumber } from '../../../util/number';
-import Device from '../../../util/device';
-import { strings } from '../../../../locales/i18n';
-import { protectWalletModalVisible } from '../../../actions/user';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { renderNumber } from '@util/number';
+import Device from '@util/device';
+import { strings } from '@locales/i18n';
+import { protectWalletModalVisible } from '@actions/user';
+import ClipboardManager from '@core/ClipboardManager';
+import { ThemeContext, mockTheme } from '@util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
+import { SendLinkViewSelectorsIDs } from '@e2e/selectors/SendLinkView.selectors';
 
 const isIos = Device.isIos();
 

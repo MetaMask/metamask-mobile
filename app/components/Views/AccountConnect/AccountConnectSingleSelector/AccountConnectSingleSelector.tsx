@@ -3,16 +3,16 @@ import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import SheetActions from '../../../../component-library/components-temp/SheetActions';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
-import { strings } from '../../../../../locales/i18n';
-import { AccountConnectScreens } from '../AccountConnect.types';
+import SheetActions from '@component-library/components-temp/SheetActions';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import AccountSelectorList from '@components/UI/AccountSelectorList';
+import { strings } from '@locales/i18n';
+import { AccountConnectScreens } from '@AccountConnect.types';
 
 // Internal dependencies.
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
 import styles from './AccountConnectSingleSelector.styles';
-import { USER_INTENT } from '../../../../constants/permissions';
+import { USER_INTENT } from '@constants/permissions';
 
 const AccountConnectSingleSelector = ({
   accounts,

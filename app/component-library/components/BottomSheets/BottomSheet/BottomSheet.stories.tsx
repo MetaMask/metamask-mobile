@@ -5,7 +5,7 @@ import React, { useRef } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Texts/Text';
+import Text, { TextVariant } from '@Texts/Text';
 
 // Internal dependencies.
 import { default as BottomSheetComponent } from './BottomSheet';

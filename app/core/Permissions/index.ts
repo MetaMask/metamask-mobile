@@ -1,9 +1,9 @@
 import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
 import { RestrictedMethods, CaveatTypes } from './constants';
-import ImportedEngine from '../Engine';
-import Logger from '../../util/Logger';
-import { getUniqueList } from '../../util/general';
-import TransactionTypes from '../TransactionTypes';
+import ImportedEngine from '@Engine';
+import Logger from '@util/Logger';
+import { getUniqueList } from '@util/general';
+import TransactionTypes from '@TransactionTypes';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 

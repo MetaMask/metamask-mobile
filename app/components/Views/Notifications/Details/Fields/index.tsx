@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ModalField } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
+import type { ModalField } from '@util/notifications/notification-states/types/NotificationModalDetails';
 import AddressField from './AddressField';
 import AnnouncementDescriptionField from './AnnouncementDescriptionField';
 import AssetField from './AssetField';
@@ -9,7 +9,7 @@ import NFTCollectionField from './NFTCollectionField';
 import StakingProviderField from './StakingProviderField';
 import SwapsRateField from './SwapsRateField';
 import TransactionField from './TransactionField';
-import type { Notification } from '../../../../../util/notifications/types';
+import type { Notification } from '@util/notifications/types';
 
 interface Props {
   modalField: ModalField;

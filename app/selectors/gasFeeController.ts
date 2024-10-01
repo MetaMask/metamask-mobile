@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { GasFeeState } from '@metamask/gas-fee-controller';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { createDeepEqualSelector } from './util';
 
 export const selectGasFeeControllerState = (state: RootState) =>

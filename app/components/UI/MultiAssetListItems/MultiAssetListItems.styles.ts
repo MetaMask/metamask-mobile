@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 // External dependencies.
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 
 /**
  * Style sheet function for AvatarFavicon component.

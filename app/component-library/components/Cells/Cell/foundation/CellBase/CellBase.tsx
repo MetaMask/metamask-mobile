@@ -5,10 +5,10 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import Text from '../../../../Texts/Text';
-import Tag from '../../../../Tags/Tag';
-import Avatar from '../../../../Avatars/Avatar';
+import { useStyles } from '@hooks';
+import Text from '@Texts/Text';
+import Tag from '@Tags/Tag';
+import Avatar from '@Avatars/Avatar';
 
 // Internal dependencies.
 import {
@@ -19,7 +19,7 @@ import {
 } from './CellBase.constants';
 import styleSheet from './CellBase.styles';
 import { CellBaseProps } from './CellBase.types';
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 const CellBase = ({
   style,

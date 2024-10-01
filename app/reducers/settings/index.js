@@ -1,4 +1,4 @@
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,

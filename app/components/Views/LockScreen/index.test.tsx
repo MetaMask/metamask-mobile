@@ -1,12 +1,12 @@
 import {
   DeepPartial,
   renderScreen,
-} from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import LockScreen from './';
-import Routes from '../../../constants/navigation/Routes';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../reducers';
+import Routes from '@constants/navigation/Routes';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},

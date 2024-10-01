@@ -6,11 +6,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
 import { act } from '@testing-library/react-hooks';
-import { MetaMetricsEvents } from '../../hooks/useMetrics';
-import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '@hooks/useMetrics';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
+import Engine from '@core/Engine';
 
-jest.mock('../../../core/Engine.ts', () => ({
+jest.mock('@core/Engine.ts', () => ({
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
   },

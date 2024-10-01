@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { useMemo } from 'react';
-import { useAppThemeFromContext } from '../../util/theme';
-import { Theme } from '../../util/theme/models';
+import { useAppThemeFromContext } from '@util/theme';
+import { Theme } from '@util/theme/models';
 
 /**
  * Hook that handles both passing style sheet variables into style sheet and memoization.

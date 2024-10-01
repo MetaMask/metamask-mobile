@@ -4,19 +4,19 @@ import { SafeAreaView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import AccountAction from '../AccountAction/AccountAction';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Logger from '../../../util/Logger';
-import Engine from '../../../core/Engine';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import AccountAction from '@AccountAction/AccountAction';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { strings } from '@locales/i18n';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Logger from '@util/Logger';
+import Engine from '@core/Engine';
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
-import { AddAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAccountModal.selectors';
-import Routes from '../../../constants/navigation/Routes';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { AddAccountModalSelectorsIDs } from '@e2e/selectors/Modals/AddAccountModal.selectors';
+import Routes from '@constants/navigation/Routes';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();

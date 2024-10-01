@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import Modal from 'react-native-modal';
-import { IQRState } from '../types';
+import { IQRState } from '@types';
 import { StyleSheet, View } from 'react-native';
-import QRSigningDetails from '../QRSigningDetails';
-import { useTheme } from '../../../../util/theme';
+import QRSigningDetails from '@QRSigningDetails';
+import { useTheme } from '@util/theme';
 import { useDispatch, useSelector } from 'react-redux';
-import { getNormalizedTxState } from '../../../../util/transactions';
-import { resetTransaction } from '../../../../actions/transaction';
+import { getNormalizedTxState } from '@util/transactions';
+import { resetTransaction } from '@actions/transaction';
 
 interface IQRSigningModalProps {
   isVisible: boolean;

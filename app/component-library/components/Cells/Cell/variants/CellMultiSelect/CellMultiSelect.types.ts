@@ -1,6 +1,6 @@
 // External dependencies.
-import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
-import { ListItemMultiSelectProps } from '../../../../List/ListItemMultiSelect/ListItemMultiSelect.types';
+import { CellBaseProps } from '@foundation/CellBase/CellBase.types';
+import { ListItemMultiSelectProps } from '@List/ListItemMultiSelect/ListItemMultiSelect.types';
 
 /**
  * Cell Account MultiSelect  component props.

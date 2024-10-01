@@ -7,8 +7,8 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
-import * as Actions from '../../../actions/notification/helpers';
-import initialRootState from '../../../util/test/initial-root-state';
+import * as Actions from '@actions/notification/helpers';
+import initialRootState from '@util/test/initial-root-state';
 import { useProfileSyncing } from './useProfileSyncing';
 
 function arrangeStore() {

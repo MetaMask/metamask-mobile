@@ -1,18 +1,18 @@
 import React from 'react';
 import { Country, Payment } from '@consensys/on-ramp-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
-import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
+import { createBuildQuoteNavDetails } from '@BuildQuote/BuildQuote';
 
-import useRegions from '../../hooks/useRegions';
-import usePaymentMethods from '../../hooks/usePaymentMethods';
-import { RampType, Region } from '../../types';
-import { RampSDK } from '../../sdk';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import useRegions from '@hooks/useRegions';
+import usePaymentMethods from '@hooks/usePaymentMethods';
+import { RampType, Region } from '@types';
+import { RampSDK } from '@sdk';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -72,8 +72,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
+jest.mock('@sdk', () => ({
+  ...jest.requireActual('@sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -104,7 +104,7 @@ let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockuseRegionsInitialValues,
 };
 
-jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+jest.mock('@hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockQueryGetPaymentMethods = jest.fn();
 
@@ -122,7 +122,7 @@ let mockUsePaymentMethodsValues = {
   ...mockUsePaymentMethodsInitialValues,
 };
 
-jest.mock('../../hooks/usePaymentMethods', () =>
+jest.mock('@hooks/usePaymentMethods', () =>
   jest.fn(() => mockUsePaymentMethodsValues),
 );
 
@@ -132,12 +132,12 @@ let mockUseParamsValues: {
   showBack: undefined,
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('PaymentMethods View', () => {
   afterEach(() => {

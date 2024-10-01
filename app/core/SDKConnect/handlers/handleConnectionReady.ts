@@ -1,18 +1,18 @@
 import { ApprovalController } from '@metamask/approval-controller';
 import { MessageType, OriginatorInfo } from '@metamask/sdk-communication-layer';
-import AppConstants from '../../../../app/core/AppConstants';
-import Logger from '../../../util/Logger';
-import { Connection } from '../Connection';
-import DevLogger from '../utils/DevLogger';
+import AppConstants from '@app/core/AppConstants';
+import Logger from '@util/Logger';
+import { Connection } from '@Connection';
+import DevLogger from '@utils/DevLogger';
 import checkPermissions from './checkPermissions';
 import handleSendMessage from './handleSendMessage';
 
 import { providerErrors } from '@metamask/rpc-errors';
-import Engine from '../../Engine';
-import { approveHostProps } from '../SDKConnect';
-import generateOTP from '../utils/generateOTP.util';
+import Engine from '@Engine';
+import { approveHostProps } from '@SDKConnect';
+import generateOTP from '@utils/generateOTP.util';
 import { setupBridge } from './setupBridge';
-import { HOUR_IN_MS } from '../SDKConnectConstants';
+import { HOUR_IN_MS } from '@SDKConnectConstants';
 
 export const handleConnectionReady = async ({
   originatorInfo,

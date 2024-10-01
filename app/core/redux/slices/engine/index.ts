@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import Engine from '../../../Engine';
+import Engine from '@Engine';
 import { createAction, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState = {

@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { useRatio } from '../utils';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
+import { useRatio } from '@utils';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
 import BigNumber from 'bignumber.js';
 import { Theme } from '@metamask/design-tokens';
 

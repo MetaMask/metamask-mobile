@@ -3,9 +3,9 @@ import {
   AvatarSize,
   AvatarVariant,
   AvatarAccountType,
-} from '../../../../Avatars/Avatar';
-import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
-import { TextVariant } from '../../../../Texts/Text';
+} from '@Avatars/Avatar';
+import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
+import { TextVariant } from '@Texts/Text';
 
 // Defaults
 export const DEFAULT_CELLBASE_AVATAR_SIZE = AvatarSize.Md;

@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-color-literals */
 import { StyleSheet, TextStyle } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import { colors } from '../../../styles/common';
+import { Theme } from '@util/theme/models';
+import { colors } from '@styles/common';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

@@ -13,7 +13,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
       imageUrl: 'AVAX',
-      imageSource: require('../../images/avalanche.png'),
+      imageSource: require('@images/avalanche.png'),
     },
   },
   {
@@ -24,7 +24,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
       imageUrl: 'AETH',
-      imageSource: require('../../images/arbitrum.png'),
+      imageSource: require('@images/arbitrum.png'),
     },
   },
   {
@@ -36,7 +36,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://bscscan.com',
       imageUrl: 'BNB',
-      imageSource: require('../../images/binance.png'),
+      imageSource: require('@images/binance.png'),
     },
   },
   {
@@ -48,7 +48,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://basescan.org',
       imageUrl: 'BASE',
-      imageSource: require('../../images/base.png'),
+      imageSource: require('@images/base.png'),
     },
   },
   {
@@ -59,7 +59,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
       imageUrl: 'OPTIMISM',
-      imageSource: require('../../images/optimism.png'),
+      imageSource: require('@images/optimism.png'),
     },
   },
   {
@@ -70,7 +70,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.palm.io',
       imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
+      imageSource: require('@images/palm.png'),
     },
   },
   {
@@ -81,7 +81,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
       imageUrl: 'POL',
-      imageSource: require('../../images/pol.png'),
+      imageSource: require('@images/pol.png'),
     },
   },
   {
@@ -93,7 +93,7 @@ export const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.zksync.io/',
       imageUrl: 'ZK_SYNC',
-      imageSource: require('../../images/zk-sync.png'),
+      imageSource: require('@images/zk-sync.png'),
     },
   },
 ];
@@ -113,7 +113,7 @@ export const UnpopularNetworkList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://ftmscan.com',
       imageUrl: 'FTM',
-      imageSource: require('../../images/fantom.png'),
+      imageSource: require('@images/fantom.png'),
     },
   },
   {
@@ -125,7 +125,7 @@ export const UnpopularNetworkList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.harmony.one',
       imageUrl: 'ONE',
-      imageSource: require('../../images/harmony.png'),
+      imageSource: require('@images/harmony.png'),
     },
   },
 ];

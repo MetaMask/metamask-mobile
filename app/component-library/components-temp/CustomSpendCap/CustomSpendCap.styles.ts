@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 /**
  * Style sheet for CustomSpendCap component.
  *

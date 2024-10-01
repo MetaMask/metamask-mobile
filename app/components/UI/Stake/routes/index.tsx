@@ -1,8 +1,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import StakeInputView from '../Views/InputView/StakeInputView';
-import LearnMoreModal from '../components/LearnMoreModal';
-import Routes from '../../../../constants/navigation/Routes';
+import StakeInputView from '@Views/InputView/StakeInputView';
+import LearnMoreModal from '@components/LearnMoreModal';
+import Routes from '@constants/navigation/Routes';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 

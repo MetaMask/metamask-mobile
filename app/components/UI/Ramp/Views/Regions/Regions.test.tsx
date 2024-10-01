@@ -1,15 +1,15 @@
 import React from 'react';
 import { Country } from '@consensys/on-ramp-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 import Regions from './Regions';
-import useRegions from '../../hooks/useRegions';
-import { RampSDK } from '../../sdk';
-import { RampType, Region } from '../../types';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import useRegions from '@hooks/useRegions';
+import { RampSDK } from '@sdk';
+import { RampType, Region } from '@types';
+import { createPaymentMethodsNavDetails } from '@PaymentMethods/PaymentMethods';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -44,8 +44,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
+jest.mock('@sdk', () => ({
+  ...jest.requireActual('@sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -91,7 +91,7 @@ let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockUseRegionsInitialValues,
 };
 
-jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+jest.mock('@hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -114,7 +114,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('Regions View', () => {
   afterEach(() => {

@@ -1,9 +1,9 @@
-import { renderFromWei, hexToBN } from '../../../../../util/number';
+import { renderFromWei, hexToBN } from '@util/number';
 import {
   getTicker,
   decodeTransferData,
-} from '../../../../../util/transactions';
-import { strings } from '../../../../../../locales/i18n';
+} from '@util/transactions';
+import { strings } from '@locales/i18n';
 import { BN } from 'ethereumjs-util';
 
 interface SelectedAsset {

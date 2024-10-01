@@ -5,35 +5,35 @@ import { View } from 'react-native';
 // External dependencies.
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
+} from '@component-library/components/Buttons/Button';
+import Checkbox from '@component-library/components/Checkbox/Checkbox';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleBasicFunctionality } from '../../../../actions/settings';
+import { toggleBasicFunctionality } from '@actions/settings';
 import createStyles from './BasicFunctionalityModal.styles';
 import { RootState } from 'app/reducers';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../constants/navigation/Routes';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import { useMetrics } from '../../../hooks/useMetrics';
+} from '@component-library/components/Icons/Icon';
+import Routes from '@constants/navigation/Routes';
+import NotificationsService from '@util/notifications/services/NotificationService';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useEnableNotifications } from '@util/notifications/hooks/useNotifications';
+import { useMetrics } from '@hooks/useMetrics';
 import {
   selectIsProfileSyncingEnabled,
   selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
+} from '@selectors/notifications';
 
 interface Props {
   route: {

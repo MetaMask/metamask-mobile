@@ -1,7 +1,7 @@
 import migrate from './043';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 // This is a state mock with invalid networkConfigurations, derived from the state logs of an affected user
 const oldState = {
   engine: {

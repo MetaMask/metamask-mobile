@@ -1,20 +1,20 @@
 import React from 'react';
-import ListItemMultiSelect from '../../../component-library/components/List/ListItemMultiSelect';
+import ListItemMultiSelect from '@component-library/components/List/ListItemMultiSelect';
 import stylesheet from './MultiAssetListItems.styles';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import AssetIcon from '../AssetIcon';
+} from '@component-library/components/Badges/Badge';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
+import AssetIcon from '@AssetIcon';
 import { useSelector } from 'react-redux';
-import { selectNetworkImageSource } from '../../../selectors/networkInfos';
-import { strings } from '../../../../locales/i18n';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { selectNetworkImageSource } from '@selectors/networkInfos';
+import { strings } from '@locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';
 
 interface Props {
   /**

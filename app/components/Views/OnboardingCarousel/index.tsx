@@ -10,30 +10,30 @@ import {
 } from 'react-native';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { MetaMetricsEvents, IMetaMetricsEvent } from '../../../core/Analytics';
-import StyledButton from '../../UI/StyledButton';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import { MetaMetricsEvents, IMetaMetricsEvent } from '@core/Analytics';
+import StyledButton from '@UI/StyledButton';
+import { fontStyles, baseStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import FadeOutOverlay from '@UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-import Device from '../../../util/device';
+import { getTransparentOnboardingNavbarOptions } from '@UI/Navbar';
+import OnboardingScreenWithBg from '@UI/OnboardingScreenWithBg';
+import Device from '@util/device';
 import { connect } from 'react-redux';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
-import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { isTest } from '../../../util/test/utils';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '@wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
+import { OnboardingCarouselSelectorIDs } from '@e2e/selectors/Onboarding/OnboardingCarousel.selectors';
+import generateTestId from '@wdio/utils/generateTestId';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
+import { isTest } from '@util/test/utils';
+import StorageWrapper from '@store/storage-wrapper';
+import { PerformanceRegressionSelectorIDs } from '@e2e/selectors/PerformanceRegression.selectors';
 import { JsonMap } from '@segment/analytics-react-native';
 import { Dispatch } from 'redux';
 import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
-} from '../../../actions/onboarding';
+} from '@actions/onboarding';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -131,9 +131,9 @@ const createStyles = (colors: ThemeColors) =>
     },
   });
 
-const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
-const onboarding_carousel_2 = require('../../../images/onboarding-carousel-2.png'); // eslint-disable-line
-const onboarding_carousel_3 = require('../../../images/onboarding-carousel-3.png'); // eslint-disable-line
+const onboarding_carousel_1 = require('@images/onboarding-carousel-1.png'); // eslint-disable-line
+const onboarding_carousel_2 = require('@images/onboarding-carousel-2.png'); // eslint-disable-line
+const onboarding_carousel_3 = require('@images/onboarding-carousel-3.png'); // eslint-disable-line
 
 const carousel_images = [
   onboarding_carousel_1,

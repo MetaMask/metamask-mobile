@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import Device from '../../../util/device';
+import { Theme } from '@util/theme/models';
+import Device from '@util/device';
 
 /**
  *

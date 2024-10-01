@@ -6,7 +6,7 @@ import { lightTheme } from '@metamask/design-tokens';
 import {
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
   SAMPLE_BUTTONBASE_PROPS,
-} from '../../foundation/ButtonBase/ButtonBase.constants';
+} from '@foundation/ButtonBase/ButtonBase.constants';
 
 // Internal dependencies.
 import { ButtonPrimaryProps } from './ButtonPrimary.types';

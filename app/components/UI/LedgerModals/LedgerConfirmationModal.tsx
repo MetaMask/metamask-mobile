@@ -1,22 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
-import { Colors } from '../../../util/theme/models';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
-import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions from '../../../components/hooks/useBluetoothPermissions';
+import { mockTheme, useAppThemeFromContext } from '@util/theme';
+import { strings } from '@locales/i18n';
+import { Colors } from '@util/theme/models';
+import useLedgerBluetooth from '@hooks/Ledger/useLedgerBluetooth';
+import useBluetooth from '@hooks/Ledger/useBluetooth';
+import useBluetoothPermissions from '@components/hooks/useBluetoothPermissions';
 import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
-} from '../../../core/Ledger/ledgerErrors';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+} from '@core/Ledger/ledgerErrors';
+import { HardwareDeviceTypes } from '@constants/keyringTypes';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

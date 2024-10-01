@@ -6,14 +6,14 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
   ButtonSize,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const ChangePassword = () => {
   const styles = createStyles();

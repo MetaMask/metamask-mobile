@@ -1,8 +1,8 @@
 import pause from './pause';
-import SDKConnect from '../SDKConnect';
+import SDKConnect from '@SDKConnect';
 
-jest.mock('../SDKConnect');
-jest.mock('../utils/DevLogger');
+jest.mock('@SDKConnect');
+jest.mock('@utils/DevLogger');
 
 describe('pause', () => {
   let mockInstance = {} as unknown as SDKConnect;

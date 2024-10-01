@@ -1,8 +1,8 @@
 import { InteractionManager } from 'react-native';
-import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
+import { IMetaMetricsEvent, MetaMetrics } from '@core/Analytics';
 import { IUseMetricsHook } from './useMetrics.types';
 import { useCallback } from 'react';
-import { CombinedProperties } from '../../../core/Analytics/MetaMetrics.types';
+import { CombinedProperties } from '@core/Analytics/MetaMetrics.types';
 
 /**
  * Hook to use MetaMetrics

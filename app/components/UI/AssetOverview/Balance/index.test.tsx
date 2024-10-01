@@ -2,11 +2,11 @@ import React from 'react';
 import { Image } from 'react-native';
 import Balance from '.';
 import { render, fireEvent } from '@testing-library/react-native';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectNetworkName } from '@selectors/networkInfos';
+import { selectChainId } from '@selectors/networkController';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

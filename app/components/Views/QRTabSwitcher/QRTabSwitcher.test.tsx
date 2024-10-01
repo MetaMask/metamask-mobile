@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import QRTabSwitcher, { QRTabSwitcherScreens } from './QRTabSwitcher';
 import { useRoute } from '@react-navigation/native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -19,7 +19,7 @@ jest.mock('@react-navigation/native', () => ({
   })),
 }));
 
-jest.mock('../../../util/test/configureStore', () => {
+jest.mock('@util/test/configureStore', () => {
   const configureMockStore = jest.requireActual('redux-mock-store').default;
   return () => configureMockStore([])();
 });
@@ -32,8 +32,8 @@ jest.mock('@react-navigation/compat', () => {
   };
 });
 
-jest.mock('../QRScanner', () => jest.fn(() => null));
-jest.mock('../../UI/ReceiveRequest', () => jest.fn(() => null));
+jest.mock('@QRScanner', () => jest.fn(() => null));
+jest.mock('@UI/ReceiveRequest', () => jest.fn(() => null));
 
 describe('QRTabSwitcher', () => {
   it('renders QRScanner by default', () => {

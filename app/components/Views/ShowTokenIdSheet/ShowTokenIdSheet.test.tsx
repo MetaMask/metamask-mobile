@@ -1,9 +1,9 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import ShowTokenIdSheet from './ShowTokenIdSheet';
 
 const initialState = {

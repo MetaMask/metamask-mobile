@@ -10,10 +10,10 @@ export enum AccountConnectMultiSelectorScreens {
 }
 
 // External dependencies.
-import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
-import { UseAccounts } from '../../../hooks/useAccounts';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { USER_INTENT } from '../../../../constants/permissions';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
+import { UseAccounts } from '@hooks/useAccounts';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { USER_INTENT } from '@constants/permissions';
 
 /**
  * AccountConnectMultiSelector props.

@@ -3,23 +3,23 @@ import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../locales/i18n';
-import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
-import Text from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../component-library/hooks';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import { strings } from '@locales/i18n';
+import AccountBalance from '@component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '@component-library/components/Badges/Badge';
+import Text from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
+import { selectAccountsByChainId } from '@selectors/accountTrackerController';
 import {
   selectNetworkImageSource,
   selectNetworkName,
-} from '../../../selectors/networkInfos';
+} from '@selectors/networkInfos';
 import {
   getLabelTextByAddress,
   renderAccountName,
-} from '../../../util/address';
-import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
+} from '@util/address';
+import useAddressBalance from '@hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectInternalAccounts } from '@selectors/accountsController';
 
 interface Asset {
   isETH?: boolean;

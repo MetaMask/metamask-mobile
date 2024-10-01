@@ -1,11 +1,11 @@
 import React from 'react';
 import { Switch, View } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
-import { createStyles } from '../NotificationOptionToggle/styles';
+import { useTheme } from '@util/theme';
+import { createStyles } from '@NotificationOptionToggle/styles';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Texts/Text';
+import Icon, { IconColor, IconName, IconSize } from '@component-library/components/Icons/Icon';
 
 interface CustomNotificationsRowProps {
   title: string;

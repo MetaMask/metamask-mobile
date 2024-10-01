@@ -1,4 +1,4 @@
-import { ApprovedHosts, SDKSessions } from '../../core/SDKConnect/SDKConnect';
+import { ApprovedHosts, SDKSessions } from '@core/SDKConnect/SDKConnect';
 export interface WC2Metadata {
   id: string;
   url: string;

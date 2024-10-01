@@ -8,7 +8,7 @@ import {
   DisableNotificationsReturn,
   MarkNotificationAsReadReturn,
 } from './types';
-import { getErrorMessage } from '../../../util/errorHandling';
+import { getErrorMessage } from '@util/errorHandling';
 import {
   MarkAsReadNotificationsParam,
   disableNotificationServices,
@@ -16,8 +16,8 @@ import {
   fetchAndUpdateMetamaskNotifications,
   markMetamaskNotificationsAsRead,
   updateOnChainTriggersByAccount,
-} from '../../../actions/notification/helpers';
-import { getNotificationsList } from '../../../selectors/notifications';
+} from '@actions/notification/helpers';
+import { getNotificationsList } from '@selectors/notifications';
 
 /**
  * Custom hook to fetch and update the list of notifications.

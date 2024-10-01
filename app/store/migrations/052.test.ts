@@ -1,13 +1,13 @@
 import migration from './052';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import {
   expectedUuid,
   expectedUuid2,
   internalAccount1,
   internalAccount2,
-} from '../../util/test/accountsControllerTestUtils';
+} from '@util/test/accountsControllerTestUtils';
 
 const oldState = {
   engine: {

@@ -3,7 +3,7 @@
 import {
   ActionType,
   SetSecurityAlertsEnabled,
-} from '../../actions/experimental';
+} from '@actions/experimental';
 
 const initialState = {
   securityAlertsEnabled: true,

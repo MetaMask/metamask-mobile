@@ -1,11 +1,11 @@
 /* eslint-disable import/prefer-default-export */
 import { useState, useCallback } from 'react';
 import { ProfileSyncingReturn } from './types';
-import { getErrorMessage } from '../../../util/errorHandling';
+import { getErrorMessage } from '@util/errorHandling';
 import {
   disableProfileSyncing as disableProfileSyncingAction,
   enableProfileSyncing as enableProfileSyncingAction,
-} from '../../../actions/notification/helpers';
+} from '@actions/notification/helpers';
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in

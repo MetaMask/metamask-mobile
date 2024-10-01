@@ -3,7 +3,7 @@ import React from 'react';
 import { FlatListProps } from 'react-native';
 
 // External dependencies.
-import { Account, UseAccounts } from '../../hooks/useAccounts';
+import { Account, UseAccounts } from '@hooks/useAccounts';
 
 /**
  * AccountSelectorList props.

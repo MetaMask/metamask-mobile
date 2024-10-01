@@ -11,16 +11,16 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import ScreenLayout from './ScreenLayout';
 
-import Text from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
-import ModalDragger from '../../../Base/ModalDragger';
-import TokenIcon from '../../Swaps/components/TokenIcon';
-import { useTheme } from '../../../../util/theme';
+import Text from '@Base/Text';
+import BaseListItem from '@Base/ListItem';
+import ModalDragger from '@Base/ModalDragger';
+import TokenIcon from '@Swaps/components/TokenIcon';
+import { useTheme } from '@util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
-import { Colors } from '../../../../util/theme/models';
+import { Colors } from '@util/theme/models';
 import createModalStyles from './modals/Modal.styles';
 
 // TODO: Convert into typescript and correctly type optionals

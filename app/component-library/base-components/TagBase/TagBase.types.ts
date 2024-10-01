@@ -1,6 +1,6 @@
 // External dependencies
-import { TextProps } from '../../components/Texts/Text/Text.types';
-import { ListItemProps } from '../../components/List/ListItem/ListItem.types';
+import { TextProps } from '@components/Texts/Text/Text.types';
+import { ListItemProps } from '@components/List/ListItem/ListItem.types';
 
 /**
  * TagBase Shape.

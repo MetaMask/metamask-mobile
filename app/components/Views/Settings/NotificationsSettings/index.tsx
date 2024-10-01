@@ -5,21 +5,21 @@ import { ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-import { RootState } from '../../../../reducers';
+import { RootState } from '@reducers';
 
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { useAccounts } from '../../../../components/hooks/useAccounts';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
+} from '@component-library/components/Texts/Text';
+import { useAccounts } from '@components/hooks/useAccounts';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import SwitchLoadingModal from '@UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
-import { useStyles } from '../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 
 import NotificationOptionToggle from './NotificationOptionToggle';
 import CustomNotificationsRow from './CustomNotificationsRow';
@@ -29,28 +29,28 @@ import {
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotificationsAccount,
   selectIsProfileSyncingEnabled,
-} from '../../../../selectors/notifications';
+} from '@selectors/notifications';
 
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
-import Routes from '../../../../constants/navigation/Routes';
+import NotificationsService from '@util/notifications/services/NotificationService';
+import Routes from '@constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
+} from '@component-library/components/Buttons/ButtonIcon';
 import SessionHeader from './sectionHeader';
 import {
   useDisableNotifications,
   useEnableNotifications,
-} from '../../../../util/notifications/hooks/useNotifications';
+} from '@util/notifications/hooks/useNotifications';
 import {
   useAccountSettingsProps,
   useSwitchNotifications,
-} from '../../../../util/notifications/hooks/useSwitchNotifications';
+} from '@util/notifications/hooks/useSwitchNotifications';
 import styleSheet from './NotificationsSettings.styles';
-import AppConstants from '../../../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import notificationsRows from './notificationsRows';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { MetaMetricsEvents } from '@core/Analytics/MetaMetrics.events';
 
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;

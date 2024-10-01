@@ -6,14 +6,14 @@ import type { NetworkState } from '@metamask/network-controller';
 
 import Text, {
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { RPC } from '../../../../../../constants/network';
+} from '@component-library/components/Texts/Text';
+import { RPC } from '@constants/network';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
-} from '../../../../../../util/etherscan';
-import { findBlockExplorerForRpc } from '../../../../../../util/networks';
-import WebviewProgressBar from '../../../../../UI/WebviewProgressBar';
+} from '@util/etherscan';
+import { findBlockExplorerForRpc } from '@util/networks';
+import WebviewProgressBar from '@UI/WebviewProgressBar';
 
 const styles = StyleSheet.create({
   progressBarWrapper: {

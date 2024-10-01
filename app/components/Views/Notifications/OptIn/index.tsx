@@ -2,30 +2,30 @@ import React, { Fragment, useCallback, useEffect } from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
 import Button, {
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/Buttons/Button';
+import { strings } from '@locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
-import EnableNotificationsCardPlaceholder from '../../../../images/enableNotificationsCard.png';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
+import EnableNotificationsCardPlaceholder from '@images/enableNotificationsCard.png';
 import { createStyles } from './styles';
-import Routes from '../../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
-import AppConstants from '../../../../core/AppConstants';
-import { RootState } from '../../../../reducers';
-import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import NotificationsService from '@util/notifications/services/NotificationService';
+import AppConstants from '@core/AppConstants';
+import { RootState } from '@reducers';
+import { useEnableNotifications } from '@util/notifications/hooks/useNotifications';
+import SwitchLoadingModal from '@components/UI/Notification/SwitchLoadingModal';
 import {
   selectIsProfileSyncingEnabled,
   selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
+} from '@selectors/notifications';
 
 const OptIn = () => {
   const { trackEvent } = useMetrics();

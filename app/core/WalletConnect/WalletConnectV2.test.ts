@@ -3,13 +3,13 @@ import { WC2Manager } from './WalletConnectV2';
 // @ts-ignore: Ignoring the import error for testing purposes
 import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Engine from '../Engine';
+import Engine from '@Engine';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
-import AppConstants from '../AppConstants';
-import StorageWrapper from '../../store/storage-wrapper';
+import AppConstants from '@AppConstants';
+import StorageWrapper from '@store/storage-wrapper';
 
-jest.mock('../AppConstants', () => ({
+jest.mock('@AppConstants', () => ({
   WALLET_CONNECT: {
     PROJECT_ID: 'test-project-id',
     METADATA: {
@@ -87,7 +87,7 @@ jest.mock('@walletconnect/se-sdk', () => ({
   },
 }));
 
-jest.mock('../Engine', () => ({
+jest.mock('@Engine', () => ({
   context: {
     AccountsController: {
       getSelectedAccount: jest.fn().mockReturnValue({
@@ -107,13 +107,13 @@ jest.mock('../Engine', () => ({
   },
 }));
 
-jest.mock('../Permissions', () => ({
+jest.mock('@Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
 }));
 
-jest.mock('../../selectors/networkController', () => ({
+jest.mock('@selectors/networkController', () => ({
   selectChainId: jest.fn().mockReturnValue('0x1'),
   selectProviderConfig: jest.fn().mockReturnValue({
     type: 'mainnet',
@@ -124,7 +124,7 @@ jest.mock('../../selectors/networkController', () => ({
   selectSelectedNetworkClientId: jest.fn().mockReturnValue('0x1'),
 }));
 
-jest.mock('../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn(),
   getItem: jest.fn(),
 }));
@@ -138,7 +138,7 @@ jest.mock('./WalletConnect2Session', () => ({
   })),
 }));
 
-jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
+jest.mock('@BackgroundBridge/BackgroundBridge', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     inpageProvider: {},

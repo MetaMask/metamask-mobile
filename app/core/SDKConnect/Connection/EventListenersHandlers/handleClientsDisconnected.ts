@@ -1,6 +1,6 @@
-import AppConstants from '../../../AppConstants';
-import DevLogger from '../../utils/DevLogger';
-import { Connection } from '../Connection';
+import AppConstants from '@AppConstants';
+import DevLogger from '@utils/DevLogger';
+import { Connection } from '@Connection';
 
 function handleClientsDisconnected({
   instance,

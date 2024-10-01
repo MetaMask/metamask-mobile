@@ -1,4 +1,4 @@
-import { AccountsActionType, iAccountActions } from '../../actions/accounts';
+import { AccountsActionType, iAccountActions } from '@actions/accounts';
 
 /**
  * Interface for defining what properties will be defined in store

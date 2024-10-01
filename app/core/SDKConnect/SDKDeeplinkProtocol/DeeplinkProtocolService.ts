@@ -3,25 +3,25 @@ import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Linking } from 'react-native';
-import { PROTOCOLS } from '../../../constants/deeplinks';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { DappClient, DappConnections } from '../AndroidSDK/dapp-sdk-types';
-import getDefaultBridgeParams from '../AndroidSDK/getDefaultBridgeParams';
-import BatchRPCManager from '../BatchRPCManager';
-import RPCQueueManager from '../RPCQueueManager';
-import SDKConnect from '../SDKConnect';
+import { PROTOCOLS } from '@constants/deeplinks';
+import AppConstants from '@core/AppConstants';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import { DappClient, DappConnections } from '@AndroidSDK/dapp-sdk-types';
+import getDefaultBridgeParams from '@AndroidSDK/getDefaultBridgeParams';
+import BatchRPCManager from '@BatchRPCManager';
+import RPCQueueManager from '@RPCQueueManager';
+import SDKConnect from '@SDKConnect';
 import {
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
   RPC_METHODS,
-} from '../SDKConnectConstants';
-import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
-import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
-import DevLogger from '../utils/DevLogger';
-import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
+} from '@SDKConnectConstants';
+import handleBatchRpcResponse from '@handlers/handleBatchRpcResponse';
+import handleCustomRpcCalls from '@handlers/handleCustomRpcCalls';
+import DevLogger from '@utils/DevLogger';
+import { wait, waitForKeychainUnlocked } from '@utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

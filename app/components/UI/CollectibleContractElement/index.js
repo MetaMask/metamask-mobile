@@ -2,28 +2,28 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../styles/common';
-import CollectibleMedia from '../CollectibleMedia';
-import Device from '../../../util/device';
-import Text from '../../Base/Text';
+import { fontStyles } from '@styles/common';
+import CollectibleMedia from '@CollectibleMedia';
+import Device from '@util/device';
+import Text from '@Base/Text';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
+import { removeFavoriteCollectible } from '@actions/collectibles';
+import { collectibleContractsSelector } from '@reducers/collectibles';
+import { useTheme } from '@util/theme';
+import { selectChainId } from '@selectors/networkController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import {
   MetaMetricsEvents,
   useMetrics,
-} from '../../../components/hooks/useMetrics';
-import { getDecimalChainId } from '../../../util/networks';
+} from '@components/hooks/useMetrics';
+import { getDecimalChainId } from '@util/networks';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;

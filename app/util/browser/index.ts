@@ -1,7 +1,7 @@
 import { Linking } from 'react-native';
 import isUrl from 'is-url';
 import Url from 'url-parse';
-import { regex, hasProtocol } from '../../util/regex';
+import { regex, hasProtocol } from '@util/regex';
 
 /**
  * Returns URL prefixed with protocol

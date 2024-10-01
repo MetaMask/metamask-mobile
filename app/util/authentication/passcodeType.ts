@@ -1,5 +1,5 @@
-import Device from '../device';
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import Device from '@device';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
 
 /**
  * Determines the passcode type used in locales to dispaly the platform specific text

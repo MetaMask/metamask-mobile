@@ -5,23 +5,23 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
-import { doENSReverseLookup } from '../../../util/ENSUtils';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
-import { getTicker } from '../../../util/transactions';
+import { doENSReverseLookup } from '@util/ENSUtils';
+import { hexToBN, renderFromWei, weiToFiat } from '@util/number';
+import { getTicker } from '@util/transactions';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
+} from '@selectors/currencyRateController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectIsMultiAccountBalancesEnabled } from '@selectors/preferencesController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
-} from '../../../selectors/accountsController';
+} from '@selectors/accountsController';
 
 // Internal dependencies
 import {

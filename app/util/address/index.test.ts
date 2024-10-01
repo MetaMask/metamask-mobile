@@ -19,14 +19,14 @@ import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
   mockSimpleKeyringAddress,
-} from '../test/keyringControllerTestUtils';
+} from '@test/keyringControllerTestUtils';
 
 const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 
-jest.mock('../../core/Engine', () => {
+jest.mock('@core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
-    '../test/keyringControllerTestUtils',
+    '@test/keyringControllerTestUtils',
   );
   return {
     context: {

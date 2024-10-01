@@ -3,9 +3,9 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../Icons/Icon';
-import { mockTheme } from '../../../../util/theme';
-import { AvatarSize } from '../../Avatars/Avatar';
+import { IconName } from '@Icons/Icon';
+import { mockTheme } from '@util/theme';
+import { AvatarSize } from '@Avatars/Avatar';
 
 // Internal dependencies
 import TabBarItem from './TabBarItem';

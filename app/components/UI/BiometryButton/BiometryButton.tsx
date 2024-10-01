@@ -2,17 +2,17 @@ import React from 'react';
 import { TouchableOpacity, Image as ImageRN, Platform } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
 import { createStyles } from './styles';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
-const iosFaceId = require('../../../images/ios-face-id.png');
-const androidFaceRecognition = require('../../../images/android-face-recognition.png');
-const androidIris = require('../../../images/android-iris.png');
+const iosFaceId = require('@images/ios-face-id.png');
+const androidFaceRecognition = require('@images/android-face-recognition.png');
+const androidIris = require('@images/android-iris.png');
 
 type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE;
 

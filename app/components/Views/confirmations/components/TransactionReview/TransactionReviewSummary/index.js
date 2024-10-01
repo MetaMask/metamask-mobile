@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View } from 'react-native';
-import { fontStyles } from '../../../../../../styles/common';
-import { strings } from '../../../../../../../locales/i18n';
-import WarningMessage from '../../../SendFlow/WarningMessage';
-import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import { isTestNet } from '../../../../../../util/networks';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import WarningMessage from '@SendFlow/WarningMessage';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { isTestNet } from '@util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({

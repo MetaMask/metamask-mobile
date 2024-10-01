@@ -14,12 +14,12 @@ import {
   Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
+import { fontStyles } from '@styles/common';
+import { useTheme } from '@util/theme';
 import Svg, { Path } from 'react-native-svg';
 
 /* eslint-disable import/no-commonjs */
-const SlippageSliderBgImg = require('../../../images/slippage-slider-bg.png');
+const SlippageSliderBgImg = require('@images/slippage-slider-bg.png');
 /* eslint-enable import/no-commonjs */
 
 const DIAMETER = 30;

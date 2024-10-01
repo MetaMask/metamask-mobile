@@ -2,9 +2,9 @@
 import {
   Account,
   EnsByAccountAddress,
-} from '../../components/hooks/useAccounts';
-import { safeToChecksumAddress } from '../address';
-import { isDefaultAccountName } from '../ENSUtils';
+} from '@components/hooks/useAccounts';
+import { safeToChecksumAddress } from '@address';
+import { isDefaultAccountName } from '@ENSUtils';
 
 /**
  * Gets the Account nickname, ENS name, or default account name - Whichever one is available.

@@ -4,27 +4,27 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { strings } from '../../../../../locales/i18n';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { strings } from '@locales/i18n';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
+import AvatarFavicon from '@component-library/components/Avatars/Avatar/variants/AvatarFavicon';
+import AvatarToken from '@component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeStatusState,
   BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+} from '@component-library/components/Badges/Badge';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Routes from '../../../../constants/navigation/Routes';
-import { getPermittedAccounts } from '../../../../core/Permissions';
-import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { useTheme } from '../../../../util/theme';
+} from '@component-library/components/Texts/Text';
+import Routes from '@constants/navigation/Routes';
+import { getPermittedAccounts } from '@core/Permissions';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { useTheme } from '@util/theme';
 import getSharedStyles from './getSharedStyles';
 
 interface SDKSessionViewProps {

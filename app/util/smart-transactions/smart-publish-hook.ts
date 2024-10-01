@@ -12,7 +12,7 @@ import {
   getShouldUpdateApprovalRequest,
   getTransactionType,
 } from './index';
-import Logger from '../Logger';
+import Logger from '@Logger';
 import {
   Fee,
   Fees,
@@ -20,11 +20,11 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { v1 as random } from 'uuid';
-import { decimalToHex } from '../conversions';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
+import { decimalToHex } from '@conversions';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
+import { RAMPS_SEND } from '@components/UI/Ramp/constants';
 import { ControllerMessenger } from '@metamask/base-controller';
-import { addSwapsTransaction } from '../swaps/swaps-transactions';
+import { addSwapsTransaction } from '@swaps/swaps-transactions';
 
 export declare type Hex = `0x${string}`;
 

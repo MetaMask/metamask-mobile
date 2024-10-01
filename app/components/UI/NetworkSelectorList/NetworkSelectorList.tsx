@@ -4,14 +4,14 @@ import { ListRenderItem, ImageSourcePropType } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 
 // External dependencies.
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Cell, {
   CellVariant,
-} from '../../../component-library/components/Cells/Cell';
+} from '@component-library/components/Cells/Cell';
 
 // Internal dependencies.
 import {

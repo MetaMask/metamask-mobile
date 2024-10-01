@@ -1,4 +1,4 @@
-import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
+import { EVENT_NAME, MetaMetrics } from '@core/Analytics';
 import { InteractionManager } from 'react-native';
 
 /**

@@ -1,12 +1,12 @@
-import { getNetworkTypeById } from '../../../util/networks';
-import { generateApprovalData } from '../../../util/transactions';
+import { getNetworkTypeById } from '@util/networks';
+import { generateApprovalData } from '@util/transactions';
 import { ParseOutput } from 'eth-url-parser';
-import { strings } from '../../../../locales/i18n';
-import { getAddress } from '../../../util/address';
-import { addTransaction } from '../../../util/transaction-controller';
-import DeeplinkManager from '../DeeplinkManager';
-import Engine from '../../Engine';
-import NotificationManager from '../../NotificationManager';
+import { strings } from '@locales/i18n';
+import { getAddress } from '@util/address';
+import { addTransaction } from '@util/transaction-controller';
+import DeeplinkManager from '@DeeplinkManager';
+import Engine from '@Engine';
+import NotificationManager from '@NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

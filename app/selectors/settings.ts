@@ -1,4 +1,4 @@
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { createSelector } from 'reselect';
 
 const selectSettings = (state: RootState) => state.settings;

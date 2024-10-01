@@ -1,10 +1,10 @@
 import {
   resetApprovedHosts,
   resetConnections,
-} from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
-import AppConstants from '../../../core/AppConstants';
-import SDKConnect from '../SDKConnect';
+} from '@app/actions/sdk';
+import { store } from '@app/store';
+import AppConstants from '@core/AppConstants';
+import SDKConnect from '@SDKConnect';
 
 function invalidateChannel({
   channelId,

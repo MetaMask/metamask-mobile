@@ -1,16 +1,16 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { UseCreateSessionReturn } from './types';
-import { getErrorMessage } from '../../../util/errorHandling';
+import { getErrorMessage } from '@util/errorHandling';
 
 import {
   selectIsProfileSyncingEnabled,
   selectIsSignedIn,
-} from '../../../selectors/notifications';
+} from '@selectors/notifications';
 import {
   disableProfileSyncing,
   signIn,
-} from '../../../actions/notification/helpers';
+} from '@actions/notification/helpers';
 
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,

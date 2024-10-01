@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import StakeInputView from './StakeInputView';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '@util/test/renderWithProvider';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
 import { BN } from 'ethereumjs-util';
 
 function render(Component: React.ComponentType) {
@@ -45,13 +45,13 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock necessary modules and hooks
-jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
+jest.mock('@selectors/currencyRateController.ts', () => ({
   selectConversionRate: jest.fn(() => 2000),
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
 const mockBalanceBN = new BN('1500000000000000000');
-jest.mock('../../hooks/useBalance', () => ({
+jest.mock('@hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
     balance: '1.5',

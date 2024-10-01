@@ -6,23 +6,23 @@ import {
   TextStyle,
   DimensionValue,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
 import Fuse from 'fuse.js';
-import { toLowerCaseEquals } from '../../../util/general';
+import { toLowerCaseEquals } from '@util/general';
 import { useSelector } from 'react-redux';
 import { TokenListToken } from '@metamask/assets-controllers';
-import { useTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
-import { TokenViewSelectors } from '../../../../e2e/selectors/AddTokenView.selectors';
-import { selectTokenListArray } from '../../../selectors/tokenListController';
+import { useTheme } from '@util/theme';
+import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';
+import { TokenViewSelectors } from '@e2e/selectors/AddTokenView.selectors';
+import { selectTokenListArray } from '@selectors/tokenListController';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
+} from '@component-library/components/Buttons/ButtonIcon';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

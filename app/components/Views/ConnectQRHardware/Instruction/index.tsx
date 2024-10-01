@@ -3,19 +3,19 @@
 
 import React from 'react';
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
   KEYSTONE_SUPPORT,
   KEYSTONE_SUPPORT_VIDEO,
   NGRAVE_BUY,
   NGRAVE_LEARN_MORE,
-} from '../../../../constants/urls';
-import { useTheme } from '../../../../util/theme';
+} from '@constants/urls';
+import { useTheme } from '@util/theme';
 import { createStyles } from './styles';
-import StyledButton from '../../../UI/StyledButton';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
+import StyledButton from '@UI/StyledButton';
+import generateTestId from '@wdio/utils/generateTestId';
+import { QR_CONTINUE_BUTTON } from '@wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 
 interface IConnectQRInstructionProps {
   // TODO: Replace "any" with type

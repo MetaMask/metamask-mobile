@@ -1,10 +1,10 @@
 import { parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
-import { ETH_ACTIONS } from '../../../constants/deeplinks';
-import { NetworkSwitchErrorType } from '../../../constants/error';
-import DeeplinkManager from '../DeeplinkManager';
+import { ETH_ACTIONS } from '@constants/deeplinks';
+import { NetworkSwitchErrorType } from '@constants/error';
+import DeeplinkManager from '@DeeplinkManager';
 import handleEthereumUrl from './handleEthereumUrl';
-import { getDecimalChainId } from '../../../util/networks';
+import { getDecimalChainId } from '@util/networks';
 
 jest.mock('react-native');
 
@@ -12,11 +12,11 @@ jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),
 }));
 
-jest.mock('../../../util/networks', () => ({
+jest.mock('@util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
 
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 

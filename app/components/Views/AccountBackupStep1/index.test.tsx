@@ -1,7 +1,7 @@
 import { ComponentType } from 'react';
 import AccountBackupStep1 from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();

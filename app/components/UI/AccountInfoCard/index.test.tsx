@@ -2,15 +2,15 @@ import React from 'react';
 import AccountInfoCard from './';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
-} from '../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../reducers';
+} from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   resetState: jest.fn(),
   context: {
     KeyringController: {
@@ -81,7 +81,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('is-url', () => jest.fn());
-jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+jest.mock('@core/SDKConnect/SDKConnect', () => ({
   getInstance: () => ({
     getConnections: jest.fn().mockReturnValue({
       'https://metamask.io': {

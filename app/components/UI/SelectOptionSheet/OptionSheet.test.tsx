@@ -1,7 +1,7 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import React from 'react';
 import OptionsSheet from './OptionsSheet';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import { SELECT_OPTION_PREFIX, SELECT_VALUE_TICK_PREFIX } from './constants';
 import { fireEvent } from '@testing-library/react-native';
 import { ISelectOptionSheet } from './types';
@@ -22,8 +22,8 @@ const mockUseParamsValues: ISelectOptionSheet = {
   onValueChange: jest.fn(),
 };
 
-jest.mock('../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 

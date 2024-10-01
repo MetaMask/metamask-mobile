@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
-import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
-import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import useApprovalRequest from '@hooks/useApprovalRequest';
 import createStyles from './style';
 
 const getTitle = (confirmationType?: string) => {

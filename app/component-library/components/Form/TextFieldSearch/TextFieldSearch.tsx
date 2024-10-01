@@ -4,9 +4,9 @@
 import React, { useCallback, useState } from 'react';
 
 // External dependencies.
-import ButtonIcon from '../../Buttons/ButtonIcon';
-import Icon from '../../Icons/Icon';
-import TextField from '../TextField/TextField';
+import ButtonIcon from '@Buttons/ButtonIcon';
+import Icon from '@Icons/Icon';
+import TextField from '@TextField/TextField';
 
 // Internal dependencies.
 import { TextFieldSearchProps } from './TextFieldSearch.types';

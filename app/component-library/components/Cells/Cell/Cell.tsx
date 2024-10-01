@@ -5,8 +5,8 @@ import React from 'react';
 import CellDisplay from './variants/CellDisplay';
 import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
-import CellSelectWithMenu from '../../../components-temp/CellSelectWithMenu';
-import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
+import CellSelectWithMenu from '@components-temp/CellSelectWithMenu';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import { CellProps, CellVariant } from './Cell.types';

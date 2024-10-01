@@ -1,5 +1,5 @@
-import { useSwitchNotifications } from '../../../util/notifications/hooks/useSwitchNotifications';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useSwitchNotifications } from '@util/notifications/hooks/useSwitchNotifications';
+import { useListNotifications } from '@util/notifications/hooks/useNotifications';
 import { useCallback, useState } from 'react';
 
 export function useUpdateAccountSetting(address: string, refetchAccountSettings: () => Promise<void>) {

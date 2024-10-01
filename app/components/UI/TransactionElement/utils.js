@@ -12,13 +12,13 @@ import {
   addCurrencySymbol,
   BNToHex,
   limitToMaximumDecimalPlaces,
-} from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
+} from '@util/number';
+import { strings } from '@locales/i18n';
 import {
   renderFullAddress,
   safeToChecksumAddress,
-} from '../../../util/address';
-import { sumHexWEIs } from '../../../util/conversions';
+} from '@util/address';
+import { sumHexWEIs } from '@util/conversions';
 import {
   decodeTransferData,
   isCollectibleAddress,
@@ -26,12 +26,12 @@ import {
   getActionKey,
   TRANSACTION_TYPES,
   calculateEIP1559GasFeeHexes,
-} from '../../../util/transactions';
+} from '@util/transactions';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { isSwapsNativeAsset } from '../Swaps/utils';
-import { toLowerCaseEquals } from '../../../util/general';
-import Engine from '../../../core/Engine';
+import { isSwapsNativeAsset } from '@Swaps/utils';
+import { toLowerCaseEquals } from '@util/general';
+import Engine from '@core/Engine';
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
 
 const { getSwapsContractAddress } = swapsUtils;

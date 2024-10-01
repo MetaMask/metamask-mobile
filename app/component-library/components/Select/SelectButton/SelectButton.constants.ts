@@ -1,10 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { TextVariant, TextColor } from '../../Texts/Text';
-import { IconName, IconColor, IconSize } from '../../Icons/Icon';
-import { VerticalAlignment } from '../../List/ListItem';
-import { AvatarSize } from '../../Avatars/Avatar';
-import { SAMPLE_AVATAR_PROPS } from '../../Avatars/Avatar/Avatar.constants';
+import { TextVariant, TextColor } from '@Texts/Text';
+import { IconName, IconColor, IconSize } from '@Icons/Icon';
+import { VerticalAlignment } from '@List/ListItem';
+import { AvatarSize } from '@Avatars/Avatar';
+import { SAMPLE_AVATAR_PROPS } from '@Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.
 import {

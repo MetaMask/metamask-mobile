@@ -1,7 +1,7 @@
 import { shouldShowSmartTransactionsOptInModal } from './index';
-import StorageWrapper from '../../store/storage-wrapper';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import { store } from '../../store';
+import StorageWrapper from '@store/storage-wrapper';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
+import { store } from '@store';
 
 const getMockState = (optInModalAppVersionSeen: string | null) => ({
   smartTransactions: {
@@ -9,9 +9,9 @@ const getMockState = (optInModalAppVersionSeen: string | null) => ({
   },
 });
 
-jest.mock('../../store/storage-wrapper');
+jest.mock('@store/storage-wrapper');
 
-jest.mock('../../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(() => getMockState(null)),
     dispatch: jest.fn(),

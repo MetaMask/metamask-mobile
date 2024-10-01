@@ -1,9 +1,9 @@
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { RootState } from '../../../../../reducers';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RootState } from '@reducers';
 import PermissionItem from './PermissionItem';
 import mockPermissionItems from './PermissionItem.constants';
 

@@ -5,7 +5,7 @@ import {
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IMetaMetricsEvent,
-} from '../../../core/Analytics/MetaMetrics.types';
+} from '@core/Analytics/MetaMetrics.types';
 
 export const SourceType = {
   SDK: 'sdk',

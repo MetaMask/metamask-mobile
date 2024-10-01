@@ -1,6 +1,6 @@
 // External dependencies.
-import { ListItemSelectProps } from '../../List/ListItemSelect/ListItemSelect.types';
-import { SelectValueProps } from '../SelectValue/SelectValue.types';
+import { ListItemSelectProps } from '@List/ListItemSelect/ListItemSelect.types';
+import { SelectValueProps } from '@SelectValue/SelectValue.types';
 
 /**
  * SelectOption component props.

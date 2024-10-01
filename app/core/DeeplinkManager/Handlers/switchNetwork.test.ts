@@ -1,14 +1,14 @@
 import switchNetwork from './switchNetwork';
-import DeeplinkManager from '../DeeplinkManager';
-import { showAlert } from '../../../actions/alert';
-import { strings } from '../../../../locales/i18n';
-import { handleNetworkSwitch } from '../../../util/networks';
+import DeeplinkManager from '@DeeplinkManager';
+import { showAlert } from '@actions/alert';
+import { strings } from '@locales/i18n';
+import { handleNetworkSwitch } from '@util/networks';
 
-jest.mock('../../../util/networks', () => ({
+jest.mock('@util/networks', () => ({
   handleNetworkSwitch: jest.fn(),
 }));
 
-jest.mock('../../../actions/alert', () => ({
+jest.mock('@actions/alert', () => ({
   showAlert: jest.fn(),
 }));
 

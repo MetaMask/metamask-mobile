@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'react-native-qrcode-svg';
 import { StyleSheet, View } from 'react-native';
 import { UR, UREncoder } from '@ngraveio/bc-ur';
-import { useTheme } from '../../../util/theme';
-import { Theme } from '../../../util/theme/models';
+import { useTheme } from '@util/theme';
+import { Theme } from '@util/theme/models';
 
 interface IAnimatedQRCodeProps {
   cbor: string;

@@ -1,4 +1,4 @@
-import { USER_INTENT } from '../../../constants/permissions';
+import { USER_INTENT } from '@constants/permissions';
 
 export interface PermissionsSummaryProps {
   currentPageInformation: {

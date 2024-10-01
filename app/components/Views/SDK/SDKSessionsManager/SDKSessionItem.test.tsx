@@ -1,27 +1,27 @@
 import { render } from '@testing-library/react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getPermittedAccounts } from '../../../../core/Permissions';
+import { getPermittedAccounts } from '@core/Permissions';
 import SDKSessionItem from './SDKSessionItem';
 
 // Mock external hooks and functions
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
-jest.mock('../../../../util/theme', () => ({
+jest.mock('@util/theme', () => ({
   useTheme: jest.fn(),
 }));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
 }));
-jest.mock('../../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
-jest.mock('../../../../core/Permissions', () => ({
+jest.mock('@core/Permissions', () => ({
   getPermittedAccounts: jest.fn(),
 }));
 
-jest.mock('../../../../component-library/components/Badges/Badge', () => ({
+jest.mock('@component-library/components/Badges/Badge', () => ({
   __esModule: true,
   default: jest.fn(() => <></>),
   BadgeVariant: {
@@ -33,7 +33,7 @@ jest.mock('../../../../component-library/components/Badges/Badge', () => ({
 }));
 
 jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon',
+  '@component-library/components/Avatars/Avatar/variants/AvatarFavicon',
   () => ({
     __esModule: true,
     default: jest.fn(() => <></>),
@@ -41,7 +41,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  '@component-library/components/Avatars/Avatar/variants/AvatarToken',
   () => ({
     __esModule: true,
     default: jest.fn(() => <></>),

@@ -1,29 +1,29 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { View, Image, Linking, Platform } from 'react-native';
 import { createStyles } from './styles';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
-import { useTheme } from '../../../util/theme';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import Logger from '../../../util/Logger';
+} from '@component-library/components/Texts/Text';
+import { createNavigationDetails } from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import { useTheme } from '@util/theme';
+import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import Logger from '@util/Logger';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+} from '@component-library/components/Buttons/Button';
+import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '@constants/urls';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import { ScrollView } from 'react-native-gesture-handler';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import generateDeviceAnalyticsMetaData from '@util/metrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
+const onboardingDeviceImage = require('@images/swaps_onboard_device.png');
 
 export const createUpdateNeededNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,

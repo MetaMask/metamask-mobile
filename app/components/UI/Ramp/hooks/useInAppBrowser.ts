@@ -6,18 +6,18 @@ import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from './useAnalytics';
-import { callbackBaseDeeplink, SDK, useRampSDK } from '../sdk';
-import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
+import { callbackBaseDeeplink, SDK, useRampSDK } from '@sdk';
+import { createCustomOrderIdData } from '@orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from '@orderProcessor/aggregator';
 import {
   addFiatCustomIdData,
   FiatOrder,
   removeFiatCustomIdData,
-} from '../../../../reducers/fiatOrders';
-import { setLockTime } from '../../../../actions/settings';
-import Logger from '../../../../util/Logger';
+} from '@reducers/fiatOrders';
+import { setLockTime } from '@actions/settings';
+import Logger from '@util/Logger';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
-import Device from '../../../../util/device';
+import Device from '@util/device';
 
 export default function useInAppBrowser() {
   const {

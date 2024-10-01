@@ -1,8 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
-import { baseStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
+import { baseStyles } from '@styles/common';
+import { useTheme } from '@util/theme';
 import { Theme } from '@metamask/design-tokens';
 
 const createStyles = (colors: Theme['colors']) =>

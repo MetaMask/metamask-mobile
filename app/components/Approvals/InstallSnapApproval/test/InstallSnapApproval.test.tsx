@@ -3,20 +3,20 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import InstallSnapApproval from '../InstallSnapApproval';
-import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import InstallSnapApproval from '@InstallSnapApproval';
+import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECTION_REQUEST,
-} from '../components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
+} from '@components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import {
   SNAP_INSTALL_PERMISSIONS_REQUEST,
   SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
-} from '../components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
-import SNAP_INSTALL_SUCCESS from '../components/InstallSnapSuccess/InstallSnapSuccess.constants';
-import SNAP_INSTALL_ERROR from '../components/InstallSnapError/InstallSnapError.constants';
+} from '@components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
+import SNAP_INSTALL_SUCCESS from '@components/InstallSnapSuccess/InstallSnapSuccess.constants';
+import SNAP_INSTALL_ERROR from '@components/InstallSnapError/InstallSnapError.constants';
 
-jest.mock('../../../Views/confirmations/hooks/useApprovalRequest');
+jest.mock('@Views/confirmations/hooks/useApprovalRequest');
 
 const onConfirm = jest.fn();
 const onReject = jest.fn();

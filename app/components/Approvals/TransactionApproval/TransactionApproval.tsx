@@ -1,11 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import Approval from '../../Views/confirmations/Approval';
-import Approve from '../../Views/confirmations/ApproveView/Approve';
-import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
-import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
-import { IQRState } from '../../UI/QRHardware/types';
+import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
+import Approval from '@Views/confirmations/Approval';
+import Approve from '@Views/confirmations/ApproveView/Approve';
+import QRSigningModal from '@UI/QRHardware/QRSigningModal';
+import withQRHardwareAwareness from '@UI/QRHardware/withQRHardwareAwareness';
+import { IQRState } from '@UI/QRHardware/types';
 
 export enum TransactionModalType {
   Transaction = 'transaction',

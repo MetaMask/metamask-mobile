@@ -2,16 +2,16 @@ import React, { PureComponent } from 'react';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
-import TabCountIcon from '../Tabs/TabCountIcon';
+import TabCountIcon from '@Tabs/TabCountIcon';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
 import {
   HOME_BUTTON,
   TABS_BUTTON,
@@ -19,8 +19,8 @@ import {
   BACK_BUTTON,
   OPTIONS_BUTTON,
   SEARCH_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+} from '@wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 
 // NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
 // TODO: test on an android device

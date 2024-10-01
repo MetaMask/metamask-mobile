@@ -1,17 +1,17 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
-import Routes from '../../../../../constants/navigation/Routes';
+import { FiatOrder } from '@reducers/fiatOrders';
+import Routes from '@constants/navigation/Routes';
 import {
   renderScreen,
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
-import { addTransaction } from '../../../../../util/transaction-controller';
+import { addTransaction } from '@util/transaction-controller';
 import SendTransaction from './SendTransaction';
-import APP_CONSTANTS from '../../../../../core/AppConstants';
+import APP_CONSTANTS from '@core/AppConstants';
 const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
 
 const mockOrder = {
@@ -305,14 +305,14 @@ let mockUseParamsValues: {
   orderId: 'test-id-1',
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../../../util/transaction-controller'),
+  ...jest.requireActual('@util/transaction-controller'),
   addTransaction: jest.fn(),
 }));
 
@@ -323,7 +323,7 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('SendTransaction View', () => {
   afterEach(() => {

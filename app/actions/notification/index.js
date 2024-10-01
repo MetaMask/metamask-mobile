@@ -1,7 +1,7 @@
 /**
  * This file contains all the actions related to the in app (old/v1) notification system.
  */
-import { ACTIONS } from '../../reducers/notification';
+import { ACTIONS } from '@reducers/notification';
 
 export function hideCurrentNotification() {
   return {

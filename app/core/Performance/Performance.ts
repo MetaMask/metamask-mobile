@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
-import StorageWrapper from '../../store/storage-wrapper';
-import { isTest } from '../../util/test/utils';
+import StorageWrapper from '@store/storage-wrapper';
+import { isTest } from '@util/test/utils';
 
 /**
  * Service for measuring app performance

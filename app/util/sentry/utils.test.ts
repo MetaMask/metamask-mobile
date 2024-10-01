@@ -8,8 +8,8 @@ import {
   sentryStateMask,
   AllProperties,
 } from './utils';
-import { DeepPartial } from '../test/renderWithProvider';
-import { RootState } from '../../reducers';
+import { DeepPartial } from '@test/renderWithProvider';
+import { RootState } from '@reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({

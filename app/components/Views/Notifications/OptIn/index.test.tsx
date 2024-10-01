@@ -1,11 +1,11 @@
 import React from 'react';
 import OptIn from '.';
-import { RootState } from '../../../../reducers';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import { RootState } from '@reducers';
+import { backgroundState } from '@util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../locales/i18n';
+} from '@util/test/renderWithProvider';
+import { strings } from '@locales/i18n';
 
 const mockedDispatch = jest.fn();
 
@@ -39,17 +39,17 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../actions/notification/helpers', () => ({
+jest.mock('@actions/notification/helpers', () => ({
   enableNotificationServices: jest.fn(),
 }));
 
-jest.mock('../../../../components/hooks/useMetrics', () => ({
+jest.mock('@components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: jest.fn(),
   }),
 }));
 
-jest.mock('../../../../util/notifications/hooks/useNotifications', () => ({
+jest.mock('@util/notifications/hooks/useNotifications', () => ({
   useEnableNotifications: () => ({
     enableNotifications: jest.fn(),
   }),
@@ -61,21 +61,21 @@ jest.mock('react-native', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/notifications', () => ({
+jest.mock('@selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: jest.fn(),
 }));
 
-jest.mock('../../../../core/Analytics', () => ({
+jest.mock('@core/Analytics', () => ({
   MetaMetricsEvents: {
     NOTIFICATIONS_ACTIVATED: 'notifications_activated',
   },
 }));
 
-jest.mock('../../../../util/theme', () => ({
+jest.mock('@util/theme', () => ({
   useTheme: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/notifications', () => ({
+jest.mock('@selectors/notifications', () => ({
   selectIsProfileSyncingEnabled: jest.fn(),
 }));
 

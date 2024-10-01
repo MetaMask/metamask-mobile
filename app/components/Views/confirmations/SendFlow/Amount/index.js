@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '@styles/common';
 import {
   StyleSheet,
   Text,
@@ -17,14 +17,14 @@ import {
   prepareTransaction,
   setTransactionObject,
   resetTransaction,
-} from '../../../../../actions/transaction';
-import { getSendFlowTitle } from '../../../../UI/Navbar';
-import StyledButton from '../../../../UI/StyledButton';
+} from '@actions/transaction';
+import { getSendFlowTitle } from '@UI/Navbar';
+import StyledButton from '@UI/StyledButton';
 import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
-import TokenImage from '../../../../UI/TokenImage';
+import TokenImage from '@UI/TokenImage';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
@@ -44,65 +44,65 @@ import {
   toHexadecimal,
   hexToBN,
   formatValueToMatchTokenDecimals,
-} from '../../../../../util/number';
+} from '@util/number';
 import {
   getTicker,
   generateTransferData,
   getEther,
   calculateEIP1559GasFeeHexes,
-} from '../../../../../util/transactions';
+} from '@util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
-import ErrorMessage from '../ErrorMessage';
-import { getGasLimit } from '../../../../../util/custom-gas';
-import Engine from '../../../../../core/Engine';
-import CollectibleMedia from '../../../../UI/CollectibleMedia';
-import collectiblesTransferInformation from '../../../../../util/collectibles-transfer';
-import { strings } from '../../../../../../locales/i18n';
-import Device from '../../../../../util/device';
+import ErrorMessage from '@ErrorMessage';
+import { getGasLimit } from '@util/custom-gas';
+import Engine from '@core/Engine';
+import CollectibleMedia from '@UI/CollectibleMedia';
+import collectiblesTransferInformation from '@util/collectibles-transfer';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
 import { BN } from 'ethereumjs-util';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '@core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
-import NetworkMainAssetLogo from '../../../../UI/NetworkMainAssetLogo';
-import { renderShortText } from '../../../../../util/general';
+import NetworkMainAssetLogo from '@UI/NetworkMainAssetLogo';
+import { renderShortText } from '@util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { decGWEIToHexWEI } from '../../../../../util/conversions';
-import AppConstants from '../../../../../core/AppConstants';
+import { decGWEIToHexWEI } from '@util/conversions';
+import AppConstants from '@core/AppConstants';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
-} from '../../../../../reducers/collectibles';
-import { gte } from '../../../../../util/lodash';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import Alert, { AlertType } from '../../../../Base/Alert';
+} from '@reducers/collectibles';
+import { gte } from '@util/lodash';
+import { ThemeContext, mockTheme } from '@util/theme';
+import Alert, { AlertType } from '@Base/Alert';
 
 import {
   selectChainId,
   selectProviderType,
   selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
+} from '@selectors/networkController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import { selectTokens } from '../../../../../selectors/tokensController';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
-import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
-import Routes from '../../../../../constants/navigation/Routes';
-import { getRampNetworks } from '../../../../../reducers/fiatOrders';
-import { swapsLivenessSelector } from '../../../../../reducers/swaps';
-import { isSwapsAllowed } from '../../../../UI/Swaps/utils';
+} from '@selectors/currencyRateController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { PREFIX_HEX_STRING } from '@constants/transaction';
+import Routes from '@constants/navigation/Routes';
+import { getRampNetworks } from '@reducers/fiatOrders';
+import { swapsLivenessSelector } from '@reducers/swaps';
+import { isSwapsAllowed } from '@UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { regex } from '../../../../../util/regex';
-import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
-import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import { regex } from '@util/regex';
+import { AmountViewSelectorsIDs } from '@e2e/selectors/SendFlow/AmountView.selectors';
+import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
+import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 

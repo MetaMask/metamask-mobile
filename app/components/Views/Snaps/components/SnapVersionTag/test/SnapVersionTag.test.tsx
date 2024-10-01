@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import SnapVersionBadge from '../SnapVersionTag';
+import SnapVersionBadge from '@SnapVersionTag';
 import { SemVerVersion } from '@metamask/utils';
 import {
   SNAP_VERSION_BADGE,
   SNAP_VERSION_BADGE_VALUE,
-} from '../SnapVersionTag.constants';
+} from '@SnapVersionTag.constants';
 
 describe('SnapVersionBadge', () => {
   it('renders the version in the correct format', async () => {

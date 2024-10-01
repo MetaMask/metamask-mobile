@@ -6,13 +6,13 @@ import { View, Pressable } from 'react-native';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../components/Avatars/Avatar';
-import Text, { TextVariant } from '../../../components/Texts/Text';
-import { formatAddress } from '../../../../util/address';
-import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
-import { useStyles } from '../../../hooks';
-import Button, { ButtonVariants } from '../../../components/Buttons/Button';
-import Identicon from '../../../../components/UI/Identicon';
+} from '@components/Avatars/Avatar';
+import Text, { TextVariant } from '@components/Texts/Text';
+import { formatAddress } from '@util/address';
+import Icon, { IconName, IconSize } from '@components/Icons/Icon';
+import { useStyles } from '@hooks';
+import Button, { ButtonVariants } from '@components/Buttons/Button';
+import Identicon from '@components/UI/Identicon';
 
 // Internal dependencies.
 import { ContractBoxBaseProps, IconViewProps } from './ContractBoxBase.types';

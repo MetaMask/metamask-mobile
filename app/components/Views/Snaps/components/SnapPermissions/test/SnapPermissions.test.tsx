@@ -1,5 +1,5 @@
 import React from 'react';
-import SnapPermissions from '../SnapPermissions';
+import SnapPermissions from '@SnapPermissions';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import {
   SubjectPermissions,
@@ -11,7 +11,7 @@ import {
   SNAP_PERMISSIONS_DATE,
   SNAP_PERMISSIONS_TITLE,
   SNAP_PERMISSION_CELL,
-} from '../../SnapPermissionCell/SnapPermissionCell.constants';
+} from '@SnapPermissionCell/SnapPermissionCell.constants';
 
 describe('SnapPermissions', () => {
   const mockDate = 1684964145490;

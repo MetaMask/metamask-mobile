@@ -1,5 +1,5 @@
 import Engine from './Engine';
-import Logger from '../util/Logger';
+import Logger from '@util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { withLedgerKeyring } from './Ledger/Ledger';
 

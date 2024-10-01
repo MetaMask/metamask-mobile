@@ -31,7 +31,7 @@ import {
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
-import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
+import PREINSTALLED_SNAPS from '@lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
@@ -127,7 +127,7 @@ import {
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
-import { getSnapsWebViewPromise } from '../lib/snaps';
+import { getSnapsWebViewPromise } from '@lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
@@ -155,19 +155,19 @@ import {
   isTestNet,
   deprecatedGetNetworkId,
   getDecimalChainId,
-} from '../util/networks';
+} from '@util/networks';
 import AppConstants from './AppConstants';
-import { store } from '../store';
+import { store } from '@store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
   addHexPrefix,
-} from '../util/number';
+} from '@util/number';
 import NotificationManager from './NotificationManager';
-import Logger from '../util/Logger';
-import { isZero } from '../util/lodash';
+import Logger from '@util/Logger';
+import { isZero } from '@util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -204,8 +204,8 @@ import { hasProperty, Hex, Json } from '@metamask/utils';
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
+import { PPOM, ppomInit } from '@lib/ppom/PPOMView';
+import RNFSStorageBackend from '@lib/ppom/ppom-storage-backend';
 import {
   AccountsController,
   AccountsControllerActions,
@@ -218,23 +218,23 @@ import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../core/redux/slices/inpageProvider';
+} from '@core/redux/slices/inpageProvider';
 import SmartTransactionsController, {
   type SmartTransactionsControllerActions,
   type SmartTransactionsControllerEvents,
   type SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
-import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
-import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
+import { getAllowedSmartTransactionsChainIds } from '@app/constants/smartTransactions';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { selectSwapsChainFeatureFlags } from '@reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
+import { submitSmartTransactionHook } from '@util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
-import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+import DomainProxyMap from '@lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
   MetaMetricsEventName,

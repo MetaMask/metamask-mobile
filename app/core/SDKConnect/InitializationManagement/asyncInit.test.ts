@@ -1,20 +1,20 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import SDKConnect from '../SDKConnect';
-import { wait } from '../utils/wait.util';
+import SDKConnect from '@SDKConnect';
+import { wait } from '@utils/wait.util';
 import asyncInit from './asyncInit';
 
 jest.mock('@react-navigation/native');
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue([]),
   setItem: jest.fn(),
   clearAll: jest.fn().mockResolvedValue([]),
 }));
-jest.mock('../../AppConstants');
-jest.mock('../../../util/Logger');
-jest.mock('../SDKConnect');
-jest.mock('../utils/DevLogger');
-jest.mock('../utils/wait.util');
-jest.mock('../../../store', () => ({
+jest.mock('@AppConstants');
+jest.mock('@util/Logger');
+jest.mock('@SDKConnect');
+jest.mock('@utils/DevLogger');
+jest.mock('@utils/wait.util');
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(() => ({
       sdk: {

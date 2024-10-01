@@ -1,8 +1,8 @@
 import { NETWORKS_CHAIN_ID } from './network';
-import { isProduction } from '../util/environment';
+import { isProduction } from '@util/environment';
 import { getAllowedSmartTransactionsChainIds } from './smartTransactions';
 
-jest.mock('../util/environment', () => ({
+jest.mock('@util/environment', () => ({
   isProduction: jest.fn(() => false), // Initially mock isProduction to return false
 }));
 

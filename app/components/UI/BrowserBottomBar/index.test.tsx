@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-no-bind */
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import BrowserBottomBar from './';
 
 describe('BrowserBottomBar', () => {

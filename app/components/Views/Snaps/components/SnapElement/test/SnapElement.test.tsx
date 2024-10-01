@@ -2,10 +2,10 @@
 // @ts-nocheck - Snaps team directory
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import SnapElement from '../SnapElement';
+import SnapElement from '@SnapElement';
 import { Snap, Status } from '@metamask/snaps-utils';
 import { SemVerVersion } from '@metamask/utils';
-import SNAP_ElEMENT from '../SnapElement.constants';
+import SNAP_ElEMENT from '@SnapElement.constants';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {

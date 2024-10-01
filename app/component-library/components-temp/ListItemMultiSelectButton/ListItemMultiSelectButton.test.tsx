@@ -5,7 +5,7 @@ import { View } from 'react-native';
 
 // Internal dependencies.
 import ListItemMultiSelectButton from './ListItemMultiSelectButton';
-import { IconName } from '../../../component-library/components/Icons/Icon'; // Adjust the import path as necessary
+import { IconName } from '@component-library/components/Icons/Icon'; // Adjust the import path as necessary
 import { BUTTON_TEST_ID } from './ListItemMultiSelectButton.constants';
 
 describe('ListItemMultiSelectButton', () => {

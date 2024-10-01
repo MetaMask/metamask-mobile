@@ -1,21 +1,21 @@
 import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import StyledButton from '../StyledButton';
+import StyledButton from '@StyledButton';
 import { StyleSheet, View } from 'react-native';
-import TransactionHeader from '../TransactionHeader';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import Text from '../../Base/Text';
-import { useTheme } from '../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import TransactionHeader from '@TransactionHeader';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 import {
   isMultichainVersion1Enabled,
   getDecimalChainId,
-} from '../../../util/networks';
-import PermissionSummary from '../PermissionsSummary';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@util/networks';
+import PermissionSummary from '@PermissionsSummary';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useNetworkInfo } from '@selectors/selectedNetworkController';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({

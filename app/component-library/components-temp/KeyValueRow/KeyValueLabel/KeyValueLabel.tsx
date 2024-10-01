@@ -1,18 +1,18 @@
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
-import Label from '../../../../component-library/components/Form/Label';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon';
+import Label from '@component-library/components/Form/Label';
 import {
   IconColor,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
-import useTooltipModal from '../../../../components/hooks/useTooltipModal';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
+import useTooltipModal from '@components/hooks/useTooltipModal';
 import React from 'react';
 import { View } from 'react-native';
-import { KeyValueRowLabelProps, TooltipSizes } from '../KeyValueRow.types';
+import { KeyValueRowLabelProps, TooltipSizes } from '@KeyValueRow.types';
 import styleSheet from './KeyValueLabel.styles';
 
 /**

@@ -4,37 +4,37 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Engine from '../../../../../core/Engine';
-import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
+import { strings } from '@locales/i18n';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Engine from '@core/Engine';
+import { SDKConnect } from '@core/SDKConnect/SDKConnect';
 import {
   selectCurrentTransactionMetadata,
   selectCurrentTransactionSecurityAlertResponse,
-} from '../../../../../selectors/confirmTransaction';
+} from '@selectors/confirmTransaction';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 import {
   selectChainId,
   selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
-import { selectTokens } from '../../../../../selectors/tokensController';
-import { fontStyles } from '../../../../../styles/common';
-import Logger from '../../../../../util/Logger';
-import { safeToChecksumAddress } from '../../../../../util/address';
-import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
-import Device from '../../../../../util/device';
+} from '@selectors/networkController';
+import { selectUseTransactionSimulations } from '@selectors/preferencesController';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { selectTokenList } from '@selectors/tokenListController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectTokens } from '@selectors/tokensController';
+import { fontStyles } from '@styles/common';
+import Logger from '@util/Logger';
+import { safeToChecksumAddress } from '@util/address';
+import { getBlockaidMetricsParams } from '@util/blockaid';
+import Device from '@util/device';
 import {
   fetchEstimatedMultiLayerL1Fee,
   isMultiLayerFeeNetwork,
-} from '../../../../../util/networks';
+} from '@util/networks';
 import {
   balanceToFiat,
   fromTokenMinimalUnit,
@@ -42,28 +42,28 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../../util/number';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+} from '@util/number';
+import { ThemeContext, mockTheme } from '@util/theme';
 import {
   decodeTransferData,
   getNormalizedTxState,
   getTicker,
   getTransactionReviewActionKey,
   isApprovalTransaction,
-} from '../../../../../util/transactions';
-import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
-import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
-import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
-import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
-import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
-import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
-import TransactionHeader from '../../../../UI/TransactionHeader';
-import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
-import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
+} from '@util/transactions';
+import AccountFromToInfoCard from '@UI/AccountFromToInfoCard';
+import ApprovalTagUrl from '@UI/ApprovalTagUrl';
+import ActionView, { ConfirmButtonState } from '@UI/ActionView';
+import QRSigningDetails from '@UI/QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '@UI/QRHardware/withQRHardwareAwareness';
+import SimulationDetails from '@UI/SimulationDetails/SimulationDetails';
+import TransactionHeader from '@UI/TransactionHeader';
+import { ResultType } from '@BlockaidBanner/BlockaidBanner.types';
+import TransactionBlockaidBanner from '@TransactionBlockaidBanner/TransactionBlockaidBanner';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 

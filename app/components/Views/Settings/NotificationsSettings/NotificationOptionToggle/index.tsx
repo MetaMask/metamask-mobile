@@ -1,29 +1,29 @@
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Platform, Switch, View } from 'react-native';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics/MetaMetrics.events';
 import { createStyles } from './styles';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import generateTestId from '@wdio/utils/generateTestId';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
-import { NotificationsToggleTypes } from '../NotificationsSettings.constants';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
+import { NotificationsToggleTypes } from '@NotificationsSettings.constants';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+} from '@component-library/components/Avatars/Avatar/Avatar.types';
 import Avatar, {
   AvatarAccountType,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { formatAddress } from '../../../../../util/address';
+} from '@component-library/components/Avatars/Avatar';
+import { formatAddress } from '@util/address';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { useUpdateAccountSetting } from '../../../../../util/notifications/hooks/useUpdateAccountSetting';
+} from '@component-library/components/Icons/Icon';
+import { useUpdateAccountSetting } from '@util/notifications/hooks/useUpdateAccountSetting';
 
 interface NotificationOptionsToggleProps {
   address: string;

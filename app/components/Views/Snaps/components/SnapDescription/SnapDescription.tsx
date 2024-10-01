@@ -3,14 +3,14 @@ import React from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import stylesheet from './SnapDescription.styles';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import {
   SNAP_DESCRIPTION,
   SNAP_DESCRIPTION_TITLE,

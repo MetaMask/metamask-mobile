@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
-import ActionModal from '../ActionModal';
+import { strings } from '@locales/i18n';
+import ActionModal from '@ActionModal';
 import TransactionActionContent from './TransactionActionContent';
 
 /**

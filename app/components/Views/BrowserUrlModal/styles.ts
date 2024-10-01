@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
+import Device from '@util/device';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

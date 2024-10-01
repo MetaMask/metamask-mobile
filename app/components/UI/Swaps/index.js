@@ -17,7 +17,7 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Logger from '../../../util/Logger';
+import Logger from '@util/Logger';
 import {
   balanceToFiat,
   fromTokenMinimalUnitString,
@@ -25,10 +25,10 @@ import {
   toTokenMinimalUnit,
   weiToFiat,
   safeNumberToBN,
-} from '../../../util/number';
-import { safeToChecksumAddress } from '../../../util/address';
+} from '@util/number';
+import { safeToChecksumAddress } from '@util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import {
   getFeatureFlagChainId,
@@ -37,24 +37,24 @@ import {
   swapsTokensSelector,
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
-} from '../../../reducers/swaps';
-import Device from '../../../util/device';
-import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
+} from '@reducers/swaps';
+import Device from '@util/device';
+import Engine from '@core/Engine';
+import AppConstants from '@core/AppConstants';
 
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   setQuotesNavigationsParams,
   isSwapsNativeAsset,
   isDynamicToken,
 } from './utils';
-import { getSwapsAmountNavbar } from '../Navbar';
+import { getSwapsAmountNavbar } from '@Navbar';
 
-import useModalHandler from '../../Base/hooks/useModalHandler';
-import Text from '../../Base/Text';
-import Keypad from '../../Base/Keypad';
-import StyledButton from '../StyledButton';
-import ScreenView from '../../Base/ScreenView';
+import useModalHandler from '@Base/hooks/useModalHandler';
+import Text from '@Base/Text';
+import Keypad from '@Base/Keypad';
+import StyledButton from '@StyledButton';
+import ScreenView from '@Base/ScreenView';
 import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
@@ -62,28 +62,28 @@ import SlippageModal from './components/SlippageModal';
 import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
-import { toLowerCaseEquals } from '../../../util/general';
-import { AlertType } from '../../Base/Alert';
-import { isZero, gte } from '../../../util/lodash';
-import { useTheme } from '../../../util/theme';
+import { toLowerCaseEquals } from '@util/general';
+import { AlertType } from '@Base/Alert';
+import { isZero, gte } from '@util/lodash';
+import { useTheme } from '@util/theme';
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import AccountSelector from '../Ramp/components/AccountSelector';
-import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getSwapsLiveness } from '../../../reducers/swaps/utils';
+} from '@selectors/currencyRateController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import AccountSelector from '@Ramp/components/AccountSelector';
+import { QuoteViewSelectorIDs } from '@e2e/selectors/swaps/QuoteView.selectors';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { getSwapsLiveness } from '@reducers/swaps/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({

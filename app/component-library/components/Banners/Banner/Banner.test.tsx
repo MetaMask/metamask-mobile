@@ -3,10 +3,10 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import Text from '../../Texts/Text/Text';
-import { ButtonVariants } from '../../Buttons/Button';
-import { IconName } from '../../Icons/Icon';
-import { ButtonIconSizes } from '../../Buttons/ButtonIcon';
+import Text from '@Texts/Text/Text';
+import { ButtonVariants } from '@Buttons/Button';
+import { IconName } from '@Icons/Icon';
+import { ButtonIconSizes } from '@Buttons/ButtonIcon';
 
 // Internal dependencies.
 import Banner from './Banner';

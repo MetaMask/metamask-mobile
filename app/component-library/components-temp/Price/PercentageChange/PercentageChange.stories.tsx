@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import PercentageChange from './PercentageChange';
 import { createStore } from 'redux';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import initialBackgroundState from '@util/test/initial-background-state.json';
 
 const mockInitialState = {
   wizard: {

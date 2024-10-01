@@ -3,21 +3,21 @@ import React, { useCallback, useRef } from 'react';
 
 // External dependencies
 import { View } from 'react-native';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import BottomSheetHeader from '@component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import UntypedEngine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import UntypedEngine from '@core/Engine';
+import Logger from '@util/Logger';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 
 interface AccountPermissionsConfirmRevokeAllProps {

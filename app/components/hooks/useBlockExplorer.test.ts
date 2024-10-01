@@ -1,8 +1,8 @@
 import { NetworkController } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../constants/navigation/Routes';
-import { backgroundState } from '../../util/test/initial-root-state';
-import { renderHookWithProvider } from '../../util/test/renderWithProvider';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
 import useBlockExplorer from './useBlockExplorer';
 
 const mockInitialState = {

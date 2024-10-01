@@ -4,20 +4,20 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { IAccount } from './types';
-import useBlockExplorer from '../../../hooks/useBlockExplorer';
+import useBlockExplorer from '@hooks/useBlockExplorer';
 import { useAccountsBalance } from './hooks';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '@util/theme';
 import { createStyle } from './styles';
-import AccountDetails from '../AccountDetails';
-import StyledButton from '../../../UI/StyledButton';
-import { selectProviderConfig } from '../../../../selectors/networkController';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import AccountDetails from '@AccountDetails';
+import StyledButton from '@UI/StyledButton';
+import { selectProviderConfig } from '@selectors/networkController';
+import generateTestId from '@wdio/utils/generateTestId';
 import {
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+} from '@wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
 
 interface ISelectQRAccountsProps {
   accounts: IAccount[];

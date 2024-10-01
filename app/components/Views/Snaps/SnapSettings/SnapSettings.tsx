@@ -2,32 +2,32 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView } from 'react-native';
 
-import Engine from '../../../../core/Engine';
+import Engine from '@core/Engine';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
 import stylesheet from './SnapSettings.styles';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../util/navigation/navUtils';
-import Routes from '../../../../constants/navigation/Routes';
+} from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
 import { Snap } from '@metamask/snaps-utils';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
-import { SnapDetails } from '../components/SnapDetails';
-import { SnapDescription } from '../components/SnapDescription';
-import { SnapPermissions } from '../components/SnapPermissions';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../hooks/useStyles';
+import { SnapDetails } from '@components/SnapDetails';
+import { SnapDescription } from '@components/SnapDescription';
+import { SnapPermissions } from '@components/SnapPermissions';
+import { strings } from '@locales/i18n';
+import { useStyles } from '@hooks/useStyles';
 import { useSelector } from 'react-redux';
 import SNAP_SETTINGS_REMOVE_BUTTON from './SnapSettings.constants';
-import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
+import { selectPermissionControllerState } from '@selectors/snaps/permissionController';
 
 interface SnapSettingsProps {
   snap: Snap;

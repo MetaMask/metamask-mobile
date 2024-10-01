@@ -1,6 +1,6 @@
 import React from 'react';
 import CustomAlert from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 describe('CustomAlert', () => {
   it('should render correctly', () => {

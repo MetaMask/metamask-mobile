@@ -1,11 +1,11 @@
 import {
   DeepPartial,
   renderHookWithProvider,
-} from '../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import useExistingAddress from './useExistingAddress';
-import { backgroundState } from '../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../reducers';
+import { backgroundState } from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';

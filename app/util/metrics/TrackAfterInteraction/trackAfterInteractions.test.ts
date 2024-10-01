@@ -1,5 +1,5 @@
 import trackAfterInteractions from './trackAfterInteractions';
-import { IMetaMetricsEvent } from '../../../core/Analytics';
+import { IMetaMetricsEvent } from '@core/Analytics';
 
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
@@ -9,7 +9,7 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 const mockEnabled = jest.fn();
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../core/Analytics', () => ({
+jest.mock('@core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockImplementation(() => ({
       isEnabled: mockEnabled,

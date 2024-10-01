@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 
 interface Props {
   percentComplete: number;

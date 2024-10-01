@@ -1,14 +1,14 @@
 import migration from './047';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import {
   expectedUuid,
   expectedUuid2,
   internalAccount1,
   internalAccount2,
-} from '../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../reducers';
+} from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Identity } from './036';
 

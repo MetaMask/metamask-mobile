@@ -3,10 +3,10 @@ import React from 'react';
 
 // Internal dependencies.
 import OnboardingSuccess from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectProviderConfig } from '@selectors/networkController';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');

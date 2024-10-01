@@ -1,21 +1,21 @@
 import React, { useState, useCallback } from 'react';
 import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
-import Summary from '../../../../../Base/Summary';
-import Text from '../../../../../Base/Text';
+import Summary from '@Base/Summary';
+import Text from '@Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { isMainnetByChainId, isTestNet } from '../../../../../../util/networks';
+import { isMainnetByChainId, isTestNet } from '@util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
-import FadeAnimationView from '../../../../../UI/FadeAnimationView';
+import InfoModal from '@UI/Swaps/components/InfoModal';
+import FadeAnimationView from '@UI/FadeAnimationView';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../../../locales/i18n';
-import TimeEstimateInfoModal from '../../../../../UI/TimeEstimateInfoModal';
-import useModalHandler from '../../../../../Base/hooks/useModalHandler';
-import AppConstants from '../../../../../../core/AppConstants';
-import Device from '../../../../../../util/device';
-import { useTheme } from '../../../../../../util/theme';
-import { selectChainId } from '../../../../../../selectors/networkController';
+import { strings } from '@locales/i18n';
+import TimeEstimateInfoModal from '@UI/TimeEstimateInfoModal';
+import useModalHandler from '@Base/hooks/useModalHandler';
+import AppConstants from '@core/AppConstants';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
+import { selectChainId } from '@selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

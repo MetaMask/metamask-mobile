@@ -6,11 +6,11 @@ import {
   getBuildNumber,
   getVersion,
 } from 'react-native-device-info';
-import Device from '../../util/device';
-import Logger from '../../util/Logger';
+import Device from '@util/device';
+import Logger from '@util/Logger';
 import initialRootState, {
   backgroundState,
-} from '../../util/test/initial-root-state';
+} from '@util/test/initial-root-state';
 import { merge } from 'lodash';
 
 jest.mock('react-native-fs', () => ({
@@ -28,16 +28,16 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
 }));
 
-jest.mock('../../util/device', () => ({
+jest.mock('@util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
 }));
 
-jest.mock('../../util/Logger', () => ({
+jest.mock('@util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

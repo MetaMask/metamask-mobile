@@ -15,76 +15,76 @@ import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import {
   hasBlockExplorer,
   findBlockExplorerForRpc,
   getBlockExplorerName,
   getDecimalChainId,
-} from '../../../util/networks';
-import Identicon from '../Identicon';
-import StyledButton from '../StyledButton';
-import { renderFromWei, renderFiat } from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
+} from '@util/networks';
+import Identicon from '@Identicon';
+import StyledButton from '@StyledButton';
+import { renderFromWei, renderFiat } from '@util/number';
+import { strings } from '@locales/i18n';
 import Modal from 'react-native-modal';
 import {
   toggleInfoNetworkModal,
   toggleNetworkModal,
-} from '../../../actions/modals';
-import { showAlert } from '../../../actions/alert';
+} from '@actions/modals';
+import { showAlert } from '@actions/alert';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
-} from '../../../util/etherscan';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+} from '@util/etherscan';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import Device from '@util/device';
+import AppConstants from '@core/AppConstants';
+import { MetaMetricsEvents } from '@core/Analytics';
 import URL from 'url-parse';
-import EthereumAddress from '../EthereumAddress';
-import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
-import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import SettingsNotification from '../SettingsNotification';
-import { RPC } from '../../../constants/network';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
+import EthereumAddress from '@EthereumAddress';
+import { getEther } from '@util/transactions';
+import { newAssetTransaction } from '@actions/transaction';
+import { protectWalletModalVisible } from '@actions/user';
+import DeeplinkManager from '@core/DeeplinkManager/SharedDeeplinkManager';
+import SettingsNotification from '@SettingsNotification';
+import { RPC } from '@constants/network';
+import { findRouteNameFromNavigatorState } from '@util/general';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
-} from '../../../util/ENSUtils';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { collectiblesSelector } from '../../../reducers/collectibles';
-import { getCurrentRoute } from '../../../reducers/navigation';
+} from '@util/ENSUtils';
+import ClipboardManager from '@core/ClipboardManager';
+import { collectiblesSelector } from '@reducers/collectibles';
+import { getCurrentRoute } from '@reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
-import { isZero } from '../../../util/lodash';
-import { Authentication } from '../../../core/';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { getLabelTextByAddress } from '../../../util/address';
+import { isZero } from '@util/lodash';
+import { Authentication } from '@core/';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { getLabelTextByAddress } from '@util/address';
 import {
   onboardNetworkAction,
   networkSwitched,
-} from '../../../actions/onboardNetwork';
-import Routes from '../../../constants/navigation/Routes';
+} from '@actions/onboardNetwork';
+import Routes from '@constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import generateTestId from '@wdio/utils/generateTestId';
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '@wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
-} from '../../../selectors/networkController';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+} from '@selectors/networkController';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
 
-import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
-import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import NetworkInfo from '../NetworkInfo';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher';
+import { createAccountSelectorNavDetails } from '@Views/AccountSelector';
+import NetworkInfo from '@NetworkInfo';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
@@ -318,11 +318,11 @@ const createStyles = (colors) =>
     protectWalletButtonWrapper: { marginVertical: 8 },
   });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_name = require('@images/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('@images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
-  wallet: require('../../../images/wallet-icon.png'), // eslint-disable-line
-  'selected-wallet': require('../../../images/selected-wallet-icon.png'), // eslint-disable-line
+  wallet: require('@images/wallet-icon.png'), // eslint-disable-line
+  'selected-wallet': require('@images/selected-wallet-icon.png'), // eslint-disable-line
 };
 
 /**

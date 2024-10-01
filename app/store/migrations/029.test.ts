@@ -2,7 +2,7 @@ import migration from './029';
 import { merge } from 'lodash';
 import initialRootState, {
   backgroundState,
-} from '../../util/test/initial-root-state';
+} from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 
 const oldState = {

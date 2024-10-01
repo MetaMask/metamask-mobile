@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { selectApprovalFlows } from '../../../../selectors/approvalController';
+import { selectApprovalFlows } from '@selectors/approvalController';
 import { isEqual } from 'lodash';
 
 const useApprovalFlow = () => {

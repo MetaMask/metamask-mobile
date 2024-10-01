@@ -8,42 +8,42 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
-import ActionModal from '../../../UI/ActionModal';
-import Engine from '../../../../core/Engine';
-import { baseStyles } from '../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import ActionModal from '@UI/ActionModal';
+import Engine from '@core/Engine';
+import { baseStyles } from '@styles/common';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
 import {
   setShowCustomNonce,
   setShowFiatOnTestnets,
   setShowHexData,
-} from '../../../../actions/settings';
-import { strings } from '../../../../../locales/i18n';
-import Device from '../../../../util/device';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
-import { selectChainId } from '../../../../selectors/networkController';
+} from '@actions/settings';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import { mockTheme, ThemeContext } from '@util/theme';
+import { selectChainId } from '@selectors/networkController';
 import {
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
-} from '../../../../selectors/preferencesController';
-import { selectSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
-import Routes from '../../../../constants/navigation/Routes';
+} from '@selectors/preferencesController';
+import { selectSmartTransactionsEnabled } from '@selectors/smartTransactionsController';
+import Routes from '@constants/navigation/Routes';
 
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/AdvancedView.selectors';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { AdvancedViewSelectorsIDs } from '@e2e/selectors/Settings/AdvancedView.selectors';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { wipeTransactions } from '../../../../util/transaction-controller';
-import AppConstants from '../../../../../app/core/AppConstants';
-import { downloadStateLogs } from '../../../../util/logs';
-import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
+} from '@component-library/components/Buttons/Button';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { wipeTransactions } from '@util/transaction-controller';
+import AppConstants from '@app/core/AppConstants';
+import { downloadStateLogs } from '@util/logs';
+import AutoDetectTokensSettings from '@AutoDetectTokensSettings';
 
 const createStyles = (colors) =>
   StyleSheet.create({

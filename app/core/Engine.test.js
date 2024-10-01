@@ -1,10 +1,10 @@
 import Engine from './Engine';
-import { backgroundState } from '../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
-import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
 
 jest.unmock('./Engine');
-jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
+jest.mock('@store', () => ({ store: { getState: jest.fn(() => ({})) } }));
 
 describe('Engine', () => {
   it('should expose an API', () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import NotificationsList from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import MOCK_NOTIFICATIONS from '../__mocks__/mock_notifications';
+import renderWithProvider from '@util/test/renderWithProvider';
+import MOCK_NOTIFICATIONS from '@__mocks__/mock_notifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 const navigationMock = {

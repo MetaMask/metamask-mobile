@@ -2,11 +2,11 @@ import React from 'react';
 import {
   DeepPartial,
   renderScreen,
-} from '../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import AccountRightButton from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
-import { mockNetworkState } from '../../../util/test/network';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RootState } from '@reducers';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState: DeepPartial<RootState> = {

@@ -1,4 +1,4 @@
-import { AppThemeKey } from '../../util/theme/models';
+import { AppThemeKey } from '@util/theme/models';
 
 export interface IUserReducer {
   loadingMsg: string;

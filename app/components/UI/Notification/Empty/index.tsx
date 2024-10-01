@@ -2,14 +2,14 @@ import React from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
 import { styles } from './styles';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 const Empty = ({ testID }: { testID?: string }) => (
   <View style={styles.wrapper} testID={testID}>
     <Icon

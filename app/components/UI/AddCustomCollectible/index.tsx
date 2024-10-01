@@ -7,21 +7,21 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
-import { strings } from '../../../../locales/i18n';
+import { fontStyles } from '@styles/common';
+import Engine from '@core/Engine';
+import { strings } from '@locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import ActionView from '../ActionView';
-import { isSmartContractAddress } from '../../../util/transactions';
-import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import ActionView from '@ActionView';
+import { isSmartContractAddress } from '@util/transactions';
+import Device from '@util/device';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import { useTheme } from '../../../util/theme';
-import { NFTImportScreenSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportNFTView.selectors';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useTheme } from '@util/theme';
+import { NFTImportScreenSelectorsIDs } from '@e2e/selectors/wallet/ImportNFTView.selectors';
+import { selectChainId } from '@selectors/networkController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

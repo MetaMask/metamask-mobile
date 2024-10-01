@@ -8,12 +8,12 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import Device from '../../../../../util/device';
-import BaseTitle from '../../../../Base/Title';
-import FoxComponent from '../../../Fox';
+import Device from '@util/device';
+import BaseTitle from '@Base/Title';
+import FoxComponent from '@Fox';
 import backgroundShapes from './backgroundShapes';
-import { useTheme } from '../../../../../util/theme';
-import { Colors } from '../../../../../util/theme/models';
+import { useTheme } from '@util/theme';
+import { Colors } from '@util/theme/models';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

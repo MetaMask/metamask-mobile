@@ -1,25 +1,25 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Linking } from 'react-native';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import SDKConnect from '../SDKConnect';
-import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
-import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
-import DevLogger from '../utils/DevLogger';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import SDKConnect from '@SDKConnect';
+import handleBatchRpcResponse from '@handlers/handleBatchRpcResponse';
+import handleCustomRpcCalls from '@handlers/handleCustomRpcCalls';
+import DevLogger from '@utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
-import AppConstants from '../../AppConstants';
-import { DappClient } from '../AndroidSDK/dapp-sdk-types';
-import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import AppConstants from '@AppConstants';
+import { DappClient } from '@AndroidSDK/dapp-sdk-types';
+import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-jest.mock('../SDKConnect');
+jest.mock('@SDKConnect');
 jest.mock('react-native');
-jest.mock('../../BackgroundBridge/BackgroundBridge');
-jest.mock('../utils/DevLogger');
-jest.mock('../../../util/Logger');
-jest.mock('../handlers/handleCustomRpcCalls');
-jest.mock('../handlers/handleBatchRpcResponse');
+jest.mock('@BackgroundBridge/BackgroundBridge');
+jest.mock('@utils/DevLogger');
+jest.mock('@util/Logger');
+jest.mock('@handlers/handleCustomRpcCalls');
+jest.mock('@handlers/handleBatchRpcResponse');
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 const mockInternalAccount = createMockInternalAccount(

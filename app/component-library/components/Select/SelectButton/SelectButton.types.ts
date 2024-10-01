@@ -1,6 +1,6 @@
 // External dependencies.
-import { IconSize } from '../../Icons/Icon';
-import { AvatarSize } from '../../Avatars/Avatar';
+import { IconSize } from '@Icons/Icon';
+import { AvatarSize } from '@Avatars/Avatar';
 
 // Internal dependencies.
 import { SelectButtonBaseProps } from './foundation/SelectButtonBase.types';

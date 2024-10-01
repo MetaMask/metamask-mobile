@@ -1,8 +1,8 @@
 import React from 'react';
 import AddCustomToken from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
-jest.mock('../../../util/networks', () => ({
+jest.mock('@util/networks', () => ({
   getBlockExplorerAddressUrl: jest
     .fn()
     .mockReturnValue({ title: 'test', url: 'https://example.com/' }),

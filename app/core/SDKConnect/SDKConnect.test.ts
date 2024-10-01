@@ -1,6 +1,6 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
-import AppConstants from '../AppConstants';
+import AppConstants from '@AppConstants';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
 import loadDappConnections from './AndroidSDK/loadDappConnections';
@@ -32,7 +32,7 @@ import {
   updateOriginatorInfos,
   updateSDKLoadingState,
 } from './StateManagement';
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');

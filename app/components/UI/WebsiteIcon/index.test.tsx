@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import WebsiteIcon from './';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 interface WebsiteIconProps {
   style: object;
@@ -15,7 +15,7 @@ interface WebsiteIconProps {
 }
 
 // Mock the HOC
-jest.mock('../../hooks/useFavicon/withFaviconAwareness', () => ({
+jest.mock('@hooks/useFavicon/withFaviconAwareness', () => ({
   __esModule: true,
   default:
     (Component: React.ComponentType<WebsiteIconProps>) =>

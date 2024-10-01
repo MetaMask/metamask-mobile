@@ -1,5 +1,5 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import Device from '../util/device';
+import Device from '@util/device';
 
 const EXPIRE_TIME_MS = 60000;
 

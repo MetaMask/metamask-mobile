@@ -3,39 +3,39 @@ import React, { useCallback, useState } from 'react';
 import { Platform, View, SafeAreaView } from 'react-native';
 
 // External dependencies.
-import { strings } from '../../../../../locales/i18n';
-import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { strings } from '@locales/i18n';
+import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '@wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
+import generateTestId from '@wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
+} from '@component-library/components/Buttons/Button';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import TagUrl from '@component-library/components/Tags/TagUrl';
 import Text, {
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
-import { USER_INTENT } from '../../../../constants/permissions';
-import AccountSelectorList from '../../../UI/AccountSelectorList';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
+import { USER_INTENT } from '@constants/permissions';
+import AccountSelectorList from '@UI/AccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
-} from '../../../../component-library/components/Form/HelpText';
+} from '@component-library/components/Form/HelpText';
 
 // Internal dependencies.
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import AddAccountActions from '../../AddAccountActions';
+import { ConnectAccountModalSelectorsIDs } from '@e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { ACCOUNT_LIST_ADD_BUTTON_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import AddAccountActions from '@AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
-import Checkbox from '../../../../component-library/components/Checkbox';
+import Routes from '@constants/navigation/Routes';
+import { isMultichainVersion1Enabled } from '@util/networks';
+import Checkbox from '@component-library/components/Checkbox';
 
 const AccountConnectMultiSelector = ({
   accounts,

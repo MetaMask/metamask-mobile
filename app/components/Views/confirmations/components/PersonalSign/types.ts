@@ -1,4 +1,4 @@
-import { MessageParams, PageMeta } from '../SignatureRequest/types';
+import { MessageParams, PageMeta } from '@SignatureRequest/types';
 
 export interface PersonalSignProps {
   /**

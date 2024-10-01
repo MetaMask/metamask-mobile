@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderScreen } from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import StakingBalance from './StakingBalance';
-import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
 
 function render(Component: React.ComponentType) {
   return renderScreen(

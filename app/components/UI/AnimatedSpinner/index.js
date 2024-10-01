@@ -2,8 +2,8 @@
 import React, { PureComponent } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 export const SpinnerSize = {
   MD: 'MD',

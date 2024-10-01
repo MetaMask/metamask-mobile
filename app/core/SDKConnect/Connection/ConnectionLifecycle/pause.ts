@@ -1,4 +1,4 @@
-import { Connection } from '../Connection';
+import { Connection } from '@Connection';
 
 function pause({ instance }: { instance: Connection }) {
   instance.remote.pause();

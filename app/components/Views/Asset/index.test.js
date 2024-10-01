@@ -1,8 +1,8 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import Asset from './';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   engine: {
@@ -13,10 +13,10 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../core/Engine.ts', () => {
+jest.mock('@core/Engine.ts', () => {
   const {
     MOCK_ADDRESS_1,
-  } = require('../../../util/test/accountsControllerTestUtils');
+  } = require('@util/test/accountsControllerTestUtils');
 
   return {
     context: {

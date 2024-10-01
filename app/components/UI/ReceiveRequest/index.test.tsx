@@ -1,8 +1,8 @@
 import { cloneDeep } from 'lodash';
 import ReceiveRequest from './';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { renderScreen } from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
 const initialState = {
   engine: {
@@ -29,8 +29,8 @@ const initialState = {
   },
 };
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
+jest.mock('@util/address', () => ({
+  ...jest.requireActual('@util/address'),
   renderAccountName: jest.fn(),
 }));
 
@@ -38,7 +38,7 @@ jest.mock('react-native-share', () => ({
   open: jest.fn(),
 }));
 
-jest.mock('../../../core/ClipboardManager', () => ({
+jest.mock('@core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
 

@@ -1,5 +1,5 @@
-import AppConstants from '../../core/AppConstants';
-import { toLowerCaseEquals } from '../../util/general';
+import AppConstants from '@core/AppConstants';
+import { toLowerCaseEquals } from '@util/general';
 
 /**
  * MakerDAO DAI => SAI

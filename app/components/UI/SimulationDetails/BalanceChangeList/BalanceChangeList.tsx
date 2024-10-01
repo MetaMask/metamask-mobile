@@ -2,11 +2,11 @@
 import React, { useMemo } from 'react';
 import { View, ViewProps } from 'react-native';
 
-import { useStyles } from '../../../hooks/useStyles';
-import { sortBalanceChanges } from '../sortBalanceChanges';
-import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
-import { BalanceChange } from '../types';
-import { TotalFiatDisplay } from '../FiatDisplay/FiatDisplay';
+import { useStyles } from '@hooks/useStyles';
+import { sortBalanceChanges } from '@sortBalanceChanges';
+import BalanceChangeRow from '@BalanceChangeRow/BalanceChangeRow';
+import { BalanceChange } from '@types';
+import { TotalFiatDisplay } from '@FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeList.styles';
 interface BalanceChangeListProperties extends ViewProps {
   heading: string;

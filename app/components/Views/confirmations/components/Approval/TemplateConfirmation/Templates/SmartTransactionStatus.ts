@@ -1,5 +1,5 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
-import { Actions } from '../TemplateConfirmation';
+import { Actions } from '@TemplateConfirmation';
 import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 
 function getValues(

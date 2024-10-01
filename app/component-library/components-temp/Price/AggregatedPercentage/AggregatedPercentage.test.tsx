@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import AggregatedPercentage from './AggregatedPercentage';
-import { mockTheme } from '../../../../util/theme';
+import { mockTheme } from '@util/theme';
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

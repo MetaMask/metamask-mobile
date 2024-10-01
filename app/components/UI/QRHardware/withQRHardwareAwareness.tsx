@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ComponentClass } from 'react';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import { IQRState } from './types';
 
 const withQRHardwareAwareness = (

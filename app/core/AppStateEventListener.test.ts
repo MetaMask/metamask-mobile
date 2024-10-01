@@ -1,6 +1,6 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { store } from '../store';
-import Logger from '../util/Logger';
+import { store } from '@store';
+import Logger from '@util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { AppStateEventListener } from './AppStateEventListener';
 import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
@@ -21,7 +21,7 @@ jest.mock('./Analytics', () => ({
   },
 }));
 
-jest.mock('../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(),
   },
@@ -29,7 +29,7 @@ jest.mock('../store', () => ({
 
 jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => jest.fn());
 
-jest.mock('../util/Logger', () => ({
+jest.mock('@util/Logger', () => ({
   error: jest.fn(),
 }));
 

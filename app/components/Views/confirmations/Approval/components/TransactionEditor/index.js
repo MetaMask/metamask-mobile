@@ -1,16 +1,16 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import AnimatedTransactionModal from '../../../../../UI/AnimatedTransactionModal';
-import TransactionReview from '../../../components/TransactionReview';
+import AnimatedTransactionModal from '@UI/AnimatedTransactionModal';
+import TransactionReview from '@components/TransactionReview';
 import {
   hexToBN,
   fromWei,
   renderFromWei,
   toHexadecimal,
-} from '../../../../../../util/number';
+} from '@util/number';
 import { isValidAddress, BN, addHexPrefix } from 'ethereumjs-util';
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -20,37 +20,37 @@ import {
   getActiveTabUrl,
   parseTransactionEIP1559,
   parseTransactionLegacy,
-} from '../../../../../../util/transactions';
-import { setTransactionObject } from '../../../../../../actions/transaction';
-import Engine from '../../../../../../core/Engine';
-import collectiblesTransferInformation from '../../../../../../util/collectibles-transfer';
-import { safeToChecksumAddress } from '../../../../../../util/address';
-import { shallowEqual } from '../../../../../../util/general';
-import EditGasFee1559 from '../../../../../UI/EditGasFee1559';
-import EditGasFeeLegacy from '../../../components/EditGasFeeLegacyUpdate';
+} from '@util/transactions';
+import { setTransactionObject } from '@actions/transaction';
+import Engine from '@core/Engine';
+import collectiblesTransferInformation from '@util/collectibles-transfer';
+import { safeToChecksumAddress } from '@util/address';
+import { shallowEqual } from '@util/general';
+import EditGasFee1559 from '@UI/EditGasFee1559';
+import EditGasFeeLegacy from '@components/EditGasFeeLegacyUpdate';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import AppConstants from '../../../../../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import {
   estimateGas,
   validateAmount,
   getGasAnalyticsParams,
   handleGasFeeSelection,
   handleGetGasLimit,
-} from '../../../../../../util/dappTransactions';
+} from '@util/dappTransactions';
 import {
   selectChainId,
   selectProviderType,
   selectTicker,
-} from '../../../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../../selectors/accountsController';
-import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
+} from '@selectors/currencyRateController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

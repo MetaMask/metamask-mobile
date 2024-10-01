@@ -1,8 +1,8 @@
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import AppConstants from '../../../../core/AppConstants';
-import { CustomIdData } from '../../../../reducers/fiatOrders/types';
-import { SDK } from '../sdk';
+import AppConstants from '@core/AppConstants';
+import { CustomIdData } from '@reducers/fiatOrders/types';
+import { SDK } from '@sdk';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 export const POLLING_FRECUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;

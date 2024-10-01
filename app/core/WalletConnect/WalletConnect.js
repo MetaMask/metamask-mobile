@@ -1,33 +1,33 @@
 import RNWalletConnect from '@walletconnect/client';
 import { v1 as random } from 'uuid';
-import Engine from '../Engine';
-import Logger from '../../util/Logger';
+import Engine from '@Engine';
+import Logger from '@util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import StorageWrapper from '../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   CLIENT_OPTIONS,
   WALLET_CONNECT_ORIGIN,
-} from '../../util/walletconnect';
-import { WALLETCONNECT_SESSIONS } from '../../constants/storage';
+} from '@util/walletconnect';
+import { WALLETCONNECT_SESSIONS } from '@constants/storage';
 import { WalletDevice } from '@metamask/transaction-controller';
-import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
   ApprovalTypes,
-} from '../RPCMethods/RPCMethodMiddleware';
+} from '@RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
-import { Minimizer } from '../NativeModules';
-import AppConstants from '../AppConstants';
-import { strings } from '../../../locales/i18n';
-import NotificationManager from '../NotificationManager';
-import { msBetweenDates, msToHours } from '../../util/date';
-import { addTransaction } from '../../util/transaction-controller';
+import { Minimizer } from '@NativeModules';
+import AppConstants from '@AppConstants';
+import { strings } from '@locales/i18n';
+import NotificationManager from '@NotificationManager';
+import { msBetweenDates, msToHours } from '@util/date';
+import { addTransaction } from '@util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
-import { store } from '../../store';
-import { selectChainId } from '../../selectors/networkController';
-import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { store } from '@store';
+import { selectChainId } from '@selectors/networkController';
+import ppomUtil from '@app/lib/ppom/ppom-util';
 
 const hub = new EventEmitter();
 let connectors = [];

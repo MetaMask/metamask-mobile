@@ -1,6 +1,6 @@
 // External dependencies.
-import { AvatarBaseProps } from '../../foundation/AvatarBase';
-import { IconProps } from '../../../../Icons/Icon';
+import { AvatarBaseProps } from '@foundation/AvatarBase';
+import { IconProps } from '@Icons/Icon';
 
 /**
  * AvatarIcon component props.

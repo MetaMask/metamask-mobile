@@ -1,5 +1,5 @@
 // External dependencies.
-import { IconName, IconColor } from '../../Icons/Icon';
+import { IconName, IconColor } from '@Icons/Icon';
 
 // Internal dependencies.
 import { default as ButtonIconComponent } from './ButtonIcon';

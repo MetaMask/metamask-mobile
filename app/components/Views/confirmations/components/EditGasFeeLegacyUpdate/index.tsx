@@ -15,24 +15,24 @@ import { useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
-import { selectChainId } from '../../../../../selectors/networkController';
+} from '@component-library/components/Texts/Text';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useGasTransaction } from '@core/GasPolling/GasPolling';
+import { selectChainId } from '@selectors/networkController';
 import {
   getDecimalChainId,
   isMainnetByChainId,
-} from '../../../../../util/networks';
-import { useTheme } from '../../../../../util/theme';
-import Alert, { AlertType } from '../../../../Base/Alert';
-import RangeInput from '../../../../Base/RangeInput';
-import FadeAnimationView from '../../../../UI/FadeAnimationView';
-import StyledButton from '../../../../UI/StyledButton';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
+} from '@util/networks';
+import { useTheme } from '@util/theme';
+import Alert, { AlertType } from '@Base/Alert';
+import RangeInput from '@Base/RangeInput';
+import FadeAnimationView from '@UI/FadeAnimationView';
+import StyledButton from '@UI/StyledButton';
+import InfoModal from '@UI/Swaps/components/InfoModal';
 import createStyles from './styles';
 import { EditGasFeeLegacyUpdateProps, EditLegacyGasTransaction } from './types';
 import {
@@ -40,11 +40,11 @@ import {
   GAS_PRICE_INCREMENT,
   GAS_LIMIT_MIN,
   GAS_PRICE_MIN,
-} from '../../../../../util/gasUtils';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
-import { selectPrimaryCurrency } from '../../../../../selectors/settings';
-import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+} from '@util/gasUtils';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectPrimaryCurrency } from '@selectors/settings';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
 
 const EditGasFeeLegacy = ({
   onCancel,

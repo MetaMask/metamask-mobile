@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import MultiAssetListItems from './MultiAssetListItems';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectProviderConfig } from '@selectors/networkController';
 
 const mockProviderConfig = {
   type: 'mainnet',
@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../util/networks', () => ({
+jest.mock('@util/networks', () => ({
   getNetworkImageSource: jest.fn().mockReturnValue('mockedImageSource'),
 }));
 

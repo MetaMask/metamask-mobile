@@ -6,34 +6,34 @@ import {
   Text,
   LayoutAnimation,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import AssetSearch from '../AssetSearch';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { strings } from '@locales/i18n';
+import AssetSearch from '@AssetSearch';
+import Engine from '@core/Engine';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import Alert, { AlertType } from '../../Base/Alert';
+import Alert, { AlertType } from '@Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
-import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
-import NotificationManager from '../../../core/NotificationManager';
-import { useTheme } from '../../../util/theme';
+import { FORMATTED_NETWORK_NAMES } from '@constants/on-ramp';
+import NotificationManager from '@core/NotificationManager';
+import { useTheme } from '@util/theme';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import Routes from '../../../constants/navigation/Routes';
-import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
+} from '@selectors/networkController';
+import { selectNetworkName } from '@selectors/networkInfos';
+import { selectUseTokenDetection } from '@selectors/preferencesController';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
+import Routes from '@constants/navigation/Routes';
+import MultiAssetListItems from '@MultiAssetListItems/MultiAssetListItems';
 import { ScrollView } from 'react-native-gesture-handler';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+} from '@component-library/components/Buttons/Button';
+import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

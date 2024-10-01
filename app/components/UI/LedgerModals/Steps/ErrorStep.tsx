@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, View, Linking } from 'react-native';
-import StyledButton from '../../StyledButton';
-import Text from '../../../Base/Text';
-import { strings } from '../../../../../locales/i18n';
-import { useAssetFromTheme } from '../../../../util/theme';
-import Device from '../../../../util/device';
+import StyledButton from '@StyledButton';
+import Text from '@Base/Text';
+import { strings } from '@locales/i18n';
+import { useAssetFromTheme } from '@util/theme';
+import Device from '@util/device';
 
-import ledgerConnectErrorDarkImage from '../../../../images/ledger-connect-error-dark.png';
-import ledgerConnectErrorLightImage from '../../../../images/ledger-connect-error-light.png';
+import ledgerConnectErrorDarkImage from '@images/ledger-connect-error-dark.png';
+import ledgerConnectErrorLightImage from '@images/ledger-connect-error-light.png';
 import { ERROR_STEP, RETRY_BUTTON } from './Steps.constants';
 
 const createStyles = () =>

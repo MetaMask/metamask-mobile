@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
-import ActionModal from '../ActionModal';
-import { useTheme } from '../../../util/theme';
+import { strings } from '@locales/i18n';
+import { fontStyles } from '@styles/common';
+import ActionModal from '@ActionModal';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

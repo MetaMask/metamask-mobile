@@ -1,17 +1,17 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import AccountOverview from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
-} from '../../../util/test/accountsControllerTestUtils';
+} from '@util/test/accountsControllerTestUtils';
 
 const mockedEngine = Engine;
 
-jest.mock('../../../core/Engine.ts', () => ({
+jest.mock('@core/Engine.ts', () => ({
   init: () => mockedEngine.init({}),
   context: {
     KeyringController: {

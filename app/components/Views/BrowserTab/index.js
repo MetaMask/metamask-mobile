@@ -20,16 +20,16 @@ import { withNavigation } from '@react-navigation/compat';
 import { WebView } from '@metamask/react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import BrowserBottomBar from '@UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
-import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
-import Engine from '../../../core/Engine';
-import PhishingModal from '../../UI/PhishingModal';
-import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import { baseStyles, fontStyles } from '../../../styles/common';
-import Logger from '../../../util/Logger';
+import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
+import Engine from '@core/Engine';
+import PhishingModal from '@UI/PhishingModal';
+import WebviewProgressBar from '@UI/WebviewProgressBar';
+import { baseStyles, fontStyles } from '@styles/common';
+import Logger from '@util/Logger';
 import onUrlSubmit, {
   prefixUrlWithProtocol,
   isTLD,
@@ -38,46 +38,46 @@ import onUrlSubmit, {
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
-} from '../../../util/browser';
+} from '@util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
-} from '../../../util/browserScripts';
-import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
-import Button from '../../UI/Button';
-import { strings } from '../../../../locales/i18n';
+} from '@util/browserScripts';
+import resolveEnsToIpfsContentId from '@lib/ens-ipfs/resolver';
+import Button from '@UI/Button';
+import { strings } from '@locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
-import WebviewError from '../../UI/WebviewError';
-import { addBookmark } from '../../../actions/bookmarks';
-import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import Device from '../../../util/device';
-import AppConstants from '../../../core/AppConstants';
+import WebviewError from '@UI/WebviewError';
+import { addBookmark } from '@actions/bookmarks';
+import { addToHistory, addToWhitelist } from '@actions/browser';
+import Device from '@util/device';
+import AppConstants from '@core/AppConstants';
 import SearchApi from '@metamask/react-native-search-api';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import OnboardingWizard from '../../UI/OnboardingWizard';
-import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
-import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import ErrorBoundary from '../ErrorBoundary';
+import { MetaMetricsEvents } from '@core/Analytics';
+import setOnboardingWizardStep from '@actions/wizard';
+import OnboardingWizard from '@UI/OnboardingWizard';
+import DrawerStatusTracker from '@core/DrawerStatusTracker';
+import EntryScriptWeb3 from '@core/EntryScriptWeb3';
+import ErrorBoundary from '@ErrorBoundary';
 
-import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useTheme } from '../../../util/theme';
-import downloadFile from '../../../util/browser/downloadFile';
-import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
+import { getRpcMethodMiddleware } from '@core/RPCMethods/RPCMethodMiddleware';
+import { useTheme } from '@util/theme';
+import downloadFile from '@util/browser/downloadFile';
+import { createBrowserUrlModalNavDetails } from '@BrowserUrlModal/BrowserUrlModal';
 import {
   MM_PHISH_DETECT_URL,
   MM_BLOCKLIST_ISSUE_URL,
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
-} from '../../../constants/urls';
-import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+} from '@constants/urls';
+import sanitizeUrlInput from '@util/url/sanitizeUrlInput';
 import {
   getPermittedAccounts,
   getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+} from '@core/Permissions';
+import Routes from '@constants/navigation/Routes';
+import generateTestId from '@wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
   MENU_ID,
@@ -85,33 +85,33 @@ import {
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+} from '@wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
-} from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import useFavicon from '../../hooks/useFavicon/useFavicon';
+} from '@selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import useFavicon from '@hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
+import Banner from '@component-library/components/Banners/Banner/Banner';
 import {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import CLText from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import { regex } from '../../../../app/util/regex';
-import { selectChainId } from '../../../selectors/networkController';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { trackDappViewedEvent } from '../../../util/metrics';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+} from '@component-library/components/Banners/Banner';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
+import CLText from '@component-library/components/Texts/Text/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
+import { regex } from '@app/util/regex';
+import { selectChainId } from '@selectors/networkController';
+import { BrowserViewSelectorsIDs } from '@e2e/selectors/Browser/BrowserView.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { trackDappViewedEvent } from '@util/metrics';
+import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
+import { selectPermissionControllerState } from '@selectors/snaps/permissionController';
 import { useIsFocused } from '@react-navigation/native';
-import handleWebViewFocus from '../../../util/browser/webViewFocus';
-import { isTest } from '../../../util/test/utils.js';
-import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import handleWebViewFocus from '@util/browser/webViewFocus';
+import { isTest } from '@util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '@constants/browser';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;

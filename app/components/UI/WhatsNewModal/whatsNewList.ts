@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs, import/prefer-default-export, @typescript-eslint/no-require-imports */
-import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
 import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
@@ -24,7 +24,7 @@ export const whatsNew: WhatsNew = {
         },
         {
           type: 'image',
-          image: require('../../../images/whats_new_blockaid.png'),
+          image: require('@images/whats_new_blockaid.png'),
         },
         {
           type: 'description',
@@ -52,7 +52,7 @@ export const whatsNew: WhatsNew = {
     [
       {
         type: 'image',
-        image: require('../../../images/whats_new_transaction_simulation.png'),
+        image: require('@images/whats_new_transaction_simulation.png'),
       },
       {
         type: 'title',

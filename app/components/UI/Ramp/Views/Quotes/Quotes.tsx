@@ -29,47 +29,47 @@ import { Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
-import TextLegacy from '../../../../Base/Text';
-import ScreenLayout from '../../components/ScreenLayout';
-import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
-import ErrorView from '../../components/ErrorView';
-import Row from '../../components/Row';
-import Quote from '../../components/Quote';
-import InfoAlert from '../../components/InfoAlert';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
+import TextLegacy from '@Base/Text';
+import ScreenLayout from '@components/ScreenLayout';
+import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
+import ErrorView from '@components/ErrorView';
+import Row from '@components/Row';
+import Quote from '@components/Quote';
+import InfoAlert from '@components/InfoAlert';
+import { getFiatOnRampAggNavbar } from '@Navbar';
 
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '@component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
 
-import useAnalytics from '../../hooks/useAnalytics';
-import useQuotes from '../../hooks/useQuotes';
-import { useRampSDK } from '../../sdk';
-import { useStyles } from '../../../../../component-library/hooks';
+import useAnalytics from '@hooks/useAnalytics';
+import useQuotes from '@hooks/useQuotes';
+import { useRampSDK } from '@sdk';
+import { useStyles } from '@component-library/hooks';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
-import LoadingAnimation from '../../components/LoadingAnimation';
-import useInterval from '../../../../hooks/useInterval';
-import useInAppBrowser from '../../hooks/useInAppBrowser';
-import { createCheckoutNavDetails } from '../Checkout';
-import { PROVIDER_LINKS, ScreenLocation } from '../../types';
-import Logger from '../../../../../util/Logger';
-import { isBuyQuote } from '../../utils';
+} from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import LoadingAnimation from '@components/LoadingAnimation';
+import useInterval from '@hooks/useInterval';
+import useInAppBrowser from '@hooks/useInAppBrowser';
+import { createCheckoutNavDetails } from '@Checkout';
+import { PROVIDER_LINKS, ScreenLocation } from '@types';
+import Logger from '@util/Logger';
+import { isBuyQuote } from '@utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 
 const HIGHLIGHTED_QUOTES_COUNT = 2;

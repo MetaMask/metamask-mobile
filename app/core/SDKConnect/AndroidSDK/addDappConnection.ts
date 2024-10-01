@@ -1,8 +1,8 @@
-import { updateDappConnection } from '../../../actions/sdk';
-import { store } from '../../../store';
-import { ConnectionProps } from '../Connection';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+import { updateDappConnection } from '@actions/sdk';
+import { store } from '@store';
+import { ConnectionProps } from '@Connection';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 
 async function addDappConnection(
   connection: ConnectionProps,

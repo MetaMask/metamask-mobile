@@ -1,9 +1,9 @@
 import LockManagerService from '.';
 import { AppState } from 'react-native';
 import configureMockStore from 'redux-mock-store';
-import { interruptBiometrics, lockApp } from '../../actions/user';
+import { interruptBiometrics, lockApp } from '@actions/user';
 
-jest.mock('../Engine', () => ({
+jest.mock('@Engine', () => ({
   context: {
     KeyringController: {
       setLocked: jest.fn().mockResolvedValue(true),
@@ -14,7 +14,7 @@ const mockSetTimeout = jest.fn();
 jest.mock('react-native-background-timer', () => ({
   setTimeout: () => mockSetTimeout(),
 }));
-jest.mock('../SecureKeychain', () => ({
+jest.mock('@SecureKeychain', () => ({
   getInstance: () => ({
     isAuthenticating: false,
   }),

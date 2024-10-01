@@ -1,6 +1,6 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import { FunctionComponent } from 'react';
 
 const mockInitialState = {

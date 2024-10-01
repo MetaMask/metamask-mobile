@@ -3,7 +3,7 @@ import React from 'react';
 
 // Internal dependencies.
 import BasicFunctionality from './BasicFunctionality';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 describe('BasicFunctionality', () => {
   it('should render correctly', () => {

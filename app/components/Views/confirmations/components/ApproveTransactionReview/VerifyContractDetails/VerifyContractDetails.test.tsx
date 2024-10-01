@@ -1,7 +1,7 @@
 import React from 'react';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import VerifyContractDetails from './VerifyContractDetails';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const initialState = {
   engine: {

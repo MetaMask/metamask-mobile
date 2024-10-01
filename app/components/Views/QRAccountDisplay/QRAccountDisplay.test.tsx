@@ -1,9 +1,9 @@
 import React from 'react';
 import QRAccountDisplay from './index';
 import { fireEvent } from '@testing-library/react-native';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import backgroundState from '../../../util/test/initial-background-state.json';
-import ClipboardManager from '../../../core/ClipboardManager';
+import { renderScreen } from '@util/test/renderWithProvider';
+import backgroundState from '@util/test/initial-background-state.json';
+import ClipboardManager from '@core/ClipboardManager';
 
 const initialState = {
   engine: {
@@ -15,7 +15,7 @@ const initialState = {
 
 const ACCOUNT = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
 
-jest.mock('../../../core/ClipboardManager', () => {
+jest.mock('@core/ClipboardManager', () => {
   let clipboardContent = '';
 
   return {

@@ -1,4 +1,4 @@
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 export const NotificationsViewSelectorsIDs = {
   [strings('app_settings.notifications_opts.assets_sent_title')]: 'AssetsSent',

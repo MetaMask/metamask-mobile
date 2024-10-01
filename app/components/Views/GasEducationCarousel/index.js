@@ -8,34 +8,34 @@ import {
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import StyledButton from '../../UI/StyledButton';
-import { baseStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import StyledButton from '@UI/StyledButton';
+import { baseStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import FadeOutOverlay from '@UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-import Text from '../../Base/Text';
+import { getTransparentOnboardingNavbarOptions } from '@UI/Navbar';
+import OnboardingScreenWithBg from '@UI/OnboardingScreenWithBg';
+import Text from '@Base/Text';
 import { connect } from 'react-redux';
-import Device from '../../../util/device';
-import { useTheme } from '../../../util/theme';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import AppConstants from '../../../core/AppConstants';
-import { decGWEIToHexWEI } from '../../../util/conversions';
-import { BNToHex, hexToBN } from '../../../util/number';
+import AppConstants from '@core/AppConstants';
+import { decGWEIToHexWEI } from '@util/conversions';
+import { BNToHex, hexToBN } from '@util/number';
 import {
   calculateEIP1559GasFeeHexes,
   getTicker,
-} from '../../../util/transactions';
-import Engine from '../../../core/Engine';
-import TransactionTypes from '../../../core/TransactionTypes';
-import { formatCurrency, getTransactionFee } from '../../../util/confirm-tx';
-import Logger from '../../../util/Logger';
-import { selectTicker } from '../../../selectors/networkController';
+} from '@util/transactions';
+import Engine from '@core/Engine';
+import TransactionTypes from '@core/TransactionTypes';
+import { formatCurrency, getTransactionFee } from '@util/confirm-tx';
+import Logger from '@util/Logger';
+import { selectTicker } from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 
 const IMAGE_3_RATIO = 281 / 354;
 const IMAGE_2_RATIO = 353 / 416;
@@ -129,9 +129,9 @@ const createStyles = (colors) =>
     },
   });
 
-const gas_education_carousel_1 = require('../../../images/gas-education-carousel-1.png'); // eslint-disable-line
-const gas_education_carousel_2 = require('../../../images/gas-education-carousel-2.png'); // eslint-disable-line
-const gas_education_carousel_3 = require('../../../images/gas-education-carousel-3.png'); // eslint-disable-line
+const gas_education_carousel_1 = require('@images/gas-education-carousel-1.png'); // eslint-disable-line
+const gas_education_carousel_2 = require('@images/gas-education-carousel-2.png'); // eslint-disable-line
+const gas_education_carousel_3 = require('@images/gas-education-carousel-3.png'); // eslint-disable-line
 const carousel_images = [
   gas_education_carousel_1,
   gas_education_carousel_2,

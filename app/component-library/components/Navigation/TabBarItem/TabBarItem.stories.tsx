@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 // External dependencies.
-import { IconName, IconColor } from '../../Icons/Icon';
-import { AvatarSize } from '../../Avatars/Avatar';
+import { IconName, IconColor } from '@Icons/Icon';
+import { AvatarSize } from '@Avatars/Avatar';
 
 // Internal dependencies.
 import { default as TabBarItemComponent } from './TabBarItem';

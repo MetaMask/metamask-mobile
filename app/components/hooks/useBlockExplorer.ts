@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
-import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../constants/network';
-import { findBlockExplorerForRpc } from '../../util/networks';
-import { getEtherscanAddressUrl } from '../../util/etherscan';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '@constants/network';
+import { findBlockExplorerForRpc } from '@util/networks';
+import { getEtherscanAddressUrl } from '@util/etherscan';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../selectors/networkController';
-import Routes from '../../constants/navigation/Routes';
+} from '@selectors/networkController';
+import Routes from '@constants/navigation/Routes';
 
 const useBlockExplorer = () => {
   const navigation = useNavigation();

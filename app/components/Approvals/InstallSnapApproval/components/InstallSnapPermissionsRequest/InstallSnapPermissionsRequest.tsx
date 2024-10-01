@@ -1,28 +1,28 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import styleSheet from '../../InstallSnapApproval.styles';
-import { strings } from '../../../../../../locales/i18n';
-import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
+import styleSheet from '@InstallSnapApproval.styles';
+import { strings } from '@locales/i18n';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Texts/Text';
+import { IconName } from '@component-library/components/Icons/Icon';
 import Cell, {
   CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Cells/Cell';
+import { AvatarVariant } from '@component-library/components/Avatars/Avatar';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import { useStyles } from '../../../../hooks/useStyles';
-import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
-import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissions';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
+import { useStyles } from '@hooks/useStyles';
+import { InstallSnapFlowProps } from '@InstallSnapApproval.types';
+import { SnapPermissions } from '@Views/Snaps/components/SnapPermissions';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_PERMISSIONS_REQUEST,

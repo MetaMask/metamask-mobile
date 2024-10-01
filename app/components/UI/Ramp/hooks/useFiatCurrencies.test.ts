@@ -1,7 +1,7 @@
-import { RampSDK } from '../sdk';
+import { RampSDK } from '@sdk';
 import useFiatCurrencies from './useFiatCurrencies';
 import useSDKMethod from './useSDKMethod';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -19,7 +19,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockuseRampSDKInitialValues,
 };
 
-jest.mock('../sdk', () => ({
+jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 

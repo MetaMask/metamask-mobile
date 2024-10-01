@@ -11,60 +11,60 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import StorageWrapper from '../../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import Clipboard from '@react-native-clipboard/clipboard';
-import AppConstants from '../../../core/AppConstants';
-import Device from '../../../util/device';
+import AppConstants from '@core/AppConstants';
+import Device from '@util/device';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
   parseSeedPhrase,
   parseVaultValue,
-} from '../../../util/validators';
-import Logger from '../../../util/Logger';
+} from '@util/validators';
+import Logger from '@util/Logger';
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
-} from '../../../util/password';
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+} from '@util/password';
+import importAdditionalAccounts from '@util/importAdditionalAccounts';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import { useTheme } from '../../../util/theme';
-import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
-import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
-import { setLockTime } from '../../../actions/settings';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import { strings } from '../../../../locales/i18n';
-import TermsAndConditions from '../TermsAndConditions';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import StyledButton from '../../UI/StyledButton';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import { useTheme } from '@util/theme';
+import { passwordSet, seedphraseBackedUp } from '@actions/user';
+import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher';
+import { setLockTime } from '@actions/settings';
+import setOnboardingWizardStep from '@actions/wizard';
+import { strings } from '@locales/i18n';
+import TermsAndConditions from '@TermsAndConditions';
+import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import StyledButton from '@UI/StyledButton';
+import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
+import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
-} from '../../../constants/storage';
-import Routes from '../../../constants/navigation/Routes';
+} from '@constants/storage';
+import Routes from '@constants/navigation/Routes';
 
 import createStyles from './styles';
-import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
-import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
+} from '@util/authentication';
+import navigateTermsOfUse from '@util/termsOfUse/termsOfUse';
+import { ImportFromSeedSelectorsIDs } from '@e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ChoosePasswordSelectorsIDs } from '@e2e/selectors/Onboarding/ChoosePassword.selectors';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
+import { useProfileSyncing } from '@util/notifications/hooks/useProfileSyncing';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 

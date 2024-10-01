@@ -14,29 +14,29 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import Logger from '../../../util/Logger';
-import { baseStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import OnboardingProgress from '../../UI/OnboardingProgress';
-import { strings } from '../../../../locales/i18n';
-import ActionView from '../../UI/ActionView';
-import Engine from '../../../core/Engine';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import Logger from '@util/Logger';
+import { baseStyles } from '@styles/common';
+import StyledButton from '@UI/StyledButton';
+import OnboardingProgress from '@UI/OnboardingProgress';
+import { strings } from '@locales/i18n';
+import ActionView from '@UI/ActionView';
+import Engine from '@core/Engine';
+import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
 import {
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
-} from '../../../constants/onboarding';
-import { useTheme } from '../../../util/theme';
-import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+} from '@constants/onboarding';
+import { useTheme } from '@util/theme';
+import { uint8ArrayToMnemonic } from '@util/mnemonic';
 import { createStyles } from './styles';
 
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { Authentication } from '../../../core';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { Authentication } from '@core';
+import { ManualBackUpStepsSelectorsIDs } from '@e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
 
 /**
  * View that's shown during the second step of

@@ -5,10 +5,10 @@ import React from 'react';
 import renderWithProvider, {
   DeepPartial,
   renderHookWithProvider,
-} from '../../../../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import TransactionReviewEIP1559 from '.';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { RootState } from '../../../../../../reducers';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RootState } from '@reducers';
 
 const initialState: DeepPartial<RootState> = {
   settings: {},

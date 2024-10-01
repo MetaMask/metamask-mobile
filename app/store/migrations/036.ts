@@ -3,7 +3,7 @@ import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { ETH_EOA_METHODS } from '../../constants/eth-methods';
+import { ETH_EOA_METHODS } from '@constants/eth-methods';
 
 export interface Identity {
   name: string;

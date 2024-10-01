@@ -1,10 +1,10 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
-import { Connection } from '../Connection';
+import { Connection } from '@Connection';
 import sendAuthorized from './sendAuthorized';
 
-jest.mock('../Connection');
+jest.mock('@Connection');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('../../../../util/Logger');
+jest.mock('@util/Logger');
 
 describe('sendAuthorized', () => {
   let mockConnection: Connection;

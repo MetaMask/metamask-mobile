@@ -3,25 +3,25 @@ import { View, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import PickerNetwork from '@component-library/components/Pickers/PickerNetwork';
+import { strings } from '@locales/i18n';
 import { useSelector } from 'react-redux';
 import {
   ProviderConfig,
   selectProviderConfig,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkInfos';
+} from '@selectors/networkInfos';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
-import getDecimalChainId from '../../../util/networks/getDecimalChainId';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
-import AppConstants from '../../../core/AppConstants';
+import Routes from '@constants/navigation/Routes';
+import getDecimalChainId from '@util/networks/getDecimalChainId';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { ConnectedAccountsSelectorsIDs } from '@e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import AppConstants from '@core/AppConstants';
 import styles from './ManageNetworks.styles';
 
 export default function ManageNetworksComponent() {

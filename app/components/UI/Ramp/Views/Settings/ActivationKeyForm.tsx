@@ -3,27 +3,27 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import Row from '../../components/Row';
-import ScreenLayout from '../../components/ScreenLayout';
+import Row from '@components/Row';
+import ScreenLayout from '@components/ScreenLayout';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
+} from '@component-library/components/Texts/Text';
+import TextField from '@component-library/components/Form/TextField';
+import Label from '@component-library/components/Form/Label';
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
-import { getNavigationOptionsTitle } from '../../../Navbar';
+import { getNavigationOptionsTitle } from '@Navbar';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../util/theme';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
-import { regex } from '../../../../../util/regex';
+} from '@util/navigation/navUtils';
+import { useTheme } from '@util/theme';
+import Routes from '@constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import { regex } from '@util/regex';
 
 // Internal dependencies
 import styles from './Settings.styles';

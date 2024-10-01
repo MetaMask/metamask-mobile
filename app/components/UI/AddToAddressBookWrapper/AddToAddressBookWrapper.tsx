@@ -2,16 +2,16 @@ import React, { ReactElement, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
 
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import { baseStyles } from '../../../styles/common';
-import { selectChainId } from '../../../selectors/networkController';
-import { useTheme } from '../../../util/theme';
-import Text from '../../Base/Text';
-import useExistingAddress from '../../hooks/useExistingAddress';
-import ActionModal from '../ActionModal';
+import generateTestId from '@wdio/utils/generateTestId';
+import { AddAddressModalSelectorsIDs } from '@e2e/selectors/Modals/AddAddressModal.selectors';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
+import { baseStyles } from '@styles/common';
+import { selectChainId } from '@selectors/networkController';
+import { useTheme } from '@util/theme';
+import Text from '@Base/Text';
+import useExistingAddress from '@hooks/useExistingAddress';
+import ActionModal from '@ActionModal';
 
 import createStyles from './styles';
 

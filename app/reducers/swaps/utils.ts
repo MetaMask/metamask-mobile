@@ -1,5 +1,5 @@
 import { FeatureFlags } from '@metamask/swaps-controller/dist/swapsInterfaces';
-import Device from '../../util/device';
+import Device from '@util/device';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 
 export const getChainFeatureFlags = (

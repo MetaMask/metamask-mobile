@@ -1,22 +1,22 @@
 import React from 'react';
 import LedgerConnect from '.';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
-import useBluetooth from '../../hooks/Ledger/useBluetooth';
+import renderWithProvider from '@util/test/renderWithProvider';
+import useBluetoothPermissions from '@hooks/useBluetoothPermissions';
+import useBluetooth from '@hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
-} from '../../hooks/Ledger/useBluetoothDevices';
+} from '@hooks/Ledger/useBluetoothDevices';
 import { fireEvent } from '@testing-library/react-native';
 import {
   useNavigation,
   NavigationProp,
   ParamListBase,
 } from '@react-navigation/native';
-import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
-import { strings } from '../../../../locales/i18n';
+import { LedgerCommunicationErrors } from '@core/Ledger/ledgerErrors';
+import { strings } from '@locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
-import Device from '../../../util/device';
-import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
+import Device from '@util/device';
+import { LEDGER_SUPPORT_LINK } from '@constants/urls';
 
 // Add types for the mocked hooks
 interface UseBluetoothPermissionsHook {
@@ -35,10 +35,10 @@ interface UseBluetoothDevicesHook {
   deviceScanError: boolean;
 }
 
-jest.mock('../../hooks/useBluetoothPermissions');
-jest.mock('../../hooks/Ledger/useBluetooth');
-jest.mock('../../hooks/Ledger/useBluetoothDevices');
-jest.mock('../../hooks/Ledger/useLedgerBluetooth');
+jest.mock('@hooks/useBluetoothPermissions');
+jest.mock('@hooks/Ledger/useBluetooth');
+jest.mock('@hooks/Ledger/useBluetoothDevices');
+jest.mock('@hooks/Ledger/useLedgerBluetooth');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -53,8 +53,8 @@ jest.mock('react-native-device-info', () => ({
   getSystemVersion: jest.fn(),
 }));
 
-jest.mock('../../../util/device', () => ({
-  ...jest.requireActual('../../../util/device'),
+jest.mock('@util/device', () => ({
+  ...jest.requireActual('@util/device'),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
   isIphoneX: jest.fn(),
@@ -62,7 +62,7 @@ jest.mock('../../../util/device', () => ({
   getDeviceHeight: jest.fn(),
 }));
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
@@ -75,7 +75,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../hooks/Ledger/useBluetooth', () => ({
+jest.mock('@hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     bluetoothOn: true,
@@ -83,7 +83,7 @@ jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   })),
 }));
 
-jest.mock('../../hooks/Ledger/useBluetoothDevices', () => ({
+jest.mock('@hooks/Ledger/useBluetoothDevices', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     devices: [],
@@ -91,7 +91,7 @@ jest.mock('../../hooks/Ledger/useBluetoothDevices', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useBluetoothPermissions', () => ({
+jest.mock('@hooks/useBluetoothPermissions', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     hasBluetoothPermissions: true,

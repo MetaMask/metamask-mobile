@@ -11,7 +11,7 @@
  * if your RPC didn't belong to any event group, just use RPC name as event group name for that RPC. (**Causion**: please make sure the RPC name is unique)
  */
 
-import { ActionType, iEventAction } from '../../actions/rpcEvents';
+import { ActionType, iEventAction } from '@actions/rpcEvents';
 
 /**
  * Mapping of RPC name to supported event group name

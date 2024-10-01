@@ -1,27 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Logger from '../../../../util/Logger';
-import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
-import Engine from '../../../Engine';
-import { Minimizer } from '../../../NativeModules';
-import { RPC_METHODS } from '../../SDKConnectConstants';
-import handleBatchRpcResponse from '../../handlers/handleBatchRpcResponse';
-import { wait } from '../../utils/wait.util';
-import AndroidService from '../AndroidService';
+import Logger from '@util/Logger';
+import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
+import Engine from '@Engine';
+import { Minimizer } from '@NativeModules';
+import { RPC_METHODS } from '@SDKConnectConstants';
+import handleBatchRpcResponse from '@handlers/handleBatchRpcResponse';
+import { wait } from '@utils/wait.util';
+import AndroidService from '@AndroidService';
 import sendMessage from './sendMessage';
 
-jest.mock('../../../Engine');
-jest.mock('../../../NativeModules', () => ({
+jest.mock('@Engine');
+jest.mock('@NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
 }));
-jest.mock('../../../../util/Logger');
-jest.mock('../../utils/wait.util', () => ({
+jest.mock('@util/Logger');
+jest.mock('@utils/wait.util', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('../AndroidService');
-jest.mock('../../handlers/handleBatchRpcResponse', () => jest.fn());
-jest.mock('../../utils/DevLogger');
+jest.mock('@AndroidService');
+jest.mock('@handlers/handleBatchRpcResponse', () => jest.fn());
+jest.mock('@utils/DevLogger');
 
 const MOCK_ADDRESS = '0x1';
 const mockInternalAccount = createMockInternalAccount(

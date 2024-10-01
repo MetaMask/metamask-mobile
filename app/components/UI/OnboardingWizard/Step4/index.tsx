@@ -1,21 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { StyleSheet, Text, View } from 'react-native';
-import setOnboardingWizardStep from '../../../../actions/wizard';
-import { strings } from '../../../../../locales/i18n';
-import Coachmark from '../Coachmark';
+import setOnboardingWizardStep from '@actions/wizard';
+import { strings } from '@locales/i18n';
+import Coachmark from '@Coachmark';
 
-import Device from '../../../../util/device';
+import Device from '@util/device';
 
-import onboardingStyles from '../styles';
+import onboardingStyles from '@styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
-} from '../../../../core/Analytics';
-import { useTheme } from '../../../../util/theme';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+} from '@core/Analytics';
+import { useTheme } from '@util/theme';
+import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
 
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useMetrics } from '@hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {

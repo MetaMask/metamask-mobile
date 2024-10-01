@@ -1,9 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
 // External dependencies.
-import { mockTheme } from '../../../../util/theme';
-import { IconName, IconColor } from '../../Icons/Icon';
-import { AvatarSize } from '../../Avatars/Avatar';
+import { mockTheme } from '@util/theme';
+import { IconName, IconColor } from '@Icons/Icon';
+import { AvatarSize } from '@Avatars/Avatar';
 
 // Internal dependencies.
 import { TabBarItemProps } from './TabBarItem.types';

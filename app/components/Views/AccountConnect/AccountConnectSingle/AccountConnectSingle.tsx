@@ -4,39 +4,39 @@ import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
-import { strings } from '../../../../../locales/i18n';
-import SheetActions from '../../../../component-library/components-temp/SheetActions';
+import { strings } from '@locales/i18n';
+import SheetActions from '@component-library/components-temp/SheetActions';
 import {
   AvatarAccountType,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Cell, {
   CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
+} from '@component-library/components/Cells/Cell';
 import Icon, {
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
+} from '@component-library/components/Icons/Icon';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import TagUrl from '@component-library/components/Tags/TagUrl';
 import Text, {
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
-import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
-import { AccountConnectScreens } from '../AccountConnect.types';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
+import { formatAddress, getLabelTextByAddress } from '@util/address';
+import { AccountConnectScreens } from '@AccountConnect.types';
 
 // Internal dependencies.
-import { USER_INTENT } from '../../../../constants/permissions';
+import { USER_INTENT } from '@constants/permissions';
 import styleSheet from './AccountConnectSingle.styles';
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
-import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
+import { ConnectAccountModalSelectorsIDs } from '@e2e/selectors/Modals/ConnectAccountModal.selectors';
+import generateTestId from '@wdio/utils/generateTestId';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,

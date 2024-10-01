@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '@util/theme';
 import { Theme } from '@metamask/design-tokens';
-import { colors as importedColors } from '../../styles/common';
+import { colors as importedColors } from '@styles/common';
 
 interface ModalDraggerProps {
   borderless?: boolean;

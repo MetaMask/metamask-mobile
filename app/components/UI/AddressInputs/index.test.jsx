@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
+import { backgroundState } from '@util/test/initial-root-state';
+import { AddAddressModalSelectorsIDs } from '@e2e/selectors/Modals/AddAddressModal.selectors';
 
 const initialState = {
   settings: {},
@@ -28,7 +28,7 @@ const initialState = {
   },
 };
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

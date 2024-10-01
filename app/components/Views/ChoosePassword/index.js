@@ -14,56 +14,56 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
+} from '@component-library/components/Texts/Text';
+import StorageWrapper from '@store/storage-wrapper';
 import { connect } from 'react-redux';
 import {
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
-} from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
-import StyledButton from '../../UI/StyledButton';
-import Engine from '../../../core/Engine';
-import Device from '../../../util/device';
+} from '@actions/user';
+import { setLockTime } from '@actions/settings';
+import StyledButton from '@UI/StyledButton';
+import Engine from '@core/Engine';
+import Device from '@util/device';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+} from '@util/authentication';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import { getOnboardingNavbarOptions } from '@UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AppConstants from '../../../core/AppConstants';
-import OnboardingProgress from '../../UI/OnboardingProgress';
+import AppConstants from '@core/AppConstants';
+import OnboardingProgress from '@UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
-import Logger from '../../../util/Logger';
-import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import Logger from '@util/Logger';
+import { ONBOARDING, PREVIOUS_SCREEN } from '@constants/navigation';
 import {
   EXISTING_USER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-} from '../../../constants/storage';
+} from '@constants/storage';
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
-} from '../../../util/password';
+} from '@util/password';
 
-import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
+import { CHOOSE_PASSWORD_STEPS } from '@constants/onboarding';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { ThemeContext, mockTheme } from '@util/theme';
+import AnimatedFox from '@Base/AnimatedFox';
 
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { enableProfileSyncing } from '../../../actions/notification/helpers';
+import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
+import navigateTermsOfUse from '@util/termsOfUse/termsOfUse';
+import { ChoosePasswordSelectorsIDs } from '@e2e/selectors/Onboarding/ChoosePassword.selectors';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
+import { enableProfileSyncing } from '@actions/notification/helpers';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -575,7 +575,7 @@ class ChoosePassword extends PureComponent {
             <View style={styles.foxWrapper}>
               {Device.isAndroid() ? (
                 <Image
-                  source={require('../../../images/fox.png')}
+                  source={require('@images/fox.png')}
                   style={styles.image}
                   resizeMethod={'auto'}
                 />

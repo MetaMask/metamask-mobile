@@ -1,17 +1,17 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
-import { strings } from '../../locales/i18n';
-import StorageWrapper from '../store/storage-wrapper';
+import { strings } from '@locales/i18n';
+import StorageWrapper from '@store/storage-wrapper';
 import { Platform } from 'react-native';
-import { MetaMetricsEvents, MetaMetrics } from '../core/Analytics';
+import { MetaMetricsEvents, MetaMetrics } from '@core/Analytics';
 import {
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_CHOICE,
   PASSCODE_DISABLED,
   TRUE,
-} from '../constants/storage';
-import Device from '../util/device';
+} from '@constants/storage';
+import Device from '@util/device';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor({
@@ -26,8 +26,8 @@ const defaultOptions = {
   fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
-import AUTHENTICATION_TYPE from '../constants/userProperties';
-import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { UserProfileProperty } from '@util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 /**
  * Class that wraps Keychain from react-native-keychain

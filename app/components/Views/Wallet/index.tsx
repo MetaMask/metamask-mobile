@@ -19,83 +19,83 @@ import type { Theme } from '@metamask/design-tokens';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { baseStyles } from '../../../styles/common';
-import Tokens from '../../UI/Tokens';
-import { getWalletNavbarOptions } from '../../UI/Navbar';
-import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import { baseStyles } from '@styles/common';
+import Tokens from '@UI/Tokens';
+import { getWalletNavbarOptions } from '@UI/Navbar';
+import { strings } from '@locales/i18n';
+import { renderFromWei, weiToFiat, hexToBN } from '@util/number';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
-} from '../../../reducers/legalNotices';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+} from '@reducers/legalNotices';
+import { CONSENSYS_PRIVACY_POLICY } from '@constants/urls';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
-import Engine from '../../../core/Engine';
-import CollectibleContracts from '../../UI/CollectibleContracts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getTicker } from '../../../util/transactions';
-import OnboardingWizard from '../../UI/OnboardingWizard';
-import ErrorBoundary from '../ErrorBoundary';
-import { useTheme } from '../../../util/theme';
-import { shouldShowSmartTransactionsOptInModal } from '../../../util/onboarding';
-import Logger from '../../../util/Logger';
-import Routes from '../../../constants/navigation/Routes';
+} from '@component-library/components/Toast';
+import NotificationsService from '@util/notifications/services/NotificationService';
+import Engine from '@core/Engine';
+import CollectibleContracts from '@UI/CollectibleContracts';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { getTicker } from '@util/transactions';
+import OnboardingWizard from '@UI/OnboardingWizard';
+import ErrorBoundary from '@ErrorBoundary';
+import { useTheme } from '@util/theme';
+import { shouldShowSmartTransactionsOptInModal } from '@util/onboarding';
+import Logger from '@util/Logger';
+import Routes from '@constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
   isMainNet,
-} from '../../../util/networks';
+} from '@util/networks';
 import {
   selectProviderConfig,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkInfos';
-import { selectTokens } from '../../../selectors/tokensController';
+} from '@selectors/networkInfos';
+import { selectTokens } from '@selectors/tokensController';
 import {
   NavigationProp,
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
+import { WalletAccount } from '@components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+} from '@selectors/currencyRateController';
+import BannerAlert from '@component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '@component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { RootState } from '../../../reducers';
-import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectUseNftDetection } from '../../../selectors/preferencesController';
-import { setNftAutoDetectionModalOpen } from '../../../actions/security';
+} from '@component-library/components/Texts/Text';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { RootState } from '@reducers';
+import usePrevious from '@hooks/usePrevious';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { selectAccountBalanceByChainId } from '@selectors/accountTrackerController';
+import { selectUseNftDetection } from '@selectors/preferencesController';
+import { setNftAutoDetectionModalOpen } from '@actions/security';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
-} from '../../../reducers/collectibles';
-import { getCurrentRoute } from '../../../reducers/navigation';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+} from '@reducers/collectibles';
+import { getCurrentRoute } from '@reducers/navigation';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
 import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
   selectIsProfileSyncingEnabled,
-} from '../../../selectors/notifications';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+} from '@selectors/notifications';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
+import { useListNotifications } from '@util/notifications/hooks/useNotifications';
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -535,7 +535,7 @@ const Wallet = ({
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo-new.png',
+          logo: '@images/eth-logo-new.png',
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,

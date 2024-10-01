@@ -14,7 +14,7 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import BigNumber from 'bignumber.js';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   fromTokenMinimalUnitString,
   renderFromTokenMinimalUnit,
@@ -22,17 +22,17 @@ import {
   toWei,
   weiToFiat,
   calculateEthFeeForMultiLayer,
-} from '../../../../util/number';
-import { getQuotesSourceMessage } from '../utils';
-import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
+} from '@util/number';
+import { getQuotesSourceMessage } from '@utils';
+import Text from '@Base/Text';
+import Title from '@Base/Title';
 import Ratio from './Ratio';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '@util/theme';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectSwapsQuoteValues } from '../../../../reducers/swaps';
+} from '@selectors/currencyRateController';
+import { selectSwapsQuoteValues } from '@reducers/swaps';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({

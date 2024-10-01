@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PercentageChange from './PercentageChange';
-import { mockTheme } from '../../../../util/theme';
+import { mockTheme } from '@util/theme';
 
 describe('PercentageChange', () => {
   it('should render correctly', () => {

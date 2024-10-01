@@ -1,17 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import Badge, {
   BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+} from '@component-library/components/Badges/Badge';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import AssetElement from '../../../AssetElement';
-import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
+import AssetElement from '@AssetElement';
+import NetworkMainAssetLogo from '@NetworkMainAssetLogo';
+import { selectNetworkName } from '@selectors/networkInfos';
 import { useSelector } from 'react-redux';
-import images from '../../../../../images/image-icons';
+import images from '@images/image-icons';
 import styleSheet from './StakingBalance.styles';
 import { View } from 'react-native';
 import StakingButtons from './StakingButtons/StakingButtons';
@@ -20,10 +20,10 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../../../locales/i18n';
-import { renderFromWei } from '../../../../../util/number';
-import { getTimeDifferenceFromNow } from '../../../../../util/date';
+} from '@component-library/components/Banners/Banner';
+import { strings } from '@locales/i18n';
+import { renderFromWei } from '@util/number';
+import { getTimeDifferenceFromNow } from '@util/date';
 import { filterExitRequests } from './utils';
 import { BN } from 'ethereumjs-util';
 import bn from 'bignumber.js';
@@ -32,8 +32,8 @@ import {
   fixDisplayAmount,
   formatPercent,
   PercentageOutputFormat,
-} from '../../utils/value';
-import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
+} from '@utils/value';
+import { multiplyValueByPowerOfTen } from '@utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,

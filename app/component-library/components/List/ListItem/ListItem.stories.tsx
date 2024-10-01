@@ -2,9 +2,9 @@
 import React from 'react';
 
 // External dependencies.
-import Icon, { IconName } from '../../Icons/Icon';
-import Text, { TextVariant } from '../../Texts/Text';
-import ListItemColumn, { WidthType } from '../ListItemColumn';
+import Icon, { IconName } from '@Icons/Icon';
+import Text, { TextVariant } from '@Texts/Text';
+import ListItemColumn, { WidthType } from '@ListItemColumn';
 
 // Internal dependencies.
 import { default as ListItemComponent } from './ListItem';

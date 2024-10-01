@@ -1,16 +1,16 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
+import renderWithProvider from '@util/test/renderWithProvider';
+import Engine from '@core/Engine';
 import ConnectQRHardware from './index';
 import { fireEvent } from '@testing-library/react-native';
-import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { QR_CONTINUE_BUTTON } from '@wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
+import { backgroundState } from '@util/test/initial-root-state';
 import { act } from '@testing-library/react-hooks';
-import PAGINATION_OPERATIONS from '../../../constants/pagination';
+import PAGINATION_OPERATIONS from '@constants/pagination';
 import {
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+} from '@wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
 
 const mockedNavigate = jest.fn();
 
@@ -81,7 +81,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

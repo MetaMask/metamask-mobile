@@ -3,40 +3,40 @@ import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import SheetActions from '../../../../component-library/components-temp/SheetActions';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+import SheetActions from '@component-library/components-temp/SheetActions';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import { strings } from '@locales/i18n';
+import TagUrl from '@component-library/components/Tags/TagUrl';
+import Text from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
-import { removePermittedAccounts } from '../../../../core/Permissions';
-import UntypedEngine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
+} from '@component-library/components/Buttons/Button';
+import AccountSelectorList from '@components/UI/AccountSelectorList';
+import { removePermittedAccounts } from '@core/Permissions';
+import UntypedEngine from '@core/Engine';
+import Logger from '@util/Logger';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { ToastOptions } from '../../../../component-library/components/Toast/Toast.types';
-import { AccountPermissionsScreens } from '../AccountPermissions.types';
-import getAccountNameWithENS from '../../../../util/accounts';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
+} from '@component-library/components/Toast';
+import { ToastOptions } from '@component-library/components/Toast/Toast.types';
+import { AccountPermissionsScreens } from '@AccountPermissions.types';
+import getAccountNameWithENS from '@util/accounts';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { selectAccountsLength } from '@selectors/accountTrackerController';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { IconName } from '@component-library/components/Icons/Icon';
+import Avatar from '@component-library/components/Avatars/Avatar/Avatar';
+import { AvatarVariant } from '@component-library/components/Avatars/Avatar';
+import { selectNetworkConfigurations } from '@selectors/networkController';
+import { ConnectedAccountsSelectorsIDs } from '@e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,

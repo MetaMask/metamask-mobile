@@ -2,11 +2,11 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { USER_INTENT } from '../../../../constants/permissions';
-import { Account } from '../../../hooks/useAccounts';
-import { AccountConnectScreens } from '../AccountConnect.types';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { USER_INTENT } from '@constants/permissions';
+import { Account } from '@hooks/useAccounts';
+import { AccountConnectScreens } from '@AccountConnect.types';
 
 /**
  * AccountConnectSingle props.

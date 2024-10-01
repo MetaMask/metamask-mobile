@@ -8,41 +8,41 @@ import Share from 'react-native-share';
 // External dependencies.
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import AccountAction from '../AccountAction/AccountAction';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import AccountAction from '@AccountAction/AccountAction';
+import { IconName } from '@component-library/components/Icons/Icon';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerName,
-} from '../../../util/networks';
+} from '@util/networks';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
-} from '../../../util/etherscan';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RPC } from '../../../constants/network';
+} from '@util/etherscan';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { RPC } from '@constants/network';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { strings } from '../../../../locales/i18n';
+} from '@selectors/networkController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { strings } from '@locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
-import Logger from '../../../util/Logger';
-import { protectWalletModalVisible } from '../../../actions/user';
-import Routes from '../../../constants/navigation/Routes';
-import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { isHardwareAccount } from '../../../util/address';
-import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import Logger from '@util/Logger';
+import { protectWalletModalVisible } from '@actions/user';
+import Routes from '@constants/navigation/Routes';
+import { AccountActionsModalSelectorsIDs } from '@e2e/selectors/Modals/AccountActionsModal.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { isHardwareAccount } from '@util/address';
+import { removeAccountsFromPermissions } from '@core/Permissions';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
-} from '../../../constants/keyringTypes';
-import { forgetLedger } from '../../../core/Ledger/Ledger';
-import Engine from '../../../core/Engine';
-import BlockingActionModal from '../../UI/BlockingActionModal';
-import { useTheme } from '../../../util/theme';
+} from '@constants/keyringTypes';
+import { forgetLedger } from '@core/Ledger/Ledger';
+import Engine from '@core/Engine';
+import BlockingActionModal from '@UI/BlockingActionModal';
+import { useTheme } from '@util/theme';
 import { Hex } from '@metamask/utils';
 
 const AccountActions = () => {

@@ -2,7 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 /**
  * Style sheet function for SelectValueBase component.

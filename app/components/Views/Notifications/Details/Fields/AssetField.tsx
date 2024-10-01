@@ -2,16 +2,16 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+} from '@component-library/components/Badges/Badge';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
+import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '@component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { ModalFieldAsset } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import RemoteImage from '../../../../Base/RemoteImage';
-import useStyles from '../useStyles';
+} from '@component-library/components/Texts/Text';
+import { ModalFieldAsset } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import RemoteImage from '@Base/RemoteImage';
+import useStyles from '@useStyles';
 
 type AssetFieldProps = ModalFieldAsset;
 

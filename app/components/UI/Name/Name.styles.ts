@@ -1,6 +1,6 @@
 import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import { DisplayNameVariant } from '../../hooks/DisplayName/useDisplayName';
+import { Theme } from '@util/theme/models';
+import { DisplayNameVariant } from '@hooks/DisplayName/useDisplayName';
 
 /**
  * Style sheet function for TagUrl component.

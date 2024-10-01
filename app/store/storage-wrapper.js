@@ -1,6 +1,6 @@
-import ReadOnlyNetworkStore from '../util/test/network-store';
+import ReadOnlyNetworkStore from '@util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isE2E } from '../util/test/utils';
+import { isE2E } from '@util/test/utils';
 import { MMKV } from 'react-native-mmkv';
 
 /**

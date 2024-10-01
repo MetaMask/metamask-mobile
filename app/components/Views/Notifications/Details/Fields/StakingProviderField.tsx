@@ -1,13 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { ModalFieldStakingProvider } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import RemoteImage from '../../../../Base/RemoteImage';
-import useStyles from '../useStyles';
+} from '@component-library/components/Texts/Text';
+import { ModalFieldStakingProvider } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import RemoteImage from '@Base/RemoteImage';
+import useStyles from '@useStyles';
 
 type StakingProviderFieldProps = ModalFieldStakingProvider;
 

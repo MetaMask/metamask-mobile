@@ -1,4 +1,4 @@
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import { BannerAlertSeverity } from '@component-library/components/Banners/Banner';
 
 interface Alert {
   alertError: string;

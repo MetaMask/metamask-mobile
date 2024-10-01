@@ -7,8 +7,8 @@ import {
   TransactionEnvelopeType,
   TransactionParams,
 } from '@metamask/transaction-controller';
-import { addHexPrefix, safeBNToHex } from '../number';
-import { safeToChecksumAddress } from '../address';
+import { addHexPrefix, safeBNToHex } from '@number';
+import { safeToChecksumAddress } from '@address';
 
 export function buildTransactionParams({
   gasDataEIP1559,

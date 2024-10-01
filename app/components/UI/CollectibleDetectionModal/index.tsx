@@ -1,24 +1,24 @@
 import React, { useCallback, useContext } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
-import { BannerVariant } from '../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
+import Banner from '@component-library/components/Banners/Banner/Banner';
+import { BannerVariant } from '@component-library/components/Banners/Banner';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
+import { TextVariant } from '@component-library/components/Texts/Text';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
+} from '@component-library/components/Toast';
 import {
   IconColor,
   IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
+} from '@component-library/components/Icons/Icon';
+import { useTheme } from '@util/theme';
+import Engine from '@core/Engine';
 import {
   hideNftFetchingLoadingIndicator,
   showNftFetchingLoadingIndicator,
-} from '../../../reducers/collectibles';
+} from '@reducers/collectibles';
 
 const styles = StyleSheet.create({
   alertBar: {

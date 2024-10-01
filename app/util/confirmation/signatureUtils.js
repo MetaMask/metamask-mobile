@@ -1,17 +1,17 @@
-import Engine from '../../core/Engine';
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { getAddressAccountType } from '../address';
-import NotificationManager from '../../core/NotificationManager';
-import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
-import AppConstants from '../../core/AppConstants';
+import Engine from '@core/Engine';
+import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
+import { getAddressAccountType } from '@address';
+import NotificationManager from '@core/NotificationManager';
+import { WALLET_CONNECT_ORIGIN } from '@walletconnect';
+import AppConstants from '@core/AppConstants';
 import { InteractionManager } from 'react-native';
-import { strings } from '../../../locales/i18n';
-import { selectChainId } from '../../selectors/networkController';
-import { store } from '../../store';
-import { getBlockaidMetricsParams } from '../blockaid';
-import Device from '../device';
-import { getDecimalChainId } from '../networks';
-import Logger from '../Logger';
+import { strings } from '@locales/i18n';
+import { selectChainId } from '@selectors/networkController';
+import { store } from '@store';
+import { getBlockaidMetricsParams } from '@blockaid';
+import Device from '@device';
+import { getDecimalChainId } from '@networks';
+import Logger from '@Logger';
 
 export const typedSign = {
   V1: 'eth_signTypedData',

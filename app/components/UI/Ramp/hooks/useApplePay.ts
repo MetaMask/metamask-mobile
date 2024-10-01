@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 // @ts-expect-error ts(7016) react-native-payments is not typed
 import { PaymentRequest } from '@metamask/react-native-payments';
 
-import { strings } from '../../../../../locales/i18n';
-import Logger from '../../../../util/Logger';
+import { strings } from '@locales/i18n';
+import Logger from '@util/Logger';
 import { CryptoCurrency, QuoteResponse } from '@consensys/on-ramp-sdk';
 import {
   ApplePayPurchaseStatus,

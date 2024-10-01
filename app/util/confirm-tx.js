@@ -7,7 +7,7 @@ import {
   multiplyCurrencies,
   conversionGreaterThan,
 } from './conversion';
-import I18n from '../../locales/i18n';
+import I18n from '@locales/i18n';
 
 const NON_ISO4217_CRYPTO_CODES = [
   '1ST',

@@ -1,5 +1,5 @@
 import { jsonrpc2 } from '@metamask/utils';
-import { UNSUPPORTED_RPC_METHODS } from '../utils';
+import { UNSUPPORTED_RPC_METHODS } from '@utils';
 import createUnsupportedMethodMiddleware from '.';
 
 describe('createUnsupportedMethodMiddleware', () => {

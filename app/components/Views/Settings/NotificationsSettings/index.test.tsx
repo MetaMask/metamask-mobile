@@ -1,20 +1,20 @@
 import React, { useCallback }  from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
 
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import NotificationsService from '@util/notifications/services/NotificationService';
+import { backgroundState } from '@util/test/initial-root-state';
 import NotificationsSettings from '.';
 
-import Routes from '../../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import { Props } from './NotificationsSettings.types';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
+import { MetaMetricsEvents } from '@core/Analytics/MetaMetrics.events';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
 // Mock store.getState
 let mockGetState: jest.Mock;
-jest.mock('../../../../store', () => {
+jest.mock('@store', () => {
   mockGetState = jest.fn();
   mockGetState.mockImplementation(() => ({
     notifications: {},
@@ -53,11 +53,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../util/notifications/services/NotificationService', () => ({
+jest.mock('@util/notifications/services/NotificationService', () => ({
   getAllPermissions: jest.fn(),
 }));
 
-jest.mock('../../../../core/Analytics/MetaMetrics.events', () => ({
+jest.mock('@core/Analytics/MetaMetrics.events', () => ({
   MetaMetricsEvents: {
     NOTIFICATIONS_SETTINGS_UPDATED: 'NOTIFICATIONS_SETTINGS_UPDATED',
   },

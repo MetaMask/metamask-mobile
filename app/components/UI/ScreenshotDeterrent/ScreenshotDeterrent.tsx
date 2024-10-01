@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Linking, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import PreventScreenshot from '../../../core/PreventScreenshot';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
-import { SRP_GUIDE_URL } from '../../../constants/urls';
-import Routes from '../../../constants/navigation/Routes';
-import { strings } from '../../../../locales/i18n';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import PreventScreenshot from '@core/PreventScreenshot';
+import { MetaMetricsEvents } from '@core/Analytics';
+import useScreenshotDeterrent from '@hooks/useScreenshotDeterrent';
+import { SRP_GUIDE_URL } from '@constants/urls';
+import Routes from '@constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,

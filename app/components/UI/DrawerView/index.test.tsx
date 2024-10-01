@@ -1,9 +1,9 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import DrawerView from './';
 
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '@util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   engine: {
@@ -14,7 +14,7 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
   context: {
     KeyringController: {

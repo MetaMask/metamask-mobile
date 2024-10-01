@@ -1,18 +1,18 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { selectChainId } from '../../../selectors/networkController';
-import { TEST_NETWORK_IDS } from '../../../constants/network';
-import { selectShowFiatInTestnets } from '../../../selectors/settings';
+import { selectChainId } from '@selectors/networkController';
+import { TEST_NETWORK_IDS } from '@constants/network';
+import { selectShowFiatInTestnets } from '@selectors/settings';
 import useHideFiatForTestnet from './index';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockImplementation((selector) => selector()),
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
+jest.mock('@selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 
-jest.mock('../../../selectors/settings', () => ({
+jest.mock('@selectors/settings', () => ({
   selectShowFiatInTestnets: jest.fn(),
 }));
 

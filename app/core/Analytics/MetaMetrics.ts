@@ -6,8 +6,8 @@ import {
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
-import StorageWrapper from '../../store/storage-wrapper';
-import Logger from '../../util/Logger';
+import StorageWrapper from '@store/storage-wrapper';
+import Logger from '@util/Logger';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
@@ -17,7 +17,7 @@ import {
   METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
-} from '../../constants/storage';
+} from '@constants/storage';
 
 import {
   CombinedProperties,
@@ -35,10 +35,10 @@ import {
 import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
-import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
-import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import { isE2E } from '../../util/test/utils';
-import convertLegacyProperties from '../../util/events/convertLegacyProperties';
+import generateDeviceAnalyticsMetaData from '@util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '@util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import { isE2E } from '@util/test/utils';
+import convertLegacyProperties from '@util/events/convertLegacyProperties';
 
 /**
  * MetaMetrics using Segment as the analytics provider.

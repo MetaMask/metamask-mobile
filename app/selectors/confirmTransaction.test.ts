@@ -1,5 +1,5 @@
 import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import {
   selectCurrentTransactionGasFeeEstimates,
   selectCurrentTransactionMetadata,

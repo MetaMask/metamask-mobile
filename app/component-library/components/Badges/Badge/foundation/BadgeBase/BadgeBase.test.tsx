@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import Tag from '../../../../Tags/Tag';
+import Tag from '@Tags/Tag';
 
 // Internal dependencies.
 import BadgeBase from './BadgeBase';

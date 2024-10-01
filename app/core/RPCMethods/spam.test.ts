@@ -1,8 +1,8 @@
 import configureMockStore from 'redux-mock-store';
 
-import { NUMBER_OF_REJECTIONS_THRESHOLD } from '../redux/slices/originThrottling';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
-import Routes from '../../constants/navigation/Routes';
+import { NUMBER_OF_REJECTIONS_THRESHOLD } from '@redux/slices/originThrottling';
+import initialBackgroundState from '@util/test/initial-background-state.json';
+import Routes from '@constants/navigation/Routes';
 import {
   BLOCKABLE_SPAM_RPC_METHODS,
   ExtendedJSONRPCRequest,

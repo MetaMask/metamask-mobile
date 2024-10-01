@@ -1,10 +1,10 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
 import ShowIpfsGatewaySheet from './ShowIpfsGatewaySheet';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 
 const initialState = {
   engine: {

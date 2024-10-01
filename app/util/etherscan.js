@@ -2,13 +2,13 @@ import {
   LINEA_GOERLI_BLOCK_EXPLORER,
   LINEA_MAINNET_BLOCK_EXPLORER,
   LINEA_SEPOLIA_BLOCK_EXPLORER,
-} from '../constants/urls';
+} from '@constants/urls';
 import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MAINNET,
-} from '../constants/network';
+} from '@constants/network';
 
 /**
  * Gets the etherscan link for an address in a specific network

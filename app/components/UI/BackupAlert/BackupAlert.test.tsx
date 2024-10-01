@@ -1,7 +1,7 @@
 import React from 'react';
 
 import BackupAlert from '.';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 
 const initialState = {

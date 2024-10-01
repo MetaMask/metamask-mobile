@@ -5,11 +5,11 @@ import { View } from 'react-native';
 // External dependencies.
 import ReusableModal, {
   ReusableModalRef,
-} from '../../../../components/UI/ReusableModal';
-import Button, { ButtonSize, ButtonVariants } from '../../Buttons/Button';
-import Text, { TextVariant } from '../../Texts/Text';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../hooks';
+} from '@components/UI/ReusableModal';
+import Button, { ButtonSize, ButtonVariants } from '@Buttons/Button';
+import Text, { TextVariant } from '@Texts/Text';
+import { strings } from '@locales/i18n';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import { ModalConfirmationProps } from './ModalConfirmation.types';

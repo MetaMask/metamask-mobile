@@ -7,40 +7,40 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import Text from '../../../component-library/components/Texts/Text';
-import NotificationManager from '../../../core/NotificationManager';
-import AccountInfoCard from '../AccountInfoCard';
-import StyledButton from '../StyledButton';
-import TransactionHeader from '../TransactionHeader';
+import { strings } from '@locales/i18n';
+import Text from '@component-library/components/Texts/Text';
+import NotificationManager from '@core/NotificationManager';
+import AccountInfoCard from '@AccountInfoCard';
+import StyledButton from '@StyledButton';
+import TransactionHeader from '@TransactionHeader';
 
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import CheckBox from '@react-native-community/checkbox';
 import { shuffle } from 'lodash';
 import URL from 'url-parse';
-import AppConstants from '../../../../app/core/AppConstants';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import AppConstants from '@app/core/AppConstants';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
+import { ConnectAccountModalSelectorsIDs } from '@e2e/selectors/Modals/ConnectAccountModal.selectors';
+import generateTestId from '@wdio/utils/generateTestId';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import Routes from '@constants/navigation/Routes';
+import Engine from '@core/Engine';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
+import { selectAccountsLength } from '@selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import {
   selectChainId,
   selectProviderType,
-} from '../../../selectors/networkController';
-import { selectTokensLength } from '../../../selectors/tokensController';
-import { getAddressAccountType } from '../../../util/address';
-import { prefixUrlWithProtocol } from '../../../util/browser';
-import { getDecimalChainId } from '../../../util/networks';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+} from '@selectors/networkController';
+import { selectTokensLength } from '@selectors/tokensController';
+import { getAddressAccountType } from '@util/address';
+import { prefixUrlWithProtocol } from '@util/browser';
+import { getDecimalChainId } from '@util/networks';
+import { ThemeContext, mockTheme } from '@util/theme';
 import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
-import { SourceType } from '../../../components/hooks/useMetrics/useMetrics.types';
+import { SourceType } from '@components/hooks/useMetrics/useMetrics.types';
 
 /**
  * Account access approval component

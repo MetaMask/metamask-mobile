@@ -2,8 +2,8 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { ButtonVariants } from '../../../../Buttons/Button';
-import { IconName, IconSize } from '../../../../Icons/Icon';
+import { ButtonVariants } from '@Buttons/Button';
+import { IconName, IconSize } from '@Icons/Icon';
 
 // Internal dependencies.
 import {

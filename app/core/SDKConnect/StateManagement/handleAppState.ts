@@ -1,12 +1,12 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import Engine from '../../Engine';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
+import Engine from '@Engine';
+import Logger from '@util/Logger';
+import Device from '@util/device';
 import BackgroundTimer from 'react-native-background-timer';
-import SDKConnect from '../SDKConnect';
-import { TIMEOUT_PAUSE_CONNECTIONS } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
-import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
+import SDKConnect from '@SDKConnect';
+import { TIMEOUT_PAUSE_CONNECTIONS } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
+import { wait, waitForKeychainUnlocked } from '@utils/wait.util';
 
 async function handleAppState({
   appState,

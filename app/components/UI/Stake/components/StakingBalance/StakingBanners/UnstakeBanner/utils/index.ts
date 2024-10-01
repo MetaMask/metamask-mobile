@@ -1,4 +1,4 @@
-import { strings } from '../../../../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 /**
  * Allows for flexible rendering of unstaking banner countdown.

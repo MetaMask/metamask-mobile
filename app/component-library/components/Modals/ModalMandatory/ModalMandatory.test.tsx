@@ -1,6 +1,6 @@
 import React from 'react';
 import ModalMandatory from './ModalMandatory';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 const mockedNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {

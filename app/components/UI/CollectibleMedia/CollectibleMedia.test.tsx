@@ -3,9 +3,9 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { mockNetworkState } from '../../../util/test/network';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { mockNetworkState } from '@util/test/network';
 
 const mockInitialState = {
   engine: {

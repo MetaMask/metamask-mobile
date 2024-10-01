@@ -2,8 +2,8 @@
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
-import Device from '../../../../util/device';
+import { Theme } from '@util/theme/models';
+import Device from '@util/device';
 
 // Internal dependencies.
 import { TabBarStyleSheetVars } from './TabBar.types';

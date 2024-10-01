@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { getDecimalChainId } from '../../util/networks';
+import { getDecimalChainId } from '@util/networks';
 import { useState, useEffect } from 'react';
 
 export interface TokenDescriptions {

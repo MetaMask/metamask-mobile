@@ -2,13 +2,13 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Networks from '../../../util/networks';
+import { fontStyles } from '@styles/common';
+import Networks from '@util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Device from '../../../util/device';
-import { mockTheme, ThemeContext } from '../../../util/theme';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import Device from '@util/device';
+import { mockTheme, ThemeContext } from '@util/theme';
+import { selectProviderConfig } from '@selectors/networkController';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -5,14 +5,14 @@ import { View, Switch, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
 import styles from './ProfileSyncing.styles';
 import { ProfileSyncingComponentProps } from './ProfileSyncing.types';
-import AppConstants from '../../../core/AppConstants';
-import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
-import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import AppConstants from '@core/AppConstants';
+import { useProfileSyncing } from '@util/notifications/hooks/useProfileSyncing';
+import { isNotificationsFeatureEnabled } from '@util/notifications';
 
 function ProfileSyncingComponent({
   handleSwitchToggle,

@@ -1,7 +1,7 @@
-import { Connection } from '../Connection';
+import { Connection } from '@Connection';
 import handleClientsDisconnected from './handleClientsDisconnected';
 
-jest.mock('../../utils/DevLogger');
+jest.mock('@utils/DevLogger');
 
 describe('handleClientsDisconnected', () => {
   let mockConnection: Connection;

@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-import Device from '../../../../util/device';
-import { Colors } from '../../../../util/theme/models';
+import Device from '@util/device';
+import { Colors } from '@util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

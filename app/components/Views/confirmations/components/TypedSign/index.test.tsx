@@ -3,20 +3,20 @@ import { shallow } from 'enzyme';
 import TypedSign from '.';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import Engine from '../../../../../core/Engine';
-import NotificationManager from '../../../../../core/NotificationManager';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
 import { InteractionManager } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import AppConstants from '../../../../../core/AppConstants';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '@locales/i18n';
+import AppConstants from '@core/AppConstants';
+import { backgroundState } from '@util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { MetaMetrics } from '../../../../../core/Analytics';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { MetaMetrics } from '@core/Analytics';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
+import { SigningModalSelectorsIDs } from '@e2e/selectors/Modals/SigningModal.selectors';
 
-jest.mock('../../../../../core/Analytics/MetaMetrics');
+jest.mock('@core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   trackEvent: jest.fn(),
@@ -24,7 +24,7 @@ const mockMetrics = {
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
   context: {
@@ -52,10 +52,10 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../core/NotificationManager');
+jest.mock('@core/NotificationManager');
 
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
+jest.mock('@util/address', () => ({
+  ...jest.requireActual('@util/address'),
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
 }));
 

@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import ConnectHeader from '../../../UI/ConnectHeader';
-import { strings } from '../../../../../locales/i18n';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
-import { getDecimalChainId } from '../../../../util/networks';
+import ConnectHeader from '@UI/ConnectHeader';
+import { strings } from '@locales/i18n';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
+import { getDecimalChainId } from '@util/networks';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

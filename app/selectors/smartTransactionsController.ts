@@ -1,15 +1,15 @@
-import { NETWORKS_CHAIN_ID } from '../constants/network';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
-import { RootState } from '../reducers';
-import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
-import { isHardwareAccount } from '../util/address';
+import { RootState } from '@reducers';
+import { swapsSmartTxFlagEnabled } from '@reducers/swaps';
+import { isHardwareAccount } from '@util/address';
 import { selectChainId, selectProviderConfig } from './networkController';
 import {
   SmartTransaction,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { selectSelectedInternalAccountChecksummedAddress } from './accountsController';
-import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
+import { getAllowedSmartTransactionsChainIds } from '@app/constants/smartTransactions';
 
 export const selectSmartTransactionsEnabled = (state: RootState) => {
   const selectedAddress =

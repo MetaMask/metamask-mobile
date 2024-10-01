@@ -1,5 +1,5 @@
 import launchDarklyURL from './';
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 const baseURL = AppConstants.FEATURE_FLAGS_API.BASE_URL;
 const version = AppConstants.FEATURE_FLAGS_API.VERSION;

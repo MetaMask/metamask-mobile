@@ -1,20 +1,20 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
-import ActionModal from '../ActionModal';
-import { fontStyles } from '../../../styles/common';
+import ActionModal from '@ActionModal';
+import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
-import { protectWalletModalNotVisible } from '../../../actions/user';
+import { protectWalletModalNotVisible } from '@actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { strings } from '../../../../locales/i18n';
-import scaling from '../../../util/scaling';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { strings } from '@locales/i18n';
+import scaling from '@util/scaling';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { ProtectWalletModalSelectorsIDs } from '@e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 
-const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
+const protectWalletImage = require('@images/explain-backup-seedphrase.png'); // eslint-disable-line
 
 const createStyles = (colors) =>
   StyleSheet.create({

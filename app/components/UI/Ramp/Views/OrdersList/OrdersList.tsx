@@ -5,25 +5,25 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
-import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
-import OrderListItem from '../../components/OrderListItem';
-import Row from '../../components/Row';
+import { createOrderDetailsNavDetails } from '@OrderDetails/OrderDetails';
+import OrderListItem from '@components/OrderListItem';
+import Row from '@components/Row';
 import createStyles from './OrdersList.styles';
 
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
+} from '@component-library/components/Buttons/Button';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
-import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
-import { FiatOrder, getOrders } from '../../../../../reducers/fiatOrders';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+import { FIAT_ORDER_PROVIDERS } from '@constants/on-ramp';
+import { FiatOrder, getOrders } from '@reducers/fiatOrders';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 
 type filterType = 'ALL' | OrderOrderTypeEnum;
 

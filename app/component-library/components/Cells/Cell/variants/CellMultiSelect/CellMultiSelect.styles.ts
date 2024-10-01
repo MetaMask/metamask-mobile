@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { CellMultiSelectStyleSheetVars } from './CellMultiSelect.types';
 
 // Internal dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 /**
  * Style sheet function for CellMultiSelect component.

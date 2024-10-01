@@ -1,12 +1,12 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
-import DevLogger from '../../utils/DevLogger';
-import { Connection } from '../Connection';
+import DevLogger from '@utils/DevLogger';
+import { Connection } from '@Connection';
 import disconnect from './disconnect';
 
-jest.mock('../Connection');
+jest.mock('@Connection');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('../../../../util/Logger');
-jest.mock('../../utils/DevLogger');
+jest.mock('@util/Logger');
+jest.mock('@utils/DevLogger');
 
 describe('disconnect', () => {
   let mockConnection: Connection;

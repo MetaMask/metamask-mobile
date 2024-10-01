@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '@util/theme';
 import type { Theme as DesignTokenTheme } from '@metamask/design-tokens';
 
 const createStyles = (colors: DesignTokenTheme['colors']) =>

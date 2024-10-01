@@ -1,13 +1,13 @@
-import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
+import { NotificationMenuItem } from '@util/notifications/notification-states/types/NotificationMenuItem';
 import React, { useMemo } from 'react';
-import useStyles from '../List/useStyles';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import useStyles from '@List/useStyles';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
-import RemoteImage from '../../../../components/Base/RemoteImage';
-import METAMASK_FOX from '../../../../images/fox.png';
+} from '@component-library/components/Badges/Badge';
+import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '@component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import RemoteImage from '@components/Base/RemoteImage';
+import METAMASK_FOX from '@images/fox.png';
 import { View } from 'react-native';
 
 type NotificationIconProps = Pick<

@@ -11,10 +11,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import Icon, { IconSize, IconName } from '../../../../Icons/Icon';
-import Text, { TextVariant } from '../../../../Texts/Text';
-import { DEFAULT_ACCORDION_EXPANDDURATION } from '../../Accordion.constants';
+import { useStyles } from '@hooks';
+import Icon, { IconSize, IconName } from '@Icons/Icon';
+import Text, { TextVariant } from '@Texts/Text';
+import { DEFAULT_ACCORDION_EXPANDDURATION } from '@Accordion.constants';
 
 // Internal dependencies.
 import styleSheet from './AccordionHeader.styles';

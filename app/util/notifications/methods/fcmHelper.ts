@@ -2,7 +2,7 @@ import { utils } from '@react-native-firebase/app';
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import Logger from '../../../util/Logger';
+import Logger from '@util/Logger';
 import { PERMISSIONS, request } from 'react-native-permissions';
 
 export async function checkPlayServices() {

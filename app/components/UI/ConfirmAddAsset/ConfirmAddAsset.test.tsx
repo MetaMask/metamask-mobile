@@ -1,15 +1,15 @@
 import React from 'react';
 import ConfirmAddAsset from './ConfirmAddAsset';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import useBalance from '../Ramp/hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../util/number';
+} from '@util/test/renderWithProvider';
+import useBalance from '@Ramp/hooks/useBalance';
+import { toTokenMinimalUnit } from '@util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
-import { RootState } from '../../../reducers';
-import { mockNetworkState } from '../../../util/test/network';
+import { RootState } from '@reducers';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockSetOptions = jest.fn();
@@ -28,7 +28,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/navigation/navUtils', () => ({
+jest.mock('@util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
     selectedAsset: [
       {
@@ -55,7 +55,7 @@ const mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
   ...mockUseBalanceInitialValue,
 };
 
-jest.mock('../Ramp/hooks/useBalance', () =>
+jest.mock('@Ramp/hooks/useBalance', () =>
   jest.fn(() => mockUseBalanceValues),
 );
 

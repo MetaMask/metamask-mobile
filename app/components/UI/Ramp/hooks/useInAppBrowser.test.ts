@@ -4,17 +4,17 @@ import { merge } from 'lodash';
 import { Order, OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import { BuyWidgetInformation } from '@consensys/on-ramp-sdk/dist/API';
-import { type RampSDK, SDK } from '../sdk';
+import { type RampSDK, SDK } from '@sdk';
 import useInAppBrowser from './useInAppBrowser';
 import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
-} from '../../../../reducers/fiatOrders';
-import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { setLockTime } from '../../../../actions/settings';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import Logger from '../../../../util/Logger';
-import initialRootState from '../../../../util/test/initial-root-state';
+} from '@reducers/fiatOrders';
+import { createCustomOrderIdData } from '@orderProcessor/customOrderId';
+import { setLockTime } from '@actions/settings';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
+import Logger from '@util/Logger';
+import initialRootState from '@util/test/initial-root-state';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -55,7 +55,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
 
 const testCallbackBaseDeeplink = 'test://test-callback-base-deeplink/';
 
-jest.mock('../sdk', () => ({
+jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
   SDK: {
     orders: jest.fn().mockResolvedValue({

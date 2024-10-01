@@ -4,7 +4,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
-import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
+import ppomUtil, { PPOMRequest } from '@lib/ppom/ppom-util';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.

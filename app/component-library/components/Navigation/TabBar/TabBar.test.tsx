@@ -4,13 +4,13 @@ import { fireEvent } from '@testing-library/react-native';
 import { ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 // External dependencies
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
 // Internal dependencies
 import TabBar from './TabBar';
 import { TabBarIconKey } from './TabBar.types';
-import Routes from '../../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 
 // Mock the navigation object.
 const navigation = {

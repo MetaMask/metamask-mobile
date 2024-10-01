@@ -1,19 +1,19 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
 import { ChainId, isSafeChainId } from '@metamask/controller-utils';
-import { jsonRpcRequest } from '../../util/jsonRpcRequest';
-import Engine from '../Engine';
+import { jsonRpcRequest } from '@util/jsonRpcRequest';
+import Engine from '@Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
-} from '../../util/networks';
-import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
+} from '@util/networks';
+import { MetaMetricsEvents, MetaMetrics } from '@core/Analytics';
 import {
   selectChainId,
   selectNetworkConfigurations,
-} from '../../selectors/networkController';
-import { store } from '../../store';
+} from '@selectors/networkController';
+import { store } from '@store';
 import checkSafeNetwork from './networkChecker.util';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;

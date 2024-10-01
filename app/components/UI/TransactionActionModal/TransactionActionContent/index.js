@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

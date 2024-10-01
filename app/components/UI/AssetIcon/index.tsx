@@ -6,8 +6,8 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import isUrl from 'is-url';
-import RemoteImage from '../../Base/RemoteImage';
-import { useTheme } from '../../../util/theme';
+import RemoteImage from '@Base/RemoteImage';
+import { useTheme } from '@util/theme';
 
 interface Props {
   /**

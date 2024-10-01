@@ -3,9 +3,9 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../Texts/Text';
-import { mockTheme } from '../../../util/theme';
-import { getFontStyleVariant, FontWeight } from '../Texts/Text/Text.utils';
+import Text, { TextVariant } from '@Texts/Text';
+import { mockTheme } from '@util/theme';
+import { getFontStyleVariant, FontWeight } from '@Texts/Text/Text.utils';
 
 // Internal dependencies.
 import RadioButton from './RadioButton';

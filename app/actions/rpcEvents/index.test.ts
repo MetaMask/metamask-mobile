@@ -1,4 +1,4 @@
-import { RPCStageTypes } from '../../reducers/rpcEvents';
+import { RPCStageTypes } from '@reducers/rpcEvents';
 import {
   ActionType,
   resetEventStage,

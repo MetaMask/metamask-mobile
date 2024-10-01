@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import Text from '../../Texts/Text';
+import Text from '@Texts/Text';
 
 // Internal dependencies.
 import { LabelProps } from './Label.types';

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { ButtonVariants } from '../../Buttons/Button';
+import { ButtonVariants } from '@Buttons/Button';
 
 // Internal dependencies.
 import {

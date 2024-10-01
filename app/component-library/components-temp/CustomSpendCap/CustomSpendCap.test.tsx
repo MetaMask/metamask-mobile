@@ -2,7 +2,7 @@ import { shallow } from 'enzyme';
 // Third party dependencies.
 import React from 'react';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
 import {
   ACCOUNT_BALANCE,

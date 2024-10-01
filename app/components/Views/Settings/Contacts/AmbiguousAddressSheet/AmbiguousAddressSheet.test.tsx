@@ -1,6 +1,6 @@
 import AmbiguousAddressSheet from './AmbiguousAddressSheet';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
+import { renderScreen } from '@util/test/renderWithProvider';
+import Routes from '@constants/navigation/Routes';
 
 describe('AmbiguousAddressSheet', () => {
   it('should render correctly', () => {

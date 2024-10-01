@@ -3,21 +3,21 @@ import { TouchableOpacity, View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../hooks/useStyles';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@hooks/useStyles';
 
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import styleSheet from './PermissionItem.style';
 import {
   PermissionListItemViewModel,
   PermissionSource,
 } from './PermissionItem.types';
-import WebsiteIcon from '../../../../../components/UI/WebsiteIcon';
-import Tag from '../../../../../component-library/components/Tags/Tag';
-import { strings } from '../../../../../../locales/i18n';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
+import Tag from '@component-library/components/Tags/Tag';
+import { strings } from '@locales/i18n';
 
 interface PermissionListItemProps {
   item: PermissionListItemViewModel;

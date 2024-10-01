@@ -3,8 +3,8 @@ import { isEqual } from 'lodash';
 import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { TemplateRendererComponent, TemplateRendererInput } from './types';
-import Text from '../../../component-library/components/Texts/Text';
-import { isValidElementName } from '../../Views/confirmations/components/Approval/TemplateConfirmation/util';
+import Text from '@component-library/components/Texts/Text';
+import { isValidElementName } from '@Views/confirmations/components/Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {
   sections?: TemplateRendererInput;

@@ -1,10 +1,10 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { useStyles } from '../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import styleSheet from './ChartNavigationButton.styles';
 
 interface ChartNavigationButtonProps {

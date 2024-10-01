@@ -3,7 +3,7 @@ import React from 'react';
 
 // Internal dependencies.
 import ProfileSyncingComponent from './ProfileSyncing';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 const MOCK_STORE_STATE = {
   engine: {

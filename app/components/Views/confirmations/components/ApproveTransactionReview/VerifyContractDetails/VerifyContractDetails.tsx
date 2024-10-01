@@ -2,22 +2,22 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   useAppThemeFromContext,
   mockTheme,
-} from '../../../../../../util/theme';
-import ConnectHeader from '../../../../../UI/ConnectHeader';
-import ContractBox from '../../../../../../component-library/components-temp/Contracts/ContractBox';
+} from '@util/theme';
+import ConnectHeader from '@UI/ConnectHeader';
+import ContractBox from '@component-library/components-temp/Contracts/ContractBox';
 import createStyles from './VerifyContractDetails.styles';
 import { VerifyContractDetailsProps } from './VerifyContractDetails.types';
-import { findBlockExplorerForRpc } from '../../../../../../util/networks';
-import { RPC } from '../../../../../../constants/network';
-import TransactionTypes from '../../../../../../core/TransactionTypes';
-import { safeToChecksumAddress } from '../../../../../../util/address';
-import { selectTokens } from '../../../../../../selectors/tokensController';
+import { findBlockExplorerForRpc } from '@util/networks';
+import { RPC } from '@constants/network';
+import TransactionTypes from '@core/TransactionTypes';
+import { safeToChecksumAddress } from '@util/address';
+import { selectTokens } from '@selectors/tokensController';
 
 const {
   ASSET: { ERC20, ERC1155, ERC721 },

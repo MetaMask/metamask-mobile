@@ -4,10 +4,10 @@ import {
   cacheFavicon,
   isFaviconSVG,
 } from '.';
-import { storeFavicon } from '../../actions/browser';
+import { storeFavicon } from '@actions/browser';
 
-jest.mock('../../store', () => {
-  const actual = jest.requireActual('../../store');
+jest.mock('@store', () => {
+  const actual = jest.requireActual('@store');
   return {
     ...actual,
     store: {
@@ -28,7 +28,7 @@ jest.mock('../../store', () => {
 });
 
 // Import the store module after the mock is set up
-import { store } from '../../store';
+import { store } from '@store';
 
 // Make sure to clear all mocks after each test
 afterEach(() => {

@@ -1,20 +1,20 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { StyleSheet, Text, View } from 'react-native';
-import Device from '../../../../util/device';
-import Coachmark from '../Coachmark';
-import setOnboardingWizardStep from '../../../../actions/wizard';
-import { strings } from '../../../../../locales/i18n';
-import { createBrowserNavDetails } from '../../../Views/Browser';
+import Device from '@util/device';
+import Coachmark from '@Coachmark';
+import setOnboardingWizardStep from '@actions/wizard';
+import { strings } from '@locales/i18n';
+import { createBrowserNavDetails } from '@Views/Browser';
 
-import onboardingStyles from '../styles';
+import onboardingStyles from '@styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
-} from '../../../../core/Analytics';
-import { useTheme } from '../../../../util/theme';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
-import { useMetrics } from '../../../hooks/useMetrics';
+} from '@core/Analytics';
+import { useTheme } from '@util/theme';
+import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { useMetrics } from '@hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {

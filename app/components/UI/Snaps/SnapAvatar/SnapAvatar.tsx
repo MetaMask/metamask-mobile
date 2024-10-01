@@ -2,21 +2,21 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
 import { useSelector } from 'react-redux';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import { selectTargetSubjectMetadata } from '../../../../selectors/snaps/permissionController';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import { BadgePosition } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import AvatarIcon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
+import AvatarFavicon from '@component-library/components/Avatars/Avatar/variants/AvatarFavicon';
+import { selectTargetSubjectMetadata } from '@selectors/snaps/permissionController';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
+import { BadgePosition } from '@component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import AvatarIcon from '@component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import {
   IconColor,
   IconName,
-} from '../../../..//component-library/components/Icons/Icon';
-import AvatarBase from '../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import Text from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@/component-library/components/Icons/Icon';
+import AvatarBase from '@component-library/components/Avatars/Avatar/foundation/AvatarBase';
+import Text from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './SnapAvatar.styles';
-import { RootState } from '../../../../reducers';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import { RootState } from '@reducers';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import { ViewStyle } from 'react-native';
 
 const getAvatarFallbackLetter = (subjectName: string) =>

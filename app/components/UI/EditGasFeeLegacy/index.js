@@ -10,29 +10,29 @@ import {
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
-import Text from '../../Base/Text';
-import StyledButton from '../StyledButton';
-import RangeInput from '../../Base/RangeInput';
+import Text from '@Base/Text';
+import StyledButton from '@StyledButton';
+import RangeInput from '@Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '@Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../locales/i18n';
-import Alert, { AlertType } from '../../Base/Alert';
-import HorizontalSelector from '../../Base/HorizontalSelector';
-import Device from '../../../util/device';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
-import FadeAnimationView from '../FadeAnimationView';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { strings } from '@locales/i18n';
+import Alert, { AlertType } from '@Base/Alert';
+import HorizontalSelector from '@Base/HorizontalSelector';
+import Device from '@util/device';
+import { getDecimalChainId, isMainnetByChainId } from '@util/networks';
+import FadeAnimationView from '@FadeAnimationView';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import AppConstants from '../../../core/AppConstants';
-import { useTheme } from '../../../util/theme';
+import AppConstants from '@core/AppConstants';
+import { useTheme } from '@util/theme';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT,
   GAS_LIMIT_MIN,
   GAS_PRICE_MIN,
-} from '../../../util/gasUtils';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@util/gasUtils';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({

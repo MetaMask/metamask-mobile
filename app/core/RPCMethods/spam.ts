@@ -2,13 +2,13 @@ import { Store } from 'redux';
 import { JsonRpcRequest } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { containsUserRejectedError } from '../../util/middlewares';
-import Routes from '../../constants/navigation/Routes';
-import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
+import { containsUserRejectedError } from '@util/middlewares';
+import Routes from '@constants/navigation/Routes';
+import { RPC_METHODS } from '@SDKConnect/SDKConnectConstants';
 import {
   selectIsOriginBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
-} from '../redux/slices/originThrottling';
+} from '@redux/slices/originThrottling';
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.ETH_SENDTRANSACTION,

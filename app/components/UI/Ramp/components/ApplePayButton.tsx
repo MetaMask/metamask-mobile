@@ -1,13 +1,13 @@
 import React from 'react';
 import { Image, StyleSheet } from 'react-native';
-import { colors as importedColors } from '../../../../styles/common';
-import { useAssetFromTheme } from '../../../../util/theme';
-import Text from '../../../Base/Text';
-import StyledButton from '../../StyledButton';
+import { colors as importedColors } from '@styles/common';
+import { useAssetFromTheme } from '@util/theme';
+import Text from '@Base/Text';
+import StyledButton from '@StyledButton';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const ApplePayLogoLight = require('../../../../images/ApplePayLogo-light.png');
-const ApplePayLogoDark = require('../../../../images/ApplePayLogo-dark.png');
+const ApplePayLogoLight = require('@images/ApplePayLogo-light.png');
+const ApplePayLogoDark = require('@images/ApplePayLogo-dark.png');
 /* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 const styles = StyleSheet.create({

@@ -2,18 +2,18 @@
 import React from 'react';
 import { TextProps, View } from 'react-native';
 
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { renderShortAddress } from '../../../util/address';
+} from '@component-library/components/Icons/Icon';
+import { renderShortAddress } from '@util/address';
 import useDisplayName, {
   DisplayNameVariant,
-} from '../../hooks/DisplayName/useDisplayName';
-import Identicon from '../Identicon';
+} from '@hooks/DisplayName/useDisplayName';
+import Identicon from '@Identicon';
 import { NameProperties, NameType } from './Name.types';
 import styleSheet from './Name.styles';
 

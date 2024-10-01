@@ -2,29 +2,29 @@ import React, { useRef } from 'react';
 import { Linking, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
+} from '@component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
-import { setDataCollectionForMarketing } from '../../../actions/security';
+} from '@component-library/components/Buttons/Button';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
+import { setDataCollectionForMarketing } from '@actions/security';
 import {
   MetaMetricsEvents,
   useMetrics,
-} from '../../../components/hooks/useMetrics';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
-import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
+} from '@components/hooks/useMetrics';
+import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '@constants/urls';
+import { ExperienceEnhancerModalSelectorsIDs } from '@e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();

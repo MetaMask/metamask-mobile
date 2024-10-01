@@ -4,23 +4,23 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import { useRampSDK, withRampSDK } from '../../sdk';
-import BaseListItem from '../../../../Base/ListItem';
-import ScreenLayout from '../../components/ScreenLayout';
-import Row from '../../components/Row';
+import { useRampSDK, withRampSDK } from '@sdk';
+import BaseListItem from '@Base/ListItem';
+import ScreenLayout from '@components/ScreenLayout';
+import Row from '@components/Row';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
-import { strings } from '../../../../../../locales/i18n';
-import { useAppTheme } from '../../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../Navbar';
-import useAnalytics from '../../hooks/useAnalytics';
+import { strings } from '@locales/i18n';
+import { useAppTheme } from '@util/theme';
+import { getNavigationOptionsTitle } from '@Navbar';
+import useAnalytics from '@hooks/useAnalytics';
 
 // Internal dependencies
 import ActivationKeys from './ActivationKeys';

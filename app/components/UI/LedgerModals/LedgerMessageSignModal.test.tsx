@@ -1,6 +1,6 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import LedgerMessageSignModal from './LedgerMessageSignModal';
-import { RPCStageTypes } from '../../../reducers/rpcEvents';
+import { RPCStageTypes } from '@reducers/rpcEvents';
 
 const initialState = {
   rpcEvents: { signingEvent: RPCStageTypes.IDLE },

@@ -1,12 +1,12 @@
-import UntypedEngine from '../Engine';
-import AppConstants from '../AppConstants';
-import { getVaultFromBackup } from '../BackupVault';
-import { store as importedStore } from '../../store';
-import Logger from '../../util/Logger';
+import UntypedEngine from '@Engine';
+import AppConstants from '@AppConstants';
+import { getVaultFromBackup } from '@BackupVault';
+import { store as importedStore } from '@store';
+import Logger from '@util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
-} from '../../constants/error';
+} from '@constants/error';
 
 interface InitializeEngineResult {
   success: boolean;

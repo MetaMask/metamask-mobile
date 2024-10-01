@@ -2,14 +2,14 @@ import React from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AUTO_LOCK_OPTIONS, { AUTO_LOCK_SECTION } from './constants';
-import { setLockTime } from '../../../../../../actions/settings';
-import { useStyles } from '../../../../../../component-library/hooks';
-import SelectComponent from '../../../../../UI/SelectComponent';
+import { setLockTime } from '@actions/settings';
+import { useStyles } from '@component-library/hooks';
+import SelectComponent from '@UI/SelectComponent';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
 import styleSheet from './styles';
 
 const AutoLock = () => {

@@ -3,7 +3,7 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { AvatarSize } from '../../Avatar.types';
+import { AvatarSize } from '@Avatar.types';
 
 // Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';
@@ -17,7 +17,7 @@ export const AVATARTOKEN_IMAGE_TESTID = 'token-avatar-image';
 
 // Sample consts
 /* eslint-disable-next-line */
-export const SAMPLE_AVATARTOKEN_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/ethereum.png');
+export const SAMPLE_AVATARTOKEN_IMAGESOURCE_LOCAL: ImageSourcePropType = require('@images/ethereum.png');
 const SAMPLE_AVATARTOKEN_IMAGESOURCE_REMOTE: ImageSourcePropType = {
   uri: 'https://cryptologos.cc/logos/polygon-matic-logo.png',
 };

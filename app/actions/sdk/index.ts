@@ -1,6 +1,6 @@
 import type { Action as ReduxAction } from 'redux';
-import { ConnectionProps } from '../../core/SDKConnect/Connection';
-import { ApprovedHosts, SDKSessions } from '../../core/SDKConnect/SDKConnect';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
+import { ApprovedHosts, SDKSessions } from '@core/SDKConnect/SDKConnect';
 import { WC2Metadata } from './state';
 
 export enum ActionType {

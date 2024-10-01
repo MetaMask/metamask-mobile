@@ -1,17 +1,17 @@
 import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { getNetworkNavbarOptions } from '@UI/Navbar';
 import { connect } from 'react-redux';
-import Collectibles from '../../UI/Collectibles';
-import CollectibleContractOverview from '../../UI/CollectibleContractOverview';
-import Engine from '../../../core/Engine';
+import Collectibles from '@UI/Collectibles';
+import CollectibleContractOverview from '@UI/CollectibleContractOverview';
+import Engine from '@core/Engine';
 import Modal from 'react-native-modal';
-import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
-import { toggleCollectibleContractModal } from '../../../actions/modals';
-import { toLowerCaseEquals } from '../../../util/general';
-import { collectiblesSelector } from '../../../reducers/collectibles';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import CollectibleContractInformation from '@UI/CollectibleContractInformation';
+import { toggleCollectibleContractModal } from '@actions/modals';
+import { toLowerCaseEquals } from '@util/general';
+import { collectiblesSelector } from '@reducers/collectibles';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

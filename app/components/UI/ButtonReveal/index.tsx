@@ -3,8 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { fontStyles } from '../../../styles/common';
+} from '@component-library/components/Icons/Icon';
+import { fontStyles } from '@styles/common';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -17,7 +17,7 @@ import Animated, {
   Extrapolate,
   runOnUI,
 } from 'react-native-reanimated';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const radius = 14;

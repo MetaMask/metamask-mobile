@@ -1,10 +1,10 @@
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import AccountConnect from './AccountConnect';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RootState } from '@reducers';
 
 const mockedNavigate = jest.fn();
 const mockedTrackEvent = jest.fn();
@@ -19,7 +19,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
+jest.mock('@components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockedTrackEvent,
   }),
@@ -38,7 +38,7 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PhishingController: {
       maybeUpdateState: jest.fn(),

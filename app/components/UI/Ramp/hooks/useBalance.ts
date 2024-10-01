@@ -1,23 +1,23 @@
 import { useSelector } from 'react-redux';
 import { hexToBN } from '@metamask/controller-utils';
-import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
-import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
+import { NATIVE_ADDRESS } from '@constants/on-ramp';
+import { selectAccountsByChainId } from '@selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectChainId } from '../../../../selectors/networkController';
-import { safeToChecksumAddress } from '../../../../util/address';
+} from '@selectors/currencyRateController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectChainId } from '@selectors/networkController';
+import { safeToChecksumAddress } from '@util/address';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
   weiToFiat,
-} from '../../../../util/number';
+} from '@util/number';
 
 const defaultReturn = {
   balance: null,

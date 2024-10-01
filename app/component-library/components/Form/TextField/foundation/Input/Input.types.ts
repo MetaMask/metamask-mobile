@@ -2,7 +2,7 @@
 import { TextInputProps } from 'react-native';
 
 // External dependencies.
-import { TextVariant } from '../../../../Texts/Text';
+import { TextVariant } from '@Texts/Text';
 
 /**
  * Input component props.

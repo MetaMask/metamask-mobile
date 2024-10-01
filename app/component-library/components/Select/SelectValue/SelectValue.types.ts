@@ -2,7 +2,7 @@
 import { ReactElement } from 'react';
 
 // External dependencies.
-import { AvatarProps } from '../../Avatars/Avatar/Avatar.types';
+import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { SelectValueBaseProps } from './foundation/SelectValueBase.types';

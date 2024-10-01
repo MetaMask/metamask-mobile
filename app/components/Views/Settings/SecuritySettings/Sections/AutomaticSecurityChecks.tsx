@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
-import { SecurityOptionToggle } from '../../../../UI/SecurityOptionToggle';
-import { strings } from '../../../../../../locales/i18n';
+import { SecurityOptionToggle } from '@UI/SecurityOptionToggle';
+import { strings } from '@locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import { setAutomaticSecurityChecks } from '../../../../../actions/security';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { setAutomaticSecurityChecks } from '@actions/security';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import { Platform } from 'react-native';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const AutomaticSecurityChecks = () => {
   const dispatch = useDispatch();

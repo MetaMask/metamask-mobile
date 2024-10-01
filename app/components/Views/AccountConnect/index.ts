@@ -1,5 +1,5 @@
-import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import { createNavigationDetails } from '@util/navigation/navUtils';
 import { AccountConnectParams } from './AccountConnect.types';
 
 export { default } from './AccountConnect';

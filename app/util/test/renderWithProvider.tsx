@@ -12,10 +12,10 @@ import {
   RenderHookOptions,
 } from '@testing-library/react-native';
 
-import { mockTheme, ThemeContext } from '../theme';
-import { Theme } from '../theme/models';
+import { mockTheme, ThemeContext } from '@theme';
+import { Theme } from '@theme/models';
 import configureStore from './configureStore';
-import { RootState } from '../../reducers';
+import { RootState } from '@reducers';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown

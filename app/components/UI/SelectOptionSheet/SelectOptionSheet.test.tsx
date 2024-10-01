@@ -1,5 +1,5 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import SelectOptionSheet from './';
 import { ISelectOption } from './types';
 import {
@@ -10,7 +10,7 @@ import {
 import { fireEvent } from '@testing-library/react-native';
 import { SELECT_DROP_DOWN } from './constants';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     colors: {},
   },

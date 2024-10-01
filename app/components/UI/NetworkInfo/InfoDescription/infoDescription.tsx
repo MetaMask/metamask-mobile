@@ -1,8 +1,8 @@
 import React, { memo, useCallback } from 'react';
 import { View, Text, Linking, StyleSheet } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors: {
   background: { default: string };

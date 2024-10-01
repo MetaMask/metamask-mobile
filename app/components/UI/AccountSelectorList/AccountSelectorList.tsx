@@ -9,28 +9,28 @@ import type { Hex } from '@metamask/utils';
 // External dependencies.
 import Cell, {
   CellVariant,
-} from '../../../component-library/components/Cells/Cell';
-import { useStyles } from '../../../component-library/hooks';
-import Text from '../../../component-library/components/Texts/Text';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
+} from '@component-library/components/Cells/Cell';
+import { useStyles } from '@component-library/hooks';
+import Text from '@component-library/components/Texts/Text';
+import AvatarGroup from '@component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
   safeToChecksumAddress,
   getLabelTextByAddress,
-} from '../../../util/address';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import { strings } from '../../../../locales/i18n';
-import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { Account, Assets } from '../../hooks/useAccounts';
-import UntypedEngine from '../../../core/Engine';
-import { removeAccountsFromPermissions } from '../../../core/Permissions';
+} from '@util/address';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { isDefaultAccountName } from '@util/ENSUtils';
+import { strings } from '@locales/i18n';
+import { AvatarVariant } from '@component-library/components/Avatars/Avatar/Avatar.types';
+import { Account, Assets } from '@hooks/useAccounts';
+import UntypedEngine from '@core/Engine';
+import { removeAccountsFromPermissions } from '@core/Permissions';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import generateTestId from '@wdio/utils/generateTestId';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
 
 const AccountSelectorList = ({
   onSelectAccount,

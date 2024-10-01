@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import coalesceNonElementChildren from '@metamask/react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 /**
  * @deprecated The `<StyledButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import createStyles from './NotificationsSettings.styles';
 
 interface SessionHeaderProps {

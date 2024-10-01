@@ -11,16 +11,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../locales/i18n';
-import Device from '../../../../util/device';
-import Text from '../../../Base/Text';
-import StyledButton from '../../StyledButton';
-import { useTheme, useAssetFromTheme } from '../../../../util/theme';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import Text from '@Base/Text';
+import StyledButton from '@StyledButton';
+import { useTheme, useAssetFromTheme } from '@util/theme';
 
 /* eslint-disable import/no-commonjs */
-const onboardingDeviceImage = require('../../../../images/swaps_onboard_device.png');
-const swapsAggregatorsLight = require('../../../../images/swaps_aggs-light.png');
-const swapsAggregatorsDark = require('../../../../images/swaps_aggs-dark.png');
+const onboardingDeviceImage = require('@images/swaps_onboard_device.png');
+const swapsAggregatorsLight = require('@images/swaps_aggs-light.png');
+const swapsAggregatorsDark = require('@images/swaps_aggs-dark.png');
 /* eslint-enable import/no-commonjs */
 
 const createStyles = (colors, bottomInset) =>

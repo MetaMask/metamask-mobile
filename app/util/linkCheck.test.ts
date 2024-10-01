@@ -1,7 +1,7 @@
 /* eslint-disable no-script-url */
 import isLinkSafe from './linkCheck';
 
-jest.mock('../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PhishingController: {
       maybeUpdateState: jest.fn(),

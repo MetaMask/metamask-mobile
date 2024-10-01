@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { fontStyles } from '../../styles/common';
+import { fontStyles } from '@styles/common';
 import Text from './Text';
-import { useTheme } from '../../util/theme';
-import { TransactionDetailsModalSelectorsIDs } from '../../../e2e/selectors/Modals/TransactionDetailsModal.selectors';
+import { useTheme } from '@util/theme';
+import { TransactionDetailsModalSelectorsIDs } from '@e2e/selectors/Modals/TransactionDetailsModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

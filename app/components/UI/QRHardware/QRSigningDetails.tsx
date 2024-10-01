@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import {
   StyleSheet,
   Text,
@@ -17,23 +17,23 @@ import {
   AppState,
   AppStateStatus,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
-import { fontStyles } from '../../../styles/common';
-import AccountInfoCard from '../AccountInfoCard';
-import ActionView from '../ActionView';
+import { fontStyles } from '@styles/common';
+import AccountInfoCard from '@AccountInfoCard';
+import ActionView from '@ActionView';
 import { IQRState } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
-import Alert, { AlertType } from '../../Base/Alert';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import Alert, { AlertType } from '@Base/Alert';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../util/theme';
-import Device from '../../../util/device';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useTheme } from '@util/theme';
+import Device from '@util/device';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 interface IQRSigningDetails {
   QRState: IQRState;

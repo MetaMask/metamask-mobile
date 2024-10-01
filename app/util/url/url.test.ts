@@ -1,5 +1,5 @@
 import { isPortfolioUrl, isBridgeUrl } from './index';
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 describe('URL Check Functions', () => {
   describe('isPortfolioUrl', () => {

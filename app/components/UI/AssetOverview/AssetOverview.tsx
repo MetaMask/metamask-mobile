@@ -2,26 +2,26 @@ import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { newAssetTransaction } from '../../../actions/transaction';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
+import { strings } from '@locales/i18n';
+import { TOKEN_ASSET_OVERVIEW } from '@wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import generateTestId from '@wdio/utils/generateTestId';
+import { newAssetTransaction } from '@actions/transaction';
+import AppConstants from '@core/AppConstants';
+import Engine from '@core/Engine';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import Logger from '../../../util/Logger';
-import { safeToChecksumAddress } from '../../../util/address';
+} from '@selectors/currencyRateController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectAccountsByChainId } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import Logger from '@util/Logger';
+import { safeToChecksumAddress } from '@util/address';
 import {
   balanceToFiat,
   hexToBN,
@@ -29,30 +29,30 @@ import {
   renderFromWei,
   toHexadecimal,
   weiToFiat,
-} from '../../../util/number';
-import { getEther } from '../../../util/transactions';
-import Text from '../../Base/Text';
-import { createWebviewNavDetails } from '../../Views/SimpleWebview';
+} from '@util/number';
+import { getEther } from '@util/transactions';
+import Text from '@Base/Text';
+import { createWebviewNavDetails } from '@Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
-} from '../../hooks/useTokenHistoricalPrices';
+} from '@hooks/useTokenHistoricalPrices';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
-import { useStyles } from '../../../component-library/hooks';
-import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
-import Routes from '../../../constants/navigation/Routes';
+import { useStyles } from '@component-library/hooks';
+import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher';
+import Routes from '@constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
-import { RootState } from '../../../reducers';
-import useGoToBridge from '../Bridge/utils/useGoToBridge';
+import { RootState } from '@reducers';
+import useGoToBridge from '@Bridge/utils/useGoToBridge';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import { TokenI } from '../Tokens/types';
-import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { createBuyNavigationDetails } from '@Ramp/routes/utils';
+import { TokenI } from '@Tokens/types';
+import AssetDetailsActions from '@components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
   navigation: {

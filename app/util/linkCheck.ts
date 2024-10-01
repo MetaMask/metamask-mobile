@@ -1,7 +1,7 @@
 import Url from 'url-parse';
 import isUrl from 'is-url';
 import { PhishingController as PhishingControllerClass } from '@metamask/phishing-controller';
-import Engine from '../core/Engine';
+import Engine from '@core/Engine';
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
 const DENYLISTED_DOMAINS = ['metamask.app.link'];
 

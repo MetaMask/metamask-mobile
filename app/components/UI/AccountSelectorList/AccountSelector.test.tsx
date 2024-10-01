@@ -1,20 +1,20 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { waitFor, within } from '@testing-library/react-native';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
-import { useAccounts } from '../../../components/hooks/useAccounts';
+import { useAccounts } from '@components/hooks/useAccounts';
 import { View } from 'react-native';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { regex } from '../../../../app/util/regex';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { backgroundState } from '@util/test/initial-root-state';
+import { regex } from '@app/util/regex';
 import {
   createMockAccountsControllerState,
   createMockAccountsControllerStateWithSnap,
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
-} from '../../../util/test/accountsControllerTestUtils';
-import { mockNetworkState } from '../../../util/test/network';
+} from '@util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -25,8 +25,8 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   PERSONAL_ACCOUNT,
 ]);
 
-jest.mock('../../../util/address', () => {
-  const actual = jest.requireActual('../../../util/address');
+jest.mock('@util/address', () => {
+  const actual = jest.requireActual('@util/address');
   return {
     ...actual,
     getLabelTextByAddress: jest.fn(),

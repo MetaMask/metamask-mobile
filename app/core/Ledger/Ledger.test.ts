@@ -12,17 +12,17 @@ import {
   setHDPath,
   unlockLedgerWalletAccount,
 } from './Ledger';
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import PAGINATION_OPERATIONS from '../../constants/pagination';
+import PAGINATION_OPERATIONS from '@constants/pagination';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
   LEDGER_LIVE_PATH,
 } from './constants';
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       signTypedMessage: jest.fn(),

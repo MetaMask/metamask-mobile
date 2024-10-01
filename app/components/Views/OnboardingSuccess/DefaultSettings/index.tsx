@@ -3,25 +3,25 @@ import { ScrollView, TouchableOpacity, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../constants/navigation/Routes';
-import { strings } from '../../../../../locales/i18n';
-import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
-import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
-import AppConstants from '../../../../core/AppConstants';
+import Routes from '@constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import BasicFunctionalityComponent from '@UI/BasicFunctionality/BasicFunctionality';
+import ManageNetworksComponent from '@UI/ManageNetworks/ManageNetworks';
+import AppConstants from '@core/AppConstants';
 import styles from './index.styles';
-import ProfileSyncingComponent from '../../../../components/UI/ProfileSyncing/ProfileSyncing';
+import ProfileSyncingComponent from '@components/UI/ProfileSyncing/ProfileSyncing';
 import { useSelector } from 'react-redux';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
-import { enableProfileSyncing } from '../../../../actions/notification/helpers';
-import { RootState } from '../../../../reducers';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { selectIsProfileSyncingEnabled } from '@selectors/notifications';
+import { isNotificationsFeatureEnabled } from '@util/notifications';
+import { enableProfileSyncing } from '@actions/notification/helpers';
+import { RootState } from '@reducers';
+import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
 
 const DefaultSettings = () => {
   const navigation = useNavigation();

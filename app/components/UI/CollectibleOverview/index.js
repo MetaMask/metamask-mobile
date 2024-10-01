@@ -13,42 +13,42 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import RemoteImage from '../../Base/RemoteImage';
+import RemoteImage from '@Base/RemoteImage';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
-import { baseStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import Text from '../../Base/Text';
-import StyledButton from '../../UI/StyledButton';
+import { baseStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import Text from '@Base/Text';
+import StyledButton from '@UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
-import Device from '../../../util/device';
-import { isIPFSUri, renderShortText } from '../../../util/general';
-import { toLocaleDate } from '../../../util/date';
-import { renderFromWei } from '../../../util/number';
-import { renderShortAddress } from '../../../util/address';
-import { isMainNet } from '../../../util/networks';
-import { isLinkSafe } from '../../../util/linkCheck';
+import Device from '@util/device';
+import { isIPFSUri, renderShortText } from '@util/general';
+import { toLocaleDate } from '@util/date';
+import { renderFromWei } from '@util/number';
+import { renderShortAddress } from '@util/address';
+import { isMainNet } from '@util/networks';
+import { isLinkSafe } from '@util/linkCheck';
 import etherscanLink from '@metamask/etherscan-link';
 import {
   addFavoriteCollectible,
   removeFavoriteCollectible,
-} from '../../../actions/collectibles';
-import { isCollectibleInFavoritesSelector } from '../../../reducers/collectibles';
+} from '@actions/collectibles';
+import { isCollectibleInFavoritesSelector } from '@reducers/collectibles';
 import Share from 'react-native-share';
 import {
   PanGestureHandler,
   gestureHandlerRootHOC,
   ScrollView,
 } from 'react-native-gesture-handler';
-import AppConstants from '../../../core/AppConstants';
-import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import AppConstants from '@core/AppConstants';
+import { useTheme } from '@util/theme';
+import { selectChainId } from '@selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
-} from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+} from '@selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();

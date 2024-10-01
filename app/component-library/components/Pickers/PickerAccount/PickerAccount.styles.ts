@@ -2,8 +2,8 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
-import { fontStyles } from '../../../../styles/common';
+import { Theme } from '@util/theme/models';
+import { fontStyles } from '@styles/common';
 
 // Internal dependencies.
 import { PickerAccountStyleSheetVars } from './PickerAccount.types';

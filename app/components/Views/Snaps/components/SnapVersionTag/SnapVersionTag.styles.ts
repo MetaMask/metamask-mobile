@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 /**
  *

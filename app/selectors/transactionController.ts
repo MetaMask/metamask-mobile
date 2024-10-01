@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { createDeepEqualSelector } from './util';
 
 const selectTransactionControllerState = (state: RootState) =>

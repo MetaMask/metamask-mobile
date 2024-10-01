@@ -1,7 +1,7 @@
 import migrate from './035';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 import { NetworkStatus } from '@metamask/network-controller';
 
 const expectedState = {

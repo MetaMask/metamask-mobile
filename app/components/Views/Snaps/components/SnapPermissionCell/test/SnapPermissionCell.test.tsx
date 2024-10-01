@@ -2,12 +2,12 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapPermissionCell, {
   SnapPermissionCellProps,
-} from '../SnapPermissionCell';
+} from '@SnapPermissionCell';
 import {
   SNAP_PERMISSIONS_DATE,
   SNAP_PERMISSIONS_TITLE,
   SNAP_PERMISSION_CELL,
-} from '../SnapPermissionCell.constants';
+} from '@SnapPermissionCell.constants';
 
 describe('SnapPermissionCell', () => {
   const defaultProps = {

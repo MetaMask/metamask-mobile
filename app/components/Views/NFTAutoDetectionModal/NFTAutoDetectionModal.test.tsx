@@ -2,10 +2,10 @@ import React from 'react';
 import NFTAutoDetectionModal from './NFTAutoDetectionModal';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
+import Routes from '@constants/navigation/Routes';
+import Engine from '@core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 
@@ -18,7 +18,7 @@ const setDisplayNftMediaSpy = jest.spyOn(
   Engine.context.PreferencesController,
   'setDisplayNftMedia',
 );
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PreferencesController: {
       setUseNftDetection: jest.fn(),

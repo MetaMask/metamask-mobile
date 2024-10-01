@@ -2,12 +2,12 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import SearchingForDeviceStep from './SearchingForDeviceStep';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
-import Device from '../../../../util/device';
-import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
+import Device from '@util/device';
+import { LEDGER_SUPPORT_LINK } from '@constants/urls';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -18,7 +18,7 @@ jest.mock('react-native-device-info', () => ({
   getSystemVersion: jest.fn(),
 }));
 
-jest.mock('../../../../util/device', () => ({
+jest.mock('@util/device', () => ({
   isAndroid: jest.fn().mockReturnValue(true),
 }));
 

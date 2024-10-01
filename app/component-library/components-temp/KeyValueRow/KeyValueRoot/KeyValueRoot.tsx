@@ -1,7 +1,7 @@
-import { useStyles } from '../../../hooks';
+import { useStyles } from '@hooks';
 import React from 'react';
 import { View } from 'react-native';
-import { KeyValueRowRootProps } from '../KeyValueRow.types';
+import { KeyValueRowRootProps } from '@KeyValueRow.types';
 import styleSheet from './KeyValueRoot.styles';
 
 /**

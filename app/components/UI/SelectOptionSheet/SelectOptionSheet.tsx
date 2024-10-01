@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { baseStyles } from '../../../styles/common';
+import { baseStyles } from '@styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 import createStyles from './styles';
 import { ISelectOptionSheet } from './types';
 import { createOptionsSheetNavDetails } from './OptionsSheet';

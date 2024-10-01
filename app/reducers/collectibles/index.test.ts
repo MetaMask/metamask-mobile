@@ -3,7 +3,7 @@ import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
 } from './index';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
+import mockedEngine from '@core/__mocks__/MockedEngine';
 
 const emptyAction = { type: null };
 
@@ -14,7 +14,7 @@ const collectibleB2 = { tokenId: '102', address: '0xB' };
 const selectedAddressA = '0x0A';
 const selectedAddressB = '0x0B';
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   init: () => mockedEngine.init(),
   context: {
     NetworkController: {

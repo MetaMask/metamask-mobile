@@ -1,7 +1,7 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import MetaMetrics from '@core/Analytics/MetaMetrics';
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('@core/Analytics/MetaMetrics');
 
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>

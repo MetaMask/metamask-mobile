@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import Animated from 'react-native-reanimated';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import { useStyles } from '@hooks';
 import AccordionHeader from './foundation/AccordionHeader';
 
 // Internal dependencies.

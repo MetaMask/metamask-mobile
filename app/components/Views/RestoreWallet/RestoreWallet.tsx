@@ -1,31 +1,31 @@
 /* eslint-disable import/no-commonjs */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Image, ActivityIndicator } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { createStyles } from './styles';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StyledButton from '../../UI/StyledButton';
+} from '@component-library/components/Texts/Text';
+import StyledButton from '@UI/StyledButton';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
-import EngineService from '../../../core/EngineService';
+} from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import EngineService from '@core/EngineService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext } from '@util/theme';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { createWalletRestoredNavDetails } from './WalletRestored';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import generateDeviceAnalyticsMetaData from '@util/metrics';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
+const onboardingDeviceImage = require('@images/swaps_onboard_device.png');
 interface RestoreWalletParams {
   previousScreen: string;
 }

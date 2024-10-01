@@ -6,15 +6,15 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 
-import NotificationManager from '../../../core/NotificationManager';
-import Engine from '../../../core/Engine';
-import { strings } from '../../../../locales/i18n';
-import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
+import NotificationManager from '@core/NotificationManager';
+import Engine from '@core/Engine';
+import { strings } from '@locales/i18n';
+import { hexToBN, fromWei, isZeroValue } from '@util/number';
 import {
   setEtherTransaction,
   setTransactionObject,
-} from '../../../actions/transaction';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
+} from '@actions/transaction';
+import WalletConnect from '@core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -24,55 +24,55 @@ import {
   getTokenValueParamAsHex,
   getIsSwapApproveOrSwapTransaction,
   isApprovalTransaction,
-} from '../../../util/transactions';
+} from '@util/transactions';
 import { BN } from 'ethereumjs-util';
-import Logger from '../../../util/Logger';
-import TransactionTypes from '../../../core/TransactionTypes';
+import Logger from '@util/Logger';
+import TransactionTypes from '@core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
-import { toLowerCaseEquals } from '../../../util/general';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { toLowerCaseEquals } from '@util/general';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import { MetaMetricsEvents } from '@core/Analytics';
 import {
   getAddressAccountType,
   isHardwareAccount,
-} from '../../../util/address';
+} from '@util/address';
 
 import {
   selectChainId,
   selectProviderType,
-} from '../../../selectors/networkController';
-import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
-import SignatureApproval from '../../Approvals/SignatureApproval';
-import AddChainApproval from '../../Approvals/AddChainApproval';
-import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
-import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
-import ConnectApproval from '../../Approvals/ConnectApproval';
+} from '@selectors/networkController';
+import WatchAssetApproval from '@Approvals/WatchAssetApproval';
+import SignatureApproval from '@Approvals/SignatureApproval';
+import AddChainApproval from '@Approvals/AddChainApproval';
+import SwitchChainApproval from '@Approvals/SwitchChainApproval';
+import WalletConnectApproval from '@Approvals/WalletConnectApproval';
+import ConnectApproval from '@Approvals/ConnectApproval';
 import {
   TransactionApproval,
   TransactionModalType,
-} from '../../Approvals/TransactionApproval';
-import PermissionApproval from '../../Approvals/PermissionApproval';
-import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
-import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import Confirm from '../../../components/Views/confirmations/Confirm';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
-import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
+} from '@Approvals/TransactionApproval';
+import PermissionApproval from '@Approvals/PermissionApproval';
+import FlowLoaderModal from '@Approvals/FlowLoaderModal';
+import TemplateConfirmationModal from '@Approvals/TemplateConfirmationModal';
+import { selectTokenList } from '@selectors/tokenListController';
+import { selectTokens } from '@selectors/tokensController';
+import { getDeviceId } from '@core/Ledger/Ledger';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
+import Confirm from '@components/Views/confirmations/Confirm';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '@util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '@util/smart-transactions';
 import { cloneDeep, isEqual } from 'lodash';
-import { selectSwapsTransactions } from '../../../selectors/transactionController';
-import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
+import { selectSwapsTransactions } from '@selectors/transactionController';
+import { updateSwapsTransaction } from '@util/swaps/swaps-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+import InstallSnapApproval from '@Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);

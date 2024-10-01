@@ -3,18 +3,18 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Snap, Status } from '@metamask/snaps-utils';
-import SnapDetails from '../SnapDetails';
-import Engine from '../../../../../../core/Engine';
+import SnapDetails from '@SnapDetails';
+import Engine from '@core/Engine';
 import { SemVerVersion } from '@metamask/utils';
 import {
   SNAP_DETAILS_CELL,
   SNAP_DETAILS_INSTALL_DATE,
   SNAP_DETAILS_INSTALL_ORIGIN,
   SNAP_DETAILS_SWITCH,
-} from '../SnapDetails.constants';
-import { SNAP_VERSION_BADGE } from '../../SnapVersionTag/SnapVersionTag.constants';
+} from '@SnapDetails.constants';
+import { SNAP_VERSION_BADGE } from '@SnapVersionTag/SnapVersionTag.constants';
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     SnapController: {
       enableSnap: jest.fn(),

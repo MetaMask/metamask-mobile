@@ -3,7 +3,7 @@ import TransactionEditor from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 const initialState = {

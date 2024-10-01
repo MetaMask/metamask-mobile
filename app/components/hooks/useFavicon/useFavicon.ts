@@ -4,8 +4,8 @@ import {
   getFaviconURLFromHtml,
   getFaviconFromCache,
   cacheFavicon,
-} from '../../../util/favicon';
-import Logger from '../../../util/Logger';
+} from '@util/favicon';
+import Logger from '@util/Logger';
 
 //Empty value uset to trigger fallback favicon in the UI and prevent use of undefined
 const EMPTY_FAVICON_URI: ImageSourcePropType = {};

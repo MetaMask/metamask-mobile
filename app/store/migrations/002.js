@@ -1,5 +1,5 @@
-import { getAllNetworks, isSafeChainId } from '../../util/networks';
-import { GOERLI } from '../../../app/constants/network';
+import { getAllNetworks, isSafeChainId } from '@util/networks';
+import { GOERLI } from '@app/constants/network';
 
 export default function migrate(state) {
   const provider = state.engine.backgroundState.NetworkController.provider;

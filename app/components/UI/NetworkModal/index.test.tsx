@@ -2,8 +2,8 @@ import React from 'react';
 import NetworkModal from './index';
 import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+import { selectNetworkName } from '@selectors/networkInfos';
+import { selectUseSafeChainsListValidation } from '@selectors/preferencesController';
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;

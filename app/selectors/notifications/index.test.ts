@@ -16,13 +16,13 @@ import {
   getMetamaskNotificationsReadCount,
   getOnChainMetamaskNotificationsUnreadCount,
 } from './index';
-import { RootState } from '../../reducers';
+import { RootState } from '@reducers';
 import {
   MOCK_AUTHENTICATION_CONTROLLER,
   MOCK_USER_STORAGE_CONTROLLER,
   MOCK_NOTIFICATION_SERVICES_CONTROLLER,
 } from './testUtils';
-import { TRIGGER_TYPES } from '../../util/notifications';
+import { TRIGGER_TYPES } from '@util/notifications';
 
 describe('Notification Selectors', () => {
   const mockState = {

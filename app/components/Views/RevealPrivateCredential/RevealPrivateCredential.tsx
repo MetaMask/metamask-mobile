@@ -18,47 +18,47 @@ import ScrollableTabView, {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
-import StorageWrapper from '../../../store/storage-wrapper';
-import ActionView from '../../UI/ActionView';
-import ButtonReveal from '../../UI/ButtonReveal';
+import StorageWrapper from '@store/storage-wrapper';
+import ActionView from '@UI/ActionView';
+import ButtonReveal from '@UI/ButtonReveal';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../component-library/components/Icons/Icon';
-import InfoModal from '../../UI/Swaps/components/InfoModal';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import { showAlert } from '../../../actions/alert';
-import { recordSRPRevealTimestamp } from '../../../actions/privacy';
-import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
+} from '@component-library/components/Icons/Icon';
+import InfoModal from '@UI/Swaps/components/InfoModal';
+import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import { showAlert } from '@actions/alert';
+import { recordSRPRevealTimestamp } from '@actions/privacy';
+import { WRONG_PASSWORD_ERROR } from '@constants/error';
 import {
   KEEP_SRP_SAFE_URL,
   NON_CUSTODIAL_WALLET_URL,
   SRP_GUIDE_URL,
-} from '../../../constants/urls';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
-import { BIOMETRY_CHOICE } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
-import { passwordRequirementsMet } from '../../../util/password';
-import { Authentication } from '../../../core/';
+} from '@constants/urls';
+import ClipboardManager from '@core/ClipboardManager';
+import { useTheme } from '@util/theme';
+import Engine from '@core/Engine';
+import { BIOMETRY_CHOICE } from '@constants/storage';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { uint8ArrayToMnemonic } from '@util/mnemonic';
+import { passwordRequirementsMet } from '@util/password';
+import { Authentication } from '@core/';
 
-import { isTest } from '../../../util/test/utils';
-import Device from '../../../util/device';
-import { strings } from '../../../../locales/i18n';
-import { isHardwareAccount } from '../../../util/address';
-import AppConstants from '../../../core/AppConstants';
+import { isTest } from '@util/test/utils';
+import Device from '@util/device';
+import { strings } from '@locales/i18n';
+import { isHardwareAccount } from '@util/address';
+import AppConstants from '@core/AppConstants';
 import { createStyles } from './styles';
-import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
+import { RevealSeedViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const PRIVATE_KEY = 'private_key';
 

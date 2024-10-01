@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { TextVariant, TextColor } from '../Texts/Text';
+import { TextVariant, TextColor } from '@Texts/Text';
 
 // Internal dependencies.
 import { RadioButtonProps } from './RadioButton.types';

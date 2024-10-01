@@ -6,7 +6,7 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
 // External dependencies
-import { mockTheme } from '../../../util/theme';
+import { mockTheme } from '@util/theme';
 
 // Internal dependencies
 import ThemeProvider from './ThemeProvider';

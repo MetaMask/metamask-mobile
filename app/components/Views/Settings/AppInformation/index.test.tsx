@@ -1,4 +1,4 @@
-import { renderScreen } from '../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import AppInformation from './';
 
 describe('AppInformation', () => {

@@ -1,15 +1,15 @@
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
-import SDKConnect from '../SDKConnect';
-import { waitForCondition } from '../utils/wait.util';
+import Logger from '@util/Logger';
+import AppConstants from '@AppConstants';
+import SDKConnect from '@SDKConnect';
+import { waitForCondition } from '@utils/wait.util';
 import handleDeeplink from './handleDeeplink';
 import handleConnectionMessage from './handleConnectionMessage';
 
-jest.mock('../SDKConnect');
-jest.mock('../../AppConstants');
-jest.mock('../utils/DevLogger');
-jest.mock('../utils/wait.util');
-jest.mock('../../../util/Logger');
+jest.mock('@SDKConnect');
+jest.mock('@AppConstants');
+jest.mock('@utils/DevLogger');
+jest.mock('@utils/wait.util');
+jest.mock('@util/Logger');
 jest.mock('./handleConnectionMessage');
 
 describe('handleDeeplink', () => {

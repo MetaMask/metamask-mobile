@@ -4,16 +4,16 @@ import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies
-import Engine from '../../../../core/Engine';
-import { selectUseNftDetection } from '../../../../selectors/preferencesController';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import Engine from '@core/Engine';
+import { selectUseNftDetection } from '@selectors/preferencesController';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
+import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+} from '@component-library/components/Texts/Text';
+import { UserProfileProperty } from '@util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // Internal dependencies
 import createStyles from './index.styles';

@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { useParams } from '../../../../util/navigation/navUtils';
-import { useStyles } from '../../../../component-library/hooks';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { useParams } from '@util/navigation/navUtils';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 

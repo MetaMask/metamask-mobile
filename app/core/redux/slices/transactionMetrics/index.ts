@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { RootState } from '../../../../reducers';
+import { RootState } from '@reducers';
 import { merge } from 'lodash';
 
 interface TransactionMetrics {

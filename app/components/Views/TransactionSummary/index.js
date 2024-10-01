@@ -6,12 +6,12 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import { TRANSACTION_TYPES } from '../../../util/transactions';
-import Summary from '../../Base/Summary';
-import Text from '../../Base/Text';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { isTestNet } from '../../../util/networks';
+import { strings } from '@locales/i18n';
+import { TRANSACTION_TYPES } from '@util/transactions';
+import Summary from '@Base/Summary';
+import Text from '@Base/Text';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { isTestNet } from '@util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({

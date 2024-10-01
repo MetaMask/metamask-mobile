@@ -3,9 +3,9 @@ import { shallow } from 'enzyme';
 import Settings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { SettingsViewSelectorsIDs } from '@e2e/selectors/Settings/SettingsView.selectors';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 const initialState = {

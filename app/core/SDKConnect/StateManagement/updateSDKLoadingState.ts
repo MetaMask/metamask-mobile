@@ -1,9 +1,9 @@
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 import { KeyringController } from '@metamask/keyring-controller';
-import { waitForKeychainUnlocked } from '../utils/wait.util';
-import Engine from '../../Engine';
-import Routes from '../../../constants/navigation/Routes';
+import { waitForKeychainUnlocked } from '@utils/wait.util';
+import Engine from '@Engine';
+import Routes from '@constants/navigation/Routes';
 
 async function updateSDKLoadingState({
   channelId,

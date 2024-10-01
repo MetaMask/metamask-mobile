@@ -9,7 +9,7 @@ import {
 } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
 // External dependencies.
-import { IconName } from '../../Icons/Icon';
+import { IconName } from '@Icons/Icon';
 
 /**
  * Enum for supported tab bar labels.

@@ -7,27 +7,27 @@ import {
   ScrollView,
 } from 'react-native';
 import Eth from 'ethjs-query';
-import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
+import ActionView, { ConfirmButtonState } from '@UI/ActionView';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '../../../../UI/Navbar';
+import { getApproveNavbar } from '@UI/Navbar';
 import { connect } from 'react-redux';
-import { getHost } from '../../../../../util/browser';
+import { getHost } from '@util/browser';
 import {
   safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
   shouldShowBlockExplorer,
-} from '../../../../../util/address';
-import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
-import { setTransactionObject } from '../../../../../actions/transaction';
+} from '@util/address';
+import Engine from '@core/Engine';
+import { strings } from '@locales/i18n';
+import { setTransactionObject } from '@actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   fromTokenMinimalUnit,
   hexToBN,
   isNumber,
   renderFromTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '@util/number';
 import {
   getTicker,
   getNormalizedTxState,
@@ -39,20 +39,20 @@ import {
   generateApprovalData,
   isNFTTokenStandard,
   TOKEN_METHOD_SET_APPROVAL_FOR_ALL,
-} from '../../../../../util/transactions';
+} from '@util/transactions';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import Identicon from '../../../../UI/Identicon';
-import TransactionTypes from '../../../../../core/TransactionTypes';
-import { showAlert } from '../../../../../actions/alert';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import TransactionHeader from '../../../../UI/TransactionHeader';
-import TransactionReviewDetailsCard from '../TransactionReview/TransactionReviewDetailsCard';
-import AppConstants from '../../../../../core/AppConstants';
-import { UINT256_HEX_MAX_VALUE } from '../../../../../constants/transaction';
-import { getBlockaidTransactionMetricsParams } from '../../../../../util/blockaid';
+} from '@component-library/components/Avatars/Avatar';
+import Identicon from '@UI/Identicon';
+import TransactionTypes from '@core/TransactionTypes';
+import { showAlert } from '@actions/alert';
+import { MetaMetricsEvents } from '@core/Analytics';
+import TransactionHeader from '@UI/TransactionHeader';
+import TransactionReviewDetailsCard from '@TransactionReview/TransactionReviewDetailsCard';
+import AppConstants from '@core/AppConstants';
+import { UINT256_HEX_MAX_VALUE } from '@constants/transaction';
+import { getBlockaidTransactionMetricsParams } from '@util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -62,17 +62,17 @@ import {
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
-} from '../../../../../util/networks';
-import CustomSpendCap from '../../../../../component-library/components-temp/CustomSpendCap';
+} from '@util/networks';
+import CustomSpendCap from '@component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Logger from '../../../../../util/Logger';
-import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import TransactionReview from '../TransactionReview/TransactionReviewEIP1559Update';
-import ClipboardManager from '../../../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
-import Routes from '../../../../../constants/navigation/Routes';
+import Logger from '@util/Logger';
+import ButtonLink from '@component-library/components/Buttons/Button/variants/ButtonLink';
+import TransactionReview from '@TransactionReview/TransactionReviewEIP1559Update';
+import ClipboardManager from '@core/ClipboardManager';
+import { ThemeContext, mockTheme } from '@util/theme';
+import withQRHardwareAwareness from '@UI/QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '@UI/QRHardware/QRSigningDetails';
+import Routes from '@constants/navigation/Routes';
 import createStyles from './styles';
 import {
   selectChainId,
@@ -80,30 +80,30 @@ import {
   selectProviderType,
   selectTicker,
   selectRpcUrl,
-} from '../../../../../selectors/networkController';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
-import { selectTokensLength } from '../../../../../selectors/tokensController';
-import { selectAccountsLength } from '../../../../../selectors/accountTrackerController';
-import { selectCurrentTransactionSecurityAlertResponse } from '../../../../../selectors/confirmTransaction';
+} from '@selectors/networkController';
+import { selectTokenList } from '@selectors/tokenListController';
+import { selectTokensLength } from '@selectors/tokensController';
+import { selectAccountsLength } from '@selectors/accountTrackerController';
+import { selectCurrentTransactionSecurityAlertResponse } from '@selectors/confirmTransaction';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
+} from '@component-library/components/Texts/Text';
+import ApproveTransactionHeader from '@ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
-import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
-import { getRampNetworks } from '../../../../../reducers/fiatOrders';
-import SkeletonText from '../../../../../components/UI/Ramp/components/SkeletonText';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
-import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { regex } from '../../../../../util/regex';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
+import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
+import { getRampNetworks } from '@reducers/fiatOrders';
+import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
+import InfoModal from '@UI/Swaps/components/InfoModal';
+import { ResultType } from '@BlockaidBanner/BlockaidBanner.types';
+import TransactionBlockaidBanner from '@TransactionBlockaidBanner/TransactionBlockaidBanner';
+import { regex } from '@util/regex';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { WC2Manager } from '@core/WalletConnect/WalletConnectV2';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;

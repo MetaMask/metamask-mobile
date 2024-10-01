@@ -4,10 +4,10 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import CellBase from '../../foundation/CellBase';
-import Card from '../../../../Cards/Card';
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { useStyles } from '@hooks';
+import CellBase from '@foundation/CellBase';
+import Card from '@Cards/Card';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
 import styleSheet from './CellDisplay.styles';

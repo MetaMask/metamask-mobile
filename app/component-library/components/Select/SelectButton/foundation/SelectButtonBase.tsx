@@ -5,8 +5,8 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../hooks';
-import SelectValue from '../../SelectValue/SelectValue';
+import { useStyles } from '@hooks';
+import SelectValue from '@SelectValue/SelectValue';
 
 // Internal dependencies.
 import styleSheet from './SelectButtonBase.styles';

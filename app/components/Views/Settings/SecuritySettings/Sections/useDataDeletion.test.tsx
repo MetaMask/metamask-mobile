@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { DataDeleteStatus } from '../../../../../core/Analytics';
+import { DataDeleteStatus } from '@core/Analytics';
 import useDataDeletion from './useDataDeletion';
 import { act } from '@testing-library/react-native';
 

@@ -4,32 +4,32 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useMetrics } from '@hooks/useMetrics';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
+} from '@component-library/components/Buttons/Button';
+import Checkbox from '@component-library/components/Checkbox/Checkbox';
 import createStyles from './ProfileSyncingModal.styles';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import {
   selectIsProfileSyncingEnabled,
   selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
-import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+} from '@selectors/notifications';
+import { useProfileSyncing } from '@util/notifications/hooks/useProfileSyncing';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 const ProfileSyncingModal = () => {
   const { trackEvent } = useMetrics();

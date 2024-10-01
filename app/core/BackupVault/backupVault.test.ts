@@ -1,5 +1,5 @@
 import { backupVault } from './backupVault';
-import { VAULT_BACKUP_FAILED_UNDEFINED } from '../../constants/error';
+import { VAULT_BACKUP_FAILED_UNDEFINED } from '@constants/error';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 
 //TODO Mock the react-native-keychain module test the other functions inside backupVault

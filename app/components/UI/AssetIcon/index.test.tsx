@@ -1,8 +1,8 @@
 import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import AssetIcon from './';
 const sampleLogo = 'https://s3.amazonaws.com/airswap-token-images/WBTC.png';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {

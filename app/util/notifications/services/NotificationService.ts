@@ -6,20 +6,20 @@ import notifee, {
   AndroidChannel,
 } from '@notifee/react-native';
 
-import { Notification } from '../types';
+import { Notification } from '@types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
   ChannelId,
   notificationChannels,
-} from '../../../util/notifications/androidChannels';
+} from '@util/notifications/androidChannels';
 
-import { strings } from '../../../../locales/i18n';
-import { mmStorage } from '../settings';
-import { STORAGE_IDS } from '../settings/storage/constants';
-import { store } from '../../../store';
-import Logger from '../../../util/Logger';
-import { withTimeout } from '../methods';
+import { strings } from '@locales/i18n';
+import { mmStorage } from '@settings';
+import { STORAGE_IDS } from '@settings/storage/constants';
+import { store } from '@store';
+import Logger from '@util/Logger';
+import { withTimeout } from '@methods';
 
 interface AlertButton {
   text: string;

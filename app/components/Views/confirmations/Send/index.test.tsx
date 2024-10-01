@@ -1,16 +1,16 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Send from '.';
-import { RootState } from '../../../../reducers';
-import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
+import { RootState } from '@reducers';
+import { MOCK_KEYRING_CONTROLLER } from '@selectors/keyringController/testUtils';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
-} from '../../../../util/test/accountsControllerTestUtils';
-import { mockNetworkState } from '../../../../util/test/network';
+} from '@util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '@util/test/network';
 import {
   DeepPartial,
   renderScreen,
-} from '../../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 
 const mockedNetworkControllerState = mockNetworkState({
   chainId: CHAIN_IDS.MAINNET,
@@ -124,7 +124,7 @@ const initialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   context: {
     PreferencesController: {

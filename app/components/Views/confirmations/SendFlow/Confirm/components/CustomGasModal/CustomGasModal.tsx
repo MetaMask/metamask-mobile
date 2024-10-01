@@ -5,16 +5,16 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 
-import { selectChainId } from '../../../../../../../selectors/networkController';
-import { useAppThemeFromContext } from '../../../../../../../util/theme';
-import EditGasFee1559 from '../../../../components/EditGasFee1559Update';
-import EditGasFeeLegacy from '../../../../components/EditGasFeeLegacyUpdate';
+import { selectChainId } from '@selectors/networkController';
+import { useAppThemeFromContext } from '@util/theme';
+import EditGasFee1559 from '@components/EditGasFee1559Update';
+import EditGasFeeLegacy from '@components/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
-import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../../..//selectors/gasFeeController';
-import { RootState } from '../../../../../../../reducers';
-import { selectPrimaryCurrency } from '../../../../../../..//selectors/settings';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '@/selectors/gasFeeController';
+import { RootState } from '@reducers';
+import { selectPrimaryCurrency } from '@/selectors/settings';
 
 const CustomGasModal = ({
   gasSelected,

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import etherscanLink from '@metamask/etherscan-link';
-import { RPC } from '../../../../constants/network';
+import { RPC } from '@constants/network';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerName,
-} from '../../../../util/networks';
-import { strings } from '../../../../../locales/i18n';
-import { getEtherscanBaseUrl } from '../../../../util/etherscan';
+} from '@util/networks';
+import { strings } from '@locales/i18n';
+import { getEtherscanBaseUrl } from '@util/etherscan';
 
 function useBlockExplorer(providerConfig, networkConfigurations) {
   const [explorer, setExplorer] = useState({

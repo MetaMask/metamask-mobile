@@ -1,6 +1,6 @@
-import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { RampSDK } from '../sdk';
+import { NATIVE_ADDRESS } from '@constants/on-ramp';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
+import { RampSDK } from '@sdk';
 import useCryptoCurrencies from './useCryptoCurrencies';
 import useSDKMethod from './useSDKMethod';
 
@@ -22,7 +22,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockuseRampSDKInitialValues,
 };
 
-jest.mock('../sdk', () => ({
+jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 

@@ -2,8 +2,8 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { AvatarSize } from '../../Avatar.types';
-import { Theme } from '../../../../../../util/theme/models';
+import { AvatarSize } from '@Avatar.types';
+import { Theme } from '@util/theme/models';
 
 // Internal dependencies.
 import { AvatarNetworkStyleSheetVars } from './AvatarNetwork.types';

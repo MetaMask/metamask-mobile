@@ -1,9 +1,9 @@
 import connect from './connect';
-import { Connection } from '../Connection';
-import DevLogger from '../../utils/DevLogger';
+import { Connection } from '@Connection';
+import DevLogger from '@utils/DevLogger';
 
-jest.mock('../Connection');
-jest.mock('../../utils/DevLogger');
+jest.mock('@Connection');
+jest.mock('@utils/DevLogger');
 
 describe('connect', () => {
   let mockConnection: Connection;

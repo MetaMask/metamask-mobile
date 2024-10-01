@@ -11,23 +11,23 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { fontStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import OnboardingProgress from '../../UI/OnboardingProgress';
-import { strings } from '../../../../locales/i18n';
-import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/device';
-import ActionModal from '../../UI/ActionModal';
-import SeedphraseModal from '../../UI/SeedphraseModal';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { fontStyles } from '@styles/common';
+import StyledButton from '@UI/StyledButton';
+import OnboardingProgress from '@UI/OnboardingProgress';
+import { strings } from '@locales/i18n';
+import AndroidBackHandler from '@AndroidBackHandler';
+import Device from '@util/device';
+import ActionModal from '@UI/ActionModal';
+import SeedphraseModal from '@UI/SeedphraseModal';
+import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import { CHOOSE_PASSWORD_STEPS } from '@constants/onboarding';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import { useTheme } from '../../../util/theme';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useTheme } from '@util/theme';
+import { ManualBackUpStepsSelectorsIDs } from '@e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
 
-const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
+const explain_backup_seedphrase = require('@images/explain-backup-seedphrase.png'); // eslint-disable-line
 
 const IMAGE_1_RATIO = 162.8 / 138;
 const DEVICE_WIDTH = Dimensions.get('window').width;

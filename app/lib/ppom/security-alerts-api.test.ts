@@ -1,7 +1,7 @@
 import {
   Reason,
   ResultType,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import {
   getSecurityAlertsAPISupportedChainIds,
   validateWithSecurityAlertsAPI,

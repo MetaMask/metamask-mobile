@@ -1,25 +1,25 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, ScrollView } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { createStyles } from './styles';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StyledButton from '../../UI/StyledButton';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
+} from '@component-library/components/Texts/Text';
+import StyledButton from '@UI/StyledButton';
+import { createNavigationDetails } from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext } from '@util/theme';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import generateDeviceAnalyticsMetaData from '@util/metrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,

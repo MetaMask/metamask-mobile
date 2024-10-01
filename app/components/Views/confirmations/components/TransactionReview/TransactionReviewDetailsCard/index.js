@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { fontStyles } from '../../../../../../styles/common';
+import { fontStyles } from '@styles/common';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
-import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import ConnectHeader from '../../../../../UI/ConnectHeader';
-import formatNumber from '../../../../../../util/formatNumber';
-import TransactionTypes from '../../../../../../core/TransactionTypes';
-import { renderShortAddress } from '../../../../../../util/address';
+import { ThemeContext, mockTheme } from '@util/theme';
+import ConnectHeader from '@UI/ConnectHeader';
+import formatNumber from '@util/formatNumber';
+import TransactionTypes from '@core/TransactionTypes';
+import { renderShortAddress } from '@util/address';
 
 const {
   ASSET: { ERC20 },

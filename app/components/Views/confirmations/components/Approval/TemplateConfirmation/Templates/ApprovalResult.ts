@@ -2,12 +2,12 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { processHeader, processError, processString } from '../util';
-import { ApprovalTypes } from '../../../../../../../core/RPCMethods/RPCMethodMiddleware';
+} from '@component-library/components/Icons/Icon';
+import { processHeader, processError, processString } from '@util';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import { Colors } from '../../../../../../../util/theme/models';
-import { Actions } from '../TemplateConfirmation';
+import { Colors } from '@util/theme/models';
+import { Actions } from '@TemplateConfirmation';
 import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 
 const isApprovalResultTypeSuccess = (type: string): boolean =>

@@ -2,8 +2,8 @@
 import React from 'react';
 
 // External dependencies.
-import { TextVariant, TextColor } from '../Text';
-import { IconName, IconSize, IconColor } from '../../Icons/Icon';
+import { TextVariant, TextColor } from '@Text';
+import { IconName, IconSize, IconColor } from '@Icons/Icon';
 
 // Internal dependencies.
 import { default as TextWithPrefixIconComponent } from './TextWithPrefixIcon';

@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { RootState } from '../../../../reducers';
+import { RootState } from '@reducers';
 
 export const NUMBER_OF_REJECTIONS_THRESHOLD = 3;
 export const REJECTION_THRESHOLD_IN_MS = 30000;

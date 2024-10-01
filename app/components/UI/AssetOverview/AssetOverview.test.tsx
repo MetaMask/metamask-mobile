@@ -1,13 +1,13 @@
 import React from 'react';
 import AssetOverview from './AssetOverview';
 import { zeroAddress } from 'ethereumjs-util';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import { NetworkController } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
-} from '../../../util/test/accountsControllerTestUtils';
+} from '@util/test/accountsControllerTestUtils';
 import { fireEvent } from '@testing-library/react-native';
 
 const MOCK_CHAIN_ID = '0x1';
@@ -56,7 +56,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useStyles', () => ({
+jest.mock('@hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {},
     theme: {

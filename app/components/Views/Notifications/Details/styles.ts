@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import Device from '../../../../util/device';
-import { fontStyles } from '../../../../styles/common';
-import scaling from '../../../../util/scaling';
+import Device from '@util/device';
+import { fontStyles } from '@styles/common';
+import scaling from '@util/scaling';
 
 const HEIGHT = scaling.scale(240);
 const DEVICE_WIDTH = Device.getDeviceWidth();

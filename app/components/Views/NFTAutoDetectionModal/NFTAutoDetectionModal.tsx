@@ -4,29 +4,29 @@
 import React, { useRef, useCallback } from 'react';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../locales/i18n';
-import { useStyles } from '../../../component-library/hooks';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { strings } from '@locales/i18n';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './NFTAutoDetectionModal.styles';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import Text from '@component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
-import { NftDetectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsIDs } from '@e2e/selectors/Modals/NftDetectionModal.selectors';
 
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import Engine from '../../../core/Engine';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
+import Engine from '@core/Engine';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { selectChainId } from '@selectors/networkController';
 import { useSelector } from 'react-redux';
-import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
+import { selectDisplayNftMedia } from '@selectors/preferencesController';
 
-const walletImage = require('../../../images/wallet-alpha.png');
+const walletImage = require('@images/wallet-alpha.png');
 
 const NFTAutoDetectionModal = () => {
   const { styles } = useStyles(styleSheet, {});

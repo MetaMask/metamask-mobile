@@ -1,28 +1,28 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { ModalFieldTransaction } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
+} from '@component-library/components/Texts/Text';
+import { ModalFieldTransaction } from '@util/notifications/notification-states/types/NotificationModalDetails';
 import useCopyClipboard, {
   CopyClipboardAlertMessage,
-} from '../hooks/useCopyClipboard';
-import useStyles from '../useStyles';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { TRIGGER_TYPES } from '../../../../../util/notifications';
-import type { Notification } from '../../../../../util/notifications/types';
+} from '@hooks/useCopyClipboard';
+import useStyles from '@useStyles';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { TRIGGER_TYPES } from '@util/notifications';
+import type { Notification } from '@util/notifications/types';
 
 type TransactionFieldProps = ModalFieldTransaction & {
   notification: Notification;

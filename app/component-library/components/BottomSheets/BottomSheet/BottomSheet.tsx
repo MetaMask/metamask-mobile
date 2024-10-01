@@ -16,7 +16,7 @@ import {
 } from 'react-native-safe-area-context';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import styleSheet from './BottomSheet.styles';

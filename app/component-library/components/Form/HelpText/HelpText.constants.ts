@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { TextColor, TextVariant } from '../../Texts/Text';
+import { TextColor, TextVariant } from '@Texts/Text';
 
 // Internal dependencies.
 import {

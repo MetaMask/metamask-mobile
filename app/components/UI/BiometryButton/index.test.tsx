@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import BiometryButton from './BiometryButton';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
 
 describe('BiometryButton', () => {
   it('should render correctly', () => {

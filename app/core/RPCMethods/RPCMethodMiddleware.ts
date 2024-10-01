@@ -9,36 +9,36 @@ import {
 } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
-import { RPC } from '../../constants/network';
+import { RPC } from '@constants/network';
 import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks } from '@util/networks';
 import { polyfillGasPrice } from './utils';
 import {
   processOriginThrottlingRejection,
   validateOriginThrottling,
 } from './spam';
-import ImportedEngine from '../Engine';
-import { strings } from '../../../locales/i18n';
-import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
-import { store } from '../../store';
-import { removeBookmark } from '../../actions/bookmarks';
-import setOnboardingWizardStep from '../../actions/wizard';
+import ImportedEngine from '@Engine';
+import { strings } from '@locales/i18n';
+import { resemblesAddress, safeToChecksumAddress } from '@util/address';
+import { store } from '@store';
+import { removeBookmark } from '@actions/bookmarks';
+import setOnboardingWizardStep from '@actions/wizard';
 import { v1 as random } from 'uuid';
-import { getPermittedAccounts } from '../Permissions';
-import AppConstants from '../AppConstants';
-import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectProviderConfig } from '../../selectors/networkController';
-import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
-import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
-import { regex } from '../../../app/util/regex';
-import Logger from '../../../app/util/Logger';
-import DevLogger from '../SDKConnect/utils/DevLogger';
-import { addTransaction } from '../../util/transaction-controller';
-import Routes from '../../constants/navigation/Routes';
+import { getPermittedAccounts } from '@Permissions';
+import AppConstants from '@AppConstants';
+import PPOMUtil from '@lib/ppom/ppom-util';
+import { selectProviderConfig } from '@selectors/networkController';
+import { setEventStageError, setEventStage } from '@actions/rpcEvents';
+import { isWhitelistedRPC, RPCStageTypes } from '@reducers/rpcEvents';
+import { regex } from '@app/util/regex';
+import Logger from '@app/util/Logger';
+import DevLogger from '@SDKConnect/utils/DevLogger';
+import { addTransaction } from '@util/transaction-controller';
+import Routes from '@constants/navigation/Routes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { personalSignatureConfirmationState } from '@util/test/confirm-data-helpers';
 import Footer from './index';
 import { fireEvent } from '@testing-library/react-native';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
-jest.mock('../../../hooks/useApprovalRequest', () => () => ({
+jest.mock('@hooks/useApprovalRequest', () => () => ({
   onConfirm: mockConfirmSpy,
   onReject: mockRejectSpy,
 }));

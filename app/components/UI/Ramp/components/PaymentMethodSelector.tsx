@@ -2,11 +2,11 @@ import React, { ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Box from './Box';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '@util/theme';
 
-import ListItemBase from '../../../Base/ListItem';
-import Text from '../../../Base/Text';
-import { Colors } from '../../../../util/theme/models';
+import ListItemBase from '@Base/ListItem';
+import Text from '@Base/Text';
+import { Colors } from '@util/theme/models';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

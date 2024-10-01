@@ -1,10 +1,10 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
-import AndroidService from '../AndroidSDK/AndroidService';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+import AndroidService from '@AndroidSDK/AndroidService';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 import asyncInit from './asyncInit';
-import DeeplinkProtocolService from '../SDKDeeplinkProtocol/DeeplinkProtocolService';
+import DeeplinkProtocolService from '@SDKDeeplinkProtocol/DeeplinkProtocolService';
 
 async function init({
   navigation,

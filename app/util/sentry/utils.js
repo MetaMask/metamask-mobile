@@ -1,12 +1,12 @@
 /* eslint-disable import/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
-import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
-import StorageWrapper from '../../store/storage-wrapper';
-import { regex } from '../regex';
-import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import { isE2E } from '../test/utils';
-import { store } from '../../store';
+import extractEthJsErrorMessage from '@extractEthJsErrorMessage';
+import StorageWrapper from '@store/storage-wrapper';
+import { regex } from '@regex';
+import { AGREED, METRICS_OPT_IN } from '@constants/storage';
+import { isE2E } from '@test/utils';
+import { store } from '@store';
 
 /**
  * This symbol matches all object properties when used in a mask

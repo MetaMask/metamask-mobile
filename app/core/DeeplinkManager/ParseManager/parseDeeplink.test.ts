@@ -1,4 +1,4 @@
-import DeeplinkManager from '../DeeplinkManager';
+import DeeplinkManager from '@DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
@@ -6,15 +6,15 @@ import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import parseDeeplink from './parseDeeplink';
 
-jest.mock('../../../constants/deeplinks');
-jest.mock('../../../util/Logger');
-jest.mock('../DeeplinkManager');
-jest.mock('../../SDKConnect/utils/DevLogger');
+jest.mock('@constants/deeplinks');
+jest.mock('@util/Logger');
+jest.mock('@DeeplinkManager');
+jest.mock('@SDKConnect/utils/DevLogger');
 jest.mock('./handleDappUrl');
 jest.mock('./handleMetaMaskDeeplink');
 jest.mock('./handleUniversalLink');
 jest.mock('./connectWithWC');
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 

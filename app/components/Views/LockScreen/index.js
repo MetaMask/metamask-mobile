@@ -11,17 +11,17 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
-import { baseStyles } from '../../../styles/common';
-import Logger from '../../../util/Logger';
-import { Authentication } from '../../../core';
+import { baseStyles } from '@styles/common';
+import Logger from '@util/Logger';
+import { Authentication } from '@core';
 import {
   getAssetFromTheme,
   mockTheme,
   ThemeContext,
-} from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
+} from '@util/theme';
+import Routes from '@constants/navigation/Routes';
 import { CommonActions } from '@react-navigation/native';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -63,8 +63,8 @@ const createStyles = (colors) =>
     },
   });
 
-const wordmarkLight = require('../../../animations/wordmark-light.json');
-const wordmarkDark = require('../../../animations/wordmark-dark.json');
+const wordmarkLight = require('@animations/wordmark-light.json');
+const wordmarkDark = require('@animations/wordmark-dark.json');
 
 /**
  * Main view component for the Lock screen
@@ -188,7 +188,7 @@ class LockScreen extends PureComponent {
             this.firstAnimation = animation;
           }}
           style={styles.animation}
-          source={require('../../../animations/bounce.json')}
+          source={require('@animations/bounce.json')}
         />
       );
     }
@@ -202,7 +202,7 @@ class LockScreen extends PureComponent {
           }}
           style={styles.animation}
           loop={false}
-          source={require('../../../animations/fox-in.json')}
+          source={require('@animations/fox-in.json')}
           onAnimationFinish={this.onAnimationFinished}
         />
         <LottieView

@@ -1,29 +1,29 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
+import NotificationsService from '@util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
   DefaultTabBarProps,
   TabBarProps,
 } from 'react-native-scrollable-tab-view';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
-import { strings } from '../../../../../locales/i18n';
+import { NotificationsViewSelectorsIDs } from '@e2e/selectors/NotificationsView.selectors';
+import { strings } from '@locales/i18n';
 import {
   hasNotificationComponents,
   hasNotificationModal,
   NotificationComponentState,
-} from '../../../../util/notifications/notification-states';
-import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+} from '@util/notifications/notification-states';
+import Routes from '@constants/navigation/Routes';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { Notification, TRIGGER_TYPES } from '@util/notifications';
 import {
   useListNotifications,
   useMarkNotificationAsRead,
-} from '../../../../util/notifications/hooks/useNotifications';
-import { useMetrics } from '../../../hooks/useMetrics';
-import Empty from '../Empty';
-import { NotificationMenuItem } from '../NotificationMenuItem';
+} from '@util/notifications/hooks/useNotifications';
+import { useMetrics } from '@hooks/useMetrics';
+import Empty from '@Empty';
+import { NotificationMenuItem } from '@NotificationMenuItem';
 import useStyles from './useStyles';
 
 interface NotificationsListProps {

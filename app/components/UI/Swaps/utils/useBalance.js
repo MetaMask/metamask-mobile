@@ -4,8 +4,8 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   safeNumberToBN,
-} from '../../../../util/number';
-import { safeToChecksumAddress } from '../../../../util/address';
+} from '@util/number';
+import { safeToChecksumAddress } from '@util/address';
 
 function useBalance(
   accounts,

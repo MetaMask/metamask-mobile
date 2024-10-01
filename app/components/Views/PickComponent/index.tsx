@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { baseStyles } from '../../../styles/common';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import RadioButton from '../../../component-library/components/RadioButton/RadioButton';
+import { baseStyles } from '@styles/common';
+import { ThemeContext, mockTheme } from '@util/theme';
+import RadioButton from '@component-library/components/RadioButton/RadioButton';
 import { Theme } from '@metamask/design-tokens';
 
 const createStyles = (_colors: Theme['colors']) =>

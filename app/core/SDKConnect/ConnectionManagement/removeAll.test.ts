@@ -1,13 +1,13 @@
-import SDKConnect from '../SDKConnect';
+import SDKConnect from '@SDKConnect';
 import removeAll from './removeAll';
 
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
   clearAll: jest.fn().mockResolvedValue([]),
 }));
-jest.mock('../../AppConstants');
-jest.mock('../SDKConnect');
+jest.mock('@AppConstants');
+jest.mock('@SDKConnect');
 
 describe('removeAll', () => {
   let mockInstance = {} as unknown as SDKConnect;

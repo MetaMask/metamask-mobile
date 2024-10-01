@@ -24,10 +24,10 @@ import {
   getNotificationDetails,
   stateHasOrder,
 } from '.';
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
-import { FiatOrder, RampType } from '../../../../reducers/fiatOrders/types';
-import { getOrders } from '../../../../reducers/fiatOrders';
-import type { RootState } from '../../../../reducers';
+import { FIAT_ORDER_STATES } from '@constants/on-ramp';
+import { FiatOrder, RampType } from '@reducers/fiatOrders/types';
+import { getOrders } from '@reducers/fiatOrders';
+import type { RootState } from '@reducers';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {
@@ -615,7 +615,7 @@ describe('getNotificationDetails', () => {
   });
 });
 
-jest.mock('../../../../reducers/fiatOrders', () => ({
+jest.mock('@reducers/fiatOrders', () => ({
   getOrders: jest.fn(),
 }));
 

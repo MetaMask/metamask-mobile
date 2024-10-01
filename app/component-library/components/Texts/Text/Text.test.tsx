@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies
-import { mockTheme } from '../../../../util/theme';
+import { mockTheme } from '@util/theme';
 
 // Internal dependencies
 import Text from './Text';

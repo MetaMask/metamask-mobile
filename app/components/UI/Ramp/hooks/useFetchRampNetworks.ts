@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { SDK } from '../sdk';
+import { SDK } from '@sdk';
 import {
   chainIdSelector,
   updateOnRampNetworks,
-} from '../../../../reducers/fiatOrders';
-import Logger from '../../../../util/Logger';
+} from '@reducers/fiatOrders';
+import Logger from '@util/Logger';
 
 /**
  * Hook that fetches the available networks from the aggregator

@@ -7,7 +7,7 @@ import onUrlSubmit, {
   getUrlObj,
   getHost,
 } from '.';
-import { strings } from '../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 describe('Browser utils :: prefixUrlWithProtocol', () => {
   it('should prefix url with https: protocol', () => {

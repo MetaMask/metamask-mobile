@@ -1,9 +1,9 @@
 import { createSelector } from 'reselect';
 
-import { TRIGGER_TYPES } from '../../util/notifications';
+import { TRIGGER_TYPES } from '@util/notifications';
 
-import { createDeepEqualSelector } from '../util';
-import { RootState } from '../../reducers';
+import { createDeepEqualSelector } from '@util';
+import { RootState } from '@reducers';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import {
   AuthenticationController,

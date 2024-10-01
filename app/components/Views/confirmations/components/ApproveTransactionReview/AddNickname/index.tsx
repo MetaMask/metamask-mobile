@@ -3,46 +3,46 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import EthereumAddress from '../../../../../UI/EthereumAddress';
-import Engine from '../../../../../../core/Engine';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import EthereumAddress from '@UI/EthereumAddress';
+import Engine from '@core/Engine';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
-import StyledButton from '../../../../../UI/StyledButton';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
-import Identicon from '../../../../../UI/Identicon';
+import StyledButton from '@UI/StyledButton';
+import Text from '@component-library/components/Texts/Text';
+import InfoModal from '@UI/Swaps/components/InfoModal';
+import Identicon from '@UI/Identicon';
 import Feather from 'react-native-vector-icons/Feather';
-import { strings } from '../../../../../../../locales/i18n';
-import GlobalAlert from '../../../../../UI/GlobalAlert';
-import { showAlert } from '../../../../../../actions/alert';
-import ClipboardManager from '../../../../../../core/ClipboardManager';
-import Header from '../AddNickNameHeader';
-import ShowBlockExplorer from '../ShowBlockExplorer';
-import { useTheme } from '../../../../../../util/theme';
+import { strings } from '@locales/i18n';
+import GlobalAlert from '@UI/GlobalAlert';
+import { showAlert } from '@actions/alert';
+import ClipboardManager from '@core/ClipboardManager';
+import Header from '@AddNickNameHeader';
+import ShowBlockExplorer from '@ShowBlockExplorer';
+import { useTheme } from '@util/theme';
 import createStyles from './styles';
 import { AddNicknameProps } from './types';
 import {
   validateAddressOrENS,
   shouldShowBlockExplorer,
-} from '../../../../../../util/address';
-import ErrorMessage from '../../../SendFlow/ErrorMessage';
+} from '@util/address';
+import ErrorMessage from '@SendFlow/ErrorMessage';
 import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
-} from '../../../../../../constants/error';
+} from '@constants/error';
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderType,
   selectRpcUrl,
-} from '../../../../../../selectors/networkController';
-import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
-import { useMetrics } from '../../../../../../components/hooks/useMetrics';
-import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
-import { RootState } from '../../../../../../reducers';
-import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+} from '@selectors/networkController';
+import { ContractNickNameViewSelectorsIDs } from '@e2e/selectors/ContractNickNameView.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { selectInternalAccounts } from '@selectors/accountsController';
+import { RootState } from '@reducers';
+import { selectAddressBook } from '@selectors/addressBookController';
 
 const getAnalyticsParams = () => ({});
 

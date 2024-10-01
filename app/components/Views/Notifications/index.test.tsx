@@ -2,10 +2,10 @@ import React from 'react';
 import NotificationsView from './';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { RootState } from '../../../reducers';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { RootState } from '@reducers';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const navigationMock = {
   navigate: jest.fn(),

@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { mockTheme } from '../../../util/theme';
+import { mockTheme } from '@util/theme';
 
 // Internal dependencies.
 import { default as OverlayComponent } from './Overlay';

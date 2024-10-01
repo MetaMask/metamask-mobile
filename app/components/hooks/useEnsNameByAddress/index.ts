@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import { doENSReverseLookup } from '../../../util/ENSUtils';
+import { selectProviderConfig } from '@selectors/networkController';
+import { doENSReverseLookup } from '@util/ENSUtils';
 
 /**
  * Gets the ENS name for the account address

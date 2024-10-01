@@ -1,5 +1,5 @@
 import { getPasswordStrengthWord, passwordRequirementsMet } from '.';
-import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
+import { UNRECOGNIZED_PASSWORD_STRENGTH } from '@constants/error';
 
 describe('getPasswordStrength', () => {
   it('should return correct values', () => {

@@ -1,12 +1,12 @@
-import Engine from '../../core/Engine';
-import { SEPOLIA } from '../../constants/network';
-import { store } from '../../store';
+import Engine from '@core/Engine';
+import { SEPOLIA } from '@constants/network';
+import { store } from '@store';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(),
   },

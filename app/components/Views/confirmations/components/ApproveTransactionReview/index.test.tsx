@@ -1,20 +1,20 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import ApproveTransactionModal from '.';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
+import { backgroundState } from '@util/test/initial-root-state';
+import { renderScreen } from '@util/test/renderWithProvider';
+import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '@util/transactions';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
 }));
 
-jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  ...jest.requireActual('../../../../../selectors/smartTransactionsController'),
+jest.mock('@selectors/smartTransactionsController', () => ({
+  ...jest.requireActual('@selectors/smartTransactionsController'),
   selectShouldUseSmartTransaction: jest.fn(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),

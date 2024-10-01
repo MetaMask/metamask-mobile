@@ -1,11 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
-import StorageWrapper from '../../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import useDeleteWallet from './useDeleteWallet';
-import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import Engine from '../../../core/Engine';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import Engine from '@core/Engine';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   resetState: jest.fn(),
   context: {
     KeyringController: {
@@ -16,7 +16,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn(),
   removeItem: jest.fn(),
 }));

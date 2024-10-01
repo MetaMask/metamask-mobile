@@ -1,19 +1,19 @@
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
   TRIGGER_TYPES,
-} from '../../constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
+} from '@constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
+import { NotificationState } from '@types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-} from '../../methods/common';
-import { ModalField } from '../types/NotificationModalDetails';
-import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
+} from '@methods/common';
+import { ModalField } from '@types/NotificationModalDetails';
+import { getTokenAmount, getTokenUSDAmount } from '@token-amounts';
 
 type StakeNotification = ExtractedNotification<
   | TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED

@@ -1,6 +1,6 @@
 import { ImageStyle, ViewStyle } from 'react-native';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 
 export interface WalletActionProps {
   actionTitle?: string;

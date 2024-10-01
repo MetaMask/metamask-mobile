@@ -4,10 +4,10 @@ import {
   PaymentCustomActionButton,
   TextOrImage,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useTheme } from '../../../../util/theme';
-import StyledButton from '../../StyledButton';
-import RemoteImage from '../../../Base/RemoteImage';
-import Text from '../../../Base/Text';
+import { useTheme } from '@util/theme';
+import StyledButton from '@StyledButton';
+import RemoteImage from '@Base/RemoteImage';
+import Text from '@Base/Text';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

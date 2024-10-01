@@ -3,14 +3,14 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
-import { setDataCollectionForMarketing } from '../../../actions/security';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
+import { setDataCollectionForMarketing } from '@actions/security';
+import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '@constants/urls';
 import ExperienceEnhancerModal from './';
-import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
+import { ExperienceEnhancerModalSelectorsIDs } from '@e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
 
 // Mock the BottomSheet component
 jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
+  '@component-library/components/BottomSheets/BottomSheet',
   () => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

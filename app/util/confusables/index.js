@@ -1,5 +1,5 @@
 import { confusables } from 'unicode-confusables';
-import { strings } from '../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import confusablesMap from 'unicode-confusables/data/confusables.json';
 
 export const collectConfusables = (ensName) => {

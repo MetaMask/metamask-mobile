@@ -5,10 +5,10 @@ import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
 
 import SendFlowAddressFrom from '.';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
-jest.mock('../../../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
 }));
 
@@ -19,7 +19,7 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { TokenListState } from '@metamask/assets-controllers';
-import { RootState } from '../reducers';
-import { tokenListToArray } from '../util/tokens';
-import { createDeepEqualSelector } from '../selectors/util';
+import { RootState } from '@reducers';
+import { tokenListToArray } from '@util/tokens';
+import { createDeepEqualSelector } from '@selectors/util';
 
 const selectTokenLIstConstrollerState = (state: RootState) =>
   state.engine.backgroundState.TokenListController;

@@ -6,22 +6,22 @@ import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // External dependencies.
-import TabBarItem from '../TabBarItem';
-import { useStyles } from '../../../hooks';
-import Routes from '../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { selectChainId } from '../../../../selectors/networkController';
-import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import TabBarItem from '@TabBarItem';
+import { useStyles } from '@hooks';
+import Routes from '@constants/navigation/Routes';
+import { useTheme } from '@util/theme';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { selectChainId } from '@selectors/networkController';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
-import { colors as importedColors } from '../../../../styles/common';
-import { AvatarSize } from '../../Avatars/Avatar';
-import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
+import { colors as importedColors } from '@styles/common';
+import { AvatarSize } from '@Avatars/Avatar';
+import OnboardingWizard from '@components/UI/OnboardingWizard';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();

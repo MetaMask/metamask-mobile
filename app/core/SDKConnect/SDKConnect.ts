@@ -1,10 +1,10 @@
 import { NativeEventSubscription } from 'react-native';
-import Logger from '../../util/Logger';
-import AppConstants from '../AppConstants';
+import Logger from '@util/Logger';
+import AppConstants from '@AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';

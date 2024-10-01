@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 // External dependencies.
-import { TextColor, TextProps } from '../../Texts/Text/Text.types';
+import { TextColor, TextProps } from '@Texts/Text/Text.types';
 
 /**
  * HelpText colors

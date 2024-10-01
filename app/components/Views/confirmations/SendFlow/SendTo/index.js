@@ -5,64 +5,64 @@ import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AddressList from '../AddressList';
-import Text from '../../../../Base/Text';
-import WarningMessage from '../WarningMessage';
-import { getSendFlowTitle } from '../../../../UI/Navbar';
-import StyledButton from '../../../../UI/StyledButton';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import AddressList from '@AddressList';
+import Text from '@Base/Text';
+import WarningMessage from '@WarningMessage';
+import { getSendFlowTitle } from '@UI/Navbar';
+import StyledButton from '@UI/StyledButton';
+import { MetaMetricsEvents } from '@core/Analytics';
 import {
   getDecimalChainId,
   handleNetworkSwitch,
-} from '../../../../../util/networks';
+} from '@util/networks';
 import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
-} from '../../../../../util/address';
-import { getEther, getTicker } from '../../../../../util/transactions';
+} from '@util/address';
+import { getEther, getTicker } from '@util/transactions';
 import {
   getConfusablesExplanations,
   hasZeroWidthPoints,
-} from '../../../../../util/confusables';
-import { mockTheme, ThemeContext } from '../../../../../util/theme';
-import { showAlert } from '../../../../../actions/alert';
+} from '@util/confusables';
+import { mockTheme, ThemeContext } from '@util/theme';
+import { showAlert } from '@actions/alert';
 import {
   newAssetTransaction,
   resetTransaction,
   setRecipient,
   setSelectedAsset,
-} from '../../../../../actions/transaction';
-import ErrorMessage from '../ErrorMessage';
-import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
+} from '@actions/transaction';
+import ErrorMessage from '@ErrorMessage';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
 import {
   CONTACT_ALREADY_SAVED,
   NetworkSwitchErrorType,
   SYMBOL_ERROR,
-} from '../../../../../constants/error';
+} from '@constants/error';
 import createStyles from './styles';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import generateTestId from '@wdio/utils/generateTestId';
 import {
   selectChainId,
   selectProviderType,
   selectTicker,
-} from '../../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccountChecksummedAddress,
-} from '../../../../../selectors/accountsController';
-import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
-import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import { getRampNetworks } from '../../../../../reducers/fiatOrders';
-import SendFlowAddressFrom from '../AddressFrom';
-import SendFlowAddressTo from '../AddressTo';
+} from '@selectors/accountsController';
+import AddToAddressBookWrapper from '@UI/AddToAddressBookWrapper';
+import { isNetworkRampNativeTokenSupported } from '@UI/Ramp/utils';
+import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import { getRampNetworks } from '@reducers/fiatOrders';
+import SendFlowAddressFrom from '@AddressFrom';
+import SendFlowAddressTo from '@AddressTo';
 import { includes } from 'lodash';
-import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { toLowerCaseEquals } from '../../../../../util/general';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
+import { SendViewSelectorsIDs } from '@e2e/selectors/SendView.selectors';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { toLowerCaseEquals } from '@util/general';
+import { selectAddressBook } from '@selectors/addressBookController';
 
 const dummy = () => true;
 

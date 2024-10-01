@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { cloneDeep } from 'lodash';
-import Device from '../../util/device';
+import Device from '@util/device';
 import reducer, {
   initialState,
   SWAPS_SET_LIVENESS,

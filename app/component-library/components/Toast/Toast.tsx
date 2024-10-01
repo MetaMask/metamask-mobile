@@ -25,9 +25,9 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
-import Text, { TextVariant } from '../Texts/Text';
-import Button, { ButtonVariants } from '../Buttons/Button';
+import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
+import Text, { TextVariant } from '@Texts/Text';
+import Button, { ButtonVariants } from '@Buttons/Button';
 
 // Internal dependencies.
 import {
@@ -38,8 +38,8 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
-import { ToastSelectorsIDs } from '../../../../e2e/selectors/Modals/ToastModal.selectors';
-import { ButtonProps } from '../Buttons/Button/Button.types';
+import { ToastSelectorsIDs } from '@e2e/selectors/Modals/ToastModal.selectors';
+import { ButtonProps } from '@Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;

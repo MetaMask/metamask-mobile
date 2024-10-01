@@ -8,33 +8,33 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import Text from '../../Base/Text';
-import StyledButton from '../StyledButton';
-import RangeInput from '../../Base/RangeInput';
+import Text from '@Base/Text';
+import StyledButton from '@StyledButton';
+import RangeInput from '@Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../Swaps/components/InfoModal';
+import InfoModal from '@Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../locales/i18n';
-import Alert, { AlertType } from '../../Base/Alert';
-import HorizontalSelector from '../../Base/HorizontalSelector';
-import Device from '../../../util/device';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import { strings } from '@locales/i18n';
+import Alert, { AlertType } from '@Base/Alert';
+import HorizontalSelector from '@Base/HorizontalSelector';
+import Device from '@util/device';
+import { getDecimalChainId, isMainnetByChainId } from '@util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
-import FadeAnimationView from '../FadeAnimationView';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import FadeAnimationView from '@FadeAnimationView';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
-import useModalHandler from '../../Base/hooks/useModalHandler';
-import AppConstants from '../../../core/AppConstants';
-import { useTheme } from '../../../util/theme';
+import TimeEstimateInfoModal from '@TimeEstimateInfoModal';
+import useModalHandler from '@Base/hooks/useModalHandler';
+import AppConstants from '@core/AppConstants';
+import { useTheme } from '@util/theme';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT as GAS_INCREMENT,
   GAS_LIMIT_MIN,
   GAS_PRICE_MIN as GAS_MIN,
-} from '../../../util/gasUtils';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@util/gasUtils';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({

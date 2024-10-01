@@ -1,10 +1,10 @@
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
-import { store } from '../../../app/store';
-import { wait } from '../SDKConnect/utils/wait.util';
+import { store } from '@app/store';
+import { wait } from '@SDKConnect/utils/wait.util';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Routes from '../../../app/constants/navigation/Routes';
+import Routes from '@app/constants/navigation/Routes';
 
 export interface WCMultiVersionParams {
   protocol: string;

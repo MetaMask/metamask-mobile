@@ -3,8 +3,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies
-import Text from '../../components/Texts/Text';
-import { mockTheme } from '../../../util/theme';
+import Text from '@components/Texts/Text';
+import { mockTheme } from '@util/theme';
 
 // Internal dependencies
 import TagColored from './TagColored';

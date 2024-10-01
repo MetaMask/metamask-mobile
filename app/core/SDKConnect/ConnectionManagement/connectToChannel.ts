@@ -1,21 +1,21 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
-import { resetConnections } from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
-import Routes from '../../../constants/navigation/Routes';
-import { selectChainId } from '../../../selectors/networkController';
-import Device from '../../../util/device';
-import Engine from '../../Engine';
-import { Minimizer } from '../../NativeModules';
-import { getPermittedAccounts } from '../../Permissions';
-import { Connection, ConnectionProps } from '../Connection';
-import checkPermissions from '../handlers/checkPermissions';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
+import { resetConnections } from '@app/actions/sdk';
+import { store } from '@app/store';
+import Routes from '@constants/navigation/Routes';
+import { selectChainId } from '@selectors/networkController';
+import Device from '@util/device';
+import Engine from '@Engine';
+import { Minimizer } from '@NativeModules';
+import { getPermittedAccounts } from '@Permissions';
+import { Connection, ConnectionProps } from '@Connection';
+import checkPermissions from '@handlers/checkPermissions';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
 import { SDKConnect } from './../SDKConnect';
-import { wait, waitForCondition } from '../utils/wait.util';
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
+import { wait, waitForCondition } from '@utils/wait.util';
+import Logger from '@util/Logger';
+import AppConstants from '@AppConstants';
 
 async function connectToChannel({
   id,

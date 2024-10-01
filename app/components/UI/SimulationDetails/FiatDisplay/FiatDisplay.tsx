@@ -1,15 +1,15 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { StyleSheet, ViewProps } from 'react-native';
-import { useStyles } from '../../../hooks/useStyles';
+import { useStyles } from '@hooks/useStyles';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
 import useFiatFormatter from './useFiatFormatter';
-import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
-import useHideFiatForTestnet from '../../../hooks/useHideFiatForTestnet';
+import { FIAT_UNAVAILABLE, FiatAmount } from '@types';
+import useHideFiatForTestnet from '@hooks/useHideFiatForTestnet';
 
 const styleSheet = () =>
   StyleSheet.create({
