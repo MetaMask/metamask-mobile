@@ -121,129 +121,127 @@ const Quote: React.FC<Props> = ({
         activeOpacity={0.8}
         accessible={!highlighted}
         accessibilityLabel={quote.provider?.name}
+        compact
       >
-        {/* TODO: Modify this with new listItem */}
-        {previouslyUsedProvider ? (
-          <ListItem style={{ padding: 0 }}>
-            <TagColored>
-              {strings('fiat_on_ramp_aggregator.previously_used')}
-            </TagColored>
-          </ListItem>
-        ) : null}
+        <ListItem
+          topAccessoryGap={8}
+          topAccessory={
+            <>
+              {previouslyUsedProvider ? (
+                <TagColored>
+                  {strings('fiat_on_ramp_aggregator.previously_used')}
+                </TagColored>
+              ) : null}
 
-        <ListItem style={{ padding: 0 }}>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <TouchableOpacity
-              onPress={highlighted ? showInfo : undefined}
-              disabled={!highlighted}
-              accessibilityLabel={`${quote.provider?.name} logo`}
-              accessibilityHint="Shows provider details"
+              <TouchableOpacity
+                onPress={highlighted ? showInfo : undefined}
+                disabled={!highlighted}
+                accessibilityLabel={`${quote.provider?.name} logo`}
+                accessibilityHint="Shows provider details"
+              >
+                <View style={styles.title}>
+                  {quote.provider?.logos?.[themeAppearance] ? (
+                    <RemoteImage
+                      style={{
+                        width: quote.provider.logos.width,
+                        height: quote.provider.logos.height,
+                      }}
+                      source={{ uri: quote.provider?.logos?.[themeAppearance] }}
+                    />
+                  ) : (
+                    <Title>{quote?.provider?.name}</Title>
+                  )}
+
+                  {quote?.provider && (
+                    <Feather name="info" size={12} style={styles.infoIcon} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            </>
+          }
+          bottomAccessory={
+            <Animated.View
+              onLayout={handleOnLayout}
+              style={[styles.data, animatedStyle]}
             >
-              <View style={styles.title}>
-                {quote.provider?.logos?.[themeAppearance] ? (
-                  <RemoteImage
-                    style={{
-                      width: quote.provider.logos.width,
-                      height: quote.provider.logos.height,
-                    }}
-                    source={{ uri: quote.provider?.logos?.[themeAppearance] }}
+              <View style={styles.buyButton}>
+                {isBuyQuote(quote, rampType) && quote.isNativeApplePay ? (
+                  <ApplePayButton
+                    quote={quote}
+                    label={`${
+                      quote.provider.environmentType ===
+                      ProviderEnvironmentTypeEnum.Staging
+                        ? '(Staging) '
+                        : ''
+                    }${strings('fiat_on_ramp_aggregator.pay_with')}`}
                   />
                 ) : (
-                  <Title>{quote?.provider?.name}</Title>
-                )}
-
-                {quote?.provider && (
-                  <Feather name="info" size={12} style={styles.infoIcon} />
+                  <StyledButton
+                    type={'blue'}
+                    onPress={onPressCTA}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator
+                        size={'small'}
+                        color={colors.primary.inverse}
+                      />
+                    ) : (
+                      strings('fiat_on_ramp_aggregator.continue_with', {
+                        provider: provider.name,
+                      })
+                    )}
+                  </StyledButton>
                 )}
               </View>
-            </TouchableOpacity>
+            </Animated.View>
+          }
+        >
+          <ListItemColumn widthType={WidthType.Fill}>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {isBuyQuote(quote, rampType) ? (
+                <>
+                  {renderFromTokenMinimalUnit(
+                    toTokenMinimalUnit(
+                      amountOut,
+                      crypto?.decimals ?? 0,
+                    ).toString(),
+                    crypto?.decimals ?? 0,
+                  )}{' '}
+                  {crypto?.symbol}
+                </>
+              ) : (
+                `≈ ${renderFiat(amountOut, fiatCode, fiat?.decimals)}`
+              )}
+            </Text>
+          </ListItemColumn>
+
+          <ListItemColumn>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {isBuyQuote(quote, rampType) ? (
+                <>
+                  ≈ {fiatSymbol}{' '}
+                  {renderFiat(
+                    amountOutInFiat ?? price,
+                    fiatCode,
+                    fiat?.decimals,
+                  )}
+                </>
+              ) : (
+                <>
+                  {renderFromTokenMinimalUnit(
+                    toTokenMinimalUnit(
+                      amountIn,
+                      crypto?.decimals ?? 0,
+                    ).toString(),
+                    crypto?.decimals ?? 0,
+                  )}{' '}
+                  {crypto?.symbol}
+                </>
+              )}
+            </Text>
           </ListItemColumn>
         </ListItem>
-
-        <Row last>
-          <ListItem style={{ padding: 0 }}>
-            <ListItemColumn widthType={WidthType.Fill}>
-              <Text variant={TextVariant.BodyLGMedium}>
-                {isBuyQuote(quote, rampType) ? (
-                  <>
-                    {renderFromTokenMinimalUnit(
-                      toTokenMinimalUnit(
-                        amountOut,
-                        crypto?.decimals ?? 0,
-                      ).toString(),
-                      crypto?.decimals ?? 0,
-                    )}{' '}
-                    {crypto?.symbol}
-                  </>
-                ) : (
-                  `≈ ${renderFiat(amountOut, fiatCode, fiat?.decimals)}`
-                )}
-              </Text>
-            </ListItemColumn>
-
-            <ListItemColumn>
-              <Text variant={TextVariant.BodyLGMedium}>
-                {isBuyQuote(quote, rampType) ? (
-                  <>
-                    ≈ {fiatSymbol}{' '}
-                    {renderFiat(
-                      amountOutInFiat ?? price,
-                      fiatCode,
-                      fiat?.decimals,
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {renderFromTokenMinimalUnit(
-                      toTokenMinimalUnit(
-                        amountIn,
-                        crypto?.decimals ?? 0,
-                      ).toString(),
-                      crypto?.decimals ?? 0,
-                    )}{' '}
-                    {crypto?.symbol}
-                  </>
-                )}
-              </Text>
-            </ListItemColumn>
-          </ListItem>
-        </Row>
-
-        <Animated.View
-          onLayout={handleOnLayout}
-          style={[styles.data, animatedStyle]}
-        >
-          <View style={styles.buyButton}>
-            {isBuyQuote(quote, rampType) && quote.isNativeApplePay ? (
-              <ApplePayButton
-                quote={quote}
-                label={`${
-                  quote.provider.environmentType ===
-                  ProviderEnvironmentTypeEnum.Staging
-                    ? '(Staging) '
-                    : ''
-                }${strings('fiat_on_ramp_aggregator.pay_with')}`}
-              />
-            ) : (
-              <StyledButton
-                type={'blue'}
-                onPress={onPressCTA}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator
-                    size={'small'}
-                    color={colors.primary.inverse}
-                  />
-                ) : (
-                  strings('fiat_on_ramp_aggregator.continue_with', {
-                    provider: provider.name,
-                  })
-                )}
-              </StyledButton>
-            )}
-          </View>
-        </Animated.View>
       </Box>
     </Animated.View>
   );
