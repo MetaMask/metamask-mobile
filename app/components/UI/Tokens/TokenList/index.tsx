@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, FlatList, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   useMetrics,
   MetaMetricsEvents,
@@ -26,13 +27,21 @@ interface TokenListProps {
   showRemoveMenu: (arg: TokenI) => void;
 }
 
+interface TokenListNavigationParamList {
+  AddAsset: { assetType: string };
+  [key: string]: undefined | object;
+}
+
 export const TokenList = ({
   tokens,
   refreshing,
   onRefresh,
   showRemoveMenu,
 }: TokenListProps) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
+    >();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
