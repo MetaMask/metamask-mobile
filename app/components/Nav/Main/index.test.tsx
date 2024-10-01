@@ -5,7 +5,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
 
 function renderUseSwapConfirmedEventHook({
-  swapsTransactions,
   trackSwaps,
 }: {
   swapsTransactions: Record<string, unknown>;
