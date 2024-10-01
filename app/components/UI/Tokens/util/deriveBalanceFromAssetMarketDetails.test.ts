@@ -118,7 +118,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return TOKEN_RATE_UNDEFINED when tokenMarketData is not available', () => {
+  it('returns TOKEN_RATE_UNDEFINED when tokenMarketData is not available', () => {
     const result = deriveBalanceFromAssetMarketDetails(
       asset,
       {},
