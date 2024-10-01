@@ -1,9 +1,9 @@
-import { NotificationTransactionTypes } from '../util/notifications';
+import { NotificationTransactionTypes } from '@util/notifications';
 
 import NotificationManager, {
   constructTitleAndMessage,
 } from './NotificationManager';
-import { strings } from '../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 interface NavigationMock {
   navigate: jest.Mock;

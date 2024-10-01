@@ -7,16 +7,16 @@ import React, {
 } from 'react';
 import { Animated, View, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
-import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
-import Device from '../../../../../util/device';
-import { strings } from '../../../../../../locales/i18n';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import Device from '@util/device';
+import { strings } from '@locales/i18n';
 
-import Text from '../../../../Base/Text';
-import Title from '../../../../Base/Title';
-import Fox from '../../../Fox';
+import Text from '@Base/Text';
+import Title from '@Base/Title';
+import Fox from '@Fox';
 import backgroundShapes from './backgroundShapes';
-import { useTheme } from '../../../../../util/theme';
+import { useTheme } from '@util/theme';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;

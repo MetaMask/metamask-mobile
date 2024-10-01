@@ -8,40 +8,40 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
+import { fontStyles } from '@styles/common';
+import Engine from '@core/Engine';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
-import { isSmartContractAddress } from '../../../util/transactions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { isSmartContractAddress } from '@util/transactions';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import AppConstants from '../../../core/AppConstants';
-import Alert, { AlertType } from '../../Base/Alert';
+import AppConstants from '@core/AppConstants';
+import Alert, { AlertType } from '@Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import NotificationManager from '../../../core/NotificationManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
-import { regex } from '../../../../app/util/regex';
+import NotificationManager from '@core/NotificationManager';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';
+import { regex } from '@app/util/regex';
 import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
-} from '../../../util/networks';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+} from '@util/networks';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import CLText from '../../../component-library/components/Texts/Text/Text';
+} from '@component-library/components/Banners/Banner';
+import CLText from '@component-library/components/Texts/Text/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -1,5 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { FiatOrder } from '../../../../reducers/fiatOrders';
+import { FiatOrder } from '@reducers/fiatOrders';
 import {
   aggregatorOrderToFiatOrder,
   POLLING_FRECUENCY_IN_SECONDS,
@@ -283,7 +283,7 @@ describe('aggregatorOrderToFiatOrder', () => {
 const mockGetOrder = jest.fn();
 const mockGetSellOrder = jest.fn();
 
-jest.mock('../sdk', () => ({
+jest.mock('@sdk', () => ({
   SDK: {
     orders: () => ({
       getOrder: mockGetOrder,

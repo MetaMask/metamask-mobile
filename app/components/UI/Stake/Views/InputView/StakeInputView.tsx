@@ -3,20 +3,20 @@ import { BN } from 'ethereumjs-util';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 import {
   fiatNumberToWei,
   fromTokenMinimalUnitString,
@@ -25,17 +25,17 @@ import {
   renderFromTokenMinimalUnit,
   toWei,
   weiToFiatNumber,
-} from '../../../../../util/number';
-import Keypad from '../../../../Base/Keypad';
-import { useStyles } from '../../../../hooks/useStyles';
-import { getStakeInputNavbar } from '../../../Navbar';
-import ScreenLayout from '../../../Ramp/components/ScreenLayout';
-import CurrencyToggle from '../../components/CurrencySwitch';
-import QuickAmounts from '../../components/QuickAmounts';
-import useBalance from '../../hooks/useBalance';
+} from '@util/number';
+import Keypad from '@Base/Keypad';
+import { useStyles } from '@hooks/useStyles';
+import { getStakeInputNavbar } from '@Navbar';
+import ScreenLayout from '@Ramp/components/ScreenLayout';
+import CurrencyToggle from '@components/CurrencySwitch';
+import QuickAmounts from '@components/QuickAmounts';
+import useBalance from '@hooks/useBalance';
 import styleSheet from './StakeInputView.styles';
-import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
-import Routes from '../../../../../constants/navigation/Routes';
+import EstimatedAnnualRewardsCard from '@components/EstimatedAnnualRewardsCard';
+import Routes from '@constants/navigation/Routes';
 
 const StakeInputView = () => {
   const navigation = useNavigation();

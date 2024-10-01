@@ -3,39 +3,39 @@ import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { useSharedValue } from 'react-native-reanimated';
-import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import { renderFromWei, fastSplit } from '../../../../util/number';
-import { validateTransactionActionBalance } from '../../../../util/transactions';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
+import { renderFromWei, fastSplit } from '@util/number';
+import { validateTransactionActionBalance } from '@util/transactions';
 import {
   fontStyles,
   colors as importedColors,
-} from '../../../../styles/common';
-import decodeTransaction from '../../TransactionElement/utils';
-import TransactionActionContent from '../../TransactionActionModal/TransactionActionContent';
-import ActionContent from '../../ActionModal/ActionContent';
+} from '@styles/common';
+import decodeTransaction from '@TransactionElement/utils';
+import TransactionActionContent from '@TransactionActionModal/TransactionActionContent';
+import ActionContent from '@ActionModal/ActionContent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import TransactionDetails from '../../TransactionElement/TransactionDetails';
+import TransactionDetails from '@TransactionElement/TransactionDetails';
 import BaseNotification from './../BaseNotification';
-import Device from '../../../../util/device';
+import Device from '@util/device';
 import ElevatedView from 'react-native-elevated-view';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
-import { collectibleContractsSelector } from '../../../../reducers/collectibles';
-import { useTheme } from '../../../../util/theme';
+import { collectibleContractsSelector } from '@reducers/collectibles';
+import { useTheme } from '@util/theme';
 import {
   selectChainId,
   selectTicker,
-} from '../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectTokensByAddress } from '../../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { speedUpTransaction } from '../../../../util/transaction-controller';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+} from '@selectors/currencyRateController';
+import { selectTokensByAddress } from '@selectors/tokensController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { speedUpTransaction } from '@util/transaction-controller';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';

@@ -1,6 +1,6 @@
 import { fork, take, cancel, put, call } from 'redux-saga/effects';
-import NavigationService from '../../core/NavigationService';
-import Routes from '../../constants/navigation/Routes';
+import NavigationService from '@core/NavigationService';
+import Routes from '@constants/navigation/Routes';
 import {
   LOCKED_APP,
   AUTH_SUCCESS,
@@ -9,11 +9,11 @@ import {
   INTERRUPT_BIOMETRICS,
   LOGOUT,
   LOGIN,
-} from '../../actions/user';
+} from '@actions/user';
 import { Task } from 'redux-saga';
-import Engine from '../../core/Engine';
-import Logger from '../../util/Logger';
-import LockManagerService from '../../core/LockManagerService';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import LockManagerService from '@core/LockManagerService';
 import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
@@ -23,9 +23,9 @@ import {
   getFeatureFlagsSuccess,
   getFeatureFlagsError,
   FeatureFlagsState,
-} from '../../../app/core/redux/slices/featureFlags';
+} from '@app/core/redux/slices/featureFlags';
 
-import launchDarklyURL from '../../../app/util/featureFlags';
+import launchDarklyURL from '@app/util/featureFlags';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;

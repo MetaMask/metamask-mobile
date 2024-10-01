@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { SecurityAlertResponse } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 const ENDPOINT_VALIDATE = 'validate';
 const ENDPOINT_SUPPORTED_CHAINS = 'supportedChains';

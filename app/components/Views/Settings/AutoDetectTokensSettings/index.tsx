@@ -4,15 +4,15 @@ import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies
-import { useStyles } from '../../../../component-library/hooks';
-import Engine from '../../../../core/Engine';
-import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '@component-library/hooks';
+import Engine from '@core/Engine';
+import { selectUseTokenDetection } from '@selectors/preferencesController';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 // Internal dependencies
 import styleSheet from './index.styles';

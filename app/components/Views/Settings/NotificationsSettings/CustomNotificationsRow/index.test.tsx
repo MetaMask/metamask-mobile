@@ -1,7 +1,7 @@
 import React from 'react';
-import CustomNotificationsRow from '../CustomNotificationsRow/index';
+import CustomNotificationsRow from '@CustomNotificationsRow/index';
 import { render } from '@testing-library/react-native';
-import notificationsRows from '../notificationsRows';
+import notificationsRows from '@notificationsRows';
 
 describe('CustomNotificationsRow', () => {
   it('should render correctly', () => {

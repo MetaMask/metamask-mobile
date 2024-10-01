@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
-import { useRampSDK, SDK } from '../sdk';
-import Logger from '../../../../util/Logger';
+import { useRampSDK, SDK } from '@sdk';
+import Logger from '@util/Logger';
 
 type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
 // TODO: Replace "any" with type

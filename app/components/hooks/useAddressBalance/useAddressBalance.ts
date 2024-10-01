@@ -2,17 +2,17 @@ import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import Engine from '../../../core/Engine';
-import { getTicker } from '../../../util/transactions';
+import Engine from '@core/Engine';
+import { getTicker } from '@util/transactions';
 import {
   renderFromTokenMinimalUnit,
   renderFromWei,
-} from '../../../util/number';
-import { safeToChecksumAddress } from '../../../util/address';
-import { selectTicker } from '../../../selectors/networkController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+} from '@util/number';
+import { safeToChecksumAddress } from '@util/address';
+import { selectTicker } from '@selectors/networkController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (

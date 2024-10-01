@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import CellSelectWithMenu from './CellSelectWithMenu';
-import { CellModalSelectorsIDs } from '../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 import { SAMPLE_CELLSELECT_WITH_BUTTON_PROPS } from './CellSelectWithMenu.constants';
 

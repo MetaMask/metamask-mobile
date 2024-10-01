@@ -3,13 +3,13 @@ import { render } from '@testing-library/react-native';
 import { BigNumber } from 'bignumber.js';
 
 import BalanceChangeList from './BalanceChangeList';
-import { BalanceChange } from '../types';
-import { sortBalanceChanges } from '../sortBalanceChanges';
-import BalanceChangeRow from '../BalanceChangeRow/BalanceChangeRow';
+import { BalanceChange } from '@types';
+import { sortBalanceChanges } from '@sortBalanceChanges';
+import BalanceChangeRow from '@BalanceChangeRow/BalanceChangeRow';
 
-jest.mock('../sortBalanceChanges');
-jest.mock('../BalanceChangeRow/BalanceChangeRow', () => 'BalanceChangeRow');
-jest.mock('../FiatDisplay/FiatDisplay', () => ({
+jest.mock('@sortBalanceChanges');
+jest.mock('@BalanceChangeRow/BalanceChangeRow', () => 'BalanceChangeRow');
+jest.mock('@FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',
   TotalFiatDisplay: 'TotalFiatDisplay',
 }));

@@ -17,44 +17,44 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
+} from '@component-library/components/Texts/Text';
+import StorageWrapper from '@store/storage-wrapper';
 import { connect } from 'react-redux';
-import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
-import { setLockTime } from '../../../actions/settings';
-import StyledButton from '../../UI/StyledButton';
-import Engine from '../../../core/Engine';
-import Device from '../../../util/device';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { passwordSet, seedphraseNotBackedUp } from '@actions/user';
+import { setLockTime } from '@actions/settings';
+import StyledButton from '@UI/StyledButton';
+import Engine from '@core/Engine';
+import Device from '@util/device';
+import { fontStyles, baseStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AppConstants from '../../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import zxcvbn from 'zxcvbn';
-import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { ONBOARDING, PREVIOUS_SCREEN } from '@constants/navigation';
 import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
-} from '../../../constants/storage';
+} from '@constants/storage';
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
-} from '../../../util/password';
-import NotificationManager from '../../../core/NotificationManager';
+} from '@util/password';
+import NotificationManager from '@core/NotificationManager';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
-import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { recreateVaultWithNewPassword } from '../../../core/Vault';
-import Logger from '../../../util/Logger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+} from '@util/authentication';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { ThemeContext, mockTheme } from '@util/theme';
+import AnimatedFox from '@Base/AnimatedFox';
+import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
+import { recreateVaultWithNewPassword } from '@core/Vault';
+import Logger from '@util/Logger';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { ChoosePasswordSelectorsIDs } from '@e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -609,7 +609,7 @@ class ResetPassword extends PureComponent {
             <View style={styles.foxWrapper}>
               {Device.isAndroid() ? (
                 <Image
-                  source={require('../../../images/fox.png')}
+                  source={require('@images/fox.png')}
                   style={styles.image}
                   resizeMethod={'auto'}
                 />

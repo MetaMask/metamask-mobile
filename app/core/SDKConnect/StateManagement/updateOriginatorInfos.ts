@@ -1,8 +1,8 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { resetConnections } from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+import { resetConnections } from '@app/actions/sdk';
+import { store } from '@app/store';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 
 function updateOriginatorInfos({
   channelId,

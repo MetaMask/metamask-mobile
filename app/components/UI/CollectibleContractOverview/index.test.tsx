@@ -4,8 +4,8 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { mockNetworkState } from '../../../util/test/network';
+import { backgroundState } from '@util/test/initial-root-state';
+import { mockNetworkState } from '@util/test/network';
 
 const mockStore = configureMockStore();
 

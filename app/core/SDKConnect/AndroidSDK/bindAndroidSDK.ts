@@ -1,6 +1,6 @@
-import Logger from '../../../util/Logger';
+import Logger from '@util/Logger';
 import { NativeModules, Platform } from 'react-native';
-import SDKConnect from '../SDKConnect';
+import SDKConnect from '@SDKConnect';
 
 async function bindAndroidSDK(instance: SDKConnect) {
   if (Platform.OS !== 'android') {

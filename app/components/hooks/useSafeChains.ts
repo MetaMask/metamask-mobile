@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectUseSafeChainsListValidation } from '../../selectors/preferencesController';
+import { selectUseSafeChainsListValidation } from '@selectors/preferencesController';
 
 export interface SafeChain {
   chainId: string;

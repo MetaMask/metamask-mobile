@@ -1,11 +1,11 @@
-import Logger from '../Logger';
+import Logger from '@Logger';
 import { DOMParser } from '@xmldom/xmldom';
-import { store } from '../../store';
-import { storeFavicon } from '../../actions/browser';
+import { store } from '@store';
+import { storeFavicon } from '@actions/browser';
 import isUrl from 'is-url';
 import { isNumber } from 'lodash';
 import { ImageSourcePropType } from 'react-native';
-import AppConstants from '../../../app/core/AppConstants';
+import AppConstants from '@app/core/AppConstants';
 
 /**
  * Fetches the HTML source of the origin

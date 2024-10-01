@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { IconName, IconSize } from '../../../components/Icons/Icon';
+import { IconName, IconSize } from '@components/Icons/Icon';
 
 export interface ContractBoxBaseProps {
   contractAddress: string;

@@ -8,15 +8,15 @@ import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-import Engine from '../../../core/Engine';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { TRIGGER_TYPES } from '../constants';
-import { Notification } from '../types';
-import { calcTokenAmount } from '../../transactions';
-import images from '../../../images/image-icons';
-import CHAIN_SCANS_URLS from '../constants/urls';
-import I18n, { strings } from '../../../../locales/i18n';
+import Engine from '@core/Engine';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { hexWEIToDecETH, hexWEIToDecGWEI } from '@conversions';
+import { TRIGGER_TYPES } from '@constants';
+import { Notification } from '@types';
+import { calcTokenAmount } from '@transactions';
+import images from '@images/image-icons';
+import CHAIN_SCANS_URLS from '@constants/urls';
+import I18n, { strings } from '@locales/i18n';
 
 // Extend dayjs with the plugins
 dayjs.extend(isYesterday);

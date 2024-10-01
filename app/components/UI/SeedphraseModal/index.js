@@ -2,10 +2,10 @@ import React from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import ActionModal from '../../UI/ActionModal';
-import { useTheme } from '../../../util/theme';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import ActionModal from '@UI/ActionModal';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

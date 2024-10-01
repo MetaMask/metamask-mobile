@@ -1,6 +1,6 @@
 import React from 'react';
 import Step3 from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 const coachmarkRef = {
   yourAccountRef: {

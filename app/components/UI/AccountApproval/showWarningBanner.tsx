@@ -1,24 +1,24 @@
 import React from 'react';
 import { View, Linking } from 'react-native';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { strings } from '../../../../locales/i18n';
+import BannerAlert from '@component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '@component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import createStyles from './styles';
-import { useTheme } from '../../../util/theme';
-import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
-import Icon from '../../../component-library/components/Icons/Icon/Icon';
+import { useTheme } from '@util/theme';
+import Accordion from '@component-library/components/Accordions/Accordion/Accordion';
+import Icon from '@component-library/components/Icons/Icon/Icon';
 import {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
-import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
-import { MetaMetrics } from '../../../core/Analytics';
+} from '@component-library/components/Icons/Icon';
+import { CONNECTING_TO_A_DECEPTIVE_SITE } from '@constants/urls';
+import { AccordionHeaderHorizontalAlignment } from '@component-library/components/Accordions/Accordion';
+import { MetaMetrics } from '@core/Analytics';
 
 const descriptionArray = [
   strings('accounts.fake_metamask'),

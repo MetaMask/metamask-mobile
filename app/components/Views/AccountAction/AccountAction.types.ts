@@ -2,7 +2,7 @@ import { TouchableOpacityProps } from 'react-native';
 import {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 
 export interface WalletActionProps extends TouchableOpacityProps {
   actionTitle: string;

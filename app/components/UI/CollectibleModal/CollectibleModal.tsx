@@ -8,27 +8,27 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { newAssetTransaction } from '../../../actions/transaction';
-import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles } from '../../../styles/common';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
-import Routes from '../../../constants/navigation/Routes';
-import CollectibleOverview from '../../UI/CollectibleOverview';
-import { collectiblesSelector } from '../../../reducers/collectibles';
+import { newAssetTransaction } from '@actions/transaction';
+import CollectibleMedia from '@CollectibleMedia';
+import { baseStyles } from '@styles/common';
+import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import Routes from '@constants/navigation/Routes';
+import CollectibleOverview from '@UI/CollectibleOverview';
+import { collectiblesSelector } from '@reducers/collectibles';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
-} from '../../../selectors/preferencesController';
+} from '@selectors/preferencesController';
 import styles from './CollectibleModal.styles';
 import { CollectibleModalParams } from './CollectibleModal.types';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
-import { useMetrics } from '../../hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
+import { useParams } from '@util/navigation/navUtils';
+import { useMetrics } from '@hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { selectChainId } from '@selectors/networkController';
+import { getDecimalChainId } from '@util/networks';
 import { Nft } from '@metamask/assets-controllers';
-import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { EXTERNAL_LINK_TYPE } from '@constants/browser';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();

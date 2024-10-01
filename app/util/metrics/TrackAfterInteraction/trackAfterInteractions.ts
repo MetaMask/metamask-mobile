@@ -1,4 +1,4 @@
-import { IMetaMetricsEvent, MetaMetrics } from '../../../core/Analytics';
+import { IMetaMetricsEvent, MetaMetrics } from '@core/Analytics';
 import { InteractionManager } from 'react-native';
 import { JsonMap } from '@segment/analytics-react-native';
 

@@ -9,22 +9,22 @@ import React, {
 import { View } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import AccountSelectorList from '@UI/AccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import UntypedEngine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { strings } from '../../../../locales/i18n';
-import { useAccounts } from '../../hooks/useAccounts';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import UntypedEngine from '@core/Engine';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { strings } from '@locales/i18n';
+import { useAccounts } from '@hooks/useAccounts';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import AddAccountActions from '../AddAccountActions';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+} from '@component-library/components/Buttons/Button';
+import AddAccountActions from '@AddAccountActions';
+import { AccountListViewSelectorsIDs } from '@e2e/selectors/AccountListView.selectors';
 // Internal dependencies.
 import {
   AccountSelectorProps,
@@ -32,9 +32,9 @@ import {
 } from './AccountSelector.types';
 import styles from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
-import { setReloadAccounts } from '../../../actions/accounts';
-import { RootState } from '../../../reducers';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { setReloadAccounts } from '@actions/accounts';
+import { RootState } from '@reducers';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();

@@ -3,19 +3,19 @@ import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './StakingEarnings.styles';
 import {
   IconColor,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import useTooltipModal from '../../../../components/hooks/useTooltipModal';
-import { strings } from '../../../../../locales/i18n';
-import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+} from '@component-library/components/Buttons/ButtonIcon';
+import useTooltipModal from '@components/hooks/useTooltipModal';
+import { strings } from '@locales/i18n';
+import { isPooledStakingFeatureEnabled } from '@Stake/constants';
 
 // TODO: Remove mock data when connecting component to backend.
 const MOCK_DATA = {

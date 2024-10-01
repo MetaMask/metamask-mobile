@@ -1,5 +1,5 @@
-import { strings } from '../../../locales/i18n';
-import { MINUTE, HOUR, DAY } from '../../constants/time';
+import { strings } from '@locales/i18n';
+import { MINUTE, HOUR, DAY } from '@constants/time';
 
 export function toLocaleDateTime(timestamp) {
   const dateObj = new Date(timestamp);

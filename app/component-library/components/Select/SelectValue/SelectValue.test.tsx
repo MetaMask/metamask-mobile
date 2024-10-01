@@ -3,8 +3,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import { mockTheme } from '../../../../util/theme';
-import { getFontStyleVariant, FontWeight } from '../../Texts/Text/Text.utils';
+import { mockTheme } from '@util/theme';
+import { getFontStyleVariant, FontWeight } from '@Texts/Text/Text.utils';
 
 // Internal dependencies.
 import SelectValue from './SelectValue';

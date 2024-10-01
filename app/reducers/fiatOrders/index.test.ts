@@ -44,11 +44,11 @@ import fiatOrderReducer, {
   removeFiatSellTxHash,
   getOrdersProviders,
 } from '.';
-import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
+import { FIAT_ORDER_PROVIDERS } from '@constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
-import initialRootState from '../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
+import initialRootState from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import mockedEngine from '@core/__mocks__/MockedEngine';
 
 const MOCK_ADDRESS_1 = '0x4567';
 const MOCK_ADDRESS_2 = '0x1234';
@@ -233,7 +233,7 @@ const networks: AggregatorNetwork[] = [
   },
 ];
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   init: () => mockedEngine.init(),
   context: {
     NetworkController: {

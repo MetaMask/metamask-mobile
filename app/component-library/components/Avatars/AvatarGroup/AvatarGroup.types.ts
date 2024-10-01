@@ -2,8 +2,8 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies
-import { AvatarProps, AvatarSize } from '../Avatar/Avatar.types';
-import { TextVariant } from '../../Texts/Text';
+import { AvatarProps, AvatarSize } from '@Avatar/Avatar.types';
+import { TextVariant } from '@Texts/Text';
 
 /**
  * Mapping of TextVariant by AvatarSize.

@@ -2,12 +2,12 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'react-native-modal';
 import { StyleSheet, View, Text } from 'react-native';
-import { dismissAlert } from '../../../actions/alert';
+import { dismissAlert } from '@actions/alert';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ElevatedView from 'react-native-elevated-view';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

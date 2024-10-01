@@ -1,13 +1,13 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
-import { RampType, Region } from '../../types';
-import { RampSDK } from '../../sdk';
-import useRampNetwork from '../../hooks/useRampNetwork';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { RampType, Region } from '@types';
+import { RampSDK } from '@sdk';
+import useRampNetwork from '@hooks/useRampNetwork';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -31,7 +31,7 @@ const mockUseRampNetworkInitialValue: Partial<
 
 let mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
 
-jest.mock('../../hooks/useRampNetwork', () =>
+jest.mock('@hooks/useRampNetwork', () =>
   jest.fn(() => mockUseRampNetworkValue),
 );
 
@@ -75,12 +75,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
+jest.mock('@sdk', () => ({
+  ...jest.requireActual('@sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('GetStarted', () => {
   afterEach(() => {

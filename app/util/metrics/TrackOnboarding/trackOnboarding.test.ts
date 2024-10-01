@@ -8,7 +8,7 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 const mockEnabled = jest.fn();
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../core/Analytics', () => ({
+jest.mock('@core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockImplementation(() => ({
       isEnabled: mockEnabled,

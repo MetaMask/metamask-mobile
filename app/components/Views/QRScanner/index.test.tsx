@@ -1,8 +1,8 @@
 import React from 'react';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import QrScanner from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

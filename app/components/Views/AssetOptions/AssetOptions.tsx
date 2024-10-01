@@ -3,31 +3,31 @@ import React, { useRef } from 'react';
 import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import Routes from '../../../constants/navigation/Routes';
-import { useStyles } from '../../../component-library/hooks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { strings } from '../../../../locales/i18n';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
+import Routes from '@constants/navigation/Routes';
+import { useStyles } from '@component-library/hooks';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { strings } from '@locales/i18n';
 import Icon, {
   IconName,
-} from '../../../component-library/components/Icons/Icon';
-import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
+} from '@component-library/components/Icons/Icon';
+import useBlockExplorer from '@components/UI/Swaps/utils/useBlockExplorer';
 import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../selectors/networkController';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+} from '@selectors/networkController';
+import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import Logger from '../../../util/Logger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import { getDecimalChainId } from '../../../util/networks';
-import { isPortfolioUrl } from '../../../util/url';
-import { BrowserTab } from '../../../components/UI/Tokens/types';
-import { RootState } from '../../../reducers';
+import { selectTokenList } from '@selectors/tokenListController';
+import Logger from '@util/Logger';
+import { MetaMetricsEvents } from '@core/Analytics';
+import AppConstants from '@core/AppConstants';
+import { getDecimalChainId } from '@util/networks';
+import { isPortfolioUrl } from '@util/url';
+import { BrowserTab } from '@components/UI/Tokens/types';
+import { RootState } from '@reducers';
 interface Option {
   label: string;
   onPress: () => void;

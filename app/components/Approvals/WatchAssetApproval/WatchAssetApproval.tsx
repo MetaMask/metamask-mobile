@@ -1,8 +1,8 @@
 import React from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import WatchAssetRequest from '../../Views/confirmations/components/WatchAssetRequest';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import ApprovalModal from '../ApprovalModal';
+import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import WatchAssetRequest from '@Views/confirmations/components/WatchAssetRequest';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
+import ApprovalModal from '@ApprovalModal';
 
 const WatchAssetApproval = () => {
   const { approvalRequest, pageMeta, onConfirm, onReject } =

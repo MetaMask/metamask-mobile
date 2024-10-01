@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-import { isProduction } from '../util/environment';
+import { isProduction } from '@util/environment';
 import { NETWORKS_CHAIN_ID } from './network';
 
 const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS_DEVELOPMENT: string[] = [

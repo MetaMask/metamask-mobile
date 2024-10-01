@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
 import { View, StyleSheet, Text, Platform } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { TABS_NUMBER } from '../../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { ThemeContext, mockTheme } from '@util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
+import { TABS_NUMBER } from '@wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

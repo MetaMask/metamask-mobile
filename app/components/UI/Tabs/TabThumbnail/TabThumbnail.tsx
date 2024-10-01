@@ -6,29 +6,29 @@ import {
   View,
 } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+} from '@component-library/components/Avatars/Avatar';
+import Badge from '@component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '@component-library/components/Badges/Badge/Badge.types';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import AppConstants from '../../../../core/AppConstants';
-import METAMASK_FOX from '../../../../images/fox.png';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { getHost } from '../../../../util/browser';
-import Device from '../../../../util/device';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import WebsiteIcon from '../../WebsiteIcon';
+} from '@component-library/components/Texts/Text';
+import AppConstants from '@core/AppConstants';
+import METAMASK_FOX from '@images/fox.png';
+import { useNetworkInfo } from '@selectors/selectedNetworkController';
+import { getHost } from '@util/browser';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
+import WebsiteIcon from '@WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
 import useSelectedAccount from './useSelectedAccount';

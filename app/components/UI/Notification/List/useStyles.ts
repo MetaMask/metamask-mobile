@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { createStyles } from './styles';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '@util/theme';
 
 export default function useStyles() {
   const theme = useTheme();

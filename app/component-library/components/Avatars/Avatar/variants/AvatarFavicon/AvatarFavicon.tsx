@@ -6,14 +6,14 @@ import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import Icon from '../../../../Icons/Icon';
-import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
-import AvatarBase from '../../foundation/AvatarBase';
+import { useStyles } from '@hooks';
+import Icon from '@Icons/Icon';
+import { ICONSIZE_BY_AVATARSIZE } from '@Avatar.constants';
+import AvatarBase from '@foundation/AvatarBase';
 
 // Internal dependencies.
 import { isNumber } from 'lodash';
-import { isFaviconSVG } from '../../../../../../util/favicon';
+import { isFaviconSVG } from '@util/favicon';
 import {
   AVATARFAVICON_IMAGE_TESTID,
   DEFAULT_AVATARFAVICON_ERROR_ICON,

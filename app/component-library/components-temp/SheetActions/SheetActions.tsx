@@ -3,14 +3,14 @@ import React, { useCallback } from 'react';
 import { Platform, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../hooks';
+import { useStyles } from '@hooks';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../components/Buttons/Button';
-import Loader from '../Loader';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+} from '@components/Buttons/Button';
+import Loader from '@Loader';
+import generateTestId from '@wdio/utils/generateTestId';
 
 // Internal dependencies.
 import { SheetActionsProps } from './SheetActions.types';

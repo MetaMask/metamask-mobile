@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import TemplateConfirmation, {
   TemplateConfirmationProps,
-} from '../TemplateConfirmation';
-import { ApprovalTypes } from '../../../../../../../core/RPCMethods/RPCMethodMiddleware';
+} from '@TemplateConfirmation';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 
 describe('ApprovalResult', () => {
   const mockProps: TemplateConfirmationProps = {

@@ -6,7 +6,7 @@ import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
 import { BN } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 // initial state for the test store
 const mockInitialState = {

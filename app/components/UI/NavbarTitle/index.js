@@ -3,19 +3,19 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { scale } from 'react-native-size-matters';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
-import Networks, { getDecimalChainId } from '../../../util/networks';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { fontStyles, colors as importedColors } from '@styles/common';
+import Networks, { getDecimalChainId } from '@util/networks';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
+import Routes from '@constants/navigation/Routes';
+import { MetaMetricsEvents } from '@core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { selectProviderConfig } from '@selectors/networkController';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -11,9 +11,9 @@ import {
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
-import currencySymbols from '../currency-symbols.json';
-import { isZero } from '../lodash';
-import { regex } from '../regex';
+import currencySymbols from '@currency-symbols.json';
+import { isZero } from '@lodash';
+import { regex } from '@regex';
 export { BNToHex };
 
 // Big Number Constants

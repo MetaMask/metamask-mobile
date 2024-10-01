@@ -1,15 +1,15 @@
 import handleReceivedMessage from './handleReceivedMessage';
-import { Connection } from '../Connection';
+import { Connection } from '@Connection';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
-import Logger from '../../../../util/Logger';
-import Engine from '../../../Engine';
-import { handleConnectionMessage } from '../../handlers/handleConnectionMessage';
+import Logger from '@util/Logger';
+import Engine from '@Engine';
+import { handleConnectionMessage } from '@handlers/handleConnectionMessage';
 
-jest.mock('../Connection');
+jest.mock('@Connection');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('../../../../util/Logger');
-jest.mock('../../../Engine');
-jest.mock('../../handlers/handleConnectionMessage');
+jest.mock('@util/Logger');
+jest.mock('@Engine');
+jest.mock('@handlers/handleConnectionMessage');
 
 describe('handleReceivedMessage', () => {
   let mockConnection: Connection;

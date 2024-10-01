@@ -2,8 +2,8 @@ import React, { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 
-import BaseListItem from '../../../Base/ListItem';
-import Text from '../../../Base/Text';
+import BaseListItem from '@Base/ListItem';
+import Text from '@Base/Text';
 
 import CurrencyChevron from './CurrencyChevron';
 

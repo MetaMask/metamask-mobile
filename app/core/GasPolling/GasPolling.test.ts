@@ -1,14 +1,14 @@
-import Engine from '../Engine';
+import Engine from '@Engine';
 import {
   startGasPolling,
   getEIP1559TransactionData,
   stopGasPolling,
 } from './GasPolling';
-import { parseTransactionEIP1559 } from '../../util/transactions';
+import { parseTransactionEIP1559 } from '@util/transactions';
 import { GasFeeOptions, GetEIP1559TransactionDataProps } from './types';
-import AppConstants from '../AppConstants';
+import AppConstants from '@AppConstants';
 import { Hex } from '@metamask/utils';
-jest.mock('../../util/transactions');
+jest.mock('@util/transactions');
 const mockedParseTransactionEIP1559 =
   parseTransactionEIP1559 as jest.MockedFunction<
     typeof parseTransactionEIP1559
@@ -16,7 +16,7 @@ const mockedParseTransactionEIP1559 =
 
 const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
 
-jest.mock('../Engine', () => ({
+jest.mock('@Engine', () => ({
   context: {
     GasFeeController: {
       gasFeeEstimates: {},
@@ -78,7 +78,7 @@ const transactionState = {
   selectedAsset: {
     address: '',
     isETH: true,
-    logo: '../images/eth-logo-new.png',
+    logo: '@images/eth-logo-new.png',
     name: 'Ether',
     symbol: 'ETH',
   },

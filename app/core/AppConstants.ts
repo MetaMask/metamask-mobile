@@ -1,5 +1,5 @@
 import { CoreTypes } from '@walletconnect/types';
-import Device from '../util/device';
+import Device from '@util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 
 const DEVELOPMENT = 'development';

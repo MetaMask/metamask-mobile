@@ -20,13 +20,13 @@ import {
   AssetType,
   FIAT_UNAVAILABLE,
 } from './types';
-import { getTokenDetails } from '../../../util/address';
+import { getTokenDetails } from '@util/address';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectChainId } from '../../../selectors/networkController';
-import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
+} from '@selectors/currencyRateController';
+import { selectChainId } from '@selectors/networkController';
+import { useAsyncResultOrThrow } from '@hooks/useAsyncResult';
 
 const NATIVE_DECIMALS = 18;
 

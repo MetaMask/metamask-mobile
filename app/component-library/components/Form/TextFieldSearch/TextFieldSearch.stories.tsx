@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 // External dependencies.
-import { TextFieldSize } from '../TextField/TextField.types';
+import { TextFieldSize } from '@TextField/TextField.types';
 
 // Internal dependencies.
 import { default as TextFieldSearchComponent } from './TextFieldSearch';

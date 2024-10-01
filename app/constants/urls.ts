@@ -1,4 +1,4 @@
-import AppConstants from '../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;

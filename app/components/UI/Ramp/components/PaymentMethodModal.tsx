@@ -3,15 +3,15 @@ import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
 import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 
-import Text from '../../../Base/Text';
+import Text from '@Base/Text';
 import ScreenLayout from './ScreenLayout';
-import ModalDragger from '../../../Base/ModalDragger';
+import ModalDragger from '@Base/ModalDragger';
 import PaymentMethod from './PaymentMethod';
 
-import useAnalytics from '../hooks/useAnalytics';
-import { useTheme } from '../../../../util/theme';
-import { Colors } from '../../../../util/theme/models';
-import { RampType, Region, ScreenLocation } from '../types';
+import useAnalytics from '@hooks/useAnalytics';
+import { useTheme } from '@util/theme';
+import { Colors } from '@util/theme/models';
+import { RampType, Region, ScreenLocation } from '@types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

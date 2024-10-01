@@ -2,23 +2,23 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Linking, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+} from '@component-library/components/Texts/Text';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import Device from '../../../../../app/util/device';
-import { SES_URL } from '../../../../../app/constants/urls';
-import Routes from '../../../../../app/constants/navigation/Routes';
+} from '@component-library/components/Buttons/Button';
+import Device from '@app/util/device';
+import { SES_URL } from '@app/constants/urls';
+import Routes from '@app/constants/navigation/Routes';
 
 const storage = new MMKV(); // id: mmkv.default
 

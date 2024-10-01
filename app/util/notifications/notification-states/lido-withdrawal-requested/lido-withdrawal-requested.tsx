@@ -1,17 +1,17 @@
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
   TRIGGER_TYPES,
-} from '../../constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
+} from '@constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
+import { NotificationState } from '@types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
   getNotificationBadge,
-} from '../../methods/common';
-import { getTokenAmount } from '../token-amounts';
+} from '@methods/common';
+import { getTokenAmount } from '@token-amounts';
 
 type LidoWithdrawalRequestedNotification =
   ExtractedNotification<TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED>;

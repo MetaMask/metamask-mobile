@@ -1,8 +1,8 @@
-import Engine from '../../../../core/Engine';
+import Engine from '@core/Engine';
 import { useCallback, useMemo } from 'react';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useSelector } from 'react-redux';
-import { selectPendingApprovals } from '../../../../selectors/approvalController';
+import { selectPendingApprovals } from '@selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
 

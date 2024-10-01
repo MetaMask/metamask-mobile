@@ -1,5 +1,5 @@
-import { BrowserActionTypes } from '../../actions/browser';
-import AppConstants from '../../core/AppConstants';
+import { BrowserActionTypes } from '@actions/browser';
+import AppConstants from '@core/AppConstants';
 
 const initialState = {
   history: [],

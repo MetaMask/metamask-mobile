@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import generateTestId from '@wdio/utils/generateTestId';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../util/theme';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@util/theme';
 
 interface SecurityOptionsToggleProps {
   title: string;

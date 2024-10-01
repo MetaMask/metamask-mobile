@@ -1,18 +1,18 @@
 import { renderHook } from '@testing-library/react-hooks';
-import I18n from '../../../../../locales/i18n';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import I18n from '@locales/i18n';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
 import useFiatFormatter from './useFiatFormatter';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
 }));
 
-jest.mock('../../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/currencyRateController', () => ({
+jest.mock('@selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 

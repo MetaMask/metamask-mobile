@@ -7,23 +7,23 @@ import {
   Text as RNText,
   Linking,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { createStyles } from './styles';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StyledButton from '../../UI/StyledButton';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
+} from '@component-library/components/Texts/Text';
+import StyledButton from '@UI/StyledButton';
+import { createNavigationDetails } from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Authentication } from '../../../core';
-import { useAppThemeFromContext } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { SRP_GUIDE_URL } from '../../../constants/urls';
+import { Authentication } from '@core';
+import { useAppThemeFromContext } from '@util/theme';
+import { MetaMetricsEvents } from '@core/Analytics';
+import generateDeviceAnalyticsMetaData from '@util/metrics';
+import { SRP_GUIDE_URL } from '@constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,

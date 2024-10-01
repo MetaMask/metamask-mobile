@@ -3,10 +3,10 @@ import SmartTransactionStatus, {
   FALLBACK_STX_ESTIMATED_DEADLINE_SEC,
   showRemainingTimeInMinAndSec,
 } from './SmartTransactionStatus';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 

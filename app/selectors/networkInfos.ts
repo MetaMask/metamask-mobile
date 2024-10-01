@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import {
   getNetworkNameFromProviderConfig,
   getNetworkImageSource,
-} from '../util/networks';
+} from '@util/networks';
 import { ProviderConfig, selectProviderConfig } from './networkController';
 
 export const selectNetworkName = createSelector(

@@ -19,17 +19,17 @@ import {
 import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@component-library/components/Icons/Icon';
+import { useStyles } from '@component-library/hooks';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
+} from '@component-library/components/Texts/Text';
+import Title from '@Base/Title';
 import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';

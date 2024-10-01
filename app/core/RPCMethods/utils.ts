@@ -1,5 +1,5 @@
 import { query } from '@metamask/controller-utils';
-import Engine from '../Engine';
+import Engine from '@Engine';
 import { selectHooks } from '@metamask/snaps-rpc-methods';
 import { OptionalDataWithOptionalCause, rpcErrors } from '@metamask/rpc-errors';
 import { JsonRpcMiddleware } from 'json-rpc-engine';

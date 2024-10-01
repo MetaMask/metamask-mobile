@@ -6,18 +6,18 @@ import { useNavigation } from '@react-navigation/native';
 import {
   newAssetTransaction,
   setSelectedAsset,
-} from '../../../../../actions/transaction';
-import Routes from '../../../../../constants/navigation/Routes';
+} from '@actions/transaction';
+import Routes from '@constants/navigation/Routes';
 import {
   selectChainId,
   selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { doENSReverseLookup } from '../../../../../util/ENSUtils';
-import { renderFromWei, hexToBN } from '../../../../../util/number';
-import { getEther, getTicker } from '../../../../../util/transactions';
-import { AddressFrom } from '../../../../UI/AddressInputs';
+} from '@selectors/networkController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { doENSReverseLookup } from '@util/ENSUtils';
+import { renderFromWei, hexToBN } from '@util/number';
+import { getEther, getTicker } from '@util/transactions';
+import { AddressFrom } from '@UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

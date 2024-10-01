@@ -2,12 +2,12 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
-import { ThemeContext, mockTheme } from '../../../../../../util/theme';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 import Root from '.';
-import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { shallow } from 'enzyme';
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
@@ -15,7 +15,7 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
   return { KeyboardAwareScrollView };
 });
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   init: () => ({}),
   context: {
     KeyringController: {

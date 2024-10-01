@@ -1,9 +1,9 @@
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RootState } from '@reducers';
 import AccountPermissions from './AccountPermissions';
 
 const mockedNavigate = jest.fn();
@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
+jest.mock('@components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockedTrackEvent,
   }),

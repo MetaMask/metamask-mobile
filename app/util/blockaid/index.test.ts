@@ -3,12 +3,12 @@ import {
   ResultType,
   SecurityAlertResponse,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
-import * as NetworkControllerMock from '../../selectors/networkController';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import Engine from '../../core/Engine';
-import ppomUtil from '../../lib/ppom/ppom-util';
+import * as NetworkControllerMock from '@selectors/networkController';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
+import Engine from '@core/Engine';
+import ppomUtil from '@lib/ppom/ppom-util';
 
 import {
   getBlockaidMetricsParams,
@@ -19,7 +19,7 @@ import {
 } from '.';
 import { TransactionStatus } from '@metamask/transaction-controller';
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   resetState: jest.fn(),
   context: {
     PreferencesController: {

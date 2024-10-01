@@ -1,24 +1,24 @@
 import React, { memo } from 'react';
-import NetworkModals from '../../../../../UI/NetworkModal';
+import NetworkModals from '@UI/NetworkModal';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
-import CustomText from '../../../../../Base/Text';
-import EmptyPopularList from '../emptyList';
+import CustomText from '@Base/Text';
+import EmptyPopularList from '@emptyList';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
-import { PopularList } from '../../../../../../util/networks/customNetworks';
-import createStyles from '../styles';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import { PopularList } from '@util/networks/customNetworks';
+import createStyles from '@styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import {
   selectChainId,
   selectNetworkConfigurations,
-} from '../../../../../../selectors/networkController';
-import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { isNetworkUiRedesignEnabled } from '../../../../../../util/networks/isNetworkUiRedesignEnabled';
-import { useSafeChains } from '../../../../../../components/hooks/useSafeChains';
+} from '@selectors/networkController';
+import AvatarNetwork from '@component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
+import { isNetworkUiRedesignEnabled } from '@util/networks/isNetworkUiRedesignEnabled';
+import { useSafeChains } from '@components/hooks/useSafeChains';
 
 const CustomNetwork = ({
   showPopularNetworkModal,

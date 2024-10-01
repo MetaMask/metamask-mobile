@@ -1,7 +1,7 @@
 import migrate from './030';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import initialRootState from '../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 
 const expectedState = {
   engine: {

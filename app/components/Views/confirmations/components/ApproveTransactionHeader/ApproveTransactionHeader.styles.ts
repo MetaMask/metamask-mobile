@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
-import { fontStyles } from '../../../../../styles/common';
+import { Theme } from '@util/theme/models';
+import { fontStyles } from '@styles/common';
 
 /**
  * Style sheet function for ModalConfirmation component.

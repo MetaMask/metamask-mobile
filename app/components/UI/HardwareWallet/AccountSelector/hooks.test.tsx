@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
-import Engine from '../../../../core/Engine';
+import Engine from '@core/Engine';
 import { IAccount, useAccountsBalance } from './hooks';
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     AccountTrackerController: {
       syncBalanceWithAddresses: jest.fn(),

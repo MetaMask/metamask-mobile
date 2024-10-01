@@ -4,7 +4,7 @@ import {
 } from '@metamask/permission-controller';
 import { JsonRpcParams, Json } from '@metamask/utils';
 import { EthAccountHooks } from './types';
-import { RestrictedMethods } from '../../Permissions/constants';
+import { RestrictedMethods } from '@Permissions/constants';
 
 /**
  * Handler for eth_accounts

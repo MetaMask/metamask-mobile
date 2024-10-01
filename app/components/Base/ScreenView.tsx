@@ -1,7 +1,7 @@
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({

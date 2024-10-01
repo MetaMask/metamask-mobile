@@ -2,12 +2,12 @@ import { CurrencyRateController } from '@metamask/assets-controllers';
 import { InfuraNetworkType, toHex } from '@metamask/controller-utils';
 import { NetworkController } from '@metamask/network-controller';
 import { getNetworkTypeById } from './index';
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 import {
   selectChainId,
   selectNetworkConfigurations,
-} from '../../selectors/networkController';
-import { store } from '../../store';
+} from '@selectors/networkController';
+import { store } from '@store';
 
 /**
  * Switch to the given chain ID.

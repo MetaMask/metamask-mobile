@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import useFavicon from './useFavicon';
-import { getFaviconURLFromHtml } from '../../../util/favicon';
+import { getFaviconURLFromHtml } from '@util/favicon';
 
-jest.mock('../../../util/favicon');
+jest.mock('@util/favicon');
 
 describe('useFavicon', () => {
   afterEach(() => {

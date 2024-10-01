@@ -1,13 +1,13 @@
-import StorageWrapper from '../../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import loadDappConnections from './loadDappConnections';
 
-jest.mock('../../../core/AppConstants');
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@core/AppConstants');
+jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(''),
   setItem: jest.fn().mockResolvedValue(''),
 }));
-jest.mock('../utils/DevLogger');
-jest.mock('../../../store', () => ({
+jest.mock('@utils/DevLogger');
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(() => ({
       sdk: {

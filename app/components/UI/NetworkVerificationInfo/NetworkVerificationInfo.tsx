@@ -1,47 +1,47 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Linking, TouchableOpacity } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { strings } from '@locales/i18n';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import TagColored from '../../../component-library/components-temp/TagColored/TagColored';
-import { TagColor } from '../../../component-library/components-temp/TagColored/TagColored.types';
-import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
-import Accordion from '../../../component-library/components/Accordions/Accordion';
+} from '@component-library/components/Texts/Text';
+import TagColored from '@component-library/components-temp/TagColored/TagColored';
+import { TagColor } from '@component-library/components-temp/TagColored/TagColored.types';
+import PickerNetwork from '@component-library/components/Pickers/PickerNetwork';
+import Accordion from '@component-library/components/Accordions/Accordion';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import { useStyles } from '../../../component-library/hooks';
+} from '@component-library/components/Banners/Banner';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './NetworkVerificationInfo.styles';
 import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
+import { ADD_CUSTOM_NETWORK_ARTCILE } from '@constants/urls';
 import { useSelector } from 'react-redux';
-import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+import { selectUseSafeChainsListValidation } from '@selectors/preferencesController';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
+import BottomSheetHeader from '@component-library/components/BottomSheets/BottomSheetHeader';
 import {
   getNetworkImageSource,
   toggleUseSafeChainsListValidation,
   isMultichainVersion1Enabled,
-} from '../../../util/networks';
-import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
-import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+} from '@util/networks';
+import { NetworkApprovalModalSelectorsIDs } from '@e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import hideKeyFromUrl from '@util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 
 interface Alert {

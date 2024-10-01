@@ -1,6 +1,6 @@
 import React from 'react';
-import Row from '../../components/Row';
-import SkeletonQuote from '../../components/SkeletonQuote';
+import Row from '@components/Row';
+import SkeletonQuote from '@components/SkeletonQuote';
 
 interface Props {
   count?: number;

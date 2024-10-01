@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { TextStyle, View } from 'react-native';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { useStyles } from '../../../../component-library/hooks';
+import ButtonLink from '@component-library/components/Buttons/Button/variants/ButtonLink';
+import { useStyles } from '@component-library/hooks';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import styleSheet from './ContentDisplay.styles';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 interface ContentDisplayProps {
   content: string;

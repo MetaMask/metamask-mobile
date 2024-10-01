@@ -1,16 +1,16 @@
-import Routes from '../../../../constants/navigation/Routes';
-import AppConstants from '../../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Routes from '@constants/navigation/Routes';
+import AppConstants from '@core/AppConstants';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectChainId } from '@selectors/networkController';
 
-import type { BrowserTab } from '../../Tokens/types';
-import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
-import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { isBridgeUrl } from '../../../../util/url';
+import type { BrowserTab } from '@Tokens/types';
+import type { BrowserParams } from '@components/Views/Browser/Browser.types';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { isBridgeUrl } from '@util/url';
 
 /**
  * Returns a function that is used to navigate to the MetaMask Bridges webpage.

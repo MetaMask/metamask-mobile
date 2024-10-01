@@ -9,42 +9,42 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { showAlert } from '../../../actions/alert';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
-import Routes from '../../../constants/navigation/Routes';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { fontStyles } from '../../../styles/common';
+import { strings } from '@locales/i18n';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
+import { showAlert } from '@actions/alert';
+import { newAssetTransaction } from '@actions/transaction';
+import { protectWalletModalVisible } from '@actions/user';
+import Routes from '@constants/navigation/Routes';
+import ClipboardManager from '@core/ClipboardManager';
+import { fontStyles } from '@styles/common';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
-} from '../../../util/ENSUtils';
+} from '@util/ENSUtils';
 import {
   getLabelTextByAddress,
   renderAccountName,
-} from '../../../util/address';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import EthereumAddress from '../EthereumAddress';
-import Identicon from '../Identicon';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+} from '@util/address';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
+import EthereumAddress from '@EthereumAddress';
+import Identicon from '@Identicon';
+import { MetaMetricsEvents } from '@core/Analytics';
+import AppConstants from '@core/AppConstants';
+import Engine from '@core/Engine';
+import { selectChainId } from '@selectors/networkController';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccountChecksummedAddress,
-} from '../../../selectors/accountsController';
-import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+} from '@selectors/accountsController';
+import { createAccountSelectorNavDetails } from '@Views/AccountSelector';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { isPortfolioUrl } from '../../../util/url';
-import { toLowerCaseEquals } from '../../../util/general';
+} from '@component-library/components/Texts/Text';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { isPortfolioUrl } from '@util/url';
+import { toLowerCaseEquals } from '@util/general';
 
 const createStyles = (colors) =>
   StyleSheet.create({

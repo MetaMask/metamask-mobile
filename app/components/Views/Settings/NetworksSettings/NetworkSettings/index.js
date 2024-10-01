@@ -13,75 +13,75 @@ import { typography } from '@metamask/design-tokens';
 import {
   fontStyles,
   colors as staticColors,
-} from '../../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
-import { strings } from '../../../../../../locales/i18n';
+} from '@styles/common';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { strings } from '@locales/i18n';
 import Networks, {
   isprivateConnection,
   getAllNetworks,
   getIsNetworkOnboarded,
-} from '../../../../../util/networks';
-import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
-import Engine from '../../../../../core/Engine';
+} from '@util/networks';
+import { getEtherscanBaseUrl } from '@util/etherscan';
+import Engine from '@core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import BigNumber from 'bignumber.js';
-import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
-import Logger from '../../../../../util/Logger';
-import { isPrefixedFormattedHexString } from '../../../../../util/number';
-import AppConstants from '../../../../../core/AppConstants';
+import { jsonRpcRequest } from '@util/jsonRpcRequest';
+import Logger from '@util/Logger';
+import { isPrefixedFormattedHexString } from '@util/number';
+import AppConstants from '@core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { PopularList } from '../../../../../util/networks/customNetworks';
-import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
+import { PopularList } from '@util/networks/customNetworks';
+import WarningMessage from '@confirmations/SendFlow/WarningMessage';
+import InfoModal from '@UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
   NETWORKS_CHAIN_ID,
   PRIVATENETWORK,
   RPC,
-} from '../../../../../constants/network';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
+} from '@constants/network';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { showNetworkOnboardingAction } from '@actions/onboardNetwork';
 import sanitizeUrl, {
   compareSanitizedUrl,
-} from '../../../../../util/sanitizeUrl';
-import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
-import { themeAppearanceLight } from '../../../../../constants/storage';
+} from '@util/sanitizeUrl';
+import hideKeyFromUrl from '@util/hideKeyFromUrl';
+import { themeAppearanceLight } from '@constants/storage';
 import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
-} from '../../../../../selectors/networkController';
-import { regex } from '../../../../../../app/util/regex';
-import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+} from '@selectors/networkController';
+import { regex } from '@app/util/regex';
+import { NetworksViewSelectorsIDs } from '@e2e/selectors/Settings/NetworksView.selectors';
 import {
   NetworksTicker,
   isSafeChainId,
   toHex,
 } from '@metamask/controller-utils';
-import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
-import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { CustomDefaultNetworkIDs } from '@e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
+import { updateIncomingTransactions } from '@util/transaction-controller';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import Routes from '../../../../../constants/navigation/Routes';
-import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
+import Routes from '@constants/navigation/Routes';
+import { selectUseSafeChainsListValidation } from '@app/selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';
 import { compose } from 'redux';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+} from '@component-library/components/Icons/Icon';
+import { isNetworkUiRedesignEnabled } from '@util/networks/isNetworkUiRedesignEnabled';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -2,8 +2,8 @@
 import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
-import { colors } from '../../../../../../styles/common';
+import { Theme } from '@util/theme/models';
+import { colors } from '@styles/common';
 
 // Internal dependencies
 import { InputStyleSheetVars } from './Input.types';

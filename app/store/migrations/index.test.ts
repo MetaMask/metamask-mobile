@@ -6,7 +6,7 @@ import {
 } from 'redux-persist';
 const defaultNodeEnv = process.env.NODE_ENV;
 jest.unmock('redux-persist');
-jest.mock('../../store', () => jest.fn());
+jest.mock('@store', () => jest.fn());
 jest.mock('react-native-default-preference', () => ({
   set: jest.fn(),
   clear: jest.fn(),

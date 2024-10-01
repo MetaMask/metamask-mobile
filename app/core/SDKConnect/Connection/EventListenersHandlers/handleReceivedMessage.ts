@@ -1,8 +1,8 @@
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
-import Logger from '../../../../util/Logger';
-import Engine from '../../../Engine';
-import { handleConnectionMessage } from '../../handlers/handleConnectionMessage';
-import { Connection } from '../Connection';
+import Logger from '@util/Logger';
+import Engine from '@Engine';
+import { handleConnectionMessage } from '@handlers/handleConnectionMessage';
+import { Connection } from '@Connection';
 
 function handleReceivedMessage({ instance }: { instance: Connection }) {
   return async (message: CommunicationLayerMessage) => {

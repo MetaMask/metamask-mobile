@@ -1,10 +1,10 @@
 import { createSelector } from 'reselect';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { NetworkState } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
-import Engine from '../core/Engine';
+import Engine from '@core/Engine';
 import { Hex } from '@metamask/utils';
-import { NetworkList } from '../util/networks';
+import { NetworkList } from '@util/networks';
 
 export interface ProviderConfig {
   chainId: Hex;

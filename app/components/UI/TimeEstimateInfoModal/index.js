@@ -1,10 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text from '../../Base/Text';
-import InfoModal from '../Swaps/components/InfoModal';
+import Text from '@Base/Text';
+import InfoModal from '@Swaps/components/InfoModal';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
+import { strings } from '@locales/i18n';
+import AppConstants from '@core/AppConstants';
 
 const TimeEstimateInfoModal = ({ timeEstimateId, isVisible, onHideModal }) => (
   <InfoModal

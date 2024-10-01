@@ -1,17 +1,17 @@
 import React from 'react';
 import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 import NetworkSwitcher from './NetworkSwitcher';
-import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
-import useRampNetworksDetail from '../../hooks/useRampNetworksDetail';
-import { RampSDK } from '../../sdk';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import Engine from '../../../../../core/Engine';
-import { RampType } from '../../../../../reducers/fiatOrders/types';
-import { mockNetworkState } from '../../../../../util/test/network';
+import useFetchRampNetworks from '@hooks/useFetchRampNetworks';
+import useRampNetworksDetail from '@hooks/useRampNetworksDetail';
+import { RampSDK } from '@sdk';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
+import Engine from '@core/Engine';
+import { RampType } from '@reducers/fiatOrders/types';
+import { mockNetworkState } from '@util/test/network';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -104,7 +104,7 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
   );
 }
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     NetworkController: {
       setProviderType: jest.fn(),
@@ -145,7 +145,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockFetchNetworks = jest.fn();
 const mockUseFetchRampNetworksInitialValues: Partial<
@@ -154,7 +154,7 @@ const mockUseFetchRampNetworksInitialValues: Partial<
 
 let mockUseFetchRampNetworksValues = [...mockUseFetchRampNetworksInitialValues];
 
-jest.mock('../../hooks/useFetchRampNetworks', () =>
+jest.mock('@hooks/useFetchRampNetworks', () =>
   jest.fn(() => mockUseFetchRampNetworksValues),
 );
 
@@ -172,7 +172,7 @@ let mockUseRampNetworksDetailValues = {
   ...mockUseRampNetworksDetailInitialValues,
 };
 
-jest.mock('../../hooks/useRampNetworksDetail', () =>
+jest.mock('@hooks/useRampNetworksDetail', () =>
   jest.fn(() => mockUseRampNetworksDetailValues),
 );
 
@@ -187,8 +187,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockuseRampSDKInitialValues,
 };
 
-jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
+jest.mock('@sdk', () => ({
+  ...jest.requireActual('@sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 

@@ -13,42 +13,42 @@ import {
 } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
-import StyledButton from '../../UI/StyledButton';
+} from '@component-library/components/Texts/Text';
+import StorageWrapper from '@store/storage-wrapper';
+import StyledButton from '@UI/StyledButton';
 import {
   fontStyles,
   baseStyles,
   colors as importedColors,
-} from '../../../styles/common';
-import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
-import { strings } from '../../../../locales/i18n';
+} from '@styles/common';
+import OnboardingScreenWithBg from '@UI/OnboardingScreenWithBg';
+import { strings } from '@locales/i18n';
 import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
-import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import FadeOutOverlay from '@UI/FadeOutOverlay';
 import {
   getTransparentBackOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
-} from '../../UI/Navbar';
-import Device from '../../../util/device';
-import BaseNotification from '../../UI/Notification/BaseNotification';
+} from '@UI/Navbar';
+import Device from '@util/device';
+import BaseNotification from '@UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset } from '../../../actions/user';
-import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
-import PreventScreenshot from '../../../core/PreventScreenshot';
-import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
-import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { withMetricsAwareness } from '../../hooks/useMetrics';
-import { Authentication } from '../../../core';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import { loadingSet, loadingUnset } from '@actions/user';
+import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '@reducers/legalNotices';
+import PreventScreenshot from '@core/PreventScreenshot';
+import WarningExistingUserModal from '@UI/WarningExistingUserModal';
+import { PREVIOUS_SCREEN, ONBOARDING } from '@constants/navigation';
+import { EXISTING_USER } from '@constants/storage';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { withMetricsAwareness } from '@hooks/useMetrics';
+import { Authentication } from '@core';
+import { ThemeContext, mockTheme } from '@util/theme';
+import AnimatedFox from '@Base/AnimatedFox';
+import { OnboardingSelectorIDs } from '@e2e/selectors/Onboarding/Onboarding.selectors';
 
-import Routes from '../../../constants/navigation/Routes';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import Routes from '@constants/navigation/Routes';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -441,7 +441,7 @@ class Onboarding extends PureComponent {
                 <View style={styles.foxWrapper}>
                   {Device.isAndroid() ? (
                     <Image
-                      source={require('../../../images/fox.png')}
+                      source={require('@images/fox.png')}
                       style={styles.image}
                       resizeMethod={'auto'}
                     />

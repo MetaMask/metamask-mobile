@@ -1,18 +1,18 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
-import AppConstants from '../../AppConstants';
-import Engine from '../../Engine';
-import { getPermittedAccounts } from '../../Permissions';
-import { Connection } from '../Connection';
-import { HOUR_IN_MS } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
+import AppConstants from '@AppConstants';
+import Engine from '@Engine';
+import { getPermittedAccounts } from '@Permissions';
+import { Connection } from '@Connection';
+import { HOUR_IN_MS } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
 import {
   wait,
   waitForCondition,
   waitForKeychainUnlocked,
-} from '../utils/wait.util';
-import Routes from '../../../constants/navigation/Routes';
+} from '@utils/wait.util';
+import Routes from '@constants/navigation/Routes';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({

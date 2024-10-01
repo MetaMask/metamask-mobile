@@ -1,7 +1,7 @@
 // External dependencies.
 import { ViewStyle } from 'react-native';
-import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
-import { PickerBaseProps } from '../PickerBase';
+import { AvatarAccountType } from '@Avatars/Avatar/variants/AvatarAccount';
+import { PickerBaseProps } from '@PickerBase';
 
 /**
  * PickerAccount component props.

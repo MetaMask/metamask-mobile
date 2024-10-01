@@ -5,15 +5,15 @@ import {
   SimulationErrorCode,
 } from '@metamask/transaction-controller';
 
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { updateTransactionMetrics } from '../../../core/redux/slices/transactionMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { updateTransactionMetrics } from '@core/redux/slices/transactionMetrics';
 import {
   UseDisplayNameRequest,
   UseDisplayNameResponse,
   useDisplayNames,
-} from '../../hooks/DisplayName/useDisplayName';
-import { NameType } from '../../UI/Name/Name.types';
+} from '@hooks/DisplayName/useDisplayName';
+import { NameType } from '@UI/Name/Name.types';
 import useLoadingTime from './useLoadingTime';
 import { calculateTotalFiat } from './FiatDisplay/FiatDisplay';
 import { BalanceChange } from './types';

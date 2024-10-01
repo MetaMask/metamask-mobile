@@ -2,28 +2,28 @@ import { Alert, InteractionManager, Linking, Switch, View } from 'react-native';
 import {
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
-} from '../../SecuritySettings.constants';
+} from '@SecuritySettings.constants';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../locales/i18n';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
+} from '@component-library/components/Buttons/Button';
+import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '@constants/urls';
 import React, { useEffect, useState } from 'react';
-import createStyles from '../../SecuritySettings.styles';
-import { useTheme } from '../../../../../../util/theme';
+import createStyles from '@SecuritySettings.styles';
+import { useTheme } from '@util/theme';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
-} from '../../../../../../util/metrics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { setDataCollectionForMarketing } from '../../../../../../actions/security';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../../../hooks/useMetrics';
+} from '@util/metrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { setDataCollectionForMarketing } from '@actions/security';
+import Routes from '@constants/navigation/Routes';
+import { useMetrics } from '@hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 

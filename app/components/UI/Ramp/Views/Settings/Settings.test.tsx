@@ -1,15 +1,15 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Settings from './Settings';
-import useActivationKeys from '../../hooks/useActivationKeys';
-import { RampSDK, withRampSDK } from '../../sdk';
-import { ActivationKey } from '../../../../../reducers/fiatOrders/types';
+import useActivationKeys from '@hooks/useActivationKeys';
+import { RampSDK, withRampSDK } from '@sdk';
+import { ActivationKey } from '@reducers/fiatOrders/types';
 import {
   renderScreen,
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import Routes from '../../../../../constants/navigation/Routes';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import Routes from '@constants/navigation/Routes';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -72,7 +72,7 @@ const mockUseActivationKeysInitialValues: ReturnType<typeof useActivationKeys> =
 
 let mockUseActivationKeysValues = mockUseActivationKeysInitialValues;
 
-jest.mock('../../hooks/useActivationKeys', () =>
+jest.mock('@hooks/useActivationKeys', () =>
   jest.fn(() => mockUseActivationKeysValues),
 );
 
@@ -91,7 +91,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockuseRampSDKInitialValues,
 };
 
-jest.mock('../../sdk', () => ({
+jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
   withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));

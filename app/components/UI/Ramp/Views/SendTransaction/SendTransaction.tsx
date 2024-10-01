@@ -9,55 +9,55 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
-import Row from '../../components/Row';
-import ScreenLayout from '../../components/ScreenLayout';
-import PaymentMethodIcon from '../../components/PaymentMethodIcon';
+import Row from '@components/Row';
+import ScreenLayout from '@components/ScreenLayout';
+import PaymentMethodIcon from '@components/PaymentMethodIcon';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import RemoteImage from '../../../../Base/RemoteImage';
+} from '@component-library/components/Buttons/Button';
+import RemoteImage from '@Base/RemoteImage';
 
 import styleSheet from './SendTransaction.styles';
-import imageIcons from '../../../../../images/image-icons';
+import imageIcons from '@images/image-icons';
 
-import { RootState } from '../../../../../reducers';
+import { RootState } from '@reducers';
 import {
   getOrderById,
   getProviderName,
   setFiatSellTxHash,
-} from '../../../../../reducers/fiatOrders';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useParams } from '../../../../../util/navigation/navUtils';
+} from '@reducers/fiatOrders';
+import { getFiatOnRampAggNavbar } from '@Navbar';
+import { useParams } from '@util/navigation/navUtils';
 import {
   addHexPrefix,
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
-} from '../../../../../util/number';
-import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
-import { addTransaction } from '../../../../../util/transaction-controller';
+} from '@util/number';
+import { strings } from '@locales/i18n';
+import { useStyles } from '@component-library/hooks';
+import { addTransaction } from '@util/transaction-controller';
 
-import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { safeToChecksumAddress } from '../../../../../util/address';
-import { generateTransferData } from '../../../../../util/transactions';
-import useAnalytics from '../../hooks/useAnalytics';
+import { NATIVE_ADDRESS } from '@constants/on-ramp';
+import { safeToChecksumAddress } from '@util/address';
+import { generateTransferData } from '@util/transactions';
+import useAnalytics from '@hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
-import { RAMPS_SEND } from '../../constants';
+import { RAMPS_SEND } from '@constants';
 
 interface SendTransactionParams {
   orderId?: string;

@@ -9,7 +9,7 @@ jest.mock('react-redux', () => ({
     .mockImplementation(() => 'https://cloudflare-ipfs.com/ipfs/'),
 }));
 
-jest.mock('../../../components/hooks/useIpfsGateway', () => jest.fn());
+jest.mock('@components/hooks/useIpfsGateway', () => jest.fn());
 
 describe('RemoteImage', () => {
   it('should render svg correctly', () => {

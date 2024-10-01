@@ -1,24 +1,24 @@
 import {
   TimePeriod,
   TokenPrice,
-} from '../../../../components/hooks/useTokenHistoricalPrices';
+} from '@components/hooks/useTokenHistoricalPrices';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Icon from 'react-native-vector-icons/Feather';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import { toDateFormat } from '../../../../util/date';
-import { addCurrencySymbol } from '../../../../util/number';
+import { strings } from '@locales/i18n';
+import { useStyles } from '@component-library/hooks';
+import { toDateFormat } from '@util/date';
+import { addCurrencySymbol } from '@util/number';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import PriceChart from '../PriceChart/PriceChart';
-import { distributeDataPoints } from '../PriceChart/utils';
+} from '@component-library/components/Texts/Text';
+import PriceChart from '@PriceChart/PriceChart';
+import { distributeDataPoints } from '@PriceChart/utils';
 import styleSheet from './Price.styles';
-import { TOKEN_PRICE } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { TokenI } from '../../Tokens/types';
+import { TOKEN_PRICE } from '@wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenI } from '@Tokens/types';
 
 interface PriceProps {
   asset: TokenI;

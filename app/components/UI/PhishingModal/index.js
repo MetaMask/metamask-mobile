@@ -9,13 +9,13 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import StyledButton from '../../UI/StyledButton';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
+import StyledButton from '@UI/StyledButton';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
 import URL from 'url-parse';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ETHEREUM_DETECTION_TITLE } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
+import { ThemeContext, mockTheme } from '@util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
+import { ETHEREUM_DETECTION_TITLE } from '@wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -86,7 +86,7 @@ const createStyles = (colors) =>
     },
   });
 
-const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('@images/fox.png'); // eslint-disable-line import/no-commonjs
 
 export default class PhishingModal extends PureComponent {
   static propTypes = {

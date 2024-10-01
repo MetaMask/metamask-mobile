@@ -8,20 +8,20 @@ import {
   SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import OnboardingProgress from '../../UI/OnboardingProgress';
-import ActionView from '../../UI/ActionView';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import { strings } from '../../../../locales/i18n';
+import OnboardingProgress from '@UI/OnboardingProgress';
+import ActionView from '@UI/ActionView';
+import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import { strings } from '@locales/i18n';
 import { connect } from 'react-redux';
-import { seedphraseBackedUp } from '../../../actions/user';
+import { seedphraseBackedUp } from '@actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { shuffle, compareMnemonics } from '../../../util/mnemonic';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useTheme } from '../../../util/theme';
+import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import { shuffle, compareMnemonics } from '@util/mnemonic';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useTheme } from '@util/theme';
 import createStyles from './styles';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { ManualBackUpStepsSelectorsIDs } from '@e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();

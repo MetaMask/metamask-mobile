@@ -1,5 +1,5 @@
 // External dependencies.
-import { USER_INTENT } from '../../../../constants/permissions';
+import { USER_INTENT } from '@constants/permissions';
 
 /**
  * NetworkConnectMultiSelector props.

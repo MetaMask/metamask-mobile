@@ -3,11 +3,11 @@ import React from 'react';
 
 // Internal dependencies.
 import BasicFunctionalityModal from './BasicFunctionalityModal';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 
 /**
- * @typedef {import('../../../../reducers').RootState} RootState
+ * @typedef {import('@reducers').RootState} RootState
  * @typedef {import('redux').DeepPartial<RootState>} MockRootState
  */
 

@@ -2,7 +2,7 @@ import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
-import { mockTheme } from '../theme';
+import { mockTheme } from '@theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 
@@ -34,7 +34,7 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps');
+jest.mock('@lib/snaps/preinstalled-snaps');
 
 const mockFs = {
   CachesDirectoryPath: jest.fn(),
@@ -103,7 +103,7 @@ jest.mock('react-native-blob-util', () => ({
 
 Date.now = jest.fn(() => 123);
 
-jest.mock('../../core/NotificationManager', () => ({
+jest.mock('@core/NotificationManager', () => ({
   init: jest.fn(),
   watchSubmittedTransaction: jest.fn(),
   getTransactionToView: jest.fn(),
@@ -113,14 +113,14 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-jest.mock('../../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(),
     dispatch: jest.fn(),
   },
 }));
 
-jest.mock('../../core/NotificationManager');
+jest.mock('@core/NotificationManager');
 
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
@@ -267,8 +267,8 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
-jest.mock('../theme', () => ({
-  ...jest.requireActual('../theme'),
+jest.mock('@theme', () => ({
+  ...jest.requireActual('@theme'),
   useAppThemeFromContext: () => ({ ...mockTheme }),
 }));
 
@@ -311,7 +311,7 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
 }));
@@ -321,8 +321,8 @@ require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests()
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
-jest.mock('../../core/Engine', () =>
-  require('../../core/__mocks__/MockedEngine'),
+jest.mock('@core/Engine', () =>
+  require('@core/__mocks__/MockedEngine'),
 );
 
 afterEach(() => {

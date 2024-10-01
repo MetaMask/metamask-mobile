@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { IconName, IconSize } from '../../Icons/Icon';
-import { ButtonIconSizes } from '../../Buttons/ButtonIcon';
-import { DEFAULT_TEXTFIELD_SIZE } from '../TextField/TextField.constants';
+import { IconName, IconSize } from '@Icons/Icon';
+import { ButtonIconSizes } from '@Buttons/ButtonIcon';
+import { DEFAULT_TEXTFIELD_SIZE } from '@TextField/TextField.constants';
 
 // Internal dependencies.
 import { TextFieldSearchProps } from './TextFieldSearch.types';

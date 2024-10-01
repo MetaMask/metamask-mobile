@@ -1,19 +1,19 @@
 import { hexToBN } from '@metamask/controller-utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
-import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { selectAccountsByChainId } from '@selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectChainId } from '../../../../selectors/networkController';
+} from '@selectors/currencyRateController';
+import { selectChainId } from '@selectors/networkController';
 import {
   renderFromWei,
   toHexadecimal,
   weiToFiat,
   weiToFiatNumber,
-} from '../../../../util/number';
+} from '@util/number';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);

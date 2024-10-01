@@ -3,24 +3,24 @@ import React, { useContext } from 'react';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { SafeAreaView } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import { strings } from '@locales/i18n';
+import { IconName } from '@component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../component-library/hooks';
+} from '@component-library/components/Buttons/Button';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './QRAccountDisplay.styles';
-import ClipboardManager from '../../../core/ClipboardManager';
+import ClipboardManager from '@core/ClipboardManager';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { renderAccountName } from '../../../util/address';
+} from '@component-library/components/Toast';
+import { selectInternalAccounts } from '@selectors/accountsController';
+import { renderAccountName } from '@util/address';
 
 const ADDRESS_PREFIX_LENGTH = 6;
 const ADDRESS_SUFFIX_LENGTH = 5;

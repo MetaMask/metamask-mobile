@@ -5,14 +5,14 @@ import { useNavigationState } from '@react-navigation/native';
 import {
   removeCurrentNotification,
   hideCurrentNotification,
-} from '../../../actions/notification';
-import { NotificationTypes } from '../../../util/notifications';
+} from '@actions/notification';
+import { NotificationTypes } from '@util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
-import { currentNotificationSelector } from '../../../reducers/notification';
+import { currentNotificationSelector } from '@reducers/notification';
 
-import { findRouteNameFromNavigatorState } from '../../../util/general';
-import usePrevious from '../../hooks/usePrevious';
+import { findRouteNameFromNavigatorState } from '@util/general';
+import usePrevious from '@hooks/usePrevious';
 import {
   useSharedValue,
   withTiming,

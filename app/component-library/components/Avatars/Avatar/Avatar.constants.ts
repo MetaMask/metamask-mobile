@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { IconSize } from '../../Icons/Icon';
-import { TextVariant } from '../../Texts/Text';
+import { IconSize } from '@Icons/Icon';
+import { TextVariant } from '@Texts/Text';
 import { SAMPLE_AVATARACCOUNT_PROPS } from './variants/AvatarAccount/AvatarAccount.constants';
 
 // Internal dependencies.

@@ -4,23 +4,23 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Switch } from 'react-native';
 
-import Engine from '../../../../../core/Engine';
+import Engine from '@core/Engine';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Cell, {
   CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Cells/Cell';
+import { AvatarVariant } from '@component-library/components/Avatars/Avatar/Avatar.types';
+import { IconName } from '@component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 import stylesheet from './SnapDetails.styles';
-import { SnapVersionBadge } from '../SnapVersionTag';
-import { toDateFormat } from '../../../../../util/date';
-import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
-import Label from '../../../../../component-library/components/Form/Label';
+import { SnapVersionBadge } from '@SnapVersionTag';
+import { toDateFormat } from '@util/date';
+import { strings } from '@locales/i18n';
+import { useStyles } from '@component-library/hooks';
+import Label from '@component-library/components/Form/Label';
 import {
   SNAP_DETAILS_CELL,
   SNAP_DETAILS_INSTALL_DATE,

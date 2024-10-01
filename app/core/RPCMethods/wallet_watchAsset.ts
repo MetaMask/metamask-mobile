@@ -1,15 +1,15 @@
-import Engine from '../Engine';
+import Engine from '@Engine';
 
-import { safeToChecksumAddress } from '../../util/address';
-import { store } from '../../store';
+import { safeToChecksumAddress } from '@util/address';
+import { store } from '@store';
 
-import { getPermittedAccounts } from '../Permissions';
-import { isSmartContractAddress } from '../../util/transactions';
+import { getPermittedAccounts } from '@Permissions';
+import { isSmartContractAddress } from '@util/transactions';
 import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
-} from '../../constants/error';
-import { selectChainId } from '../../selectors/networkController';
+} from '@constants/error';
+import { selectChainId } from '@selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
 import { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
 import { toChecksumHexAddress } from '@metamask/controller-utils';

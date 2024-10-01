@@ -1,6 +1,6 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import QrScanner from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 const initialState = {
   engine: {
@@ -135,8 +135,8 @@ let mockUseParamsValues = {
   collectible: TEST_COLLECTIBLE,
 };
 
-jest.mock('../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 

@@ -5,8 +5,8 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../hooks';
-import Text from '../Texts/Text/Text';
+import { useStyles } from '@hooks';
+import Text from '@Texts/Text/Text';
 
 // Internal dependencies.
 import { RadioButtonProps } from './RadioButton.types';

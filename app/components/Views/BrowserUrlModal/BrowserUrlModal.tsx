@@ -6,21 +6,21 @@ import {
   TextInput,
   InteractionManager,
 } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { createStyles } from './styles';
-import { useTheme } from '../../../util/theme';
-import UrlAutocomplete from '../../UI/UrlAutocomplete';
-import { BrowserUrlModalSelectorsIDs } from '../../../../e2e/selectors/Modals/BrowserUrlModal.selectors';
+import { useTheme } from '@util/theme';
+import UrlAutocomplete from '@UI/UrlAutocomplete';
+import { BrowserUrlModalSelectorsIDs } from '@e2e/selectors/Modals/BrowserUrlModal.selectors';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
-import Device from '../../../util/device';
+} from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import Device from '@util/device';
 
-import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import { BrowserURLBarSelectorsIDs } from '@e2e/selectors/Browser/BrowserURLBar.selectors';
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
   url: string | undefined;

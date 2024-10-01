@@ -1,4 +1,4 @@
-import { useStyles } from '../../hooks';
+import { useStyles } from '@hooks';
 import React from 'react';
 import stylesheet from './KeyValueRow.styles';
 import {
@@ -6,7 +6,7 @@ import {
   KeyValueRowFieldIconSides,
   KeyValueRowSectionAlignments,
 } from './KeyValueRow.types';
-import Icon from '../../components/Icons/Icon';
+import Icon from '@components/Icons/Icon';
 import { View } from 'react-native';
 import { areKeyValueRowPropsEqual } from './KeyValueRow.utils';
 import KeyValueSection from './KeyValueSection/KeyValueSection';

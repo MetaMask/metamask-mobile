@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import BrowserUrlModal from './';
-import { createNavigationProps } from '../../../util/testUtils';
+import { createNavigationProps } from '@util/testUtils';
 import { BrowserUrlParams } from './BrowserUrlModal';
 
 function mockOnUrlInputSubmit(_inputValue: string | undefined) {

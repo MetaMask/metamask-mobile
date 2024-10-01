@@ -27,7 +27,7 @@ import Animated, {
 import { debounce } from 'lodash';
 
 // External dependencies.
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 
 // Internal dependencies.
 import {

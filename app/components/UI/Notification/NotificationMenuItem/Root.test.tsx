@@ -2,7 +2,7 @@
 // @ts-nocheck - Notifications team directory
 import React from 'react';
 
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { useSharedValue, runOnJS, withTiming } from 'react-native-reanimated';
 

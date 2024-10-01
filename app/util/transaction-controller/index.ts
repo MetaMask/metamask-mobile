@@ -3,7 +3,7 @@ import {
   TransactionController as BaseTransactionController,
 } from '@metamask/transaction-controller';
 
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 
 // Keeping this export as function to put more logic in the future
 export async function addTransaction(

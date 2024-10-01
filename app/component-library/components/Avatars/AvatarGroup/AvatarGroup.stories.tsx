@@ -5,7 +5,7 @@ import { Meta, Story } from '@storybook/react-native';
 // Internal Dependencies
 import AvatarGroup from './AvatarGroup';
 import { AvatarGroupProps } from './AvatarGroup.types';
-import { AvatarSize } from '../Avatar/Avatar.types';
+import { AvatarSize } from '@Avatar/Avatar.types';
 import { SAMPLE_AVATARGROUP_PROPS } from './AvatarGroup.constants';
 
 const defaultArgTypes = {

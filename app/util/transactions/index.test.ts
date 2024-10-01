@@ -4,11 +4,11 @@ import { BN } from 'ethereumjs-util';
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';
 
-import { handleMethodData } from '../../util/transaction-controller';
+import { handleMethodData } from '@util/transaction-controller';
 
-import { BNToHex } from '../number';
-import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
-import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
+import { BNToHex } from '@number';
+import { UINT256_BN_MAX_VALUE } from '@constants/transaction';
+import { NEGATIVE_TOKEN_DECIMALS } from '@constants/error';
 import {
   generateTransferData,
   decodeApproveData,
@@ -38,19 +38,19 @@ import {
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
 } from '.';
-import Engine from '../../core/Engine';
-import { strings } from '../../../locales/i18n';
+import Engine from '@core/Engine';
+import { strings } from '@locales/i18n';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   query: jest.fn(),
 }));
-jest.mock('../../core/Engine');
+jest.mock('@core/Engine');
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
-jest.mock('../../util/transaction-controller');
+jest.mock('@util/transaction-controller');
 
 ENGINE_MOCK.getGlobalEthQuery = () => null;
 

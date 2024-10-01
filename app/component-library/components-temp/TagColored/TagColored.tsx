@@ -5,8 +5,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../hooks';
-import Text from '../../../component-library/components/Texts/Text';
+import { useStyles } from '@hooks';
+import Text from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import styleSheet from './TagColored.styles';

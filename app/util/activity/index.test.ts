@@ -4,7 +4,7 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
 } from '.';
-import { TX_SUBMITTED } from '../../constants/transaction';
+import { TX_SUBMITTED } from '@constants/transaction';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';

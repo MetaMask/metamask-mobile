@@ -1,7 +1,7 @@
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
-import Logger from '../../util/Logger';
+import Logger from '@util/Logger';
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.

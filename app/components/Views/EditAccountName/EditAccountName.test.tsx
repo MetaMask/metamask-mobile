@@ -4,10 +4,10 @@ import { fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies
 import EditAccountName from './EditAccountName';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import EditAccountNameSelectorIDs from '@e2e/selectors/EditAccountName.selectors';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
@@ -18,7 +18,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   setAccountLabel: () => mockEngineSetAccountLabel,
   context: {
     PreferencesController: {

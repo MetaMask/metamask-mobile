@@ -3,12 +3,12 @@
 /* eslint-disable import/no-namespace */
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { act, renderHook } from '@testing-library/react-hooks';
-import initialRootState from '../../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 import React from 'react';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
-import * as Selectors from '../../../selectors/notifications';
-import * as Actions from '../../../actions/notification/helpers';
+import * as Selectors from '@selectors/notifications';
+import * as Actions from '@actions/notification/helpers';
 import useCreateSession from './useCreateSession';
 
 function arrangeStore() {

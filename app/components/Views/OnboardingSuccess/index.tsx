@@ -7,30 +7,30 @@ import {
   TouchableOpacity,
   Text as RNText,
 } from 'react-native';
-import Button from '../../../component-library/components/Buttons/Button';
+import Button from '@component-library/components/Buttons/Button';
 import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button/Button.types';
-import Text from '../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
+} from '@component-library/components/Buttons/Button/Button.types';
+import Text from '@component-library/components/Texts/Text';
+import { TextColor } from '@component-library/components/Texts/Text/Text.types';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
-import HintModal from '../../UI/HintModal';
-import { useTheme } from '../../../util/theme';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { SEED_PHRASE_HINTS } from '../../../constants/storage';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
+import { getTransparentOnboardingNavbarOptions } from '@UI/Navbar';
+import HintModal from '@UI/HintModal';
+import { useTheme } from '@util/theme';
+import StorageWrapper from '@store/storage-wrapper';
+import { SEED_PHRASE_HINTS } from '@constants/storage';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import AppConstants from '../../../core/AppConstants';
+} from '@component-library/components/Icons/Icon';
+import AppConstants from '@core/AppConstants';
 import Emoji from 'react-native-emoji';
-import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
+import { OnboardingSuccessSelectorIDs } from '@e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
 
 interface OnboardingSuccessProps {

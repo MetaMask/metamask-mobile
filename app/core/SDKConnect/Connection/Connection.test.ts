@@ -1,7 +1,7 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Connection } from './Connection';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import RPCQueueManager from '../RPCQueueManager';
+import RPCQueueManager from '@RPCQueueManager';
 import sendAuthorized from './Auth/sendAuthorized';
 import {
   connect,
@@ -18,11 +18,11 @@ import {
 } from './EventListenersHandlers';
 
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('../RPCQueueManager');
+jest.mock('@RPCQueueManager');
 jest.mock('./Auth/sendAuthorized');
 jest.mock('./ConnectionLifecycle');
 jest.mock('./EventListenersHandlers');
-jest.mock('../../BackgroundBridge/BackgroundBridge');
+jest.mock('@BackgroundBridge/BackgroundBridge');
 
 describe('Connection', () => {
   let connection: Connection;

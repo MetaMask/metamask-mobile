@@ -6,23 +6,23 @@ import {
   METAMASK_DOMAIN,
 } from '@metamask/selected-network-controller';
 import EthQuery from '@metamask/eth-query';
-import MobilePortStream from '../MobilePortStream';
-import { setupMultiplex } from '../../util/streams';
+import MobilePortStream from '@MobilePortStream';
+import { setupMultiplex } from '@util/streams';
 import {
   createOriginMiddleware,
   createLoggerMiddleware,
-} from '../../util/middlewares';
-import Engine from '../Engine';
-import { createSanitizationMiddleware } from '../SanitizationMiddleware';
-import Logger from '../../util/Logger';
-import AppConstants from '../AppConstants';
+} from '@util/middlewares';
+import Engine from '@Engine';
+import { createSanitizationMiddleware } from '@SanitizationMiddleware';
+import Logger from '@util/Logger';
+import AppConstants from '@AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
-import { store } from '../../store';
+import { store } from '@store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
+import snapMethodMiddlewareBuilder from '@Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
@@ -33,12 +33,12 @@ const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
-import DevLogger from '../SDKConnect/utils/DevLogger';
-import { getPermittedAccounts } from '../Permissions';
+import DevLogger from '@SDKConnect/utils/DevLogger';
+import { getPermittedAccounts } from '@Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
-import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
-import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
-import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+import { NETWORK_ID_LOADING } from '@redux/slices/inpageProvider';
+import createUnsupportedMethodMiddleware from '@RPCMethods/createUnsupportedMethodMiddleware';
+import createLegacyMethodMiddleware from '@RPCMethods/createLegacyMethodMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =

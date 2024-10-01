@@ -38,8 +38,53 @@
     "resolveJsonModule": true /* Allows importing JSON files */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
-      "images/*": [
+      "@actions/*": [
+        "./app/actions/*"
+      ],
+      "@animations/*": [
+        "./app/animations/*"
+      ],
+      "@component-library/*": [
+        "./app/component-library/*"
+      ],
+      "@components/*": [
+        "./app/components/*"
+      ],
+      "@constants/*": [
+        "./app/constants/*"
+      ],
+      "@core/*": [
+        "./app/core/*"
+      ],
+      "@declarations/*": [
+        "./app/declarations/*"
+      ],
+      "@fonts/*": [
+        "./app/fonts/*"
+      ],
+      "@images/*": [
         "./app/images/*"
+      ],
+      "@lib/*": [
+        "./app/lib/*"
+      ],
+      "@reducers/*": [
+        "./app/reducers/*"
+      ],
+      "@selectors/*": [
+        "./app/selectors/*"
+      ],
+      "@store/*": [
+        "./app/store/*"
+      ],
+      "@styles/*": [
+        "./app/styles/*"
+      ],
+      "@util/*": [
+        "./app/util/*"
+      ],
+      "@videos/*": [
+        "./app/videos/*"
       ],
       "@keystonehq/ur-decoder": [
         "app/declarations/@keystonehq/ur-decoder.ts"

@@ -10,7 +10,7 @@ import {
   NavigationContainer,
   useNavigationState,
 } from '@react-navigation/native';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { findRouteNameFromNavigatorState } from '@util/general';
 import { Text } from 'react-native';
 
 const Stack = createStackNavigator();

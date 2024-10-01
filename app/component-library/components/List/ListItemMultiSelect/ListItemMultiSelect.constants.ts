@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { SAMPLE_LISTITEM_PROPS } from '../../List/ListItem/ListItem.constants';
+import { SAMPLE_LISTITEM_PROPS } from '@List/ListItem/ListItem.constants';
 
 // Internal dependencies.
 import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';

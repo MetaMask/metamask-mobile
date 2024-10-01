@@ -1,12 +1,12 @@
 import React from 'react';
 import { merge } from 'lodash';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
 import { IndividualFiatDisplay, TotalFiatDisplay } from './FiatDisplay';
-import { FIAT_UNAVAILABLE } from '../types';
+import { FIAT_UNAVAILABLE } from '@types';
 import useFiatFormatter from './useFiatFormatter';
-import { mockNetworkState } from '../../../../util/test/network';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('./useFiatFormatter');

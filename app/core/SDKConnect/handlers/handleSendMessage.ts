@@ -1,13 +1,13 @@
 import { Platform } from 'react-native';
-import Routes from '../../../../app/constants/navigation/Routes';
-import AppConstants from '../../../../app/core/AppConstants';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import { Minimizer } from '../../NativeModules';
-import { Connection } from '../Connection';
-import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
+import Routes from '@app/constants/navigation/Routes';
+import AppConstants from '@app/core/AppConstants';
+import Logger from '@util/Logger';
+import Device from '@util/device';
+import { Minimizer } from '@NativeModules';
+import { Connection } from '@Connection';
+import { METHODS_TO_DELAY, RPC_METHODS } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
+import { wait } from '@utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 
 export const handleSendMessage = async ({

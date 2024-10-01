@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Texts/Text';
+import Text, { TextVariant } from '@Texts/Text';
 
 // Internal dependencies.
 import { default as SheetBottomComponent } from './SheetBottom';

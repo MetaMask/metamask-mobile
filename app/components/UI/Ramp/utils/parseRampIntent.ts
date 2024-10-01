@@ -1,4 +1,4 @@
-import { RampIntent } from '../types';
+import { RampIntent } from '@types';
 
 export default function parseRampIntent(
   pathParams: Record<string, string | undefined>,

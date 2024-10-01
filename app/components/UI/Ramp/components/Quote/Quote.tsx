@@ -16,26 +16,26 @@ import Animated, {
 } from 'react-native-reanimated';
 import { QuoteResponse, SellQuoteResponse } from '@consensys/on-ramp-sdk';
 import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import Box from '../Box';
-import Text from '../../../../Base/Text';
-import Title from '../../../../Base/Title';
-import BaseListItem from '../../../../Base/ListItem';
-import StyledButton from '../../../StyledButton';
+import Box from '@Box';
+import Text from '@Base/Text';
+import Title from '@Base/Title';
+import BaseListItem from '@Base/ListItem';
+import StyledButton from '@StyledButton';
 import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../../util/number';
-import { strings } from '../../../../../../locales/i18n';
-import ApplePayButton from '../../containers/ApplePayButton';
-import RemoteImage from '../../../../Base/RemoteImage';
+} from '@util/number';
+import { strings } from '@locales/i18n';
+import ApplePayButton from '@containers/ApplePayButton';
+import RemoteImage from '@Base/RemoteImage';
 
-import TagColored from '../../../../../component-library/components-temp/TagColored';
-import Row from '../Row';
+import TagColored from '@component-library/components-temp/TagColored';
+import Row from '@Row';
 import styleSheet from './Quote.styles';
-import { useStyles } from '../../../../../component-library/hooks';
-import { isBuyQuote } from '../../utils';
-import { RampType } from '../../types';
+import { useStyles } from '@component-library/hooks';
+import { isBuyQuote } from '@utils';
+import { RampType } from '@types';
 // TODO: Convert into typescript and correctly type optionals
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

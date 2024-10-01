@@ -1,5 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
 
 export enum QuizStage {
   introduction = 'introduction',

@@ -3,9 +3,9 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 // External dependencies
-import Engine from '../../../../core/Engine';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import Engine from '@core/Engine';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
 // Internal dependencies
 import AssetSettings from '.';
@@ -19,7 +19,7 @@ beforeEach(() => {
 
 const mockEngine = Engine;
 
-jest.mock('../../../../core/Engine', () => {
+jest.mock('@core/Engine', () => {
   mockSetUseTokenDetection = jest.fn();
   return {
     init: () => mockEngine.init({}),

@@ -1,5 +1,5 @@
 import React from 'react';
-import ActionModal from '../../UI/ActionModal';
+import ActionModal from '@UI/ActionModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
   View,
@@ -8,14 +8,14 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import CheckBox from '@react-native-community/checkbox';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SkipAccountSecurityModal.selectors';
+import { fontStyles } from '@styles/common';
+import { useTheme } from '@util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
+import { SkipAccountSecurityModalSelectorsIDs } from '@e2e/selectors/Modals/SkipAccountSecurityModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

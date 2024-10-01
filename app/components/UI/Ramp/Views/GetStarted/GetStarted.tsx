@@ -1,24 +1,24 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image, View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../Base/Text';
-import StyledButton from '../../../StyledButton';
-import ScreenLayout from '../../components/ScreenLayout';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import { useRampSDK } from '../../sdk';
-import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
-import Routes from '../../../../../constants/navigation/Routes';
-import useAnalytics from '../../hooks/useAnalytics';
-import useRampNetwork from '../../hooks/useRampNetwork';
+import Text from '@Base/Text';
+import StyledButton from '@StyledButton';
+import ScreenLayout from '@components/ScreenLayout';
+import { getFiatOnRampAggNavbar } from '@Navbar';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import { useRampSDK } from '@sdk';
+import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
+import Routes from '@constants/navigation/Routes';
+import useAnalytics from '@hooks/useAnalytics';
+import useRampNetwork from '@hooks/useRampNetwork';
 import styles from './GetStarted.styles';
-import useRegions from '../../hooks/useRegions';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { RampIntent } from '../../types';
+import useRegions from '@hooks/useRegions';
+import { useParams } from '@util/navigation/navUtils';
+import { RampIntent } from '@types';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const getStartedIcon = require('../../components/images/WalletInfo.png');
+const getStartedIcon = require('@components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();

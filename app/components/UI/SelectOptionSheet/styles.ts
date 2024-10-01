@@ -1,7 +1,7 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
+import { fontStyles } from '@styles/common';
+import Device from '@util/device';
 
 export const ROW_HEIGHT = 35;
 const createStyles = (colors: ThemeColors) =>

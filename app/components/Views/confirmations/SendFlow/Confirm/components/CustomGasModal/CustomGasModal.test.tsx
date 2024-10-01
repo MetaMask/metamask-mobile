@@ -2,8 +2,8 @@ import React from 'react';
 
 import { fireEvent } from '@testing-library/react-native';
 
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
 import CustomGasModal from '.';
 
 jest.mock('@react-navigation/native', () => ({

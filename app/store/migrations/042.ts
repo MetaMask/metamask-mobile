@@ -6,8 +6,8 @@ import {
   getUUIDFromAddressOfNormalAccount,
 } from '@metamask/accounts-controller';
 import { InternalAccount } from '@metamask/keyring-api';
-import { isDefaultAccountName } from '../../util/ENSUtils';
-import { ETH_EOA_METHODS } from '../../constants/eth-methods';
+import { isDefaultAccountName } from '@util/ENSUtils';
+import { ETH_EOA_METHODS } from '@constants/eth-methods';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 42)) {

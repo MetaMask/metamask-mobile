@@ -8,19 +8,19 @@ import { View, TouchableOpacity } from 'react-native';
 import {
   renderShortAddress,
   getLabelTextByAddress,
-} from '../../../../../util/address';
-import Identicon from '../../../../UI/Identicon';
+} from '@util/address';
+import Identicon from '@UI/Identicon';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../../../util/theme';
-import Text from '../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { doENSReverseLookup } from '../../../../../util/ENSUtils';
-import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '@util/theme';
+import Text from '@component-library/components/Texts/Text/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
+import { selectChainId } from '@selectors/networkController';
+import { doENSReverseLookup } from '@util/ENSUtils';
+import { strings } from '@locales/i18n';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 
 // Internal dependecies
 import styleSheet from './AddressElement.styles';

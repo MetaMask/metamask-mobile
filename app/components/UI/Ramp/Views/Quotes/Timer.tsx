@@ -1,12 +1,12 @@
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useStyles } from '../../../../hooks/useStyles';
-import { useRampSDK } from '../../sdk';
+import { useStyles } from '@hooks/useStyles';
+import { useRampSDK } from '@sdk';
 
-import Text from '../../../../Base/Text';
+import Text from '@Base/Text';
 import styleSheet from './Quotes.styles';
 
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 const Timer = ({
   isFetchingQuotes,

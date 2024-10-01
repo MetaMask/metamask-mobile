@@ -1,18 +1,18 @@
 import React, { useEffect, useMemo } from 'react';
-import { strings } from '../../../../../../../locales/i18n';
-import TemplateRenderer from '../../../../../UI/TemplateRenderer';
+import { strings } from '@locales/i18n';
+import TemplateRenderer from '@UI/TemplateRenderer';
 import { ConfirmationTemplateValues, getTemplateValues } from './Templates';
-import { useStyles } from '../../../../../hooks/useStyles';
+import { useStyles } from '@hooks/useStyles';
 import stylesheet from './TemplateConfirmation.styles';
 import { View } from 'react-native-animatable';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { useAppThemeFromContext } from '../../../../../../util/theme';
+} from '@component-library/components/Buttons/Button';
+import { useAppThemeFromContext } from '@util/theme';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
 
 export interface TemplateConfirmationProps {

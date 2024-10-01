@@ -1,9 +1,9 @@
 import { waitFor } from '@testing-library/react-native';
 import WalletConnectSessions from './';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import Routes from '../../../constants/navigation/Routes';
-import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/ExperimentalView.selectors';
+import StorageWrapper from '@store/storage-wrapper';
+import { renderScreen } from '@util/test/renderWithProvider';
+import Routes from '@constants/navigation/Routes';
+import { ExperimentalSelectorsIDs } from '@e2e/selectors/Settings/ExperimentalView.selectors';
 
 describe('WalletConnectSessions', () => {
   it('does not render when not ready', () => {

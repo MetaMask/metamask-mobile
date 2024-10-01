@@ -8,17 +8,17 @@ import {
   View,
 } from 'react-native';
 import { getSystemVersion } from 'react-native-device-info';
-import { strings } from '../../../../../locales/i18n';
-import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
-import Device from '../../../../util/device';
-import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import { strings } from '@locales/i18n';
+import { LEDGER_SUPPORT_LINK } from '@constants/urls';
+import Device from '@util/device';
+import { useAssetFromTheme, useTheme } from '@util/theme';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
-import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
+} from '@component-library/components/Texts/Text';
+import ledgerConnectDarkImage from '@images/ledger-connect-dark.png';
+import ledgerConnectLightImage from '@images/ledger-connect-light.png';
 import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
-import { Colors } from '../../../../util/theme/models';
+import { Colors } from '@util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

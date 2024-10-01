@@ -5,6 +5,30 @@ module.exports = {
   plugins: [
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
+    [
+      'module-resolver',
+      {
+        alias: {
+          actions: './app/actions',
+          animations: './app/animations',
+          'component-library': './app/component-library',
+          components: './app/components',
+          constants: './app/constants',
+          core: './app/core',
+          declarations: './app/declarations',
+          fonts: './app/fonts',
+          images: './app/images',
+          lib: './app/lib',
+          reducers: './app/reducers',
+          selectors: './app/selectors',
+          store: './app/store',
+          styles: './app/styles',
+          util: './app/util',
+          videos: './app/videos',
+          'keystonehq/ur-decoder': './app/declarations/@keystonehq/ur-decoder.ts',
+        },
+      },
+    ],
   ],
   overrides: [
     {

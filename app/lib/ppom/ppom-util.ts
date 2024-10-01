@@ -1,22 +1,22 @@
-import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
-import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
+import setSignatureRequestSecurityAlertResponse from '@actions/signatureRequest';
+import { setTransactionSecurityAlertResponse } from '@actions/transaction';
 import {
   Reason,
   ResultType,
   SecurityAlertResponse,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
-import Engine from '../../core/Engine';
-import { store } from '../../store';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-import Logger from '../../util/Logger';
-import { updateSecurityAlertResponse } from '../../util/transaction-controller';
+} from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import Engine from '@core/Engine';
+import { store } from '@store';
+import { isBlockaidFeatureEnabled } from '@util/blockaid';
+import Logger from '@util/Logger';
+import { updateSecurityAlertResponse } from '@util/transaction-controller';
 import {
   TransactionParams,
   normalizeTransactionParams,
 } from '@metamask/transaction-controller';
-import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
-import AppConstants from '../../core/AppConstants';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
+import AppConstants from '@core/AppConstants';
 import {
   getSecurityAlertsAPISupportedChainIds,
   isSecurityAlertsAPIEnabled,
@@ -24,7 +24,7 @@ import {
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 import { Hex } from '@metamask/utils';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '@util/networks';
 
 export interface PPOMRequest {
   method: string;

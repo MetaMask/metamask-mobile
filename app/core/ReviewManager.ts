@@ -3,10 +3,10 @@ import { Platform, Linking } from 'react-native';
 /* eslint-disable-next-line */
 import { NavigationContainerRef } from '@react-navigation/core';
 import InAppReview from 'react-native-in-app-review';
-import StorageWrapper from '../store/storage-wrapper';
-import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
-import Logger from '../util/Logger';
-import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../constants/urls';
+import StorageWrapper from '@store/storage-wrapper';
+import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '@constants/storage';
+import Logger from '@util/Logger';
+import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '@constants/urls';
 
 const EVENT_THRESHOLD = 6;
 const TIME_THRESHOLD = 10519200000; // 4 months in milliseconds

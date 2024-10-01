@@ -17,14 +17,14 @@ import {
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
   expectedUuid,
-} from '../util/test/accountsControllerTestUtils';
-import { RootState } from '../reducers';
+} from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 import {
   selectAccountBalanceByChainId,
   selectAccountsByChainId,
 } from './accountTrackerController';
-import renderWithProvider from '../util/test/renderWithProvider';
-import Engine, { EngineState } from '../core/Engine';
+import renderWithProvider from '@util/test/renderWithProvider';
+import Engine, { EngineState } from '@core/Engine';
 import {
   selectSelectedInternalAccount,
   selectSelectedInternalAccountChecksummedAddress,
@@ -38,7 +38,7 @@ const MOCK_BALANCE_2 = '0x22';
 const MOCK_BALANCE_3 = '0x33';
 
 // Mock Engine for render tests
-jest.mock('../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     NetworkController: {
       getNetworkClientById: jest.fn().mockReturnValue({

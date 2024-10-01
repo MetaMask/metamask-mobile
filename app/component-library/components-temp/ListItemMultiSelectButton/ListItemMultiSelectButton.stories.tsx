@@ -4,13 +4,13 @@ import React from 'react';
 // External dependencies.
 import ListItemColumn, {
   WidthType,
-} from '../../../component-library/components/List/ListItemColumn';
+} from '@component-library/components/List/ListItemColumn';
 import Icon, {
   IconName,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { default as ListItemSelectWithButtonComponent } from './ListItemMultiSelectButton';

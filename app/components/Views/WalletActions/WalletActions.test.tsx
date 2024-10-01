@@ -3,13 +3,13 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
-import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
-import { mockNetworkState } from '../../../util/test/network';
+import { WalletActionsModalSelectorsIDs } from '@e2e/selectors/Modals/WalletActionsModal.selectors';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RootState } from '@reducers';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState: DeepPartial<RootState> = {

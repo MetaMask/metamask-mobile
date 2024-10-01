@@ -1,12 +1,12 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
-import { resetConnections } from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
-import { Connection } from '../Connection';
-import SDKConnect from '../SDKConnect';
-import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
+import { resetConnections } from '@app/actions/sdk';
+import { store } from '@app/store';
+import Logger from '@util/Logger';
+import AppConstants from '@AppConstants';
+import { Connection } from '@Connection';
+import SDKConnect from '@SDKConnect';
+import { CONNECTION_LOADING_EVENT } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
 
 function watchConnection(connection: Connection, instance: SDKConnect) {
   connection.remote.on(

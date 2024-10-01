@@ -5,13 +5,13 @@ import Confirm from '.';
 import {
   DeepPartial,
   renderScreen,
-} from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
-import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../../../reducers';
+} from '@util/test/renderWithProvider';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
+import { TESTID_ACCORDION_CONTENT } from '@component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '@components/BlockaidBanner/BlockaidBanner.constants';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -99,24 +99,24 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
-jest.mock('../../../../../core/GasPolling/GasPolling', () => ({
-  ...jest.requireActual('../../../../../core/GasPolling/GasPolling'),
+jest.mock('@core/GasPolling/GasPolling', () => ({
+  ...jest.requireActual('@core/GasPolling/GasPolling'),
   startGasPolling: jest.fn(),
   stopGasPolling: jest.fn(),
 }));
 
-jest.mock('../../../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
 }));
 
-jest.mock('../../../../../lib/ppom/ppom-util', () => ({
-  ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
+jest.mock('@lib/ppom/ppom-util', () => ({
+  ...jest.requireActual('@lib/ppom/ppom-util'),
   validateRequest: jest.fn(),
   isChainSupported: jest.fn(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   context: {
     TokensController: {
@@ -147,12 +147,12 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../../../util/custom-gas', () => ({
-  ...jest.requireActual('../../../../../util/custom-gas'),
+jest.mock('@util/custom-gas', () => ({
+  ...jest.requireActual('@util/custom-gas'),
   getGasLimit: jest.fn(),
 }));
-jest.mock('../../../../../util/transactions', () => ({
-  ...jest.requireActual('../../../../../util/transactions'),
+jest.mock('@util/transactions', () => ({
+  ...jest.requireActual('@util/transactions'),
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
 

@@ -5,24 +5,24 @@ import React from 'react';
 import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../hooks';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import styleSheet from './CellSelectWithMenu.styles';
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
-import { CellModalSelectorsIDs } from '../../../../e2e/selectors/Modals/CellModal.selectors';
-import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
-import Avatar from '../../../component-library/components/Avatars/Avatar';
-import Text from '../../../component-library/components/Texts/Text';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
+import ListItemMultiSelectButton from '@ListItemMultiSelectButton/ListItemMultiSelectButton';
+import Avatar from '@component-library/components/Avatars/Avatar';
+import Text from '@component-library/components/Texts/Text';
 import {
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_SIZE,
   DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT,
-} from '../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
+} from '@component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 
 const CellSelectWithMenu = ({
   style,

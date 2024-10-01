@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { CurrencyRateState } from '@metamask/assets-controllers';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { selectChainId, selectTicker } from './networkController';
-import { isTestNet } from '../../app/util/networks';
+import { isTestNet } from '@app/util/networks';
 
 const selectCurrencyRateControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.CurrencyRateController;

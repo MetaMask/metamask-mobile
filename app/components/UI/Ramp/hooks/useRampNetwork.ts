@@ -2,11 +2,11 @@ import { useSelector } from 'react-redux';
 import {
   chainIdSelector,
   getRampNetworks,
-} from '../../../../reducers/fiatOrders';
+} from '@reducers/fiatOrders';
 import {
   isNetworkRampNativeTokenSupported,
   isNetworkRampSupported,
-} from '../utils';
+} from '@utils';
 
 /**
  * Hook that returns a tuple of boolean indicating if the network is supported and the native token is supported

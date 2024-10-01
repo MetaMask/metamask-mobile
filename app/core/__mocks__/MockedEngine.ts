@@ -1,8 +1,8 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { mockNetworkState } from '../../util/test/network';
+import { mockNetworkState } from '@util/test/network';
 import { NetworkClientId } from '@metamask/network-controller';
-import Engine from '../../core/Engine';
-import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringControllerTestUtils';
+import Engine from '@core/Engine';
+import { MOCK_KEYRING_CONTROLLER_STATE } from '@util/test/keyringControllerTestUtils';
 
 export const mockedEngine = {
   init: () => Engine.init({}),

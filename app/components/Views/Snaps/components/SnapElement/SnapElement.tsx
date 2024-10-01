@@ -3,18 +3,18 @@ import React from 'react';
 import { View } from 'react-native';
 import Cell, {
   CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+} from '@component-library/components/Cells/Cell';
+import { AvatarVariant } from '@component-library/components/Avatars/Avatar/Avatar.types';
 import Icon, {
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 
 import stylesheet from './SnapElement.styles';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import SNAP_ElEMENT from './SnapElement.constants';
 import { useNavigation } from '@react-navigation/native';
-import { createSnapSettingsNavDetails } from '../../SnapSettings/SnapSettings';
+import { createSnapSettingsNavDetails } from '@SnapSettings/SnapSettings';
 
 const SnapElement = (snap: Snap) => {
   const { styles } = useStyles(stylesheet, {});

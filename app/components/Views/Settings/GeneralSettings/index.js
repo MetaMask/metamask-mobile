@@ -10,34 +10,34 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 
-import Engine from '../../../../core/Engine';
+import Engine from '@core/Engine';
 import I18n, {
   strings,
   getLanguages,
   setLocale,
-} from '../../../../../locales/i18n';
-import SelectComponent from '../../../UI/SelectComponent';
-import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+} from '@locales/i18n';
+import SelectComponent from '@UI/SelectComponent';
+import infuraCurrencies from '@util/infura-conversion.json';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
 import {
   setSearchEngine,
   setPrimaryCurrency,
   setUseBlockieIcon,
   setHideZeroBalanceTokens,
-} from '../../../../actions/settings';
-import PickComponent from '../../PickComponent';
-import { toDataUrl } from '../../../../util/blockies.js';
+} from '@actions/settings';
+import PickComponent from '@PickComponent';
+import { toDataUrl } from '@util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+} from '@component-library/components/Texts/Text';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { UserProfileProperty } from '@util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
 const spacing = 8;

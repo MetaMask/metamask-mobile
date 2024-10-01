@@ -1,22 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Notification } from '../../../../util/notifications';
-import { useTheme } from '../../../../util/theme';
+import { Notification } from '@util/notifications';
+import { useTheme } from '@util/theme';
 
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+} from '@component-library/components/Icons/Icon';
+import { useMarkNotificationAsRead } from '@util/notifications/hooks/useNotifications';
+import { NotificationComponentState } from '@util/notifications/notification-states';
 import Header from './Title';
 import { createStyles } from './styles';
 import ModalField from './Fields';
 import ModalHeader from './Headers';
 import ModalFooter from './Footers';
-import { toLocaleDate } from '../../../../util/date';
+import { toLocaleDate } from '@util/date';
 
 interface Props {
   navigation: NavigationProp<ParamListBase>;

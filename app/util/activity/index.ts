@@ -1,6 +1,6 @@
-import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseEquals } from '../../util/general';
-import { TX_UNAPPROVED } from '../../constants/transaction';
+import { safeToChecksumAddress } from '@util/address';
+import { toLowerCaseEquals } from '@util/general';
+import { TX_UNAPPROVED } from '@constants/transaction';
 
 /**
  * Determines if the transaction is from or to the current wallet

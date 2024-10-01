@@ -1,4 +1,4 @@
-import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
+import { BadgeProps } from '@components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
   /**

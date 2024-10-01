@@ -1,6 +1,6 @@
-import Device from '../../../util/device';
+import Device from '@util/device';
 import { StyleSheet, TextStyle } from 'react-native';
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;

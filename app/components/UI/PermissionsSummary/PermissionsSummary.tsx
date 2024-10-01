@@ -1,42 +1,42 @@
 import React, { useCallback } from 'react';
-import StyledButton from '../StyledButton';
+import StyledButton from '@StyledButton';
 import { SafeAreaView, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import TextComponent, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { SAMPLE_AVATARGROUP_PROPS } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
+} from '@component-library/components/Texts/Text';
+import AvatarGroup from '@component-library/components/Avatars/AvatarGroup';
+import { SAMPLE_AVATARGROUP_PROPS } from '@component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { getHost } from '../../../util/browser';
-import WebsiteIcon from '../WebsiteIcon';
-import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
+} from '@component-library/components/Buttons/Button';
+import { getHost } from '@util/browser';
+import WebsiteIcon from '@WebsiteIcon';
+import useSelectedAccount from '@Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
 import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { USER_INTENT } from '../../../constants/permissions';
-import Routes from '../../../constants/navigation/Routes';
+import { selectNetworkName } from '@selectors/networkInfos';
+import { USER_INTENT } from '@constants/permissions';
+import Routes from '@constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
+} from '@component-library/components/Buttons/ButtonIcon';
 
 const PermissionsSummary = ({
   currentPageInformation,

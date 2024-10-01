@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName } from '../../../../Icons/Icon';
+import { IconName } from '@Icons/Icon';
 
 // Internal dependencies.
 import AccordionHeader from './AccordionHeader';

@@ -3,7 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 // Internal dependencies.
 import { ButtonPrimaryStyleSheetVars } from './ButtonPrimary.types';

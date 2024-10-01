@@ -6,12 +6,12 @@ import notifee, {
 
 import useNotificationHandler from './index';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
-import { Notification } from '../../../util/notifications/types';
-import { TRIGGER_TYPES } from '../constants';
+import Routes from '@constants/navigation/Routes';
+import { Notification } from '@util/notifications/types';
+import { TRIGGER_TYPES } from '@constants';
 
-jest.mock('../../../util/device');
-jest.mock('../../../core/NotificationManager', () => ({
+jest.mock('@util/device');
+jest.mock('@core/NotificationManager', () => ({
   setTransactionToView: jest.fn(),
 }));
 jest.mock('@notifee/react-native', () => ({
@@ -29,11 +29,11 @@ jest.mock('@notifee/react-native', () => ({
   },
 }));
 
-jest.mock('../../../core/NotificationManager', () => ({
+jest.mock('@core/NotificationManager', () => ({
   setTransactionToView: jest.fn(),
 }));
 
-jest.mock('../../../util/device', () => ({
+jest.mock('@util/device', () => ({
   isAndroid: jest.fn(),
 }));
 

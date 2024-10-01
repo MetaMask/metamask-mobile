@@ -4,14 +4,14 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import ListItemSelect from '../../../../List/ListItemSelect';
-import CellBase from '../../foundation/CellBase';
+import { useStyles } from '@hooks';
+import ListItemSelect from '@List/ListItemSelect';
+import CellBase from '@foundation/CellBase';
 
 // Internal dependencies.
 import styleSheet from './CellSelect.styles';
 import { CellSelectProps } from './CellSelect.types';
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 const CellSelect = ({
   style,

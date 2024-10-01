@@ -4,10 +4,10 @@ import React, { useState, useCallback } from 'react';
 import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
-import Text from '../../../../Texts/Text';
-import { useStyles } from '../../../../../hooks';
-import Button from '../../foundation/ButtonBase';
-import { ButtonSize } from '../../Button.types';
+import Text from '@Texts/Text';
+import { useStyles } from '@hooks';
+import Button from '@foundation/ButtonBase';
+import { ButtonSize } from '@Button.types';
 
 // Internal dependencies.
 import { ButtonLinkProps } from './ButtonLink.types';

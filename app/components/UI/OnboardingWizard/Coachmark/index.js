@@ -4,25 +4,25 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import {
   colors as importedColors,
   fontStyles,
-} from '../../../../styles/common';
-import StyledButton from '../../StyledButton';
-import { strings } from '../../../../../locales/i18n';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
+} from '@styles/common';
+import StyledButton from '@StyledButton';
+import { strings } from '@locales/i18n';
+import { mockTheme, ThemeContext } from '@util/theme';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
+} from '@component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import { typography } from '@metamask/design-tokens';
 import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import Button from '../../../../component-library/components/Buttons/Button/Button';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+} from '@component-library/components/Buttons/Button';
+import Button from '@component-library/components/Buttons/Button/Button';
+import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

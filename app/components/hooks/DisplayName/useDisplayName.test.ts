@@ -1,6 +1,6 @@
 import type { TokenListToken } from '@metamask/assets-controllers';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
-import { NameType } from '../../UI/Name/Name.types';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
+import { NameType } from '@UI/Name/Name.types';
 import useDisplayName, { DisplayNameVariant } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
 import { useTokenListEntries } from './useTokenListEntry';

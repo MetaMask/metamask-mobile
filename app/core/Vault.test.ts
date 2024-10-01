@@ -1,4 +1,4 @@
-import Logger from '../util/Logger';
+import Logger from '@util/Logger';
 import Engine from './Engine';
 import { withLedgerKeyring } from './Ledger/Ledger';
 
@@ -19,7 +19,7 @@ jest.mock('./Ledger/Ledger', () => ({
 }));
 const mockWithLedgerKeyring = jest.mocked(withLedgerKeyring);
 
-jest.mock('../util/Logger', () => ({
+jest.mock('@util/Logger', () => ({
   error: jest.fn(),
 }));
 

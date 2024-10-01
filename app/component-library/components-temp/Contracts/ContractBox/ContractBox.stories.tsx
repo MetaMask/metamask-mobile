@@ -3,7 +3,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
 // External depencies
-import TEST_ADDRESS from '../../../../constants/address';
+import TEST_ADDRESS from '@constants/address';
 
 // Internal dependencies.
 import ContractBox from './ContractBox';

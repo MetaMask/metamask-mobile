@@ -4,20 +4,20 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { protectWalletModalVisible } from '../../../../actions/user';
-import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
-import Engine from '../../../../core/Engine';
-import NotificationManager from '../../../../core/NotificationManager';
-import { addFiatOrder, FiatOrder } from '../../../../reducers/fiatOrders';
-import { toLowerCaseEquals } from '../../../../util/general';
-import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import { useRampSDK } from '../sdk';
-import { getNotificationDetails, stateHasOrder } from '../utils';
+import { protectWalletModalVisible } from '@actions/user';
+import { NATIVE_ADDRESS } from '@constants/on-ramp';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
+import { addFiatOrder, FiatOrder } from '@reducers/fiatOrders';
+import { toLowerCaseEquals } from '@util/general';
+import useThunkDispatch from '@hooks/useThunkDispatch';
+import { useRampSDK } from '@sdk';
+import { getNotificationDetails, stateHasOrder } from '@utils';
 import useAnalytics from './useAnalytics';
-import { hexToBN, toHexadecimal } from '../../../../util/number';
-import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
-import Routes from '../../../../constants/navigation/Routes';
-import { selectChainId } from '../../../../selectors/networkController';
+import { hexToBN, toHexadecimal } from '@util/number';
+import { selectAccountsByChainId } from '@selectors/accountTrackerController';
+import Routes from '@constants/navigation/Routes';
+import { selectChainId } from '@selectors/networkController';
 import { Token } from '@metamask/assets-controllers';
 
 function useHandleSuccessfulOrder() {

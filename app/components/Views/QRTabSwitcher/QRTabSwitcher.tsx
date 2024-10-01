@@ -1,18 +1,18 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
-import QRScanner from '../QRScanner';
-import { strings } from '../../../../locales/i18n';
-import ReceiveRequest from '../../UI/ReceiveRequest';
-import { useTheme } from '../../../util/theme';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
+import QRScanner from '@QRScanner';
+import { strings } from '@locales/i18n';
+import ReceiveRequest from '@UI/ReceiveRequest';
+import { useTheme } from '@util/theme';
+import { createNavigationDetails } from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
 import createStyles from './styles';
-import NavbarTitle from '../../../components/UI/NavbarTitle';
+import NavbarTitle from '@components/UI/NavbarTitle';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Buttons/ButtonIcon';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 export enum QRTabSwitcherScreens {
   Scanner,

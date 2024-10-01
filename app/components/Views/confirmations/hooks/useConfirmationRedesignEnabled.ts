@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import useApprovalRequest from './useApprovalRequest';
 
 const useConfirmationRedesignEnabled = () => {

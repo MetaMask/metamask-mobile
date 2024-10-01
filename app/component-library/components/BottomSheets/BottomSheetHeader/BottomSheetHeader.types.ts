@@ -1,5 +1,5 @@
 // External dependencies.
-import { HeaderBaseProps } from '../../HeaderBase/HeaderBase.types';
+import { HeaderBaseProps } from '@HeaderBase/HeaderBase.types';
 
 /**
  * BottomSheetHeader component props.

@@ -6,15 +6,15 @@ import { render } from '@testing-library/react-native';
 import { NameType } from './Name.types';
 import useDisplayName, {
   DisplayNameVariant,
-} from '../../hooks/DisplayName/useDisplayName';
+} from '@hooks/DisplayName/useDisplayName';
 
-jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
+jest.mock('@hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
-  ...jest.requireActual('../../hooks/DisplayName/useDisplayName'),
+  ...jest.requireActual('@hooks/DisplayName/useDisplayName'),
   default: jest.fn(),
 }));
 
-jest.mock('../Identicon', () => ({
+jest.mock('@Identicon', () => ({
   __esModule: true,
   default: () => 'Identicon',
 }));

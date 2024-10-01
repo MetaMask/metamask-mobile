@@ -1,7 +1,7 @@
 import { BN } from 'ethereumjs-util';
 
-import { strings } from '../../../locales/i18n';
-import Engine from '../../core/Engine';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
 import {
   validateCollectibleOwnership,
   validateEtherAmount,

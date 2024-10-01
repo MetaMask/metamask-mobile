@@ -1,9 +1,9 @@
 import { NativeModules, Platform } from 'react-native';
-import SDKConnect from '../SDKConnect';
+import SDKConnect from '@SDKConnect';
 import bindAndroidSDK from './bindAndroidSDK';
 
-jest.mock('../SDKConnect');
-jest.mock('../../../util/Logger');
+jest.mock('@SDKConnect');
+jest.mock('@util/Logger');
 
 describe('bindAndroidSDK', () => {
   let mockInstance = {} as unknown as SDKConnect;

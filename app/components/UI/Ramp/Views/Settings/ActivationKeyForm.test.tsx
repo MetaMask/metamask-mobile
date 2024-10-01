@@ -1,7 +1,7 @@
 import ActivationKeyForm from './ActivationKeyForm';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import Routes from '../../../../../constants/navigation/Routes';
+import { renderScreen } from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import Routes from '@constants/navigation/Routes';
 import { fireEvent, screen } from '@testing-library/react-native';
 
 function render(Component: React.ComponentType) {
@@ -33,8 +33,8 @@ jest.mock('@react-navigation/native', () => {
 
 const mockOnSubmit = jest.fn();
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: () => ({
     onSubmit: mockOnSubmit,
   }),

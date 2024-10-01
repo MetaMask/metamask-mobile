@@ -1,29 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import ProgressBar from './ProgressBar';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 import {
   Hex,
   SmartTransaction,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectProviderConfig } from '@selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Routes from '../../../constants/navigation/Routes';
-import TransactionBackgroundTop from '../../../images/transaction-background-top.svg';
-import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
+} from '@component-library/components/Buttons/Button';
+import Routes from '@constants/navigation/Routes';
+import TransactionBackgroundTop from '@images/transaction-background-top.svg';
+import TransactionBackgroundBottom from '@images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
-import { hexToDecimal } from '../../../util/conversions';
+import { hexToDecimal } from '@util/conversions';
 import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 

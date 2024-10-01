@@ -7,34 +7,34 @@ import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import {
   IconName,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+} from '@component-library/components/Buttons/ButtonIcon';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
-import Row from '../../components/Row';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import useActivationKeys from '../../hooks/useActivationKeys';
+import Row from '@components/Row';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import useActivationKeys from '@hooks/useActivationKeys';
 
-import { useRampSDK } from '../../sdk';
+import { useRampSDK } from '@sdk';
 
 // Internal dependencies
 import { createActivationKeyFormNavDetails } from './ActivationKeyForm';
 
-import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItem from '@component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
+} from '@component-library/components/List/ListItemColumn';
 
 function ActivationKeys() {
   const navigation = useNavigation();

@@ -1,12 +1,12 @@
 import { createSelector } from 'reselect';
-import { selectChainId } from '../../selectors/networkController';
+import { selectChainId } from '@selectors/networkController';
 import {
   selectAllNftContracts,
   selectAllNfts,
-} from '../../selectors/nftController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
-import { compareTokenIds } from '../../util/tokens';
-import { createDeepEqualSelector } from '../../selectors/util';
+} from '@selectors/nftController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { compareTokenIds } from '@util/tokens';
+import { createDeepEqualSelector } from '@selectors/util';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 

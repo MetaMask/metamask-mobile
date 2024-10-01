@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
-import { RootState } from '../../reducers';
-import { createDeepEqualSelector } from '../util';
+import { RootState } from '@reducers';
+import { createDeepEqualSelector } from '@util';
 import { getLocalizedSnapManifest } from '@metamask/snaps-utils';
 
 // TODO: Filter out huge values

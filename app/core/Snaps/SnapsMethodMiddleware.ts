@@ -5,10 +5,10 @@ import {
   SubjectType,
 } from '@metamask/permission-controller';
 import { SnapRpcHookArgs } from '@metamask/snaps-utils';
-import { RestrictedMethods } from '../Permissions/constants';
-import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+import { RestrictedMethods } from '@Permissions/constants';
+import { keyringSnapPermissionsBuilder } from '@SnapKeyring/keyringSnapsPermissions';
 import { SnapId } from '@metamask/snaps-sdk';
-import { EngineContext } from '../Engine';
+import { EngineContext } from '@Engine';
 import { handleSnapRequest } from './utils';
 
 export function getSnapIdFromRequest(

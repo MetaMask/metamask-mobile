@@ -3,16 +3,16 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
 import { BN } from 'ethereumjs-util';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../../app/core/AppConstants';
-import Routes from '../../../../app/constants/navigation/Routes';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { getAssetTestId } from '@wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { backgroundState } from '@util/test/initial-root-state';
+import { strings } from '@locales/i18n';
+import AppConstants from '@app/core/AppConstants';
+import Routes from '@app/constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {

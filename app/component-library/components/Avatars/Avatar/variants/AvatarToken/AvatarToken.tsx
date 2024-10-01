@@ -4,12 +4,12 @@ import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
-import { selectIsIpfsGatewayEnabled } from '../../../../../../selectors/preferencesController';
-import { isIPFSUri } from '../../../../../../util/general';
-import AvatarBase from '../../foundation/AvatarBase';
-import Text from '../../../../Texts/Text';
-import { useStyles } from '../../../../../hooks';
-import { TEXTVARIANT_BY_AVATARSIZE } from '../../Avatar.constants';
+import { selectIsIpfsGatewayEnabled } from '@selectors/preferencesController';
+import { isIPFSUri } from '@util/general';
+import AvatarBase from '@foundation/AvatarBase';
+import Text from '@Texts/Text';
+import { useStyles } from '@hooks';
+import { TEXTVARIANT_BY_AVATARSIZE } from '@Avatar.constants';
 
 // Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';

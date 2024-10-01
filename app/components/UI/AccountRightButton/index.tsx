@@ -9,26 +9,26 @@ import {
   EmitterSubscription,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import Device from '../../../util/device';
+import Device from '@util/device';
 import AvatarAccount, {
   AvatarAccountType,
-} from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+} from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
 import Avatar, {
   AvatarVariant,
   AvatarSize,
-} from '../../../component-library/components/Avatars/Avatar';
-import { getDecimalChainId } from '../../../util/networks';
+} from '@component-library/components/Avatars/Avatar';
+import { getDecimalChainId } from '@util/networks';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+} from '@component-library/components/Badges/Badge';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
+import { selectProviderConfig } from '@selectors/networkController';
+import Routes from '@constants/navigation/Routes';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { AccountOverviewSelectorsIDs } from '@e2e/selectors/AccountOverview.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { useNetworkInfo } from '@selectors/selectedNetworkController';
 
 const styles = StyleSheet.create({
   leftButton: {

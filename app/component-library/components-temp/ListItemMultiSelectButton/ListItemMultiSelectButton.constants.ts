@@ -1,6 +1,6 @@
 // External dependencies.
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { SAMPLE_LISTITEM_PROPS } from '../../../component-library/components/List/ListItem/ListItem.constants';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { SAMPLE_LISTITEM_PROPS } from '@component-library/components/List/ListItem/ListItem.constants';
 
 // Internal dependencies.
 import { ListItemMultiSelectButtonProps } from './ListItemMultiSelectButton.types';

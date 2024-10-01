@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import Button, {
   ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../../locales/i18n';
+} from '@component-library/components/Buttons/Button';
+import { strings } from '@locales/i18n';
 import { View, ViewProps } from 'react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './StakingButtons.styles';
-import useTooltipModal from '../../../../../hooks/useTooltipModal';
+import useTooltipModal from '@hooks/useTooltipModal';
 import { useNavigation } from '@react-navigation/native';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {}

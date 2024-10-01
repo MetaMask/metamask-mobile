@@ -1,9 +1,9 @@
 // Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
-import { AvatarSize } from '../../Avatars/Avatar';
+import { AvatarSize } from '@Avatars/Avatar';
 
 // External dependencies.
-import { IconProps } from '../../Icons/Icon';
+import { IconProps } from '@Icons/Icon';
 
 /**
  * TabBarItem component props.

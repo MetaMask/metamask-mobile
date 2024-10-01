@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
-import { Colors } from '../../../../util/theme/models';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
+import { Colors } from '@util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

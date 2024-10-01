@@ -8,35 +8,35 @@ import {
   Text,
   View,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
-import { strings } from '../../../../locales/i18n';
-import { toDateFormat } from '../../../util/date';
+import { strings } from '@locales/i18n';
+import { toDateFormat } from '@util/date';
 import TransactionDetails from './TransactionDetails';
-import { safeToChecksumAddress } from '../../../util/address';
+import { safeToChecksumAddress } from '@util/address';
 import { connect } from 'react-redux';
-import StyledButton from '../StyledButton';
+import StyledButton from '@StyledButton';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
-import { TRANSACTION_TYPES } from '../../../util/transactions';
-import ListItem from '../../Base/ListItem';
-import StatusText from '../../Base/StatusText';
-import DetailsModal from '../../Base/DetailsModal';
-import { isMainNet } from '../../../util/networks';
+import { TRANSACTION_TYPES } from '@util/transactions';
+import ListItem from '@Base/ListItem';
+import StatusText from '@Base/StatusText';
+import DetailsModal from '@Base/DetailsModal';
+import { isMainNet } from '@util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   WalletDevice,
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '@util/theme';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectSwapsTransactions } from '../../../selectors/transactionController';
-import { swapsControllerTokens } from '../../../reducers/swaps';
+} from '@selectors/networkController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { selectPrimaryCurrency } from '@selectors/settings';
+import { selectSwapsTransactions } from '@selectors/transactionController';
+import { swapsControllerTokens } from '@reducers/swaps';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -107,17 +107,17 @@ const createStyles = (colors, typography) =>
   });
 
 /* eslint-disable import/no-commonjs */
-const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
-const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
-const transactionIconSent = require('../../../images/transaction-icons/send.png');
-const transactionIconReceived = require('../../../images/transaction-icons/receive.png');
-const transactionIconSwap = require('../../../images/transaction-icons/swap.png');
+const transactionIconApprove = require('@images/transaction-icons/approve.png');
+const transactionIconInteraction = require('@images/transaction-icons/interaction.png');
+const transactionIconSent = require('@images/transaction-icons/send.png');
+const transactionIconReceived = require('@images/transaction-icons/receive.png');
+const transactionIconSwap = require('@images/transaction-icons/swap.png');
 
-const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png');
-const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png');
-const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
-const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
-const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
+const transactionIconApproveFailed = require('@images/transaction-icons/approve-failed.png');
+const transactionIconInteractionFailed = require('@images/transaction-icons/interaction-failed.png');
+const transactionIconSentFailed = require('@images/transaction-icons/send-failed.png');
+const transactionIconReceivedFailed = require('@images/transaction-icons/receive-failed.png');
+const transactionIconSwapFailed = require('@images/transaction-icons/swap-failed.png');
 /* eslint-enable import/no-commonjs */
 
 /**

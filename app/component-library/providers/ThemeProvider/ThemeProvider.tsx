@@ -3,7 +3,7 @@ import React from 'react';
 import { Dimensions, View } from 'react-native';
 
 // External dependencies
-import { useAppTheme, ThemeContext } from '../../../util/theme';
+import { useAppTheme, ThemeContext } from '@util/theme';
 
 // Internal dependencies
 import { THEMEPROVIDER_TESTID } from './ThemeProvider.constants';

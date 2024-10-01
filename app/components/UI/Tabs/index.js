@@ -11,18 +11,18 @@ import {
 } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   MULTI_TAB_ADD_BUTTON,
   MULTI_TAB_CLOSE_ALL_BUTTON,
   MULTI_TAB_DONE_BUTTON,
   MULTI_TAB_NO_TABS_MESSAGE,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
+} from '@wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { fontStyles, colors as importedColors } from '@styles/common';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
+import withMetricsAwareness from '@hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
 
 const THUMB_VERTICAL_MARGIN = 15;

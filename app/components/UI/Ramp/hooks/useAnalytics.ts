@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
-import { AnalyticsEvents } from '../types';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEvents } from '@types';
+import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [
   'RAMP_REGION_SELECTED',

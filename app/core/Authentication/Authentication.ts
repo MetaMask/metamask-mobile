@@ -1,21 +1,21 @@
-import SecureKeychain from '../SecureKeychain';
-import Engine from '../Engine';
+import SecureKeychain from '@SecureKeychain';
+import Engine from '@Engine';
 import {
   EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
-} from '../../constants/storage';
-import Logger from '../../util/Logger';
+} from '@constants/storage';
+import Logger from '@util/Logger';
 import {
   authSuccess,
   authError,
   logIn,
   logOut,
   passwordSet,
-} from '../../actions/user';
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
+} from '@actions/user';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
@@ -27,10 +27,10 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
-} from '../../constants/error';
-import StorageWrapper from '../../store/storage-wrapper';
-import NavigationService from '../NavigationService';
-import Routes from '../../constants/navigation/Routes';
+} from '@constants/error';
+import StorageWrapper from '@store/storage-wrapper';
+import NavigationService from '@NavigationService';
+import Routes from '@constants/navigation/Routes';
 
 /**
  * Holds auth data used to determine auth configuration

@@ -1,12 +1,12 @@
 import {
   DeepPartial,
   renderScreen,
-} from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import App from './';
-import { MetaMetrics } from '../../../core/Analytics';
+import { MetaMetrics } from '@core/Analytics';
 import { waitFor } from '@testing-library/react-native';
-import { RootState } from '../../../reducers';
+import { RootState } from '@reducers';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -17,7 +17,7 @@ const initialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('@core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   configure: jest.fn(),
@@ -26,12 +26,12 @@ const mockMetrics = {
 
 // Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
 jest.mock(
-  '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+  '@util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ userProp: 'User value' }),
 );
 
 jest.mock(
-  '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  '@util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
 );
 

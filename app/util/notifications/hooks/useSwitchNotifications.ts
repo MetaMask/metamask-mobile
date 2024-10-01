@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { getErrorMessage } from '../../../util/errorHandling';
+import { getErrorMessage } from '@util/errorHandling';
 import {
   deleteOnChainTriggersByAccount,
   setFeatureAnnouncementsEnabled,
   updateOnChainTriggersByAccount,
-} from '../../../actions/notification/helpers';
+} from '@actions/notification/helpers';
 import { UseSwitchAccountNotificationsData } from './types';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotificationsAccount,
-} from '../../../selectors/notifications';
-import { updateAccountState } from '../../../core/redux/slices/notifications';
+} from '@selectors/notifications';
+import { updateAccountState } from '@core/redux/slices/notifications';
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

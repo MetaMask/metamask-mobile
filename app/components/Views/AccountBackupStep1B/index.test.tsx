@@ -1,5 +1,5 @@
 import AccountBackupStep1B from './';
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 describe('AccountBackupStep1B', () => {
   beforeEach(() => jest.useFakeTimers());

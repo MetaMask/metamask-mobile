@@ -1,15 +1,15 @@
-import Engine from '../Engine';
+import Engine from '@Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   getDecimalChainId,
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
-} from '../../util/networks';
-import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
-import { selectNetworkConfigurations } from '../../selectors/networkController';
-import { store } from '../../store';
+} from '@util/networks';
+import { MetaMetricsEvents, MetaMetrics } from '@core/Analytics';
+import { selectNetworkConfigurations } from '@selectors/networkController';
+import { store } from '@store';
 import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
-import { RestrictedMethods } from '../Permissions/constants';
+import { RestrictedMethods } from '@Permissions/constants';
 
 const wallet_switchEthereumChain = async ({
   req,

@@ -3,16 +3,16 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
-import rootReducer, { RootState } from '../reducers';
-import EngineService from '../core/EngineService';
-import { Authentication } from '../core';
-import LockManagerService from '../core/LockManagerService';
-import ReadOnlyNetworkStore from '../util/test/network-store';
-import { isE2E } from '../util/test/utils';
+import rootReducer, { RootState } from '@reducers';
+import EngineService from '@core/EngineService';
+import { Authentication } from '@core';
+import LockManagerService from '@core/LockManagerService';
+import ReadOnlyNetworkStore from '@util/test/network-store';
+import { isE2E } from '@util/test/utils';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
-import { AppStateEventProcessor } from '../core/AppStateEventListener';
+import { AppStateEventProcessor } from '@core/AppStateEventListener';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type

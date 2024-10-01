@@ -1,19 +1,19 @@
 import React from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { createAccountConnectNavDetails } from '@Views/AccountConnect';
 import { useSelector } from 'react-redux';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { backgroundState } from '@util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
-jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('@Views/confirmations/hooks/useApprovalRequest');
+jest.mock('@components/hooks/useMetrics');
 
-jest.mock('../../Views/AccountConnect', () => ({
+jest.mock('@Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
 }));
 

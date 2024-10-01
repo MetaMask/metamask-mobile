@@ -1,4 +1,4 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import { EnableAutomaticSecurityChecksModal } from './';
 
 jest.mock('react-redux', () => ({

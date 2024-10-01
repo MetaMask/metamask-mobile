@@ -10,91 +10,91 @@ import {
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
   renderFiat,
-} from '../../../util/number';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import AssetElement from '../AssetElement';
-import { safeToChecksumAddress } from '../../../util/address';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { isZero } from '../../../util/lodash';
-import { useTheme } from '../../../util/theme';
-import NotificationManager from '../../../core/NotificationManager';
+} from '@util/number';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import AssetElement from '@AssetElement';
+import { safeToChecksumAddress } from '@util/address';
+import { MetaMetricsEvents } from '@core/Analytics';
+import NetworkMainAssetLogo from '@NetworkMainAssetLogo';
+import { isZero } from '@util/lodash';
+import { useTheme } from '@util/theme';
+import NotificationManager from '@core/NotificationManager';
 import {
   getDecimalChainId,
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
-} from '../../../util/networks';
+} from '@util/networks';
 import {
   selectChainId,
   selectNetworkClientId,
   selectProviderConfig,
   selectTicker,
-} from '../../../selectors/networkController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
+} from '@selectors/networkController';
+import { selectNetworkName } from '@selectors/networkInfos';
+import { createDetectedTokensNavDetails } from '@Views/DetectedTokens';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
+import { BadgeVariant } from '@component-library/components/Badges/Badge/Badge.types';
 
 import images from 'images/image-icons';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
+import AvatarToken from '@component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
-import AppConstants from '../../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useRampNetwork from '../Ramp/hooks/useRampNetwork';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import Badge from '../../../component-library/components/Badges/Badge/Badge';
-import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
+import useRampNetwork from '@Ramp/hooks/useRampNetwork';
+import { createBuyNavigationDetails } from '@Ramp/routes/utils';
+import Badge from '@component-library/components/Badges/Badge/Badge';
+import useTokenBalancesController from '@hooks/useTokenBalancesController/useTokenBalancesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectDetectedTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
+} from '@selectors/currencyRateController';
+import { selectDetectedTokens } from '@selectors/tokensController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectUseTokenDetection } from '@selectors/preferencesController';
+import { useMetrics } from '@components/hooks/useMetrics';
+import useIsOriginalNativeTokenSymbol from '@hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../app/component-library/components/Buttons/ButtonIcon';
-import Box from '../../UI/Ramp/components/Box';
-import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
-import { isPortfolioUrl } from '../../../../app/util/url';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+} from '@app/component-library/components/Buttons/ButtonIcon';
+import Box from '@UI/Ramp/components/Box';
+import SheetHeader from '@app/component-library/components/Sheet/SheetHeader';
+import { isPortfolioUrl } from '@app/util/url';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
 import { zeroAddress } from 'ethereumjs-util';
-import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
-import AggregatedPercentage from '../../../component-library/components-temp/Price/AggregatedPercentage';
-import { RootState } from '../../../reducers';
+import PercentageChange from '@component-library/components-temp/Price/PercentageChange';
+import AggregatedPercentage from '@component-library/components-temp/Price/AggregatedPercentage';
+import { RootState } from '@reducers';
 import { Hex } from '@metamask/utils';
-import { isPooledStakingFeatureEnabled } from '../Stake/constants';
+import { isPooledStakingFeatureEnabled } from '@Stake/constants';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622

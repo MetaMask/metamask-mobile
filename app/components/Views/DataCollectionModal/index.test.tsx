@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import DataCollectionModal from './'; // Adjust the import path as necessary
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { DataCollectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DataCollectionModal.selectors';
+import { DataCollectionModalSelectorsIDs } from '@e2e/selectors/Modals/DataCollectionModal.selectors';
 
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn().mockReturnValue('Mocked string'),
 }));
 

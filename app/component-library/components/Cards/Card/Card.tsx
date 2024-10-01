@@ -5,7 +5,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import styleSheet from './Card.styles';

@@ -1,38 +1,38 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { NotificationsViewSelectorsIDs } from '@e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
-import Notifications from '../../UI/Notification/List';
-import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import Notifications from '@UI/Notification/List';
+import { TRIGGER_TYPES, sortNotifications } from '@util/notifications';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Empty from '../../UI/Notification/Empty';
-import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
+} from '@component-library/components/Texts/Text';
+import Empty from '@UI/Notification/Empty';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
 import {
   selectIsMetamaskNotificationsEnabled,
   getNotificationsList,
-} from '../../../selectors/notifications';
+} from '@selectors/notifications';
 import {
   useListNotifications,
   useMarkNotificationAsRead,
-} from '../../../util/notifications/hooks/useNotifications';
+} from '@util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
+import NotificationsService from '@util/notifications/services/NotificationService';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+} from '@component-library/components/Buttons/ButtonIcon';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
   Object.values(TRIGGER_TYPES),

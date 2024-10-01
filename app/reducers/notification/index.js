@@ -1,4 +1,4 @@
-import { NotificationTypes } from '../../util/notifications';
+import { NotificationTypes } from '@util/notifications';
 const { TRANSACTION, SIMPLE } = NotificationTypes;
 
 export const initialState = {

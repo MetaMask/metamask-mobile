@@ -1,9 +1,9 @@
 import disapproveChannel from './disapproveChannel';
-import SDKConnect from '../SDKConnect';
-import AppConstants from '../../../core/AppConstants';
+import SDKConnect from '@SDKConnect';
+import AppConstants from '@core/AppConstants';
 
-jest.mock('../../../core/AppConstants');
-jest.mock('../SDKConnect');
+jest.mock('@core/AppConstants');
+jest.mock('@SDKConnect');
 
 describe('disapproveChannel', () => {
   let mockInstance = {} as unknown as SDKConnect;

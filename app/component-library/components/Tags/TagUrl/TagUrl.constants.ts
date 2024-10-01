@@ -4,7 +4,7 @@
 import { TagUrlProps } from './TagUrl.types';
 
 // External dependencies.
-import { IconName } from '../../Icons/Icon';
+import { IconName } from '@Icons/Icon';
 
 // Sample consts
 export const SAMPLE_TAGURL_PROPS: TagUrlProps = {

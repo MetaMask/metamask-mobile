@@ -1,18 +1,18 @@
-import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import AppConstants from '../../AppConstants';
-import { Minimizer } from '../../NativeModules';
-import SDKConnect from '../../SDKConnect/SDKConnect';
-import WC2Manager from '../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../DeeplinkManager';
+import { ACTIONS, PREFIXES } from '@constants/deeplinks';
+import AppConstants from '@AppConstants';
+import { Minimizer } from '@NativeModules';
+import SDKConnect from '@SDKConnect/SDKConnect';
+import WC2Manager from '@WalletConnect/WalletConnectV2';
+import DeeplinkManager from '@DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
-import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
+import handleDeeplink from '@SDKConnect/handlers/handleDeeplink';
 
-jest.mock('../../../core/AppConstants');
-jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../core/SDKConnect/SDKConnect');
-jest.mock('../../../core/WalletConnect/WalletConnectV2');
-jest.mock('../../../core/NativeModules', () => ({
+jest.mock('@core/AppConstants');
+jest.mock('@core/SDKConnect/handlers/handleDeeplink');
+jest.mock('@core/SDKConnect/SDKConnect');
+jest.mock('@core/WalletConnect/WalletConnectV2');
+jest.mock('@core/NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },

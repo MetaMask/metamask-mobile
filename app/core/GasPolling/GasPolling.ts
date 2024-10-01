@@ -3,26 +3,26 @@ import { shallowEqual, useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
-import { selectAccounts } from '../../selectors/accountTrackerController';
+import { selectAccounts } from '@selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../selectors/currencyRateController';
-import { selectTicker } from '../../selectors/networkController';
-import { selectContractBalances } from '../../selectors/tokenBalancesController';
-import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
-import { fromWei, isBN, toGwei } from '../../util/number';
+} from '@selectors/currencyRateController';
+import { selectTicker } from '@selectors/networkController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { fromWei, isBN, toGwei } from '@util/number';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
-} from '../../util/transactions';
-import Engine from '../Engine';
+} from '@util/transactions';
+import Engine from '@Engine';
 import {
   GetEIP1559TransactionDataProps,
   LegacyProps,
   UseGasTransactionProps,
 } from './types';
-import { selectGasFeeEstimates } from '../../selectors/confirmTransaction';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
 
 /**
  *

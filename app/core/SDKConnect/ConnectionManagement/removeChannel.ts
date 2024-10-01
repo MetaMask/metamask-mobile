@@ -2,12 +2,12 @@ import { PermissionController } from '@metamask/permission-controller';
 import {
   removeApprovedHost,
   removeConnection,
-} from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../Engine';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+} from '@app/actions/sdk';
+import { store } from '@app/store';
+import AppConstants from '@core/AppConstants';
+import Engine from '@Engine';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 
 async function removeChannel({
   channelId,

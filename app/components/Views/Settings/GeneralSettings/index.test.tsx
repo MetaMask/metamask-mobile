@@ -6,12 +6,12 @@ import GeneralSettings, {
 } from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { AppThemeKey } from '../../../../util/theme/models';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { AppThemeKey } from '@util/theme/models';
+import { backgroundState } from '@util/test/initial-root-state';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { UserProfileProperty } from '@util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
-jest.mock('../../../../core/Analytics');
+jest.mock('@core/Analytics');
 
 const mockStore = configureMockStore();
 const initialState = {

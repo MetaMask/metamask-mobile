@@ -3,7 +3,7 @@ import React from 'react';
 
 // Internal dependencies.
 import ProfileSyncingModal from './ProfileSyncingModal';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 
 jest.mock('react-native-safe-area-context', () => {

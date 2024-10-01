@@ -1,18 +1,18 @@
 import React, { useCallback } from 'react';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import { trace, TraceName } from '../../../../util/trace';
-import { sleep } from '../../../../util/testUtils';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@component-library/components/Buttons/Button';
+import { trace, TraceName } from '@util/trace';
+import { sleep } from '@util/testUtils';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 
 function GenerateTrace() {

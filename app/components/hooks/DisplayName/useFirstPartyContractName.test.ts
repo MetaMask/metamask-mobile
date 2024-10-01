@@ -1,5 +1,5 @@
-import { selectChainId } from '../../../selectors/networkController';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
+import { selectChainId } from '@selectors/networkController';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
 import { useFirstPartyContractName } from './useFirstPartyContractName';
 
 jest.mock('react-redux', () => ({
@@ -8,7 +8,7 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(),
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
+jest.mock('@selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 

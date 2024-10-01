@@ -3,36 +3,36 @@ import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
-import { showAlert } from '../../../actions/alert';
-import Transactions from '../../UI/Transactions';
+import { showAlert } from '@actions/alert';
+import Transactions from '@UI/Transactions';
 import {
   TX_UNAPPROVED,
   TX_SUBMITTED,
   TX_SIGNED,
   TX_PENDING,
   TX_CONFIRMED,
-} from '../../../constants/transaction';
+} from '@constants/transaction';
 import {
   sortTransactions,
   filterByAddressAndNetwork,
-} from '../../../util/activity';
-import { safeToChecksumAddress } from '../../../util/address';
-import { addAccountTimeFlagFilter } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
+} from '@util/activity';
+import { safeToChecksumAddress } from '@util/address';
+import { addAccountTimeFlagFilter } from '@util/transactions';
+import { toLowerCaseEquals } from '@util/general';
 import {
   selectChainId,
   selectProviderType,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { store } from '../../../store';
-import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
-import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
-import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
+} from '@selectors/currencyRateController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { store } from '@store';
+import { NETWORK_ID_LOADING } from '@core/redux/slices/inpageProvider';
+import { selectPendingSmartTransactionsBySender } from '@selectors/smartTransactionsController';
+import { selectNonReplacedTransactions } from '@selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const styles = StyleSheet.create({

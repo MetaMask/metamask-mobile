@@ -4,30 +4,30 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from './Regions.styles';
 
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
-import useModalHandler from '../../../../Base/hooks/useModalHandler';
+import Text from '@Base/Text';
+import BaseListItem from '@Base/ListItem';
+import useModalHandler from '@Base/hooks/useModalHandler';
 
-import ScreenLayout from '../../components/ScreenLayout';
-import Box from '../../components/Box';
-import RegionModal from '../../components/RegionModal';
-import RegionAlert from '../../components/RegionAlert';
-import SkeletonText from '../../components/SkeletonText';
-import ErrorView from '../../components/ErrorView';
-import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import ScreenLayout from '@components/ScreenLayout';
+import Box from '@components/Box';
+import RegionModal from '@components/RegionModal';
+import RegionAlert from '@components/RegionAlert';
+import SkeletonText from '@components/SkeletonText';
+import ErrorView from '@components/ErrorView';
+import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
 
-import StyledButton from '../../../StyledButton';
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
+import StyledButton from '@StyledButton';
+import { getFiatOnRampAggNavbar } from '@Navbar';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
+import Routes from '@constants/navigation/Routes';
+import { createNavigationDetails } from '@util/navigation/navUtils';
+import { createPaymentMethodsNavDetails } from '@PaymentMethods/PaymentMethods';
 
-import { useRampSDK } from '../../sdk';
-import { Region } from '../../types';
-import useAnalytics from '../../hooks/useAnalytics';
-import useRegions from '../../hooks/useRegions';
+import { useRampSDK } from '@sdk';
+import { Region } from '@types';
+import useAnalytics from '@hooks/useAnalytics';
+import useRegions from '@hooks/useRegions';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

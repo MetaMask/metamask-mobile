@@ -1,21 +1,21 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useRef } from 'react';
 import { Linking, View } from 'react-native';
-import { useStyles } from '../../../component-library/hooks';
-import { strings } from '../../../../locales/i18n';
+import { useStyles } from '@component-library/hooks';
+import { strings } from '@locales/i18n';
 import styleSheet from './DeprecatedNetworkModal.styles';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+} from '@component-library/components/Buttons/Button';
+import { CONNECTING_TO_DEPRECATED_NETWORK } from '@constants/urls';
+import BottomSheet from '@component-library/components/BottomSheets/BottomSheet';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});

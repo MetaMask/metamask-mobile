@@ -1,11 +1,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import SnapDescription from '../SnapDescription';
+import SnapDescription from '@SnapDescription';
 import {
   SNAP_DESCRIPTION,
   SNAP_DESCRIPTION_TITLE,
-} from '../SnapDescription.constants';
+} from '@SnapDescription.constants';
 
 describe('SnapDescription', () => {
   it('renders correctly', async () => {

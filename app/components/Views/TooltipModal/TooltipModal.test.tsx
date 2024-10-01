@@ -1,7 +1,7 @@
 import React from 'react';
 import TooltipModal from './';
 import { TooltipModalProps } from './ToolTipModal.types';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const mockNavigate = jest.fn();

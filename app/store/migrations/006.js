@@ -5,7 +5,7 @@ import {
   AGREED,
   DENIED,
   EXPLORED,
-} from '../../constants/storage';
+} from '@constants/storage';
 
 export default function migrate(state) {
   state.analytics?.enabled

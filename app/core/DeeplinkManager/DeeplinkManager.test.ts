@@ -6,7 +6,7 @@ import handleRampUrl from './Handlers/handleRampUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
-import { RampType } from '../../reducers/fiatOrders/types';
+import { RampType } from '@reducers/fiatOrders/types';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');

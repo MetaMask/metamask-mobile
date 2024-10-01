@@ -1,15 +1,15 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
-import { Connection } from '../Connection';
-import SDKConnect from '../SDKConnect';
+import { Connection } from '@Connection';
+import SDKConnect from '@SDKConnect';
 import watchConnection from './watchConnection';
 
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('../Connection');
-jest.mock('../SDKConnect');
-jest.mock('../../AppConstants');
-jest.mock('../../../util/Logger');
-jest.mock('../utils/DevLogger');
-jest.mock('../SDKConnectConstants');
+jest.mock('@Connection');
+jest.mock('@SDKConnect');
+jest.mock('@AppConstants');
+jest.mock('@util/Logger');
+jest.mock('@utils/DevLogger');
+jest.mock('@SDKConnectConstants');
 
 describe('watchConnection', () => {
   let mockInstance = {} as unknown as SDKConnect;

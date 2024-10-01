@@ -1,12 +1,12 @@
 import { useCallback, useEffect } from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
-import Routes from '../../../constants/navigation/Routes';
+import NotificationsService from '@util/notifications/services/NotificationService';
+import Routes from '@constants/navigation/Routes';
 import {
   isNotificationsFeatureEnabled,
   TRIGGER_TYPES,
-} from '../../../util/notifications';
-import { Notification } from '../../../util/notifications/types';
+} from '@util/notifications';
+import { Notification } from '@util/notifications/types';
 import { Linking } from 'react-native';
 
 const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {

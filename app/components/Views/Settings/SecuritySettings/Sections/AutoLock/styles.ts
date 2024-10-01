@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 export const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;

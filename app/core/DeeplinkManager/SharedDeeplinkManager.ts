@@ -1,6 +1,6 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Dispatch } from 'redux';
-import DevLogger from '../SDKConnect/utils/DevLogger';
+import DevLogger from '@SDKConnect/utils/DevLogger';
 import DeeplinkManager from './DeeplinkManager';
 
 let instance: DeeplinkManager;

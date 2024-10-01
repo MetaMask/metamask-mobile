@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import EditGasFee1559Update from '../EditGasFee1559Update';
+import EditGasFee1559Update from '@EditGasFee1559Update';
 import { connect } from 'react-redux';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -10,26 +10,26 @@ import {
   fromWei,
   renderFromWei,
   addHexPrefix,
-} from '../../../../../util/number';
+} from '@util/number';
 import BigNumber from 'bignumber.js';
-import { getTicker } from '../../../../../util/transactions';
-import AppConstants from '../../../../../core/AppConstants';
-import { strings } from '../../../../../../locales/i18n';
+import { getTicker } from '@util/transactions';
+import AppConstants from '@core/AppConstants';
+import { strings } from '@locales/i18n';
 import {
   startGasPolling,
   stopGasPolling,
-} from '../../../../../core/GasPolling/GasPolling';
-import { GasTransactionProps } from '../../../../../core/GasPolling/types';
+} from '@core/GasPolling/GasPolling';
+import { GasTransactionProps } from '@core/GasPolling/types';
 import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
 import {
   selectChainId,
   selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+} from '@selectors/networkController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { getDecimalChainId } from '@util/networks';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
 import { isHexString } from '@metamask/utils';
 
 const UpdateEIP1559Tx = ({

@@ -10,13 +10,13 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import { strings } from '../../../../../../locales/i18n';
-import ScreenLayout from '../ScreenLayout';
+import { strings } from '@locales/i18n';
+import ScreenLayout from '@ScreenLayout';
 
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
-import ModalDragger from '../../../../Base/ModalDragger';
-import { useTheme } from '../../../../../util/theme';
+import Text from '@Base/Text';
+import BaseListItem from '@Base/ListItem';
+import ModalDragger from '@Base/ModalDragger';
+import { useTheme } from '@util/theme';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import createModalStyles from './Modal.styles';
 

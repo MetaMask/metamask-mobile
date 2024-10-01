@@ -1,14 +1,14 @@
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
-import { SDK } from '../sdk';
+import { SDK } from '@sdk';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../constants/on-ramp';
-import Logger from '../../../../util/Logger';
-import { FiatOrder } from '../../../../reducers/fiatOrders';
-import AppConstants from '../../../../core/AppConstants';
+} from '@constants/on-ramp';
+import Logger from '@util/Logger';
+import { FiatOrder } from '@reducers/fiatOrders';
+import AppConstants from '@core/AppConstants';
 import { ProcessorOptions } from '..';
-import { isSellFiatOrder } from '../utils';
+import { isSellFiatOrder } from '@utils';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 export const POLLING_FRECUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;

@@ -3,24 +3,24 @@ import { Alert, Linking, Platform } from 'react-native';
 import {
   DataDeleteResponseStatus,
   MetaMetricsEvents,
-} from '../../../../../core/Analytics';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
-import { strings } from '../../../../../../locales/i18n';
+} from '@core/Analytics';
+import { useMetrics } from '@hooks/useMetrics';
+import SettingsButtonSection from '@UI/SettingsButtonSection';
+import { strings } from '@locales/i18n';
 import {
   CONSENSYS_PRIVACY_POLICY,
   HOWTO_MANAGE_METAMETRICS,
-} from '../../../../../constants/urls';
-import Logger from '../../../../../util/Logger';
+} from '@constants/urls';
+import Logger from '@util/Logger';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {

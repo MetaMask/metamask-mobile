@@ -1,9 +1,9 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { TRUE, USE_TERMS } from '../../constants/storage';
-import Routes from '../../constants/navigation/Routes';
-import { strings } from '../../../locales/i18n';
-import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
-import StorageWrapper from '../../store/storage-wrapper';
+import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
+import { TRUE, USE_TERMS } from '@constants/storage';
+import Routes from '@constants/navigation/Routes';
+import { strings } from '@locales/i18n';
+import { TermsOfUseModalSelectorsIDs } from '@e2e/selectors/Modals/TermsOfUseModal.selectors';
+import StorageWrapper from '@store/storage-wrapper';
 import termsOfUse from './termsOfUseContent';
 
 interface TermsOfUseParamsI {

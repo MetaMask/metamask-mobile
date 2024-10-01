@@ -2,7 +2,7 @@ import type { TypeFeatureAnnouncement } from './TypeFeatureAnnouncement';
 
 export type { TypeFeatureAnnouncementFields } from './TypeFeatureAnnouncement';
 
-import type { TRIGGER_TYPES } from '../../constants/triggers';
+import type { TRIGGER_TYPES } from '@constants/triggers';
 
 export interface FeatureAnnouncementRawNotification {
   type: TRIGGER_TYPES.FEATURES_ANNOUNCEMENT;

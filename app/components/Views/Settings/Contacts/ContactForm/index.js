@@ -8,34 +8,34 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '@styles/common';
 import PropTypes from 'prop-types';
-import { getEditableOptions } from '../../../../UI/Navbar';
-import StyledButton from '../../../../UI/StyledButton';
-import Engine from '../../../../../core/Engine';
+import { getEditableOptions } from '@UI/Navbar';
+import StyledButton from '@UI/StyledButton';
+import Engine from '@core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   renderShortAddress,
   validateAddressOrENS,
-} from '../../../../../util/address';
-import ErrorMessage from '../../../confirmations/SendFlow/ErrorMessage';
+} from '@util/address';
+import ErrorMessage from '@confirmations/SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import { mockTheme, ThemeContext } from '../../../../../util/theme';
+import { mockTheme, ThemeContext } from '@util/theme';
 import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
-} from '../../../../../constants/error';
-import Routes from '../../../../../constants/navigation/Routes';
-import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { toLowerCaseEquals } from '../../../../../util/general';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
+} from '@constants/error';
+import Routes from '@constants/navigation/Routes';
+import { createQRScannerNavDetails } from '@QRTabSwitcher';
+import { selectChainId } from '@selectors/networkController';
+import { AddContactViewSelectorsIDs } from '@e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { selectInternalAccounts } from '@selectors/accountsController';
+import { toLowerCaseEquals } from '@util/general';
+import { selectAddressBook } from '@selectors/addressBookController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

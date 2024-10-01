@@ -3,15 +3,15 @@ import OrdersList from './OrdersList';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../../constants/on-ramp';
+} from '@constants/on-ramp';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+} from '@util/test/renderWithProvider';
+import { FiatOrder } from '@reducers/fiatOrders';
+import { backgroundState } from '@util/test/initial-root-state';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-import { mockNetworkState } from '../../../../../util/test/network';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 

@@ -4,9 +4,9 @@ import { render } from '@testing-library/react-native';
 import Identicon from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import useTokenList from '../../../components/hooks/DisplayName/useTokenList';
+import useTokenList from '@components/hooks/DisplayName/useTokenList';
 
-jest.mock('../../../components/hooks/DisplayName/useTokenList');
+jest.mock('@components/hooks/DisplayName/useTokenList');
 
 describe('Identicon', () => {
   const mockStore = configureMockStore();

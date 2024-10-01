@@ -1,8 +1,8 @@
-import { store } from '../../../store';
-import { addToViewedDapp } from '../../../actions/browser';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { prefixUrlWithProtocol } from '../../browser';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { store } from '@store';
+import { addToViewedDapp } from '@actions/browser';
+import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
+import { prefixUrlWithProtocol } from '@browser';
+import { selectInternalAccounts } from '@selectors/accountsController';
 
 /**
  * Tracks Dapp viewed event

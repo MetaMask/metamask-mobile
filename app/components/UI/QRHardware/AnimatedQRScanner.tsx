@@ -12,17 +12,17 @@ import {
   StyleSheet,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '@styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
-import { useTheme } from '../../../util/theme';
-import { Theme } from '../../../util/theme/models';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { SUPPORTED_UR_TYPE } from '@constants/qr';
+import { useTheme } from '@util/theme';
+import { Theme } from '@util/theme/models';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

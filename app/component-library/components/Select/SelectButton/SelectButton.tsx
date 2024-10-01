@@ -4,9 +4,9 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import Icon from '../../Icons/Icon/Icon';
-import Avatar from '../../Avatars/Avatar/Avatar';
+import { useStyles } from '@hooks';
+import Icon from '@Icons/Icon/Icon';
+import Avatar from '@Avatars/Avatar/Avatar';
 
 // Internal dependencies.
 import styleSheet from './SelectButton.styles';

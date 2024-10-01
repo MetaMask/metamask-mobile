@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
-import { getNetworkImageSource, NetworkList } from '../util/networks';
-import { strings } from '../../locales/i18n';
+import { getNetworkImageSource, NetworkList } from '@util/networks';
+import { strings } from '@locales/i18n';
 import {
   selectProviderConfig,
   selectNetworkClientId,

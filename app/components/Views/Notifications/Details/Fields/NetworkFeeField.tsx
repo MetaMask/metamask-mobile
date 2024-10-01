@@ -1,32 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+} from '@component-library/components/BottomSheets/BottomSheet';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { ModalFieldNetworkFee } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import useStyles from '../useStyles';
+} from '@component-library/components/Texts/Text';
+import { ModalFieldNetworkFee } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import useStyles from '@useStyles';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { NotificationDetailStyles } from '../styles';
-import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
+} from '@component-library/components/Icons/Icon';
+import { NotificationDetailStyles } from '@styles';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '@constants/network';
 import {
   type Notification,
   TRIGGER_TYPES,
-} from '../../../../../util/notifications';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+} from '@util/notifications';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { MetaMetricsEvents } from '@core/Analytics';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
   notification: Notification;

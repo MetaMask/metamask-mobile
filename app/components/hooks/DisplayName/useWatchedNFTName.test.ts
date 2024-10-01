@@ -1,5 +1,5 @@
 import { useWatchedNFTName } from './useWatchedNFTName';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { collectibleContractsSelector } from '@reducers/collectibles';
 
 const KNOWN_NFT_ADDRESS_CHECKSUMMED =
   '0x495f947276749Ce646f68AC8c248420045cb7b5e';
@@ -16,7 +16,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockImplementation((callback) => callback()),
 }));
 
-jest.mock('../../../reducers/collectibles', () => ({
+jest.mock('@reducers/collectibles', () => ({
   collectibleContractsSelector: jest.fn(),
 }));
 

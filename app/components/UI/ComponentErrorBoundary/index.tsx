@@ -1,6 +1,6 @@
 import React from 'react';
-import Logger from '../../../util/Logger';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import Logger from '@util/Logger';
+import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
 
 interface ComponentErrorBoundaryProps {
   /**

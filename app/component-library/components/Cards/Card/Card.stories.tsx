@@ -6,8 +6,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../Texts/Text';
+import { mockTheme } from '@util/theme';
+import Text, { TextVariant } from '@Texts/Text';
 
 // Internal dependencies.
 import { default as CardComponent } from './Card';

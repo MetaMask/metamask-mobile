@@ -3,14 +3,14 @@ import { View, Switch, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../app/util/theme';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { useTheme } from '@app/util/theme';
+import { strings } from '@locales/i18n';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../app/reducers';
+import { RootState } from '@app/reducers';
 import styles from './BasicFunctionality.styles';
 import { BasicFunctionalityComponentProps } from './BasicFunctionality.types';
-import AppConstants from '../../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 export default function BasicFunctionalityComponent({
   handleSwitchToggle,

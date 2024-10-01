@@ -1,5 +1,5 @@
 import checkSafeNetwork from './networkChecker.util';
-import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
+import { BannerAlertSeverity } from '@component-library/components/Banners/Banner';
 import axios from 'axios';
 
 jest.mock('axios');

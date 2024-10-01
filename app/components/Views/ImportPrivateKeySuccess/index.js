@@ -9,15 +9,15 @@ import {
   BackHandler,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import { ThemeContext, mockTheme } from '@util/theme';
 
-import { ImportPrivateKeySuccessScreenSelectorsIDs } from '../../../../e2e/selectors/ImportPrivateKeySuccessScreen.selectors';
+import { ImportPrivateKeySuccessScreenSelectorsIDs } from '@e2e/selectors/ImportPrivateKeySuccessScreen.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

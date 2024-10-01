@@ -1,8 +1,8 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import { AUTO_LOCK_SECTION } from './Sections/AutoLock/constants';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -21,9 +21,9 @@ import {
   TURN_ON_REMEMBER_ME,
   USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -69,8 +69,8 @@ let mockUseParamsValues: {
   scrollToDetectNFTs: undefined,
 };
 
-jest.mock('../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 

@@ -1,22 +1,22 @@
-import { Connection, ConnectionProps } from '../Connection';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
+import { Connection, ConnectionProps } from '@Connection';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '@SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
 import connectToChannel from './connectToChannel';
 
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(''),
   getItem: jest.fn().mockResolvedValue(''),
 }));
-jest.mock('../../AppConstants');
-jest.mock('../Connection');
+jest.mock('@AppConstants');
+jest.mock('@Connection');
 jest.mock('./../SDKConnect');
-jest.mock('../utils/DevLogger');
-jest.mock('../SDKConnectConstants');
-jest.mock('../handlers/checkPermissions', () => jest.fn());
+jest.mock('@utils/DevLogger');
+jest.mock('@SDKConnectConstants');
+jest.mock('@handlers/checkPermissions', () => jest.fn());
 
 // Import the mocked checkPermissions
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import checkPermissions from '../handlers/checkPermissions';
+import checkPermissions from '@handlers/checkPermissions';
 
 describe('connectToChannel', () => {
   let mockInstance = {} as unknown as SDKConnect;

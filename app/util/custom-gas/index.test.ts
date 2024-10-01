@@ -1,6 +1,6 @@
 import { parseWaitTime, getGasLimit } from '.';
 
-jest.mock('../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   estimateGas: jest.fn().mockImplementation(({ gas }) => {
     if (gas === undefined) return Promise.resolve({ gas: '0x5208' });

@@ -4,12 +4,12 @@ import { View, ViewProps } from 'react-native';
 
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../hooks/useStyles';
-import { BalanceChange } from '../types';
-import AmountPill from '../AmountPill/AmountPill';
-import AssetPill from '../AssetPill/AssetPill';
-import { IndividualFiatDisplay } from '../FiatDisplay/FiatDisplay';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@hooks/useStyles';
+import { BalanceChange } from '@types';
+import AmountPill from '@AmountPill/AmountPill';
+import AssetPill from '@AssetPill/AssetPill';
+import { IndividualFiatDisplay } from '@FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeRow.styles';
 
 interface BalanceChangeRowProperties extends ViewProps {

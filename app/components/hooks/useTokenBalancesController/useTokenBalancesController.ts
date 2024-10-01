@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
-import { ControllerHookType } from '../controllerHook.types';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { ControllerHookType } from '@controllerHook.types';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
 
 interface TokenBalances {
   [address: string]: string;

@@ -1,17 +1,17 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import TokenDetails from './';
-import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectTokenList } from '@selectors/tokenListController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {},

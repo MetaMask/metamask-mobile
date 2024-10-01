@@ -1,23 +1,23 @@
 import { BN } from 'ethereumjs-util';
 import { validateTokenTransaction } from './validation';
-import { renderFromWei, hexToBN } from '../../../../../util/number';
+import { renderFromWei, hexToBN } from '@util/number';
 import {
   getTicker,
   decodeTransferData,
-} from '../../../../../util/transactions';
-import { strings } from '../../../../../../locales/i18n';
+} from '@util/transactions';
+import { strings } from '@locales/i18n';
 
-jest.mock('../../../../../util/number', () => ({
+jest.mock('@util/number', () => ({
   renderFromWei: jest.fn(),
   hexToBN: jest.fn(),
 }));
 
-jest.mock('../../../../../util/transactions', () => ({
+jest.mock('@util/transactions', () => ({
   getTicker: jest.fn(),
   decodeTransferData: jest.fn(),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn(),
 }));
 

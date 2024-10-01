@@ -5,16 +5,16 @@ import { Alert, AlertButton } from 'react-native';
 
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 
-import Engine from '../../../core/Engine';
-import Routes from '../../../constants/navigation/Routes';
+import Engine from '@core/Engine';
+import Routes from '@constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { AccountActionsModalSelectorsIDs } from '@e2e/selectors/Modals/AccountActionsModal.selectors';
+import { backgroundState } from '@util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { act } from '@testing-library/react-hooks';
 
 const initialState = {
@@ -27,8 +27,8 @@ const initialState = {
   },
 };
 
-jest.mock('../../../core/Engine', () => ({
-  ...jest.requireActual('../../../core/Engine'),
+jest.mock('@core/Engine', () => ({
+  ...jest.requireActual('@core/Engine'),
   context: {
     PreferencesController: {
       selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
@@ -86,7 +86,7 @@ jest.mock('react-native-share', () => ({
   open: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('../../../core/Permissions', () => ({
+jest.mock('@core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn().mockResolvedValue(true),
 }));
 

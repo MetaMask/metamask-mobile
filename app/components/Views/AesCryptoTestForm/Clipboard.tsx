@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 
-import ClipboardManager from '../../../core/ClipboardManager';
+import ClipboardManager from '@core/ClipboardManager';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 const ClipboardText = ({
   text,

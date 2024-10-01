@@ -3,18 +3,18 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import { fontStyles } from '../../../../../../styles/common';
-import { strings } from '../../../../../../../locales/i18n';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
 import { connect } from 'react-redux';
-import Device from '../../../../../../util/device';
-import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import ClipboardManager from '../../../../../../core/ClipboardManager';
-import { showAlert } from '../../../../../../actions/alert';
-import GlobalAlert from '../../../../../UI/GlobalAlert';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
+import ClipboardManager from '@core/ClipboardManager';
+import { showAlert } from '@actions/alert';
+import GlobalAlert from '@UI/GlobalAlert';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

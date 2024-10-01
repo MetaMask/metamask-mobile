@@ -2,17 +2,17 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { StyleSheet, View, Text } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
-import SignatureRequest from '../SignatureRequest';
-import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import Device from '../../../../../util/device';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { fontStyles } from '@styles/common';
+import SignatureRequest from '@SignatureRequest';
+import ExpandedMessage from '@SignatureRequest/ExpandedMessage';
+import Device from '@util/device';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import { ThemeContext, mockTheme } from '@util/theme';
 import {
   parseTypedSignDataMessage,
   sanitizeString,
-} from '../../../../../util/string';
+} from '@util/string';
 
 import {
   addSignatureErrorListener,
@@ -22,11 +22,11 @@ import {
   shouldTruncateMessage,
   showWalletConnectNotification,
   typedSign,
-} from '../../../../../util/confirmation/signatureUtils';
-import { isExternalHardwareAccount } from '../../../../../util/address';
-import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+} from '@util/confirmation/signatureUtils';
+import { isExternalHardwareAccount } from '@util/address';
+import createExternalSignModelNav from '@util/hardwareWallet/signatureUtils';
+import { SigningModalSelectorsIDs } from '@e2e/selectors/Modals/SigningModal.selectors';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({

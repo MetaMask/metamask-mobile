@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import NetworkFeeField from './NetworkFeeField';
-import { ModalFieldType } from '../../../../../util/notifications';
+import { ModalFieldType } from '@util/notifications';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import { createMockNotificationEthReceived } from '@metamask/notification-services-controller/notification-services/mocks';
 
-jest.mock('../../../../../util/notifications/methods/common', () => ({
+jest.mock('@util/notifications/methods/common', () => ({
   getNetworkFees: () =>
     Promise.resolve({
       gasUsed: '0',

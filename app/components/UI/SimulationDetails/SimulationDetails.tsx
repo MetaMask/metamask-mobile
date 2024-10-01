@@ -7,18 +7,18 @@ import {
   SimulationError,
 } from '@metamask/transaction-controller';
 
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-import { useStyles } from '../../hooks/useStyles';
-import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
+} from '@component-library/components/Icons/Icon';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import { useStyles } from '@hooks/useStyles';
+import AnimatedSpinner, { SpinnerSize } from '@AnimatedSpinner';
 import useBalanceChanges from './useBalanceChanges';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import styleSheet from './SimulationDetails.styles';

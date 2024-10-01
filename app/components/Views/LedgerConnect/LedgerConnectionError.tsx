@@ -4,12 +4,12 @@ import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
-} from '../../../util/theme';
-import Text from '../../Base/Text';
-import { strings } from '../../../../locales/i18n';
-import { Colors } from '../../../util/theme/models';
-import Device from '../../../util/device';
-import StyledButton from '../../UI/StyledButton';
+} from '@util/theme';
+import Text from '@Base/Text';
+import { strings } from '@locales/i18n';
+import { Colors } from '@util/theme/models';
+import Device from '@util/device';
+import StyledButton from '@UI/StyledButton';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -56,8 +56,8 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-import ledgerConnectErrorDarkImage from '../../../images/ledger-connect-error-dark.png';
-import ledgerConnectErrorLightImage from '../../../images/ledger-connect-error-light.png';
+import ledgerConnectErrorDarkImage from '@images/ledger-connect-error-dark.png';
+import ledgerConnectErrorLightImage from '@images/ledger-connect-error-light.png';
 
 export interface LedgerConnectionErrorProps {
   errorTitle: string;

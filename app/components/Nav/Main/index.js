@@ -16,70 +16,70 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
-import GlobalAlert from '../../UI/GlobalAlert';
+import GlobalAlert from '@UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
-import NotificationManager from '../../../core/NotificationManager';
-import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
-import I18n, { strings } from '../../../../locales/i18n';
-import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import BackupAlert from '../../UI/BackupAlert';
-import Notification from '../../UI/Notification';
-import RampOrders from '../../UI/Ramp';
+import NotificationManager from '@core/NotificationManager';
+import Engine from '@core/Engine';
+import AppConstants from '@core/AppConstants';
+import I18n, { strings } from '@locales/i18n';
+import FadeOutOverlay from '@UI/FadeOutOverlay';
+import BackupAlert from '@UI/BackupAlert';
+import Notification from '@UI/Notification';
+import RampOrders from '@UI/Ramp';
 import {
   showTransactionNotification,
   hideCurrentNotification,
   showSimpleNotification,
   removeNotificationById,
   removeNotVisibleNotifications,
-} from '../../../actions/notification';
+} from '@actions/notification';
 
-import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import ProtectYourWalletModal from '@UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
-import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
+import SkipAccountSecurityModal from '@UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
-import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import SwapsLiveness from '@UI/Swaps/SwapsLiveness';
 
 import {
   setInfuraAvailabilityBlocked,
   setInfuraAvailabilityNotBlocked,
-} from '../../../actions/infuraAvailability';
+} from '@actions/infuraAvailability';
 
 import { createStackNavigator } from '@react-navigation/stack';
-import ReviewModal from '../../UI/ReviewModal';
-import { useTheme } from '../../../util/theme';
+import ReviewModal from '@UI/ReviewModal';
+import { useTheme } from '@util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import { colors as importedColors } from '../../../styles/common';
+import { colors as importedColors } from '@styles/common';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
-import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+} from '@component-library/components/Toast';
+import { useEnableAutomaticSecurityChecks } from '@hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '@hooks/MinimumVersions';
+import navigateTermsOfUse from '@util/termsOfUse/termsOfUse';
 import {
   selectChainId,
   selectProviderConfig,
   selectProviderType,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
-} from '../../../selectors/networkInfos';
-import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
+} from '@selectors/networkInfos';
+import { selectShowIncomingTransactionNetworks } from '@selectors/preferencesController';
 
-import useNotificationHandler from '../../../util/notifications/hooks';
+import useNotificationHandler from '@util/notifications/hooks';
 import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
-} from '../../../constants/network';
-import WarningAlert from '../../../components/UI/WarningAlert';
-import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+} from '@constants/network';
+import WarningAlert from '@components/UI/WarningAlert';
+import { GOERLI_DEPRECATED_ARTICLE } from '@constants/urls';
 import {
   updateIncomingTransactions,
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
-} from '../../../util/transaction-controller';
+} from '@util/transaction-controller';
 
 const Stack = createStackNavigator();
 

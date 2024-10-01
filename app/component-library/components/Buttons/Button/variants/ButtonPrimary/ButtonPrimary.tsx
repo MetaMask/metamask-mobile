@@ -5,9 +5,9 @@ import React, { useCallback, useState } from 'react';
 import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import Button from '../../foundation/ButtonBase';
-import Text from '../../../../Texts/Text/Text';
+import { useStyles } from '@hooks';
+import Button from '@foundation/ButtonBase';
+import Text from '@Texts/Text/Text';
 
 // Internal dependencies.
 import { ButtonPrimaryProps } from './ButtonPrimary.types';

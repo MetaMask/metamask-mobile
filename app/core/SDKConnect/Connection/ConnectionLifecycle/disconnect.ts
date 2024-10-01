@@ -1,7 +1,7 @@
 
 import { MessageType } from '@metamask/sdk-communication-layer';
-import DevLogger from '../../utils/DevLogger';
-import { Connection } from '../Connection';
+import DevLogger from '@utils/DevLogger';
+import { Connection } from '@Connection';
 
 async function disconnect({
   terminate,

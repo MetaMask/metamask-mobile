@@ -6,21 +6,21 @@ import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
 import styleSheet from './SnapPermissions.styles';
 import type { SupportedCurve } from '@metamask/key-tree';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import {
   SNAPS_DERIVATION_PATHS,
   SnapsDerivationPath,
   SnapsDerivationPathType,
-} from '../../../../../constants/snaps';
+} from '@constants/snaps';
 import lodash from 'lodash';
-import { useStyles } from '../../../../../component-library/hooks';
-import { SnapPermissionCell } from '../SnapPermissionCell';
+import { useStyles } from '@component-library/hooks';
+import { SnapPermissionCell } from '@SnapPermissionCell';
 import { RequestedPermissions } from '@metamask/permission-controller';
-import { RestrictedMethods } from '../../../../../core/Permissions/constants';
-import { EndowmentPermissions } from '../../../../../core/Snaps';
+import { RestrictedMethods } from '@core/Permissions/constants';
+import { EndowmentPermissions } from '@core/Snaps';
 import SNAP_PERMISSIONS from './SnapPermissions.contants';
 
 interface SnapPermissionsProps {

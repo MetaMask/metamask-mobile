@@ -2,7 +2,7 @@ import React from 'react';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { View } from 'react-native';
 
 const PercentageChange = ({ value }: { value: number | null | undefined }) => {

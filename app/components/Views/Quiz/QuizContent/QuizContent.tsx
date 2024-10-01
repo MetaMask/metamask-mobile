@@ -1,18 +1,18 @@
 import React from 'react';
 import { View, Image } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { IQuizInformationProps } from '../types';
+import { IQuizInformationProps } from '@types';
 import Icon, {
   IconSize,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../hooks/useStyles';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@hooks/useStyles';
 import stylesheet from './styles';
 
 const QuizContent = ({

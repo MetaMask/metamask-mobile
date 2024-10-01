@@ -1,20 +1,20 @@
 import CookieManager from '@react-native-cookies/cookies';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Device from '../../../../../util/device';
-import Logger from '../../../../../util/Logger';
-import ActionModal from '../../../../UI/ActionModal';
-import { ClearCookiesSectionSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearCookiesSection.selectors';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import Logger from '@util/Logger';
+import ActionModal from '@UI/ActionModal';
+import { ClearCookiesSectionSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/ClearCookiesSection.selectors';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
 const createStyles = () =>
   StyleSheet.create({

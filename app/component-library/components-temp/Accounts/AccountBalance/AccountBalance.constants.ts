@@ -3,12 +3,12 @@ import { ImageSourcePropType } from 'react-native';
 import {
   AvatarProps,
   AvatarVariant,
-} from '../../../components/Avatars/Avatar/Avatar.types';
-import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+} from '@components/Avatars/Avatar/Avatar.types';
+import { AvatarAccountType } from '@components/Avatars/Avatar/variants/AvatarAccount';
 import {
   BadgeVariant,
   BadgeProps,
-} from '../../../components/Badges/Badge/Badge.types';
+} from '@components/Badges/Badge/Badge.types';
 
 const imageSource =
   'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';

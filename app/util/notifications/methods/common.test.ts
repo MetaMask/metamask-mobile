@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { formatMenuItemDate } from './common';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 describe('formatMenuItemDate', () => {
   it('returns "No date" if date is not provided', () => {

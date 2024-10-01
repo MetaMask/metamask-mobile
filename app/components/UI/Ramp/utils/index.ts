@@ -13,13 +13,13 @@ import {
   renderFromTokenMinimalUnit,
   renderNumber,
   toTokenMinimalUnit,
-} from '../../../../util/number';
-import { RampType } from '../types';
-import { getOrders, FiatOrder } from '../../../../reducers/fiatOrders';
-import { RootState } from '../../../../reducers';
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
-import { strings } from '../../../../../locales/i18n';
-import { getDecimalChainId } from '../../../../util/networks';
+} from '@util/number';
+import { RampType } from '@types';
+import { getOrders, FiatOrder } from '@reducers/fiatOrders';
+import { RootState } from '@reducers';
+import { FIAT_ORDER_STATES } from '@constants/on-ramp';
+import { strings } from '@locales/i18n';
+import { getDecimalChainId } from '@util/networks';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 

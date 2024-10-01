@@ -1,11 +1,11 @@
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import ActionModal from '../../ActionModal';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import ActionModal from '@ActionModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

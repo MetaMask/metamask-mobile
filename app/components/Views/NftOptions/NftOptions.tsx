@@ -3,29 +3,29 @@ import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { useStyles } from '../../../component-library/hooks';
-import { strings } from '../../../../locales/i18n';
+import { useStyles } from '@component-library/hooks';
+import { strings } from '@locales/i18n';
 import Icon, {
   IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { selectChainId } from '../../../selectors/networkController';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+} from '@component-library/components/Icons/Icon';
+import { selectChainId } from '@selectors/networkController';
+import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import Engine from '../../../core/Engine';
-import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
-import Routes from '../../../constants/navigation/Routes';
+import Engine from '@core/Engine';
+import { removeFavoriteCollectible } from '@actions/collectibles';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { Collectible } from '@components/UI/CollectibleMedia/CollectibleMedia.types';
+import Routes from '@constants/navigation/Routes';
 import {
   useMetrics,
   MetaMetricsEvents,
-} from '../../../components/hooks/useMetrics';
-import { getDecimalChainId } from '../../../util/networks';
+} from '@components/hooks/useMetrics';
+import { getDecimalChainId } from '@util/networks';
 
 interface Props {
   route: {

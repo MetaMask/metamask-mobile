@@ -1,21 +1,21 @@
-import StorageWrapper from '../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
   EXISTING_USER,
-} from '../../constants/storage';
+} from '@constants/storage';
 import { Authentication } from './Authentication';
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
 // eslint-disable-next-line import/no-namespace
 import * as Keychain from 'react-native-keychain';
-import SecureKeychain from '../SecureKeychain';
+import SecureKeychain from '@SecureKeychain';
 import configureMockStore from 'redux-mock-store';
-import Logger from '../../util/Logger';
+import Logger from '@util/Logger';
 
 const storage: Record<string, unknown> = {};
 
-jest.mock('../../store/storage-wrapper', () => ({
+jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn((key) => Promise.resolve(storage[key] ?? null)),
   setItem: jest.fn((key, value) => {
     storage[key] = value;

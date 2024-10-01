@@ -1,83 +1,83 @@
 import React, { PureComponent } from 'react';
 import { Alert, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '../../../../UI/Navbar';
+import { getApproveNavbar } from '@UI/Navbar';
 import { connect } from 'react-redux';
 import {
   safeToChecksumAddress,
   isHardwareAccount,
-} from '../../../../../util/address';
-import Engine from '../../../../../core/Engine';
-import AnimatedTransactionModal from '../../../../UI/AnimatedTransactionModal';
-import ApproveTransactionReview from '../../components/ApproveTransactionReview';
-import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
+} from '@util/address';
+import Engine from '@core/Engine';
+import AnimatedTransactionModal from '@UI/AnimatedTransactionModal';
+import ApproveTransactionReview from '@components/ApproveTransactionReview';
+import AddNickname from '@components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
-import { strings } from '../../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../../util/networks';
+import { strings } from '@locales/i18n';
+import { getNetworkNonce } from '@util/networks';
 
 import {
   setTransactionObject,
   setNonce,
   setProposedNonce,
-} from '../../../../../actions/transaction';
+} from '@actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { fromWei, renderFromWei, hexToBN } from '../../../../../util/number';
+import { fromWei, renderFromWei, hexToBN } from '@util/number';
 import {
   getNormalizedTxState,
   getTicker,
-} from '../../../../../util/transactions';
-import { getGasLimit } from '../../../../../util/custom-gas';
+} from '@util/transactions';
+import { getGasLimit } from '@util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import NotificationManager from '../../../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Logger from '../../../../../util/Logger';
-import EditGasFee1559 from '../../components/EditGasFee1559Update';
-import EditGasFeeLegacy from '../../components/EditGasFeeLegacyUpdate';
-import AppConstants from '../../../../../core/AppConstants';
-import { shallowEqual } from '../../../../../util/general';
-import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
-import GlobalAlert from '../../../../UI/GlobalAlert';
-import checkIfAddressIsSaved from '../../../../../util/checkAddress';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import { createLedgerTransactionModalNavDetails } from '../../../../UI/LedgerModals/LedgerTransactionModal';
+import NotificationManager from '@core/NotificationManager';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Logger from '@util/Logger';
+import EditGasFee1559 from '@components/EditGasFee1559Update';
+import EditGasFeeLegacy from '@components/EditGasFeeLegacyUpdate';
+import AppConstants from '@core/AppConstants';
+import { shallowEqual } from '@util/general';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import GlobalAlert from '@UI/GlobalAlert';
+import checkIfAddressIsSaved from '@util/checkAddress';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
 import {
   startGasPolling,
   stopGasPolling,
-} from '../../../../../core/GasPolling/GasPolling';
+} from '@core/GasPolling/GasPolling';
 import {
   selectChainId,
   selectProviderType,
   selectTicker,
   selectRpcUrl,
   selectNetworkConfigurations,
-} from '../../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import { selectTokensLength } from '../../../../../selectors/tokensController';
+} from '@selectors/currencyRateController';
+import { selectTokensLength } from '@selectors/tokensController';
 import {
   selectAccounts,
   selectAccountsLength,
-} from '../../../../../selectors/accountTrackerController';
-import ShowBlockExplorer from '../../components/ApproveTransactionReview/ShowBlockExplorer';
+} from '@selectors/accountTrackerController';
+import ShowBlockExplorer from '@components/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getDeviceId } from '../../../../../core/Ledger/Ledger';
-import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { updateTransaction } from '../../../../../util/transaction-controller';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
-import { selectTransactions } from '../../../../../selectors/transactionController';
+import { getDeviceId } from '@core/Ledger/Ledger';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
+import { updateTransaction } from '@util/transaction-controller';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '@util/smart-transactions/smart-publish-hook';
+import { selectTransactions } from '@selectors/transactionController';
 import {
   selectPrimaryCurrency,
   selectShowCustomNonce,
-} from '../../../../../selectors/settings';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+} from '@selectors/settings';
+import { selectAddressBook } from '@selectors/addressBookController';
+import { buildTransactionParams } from '@util/confirmation/transactions';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

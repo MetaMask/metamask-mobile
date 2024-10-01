@@ -3,11 +3,11 @@ import { View, SafeAreaView, Keyboard, TextInput } from 'react-native';
 
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import ClipboardText from './Clipboard';
 
 const TestForm = ({

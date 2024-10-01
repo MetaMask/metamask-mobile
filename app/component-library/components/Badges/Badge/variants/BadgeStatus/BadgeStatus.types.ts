@@ -2,7 +2,7 @@
 import { ColorValue } from 'react-native';
 
 // External dependencies.
-import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
+import { BadgeBaseProps } from '@foundation/BadgeBase/BadgeBase.types';
 
 /**
  * Badge variants.

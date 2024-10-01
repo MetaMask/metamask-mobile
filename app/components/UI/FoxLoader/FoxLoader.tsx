@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, ActivityIndicator } from 'react-native';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './FoxLoader.styles';
 
 const FoxLoader = () => {
@@ -10,7 +10,7 @@ const FoxLoader = () => {
       <Image
         style={styles.image}
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        source={require('../../../images/fox.png')}
+        source={require('@images/fox.png')}
         resizeMode="contain"
       />
       <View style={styles.spacer} />

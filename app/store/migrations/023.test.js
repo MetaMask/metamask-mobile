@@ -2,9 +2,9 @@ import migrate from './023';
 import { merge } from 'lodash';
 import initialRootState, {
   backgroundState,
-} from '../../util/test/initial-root-state';
+} from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
-import { userInitialState } from '../../reducers/user';
+import { userInitialState } from '@reducers/user';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),

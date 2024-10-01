@@ -5,13 +5,13 @@ import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 import Box from './Box';
-import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
-import RemoteImage from '../../../Base/RemoteImage';
-import { useTheme } from '../../../../util/theme';
-import { strings } from '../../../../../locales/i18n';
-import { Colors } from '../../../../util/theme/models';
-import useAnalytics from '../hooks/useAnalytics';
+import Text from '@Base/Text';
+import Title from '@Base/Title';
+import RemoteImage from '@Base/RemoteImage';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
+import { Colors } from '@util/theme/models';
+import useAnalytics from '@hooks/useAnalytics';
 
 type Logos = QuoteResponse['provider']['logos'];
 

@@ -14,19 +14,19 @@ import {
 import {
   renderScreen,
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
-import { RampSDK } from '../../sdk';
-import useQuotes from '../../hooks/useQuotes';
+import { RampSDK } from '@sdk';
+import useQuotes from '@hooks/useQuotes';
 
-import Routes from '../../../../../constants/navigation/Routes';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { RampType } from '../../types';
+import Routes from '@constants/navigation/Routes';
+import { backgroundState } from '@util/test/initial-root-state';
+import { RampType } from '@types';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -91,13 +91,13 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
+jest.mock('@sdk', () => ({
+  ...jest.requireActual('@sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
-jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
+jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
@@ -113,8 +113,8 @@ let mockUseParamsValues = {
   ...mockUseParamsInitialValues,
 };
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('@util/navigation/navUtils', () => ({
+  ...jest.requireActual('@util/navigation/navUtils'),
   useParams: () => mockUseParamsValues,
 }));
 
@@ -131,7 +131,7 @@ let mockUseQuotesValues: Partial<ReturnType<typeof useQuotes>> = {
   ...mockUseQuotesInitialValues,
 };
 
-jest.mock('../../hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
+jest.mock('@hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
 
 describe('Quotes', () => {
   afterEach(() => {

@@ -10,31 +10,31 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import StorageWrapper from '../../../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
-import { MAINNET } from '../../../../constants/network';
-import ActionModal from '../../../UI/ActionModal';
-import { clearHistory } from '../../../../actions/browser';
-import Logger from '../../../../util/Logger';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { setLockTime } from '../../../../actions/settings';
-import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
-import { strings } from '../../../../../locales/i18n';
-import { passwordSet } from '../../../../actions/user';
-import Engine from '../../../../core/Engine';
-import AppConstants from '../../../../core/AppConstants';
+import { MAINNET } from '@constants/network';
+import ActionModal from '@UI/ActionModal';
+import { clearHistory } from '@actions/browser';
+import Logger from '@util/Logger';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { setLockTime } from '@actions/settings';
+import { SIMULATION_DETALS_ARTICLE_URL } from '@constants/urls';
+import { strings } from '@locales/i18n';
+import { passwordSet } from '@actions/user';
+import Engine from '@core/Engine';
+import AppConstants from '@core/AppConstants';
 import {
   EXISTING_USER,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
-} from '../../../../constants/storage';
-import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { Authentication } from '../../../../core';
-import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
-import { useTheme } from '../../../../util/theme';
+} from '@constants/storage';
+import HintModal from '@UI/HintModal';
+import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { useTheme } from '@util/theme';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -52,7 +52,7 @@ import {
 import {
   selectProviderType,
   selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -62,15 +62,15 @@ import {
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
   selectUseTransactionSimulations,
-} from '../../../../selectors/preferencesController';
+} from '@selectors/preferencesController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
   SECURITY_PRIVACY_VIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import ipfsGateways from '../../../../util/ipfs-gateways.json';
-import SelectComponent from '../../../UI/SelectComponent';
-import { timeoutFetch } from '../../../../util/general';
+} from '@wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '@wdio/utils/generateTestId';
+import ipfsGateways from '@util/ipfs-gateways.json';
+import SelectComponent from '@UI/SelectComponent';
+import { timeoutFetch } from '@util/general';
 import createStyles from './SecuritySettings.styles';
 import {
   Gateway,
@@ -79,7 +79,7 @@ import {
   SecuritySettingsParams,
 } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../../util/navigation/navUtils';
+import { useParams } from '@util/navigation/navUtils';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
@@ -93,43 +93,43 @@ import {
   SDK_SECTION,
   USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
-import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
-import { CellVariant } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import Cell from '@/component-library/components/Cells/Cell/Cell';
+import { CellVariant } from '@component-library/components/Cells/Cell';
+import { AvatarVariant } from '@component-library/components/Avatars/Avatar/Avatar.types';
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   toggleUseSafeChainsListValidation,
-} from '../../../../util/networks';
+} from '@util/networks';
 import images from 'images/image-icons';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
-import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
-import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetrics } from '../../../../core/Analytics';
+} from '@component-library/components/Buttons/Button';
+import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
+import BasicFunctionalityComponent from '@UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '@UI/ProfileSyncing/ProfileSyncing';
+import Routes from '@constants/navigation/Routes';
+import { MetaMetrics } from '@core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsProfileSyncingEnabled,
-} from '../../../../selectors/notifications';
-import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
-import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
-import { RootState } from '../../../../reducers';
+} from '@selectors/notifications';
+import { useProfileSyncing } from '@util/notifications/hooks/useProfileSyncing';
+import SwitchLoadingModal from '@components/UI/Notification/SwitchLoadingModal';
+import { RootState } from '@reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
-import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
-import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
+import { useDisableNotifications } from '@util/notifications/hooks/useNotifications';
+import { isNotificationsFeatureEnabled } from '@util/notifications';
+import AutoDetectNFTSettings from '@Settings/AutoDetectNFTSettings';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();

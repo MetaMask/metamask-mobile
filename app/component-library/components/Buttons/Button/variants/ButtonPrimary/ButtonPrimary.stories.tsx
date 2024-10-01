@@ -1,6 +1,6 @@
 // External dependencies.
-import { IconName } from '../../../../Icons/Icon';
-import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
+import { IconName } from '@Icons/Icon';
+import { ButtonSize, ButtonWidthTypes } from '@Button.types';
 
 // Internal dependencies.
 import { default as ButtonPrimaryComponent } from './ButtonPrimary';

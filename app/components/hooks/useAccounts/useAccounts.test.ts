@@ -2,8 +2,8 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '@util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
 
@@ -58,8 +58,8 @@ const MOCK_STORE_STATE = {
   },
 };
 
-jest.mock('../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest
     .fn()
     .mockImplementation((address: string, chainId: string) => {

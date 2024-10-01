@@ -2,34 +2,34 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { InteractionManager, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Engine from '../../../../../core/Engine';
-import NotificationManager from '../../../../../core/NotificationManager';
+import { strings } from '@locales/i18n';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
 import {
   getAddressAccountType,
   isExternalHardwareAccount,
   stripHexPrefix,
-} from '../../../../../util/address';
-import { sanitizeString } from '../../../../../util/string';
-import { useTheme } from '../../../../../util/theme';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import SignatureRequest from '../SignatureRequest';
-import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+} from '@util/address';
+import { sanitizeString } from '@util/string';
+import { useTheme } from '@util/theme';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
+import SignatureRequest from '@SignatureRequest';
+import ExpandedMessage from '@SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
-import AppConstants from '../../../../../core/AppConstants';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { store } from '../../../../../store';
-import Logger from '../../../../../util/Logger';
-import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
-import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import { SigningModalSelectorsIDs } from '@e2e/selectors/Modals/SigningModal.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import AppConstants from '@core/AppConstants';
+import { selectChainId } from '@selectors/networkController';
+import { store } from '@store';
+import Logger from '@util/Logger';
+import { getBlockaidMetricsParams } from '@util/blockaid';
+import createExternalSignModelNav from '@util/hardwareWallet/signatureUtils';
+import { getDecimalChainId } from '@util/networks';
+import { SecurityAlertResponse } from '@BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Converts a hexadecimal string to a utf8 string.

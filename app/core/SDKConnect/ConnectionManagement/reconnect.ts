@@ -1,7 +1,7 @@
-import { Connection, ConnectionProps } from '../Connection';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
-import { waitForCondition } from '../utils/wait.util';
+import { Connection, ConnectionProps } from '@Connection';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
+import { waitForCondition } from '@utils/wait.util';
 
 async function reconnect({
   channelId,

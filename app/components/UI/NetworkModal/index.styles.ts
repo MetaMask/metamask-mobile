@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import scaling from '../../../util/scaling';
+import { fontStyles } from '@styles/common';
+import scaling from '@util/scaling';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 const createNetworkModalStyles = (colors: ThemeColors) =>

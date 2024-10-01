@@ -1,8 +1,8 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { deepJSONParse } from '../../util/general';
+import { deepJSONParse } from '@util/general';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
-import Device from '../../util/device';
+import Device from '@util/device';
 
 export const controllerList = [
   { name: 'AccountTrackerController' },

@@ -1,4 +1,4 @@
-import MOCK_NOTIFICATIONS from '../../components/UI/Notification/__mocks__/mock_notifications';
+import MOCK_NOTIFICATIONS from '@components/UI/Notification/__mocks__/mock_notifications';
 
 export const MOCK_AUTHENTICATION_CONTROLLER = {
   isSignedIn: true,

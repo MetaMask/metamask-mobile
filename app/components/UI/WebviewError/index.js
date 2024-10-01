@@ -1,18 +1,18 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Image, StyleSheet, View, Text, Platform } from 'react-native';
-import StyledButton from '../StyledButton';
-import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
-import AnimatedFox from '../../Base/AnimatedFox';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Device from '../../../util/device';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import StyledButton from '@StyledButton';
+import { strings } from '@locales/i18n';
+import { fontStyles } from '@styles/common';
+import AnimatedFox from '@Base/AnimatedFox';
+import { ThemeContext, mockTheme } from '@util/theme';
+import Device from '@util/device';
+import generateTestId from '@wdio/utils/generateTestId';
 import {
   ERROR_PAGE_MESSAGE,
   ERROR_PAGE_RETURN_BUTTON,
   ERROR_PAGE_TITLE,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
+} from '@wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -97,7 +97,7 @@ export default class WebviewError extends PureComponent {
         <View style={styles.foxWrapper}>
           {Device.isAndroid() ? (
             <Image
-              source={require('../../../images/fox.png')}
+              source={require('@images/fox.png')}
               style={styles.image}
               resizeMethod={'auto'}
             />

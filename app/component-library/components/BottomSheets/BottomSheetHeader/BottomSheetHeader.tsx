@@ -4,10 +4,10 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import HeaderBase from '../../HeaderBase';
-import ButtonIcon from '../../Buttons/ButtonIcon';
-import { IconName, IconColor } from '../../Icons/Icon';
+import { useStyles } from '@hooks';
+import HeaderBase from '@HeaderBase';
+import ButtonIcon from '@Buttons/ButtonIcon';
+import { IconName, IconColor } from '@Icons/Icon';
 
 // Internal dependencies.
 import styleSheet from './BottomSheetHeader.styles';

@@ -2,20 +2,20 @@ import React, { useRef } from 'react';
 import { View, Image } from 'react-native';
 import BottomSheet, {
   type BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+} from '@component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import LearnMoreImage from '../images/LearnMoreEthBanner.png';
+} from '@component-library/components/Texts/Text';
+import LearnMoreImage from '@images/LearnMoreEthBanner.png';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../locales/i18n';
-import { POOLED_STAKING_FAQ_URL } from '../../constants';
+import { strings } from '@locales/i18n';
+import { POOLED_STAKING_FAQ_URL } from '@constants';
 import createLearnMoreModalStyles from './LearnMoreModal.styles';
 
 const styles = createLearnMoreModalStyles();

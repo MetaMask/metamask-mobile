@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+} from '@component-library/components/Texts/Text';
+import { ThemeContext, mockTheme } from '@util/theme';
 import { Theme } from '@metamask/design-tokens';
 
 interface ConnectHeaderProps {

@@ -10,8 +10,8 @@ import {
   authError,
   authSuccess,
   interruptBiometrics,
-} from '../../actions/user';
-import Routes from '../../constants/navigation/Routes';
+} from '@actions/user';
+import Routes from '@constants/navigation/Routes';
 import {
   biometricsStateMachine,
   authStateMachine,
@@ -21,7 +21,7 @@ import {
 
 const mockBioStateMachineId = '123';
 const mockNavigate = jest.fn();
-jest.mock('../../core/NavigationService', () => ({
+jest.mock('@core/NavigationService', () => ({
   navigation: {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

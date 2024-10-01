@@ -3,35 +3,35 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+} from '@component-library/components/Texts/Text';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
+import { selectAccounts } from '@selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectTicker } from '../../../selectors/networkController';
-import { fontStyles } from '../../../styles/common';
+} from '@selectors/currencyRateController';
+import { selectTicker } from '@selectors/networkController';
+import { fontStyles } from '@styles/common';
 import {
   getLabelTextByAddress,
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
-} from '../../../util/address';
-import Device from '../../../util/device';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+} from '@util/address';
+import Device from '@util/device';
+import { hexToBN, renderFromWei, weiToFiat } from '@util/number';
+import { ThemeContext, mockTheme } from '@util/theme';
 import {
   getActiveTabUrl,
   getNormalizedTxState,
   getTicker,
-} from '../../../util/transactions';
-import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
-import Identicon from '../Identicon';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
+} from '@util/transactions';
+import ApproveTransactionHeader from '@Views/confirmations/components/ApproveTransactionHeader';
+import Identicon from '@Identicon';
+import { selectInternalAccounts } from '@selectors/accountsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

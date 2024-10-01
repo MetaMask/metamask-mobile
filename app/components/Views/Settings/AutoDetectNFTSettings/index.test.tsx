@@ -4,9 +4,9 @@ import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import Engine from '../../../../core/Engine';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import Engine from '@core/Engine';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 
 // Internal dependencies
 import AutoDetectNFTSettings from './index';
@@ -26,7 +26,7 @@ beforeEach(() => {
 
 const mockEngine = Engine;
 
-jest.mock('../../../../core/Engine', () => {
+jest.mock('@core/Engine', () => {
   mockSetDisplayNftMedia = jest.fn();
   mockSetUseNftDetection = jest.fn();
   mockAddTraitsToUser = jest.fn();
@@ -52,7 +52,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => mockNavigation),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
+jest.mock('@hooks/useMetrics', () => ({
   useMetrics: () => ({
     addTraitsToUser: mockAddTraitsToUser,
     trackEvent: mockTrackEvent,
@@ -62,7 +62,7 @@ jest.mock('../../../hooks/useMetrics', () => ({
   },
 }));
 
-jest.mock('../../../../util/general', () => ({
+jest.mock('@util/general', () => ({
   timeoutFetch: jest.fn(),
 }));
 

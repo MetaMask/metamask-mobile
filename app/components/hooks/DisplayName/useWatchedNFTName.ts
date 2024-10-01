@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { NftContract } from '@metamask/assets-controllers';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { collectibleContractsSelector } from '@reducers/collectibles';
 
 export interface UseWatchedNFTNameRequest {
   value: string;

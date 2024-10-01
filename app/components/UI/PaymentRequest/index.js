@@ -10,8 +10,8 @@ import {
   InteractionManager,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
+import { fontStyles, baseStyles } from '@styles/common';
+import { getPaymentRequestOptionsTitle } from '@UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
@@ -28,39 +28,39 @@ import {
   renderFromTokenMinimalUnit,
   fromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
+} from '@util/number';
+import { strings } from '@locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import StyledButton from '../StyledButton';
+import StyledButton from '@StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   generateETHLink,
   generateERC20Link,
   generateUniversalLinkRequest,
-} from '../../../util/payment-link-generator';
-import Device from '../../../util/device';
-import currencySymbols from '../../../util/currency-symbols.json';
+} from '@util/payment-link-generator';
+import Device from '@util/device';
+import currencySymbols from '@util/currency-symbols.json';
 import { ChainId } from '@metamask/controller-utils';
-import { getTicker } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
+import { getTicker } from '@util/transactions';
+import { toLowerCaseEquals } from '@util/general';
 import { utils as ethersUtils } from 'ethers';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { isTestNet } from '../../../util/networks';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { isTestNet } from '@util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectTokenListArray } from '../../../selectors/tokenListController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+} from '@selectors/currencyRateController';
+import { selectTokenListArray } from '@selectors/tokenListController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 
-import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/RequestPaymentView.selectors';
+import { RequestPaymentViewSelectors } from '@e2e/selectors/RequestPaymentView.selectors';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>

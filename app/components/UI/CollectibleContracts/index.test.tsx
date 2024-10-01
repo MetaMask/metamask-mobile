@@ -3,21 +3,21 @@ import { shallow } from 'enzyme';
 import CollectibleContracts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import { act } from '@testing-library/react-hooks';
 
 // eslint-disable-next-line import/no-namespace
-import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
+import * as allSelectors from '@app/reducers/collectibles/index.js';
 import { cleanup, waitFor } from '@testing-library/react-native';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 
-import TestHelpers from '../../../../e2e/helpers';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../reducers';
-import { mockNetworkState } from '../../../util/test/network';
+import TestHelpers from '@e2e/helpers';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@react-navigation/native', () => {
@@ -36,7 +36,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     NftController: {
       addNft: jest.fn(),

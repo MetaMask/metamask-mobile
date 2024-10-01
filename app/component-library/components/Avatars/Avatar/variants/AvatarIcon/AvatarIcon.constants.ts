@@ -1,8 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { mockTheme } from '../../../../../../util/theme';
-import { AvatarSize } from '../../Avatar.types';
-import { IconName, IconColor } from '../../../../Icons/Icon';
+import { mockTheme } from '@util/theme';
+import { AvatarSize } from '@Avatar.types';
+import { IconName, IconColor } from '@Icons/Icon';
 
 // Internal dependencies.
 import { AvatarIconProps } from './AvatarIcon.types';

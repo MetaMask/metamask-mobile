@@ -4,8 +4,8 @@ import configureMockStore from 'redux-mock-store';
 
 import { render } from '@testing-library/react-native';
 
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { backgroundState } from '@util/test/initial-root-state';
+import { mockTheme, ThemeContext } from '@util/theme';
 import ExperimentalSettings from './';
 
 const mockStore = configureMockStore();

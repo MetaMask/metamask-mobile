@@ -3,11 +3,11 @@ import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import Engine from '../../../core/Engine';
+import { AddAddressModalSelectorsIDs } from '@e2e/selectors/Modals/AddAddressModal.selectors';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import Engine from '@core/Engine';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';

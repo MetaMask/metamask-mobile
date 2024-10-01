@@ -4,7 +4,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

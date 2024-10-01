@@ -3,10 +3,10 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Badge, { BadgeVariant } from '../Badge';
-import { SAMPLE_BADGENETWORK_PROPS } from '../Badge/variants/BadgeNetwork/BadgeNetwork.constants';
-import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../Texts/Text';
+import Badge, { BadgeVariant } from '@Badge';
+import { SAMPLE_BADGENETWORK_PROPS } from '@Badge/variants/BadgeNetwork/BadgeNetwork.constants';
+import { mockTheme } from '@util/theme';
+import Text, { TextVariant } from '@Texts/Text';
 
 // Internal dependencies.
 import {

@@ -7,13 +7,13 @@ import {
   Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import dappUrlList from '../../../util/dapp-url-list';
+import dappUrlList from '@util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import WebsiteIcon from '../WebsiteIcon';
-import { fontStyles } from '../../../styles/common';
-import { getHost } from '../../../util/browser';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import WebsiteIcon from '@WebsiteIcon';
+import { fontStyles } from '@styles/common';
+import { getHost } from '@util/browser';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

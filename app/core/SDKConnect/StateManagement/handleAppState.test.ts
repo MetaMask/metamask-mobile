@@ -1,6 +1,6 @@
 import BackgroundTimer from 'react-native-background-timer';
-import Device from '../../../util/device';
-import SDKConnect from '../SDKConnect';
+import Device from '@util/device';
+import SDKConnect from '@SDKConnect';
 import handleAppState from './handleAppState';
 
 jest.mock('@metamask/keyring-controller');
@@ -10,11 +10,11 @@ jest.mock('react-native-background-timer', () => ({
   setInterval: jest.fn(),
   clearInterval: jest.fn(),
 }));
-jest.mock('../../Engine');
-jest.mock('../../../util/Logger');
-jest.mock('../../../util/device');
-jest.mock('../SDKConnect');
-jest.mock('../utils/wait.util');
+jest.mock('@Engine');
+jest.mock('@util/Logger');
+jest.mock('@util/device');
+jest.mock('@SDKConnect');
+jest.mock('@utils/wait.util');
 
 describe('handleAppState', () => {
   let mockInstance = {} as unknown as SDKConnect;

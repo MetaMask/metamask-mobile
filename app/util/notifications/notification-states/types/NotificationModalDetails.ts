@@ -1,11 +1,11 @@
 import { ImageSourcePropType } from 'react-native';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-import { getNetworkFees } from '../../methods/common';
+import { getNetworkFees } from '@methods/common';
 import {
   ModalFieldType,
   ModalFooterType,
   ModalHeaderType,
-} from '../../constants';
+} from '@constants';
 
 type FeatureAnnouncementRawNotification =
   NotificationServicesController.Types.FeatureAnnouncementRawNotification;

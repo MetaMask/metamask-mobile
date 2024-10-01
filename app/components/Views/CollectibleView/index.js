@@ -1,15 +1,15 @@
 import React, { PureComponent } from 'react';
 import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
-import CollectibleOverview from '../../UI/CollectibleOverview';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import StyledButton from '../../UI/StyledButton';
-import { strings } from '../../../../locales/i18n';
-import { fontStyles } from '../../../styles/common';
+import CollectibleOverview from '@UI/CollectibleOverview';
+import { getNetworkNavbarOptions } from '@UI/Navbar';
+import StyledButton from '@UI/StyledButton';
+import { strings } from '@locales/i18n';
+import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
-import collectiblesTransferInformation from '../../../util/collectibles-transfer';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import collectiblesTransferInformation from '@util/collectibles-transfer';
+import { newAssetTransaction } from '@actions/transaction';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

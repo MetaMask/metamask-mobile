@@ -34,7 +34,7 @@ import {
 import { debounce } from 'lodash';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import {

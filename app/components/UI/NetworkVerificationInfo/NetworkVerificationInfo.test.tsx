@@ -1,8 +1,8 @@
 import React from 'react';
 import NetworkVerificationInfo from './NetworkVerificationInfo';
 import { render } from '@testing-library/react-native';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../locales/i18n';
+import { BannerAlertSeverity } from '@component-library/components/Banners/Banner';
+import { strings } from '@locales/i18n';
 import { useSelector } from 'react-redux';
 
 const mockNetworkInfo = {

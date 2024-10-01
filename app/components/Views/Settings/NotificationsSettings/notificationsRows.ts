@@ -1,5 +1,5 @@
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../locales/i18n';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { strings } from '@locales/i18n';
 
 const notificationsRows = [
   {

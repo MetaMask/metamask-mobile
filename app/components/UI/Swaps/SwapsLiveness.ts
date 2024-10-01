@@ -1,15 +1,15 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useCallback, useEffect } from 'react';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectChainId } from '@selectors/networkController';
 import { AppState } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import AppConstants from '../../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import {
   setSwapsLiveness,
   swapsLivenessSelector,
-} from '../../../reducers/swaps';
-import Logger from '../../../util/Logger';
-import useInterval from '../../hooks/useInterval';
+} from '@reducers/swaps';
+import Logger from '@util/Logger';
+import useInterval from '@hooks/useInterval';
 import { isSwapsAllowed } from './utils';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;

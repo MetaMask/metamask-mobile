@@ -1,7 +1,7 @@
 import BackgroundTimer from 'react-native-background-timer';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import SDKConnect from '../SDKConnect';
+import Logger from '@util/Logger';
+import Device from '@util/device';
+import SDKConnect from '@SDKConnect';
 
 async function unmount(instance: SDKConnect) {
   Logger.log(`SDKConnect::unmount()`);

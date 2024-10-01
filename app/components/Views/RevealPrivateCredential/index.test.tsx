@@ -2,10 +2,10 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { RevealSeedViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

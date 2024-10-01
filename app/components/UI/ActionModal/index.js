@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import ActionContent from './ActionContent';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 
 const styles = StyleSheet.create({
   modal: {

@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import ErrorBoundary from './';
 
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../components/hooks/useMetrics'),
+jest.mock('@components/hooks/useMetrics', () => ({
+  ...jest.requireActual('@components/hooks/useMetrics'),
   withMetricsAwareness: jest
     .fn()
     // TODO: Replace "any" with type

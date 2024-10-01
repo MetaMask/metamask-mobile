@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { DataDeleteStatus } from '../../../../../core/Analytics';
-import { DataDeleteDate } from '../../../../../core/Analytics/MetaMetrics.types';
+import { DataDeleteStatus } from '@core/Analytics';
+import { DataDeleteDate } from '@core/Analytics/MetaMetrics.types';
 
 /**
  * Hook to handle data deletion setting state

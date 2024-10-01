@@ -4,7 +4,7 @@ import { createStore } from 'redux';
 import AssetDetailsActions, {
   AssetDetailsActionsProps,
 } from './AssetDetailsActions';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import initialBackgroundState from '@util/test/initial-background-state.json';
 
 const mockInitialState = {
   wizard: {

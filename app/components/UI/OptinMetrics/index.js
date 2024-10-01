@@ -12,34 +12,34 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { baseStyles, fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '@styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { getOptinMetricsNavbarOptions } from '../Navbar';
-import { strings } from '../../../../locales/i18n';
-import setOnboardingWizardStep from '../../../actions/wizard';
+import { getOptinMetricsNavbarOptions } from '@Navbar';
+import { strings } from '@locales/i18n';
+import setOnboardingWizardStep from '@actions/wizard';
 import { connect } from 'react-redux';
-import { clearOnboardingEvents } from '../../../actions/onboarding';
-import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
-import AppConstants from '../../../core/AppConstants';
+import { clearOnboardingEvents } from '@actions/onboarding';
+import { setDataCollectionForMarketing } from '@actions/security';
+import { ONBOARDING_WIZARD } from '@constants/storage';
+import AppConstants from '@core/AppConstants';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
-} from '../../hooks/useMetrics';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { ThemeContext } from '../../../util/theme';
-import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
-import Checkbox from '../../../component-library/components/Checkbox';
+} from '@hooks/useMetrics';
+import StorageWrapper from '@store/storage-wrapper';
+import { ThemeContext } from '@util/theme';
+import { MetaMetricsOptInSelectorsIDs } from '@e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import Checkbox from '@component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-import { MAINNET } from '../../../constants/network';
-import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
-import Routes from '../../../constants/navigation/Routes';
+} from '@component-library/components/Buttons/Button';
+import { MAINNET } from '@constants/network';
+import { isPastPrivacyPolicyDate } from '@reducers/legalNotices';
+import Routes from '@constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
-} from '../../../util/metrics';
+} from '@util/metrics';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({

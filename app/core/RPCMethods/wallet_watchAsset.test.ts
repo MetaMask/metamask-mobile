@@ -1,17 +1,17 @@
-import Engine from '../Engine';
+import Engine from '@Engine';
 import wallet_watchAsset from './wallet_watchAsset';
 // eslint-disable-next-line import/no-namespace
-import * as transactionsUtils from '../../util/transactions';
+import * as transactionsUtils from '@util/transactions';
 import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
-} from '../../constants/error';
+} from '@constants/error';
 
-jest.mock('../Engine', () => {
+jest.mock('@Engine', () => {
   const {
     createMockInternalAccount,
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  } = require('../../util/test/accountsControllerTestUtils');
+  } = require('@util/test/accountsControllerTestUtils');
   const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
   const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
     MOCK_ADDRESS,
@@ -47,11 +47,11 @@ jest.mock('../Engine', () => {
 
 const MockEngine = jest.mocked(Engine);
 
-jest.mock('../Permissions', () => ({
+jest.mock('@Permissions', () => ({
   getPermittedAccounts: jest.fn(),
 }));
 
-jest.mock('../../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(() => ({
       engine: {

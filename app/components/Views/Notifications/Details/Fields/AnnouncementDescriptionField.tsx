@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import Html, { MixedStyleDeclaration } from 'react-native-render-html';
-import { ModalFieldAnnouncementDescription } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import useStyles from '../useStyles';
+import { ModalFieldAnnouncementDescription } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import useStyles from '@useStyles';
 
 type AnnouncementDescriptionFieldProps = ModalFieldAnnouncementDescription;
 

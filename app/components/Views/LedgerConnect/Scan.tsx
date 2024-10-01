@@ -1,21 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform, Linking } from 'react-native';
 import { openSettings } from 'react-native-permissions';
-import { strings } from '../../../../locales/i18n';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import { Colors } from '../../../util/theme/models';
-import Device from '../../../util/device';
-import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
+import { strings } from '@locales/i18n';
+import { mockTheme, useAppThemeFromContext } from '@util/theme';
+import { Colors } from '@util/theme/models';
+import Device from '@util/device';
+import useBluetooth from '@hooks/Ledger/useBluetooth';
+import useBluetoothPermissions from '@hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
-} from '../../hooks/Ledger/useBluetoothDevices';
+} from '@hooks/Ledger/useBluetoothDevices';
 import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
-} from '../../../core/Ledger/ledgerErrors';
-import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
+} from '@core/Ledger/ledgerErrors';
+import SelectOptionSheet, { ISelectOption } from '@UI/SelectOptionSheet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

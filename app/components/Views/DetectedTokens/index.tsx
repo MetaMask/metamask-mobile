@@ -7,28 +7,28 @@ import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
 
 // External Dependencies
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { fontStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { fontStyles } from '@styles/common';
+import StyledButton from '@UI/StyledButton';
 import Token from './components/Token';
-import Engine from '../../../core/Engine';
-import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import Logger from '../../../util/Logger';
-import { useTheme } from '../../../util/theme';
-import { getDecimalChainId } from '../../../util/networks';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
-import { selectDetectedTokens } from '../../../selectors/tokensController';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
+import { strings } from '@locales/i18n';
+import Logger from '@util/Logger';
+import { useTheme } from '@util/theme';
+import { getDecimalChainId } from '@util/networks';
+import { createNavigationDetails } from '@util/navigation/navUtils';
+import Routes from '@constants/navigation/Routes';
+import { selectDetectedTokens } from '@selectors/tokensController';
 import {
   selectChainId,
   selectNetworkClientId,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { DetectedTokensSelectorIDs } from '@e2e/selectors/wallet/DetectedTokensView.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

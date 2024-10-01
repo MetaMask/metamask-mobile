@@ -1,4 +1,4 @@
-import { IMetaMetricsEvent } from '../../core/Analytics';
+import { IMetaMetricsEvent } from '@core/Analytics';
 
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';

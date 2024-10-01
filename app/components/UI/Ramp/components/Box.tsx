@@ -6,9 +6,9 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { useTheme } from '../../../../util/theme';
-import { Colors } from '../../../../util/theme/models';
-import Text from '../../../Base/Text';
+import { useTheme } from '@util/theme';
+import { Colors } from '@util/theme/models';
+import Text from '@Base/Text';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

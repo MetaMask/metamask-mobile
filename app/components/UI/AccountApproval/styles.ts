@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
+import Device from '@util/device';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
 

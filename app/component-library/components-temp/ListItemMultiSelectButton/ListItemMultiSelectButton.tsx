@@ -5,8 +5,8 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../hooks';
-import ListItem from '../../../component-library/components/List/ListItem/ListItem';
+import { useStyles } from '@hooks';
+import ListItem from '@component-library/components/List/ListItem/ListItem';
 
 // Internal dependencies.
 import styleSheet from './ListItemMultiSelectButton.styles';
@@ -15,11 +15,11 @@ import {
   BUTTON_TEST_ID,
   DEFAULT_LISTITEMMULTISELECT_GAP,
 } from './ListItemMultiSelectButton.constants';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 
 const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   style,

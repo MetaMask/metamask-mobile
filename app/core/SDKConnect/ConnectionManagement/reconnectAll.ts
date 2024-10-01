@@ -1,7 +1,7 @@
-import AppConstants from '../../../../app/core/AppConstants';
-import Logger from '../../../util/Logger';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+import AppConstants from '@app/core/AppConstants';
+import Logger from '@util/Logger';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 
 async function reconnectAll(instance: SDKConnect) {
   DevLogger.log(

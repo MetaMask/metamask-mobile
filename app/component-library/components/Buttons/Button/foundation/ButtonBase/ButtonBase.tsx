@@ -5,9 +5,9 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text from '../../../../Texts/Text';
-import Icon from '../../../../Icons/Icon';
-import { useStyles } from '../../../../../hooks';
+import Text from '@Texts/Text';
+import Icon from '@Icons/Icon';
+import { useStyles } from '@hooks';
 
 // Internal dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';

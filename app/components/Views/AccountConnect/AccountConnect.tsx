@@ -12,56 +12,56 @@ import React, {
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 // External dependencies.
-import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { strings } from '@locales/i18n';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '@component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import { USER_INTENT } from '../../../constants/permissions';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Engine from '../../../core/Engine';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+} from '@component-library/components/Toast';
+import { ToastOptions } from '@component-library/components/Toast/Toast.types';
+import { USER_INTENT } from '@constants/permissions';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Engine from '@core/Engine';
+import { selectAccountsLength } from '@selectors/accountTrackerController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccountChecksummedAddress,
-} from '../../../selectors/accountsController';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import Logger from '../../../util/Logger';
-import getAccountNameWithENS from '../../../util/accounts';
+} from '@selectors/accountsController';
+import { isDefaultAccountName } from '@util/ENSUtils';
+import Logger from '@util/Logger';
+import getAccountNameWithENS from '@util/accounts';
 import {
   getAddressAccountType,
   safeToChecksumAddress,
-} from '../../../util/address';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
-import { getActiveTabUrl } from '../../../util/transactions';
-import { Account, useAccounts } from '../../hooks/useAccounts';
+} from '@util/address';
+import { getUrlObj, prefixUrlWithProtocol } from '@util/browser';
+import { getActiveTabUrl } from '@util/transactions';
+import { Account, useAccounts } from '@hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import { ImageURISource, StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
-import PhishingModal from '../../../components/UI/PhishingModal';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import Routes from '../../../constants/navigation/Routes';
+import PhishingModal from '@components/UI/PhishingModal';
+import { useMetrics } from '@components/hooks/useMetrics';
+import Routes from '@constants/navigation/Routes';
 import {
   MM_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
   MM_PHISH_DETECT_URL,
-} from '../../../constants/urls';
-import AppConstants from '../../../core/AppConstants';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
-import { RootState } from '../../../reducers';
-import { trackDappViewedEvent } from '../../../util/metrics';
-import { useTheme } from '../../../util/theme';
-import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
+} from '@constants/urls';
+import AppConstants from '@core/AppConstants';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { RootState } from '@reducers';
+import { trackDappViewedEvent } from '@util/metrics';
+import { useTheme } from '@util/theme';
+import useFavicon from '@hooks/useFavicon/useFavicon';
+import { SourceType } from '@hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -69,10 +69,10 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
-import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
+import { PermissionsSummaryProps } from '@components/UI/PermissionsSummary/PermissionsSummary.types';
+import PermissionsSummary from '@components/UI/PermissionsSummary';
+import { isMultichainVersion1Enabled } from '@util/networks';
+import NetworkConnectMultiSelector from '@NetworkConnect/NetworkConnectMultiSelector';
 
 const createStyles = () =>
   StyleSheet.create({

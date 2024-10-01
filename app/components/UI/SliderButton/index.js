@@ -14,10 +14,10 @@ import {
   Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
-import { useTheme } from '../../../util/theme';
-import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
+import { fontStyles } from '@styles/common';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
+import { SwapsViewSelectors } from '@e2e/selectors/swaps/SwapsView.selectors';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');

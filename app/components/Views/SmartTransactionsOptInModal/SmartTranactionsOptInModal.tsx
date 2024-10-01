@@ -6,31 +6,31 @@ import {
   Linking,
   ImageBackground,
 } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { CURRENT_APP_VERSION } from '../../../constants/storage';
-import { useTheme } from '../../../util/theme';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import StorageWrapper from '@store/storage-wrapper';
+import { CURRENT_APP_VERSION } from '@constants/storage';
+import { useTheme } from '@util/theme';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import { Colors } from '../../../util/theme/models';
-import { SmartTransactionsOptInModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SmartTransactionsOptInModal.selectors';
-import Engine from '../../../core/Engine';
+} from '@component-library/components/Icons/Icon';
+import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import { Colors } from '@util/theme/models';
+import { SmartTransactionsOptInModalSelectorsIDs } from '@e2e/selectors/Modals/SmartTransactionsOptInModal.selectors';
+import Engine from '@core/Engine';
 import Button, {
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import AppConstants from '../../../core/AppConstants';
-import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+} from '@component-library/components/Buttons/Button';
+import AppConstants from '@core/AppConstants';
+import backgroundImage from '@images/smart-transactions-opt-in-bg.png';
+import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
 import { useDispatch } from 'react-redux';
-import { updateOptInModalAppVersionSeen } from '../../../core/redux/slices/smartTransactions';
+import { updateOptInModalAppVersionSeen } from '@core/redux/slices/smartTransactions';
 
 const MODAL_MARGIN = 24;
 const MODAL_PADDING = 24;

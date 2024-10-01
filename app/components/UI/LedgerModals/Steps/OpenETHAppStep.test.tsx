@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import OpenETHAppStep from './OpenETHAppStep';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '@util/test/renderWithProvider';
 import { OPEN_ETH_APP_STEP } from './Steps.constants';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 describe('OpenETHAppStep', () => {
   it('renders correctly', () => {

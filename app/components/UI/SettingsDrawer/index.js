@@ -1,22 +1,22 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { fontStyles } from '@styles/common';
+import { useTheme } from '@util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import ListItem from '../../../component-library/components/List/ListItem/ListItem';
+} from '@component-library/components/Icons/Icon';
+import ListItem from '@component-library/components/List/ListItem/ListItem';
 import ListItemColumn, {
   WidthType,
-} from '../../../component-library/components/List/ListItemColumn';
+} from '@component-library/components/List/ListItemColumn';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 const createStyles = (colors, titleColor) =>
   StyleSheet.create({

@@ -3,43 +3,43 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { strings } from '@locales/i18n';
+import { BROWSER_SCREEN_ID } from '@wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import generateTestId from '@wdio/utils/generateTestId';
 import {
   closeAllTabs,
   closeTab,
   createNewTab,
   setActiveTab,
   updateTab,
-} from '../../../actions/browser';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+} from '@actions/browser';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import { useAccounts } from '../../../components/hooks/useAccounts';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
+} from '@component-library/components/Toast';
+import { useAccounts } from '@components/hooks/useAccounts';
+import { MetaMetricsEvents } from '@core/Analytics';
+import AppConstants from '@core/AppConstants';
 import {
   getPermittedAccounts,
   getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { baseStyles } from '../../../styles/common';
-import Logger from '../../../util/Logger';
-import getAccountNameWithENS from '../../../util/accounts';
-import Device from '../../../util/device';
-import { useTheme } from '../../../util/theme';
-import Tabs from '../../UI/Tabs';
-import BrowserTab from '../BrowserTab';
+} from '@core/Permissions';
+import { selectAccountsLength } from '@selectors/accountTrackerController';
+import { baseStyles } from '@styles/common';
+import Logger from '@util/Logger';
+import getAccountNameWithENS from '@util/accounts';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
+import Tabs from '@UI/Tabs';
+import BrowserTab from '@BrowserTab';
 
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { selectNetworkConfigurations } from '@selectors/networkController';
+import { getBrowserViewNavbarOptions } from '@UI/Navbar';
+import { selectPermissionControllerState } from '@selectors/snaps/permissionController';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;

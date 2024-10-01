@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SecurityOptionToggle } from '../../../../UI/SecurityOptionToggle';
-import { strings } from '../../../../../../locales/i18n';
+import { SecurityOptionToggle } from '@UI/SecurityOptionToggle';
+import { strings } from '@locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
-import { Authentication } from '../../../../../core';
-import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
-import Device from '../../../../../util/device';
-import { useTheme } from '../../../../../util/theme';
-import StorageWrapper from '../../../../../store/storage-wrapper';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import Device from '@util/device';
+import { useTheme } from '@util/theme';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
   TRUE,
-} from '../../../../../constants/storage';
+} from '@constants/storage';
 import { View } from 'react-native';
-import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
-import createStyles from '../SecuritySettings.styles';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { LOGIN_OPTIONS } from '@SecuritySettings.constants';
+import createStyles from '@SecuritySettings.styles';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 interface BiometricOptionSectionProps {
   onSignWithBiometricsOptionUpdated: (enabled: boolean) => Promise<void>;

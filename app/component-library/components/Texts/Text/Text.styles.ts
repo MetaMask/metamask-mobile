@@ -2,7 +2,7 @@
 import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 // Internal dependencies.
 import { TextColor, TextVariant } from './Text.types';

@@ -1,6 +1,6 @@
 // External dependencies.
-import { IconSize } from '../../Icons/Icon';
-import { TextVariant } from '../../Texts/Text';
+import { IconSize } from '@Icons/Icon';
+import { TextVariant } from '@Texts/Text';
 
 // Internal dependencies.
 import { AvatarAccountProps } from './variants/AvatarAccount/AvatarAccount.types';

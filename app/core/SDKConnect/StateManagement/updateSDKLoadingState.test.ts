@@ -1,13 +1,13 @@
-import SDKConnect from '../SDKConnect';
-import { waitForKeychainUnlocked } from '../utils/wait.util';
+import SDKConnect from '@SDKConnect';
+import { waitForKeychainUnlocked } from '@utils/wait.util';
 import updateSDKLoadingState from './updateSDKLoadingState';
 
-jest.mock('../SDKConnect');
-jest.mock('../utils/DevLogger');
+jest.mock('@SDKConnect');
+jest.mock('@utils/DevLogger');
 jest.mock('@metamask/keyring-controller');
-jest.mock('../utils/wait.util');
-jest.mock('../../Engine');
-jest.mock('../../../constants/navigation/Routes');
+jest.mock('@utils/wait.util');
+jest.mock('@Engine');
+jest.mock('@constants/navigation/Routes');
 
 describe('updateSDKLoadingState', () => {
   let mockInstance = {} as unknown as SDKConnect;

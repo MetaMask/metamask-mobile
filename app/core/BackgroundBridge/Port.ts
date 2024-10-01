@@ -1,7 +1,7 @@
 import {
   JS_POST_MESSAGE_TO_PROVIDER,
   JS_IFRAME_POST_MESSAGE_TO_PROVIDER,
-} from '../../util/browserScripts';
+} from '@util/browserScripts';
 // eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const EventEmitter = require('events').EventEmitter;
 

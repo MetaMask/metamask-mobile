@@ -3,8 +3,8 @@ import { View, StyleSheet, TextStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
-import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
-import { colors as importedColors } from '../../../styles/common';
+import { DrawerContext } from '@components/Nav/Main/MainNavigator';
+import { colors as importedColors } from '@styles/common';
 
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -13,19 +13,19 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import Step7 from './Step7';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import Routes from '../../../constants/navigation/Routes';
-import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
+import setOnboardingWizardStep from '@actions/wizard';
+import Routes from '@constants/navigation/Routes';
+import { ONBOARDING_WIZARD, EXPLORED } from '@constants/storage';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
-} from '../../../core/Analytics';
-import { useTheme } from '../../../util/theme';
-import Device from '../../../util/device';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { isTest } from '../../../util/test/utils';
-import { useMetrics } from '../../hooks/useMetrics';
-import { RootState } from '../../../reducers';
+} from '@core/Analytics';
+import { useTheme } from '@util/theme';
+import Device from '@util/device';
+import StorageWrapper from '@store/storage-wrapper';
+import { isTest } from '@util/test/utils';
+import { useMetrics } from '@hooks/useMetrics';
+import { RootState } from '@reducers';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({

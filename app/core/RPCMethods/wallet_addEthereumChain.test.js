@@ -1,7 +1,7 @@
 import { InteractionManager } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import wallet_addEthereumChain from './wallet_addEthereumChain';
-import Engine from '../Engine';
+import Engine from '@Engine';
 
 const mockEngine = Engine;
 
@@ -13,7 +13,7 @@ const correctParams = {
   rpcUrls: ['https://rpc.gnosischain.com'],
 };
 
-jest.mock('../Engine', () => ({
+jest.mock('@Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
     NetworkController: {
@@ -29,7 +29,7 @@ jest.mock('../Engine', () => ({
   },
 }));
 
-jest.mock('../../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(() => ({
       engine: {

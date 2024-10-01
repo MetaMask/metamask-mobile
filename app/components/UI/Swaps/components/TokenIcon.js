@@ -2,13 +2,13 @@ import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
-import RemoteImage from '../../../Base/RemoteImage';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
-import imageIcons from '../../../../images/image-icons';
+import RemoteImage from '@Base/RemoteImage';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
+import imageIcons from '@images/image-icons';
 
 /* eslint-disable import/no-commonjs */
-const ethLogo = require('../../../../images/eth-logo-new.png');
+const ethLogo = require('@images/eth-logo-new.png');
 /* eslint-enable import/no-commonjs */
 
 const REGULAR_SIZE = 24;

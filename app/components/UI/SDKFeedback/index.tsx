@@ -3,14 +3,14 @@ import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typo
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../app/component-library/components/Icons/Icon';
+} from '@app/component-library/components/Icons/Icon';
 import React from 'react';
 import { StyleSheet, Text, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Device from '../../../../app/util/device';
-import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
-import StyledButton from '../StyledButton';
+import Device from '@app/util/device';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import StyledButton from '@StyledButton';
 
 interface SDKFeedbackProps {
   onConfirm: () => void;

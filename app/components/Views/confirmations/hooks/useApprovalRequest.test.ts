@@ -1,7 +1,7 @@
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { useSelector } from 'react-redux';
 import useApprovalRequest from './useApprovalRequest';
-import Engine from '../../../../core/Engine';
+import Engine from '@core/Engine';
 import { providerErrors } from '@metamask/rpc-errors';
 
 jest.mock('react-redux', () => ({
@@ -19,7 +19,7 @@ jest.mock('react', () => {
   };
 });
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
 }));

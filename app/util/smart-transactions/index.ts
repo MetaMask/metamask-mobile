@@ -1,12 +1,12 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from './smart-publish-hook';
-import TransactionTypes from '../../core/TransactionTypes';
+import TransactionTypes from '@core/TransactionTypes';
 import {
   getIsSwapApproveTransaction,
   getIsSwapApproveOrSwapTransaction,
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
-} from '../transactions';
+} from '@transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
 export const getTransactionType = (

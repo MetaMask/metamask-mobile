@@ -1,14 +1,14 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
-import Routes from '../../../../constants/navigation/Routes';
-import Logger from '../../../../util/Logger';
-import Device from '../../../../util/device';
-import Engine from '../../../Engine';
-import SDKConnect, { approveHostProps } from '../../SDKConnect';
-import handleConnectionReady from '../../handlers/handleConnectionReady';
-import DevLogger from '../../utils/DevLogger';
-import { Connection } from '../Connection';
-import AppConstants from '../../../../core/AppConstants';
+import Routes from '@constants/navigation/Routes';
+import Logger from '@util/Logger';
+import Device from '@util/device';
+import Engine from '@Engine';
+import SDKConnect, { approveHostProps } from '@SDKConnect';
+import handleConnectionReady from '@handlers/handleConnectionReady';
+import DevLogger from '@utils/DevLogger';
+import { Connection } from '@Connection';
+import AppConstants from '@core/AppConstants';
 
 function handleClientsReady({
   instance,

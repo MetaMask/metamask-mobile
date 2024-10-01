@@ -2,11 +2,11 @@ import { ResultComponent } from '@metamask/approval-controller';
 import {
   TemplateRendererComponent,
   TemplateRendererInput,
-} from '../../../../../UI/TemplateRenderer/types';
+} from '@UI/TemplateRenderer/types';
 import {
   safeComponentList,
   SafeComponentListValues,
-} from '../../../../../UI/TemplateRenderer/SafeComponentList';
+} from '@UI/TemplateRenderer/SafeComponentList';
 
 /**
  * Processes an error message or ResultComponent and returns a TemplateRendererComponent

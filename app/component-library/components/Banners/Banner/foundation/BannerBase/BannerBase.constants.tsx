@@ -4,12 +4,12 @@
 import React from 'react';
 
 // External dependencies.
-import { TextVariant } from '../../../../Texts/Text';
-import { ButtonVariants, ButtonSize } from '../../../../Buttons/Button';
-import { ButtonProps } from '../../../../Buttons/Button/Button.types';
-import { ButtonIconSizes } from '../../../../Buttons/ButtonIcon';
-import Icon, { IconName, IconColor } from '../../../../Icons/Icon';
-import { SAMPLE_ICON_PROPS } from '../../../../Icons/Icon/Icon.constants';
+import { TextVariant } from '@Texts/Text';
+import { ButtonVariants, ButtonSize } from '@Buttons/Button';
+import { ButtonProps } from '@Buttons/Button/Button.types';
+import { ButtonIconSizes } from '@Buttons/ButtonIcon';
+import Icon, { IconName, IconColor } from '@Icons/Icon';
+import { SAMPLE_ICON_PROPS } from '@Icons/Icon/Icon.constants';
 
 // Internal dependencies.
 import { BannerBaseProps } from './BannerBase.types';

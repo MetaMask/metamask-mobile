@@ -1,10 +1,10 @@
 import React from 'react';
 import AccountApproval from '.';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '@util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PhishingController: {
       maybeUpdateState: jest.fn(),

@@ -11,16 +11,16 @@ import {
 import { WebView } from '@metamask/react-native-webview';
 
 // External dependencies.
-import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
-import Text from '../../Texts/Text';
-import { useStyles } from '../../../hooks';
-import { useTheme } from '../../../../util/theme';
+import ButtonPrimary from '@Buttons/Button/variants/ButtonPrimary';
+import Text from '@Texts/Text';
+import { useStyles } from '@hooks';
+import { useTheme } from '@util/theme';
 import ReusableModal, {
   ReusableModalRef,
-} from '../../../../components/UI/ReusableModal';
-import Checkbox from '../../../../component-library/components/Checkbox';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+} from '@components/UI/ReusableModal';
+import Checkbox from '@component-library/components/Checkbox';
+import { IconName } from '@component-library/components/Icons/Icon';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon';
 
 // Internal dependencies
 import {
@@ -33,7 +33,7 @@ import {
   MandatoryModalProps,
 } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
-import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '@e2e/selectors/Modals/TermsOfUseModal.selectors';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();

@@ -1,15 +1,15 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '@styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AnimatedSpinner from '../../AnimatedSpinner';
-import { strings } from '../../../../../locales/i18n';
+import AnimatedSpinner from '@AnimatedSpinner';
+import { strings } from '@locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
-import { ToastSelectorsIDs } from '../../../../../e2e/selectors/Modals/ToastModal.selectors';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
+import { ToastSelectorsIDs } from '@e2e/selectors/Modals/ToastModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

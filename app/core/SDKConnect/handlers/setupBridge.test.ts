@@ -1,17 +1,17 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { PROTOCOLS } from '../../../constants/deeplinks';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { Connection } from '../Connection';
-import DevLogger from '../utils/DevLogger';
+import { PROTOCOLS } from '@constants/deeplinks';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import { Connection } from '@Connection';
+import DevLogger from '@utils/DevLogger';
 import setupBridge from './setupBridge';
 
-jest.mock('../../BackgroundBridge/BackgroundBridge');
-jest.mock('../Connection');
-jest.mock('../utils/DevLogger');
+jest.mock('@BackgroundBridge/BackgroundBridge');
+jest.mock('@Connection');
+jest.mock('@utils/DevLogger');
 jest.mock('./handleSendMessage');
-jest.mock('../../../util/Logger');
-jest.mock('../../AppConstants');
-jest.mock('../../../constants/deeplinks');
+jest.mock('@util/Logger');
+jest.mock('@AppConstants');
+jest.mock('@constants/deeplinks');
 
 describe('setupBridge', () => {
   let originatorInfo = {} as OriginatorInfo;

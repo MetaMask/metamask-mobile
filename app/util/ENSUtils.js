@@ -1,6 +1,6 @@
-import Engine from '../core/Engine';
+import Engine from '@core/Engine';
 import ENS from 'ethjs-ens';
-import { toLowerCaseEquals } from '../util/general';
+import { toLowerCaseEquals } from '@util/general';
 import {
   ChainId,
   InfuraNetworkType,
@@ -10,8 +10,8 @@ const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
 const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
 const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
-import { EMPTY_ADDRESS } from '../constants/transaction';
-import { regex } from '../../app/util/regex';
+import { EMPTY_ADDRESS } from '@constants/transaction';
+import { regex } from '@app/util/regex';
 
 /**
  * Utility class with the single responsibility

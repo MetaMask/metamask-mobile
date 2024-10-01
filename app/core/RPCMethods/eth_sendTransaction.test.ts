@@ -7,9 +7,9 @@ import type {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import eth_sendTransaction from './eth_sendTransaction';
-import PPOMUtil from '../../lib/ppom/ppom-util';
+import PPOMUtil from '@lib/ppom/ppom-util';
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PreferencesController: {
       state: {
@@ -35,7 +35,7 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   updateSecurityAlertResponse: jest.fn(),
   updateTransaction: jest.fn(),

@@ -1,28 +1,28 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
 
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
+} from '@component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+} from '@component-library/components/Buttons/Button';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import createStyles from './styles';
-import { DataCollectionModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DataCollectionModal.selectors';
+import { DataCollectionModalSelectorsIDs } from '@e2e/selectors/Modals/DataCollectionModal.selectors';
 
 const DataCollectionModal = () => {
   const styles = createStyles();

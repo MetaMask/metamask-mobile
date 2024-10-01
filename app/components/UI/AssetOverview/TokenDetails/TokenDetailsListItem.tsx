@@ -3,7 +3,7 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 interface TokenDetailsListItemProps {
   label: string;

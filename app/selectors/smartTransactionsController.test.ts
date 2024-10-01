@@ -2,11 +2,11 @@ import {
   selectShouldUseSmartTransaction,
   selectSmartTransactionsEnabled,
 } from './smartTransactionsController';
-import { backgroundState } from '../util/test/initial-root-state';
-import { isHardwareAccount } from '../util/address';
+import { backgroundState } from '@util/test/initial-root-state';
+import { isHardwareAccount } from '@util/address';
 import { cloneDeep } from 'lodash';
 
-jest.mock('../util/address', () => ({
+jest.mock('@util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));
 

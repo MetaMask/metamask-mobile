@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { ModalFieldNetwork } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import useStyles from '../useStyles';
+} from '@component-library/components/Texts/Text';
+import { ModalFieldNetwork } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import useStyles from '@useStyles';
 
 function NetworkField(props: ModalFieldNetwork) {
   const { iconUrl, name } = props;

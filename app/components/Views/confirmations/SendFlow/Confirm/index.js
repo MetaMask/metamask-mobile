@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { baseStyles } from '../../../../../styles/common';
+import { baseStyles } from '@styles/common';
 import {
   InteractionManager,
   View,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { getSendFlowTitle } from '../../../../UI/Navbar';
+import { getSendFlowTitle } from '@UI/Navbar';
 import PropTypes from 'prop-types';
 import Eth from 'ethjs-query';
 import {
@@ -19,13 +19,13 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
-} from '../../../../../util/number';
+} from '@util/number';
 import {
   getTicker,
   decodeTransferData,
   getNormalizedTxState,
-} from '../../../../../util/transactions';
-import StyledButton from '../../../../UI/StyledButton';
+} from '@util/transactions';
+import StyledButton from '@UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { ChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -35,20 +35,20 @@ import {
   setNonce,
   setProposedNonce,
   setTransactionId,
-} from '../../../../../actions/transaction';
-import { getGasLimit } from '../../../../../util/custom-gas';
-import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import CustomNonceModal from '../components/CustomNonceModal';
-import NotificationManager from '../../../../../core/NotificationManager';
-import { strings } from '../../../../../../locales/i18n';
-import CollectibleMedia from '../../../../UI/CollectibleMedia';
+} from '@actions/transaction';
+import { getGasLimit } from '@util/custom-gas';
+import Engine from '@core/Engine';
+import Logger from '@util/Logger';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
+import CustomNonceModal from '@components/CustomNonceModal';
+import NotificationManager from '@core/NotificationManager';
+import { strings } from '@locales/i18n';
+import CollectibleMedia from '@UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import TransactionTypes from '../../../../../core/TransactionTypes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { shallowEqual, renderShortText } from '../../../../../util/general';
+import TransactionTypes from '@core/TransactionTypes';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { shallowEqual, renderShortText } from '@util/general';
 import {
   isTestNet,
   getNetworkNonce,
@@ -58,77 +58,77 @@ import {
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
-} from '../../../../../util/networks';
-import Text from '../../../../Base/Text';
-import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
+} from '@util/networks';
+import Text from '@Base/Text';
+import { removeFavoriteCollectible } from '@actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
-import TransactionReview from '../../components/TransactionReview/TransactionReviewEIP1559Update';
-import CustomNonce from '../../components/CustomNonce';
-import AppConstants from '../../../../../core/AppConstants';
+import AccountFromToInfoCard from '@UI/AccountFromToInfoCard';
+import TransactionReview from '@components/TransactionReview/TransactionReviewEIP1559Update';
+import CustomNonce from '@components/CustomNonce';
+import AppConstants from '@core/AppConstants';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
   isHardwareAccount,
-} from '../../../../../util/address';
-import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import Routes from '../../../../../constants/navigation/Routes';
-import WarningMessage from '../WarningMessage';
-import { showAlert } from '../../../../../actions/alert';
-import ClipboardManager from '../../../../../core/ClipboardManager';
-import GlobalAlert from '../../../../UI/GlobalAlert';
+} from '@util/address';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import { ThemeContext, mockTheme } from '@util/theme';
+import Routes from '@constants/navigation/Routes';
+import WarningMessage from '@WarningMessage';
+import { showAlert } from '@actions/alert';
+import ClipboardManager from '@core/ClipboardManager';
+import GlobalAlert from '@UI/GlobalAlert';
 import createStyles from './styles';
 import {
   startGasPolling,
   stopGasPolling,
-} from '../../../../../core/GasPolling/GasPolling';
+} from '@core/GasPolling/GasPolling';
 import {
   selectChainId,
   selectProviderType,
   selectTicker,
-} from '../../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
-import { getRampNetworks } from '../../../../../reducers/fiatOrders';
-import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
-import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { getDeviceId } from '../../../../../core/Ledger/Ledger';
-import { getBlockaidTransactionMetricsParams } from '../../../../../util/blockaid';
-import ppomUtil from '../../../../../lib/ppom/ppom-util';
-import TransactionBlockaidBanner from '../../components/TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { createLedgerTransactionModalNavDetails } from '../../../../../components/UI/LedgerModals/LedgerTransactionModal';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
+import { getRampNetworks } from '@reducers/fiatOrders';
+import { ConfirmViewSelectorsIDs } from '@e2e/selectors/SendFlow/ConfirmView.selectors';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
+import { getDeviceId } from '@core/Ledger/Ledger';
+import { getBlockaidTransactionMetricsParams } from '@util/blockaid';
+import ppomUtil from '@lib/ppom/ppom-util';
+import TransactionBlockaidBanner from '@components/TransactionBlockaidBanner/TransactionBlockaidBanner';
+import { createLedgerTransactionModalNavDetails } from '@components/UI/LedgerModals/LedgerTransactionModal';
 import CustomGasModal from './components/CustomGasModal';
-import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
-import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { ResultType } from '@components/BlockaidBanner/BlockaidBanner.types';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import {
   selectCurrentTransactionMetadata,
   selectCurrentTransactionSecurityAlertResponse,
   selectGasFeeEstimates,
-} from '../../../../../selectors/confirmTransaction';
-import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import { updateTransaction } from '../../../../../util/transaction-controller';
-import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
-import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
-import { selectTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
-import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
-import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
+} from '@selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
+import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import { updateTransaction } from '@util/transaction-controller';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '@util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '@util/smart-transactions';
+import { TransactionConfirmViewSelectorsIDs } from '@e2e/selectors/TransactionConfirmView.selectors.js';
+import { selectTransactionMetrics } from '@core/redux/slices/transactionMetrics';
+import SimulationDetails from '@UI/SimulationDetails/SimulationDetails';
+import { selectUseTransactionSimulations } from '@selectors/preferencesController';
 import {
   generateInsufficientBalanceMessage,
   validateBalance,
   validateTokenTransaction,
 } from './validation';
-import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import { buildTransactionParams } from '@util/confirmation/transactions';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';

@@ -1,7 +1,7 @@
 import {
   CombinedProperties,
   EventProperties,
-} from '../../core/Analytics/MetaMetrics.types';
+} from '@core/Analytics/MetaMetrics.types';
 import preProcessAnalyticsEvent from './preProcessAnalyticsEvent';
 
 function isEventProperties(

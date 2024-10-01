@@ -1,6 +1,6 @@
 // External dependencies.
-import { TextFieldProps } from '../TextField/TextField.types';
-import { ButtonIconProps } from '../../Buttons/ButtonIcon/ButtonIcon.types';
+import { TextFieldProps } from '@TextField/TextField.types';
+import { ButtonIconProps } from '@Buttons/ButtonIcon/ButtonIcon.types';
 
 interface BaseTextFieldSearchProps extends TextFieldProps {
   /**

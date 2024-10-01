@@ -4,7 +4,7 @@ import {
   FiatCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
-import APP_CONSTANTS from '../../../../../core/AppConstants';
+import APP_CONSTANTS from '@core/AppConstants';
 
 const {
   MASTERCARD_LIGHT,

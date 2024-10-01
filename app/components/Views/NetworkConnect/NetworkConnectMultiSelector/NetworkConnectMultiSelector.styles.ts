@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
+import { isMultichainVersion1Enabled } from '@util/networks';
 
 const styleSheet = (params: {
   vars: { isRenderedAsBottomSheet: boolean | undefined };

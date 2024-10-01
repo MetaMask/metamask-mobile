@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/default-param-last */
-import { ActionType, Action } from '../../actions/security';
-import { SecuritySettingsState } from '../../actions/security/state';
+import { ActionType, Action } from '@actions/security';
+import { SecuritySettingsState } from '@actions/security/state';
 
 export const initialState: Readonly<SecuritySettingsState> = {
   allowLoginWithRememberMe: false,

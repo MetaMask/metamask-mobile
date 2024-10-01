@@ -1,7 +1,7 @@
 import {
   ExitRequestWithClaimedAssetInfo,
   UnstakingRequest,
-} from '../StakingBalance.types';
+} from '@StakingBalance.types';
 import bn from 'bignumber.js';
 
 // An exitQueueIndex of -1 means that the request has not yet entered the exit queue

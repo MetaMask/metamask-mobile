@@ -1,14 +1,14 @@
-import { ConnectionProps } from '../Connection';
-import SDKConnect from '../SDKConnect';
+import { ConnectionProps } from '@Connection';
+import SDKConnect from '@SDKConnect';
 import addDappConnection from './addDappConnection';
 
-jest.mock('../Connection');
-jest.mock('../SDKConnect');
-jest.mock('../utils/DevLogger');
-jest.mock('../../../store/storage-wrapper', () => ({
+jest.mock('@Connection');
+jest.mock('@SDKConnect');
+jest.mock('@utils/DevLogger');
+jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(''),
 }));
-jest.mock('../../../core/AppConstants');
+jest.mock('@core/AppConstants');
 
 describe('addDappConnection', () => {
   let mockInstance = {} as unknown as SDKConnect;

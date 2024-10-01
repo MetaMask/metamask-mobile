@@ -3,10 +3,10 @@ import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
-import useStyles from '../List/useStyles';
-import { formatMenuItemDate } from '../../../../util/notifications/methods';
+} from '@component-library/components/Texts/Text';
+import { NotificationMenuItem } from '@util/notifications/notification-states/types/NotificationMenuItem';
+import useStyles from '@List/useStyles';
+import { formatMenuItemDate } from '@util/notifications/methods';
 
 type NotificationContentProps = Pick<
   NotificationMenuItem,

@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 
 import { DEFAULT_BADGENOTIFICATIONS_NOTIFICATIONSICON_SIZE } from './BadgeNotifications.constants';
 import { BadgeNotificationsStyleSheetVars } from './BadgeNotifications.types';

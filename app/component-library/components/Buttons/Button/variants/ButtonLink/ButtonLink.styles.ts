@@ -2,7 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { colors } from '../../../../../../styles/common';
+import { colors } from '@styles/common';
 
 // Internal dependencies.
 import { ButtonLinkStyleSheetVars } from './ButtonLink.types';

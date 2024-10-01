@@ -2,8 +2,8 @@ import { StyleSheet, Dimensions } from 'react-native';
 import {
   fontStyles,
   colors as importedColors,
-} from '../../../../styles/common';
-import Device from '../../../../util/device';
+} from '@styles/common';
+import Device from '@util/device';
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 const margin = 15;

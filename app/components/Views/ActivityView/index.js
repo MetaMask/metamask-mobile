@@ -3,20 +3,20 @@ import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getHasOrders } from '../../../reducers/fiatOrders';
-import { getTransactionsNavbarOptions } from '../../UI/Navbar';
-import TransactionsView from '../TransactionsView';
-import TabBar from '../../Base/TabBar';
-import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
-import ErrorBoundary from '../ErrorBoundary';
-import { useTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useParams } from '../../../util/navigation/navUtils';
+import { getHasOrders } from '@reducers/fiatOrders';
+import { getTransactionsNavbarOptions } from '@UI/Navbar';
+import TransactionsView from '@TransactionsView';
+import TabBar from '@Base/TabBar';
+import { strings } from '@locales/i18n';
+import RampOrdersList from '@UI/Ramp/Views/OrdersList';
+import ErrorBoundary from '@ErrorBoundary';
+import { useTheme } from '@util/theme';
+import Routes from '@constants/navigation/Routes';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { selectAccountsByChainId } from '@selectors/accountTrackerController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { useParams } from '@util/navigation/navUtils';
 
 const styles = StyleSheet.create({
   wrapper: {

@@ -4,13 +4,13 @@ import { useDispatch } from 'react-redux';
 
 import { useNavigation } from '@react-navigation/native';
 
-import { strings } from '../../../../../../locales/i18n';
-import { showAlert } from '../../../../../actions/alert';
-import { NetworkSwitchErrorType } from '../../../../../constants/error';
-import Routes from '../../../../../constants/navigation/Routes';
-import { handleNetworkSwitch } from '../../../../../util/networks';
-import { AddressTo } from '../../../../UI/AddressInputs';
-import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
+import { strings } from '@locales/i18n';
+import { showAlert } from '@actions/alert';
+import { NetworkSwitchErrorType } from '@constants/error';
+import Routes from '@constants/navigation/Routes';
+import { handleNetworkSwitch } from '@util/networks';
+import { AddressTo } from '@UI/AddressInputs';
+import { createQRScannerNavDetails } from '@QRTabSwitcher';
 import { SFAddressToProps } from './AddressTo.types';
 
 const SendFlowAddressTo = ({

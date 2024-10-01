@@ -1,16 +1,16 @@
 import React, { ReactNode, useState } from 'react';
 import { View } from 'react-native';
-import ActionModal from '../ActionModal';
+import ActionModal from '@ActionModal';
 import createStyles from './styles';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
 interface ISettingsButtonSectionProps {
   sectionTitle: string;

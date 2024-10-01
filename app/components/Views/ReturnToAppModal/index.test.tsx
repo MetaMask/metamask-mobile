@@ -3,7 +3,7 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ReturnToAppModal from '.';
 
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
 

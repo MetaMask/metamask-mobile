@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { TextVariant, TextColor } from '../../Texts/Text';
-import { SAMPLE_AVATAR_PROPS } from '../../Avatars/Avatar/Avatar.constants';
+import { TextVariant, TextColor } from '@Texts/Text';
+import { SAMPLE_AVATAR_PROPS } from '@Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.
 import { SelectValueProps } from './SelectValue.types';

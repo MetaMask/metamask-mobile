@@ -4,9 +4,9 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '../../../../hooks';
-import ListItem from '../../../List/ListItem';
-import ListItemColumn, { WidthType } from '../../../List/ListItemColumn';
+import { useStyles } from '@hooks';
+import ListItem from '@List/ListItem';
+import ListItemColumn, { WidthType } from '@List/ListItemColumn';
 
 // Internal dependencies.
 import styleSheet from './SelectValueBase.styles';

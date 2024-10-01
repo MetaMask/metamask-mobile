@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { fontStyles } from '../../../../../../styles/common';
+import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
 import {
   isBN,
@@ -19,50 +19,50 @@ import {
   renderFromWei,
   BNToHex,
   hexToBN,
-} from '../../../../../../util/number';
-import { strings } from '../../../../../../../locales/i18n';
+} from '@util/number';
+import { strings } from '@locales/i18n';
 import {
   getTicker,
   getNormalizedTxState,
   calculateAmountsEIP1559,
   calculateEthEIP1559,
   calculateERC20EIP1559,
-} from '../../../../../../util/transactions';
-import { sumHexWEIs } from '../../../../../../util/conversions';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+} from '@util/transactions';
+import { sumHexWEIs } from '@util/conversions';
+import { MetaMetricsEvents } from '@core/Analytics';
 import {
   TESTNET_FAUCETS,
   getNetworkNonce,
   isTestNet,
   isTestNetworkWithFaucet,
-} from '../../../../../../util/networks';
-import CustomNonceModal from '../../../SendFlow/components/CustomNonceModal';
+} from '@util/networks';
+import CustomNonceModal from '@SendFlow/components/CustomNonceModal';
 import {
   setNonce,
   setProposedNonce,
-} from '../../../../../../actions/transaction';
-import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
+} from '@actions/transaction';
+import TransactionReviewEIP1559 from '@TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import CustomNonce from '../../CustomNonce';
-import Logger from '../../../../../../util/Logger';
-import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import AppConstants from '../../../../../../core/AppConstants';
-import WarningMessage from '../../../SendFlow/WarningMessage';
+import CustomNonce from '@CustomNonce';
+import Logger from '@util/Logger';
+import { ThemeContext, mockTheme } from '@util/theme';
+import AppConstants from '@core/AppConstants';
+import WarningMessage from '@SendFlow/WarningMessage';
 import {
   selectChainId,
   selectTicker,
-} from '../../../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../../../selectors/tokenRatesController';
-import { createBrowserNavDetails } from '../../../../Browser';
-import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
-import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
-import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+} from '@selectors/currencyRateController';
+import { selectContractExchangeRates } from '@selectors/tokenRatesController';
+import { createBrowserNavDetails } from '@Browser';
+import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
+import { getRampNetworks } from '@reducers/fiatOrders';
+import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({

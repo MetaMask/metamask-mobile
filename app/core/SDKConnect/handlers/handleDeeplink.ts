@@ -2,12 +2,12 @@ import {
   CommunicationLayerMessage,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
-import Engine from '../../Engine';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
-import { waitForCondition } from '../utils/wait.util';
+import Logger from '@util/Logger';
+import AppConstants from '@AppConstants';
+import Engine from '@Engine';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
+import { waitForCondition } from '@utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
 import { Platform } from 'react-native';
 

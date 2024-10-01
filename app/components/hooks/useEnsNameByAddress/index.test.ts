@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useEnsNameByAddress from '.';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { mockNetworkState } from '../../../util/test/network';
+import { mockNetworkState } from '@util/test/network';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -24,8 +24,8 @@ const MOCK_STORE_STATE = {
   },
 };
 
-jest.mock('../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest
     .fn()
     .mockImplementation((address: string, chainId: string) => {

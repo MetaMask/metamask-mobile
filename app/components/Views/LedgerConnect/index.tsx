@@ -9,32 +9,32 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import StyledButton from '../../../components/UI/StyledButton';
-import Text from '../../../components/Base/Text';
+import { strings } from '@locales/i18n';
+import StyledButton from '@components/UI/StyledButton';
+import Text from '@components/Base/Text';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
-} from '../../../util/theme';
-import Device from '../../../util/device';
+} from '@util/theme';
+import Device from '@util/device';
 import Scan from './Scan';
-import { showSimpleNotification } from '../../../actions/notification';
+import { showSimpleNotification } from '@actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { LEDGER_SUPPORT_LINK } from '@constants/urls';
 
-import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
-import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
-import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
-import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
+import ledgerDeviceDarkImage from '@images/ledger-device-dark.png';
+import ledgerDeviceLightImage from '@images/ledger-device-light.png';
+import ledgerConnectLightImage from '@images/ledger-connect-light.png';
+import ledgerConnectDarkImage from '@images/ledger-connect-dark.png';
 import { getSystemVersion } from 'react-native-device-info';
-import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
+import { LedgerCommunicationErrors } from '@core/Ledger/ledgerErrors';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import createStyles from './index.styles';
-import { BluetoothInterface } from '../../hooks/Ledger/useBluetoothDevices';
+import { BluetoothInterface } from '@hooks/Ledger/useBluetoothDevices';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;

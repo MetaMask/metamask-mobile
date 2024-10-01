@@ -1,9 +1,9 @@
-import StorageWrapper from '../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
   TRUE,
-} from '../../constants/storage';
+} from '@constants/storage';
 
 export const updateAuthTypeStorageFlags = async (
   newBiometryChoice: boolean,

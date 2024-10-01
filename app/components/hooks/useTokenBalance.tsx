@@ -1,5 +1,5 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 import { BN } from 'ethereumjs-util';
 
 /**

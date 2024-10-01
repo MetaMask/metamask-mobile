@@ -1,10 +1,10 @@
 import React from 'react';
-import { useStyles } from '../../../hooks';
+import { useStyles } from '@hooks';
 import { View } from 'react-native';
 import {
   KeyValueRowSectionAlignments,
   KeyValueSectionProps,
-} from '../KeyValueRow.types';
+} from '@KeyValueRow.types';
 import stylesSheet from './KeyValueSection.styles';
 
 /**

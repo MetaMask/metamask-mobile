@@ -11,7 +11,7 @@ import {
   SAMPLE_CELLBASE_TERTIARY_TEXT,
   SAMPLE_CELLBASE_TAGLABEL,
 } from './CellBase.constants';
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 describe('CellBase', () => {
   it('should render default settings correctly', () => {

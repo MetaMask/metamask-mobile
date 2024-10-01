@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 // External dependencies.
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 import { WalletAccountStyleSheetVars } from './WalletAccount.types';
 
 const styleSheet = (params: {

@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import TemplateConfirmation, {
   TemplateConfirmationProps,
 } from './TemplateConfirmation';
-import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { getTemplateValues } from './Templates';
 
 jest.mock('./Templates', () => ({

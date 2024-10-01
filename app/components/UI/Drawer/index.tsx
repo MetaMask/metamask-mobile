@@ -22,13 +22,13 @@ import {
 } from 'react-native-gesture-handler';
 
 import { useNavigation } from '@react-navigation/native';
-import DrawerView from '../DrawerView';
+import DrawerView from '@DrawerView';
 import styles from './styles';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleInfoNetworkModal } from '../../../actions/modals';
-import { selectChainId } from '../../../selectors/networkController';
-import { getIsNetworkOnboarded } from '../../../util/networks';
+import { toggleInfoNetworkModal } from '@actions/modals';
+import { selectChainId } from '@selectors/networkController';
+import { getIsNetworkOnboarded } from '@util/networks';
 import Animated, {
   interpolate,
   useAnimatedGestureHandler,

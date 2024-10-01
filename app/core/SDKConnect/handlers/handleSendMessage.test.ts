@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import Device from '../../../util/device';
-import { Minimizer } from '../../NativeModules';
-import { Connection } from '../Connection';
-import { RPC_METHODS } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
+import Device from '@util/device';
+import { Minimizer } from '@NativeModules';
+import { Connection } from '@Connection';
+import { RPC_METHODS } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
+import { wait } from '@utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import handleSendMessage from './handleSendMessage'; // Adjust the import path as necessary
 
-jest.mock('../../../util/device');
-jest.mock('../utils/DevLogger');
+jest.mock('@util/device');
+jest.mock('@utils/DevLogger');
 jest.mock('./handleBatchRpcResponse');
-jest.mock('../utils/wait.util');
-jest.mock('../../../util/Logger');
-jest.mock('../../NativeModules', () => ({
+jest.mock('@utils/wait.util');
+jest.mock('@util/Logger');
+jest.mock('@NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
 }));
-jest.mock('../../../util/device');
+jest.mock('@util/device');
 
 describe('handleSendMessage', () => {
   let mockConnection = {} as unknown as Connection;

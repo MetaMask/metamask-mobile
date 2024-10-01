@@ -1,5 +1,5 @@
 import browserReducer from './index';
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 describe('browserReducer STORE_FAVICON_URL', () => {
   it('adds favicon in the state', () => {

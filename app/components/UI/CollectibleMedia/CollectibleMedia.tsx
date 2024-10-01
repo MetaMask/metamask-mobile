@@ -1,27 +1,27 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import RemoteImage from '../../Base/RemoteImage';
-import MediaPlayer from '../../Views/MediaPlayer';
-import Text from '../../Base/Text';
-import { isIPFSUri } from '../../../util/general';
+import RemoteImage from '@Base/RemoteImage';
+import MediaPlayer from '@Views/MediaPlayer';
+import Text from '@Base/Text';
+import { isIPFSUri } from '@util/general';
 import { useSelector } from 'react-redux';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
-} from '../../../selectors/preferencesController';
+} from '@selectors/preferencesController';
 import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
-import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
+import NftFallbackImage from '@docs/assets/nft-fallback.png';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Button from '../../../component-library/components/Buttons/Button/Button';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Buttons/Button';
+import Button from '@component-library/components/Buttons/Button/Button';
+import { strings } from '@locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
-import { useStyles } from '../../../component-library/hooks';
+import Routes from '@constants/navigation/Routes';
+import { useStyles } from '@component-library/hooks';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,

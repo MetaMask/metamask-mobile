@@ -1,8 +1,8 @@
 import React from 'react';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import AddressList from '.';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 
@@ -10,7 +10,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

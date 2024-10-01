@@ -9,28 +9,28 @@ import React, { useCallback, useRef } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { RNCamera } from 'react-native-camera';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import { PROTOCOLS } from '../../../constants/deeplinks';
-import Routes from '../../../constants/navigation/Routes';
-import { MM_SDK_DEEPLINK } from '../../../constants/urls';
-import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import Engine from '../../../core/Engine';
-import { selectChainId } from '../../../selectors/networkController';
-import { isValidAddressInputViaQRCode } from '../../../util/address';
-import { getURLProtocol } from '../../../util/general';
+import { strings } from '@locales/i18n';
+import { PROTOCOLS } from '@constants/deeplinks';
+import Routes from '@constants/navigation/Routes';
+import { MM_SDK_DEEPLINK } from '@constants/urls';
+import AppConstants from '@core/AppConstants';
+import SharedDeeplinkManager from '@core/DeeplinkManager/SharedDeeplinkManager';
+import Engine from '@core/Engine';
+import { selectChainId } from '@selectors/networkController';
+import { isValidAddressInputViaQRCode } from '@util/address';
+import { getURLProtocol } from '@util/general';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
-} from '../../../util/validators';
+} from '@util/validators';
 import createStyles from './styles';
-import { useTheme } from '../../../util/theme';
-import { ScanSuccess, StartScan } from '../QRTabSwitcher';
+import { useTheme } from '@util/theme';
+import { ScanSuccess, StartScan } from '@QRTabSwitcher';
 
-const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
+const frameImage = require('@images/frame.png'); // eslint-disable-line import/no-commonjs
 
 /**
  * View that wraps the QR code scanner screen

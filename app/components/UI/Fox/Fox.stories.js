@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react-native';
 import { boolean } from '@storybook/addon-knobs';
 
 import Fox from '.';
-import backgroundShapes from '../Swaps/components/LoadingAnimation/backgroundShapes';
+import backgroundShapes from '@Swaps/components/LoadingAnimation/backgroundShapes';
 
 const customStyle = `
   #head {

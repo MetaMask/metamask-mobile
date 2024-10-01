@@ -6,13 +6,13 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
-import AppConstants from '../../AppConstants';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import BatchRPCManager from '../BatchRPCManager';
-import RPCQueueManager from '../RPCQueueManager';
-import { ApprovedHosts, approveHostProps } from '../SDKConnect';
-import { CONNECTION_LOADING_EVENT } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
+import AppConstants from '@AppConstants';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import BatchRPCManager from '@BatchRPCManager';
+import RPCQueueManager from '@RPCQueueManager';
+import { ApprovedHosts, approveHostProps } from '@SDKConnect';
+import { CONNECTION_LOADING_EVENT } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
 import sendAuthorized from './Auth/sendAuthorized';
 import {
   connect,
@@ -28,7 +28,7 @@ import {
   handleReceivedMessage,
 } from './EventListenersHandlers';
 import handleClientsWaiting from './EventListenersHandlers/handleClientsWaiting';
-import setupBridge from '../handlers/setupBridge';
+import setupBridge from '@handlers/setupBridge';
 
 export interface ConnectionProps {
   id: string;
@@ -50,7 +50,7 @@ export interface ConnectionProps {
 }
 
 // eslint-disable-next-line
-const { version } = require('../../../../package.json');
+const { version } = require('@package.json');
 
 export class Connection extends EventEmitter2 {
   channelId;

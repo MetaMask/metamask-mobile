@@ -10,9 +10,9 @@ import {
 } from '@metamask/controller-utils';
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
-import Engine from '../../core/Engine';
-import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress } from '../address';
+import Engine from '@core/Engine';
+import I18n, { strings } from '@locales/i18n';
+import { safeToChecksumAddress } from '@address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -23,22 +23,22 @@ import {
   weiToFiat,
   weiToFiatNumber,
   toTokenMinimalUnit,
-} from '../number';
-import AppConstants from '../../core/AppConstants';
-import { isMainnetByChainId } from '../networks';
-import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
-import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
+} from '@number';
+import AppConstants from '@core/AppConstants';
+import { isMainnetByChainId } from '@networks';
+import { UINT256_BN_MAX_VALUE } from '@constants/transaction';
+import { NEGATIVE_TOKEN_DECIMALS } from '@constants/error';
 import {
   addCurrencies,
   multiplyCurrencies,
   subtractCurrencies,
-} from '../conversion';
+} from '@conversion';
 import {
   decGWEIToHexWEI,
   getValueFromWeiHex,
   formatETHFee,
   sumHexWEIs,
-} from '../conversions';
+} from '@conversions';
 import {
   addEth,
   addFiat,
@@ -46,10 +46,10 @@ import {
   formatCurrency,
   getTransactionFee,
   roundExponential,
-} from '../confirm-tx';
+} from '@confirm-tx';
 
-import Logger from '../../util/Logger';
-import { handleMethodData } from '../../util/transaction-controller';
+import Logger from '@util/Logger';
+import { handleMethodData } from '@util/transaction-controller';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -507,7 +507,7 @@ export function getEther(ticker) {
     name: 'Ether',
     address: '',
     symbol: ticker || strings('unit.eth'),
-    logo: '../images/eth-logo-new.png',
+    logo: '@images/eth-logo-new.png',
     isETH: true,
   };
 }

@@ -1,12 +1,12 @@
-import { isBN, hexToBN } from '../number';
-import { safeToChecksumAddress } from '../address';
-import Engine from '../../core/Engine';
-import TransactionTypes from '../../core/TransactionTypes';
-import { toLowerCaseEquals } from '../general';
-import { strings } from '../../../locales/i18n';
+import { isBN, hexToBN } from '@number';
+import { safeToChecksumAddress } from '@address';
+import Engine from '@core/Engine';
+import TransactionTypes from '@core/TransactionTypes';
+import { toLowerCaseEquals } from '@general';
+import { strings } from '@locales/i18n';
 import { BN } from 'ethereumjs-util';
-import { lt } from '../lodash';
-import { estimateGas as controllerEstimateGas } from '../transaction-controller';
+import { lt } from '@lodash';
+import { estimateGas as controllerEstimateGas } from '@transaction-controller';
 
 interface opts {
   amount?: string;

@@ -6,8 +6,8 @@ import {
   RESULTS,
 } from 'react-native-permissions';
 import useBluetoothPermissions from './useBluetoothPermissions';
-import Device from '../../util/device';
-import { BluetoothPermissionErrors } from '../../core/Ledger/ledgerErrors';
+import Device from '@util/device';
+import { BluetoothPermissionErrors } from '@core/Ledger/ledgerErrors';
 
 import { getSystemVersion } from 'react-native-device-info';
 import { AppState } from 'react-native';
@@ -40,7 +40,7 @@ jest.mock('react-native-device-info', () => ({
   getSystemVersion: jest.fn(),
 }));
 
-jest.mock('../../util/device', () => ({
+jest.mock('@util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
 }));

@@ -2,17 +2,17 @@ import React from 'react';
 import { Image } from 'react-native';
 
 import createStyles from './OrderListItem.styles';
-import BaseListItem from '../../../../Base/ListItem';
+import BaseListItem from '@Base/ListItem';
 
-import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
-import { strings } from '../../../../../../locales/i18n';
-import { toDateFormat } from '../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../util/number';
-import { getOrderAmount } from '../../utils';
+import { FiatOrder, getProviderName } from '@reducers/fiatOrders';
+import { strings } from '@locales/i18n';
+import { toDateFormat } from '@util/date';
+import { addCurrencySymbol, renderFiat } from '@util/number';
+import { getOrderAmount } from '@utils';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 
 // TODO: Convert into typescript and correctly type optionals
 // TODO: Replace "any" with type
@@ -20,8 +20,8 @@ import Text, {
 const ListItem = BaseListItem as any;
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const transactionIconReceived = require('../../../../../images/transaction-icons/receive.png');
-const transactionIconSent = require('../../../../../images/transaction-icons/receive-inverted.png');
+const transactionIconReceived = require('@images/transaction-icons/receive.png');
+const transactionIconSent = require('@images/transaction-icons/receive-inverted.png');
 /* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 interface Props {

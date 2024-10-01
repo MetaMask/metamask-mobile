@@ -1,13 +1,13 @@
-import BatchRPCManager from '../BatchRPCManager';
-import { RPC_METHODS } from '../SDKConnectConstants';
+import BatchRPCManager from '@BatchRPCManager';
+import { RPC_METHODS } from '@SDKConnectConstants';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import overwriteRPCWith from './handleRpcOverwrite';
 
-jest.mock('../BatchRPCManager');
+jest.mock('@BatchRPCManager');
 jest.mock('./handleRpcOverwrite');
-jest.mock('../utils/DevLogger');
-jest.mock('../utils/wait.util');
-jest.mock('../../../util/Logger');
+jest.mock('@utils/DevLogger');
+jest.mock('@utils/wait.util');
+jest.mock('@util/Logger');
 
 describe('handleCustomRpcCalls', () => {
   const mockOverwriteRPCWith = overwriteRPCWith as jest.MockedFunction<

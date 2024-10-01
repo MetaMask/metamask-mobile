@@ -6,28 +6,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { formatAddress } from '../../../util/address';
+import { formatAddress } from '@util/address';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Icons/Icon';
+import ClipboardManager from '@core/ClipboardManager';
+import { showAlert } from '@actions/alert';
+import { protectWalletModalVisible } from '@actions/user';
+import { strings } from '@locales/i18n';
 import { View } from 'react-native';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useStyles } from '../../../component-library/hooks';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useStyles } from '@component-library/hooks';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { AddressCopyProps } from './AddressCopy.types';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {

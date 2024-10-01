@@ -7,7 +7,7 @@ import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
 // External dependencies.
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 // Internal dependencies.
 import { default as TabBarComponent } from './TabBar';

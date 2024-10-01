@@ -2,7 +2,7 @@ import { AccountsControllerState } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
 import { InternalAccount } from '@metamask/keyring-api';

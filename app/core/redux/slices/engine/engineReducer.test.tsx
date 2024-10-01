@@ -1,17 +1,17 @@
 import engineReducer, { initBgState, updateBgState } from '.';
 
-jest.mock('../../../Engine', () => ({
-  init: () => jest.requireActual('../../../Engine').default.init({}),
+jest.mock('@Engine', () => ({
+  init: () => jest.requireActual('@Engine').default.init({}),
   state: {},
 }));
 // importing Engine after mocking to avoid global mock from overwriting its values
-import Engine from '../../../Engine';
+import Engine from '@Engine';
 
 describe('engineReducer', () => {
   it('should return the initial state in default', () => {
     jest.isolateModules(() => {
-      jest.mock('../../../Engine', () => ({
-        init: () => jest.requireActual('../../../Engine').default.init({}),
+      jest.mock('@Engine', () => ({
+        init: () => jest.requireActual('@Engine').default.init({}),
         state: {},
       }));
     });

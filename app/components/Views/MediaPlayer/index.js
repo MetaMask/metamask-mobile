@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
-import Device from '../../../util/device';
+import Device from '@util/device';
 import Loader from './Loader';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { TapGestureHandler } from 'react-native-gesture-handler';
@@ -19,7 +19,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 
 const styleSheet = ({ theme: { colors }, vars: { isPlaying } }) =>
   StyleSheet.create({

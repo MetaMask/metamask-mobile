@@ -1,19 +1,19 @@
 'use strict';
 import React from 'react';
 import { SafeAreaView, Image, View, StyleSheet } from 'react-native';
-import Text from '../../Base/Text';
+import Text from '@Base/Text';
 import NetInfo from '@react-native-community/netinfo';
-import { baseStyles, fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '@styles/common';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
-import StyledButton from '../../UI/StyledButton';
-import { getOfflineModalNavbar } from '../../UI/Navbar';
-import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/device';
-import AppConstants from '../../../core/AppConstants';
+import { strings } from '@locales/i18n';
+import StyledButton from '@UI/StyledButton';
+import { getOfflineModalNavbar } from '@UI/Navbar';
+import AndroidBackHandler from '@AndroidBackHandler';
+import Device from '@util/device';
+import AppConstants from '@core/AppConstants';
 import { connect } from 'react-redux';
-import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';
-import { useTheme } from '../../../util/theme';
+import { getInfuraBlockedSelector } from '@reducers/infuraAvailability';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -49,7 +49,7 @@ const createStyles = (colors) =>
     },
   });
 
-const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
+const astronautImage = require('@images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
 const OfflineMode = ({ navigation, infuraBlocked }) => {
   const { colors } = useTheme();

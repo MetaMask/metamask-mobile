@@ -1,6 +1,6 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import ImportFromSecretRecoveryPhrase from '.';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 
 const initialState = {
   user: {

@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 
 const useTooltipModal = () => {
   const { navigate } = useNavigation();

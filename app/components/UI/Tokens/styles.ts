@@ -1,5 +1,5 @@
 import { StyleSheet, TextStyle } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import { Colors } from 'app/util/theme/models';
 import { typography } from '@metamask/design-tokens';
 

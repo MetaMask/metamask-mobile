@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Animated, StyleSheet } from 'react-native';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import Device from '@util/device';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

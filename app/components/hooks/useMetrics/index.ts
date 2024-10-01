@@ -1,4 +1,4 @@
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '@core/Analytics';
 import { IUseMetricsHook } from './useMetrics.types';
 import withMetricsAwareness from './withMetricsAwareness';
 

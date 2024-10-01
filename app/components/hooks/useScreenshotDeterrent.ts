@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { NativeModules, NativeEventEmitter } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import Device from '../../util/device';
+import Device from '@util/device';
 
 const useScreenshotDeterrent = (warning: () => void) => {
   const [enabled, setEnabled] = useState<boolean>(false);

@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './StakingCta.styles';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../../locales/i18n';
+} from '@component-library/components/Buttons/Button';
+import { strings } from '@locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;

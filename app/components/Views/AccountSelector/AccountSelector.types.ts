@@ -1,5 +1,5 @@
 // External dependencies.
-import { UseAccountsParams } from '../../../components/hooks/useAccounts';
+import { UseAccountsParams } from '@components/hooks/useAccounts';
 
 /**
  * Enum to track states of the account selector screen.

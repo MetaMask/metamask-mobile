@@ -6,11 +6,11 @@ import {
   Encryptor,
   ENCRYPTION_LIBRARY,
   DERIVATION_OPTIONS_DEFAULT_OWASP2023,
-} from '../../../core/Encryptor';
-import { useTheme } from '../../../util/theme';
+} from '@core/Encryptor';
+import { useTheme } from '@util/theme';
 
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { strings } from '../../../../locales/i18n';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { strings } from '@locales/i18n';
 
 import TestForm from './Form';
 import createStyles from './styles';
@@ -19,7 +19,7 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
-} from '../../../../e2e/selectors/AesCrypto.selectors';
+} from '@e2e/selectors/AesCrypto.selectors';
 
 const AesCryptoTestForm = () => {
   const navigation = useNavigation();

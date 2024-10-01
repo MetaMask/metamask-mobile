@@ -7,22 +7,22 @@ import { Hex } from '@metamask/utils';
 // External dependencies
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { Account } from '../../hooks/useAccounts';
+} from '@util/test/renderWithProvider';
+import ClipboardManager from '@core/ClipboardManager';
+import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
+import { backgroundState } from '@util/test/initial-root-state';
+import { Account } from '@hooks/useAccounts';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   internalAccount2,
   expectedUuid2,
-} from '../../../util/test/accountsControllerTestUtils';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { RootState } from '../../../reducers';
+} from '@util/test/accountsControllerTestUtils';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
+import { RootState } from '@reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
-import { mockNetworkState } from '../../../util/test/network';
+import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_CHAIN_ID: Hex = '0x1';
@@ -57,7 +57,7 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('../../../core/ClipboardManager');
+jest.mock('@core/ClipboardManager');
 
 const mockNavigate = jest.fn();
 
@@ -75,8 +75,8 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
 }));
 
-jest.mock('../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest
     .fn()
     .mockImplementation((address: string, chainId: string) => {

@@ -7,8 +7,8 @@ import { storiesOf } from '@storybook/react-native';
 import {
   SAMPLE_BANNERALERT_DESCRIPTION,
   SAMPLE_BANNERALERT_TITLE,
-} from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
-import { storybookPropsGroupID } from '../../../../../component-library/constants/storybook.constants';
+} from '@component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
+import { storybookPropsGroupID } from '@component-library/constants/storybook.constants';
 import BlockaidBanner from './BlockaidBanner';
 import { BlockaidBannerProps } from './BlockaidBanner.types';
 

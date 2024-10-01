@@ -5,8 +5,8 @@ import React from 'react';
 import { Image, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
-import BannerBase from '../../foundation/BannerBase';
+import { useStyles } from '@hooks';
+import BannerBase from '@foundation/BannerBase';
 
 // Internal dependencies.
 import styleSheet from './BannerTip.styles';

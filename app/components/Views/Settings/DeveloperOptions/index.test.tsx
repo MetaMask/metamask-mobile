@@ -1,6 +1,6 @@
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 import DeveloperOptions from './';
-import { renderScreen } from '../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
 const initialState = {
   DeveloperOptions: {},

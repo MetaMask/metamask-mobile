@@ -2,26 +2,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
-import { strings } from '../../../../locales/i18n';
-import { baseStyles } from '../../../styles/common';
+import { strings } from '@locales/i18n';
+import { baseStyles } from '@styles/common';
 import { useDispatch, useSelector } from 'react-redux';
-import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { backUpSeedphraseAlertNotVisible } from '@actions/user';
+import { findRouteNameFromNavigatorState } from '@util/general';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { ProtectWalletModalSelectorsIDs } from '@e2e/selectors/Modals/ProtectWalletModal.selectors';
 import styleSheet from './BackupAlert.styles';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import { BackupAlertI } from './BackupAlert.types';
 import { PROTECT_WALLET_BUTTON } from './BackupAlert.constants';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@component-library/components/Texts/Text';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const BROWSER_ROUTE = 'BrowserView';
 

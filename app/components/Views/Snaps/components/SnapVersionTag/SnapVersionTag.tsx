@@ -4,13 +4,13 @@ import { View } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import stylesheet from './SnapVersionTag.styles';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '@component-library/hooks';
 import { SemVerVersion } from '@metamask/utils';
 import {
   SNAP_VERSION_BADGE,

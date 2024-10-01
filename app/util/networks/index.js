@@ -8,8 +8,8 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-} from '../../../app/constants/network';
-import { NetworkSwitchErrorType } from '../../../app/constants/error';
+} from '@app/constants/network';
+import { NetworkSwitchErrorType } from '@app/constants/error';
 import {
   ChainId,
   NetworkType,
@@ -17,28 +17,28 @@ import {
   toHex,
 } from '@metamask/controller-utils';
 import { isStrictHexString } from '@metamask/utils';
-import Engine from '../../core/Engine';
-import { toLowerCaseEquals } from '../general';
-import { fastSplit } from '../number';
+import Engine from '@core/Engine';
+import { toLowerCaseEquals } from '@general';
+import { fastSplit } from '@number';
 import handleNetworkSwitch from './handleNetworkSwitch';
-import { regex } from '../../../app/util/regex';
+import { regex } from '@app/util/regex';
 
 export { handleNetworkSwitch };
 
 /* eslint-disable */
-const ethLogo = require('../../images/eth-logo-new.png');
-const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
-const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
+const ethLogo = require('@images/eth-logo-new.png');
+const sepoliaLogo = require('@images/sepolia-logo-dark.png');
+const lineaTestnetLogo = require('@images/linea-testnet-logo.png');
+const lineaMainnetLogo = require('@images/linea-mainnet-logo.png');
 
 /* eslint-enable */
 import { PopularList, UnpopularNetworkList } from './customNetworks';
-import { strings } from '../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
-} from '../etherscan';
+} from '@etherscan';
 import {
   LINEA_FAUCET,
   LINEA_MAINNET_BLOCK_EXPLORER,
@@ -46,8 +46,8 @@ import {
   MAINNET_BLOCK_EXPLORER,
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
-} from '../../constants/urls';
-import { getNonceLock } from '../../util/transaction-controller';
+} from '@constants/urls';
+import { getNonceLock } from '@util/transaction-controller';
 
 /**
  * List of the supported networks

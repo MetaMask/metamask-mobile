@@ -5,37 +5,37 @@ import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native';
 
 // External dependencies
-import Text from '../../../component-library/components/Texts/Text/Text';
+import Text from '@component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import { strings } from '../../../../locales/i18n';
-import TextField from '../../../component-library/components/Form/TextField/TextField';
-import { formatAddress, getAddressAccountType } from '../../../util/address';
-import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
+import { TextVariant } from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
+import TextField from '@component-library/components/Form/TextField/TextField';
+import { formatAddress, getAddressAccountType } from '@util/address';
+import EditAccountNameSelectorIDs from '@e2e/selectors/EditAccountName.selectors';
 
-import Button from '../../../component-library/components/Buttons/Button/Button';
+import Button from '@component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../component-library/hooks';
-import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+} from '@component-library/components/Buttons/Button';
+import { useStyles } from '@component-library/hooks';
+import { getEditAccountNameNavBarOptions } from '@components/UI/Navbar';
+import Engine from '@core/Engine';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { selectChainId } from '@selectors/networkController';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import { useTheme } from '../../../util/theme';
+} from '@util/ENSUtils';
+import { useTheme } from '@util/theme';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
-import { getDecimalChainId } from '../../../util/networks';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const EditAccountName = () => {
   const { colors } = useTheme();

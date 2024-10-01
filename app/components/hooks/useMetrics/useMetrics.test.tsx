@@ -3,11 +3,11 @@ import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
   IMetaMetricsEvent,
-} from '../../../core/Analytics';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+} from '@core/Analytics';
+import MetaMetrics from '@core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('@core/Analytics/MetaMetrics');
 
 // allows runAfterInteractions to return immediately
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({

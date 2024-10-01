@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useUpdateAccountSetting } from './useUpdateAccountSetting';
 import createMockStore from 'redux-mock-store';
-import initialRootState from '../../../util/test/initial-root-state';
+import initialRootState from '@util/test/initial-root-state';
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);

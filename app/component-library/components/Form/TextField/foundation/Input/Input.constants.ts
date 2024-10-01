@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
+import { DEFAULT_TEXT_VARIANT } from '@Texts/Text/Text.constants';
 
 // Internal dependencies.
 import { InputProps } from './Input.types';

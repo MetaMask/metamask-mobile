@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
 /* eslint-disable import/no-nodejs-modules */
-require('dotenv').config({ path: '../../../.js.env' });
+require('dotenv').config({ path: '@.js.env' });
 import {
   TransactionType,
   TransactionStatus,
@@ -41,7 +41,7 @@ jest.mock('uuid', () => ({
   v1: jest.fn(() => 'approvalId'),
 }));
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     TransactionController: {
       update: jest.fn(),

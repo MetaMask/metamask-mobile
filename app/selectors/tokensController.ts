@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { TokensState, Token } from '@metamask/assets-controllers';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { createDeepEqualSelector } from './util';
 
 const selectTokensControllerState = (state: RootState) =>

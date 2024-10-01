@@ -10,23 +10,23 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
-import { captureSentryFeedback } from '../../../util/sentry/utils';
-import { RevealPrivateCredential } from '../RevealPrivateCredential';
-import Logger from '../../../util/Logger';
-import { fontStyles } from '../../../styles/common';
+import { captureSentryFeedback } from '@util/sentry/utils';
+import { RevealPrivateCredential } from '@RevealPrivateCredential';
+import Logger from '@util/Logger';
+import { fontStyles } from '@styles/common';
 import { ScrollView } from 'react-native-gesture-handler';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
+import ClipboardManager from '@core/ClipboardManager';
+import { mockTheme, ThemeContext, useTheme } from '@util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
-} from '../../../components/hooks/useMetrics';
+} from '@components/hooks/useMetrics';
 
 // eslint-disable-next-line import/no-commonjs
-const metamaskErrorImage = require('../../../images/metamask-error.png');
+const metamaskErrorImage = require('@images/metamask-error.png');
 
 const createStyles = (colors) =>
   StyleSheet.create({

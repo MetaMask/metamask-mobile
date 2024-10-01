@@ -13,57 +13,57 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 // External dependencies.
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import Cell, {
   CellVariant,
-} from '../../../component-library/components/Cells/Cell';
+} from '@component-library/components/Cells/Cell';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Avatars/Avatar';
+import { strings } from '@locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '@component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
   ProviderConfig,
-} from '../../../selectors/networkController';
-import { selectShowTestNetworks } from '../../../selectors/preferencesController';
+} from '@selectors/networkController';
+import { selectShowTestNetworks } from '@selectors/preferencesController';
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getDecimalChainId,
   isTestNet,
   getNetworkImageSource,
-} from '../../../util/networks';
+} from '@util/networks';
 import {
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MAINNET,
   SEPOLIA,
-} from '../../../constants/network';
-import Button from '../../../component-library/components/Buttons/Button/Button';
+} from '@constants/network';
+import Button from '@component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Routes from '../../../constants/navigation/Routes';
-import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
-import { useTheme } from '../../../util/theme';
-import Text from '../../../component-library/components/Texts/Text/Text';
+} from '@component-library/components/Buttons/Button';
+import Engine from '@core/Engine';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Routes from '@constants/navigation/Routes';
+import { NetworkListModalSelectorsIDs } from '@e2e/selectors/Modals/NetworkListModal.selectors';
+import { useTheme } from '@util/theme';
+import Text from '@component-library/components/Texts/Text/Text';
 import {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@component-library/components/Texts/Text';
+import { updateIncomingTransactions } from '@util/transaction-controller';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
@@ -71,29 +71,29 @@ import {
   InfuraNetworkType,
   TESTNET_TICKER_SYMBOLS,
 } from '@metamask/controller-utils';
-import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
-import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
-import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
-import { NetworksSelectorSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { PopularList } from '../../../util/networks/customNetworks';
+import InfoModal from '@app/components/UI/Swaps/components/InfoModal';
+import hideKeyFromUrl from '@util/hideKeyFromUrl';
+import CustomNetwork from '@Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+import { NetworksSelectorSelectorsIDs } from '@e2e/selectors/Settings/NetworksView.selectors';
+import { PopularList } from '@util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import AccountAction from '../AccountAction';
-import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
-import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
-import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
-import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import BottomSheetHeader from '@component-library/components/BottomSheets/BottomSheetHeader';
+import AccountAction from '@AccountAction';
+import { ButtonsAlignment } from '@component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
+import BottomSheetFooter from '@component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+import { ExtendedNetwork } from '@Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { isNetworkUiRedesignEnabled } from '@util/networks/isNetworkUiRedesignEnabled';
 import { Hex } from '@metamask/utils';
-import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
-import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
+import ListItemSelect from '@component-library/components/List/ListItemSelect';
+import hideProtocolFromUrl from '@util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   LINEA_DEFAULT_RPC_URL,
   MAINNET_DEFAULT_RPC_URL,
-} from '../../../constants/urls';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+} from '@constants/urls';
+import { useNetworkInfo } from '@selectors/selectedNetworkController';
 
 interface infuraNetwork {
   name: string;

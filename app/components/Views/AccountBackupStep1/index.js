@@ -9,29 +9,29 @@ import {
   BackHandler,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import OnboardingProgress from '../../UI/OnboardingProgress';
-import { strings } from '../../../../locales/i18n';
-import AndroidBackHandler from '../AndroidBackHandler';
-import Device from '../../../util/device';
-import SeedphraseModal from '../../UI/SeedphraseModal';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import scaling from '../../../util/scaling';
-import Engine from '../../../core/Engine';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
-import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
+import { fontStyles } from '@styles/common';
+import StyledButton from '@UI/StyledButton';
+import OnboardingProgress from '@UI/OnboardingProgress';
+import { strings } from '@locales/i18n';
+import AndroidBackHandler from '@AndroidBackHandler';
+import Device from '@util/device';
+import SeedphraseModal from '@UI/SeedphraseModal';
+import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import scaling from '@util/scaling';
+import Engine from '@core/Engine';
+import { ONBOARDING_WIZARD } from '@constants/storage';
+import { CHOOSE_PASSWORD_STEPS } from '@constants/onboarding';
+import SkipAccountSecurityModal from '@UI/SkipAccountSecurityModal';
+import SeedPhraseVideo from '@UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import setOnboardingWizardStep from '@actions/wizard';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import StorageWrapper from '../../../store/storage-wrapper';
-import { useTheme } from '../../../util/theme';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import Routes from '../../../../app/constants/navigation/Routes';
+import StorageWrapper from '@store/storage-wrapper';
+import { useTheme } from '@util/theme';
+import { ManualBackUpStepsSelectorsIDs } from '@e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
+import Routes from '@app/constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -1,8 +1,8 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useEffect, useState } from 'react';
-import ApprovalModal from '../ApprovalModal';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import ApprovalModal from '@ApprovalModal';
+import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { SnapInstallState } from './InstallSnapApproval.types';
 import {
   InstallSnapConnectionRequest,
@@ -16,7 +16,7 @@ import {
 } from './components';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { useSelector } from 'react-redux';
-import { selectSnapsMetadata } from '../../../selectors/snaps/snapController';
+import { selectSnapsMetadata } from '@selectors/snaps/snapController';
 import {
   WALLET_SNAP_PERMISSION_KEY,
   stripSnapPrefix,

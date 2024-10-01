@@ -8,22 +8,22 @@ import {
   SendAnalytics,
   TrackingEvents,
 } from '@metamask/sdk-communication-layer';
-import Logger from '../../../util/Logger';
-import Engine from '../../Engine';
-import { getPermittedAccounts } from '../../Permissions';
-import { Connection } from '../Connection';
-import DevLogger from '../utils/DevLogger';
+import Logger from '@util/Logger';
+import Engine from '@Engine';
+import { getPermittedAccounts } from '@Permissions';
+import { Connection } from '@Connection';
+import DevLogger from '@utils/DevLogger';
 import {
   waitForAsyncCondition,
   waitForCondition,
   waitForConnectionReadiness,
   waitForKeychainUnlocked,
-} from '../utils/wait.util';
+} from '@utils/wait.util';
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
 // eslint-disable-next-line
-const { version } = require('../../../../package.json');
+const { version } = require('@package.json');
 
 const lcLogguedRPCs = [
   'eth_sendTransaction',

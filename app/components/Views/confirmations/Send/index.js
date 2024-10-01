@@ -7,66 +7,66 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Engine from '../../../../core/Engine';
-import EditAmount from '../SendFlow/Amount';
-import ConfirmSend from '../SendFlow/Confirm';
+import Engine from '@core/Engine';
+import EditAmount from '@SendFlow/Amount';
+import ConfirmSend from '@SendFlow/Confirm';
 import {
   toBN,
   BNToHex,
   hexToBN,
   fromWei,
   fromTokenMinimalUnit,
-} from '../../../../util/number';
+} from '@util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { strings } from '../../../../../locales/i18n';
-import { getTransactionOptionsTitle } from '../../../UI/Navbar';
+import { strings } from '@locales/i18n';
+import { getTransactionOptionsTitle } from '@UI/Navbar';
 import { connect } from 'react-redux';
 import {
   resetTransaction,
   setTransactionObject,
-} from '../../../../actions/transaction';
-import { toggleDappTransactionModal } from '../../../../actions/modals';
-import NotificationManager from '../../../../core/NotificationManager';
-import { showAlert } from '../../../../actions/alert';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+} from '@actions/transaction';
+import { toggleDappTransactionModal } from '@actions/modals';
+import NotificationManager from '@core/NotificationManager';
+import { showAlert } from '@actions/alert';
+import { MetaMetricsEvents } from '@core/Analytics';
 import {
   getTransactionReviewActionKey,
   decodeTransferData,
   getTransactionToName,
   generateTransferData,
-} from '../../../../util/transactions';
-import Logger from '../../../../util/Logger';
-import { getAddress } from '../../../../util/address';
-import { MAINNET } from '../../../../constants/network';
+} from '@util/transactions';
+import Logger from '@util/Logger';
+import { getAddress } from '@util/address';
+import { MAINNET } from '@constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
 import {
   addTransaction,
   estimateGas,
-} from '../../../../util/transaction-controller';
+} from '@util/transaction-controller';
 
-import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { getBlockaidTransactionMetricsParams } from '@util/blockaid';
 import {
   selectChainId,
   selectProviderType,
-} from '../../../../selectors/networkController';
-import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectTokens } from '../../../../selectors/tokensController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+} from '@selectors/networkController';
+import { selectTokenList } from '@selectors/tokenListController';
+import { selectTokens } from '@selectors/tokensController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccountChecksummedAddress,
-} from '../../../../selectors/accountsController';
+} from '@selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
-import { toLowerCaseEquals } from '../../../../util/general';
-import { selectAddressBook } from '../../../../selectors/addressBookController';
-import TransactionTypes from '../../../../core/TransactionTypes';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '@util/smart-transactions/smart-publish-hook';
+import { toLowerCaseEquals } from '@util/general';
+import { selectAddressBook } from '@selectors/addressBookController';
+import TransactionTypes from '@core/TransactionTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

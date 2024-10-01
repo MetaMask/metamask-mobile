@@ -4,11 +4,11 @@ import {
   WHATS_NEW_APP_VERSION_SEEN,
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-} from '../../constants/storage';
-import { whatsNewList } from '../../components/UI/WhatsNewModal';
-import StorageWrapper from '../../store/storage-wrapper';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import { store } from '../../store';
+} from '@constants/storage';
+import { whatsNewList } from '@components/UI/WhatsNewModal';
+import StorageWrapper from '@store/storage-wrapper';
+import { NETWORKS_CHAIN_ID } from '@constants/network';
+import { store } from '@store';
 
 const isVersionSeenAndGreaterThanMinAppVersion = (
   versionSeen: string | null,

@@ -2,40 +2,40 @@ import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import AddCustomToken from '../../UI/AddCustomToken';
-import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
+import AddCustomToken from '@UI/AddCustomToken';
+import SearchTokenAutocomplete from '@UI/SearchTokenAutocomplete';
 import ScrollableTabView, {
   TabBarProps,
 } from 'react-native-scrollable-tab-view';
-import { strings } from '../../../../locales/i18n';
-import AddCustomCollectible from '../../UI/AddCustomCollectible';
+import { strings } from '@locales/i18n';
+import AddCustomCollectible from '@UI/AddCustomCollectible';
 import {
   getImportTokenNavbarOptions,
   getNetworkNavbarOptions,
-} from '../../UI/Navbar';
+} from '@UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
   selectProviderConfig,
-} from '../../../selectors/networkController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
+} from '@selectors/networkController';
+import { selectNetworkName } from '@selectors/networkInfos';
+import { selectDisplayNftMedia } from '@selectors/preferencesController';
+import Banner from '@component-library/components/Banners/Banner/Banner';
 import {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import Text from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Banners/Banner';
+import Text from '@component-library/components/Texts/Text/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../util/navigation/navUtils';
-import { useStyles } from '../../../component-library/hooks';
+import { useParams } from '@util/navigation/navUtils';
+import { useStyles } from '@component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
+import { AddAssetViewSelectorsIDs } from '@e2e/selectors/AddAssetView.selectors';
 
 const AddAsset = () => {
   const navigation = useNavigation();

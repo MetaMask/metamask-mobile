@@ -3,7 +3,7 @@ import { ApplePayPurchaseStatus } from '@consensys/on-ramp-sdk/dist/ApplePay';
 // @ts-expect-error ts(7016) react-native-payments is not typed
 import { PaymentRequest } from '@metamask/react-native-payments';
 import useApplePay from './useApplePay';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
 
 jest.mock('@metamask/react-native-payments', () => ({
   PaymentRequest: jest.fn(),

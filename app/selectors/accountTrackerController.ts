@@ -3,7 +3,7 @@ import {
   AccountTrackerState,
   AccountInformation,
 } from '@metamask/assets-controllers';
-import { RootState } from '../reducers';
+import { RootState } from '@reducers';
 import { createDeepEqualSelector } from './util';
 import { selectChainId } from './networkController';
 import { selectSelectedInternalAccountChecksummedAddress } from './accountsController';

@@ -1,10 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { strings } from '../../../../../../../locales/i18n';
-import StyledButton from '../../../../../../components/UI/StyledButton';
-import { useTheme } from '../../../../../../util/theme';
-import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import { strings } from '@locales/i18n';
+import StyledButton from '@components/UI/StyledButton';
+import { useTheme } from '@util/theme';
+import useApprovalRequest from '@hooks/useApprovalRequest';
 import createStyles from './style';
 
 const Footer = () => {

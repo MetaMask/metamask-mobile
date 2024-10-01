@@ -5,13 +5,13 @@ import configureMockStore from 'redux-mock-store';
 
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import { ENSCache } from '../../../util/ENSUtils';
+} from '@util/test/renderWithProvider';
+import { ENSCache } from '@util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../reducers';
+import { backgroundState } from '@util/test/initial-root-state';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
@@ -47,13 +47,13 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
+jest.mock('@util/address', () => ({
+  ...jest.requireActual('@util/address'),
   isQRHardwareAccount: () => false,
 }));
 const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     TokensController: {
       addToken: () => undefined,
@@ -78,8 +78,8 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
 }));
 
@@ -90,8 +90,8 @@ jest.mock('react-redux', () => ({
     fn(mockInitialState),
 }));
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
+jest.mock('@util/address', () => ({
+  ...jest.requireActual('@util/address'),
   isQRHardwareAccount: jest.fn(),
 }));
 

@@ -1,14 +1,14 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetDetailsActions from './AssetDetailsActions';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   TOKEN_OVERVIEW_BRIDGE_BUTTON,
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+} from '@wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();

@@ -1,5 +1,5 @@
-import DevLogger from '../../utils/DevLogger';
-import { Connection } from '../Connection';
+import DevLogger from '@utils/DevLogger';
+import { Connection } from '@Connection';
 
 function handleClientsWaiting({ instance }: { instance: Connection }) {
   return () => {

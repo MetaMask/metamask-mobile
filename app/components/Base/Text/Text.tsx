@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text as RNText } from 'react-native';
-import { useTheme } from '../../../util/theme';
+import { useTheme } from '@util/theme';
 import styles from './Text.styles';
 
 interface TextProps extends React.ComponentPropsWithoutRef<typeof RNText> {

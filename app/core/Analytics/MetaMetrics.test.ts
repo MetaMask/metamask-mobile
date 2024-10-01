@@ -1,5 +1,5 @@
 import MetaMetrics from './MetaMetrics';
-import StorageWrapper from '../../store/storage-wrapper';
+import StorageWrapper from '@store/storage-wrapper';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
@@ -8,7 +8,7 @@ import {
   METAMETRICS_ID,
   METRICS_OPT_IN,
   MIXPANEL_METAMETRICS_ID,
-} from '../../constants/storage';
+} from '@constants/storage';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import {
   DataDeleteResponseStatus,
@@ -17,7 +17,7 @@ import {
   ISegmentClient,
 } from './MetaMetrics.types';
 
-jest.mock('../../store/storage-wrapper');
+jest.mock('@store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();

@@ -1,8 +1,8 @@
 import OptinMetrics from './';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { renderScreen } from '@util/test/renderWithProvider';
+import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -10,7 +10,7 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('@core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   trackEvent: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -22,16 +22,16 @@ const mockMetrics = {
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 jest.mock(
-  '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+  '@util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ userProp: 'User value' }),
 );
 
 jest.mock(
-  '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  '@util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
 );
 
-jest.mock('../../../reducers/legalNotices', () => ({
+jest.mock('@reducers/legalNotices', () => ({
   isPastPrivacyPolicyDate: jest.fn().mockReturnValue(true),
 }));
 

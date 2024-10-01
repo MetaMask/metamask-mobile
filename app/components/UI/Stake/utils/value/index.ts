@@ -5,7 +5,7 @@ import {
   getValueAsBn,
   bnZero,
   multiplyValueByPowerOfTen,
-} from '../bignumber';
+} from '@bignumber';
 
 export enum CommonPercentageInputUnits {
   BASIS_POINTS = 'BASIS_POINTS',

@@ -10,37 +10,37 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import CollectibleContractElement from '../CollectibleContractElement';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import Engine from '@core/Engine';
+import CollectibleContractElement from '@CollectibleContractElement';
+import { MetaMetricsEvents } from '@core/Analytics';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
   favoritesCollectiblesSelector,
   isNftFetchingProgressSelector,
-} from '../../../reducers/collectibles';
-import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import Text from '../../Base/Text';
-import AppConstants from '../../../core/AppConstants';
-import { toLowerCaseEquals } from '../../../util/general';
-import { compareTokenIds } from '../../../util/tokens';
-import CollectibleDetectionModal from '../CollectibleDetectionModal';
-import { useTheme } from '../../../util/theme';
-import { MAINNET } from '../../../constants/network';
+} from '@reducers/collectibles';
+import { removeFavoriteCollectible } from '@actions/collectibles';
+import Text from '@Base/Text';
+import AppConstants from '@core/AppConstants';
+import { toLowerCaseEquals } from '@util/general';
+import { compareTokenIds } from '@util/tokens';
+import CollectibleDetectionModal from '@CollectibleDetectionModal';
+import { useTheme } from '@util/theme';
+import { MAINNET } from '@constants/network';
 import {
   selectChainId,
   selectProviderType,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
   selectUseNftDetection,
-} from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+} from '@selectors/preferencesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
 import { debounce } from 'lodash';
 
@@ -315,7 +315,7 @@ const CollectibleContracts = ({
       <View style={styles.emptyContainer}>
         <Image
           style={styles.emptyImageContainer}
-          source={require('../../../images/no-nfts-placeholder.png')}
+          source={require('@images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
         <Text center style={styles.emptyTitleText} bold>

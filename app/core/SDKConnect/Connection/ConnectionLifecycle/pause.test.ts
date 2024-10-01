@@ -1,7 +1,7 @@
 import pause from './pause';
-import { Connection } from '../Connection';
+import { Connection } from '@Connection';
 
-jest.mock('../Connection');
+jest.mock('@Connection');
 
 describe('pause', () => {
   let mockConnection: Connection;

@@ -1,11 +1,11 @@
-import Device from '../../../util/device';
-import SDKConnect from '../SDKConnect';
+import Device from '@util/device';
+import SDKConnect from '@SDKConnect';
 import unmount from './unmount';
 
 jest.mock('react-native-background-timer');
-jest.mock('../../../util/Logger');
-jest.mock('../../../util/device');
-jest.mock('../SDKConnect');
+jest.mock('@util/Logger');
+jest.mock('@util/device');
+jest.mock('@SDKConnect');
 
 describe('unmount', () => {
   let mockInstance = {} as unknown as SDKConnect;

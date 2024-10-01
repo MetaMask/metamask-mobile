@@ -2,15 +2,15 @@ import React from 'react';
 
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
-import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
+} from '@util/test/renderWithProvider';
+import { TESTID_ACCORDION_CONTENT } from '@component-library/components/Accordions/Accordion/Accordion.constants';
+import { TESTID_ACCORDIONHEADER } from '@component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
 
-import { ResultType, Reason } from '../BlockaidBanner/BlockaidBanner.types';
+import { ResultType, Reason } from '@BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
-import { RootState } from '../../../../../reducers';
+import { RootState } from '@reducers';
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     PreferencesController: {
       state: {

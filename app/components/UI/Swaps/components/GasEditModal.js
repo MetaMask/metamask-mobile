@@ -7,26 +7,26 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 
-import Text from '../../../Base/Text';
+import Text from '@Base/Text';
 import InfoModal from './InfoModal';
-import EditGasFeeLegacy from '../../EditGasFeeLegacy';
-import EditGasFee1559 from '../../EditGasFee1559';
+import EditGasFeeLegacy from '@EditGasFeeLegacy';
+import EditGasFee1559 from '@EditGasFee1559';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
-} from '../../../../util/transactions';
-import useModalHandler from '../../../Base/hooks/useModalHandler';
-import { strings } from '../../../../../locales/i18n';
-import AppConstants from '../../../../core/AppConstants';
-import { useTheme } from '../../../../util/theme';
+} from '@util/transactions';
+import useModalHandler from '@Base/hooks/useModalHandler';
+import { strings } from '@locales/i18n';
+import AppConstants from '@core/AppConstants';
+import { useTheme } from '@util/theme';
 import {
   selectChainId,
   selectTicker,
-} from '../../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+} from '@selectors/currencyRateController';
 
 const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
 

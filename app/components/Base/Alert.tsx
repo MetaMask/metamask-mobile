@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text from './Text';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '@util/theme';
 
 export enum AlertType {
   Info = 'Info',

@@ -2,12 +2,12 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import InstallSnapConnectionRequest from '../InstallSnapConnectionRequest';
+import InstallSnapConnectionRequest from '@InstallSnapConnectionRequest';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
   SNAP_INSTALL_CONNECTION_REQUEST,
-} from '../InstallSnapConnectionRequest.constants';
+} from '@InstallSnapConnectionRequest.constants';
 
 describe('InstallSnapConnectionRequest', () => {
   const requestPermissionsData = {

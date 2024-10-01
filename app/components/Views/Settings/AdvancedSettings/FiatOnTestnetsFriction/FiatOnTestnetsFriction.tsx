@@ -2,26 +2,26 @@ import React, { useRef } from 'react';
 import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import AppConstants from '../../../../../core/AppConstants';
+} from '@component-library/components/Buttons/Button';
+import AppConstants from '@core/AppConstants';
 import createStyles from './FiatOnTestnetsFriction.styles';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../Base/Text';
+import Text from '@Base/Text';
 import { useDispatch } from 'react-redux';
-import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
-import { FiatOnTestnetsModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/FiatOnTestnetsModal.selectors';
-import Routes from '../../../../../constants/navigation/Routes';
+import { setShowFiatOnTestnets } from '@app/actions/settings';
+import { FiatOnTestnetsModalSelectorsIDs } from '@e2e/selectors/Modals/FiatOnTestnetsModal.selectors';
+import Routes from '@constants/navigation/Routes';
 
 const FiatOnTestnetsFriction = () => {
   const dispatch = useDispatch();

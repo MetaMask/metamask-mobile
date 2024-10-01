@@ -7,18 +7,18 @@ import {
   View,
   Text,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/device';
-import { showAlert } from '../../../actions/alert';
-import GlobalAlert from '../../UI/GlobalAlert';
-import { protectWalletModalVisible } from '../../../actions/user';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import Device from '@util/device';
+import { showAlert } from '@actions/alert';
+import GlobalAlert from '@UI/GlobalAlert';
+import { protectWalletModalVisible } from '@actions/user';
+import ClipboardManager from '@core/ClipboardManager';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 
 const WIDTH = Dimensions.get('window').width - 88;
 

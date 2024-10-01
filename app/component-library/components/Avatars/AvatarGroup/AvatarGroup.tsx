@@ -3,9 +3,9 @@ import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import Avatar from '../Avatar';
-import Text from '../../Texts/Text';
+import { useStyles } from '@hooks';
+import Avatar from '@Avatar';
+import Text from '@Texts/Text';
 
 // Internal dependencies.
 import styleSheet from './AvatarGroup.styles';

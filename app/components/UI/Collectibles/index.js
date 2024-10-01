@@ -9,13 +9,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
 import ActionSheet from '@metamask/react-native-actionsheet';
-import Engine from '../../../core/Engine';
-import CollectibleMedia from '../CollectibleMedia';
-import AssetElement from '../AssetElement';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import Engine from '@core/Engine';
+import CollectibleMedia from '@CollectibleMedia';
+import AssetElement from '@AssetElement';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

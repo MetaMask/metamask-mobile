@@ -5,8 +5,8 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import ListItem from '../../List/ListItem/ListItem';
+import { useStyles } from '@hooks';
+import ListItem from '@List/ListItem/ListItem';
 
 // Internal dependencies.
 import styleSheet from './ListItemSelect.styles';

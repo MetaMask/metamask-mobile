@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Text from './Text';
 import { StyleSheet } from 'react-native';
-import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
-import { strings } from '../../../locales/i18n';
-import { useTheme } from '../../util/theme';
-import { CommonSelectorsIDs } from '../../../e2e/selectors/Common.selectors';
+import { FIAT_ORDER_STATES } from '@constants/on-ramp';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
+import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 
 const styles = StyleSheet.create({
   status: {

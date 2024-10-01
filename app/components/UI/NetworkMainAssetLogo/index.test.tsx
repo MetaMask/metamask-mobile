@@ -5,10 +5,10 @@ import { ChainId } from '@metamask/controller-utils';
 import { render } from '@testing-library/react-native';
 
 import NetworkMainAssetLogo from '.';
-import { backgroundState } from '../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
-jest.mock('../Swaps/components/TokenIcon', () => {
-  const originalModule = jest.requireActual('../Swaps/components/TokenIcon');
+jest.mock('@Swaps/components/TokenIcon', () => {
+  const originalModule = jest.requireActual('@Swaps/components/TokenIcon');
   return {
     ...originalModule,
     __esModule: true,

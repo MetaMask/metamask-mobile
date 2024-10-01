@@ -5,15 +5,15 @@ import { View } from 'react-native';
 // External dependencies.
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../Base/Text';
-import { useTheme } from '../../../../../util/theme';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import { strings } from '@locales/i18n';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
 // Internal dependencies
 import createStyles from './AmbiguousAddressSheet.styles';

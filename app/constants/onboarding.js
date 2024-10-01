@@ -1,4 +1,4 @@
-import { strings } from '../../locales/i18n';
+import { strings } from '@locales/i18n';
 
 export const CHOOSE_PASSWORD_STEPS = [
   strings('choose_password.title'),

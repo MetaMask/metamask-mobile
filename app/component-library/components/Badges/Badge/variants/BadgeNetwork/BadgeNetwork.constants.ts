@@ -1,11 +1,11 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { AvatarSize } from '../../../../Avatars/Avatar';
+import { AvatarSize } from '@Avatars/Avatar';
 import {
   SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL,
   SAMPLE_AVATARNETWORK_NAME,
-} from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+} from '@Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
 import { BadgeNetworkProps } from './BadgeNetwork.types';

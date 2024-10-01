@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import Modal from 'react-native-modal';
 
-import ModalDragger from '../../../Base/ModalDragger';
-import Text from '../../../Base/Text';
-import SlippageSlider from '../../SlippageSlider';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import ModalDragger from '@Base/ModalDragger';
+import Text from '@Base/Text';
+import SlippageSlider from '@SlippageSlider';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

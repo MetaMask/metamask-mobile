@@ -4,8 +4,8 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { IconName } from '../../../../Icons/Icon';
-import { AvatarSize } from '../../Avatar.types';
+import { IconName } from '@Icons/Icon';
+import { AvatarSize } from '@Avatar.types';
 
 // Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';
@@ -27,7 +27,7 @@ export const SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE: ImageSourcePropType = {
   uri: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
 };
 /* eslint-disable-next-line */
-export const SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/fox.png');
+export const SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL: ImageSourcePropType = require('@images/fox.png');
 
 export const SAMPLE_AVATARFAVICON_PROPS: AvatarFaviconProps = {
   imageSource: SAMPLE_AVATARFAVICON_IMAGESOURCE_REMOTE,

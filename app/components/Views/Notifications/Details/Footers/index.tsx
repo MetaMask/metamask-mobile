@@ -1,8 +1,8 @@
 import React from 'react';
-import type { ModalFooter } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
+import type { ModalFooter } from '@util/notifications/notification-states/types/NotificationModalDetails';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
 import BlockExplorerFooter from './BlockExplorerFooter';
-import type { Notification } from '../../../../../util/notifications/types';
+import type { Notification } from '@util/notifications/types';
 
 interface Props {
   modalFooter: ModalFooter;

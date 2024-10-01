@@ -6,19 +6,19 @@ import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { strings } from '../../../../../../../locales/i18n';
+} from '@component-library/components/Texts/Text';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { strings } from '@locales/i18n';
 import { createStyles } from './styles';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
-import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
-import { useMetrics } from '../../../../../../components/hooks/useMetrics';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import Routes from '@constants/navigation/Routes';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
+import { REVEAL_PRIVATE_KEY_SECTION } from '@SecuritySettings.constants';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const testIds = {
   section: REVEAL_PRIVATE_KEY_SECTION,

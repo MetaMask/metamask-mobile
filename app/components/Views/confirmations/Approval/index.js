@@ -1,63 +1,63 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
-import Engine from '../../../../core/Engine';
+import Engine from '@core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from './components/TransactionEditor';
 import Modal from 'react-native-modal';
-import { safeBNToHex } from '../../../../util/number';
-import { getTransactionOptionsTitle } from '../../../UI/Navbar';
-import { resetTransaction } from '../../../../actions/transaction';
+import { safeBNToHex } from '@util/number';
+import { getTransactionOptionsTitle } from '@UI/Navbar';
+import { resetTransaction } from '@actions/transaction';
 import { connect } from 'react-redux';
-import NotificationManager from '../../../../core/NotificationManager';
-import AppConstants from '../../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import NotificationManager from '@core/NotificationManager';
+import AppConstants from '@core/AppConstants';
+import { MetaMetricsEvents } from '@core/Analytics';
 import {
   getTransactionReviewActionKey,
   getNormalizedTxState,
   getActiveTabUrl,
-} from '../../../../util/transactions';
-import { strings } from '../../../../../locales/i18n';
+} from '@util/transactions';
+import { strings } from '@locales/i18n';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
   isHardwareAccount,
-} from '../../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
-import Logger from '../../../../util/Logger';
-import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
+} from '@util/address';
+import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
+import Logger from '@util/Logger';
+import { KEYSTONE_TX_CANCELED } from '@constants/error';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
 import {
   TX_CANCELLED,
   TX_CONFIRMED,
   TX_FAILED,
   TX_SUBMITTED,
   TX_REJECTED,
-} from '../../../../constants/transaction';
+} from '@constants/transaction';
 import {
   selectChainId,
   selectProviderType,
-} from '../../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+} from '@selectors/networkController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
-import { getDeviceId } from '../../../../core/Ledger/Ledger';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import { getBlockaidMetricsParams } from '../../../../util/blockaid';
-import { getDecimalChainId } from '../../../../util/networks';
+import { getDeviceId } from '@core/Ledger/Ledger';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
+import { getBlockaidMetricsParams } from '@util/blockaid';
+import { getDecimalChainId } from '@util/networks';
 
-import { updateTransaction } from '../../../../util/transaction-controller';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
-import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
-import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
-import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selectors/confirmTransaction';
-import { selectTransactions } from '../../../../selectors/transactionController';
-import { selectShowCustomNonce } from '../../../../selectors/settings';
-import { buildTransactionParams } from '../../../../util/confirmation/transactions';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
-import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
+import { updateTransaction } from '@util/transaction-controller';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
+import { STX_NO_HASH_ERROR } from '@util/smart-transactions/smart-publish-hook';
+import { getSmartTransactionMetricsProperties } from '@util/smart-transactions';
+import { selectTransactionMetrics } from '@core/redux/slices/transactionMetrics';
+import { selectCurrentTransactionSecurityAlertResponse } from '@selectors/confirmTransaction';
+import { selectTransactions } from '@selectors/transactionController';
+import { selectShowCustomNonce } from '@selectors/settings';
+import { buildTransactionParams } from '@util/confirmation/transactions';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
+import WC2Manager from '@core/WalletConnect/WalletConnectV2';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from 'react';
 import { Platform, Switch, Text, View } from 'react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { createStyles } from './styles';
-import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
+import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '@wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { useSelector } from 'react-redux';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { LoginOptionsSwitchSelectorsIDs } from '../../../../e2e/selectors/LoginOptionsSwitch.selectors';
-import { useTheme } from '../../../util/theme';
+import generateTestId from '@wdio/utils/generateTestId';
+import { LoginOptionsSwitchSelectorsIDs } from '@e2e/selectors/LoginOptionsSwitch.selectors';
+import { useTheme } from '@util/theme';
 
 interface Props {
   shouldRenderBiometricOption: BIOMETRY_TYPE | null;

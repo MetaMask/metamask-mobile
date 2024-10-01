@@ -2,42 +2,42 @@ import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { useParams } from '../../../util/navigation/navUtils';
+} from '@component-library/components/Texts/Text';
+import { useParams } from '@util/navigation/navUtils';
 import createStyles from './styles';
-import { useTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
+import { useTheme } from '@util/theme';
+import { strings } from '@locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getImportTokenNavbarOptions } from '../Navbar';
+import { getImportTokenNavbarOptions } from '@Navbar';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import AssetIcon from '../AssetIcon';
+} from '@component-library/components/Badges/Badge';
+import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
+import AssetIcon from '@AssetIcon';
 import {
   getTestNetImageByChainId,
   isLineaMainnet,
   isMainNet,
   isTestNet,
-} from '../../../util/networks';
+} from '@util/networks';
 import images from 'images/image-icons';
-import SkeletonText from '../Ramp/components/SkeletonText';
-import { TOKEN_BALANCE_LOADING } from '../Tokens/constants';
-import useBalance from '../Ramp/hooks/useBalance';
+import SkeletonText from '@Ramp/components/SkeletonText';
+import { TOKEN_BALANCE_LOADING } from '@Tokens/constants';
+import useBalance from '@Ramp/hooks/useBalance';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+} from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
-import Box from '../Ramp/components/Box';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Routes from '../../../constants/navigation/Routes';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
-import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
+import Box from '@Ramp/components/Box';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import Routes from '@constants/navigation/Routes';
+import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';
+import { TOKEN_TITLE } from '@components/Views/AddAsset/AddAsset.constants';
 
 const RenderBalance = (asset: {
   symbol: string;

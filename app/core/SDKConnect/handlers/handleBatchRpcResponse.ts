@@ -1,7 +1,7 @@
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import BatchRPCManager, { BatchRPCState } from '../BatchRPCManager';
-import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import BatchRPCManager, { BatchRPCState } from '@BatchRPCManager';
+import DevLogger from '@utils/DevLogger';
+import { wait } from '@utils/wait.util';
 
 export const handleBatchRpcResponse = async ({
   chainRpcs,

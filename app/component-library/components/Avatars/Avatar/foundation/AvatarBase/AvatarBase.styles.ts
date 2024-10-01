@@ -2,8 +2,8 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
-import { BORDERWIDTH_BY_AVATARSIZE } from '../../Avatar.constants';
+import { Theme } from '@util/theme/models';
+import { BORDERWIDTH_BY_AVATARSIZE } from '@Avatar.constants';
 
 // Internal dependencies.
 import { AvatarBaseStyleSheetVars } from './AvatarBase.types';

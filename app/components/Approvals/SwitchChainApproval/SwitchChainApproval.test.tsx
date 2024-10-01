@@ -1,13 +1,13 @@
 import React from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import SwitchChainApproval from './SwitchChainApproval';
-import { networkSwitched } from '../../../actions/onboardNetwork';
+import { networkSwitched } from '@actions/onboardNetwork';
 
-jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../actions/onboardNetwork');
+jest.mock('@Views/confirmations/hooks/useApprovalRequest');
+jest.mock('@actions/onboardNetwork');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

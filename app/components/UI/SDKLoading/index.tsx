@@ -4,8 +4,8 @@ import LottieView from 'lottie-react-native';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Device from '../../../../app/util/device';
-import { useTheme, useAssetFromTheme } from '../../../util/theme';
+import Device from '@app/util/device';
+import { useTheme, useAssetFromTheme } from '@util/theme';
 
 const animationSize = Device.getDeviceWidth() / 2;
 

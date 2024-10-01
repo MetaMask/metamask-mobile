@@ -8,25 +8,25 @@ import {
 } from 'json-rpc-engine';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
-import Engine from '../Engine';
-import { store } from '../../store';
-import { getPermittedAccounts } from '../Permissions';
+import Engine from '@Engine';
+import { store } from '@store';
+import { getPermittedAccounts } from '@Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
   PermissionConstraint,
   PermissionController,
 } from '@metamask/permission-controller';
-import PPOMUtil from '../../lib/ppom/ppom-util';
-import { backgroundState } from '../../util/test/initial-root-state';
+import PPOMUtil from '@lib/ppom/ppom-util';
+import { backgroundState } from '@util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
-import { addTransaction } from '../../util/transaction-controller';
+import { addTransaction } from '@util/transaction-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
-} from '../Permissions/specifications';
+} from '@Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 import {
   processOriginThrottlingRejection,
@@ -35,12 +35,12 @@ import {
 import {
   NUMBER_OF_REJECTIONS_THRESHOLD,
   OriginThrottlingState,
-} from '../redux/slices/originThrottling';
-import { ProviderConfig } from '../../selectors/networkController';
+} from '@redux/slices/originThrottling';
+import { ProviderConfig } from '@selectors/networkController';
 
 jest.mock('./spam');
 
-jest.mock('../Engine', () => ({
+jest.mock('@Engine', () => ({
   context: {
     PreferencesController: {
       state: {},
@@ -64,12 +64,12 @@ jest.mock('../Engine', () => ({
 }));
 const MockEngine = jest.mocked(Engine);
 
-jest.mock('../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   addTransaction: jest.fn(),
 }));
 
-jest.mock('../../store', () => ({
+jest.mock('@store', () => ({
   store: {
     getState: jest.fn(),
     dispatch: jest.fn(),
@@ -81,7 +81,7 @@ const mockStore = store as unknown as {
   dispatch: jest.Mock;
 };
 
-jest.mock('../Permissions', () => ({
+jest.mock('@Permissions', () => ({
   getPermittedAccounts: jest.fn(),
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;

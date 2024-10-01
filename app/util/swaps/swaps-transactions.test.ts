@@ -1,11 +1,11 @@
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 import { TransactionController } from '@metamask/transaction-controller';
 import {
   addSwapsTransaction,
   updateSwapsTransaction,
 } from './swaps-transactions';
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     TransactionController: {
       update: jest.fn(),

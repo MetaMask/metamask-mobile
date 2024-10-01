@@ -7,9 +7,9 @@ import {
   ViewPropTypes,
 } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/device';
-import Text from '../Text';
-import { useTheme } from '../../../util/theme';
+import Device from '@util/device';
+import Text from '@Text';
+import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

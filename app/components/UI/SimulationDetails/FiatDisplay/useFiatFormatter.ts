@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import I18n from '../../../../../locales/i18n';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
+import I18n from '@locales/i18n';
 
 type FiatFormatter = (fiatAmount: number) => string;
 

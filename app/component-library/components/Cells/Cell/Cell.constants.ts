@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { AvatarVariant, AvatarAccountType } from '../../Avatars/Avatar';
-import { AvatarProps } from '../../Avatars/Avatar/Avatar.types';
+import { AvatarVariant, AvatarAccountType } from '@Avatars/Avatar';
+import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { CellProps } from './Cell.types';

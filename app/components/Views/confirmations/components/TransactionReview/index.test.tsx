@@ -6,32 +6,32 @@ import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
-import * as TransactionUtils from '../../../../../util/transactions';
+import * as TransactionUtils from '@util/transactions';
 // eslint-disable-next-line import/no-namespace
-import * as BlockaidUtils from '../../../../../util/blockaid';
+import * as BlockaidUtils from '@util/blockaid';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+} from '@util/test/renderWithProvider';
+import { backgroundState } from '@util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
-import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
-import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
+import { TESTID_ACCORDION_CONTENT } from '@component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '@BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../../../reducers';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 
-jest.mock('../../../../../util/transactions', () => ({
-  ...jest.requireActual('../../../../../util/transactions'),
+jest.mock('@util/transactions', () => ({
+  ...jest.requireActual('@util/transactions'),
   getTransactionReviewActionKey: jest.fn(),
 }));
 
-jest.mock('../../../../../util/ENSUtils', () => ({
-  ...jest.requireActual('../../../../../util/ENSUtils'),
+jest.mock('@util/ENSUtils', () => ({
+  ...jest.requireActual('@util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
 }));
 
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
+jest.mock('@util/address', () => ({
+  ...jest.requireActual('@util/address'),
   renderAccountName: jest.fn(),
   isQRHardwareAccount: jest.fn(),
 }));
@@ -42,7 +42,7 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 });
 
 jest.mock(
-  '../../../../../components/UI/QRHardware/withQRHardwareAwareness',
+  '@components/UI/QRHardware/withQRHardwareAwareness',
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   () => (obj: any) => obj,
@@ -58,7 +58,7 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState =
     MOCK_ADDRESS_3,
   );
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

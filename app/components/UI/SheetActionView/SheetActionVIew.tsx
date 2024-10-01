@@ -3,9 +3,9 @@ import { View } from 'react-native';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Button from '../../../component-library/components/Buttons/Button/Button';
-import { strings } from '../../../../locales/i18n';
+} from '@component-library/components/Buttons/Button';
+import Button from '@component-library/components/Buttons/Button/Button';
+import { strings } from '@locales/i18n';
 import createStyles from './SheetActionView.styles';
 import { SheetActionViewI } from './SheetActionView.types';
 

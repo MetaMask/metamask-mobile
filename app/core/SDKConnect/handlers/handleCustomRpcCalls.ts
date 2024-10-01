@@ -1,15 +1,15 @@
 import { Platform } from 'react-native';
-import Logger from '../../../util/Logger';
-import BatchRPCManager from '../BatchRPCManager';
-import { RPC_METHODS } from '../SDKConnectConstants';
-import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
+import Logger from '@util/Logger';
+import BatchRPCManager from '@BatchRPCManager';
+import { RPC_METHODS } from '@SDKConnectConstants';
+import DevLogger from '@utils/DevLogger';
+import { wait } from '@utils/wait.util';
 import overwriteRPCWith from './handleRpcOverwrite';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
-import { Connection } from '../Connection';
-import { createBuyNavigationDetails } from '../../../components/UI/Ramp/routes/utils';
+import { Connection } from '@Connection';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 
 export const handleCustomRpcCalls = async ({
   rpc,
@@ -25,7 +25,7 @@ export const handleCustomRpcCalls = async ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rpc: { id: string; method: string; params: any[] };
-  store?: typeof import('../../../store').store;
+  store?: typeof import('@store').store;
   connection?: Connection;
   navigation?: NavigationContainerRef;
 }) => {

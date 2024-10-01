@@ -2,18 +2,18 @@ import React, { useCallback, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useDispatch } from 'react-redux';
 
-import Coachmark from '../Coachmark';
-import Device from '../../../../util/device';
-import setOnboardingWizardStep from '../../../../actions/wizard';
-import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from '../styles';
+import Coachmark from '@Coachmark';
+import Device from '@util/device';
+import setOnboardingWizardStep from '@actions/wizard';
+import { strings } from '@locales/i18n';
+import onboardingStyles from '@styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
-} from '../../../../core/Analytics';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+} from '@core/Analytics';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {

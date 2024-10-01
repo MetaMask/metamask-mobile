@@ -2,13 +2,13 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import EthereumAddress from '../../EthereumAddress';
-import JSIdenticon from '../../Identicon';
-import Text from '../../../Base/Text';
-import JSSelectorButton from '../../../Base/SelectorButton';
+import EthereumAddress from '@EthereumAddress';
+import JSIdenticon from '@Identicon';
+import Text from '@Base/Text';
+import JSSelectorButton from '@Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
-import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { createAccountSelectorNavDetails } from '@Views/AccountSelector';
+import { selectSelectedInternalAccount } from '@selectors/accountsController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // TODO: Convert into typescript and correctly type

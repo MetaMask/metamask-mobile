@@ -5,48 +5,48 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetActions from '../../../../component-library/components-temp/SheetActions';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
+import SheetActions from '@component-library/components-temp/SheetActions';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import { strings } from '@locales/i18n';
+import TagUrl from '@component-library/components/Tags/TagUrl';
+import PickerNetwork from '@component-library/components/Pickers/PickerNetwork';
 import {
   getDecimalChainId,
   isMultichainVersion1Enabled,
-} from '../../../../util/networks';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
-import { AccountPermissionsScreens } from '../AccountPermissions.types';
-import { switchActiveAccounts } from '../../../../core/Permissions';
+} from '@util/networks';
+import AccountSelectorList from '@components/UI/AccountSelectorList';
+import { AccountPermissionsScreens } from '@AccountPermissions.types';
+import { switchActiveAccounts } from '@core/Permissions';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../../component-library/components/Toast';
-import getAccountNameWithENS from '../../../../util/accounts';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Routes from '../../../../constants/navigation/Routes';
+} from '@component-library/components/Toast';
+import getAccountNameWithENS from '@util/accounts';
+import { MetaMetricsEvents } from '@core/Analytics';
+import Routes from '@constants/navigation/Routes';
 import {
   selectProviderConfig,
   ProviderConfig,
-} from '../../../../selectors/networkController';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+} from '@selectors/networkController';
+import { useNetworkInfo } from '@selectors/selectedNetworkController';
+import { ConnectedAccountsSelectorsIDs } from '@e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@component-library/components/Buttons/Button';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,

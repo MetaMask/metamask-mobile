@@ -7,8 +7,8 @@ import {
   request,
   requestMultiple,
 } from 'react-native-permissions';
-import Device from '../../util/device';
-import { BluetoothPermissionErrors } from '../../core/Ledger/ledgerErrors';
+import Device from '@util/device';
+import { BluetoothPermissionErrors } from '@core/Ledger/ledgerErrors';
 
 const useBluetoothPermissions = () => {
   const appState = useRef(AppState.currentState);

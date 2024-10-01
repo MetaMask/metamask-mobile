@@ -31,31 +31,31 @@ import {
   toWei,
   weiToFiat,
   calculateEthFeeForMultiLayer,
-} from '../../../util/number';
+} from '@util/number';
 import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
   getDecimalChainId,
-} from '../../../util/networks';
+} from '@util/networks';
 import {
   getErrorMessage,
   getFetchParams,
   getQuotesNavigationsParams,
   isSwapsNativeAsset,
 } from './utils';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 
-import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
-import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getSwapsQuotesNavbar } from '../Navbar';
-import ScreenView from '../../Base/ScreenView';
-import Text from '../../Base/Text';
-import Alert, { AlertType } from '../../Base/Alert';
-import StyledButton from '../StyledButton';
-import SliderButton from '../SliderButton';
+import Engine from '@core/Engine';
+import AppConstants from '@core/AppConstants';
+import Device from '@util/device';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { getSwapsQuotesNavbar } from '@Navbar';
+import ScreenView from '@Base/ScreenView';
+import Text from '@Base/Text';
+import Alert, { AlertType } from '@Base/Alert';
+import StyledButton from '@StyledButton';
+import SliderButton from '@SliderButton';
 
 import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
@@ -66,10 +66,10 @@ import ActionAlert from './components/ActionAlert';
 import ApprovalTransactionEditionModal from './components/ApprovalTransactionEditionModal';
 import GasEditModal from './components/GasEditModal';
 import InfoModal from './components/InfoModal';
-import useModalHandler from '../../Base/hooks/useModalHandler';
+import useModalHandler from '@Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
-import { decodeApproveData, getTicker } from '../../../util/transactions';
-import { toLowerCaseEquals } from '../../../util/general';
+import { decodeApproveData, getTicker } from '@util/transactions';
+import { toLowerCaseEquals } from '@util/general';
 import {
   selectSwapsAggregatorMetadata,
   selectSwapsApprovalTransaction,
@@ -84,36 +84,36 @@ import {
   selectSwapsUsedCustomGas,
   selectSwapsUsedGasEstimate,
   swapsTokensSelector,
-} from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
-import FadeAnimationView from '../FadeAnimationView';
-import Logger from '../../../util/Logger';
-import { useTheme } from '../../../util/theme';
+} from '@reducers/swaps';
+import { decGWEIToHexWEI } from '@util/conversions';
+import FadeAnimationView from '@FadeAnimationView';
+import Logger from '@util/Logger';
+import { useTheme } from '@util/theme';
 import {
   getAddressAccountType,
   isHardwareAccount,
-} from '../../../util/address';
+} from '@util/address';
 import {
   selectChainId,
   selectTicker,
-} from '../../../selectors/networkController';
+} from '@selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { addTransaction } from '../../../util/transaction-controller';
-import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
-import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
+} from '@selectors/currencyRateController';
+import { selectAccounts } from '@selectors/accountTrackerController';
+import { selectContractBalances } from '@selectors/tokenBalancesController';
+import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
+import { resetTransaction, setRecipient } from '@actions/transaction';
+import { createBuyNavigationDetails } from '@Ramp/routes/utils';
+import { SwapsViewSelectors } from '@e2e/selectors/swaps/SwapsView.selectors';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { addTransaction } from '@util/transaction-controller';
+import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
+import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
+import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
+import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
+import { addSwapsTransaction } from '@util/swaps/swaps-transactions';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;

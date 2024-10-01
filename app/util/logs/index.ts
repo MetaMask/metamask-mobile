@@ -1,4 +1,4 @@
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 import {
   getApplicationName,
   getBuildNumber,
@@ -8,9 +8,9 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
-import Logger from '../../util/Logger';
-import { RootState } from '../../reducers';
-import Device from '../../util/device';
+import Logger from '@util/Logger';
+import { RootState } from '@reducers';
+import Device from '@util/device';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export

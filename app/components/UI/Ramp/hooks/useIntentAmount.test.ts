@@ -1,5 +1,5 @@
 import useIntentAmount from './useIntentAmount';
-import type { RampSDK } from '../sdk';
+import type { RampSDK } from '@sdk';
 import type { CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
 import { renderHook } from '@testing-library/react-native';
 
@@ -63,7 +63,7 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../sdk', () => ({
+jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 

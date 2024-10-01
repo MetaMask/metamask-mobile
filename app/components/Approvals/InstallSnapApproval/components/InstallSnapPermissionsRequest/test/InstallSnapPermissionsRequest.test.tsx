@@ -1,8 +1,8 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import InstallSnapPermissionsRequest from '../InstallSnapPermissionsRequest';
-import { SNAP_PERMISSION_CELL } from '../../../../../Views/Snaps/components/SnapPermissionCell/SnapPermissionCell.constants';
+import InstallSnapPermissionsRequest from '@InstallSnapPermissionsRequest';
+import { SNAP_PERMISSION_CELL } from '@Views/Snaps/components/SnapPermissionCell/SnapPermissionCell.constants';
 
 describe('InstallSnapPermissionsRequest', () => {
   const installSnapDataApprovalRequest = {

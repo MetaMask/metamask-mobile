@@ -1,6 +1,6 @@
 import { toHex } from '@metamask/controller-utils';
 import { Hex, hasProperty, isObject } from '@metamask/utils';
-import { regex } from '../../../app/util/regex';
+import { regex } from '@app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';

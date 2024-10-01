@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 // External dependencies.
-import { strings } from '../../../../../locales/i18n';
-import { mockTheme, useTheme } from '../../../../util/theme';
+import { strings } from '@locales/i18n';
+import { mockTheme, useTheme } from '@util/theme';
 
 // Internal dependencies
 import Icon from 'react-native-vector-icons/Ionicons';
 import createStyles from './NetworkSearchTextInput.styles';
-import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { isNetworkUiRedesignEnabled } from '../../../../util/networks/isNetworkUiRedesignEnabled';
+import { NetworksViewSelectorsIDs } from '@e2e/selectors/Settings/NetworksView.selectors';
+import { isNetworkUiRedesignEnabled } from '@util/networks/isNetworkUiRedesignEnabled';
 
 interface NetworkSearchTextInputProps {
   searchString: string;

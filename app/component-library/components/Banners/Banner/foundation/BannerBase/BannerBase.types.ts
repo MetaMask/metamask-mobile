@@ -2,9 +2,9 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies.
-import { ButtonProps } from '../../../../Buttons/Button/Button.types';
-import { ButtonIconProps } from '../../../../Buttons/ButtonIcon/ButtonIcon.types';
-import { BannerVariant } from '../../Banner.types';
+import { ButtonProps } from '@Buttons/Button/Button.types';
+import { ButtonIconProps } from '@Buttons/ButtonIcon/ButtonIcon.types';
+import { BannerVariant } from '@Banner.types';
 
 /**
  * BannerBase component props.

@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { styleSheet } from './styles';
-import Engine from '../../../../../../core/Engine';
+import Engine from '@core/Engine';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../component-library/hooks';
-import ActionModal from '../../../../../UI/ActionModal';
-import { strings } from '../../../../../../../locales/i18n';
-import { CLEAR_PRIVACY_SECTION } from '../../SecuritySettings.constants';
+} from '@component-library/components/Texts/Text';
+import { useStyles } from '@component-library/hooks';
+import ActionModal from '@UI/ActionModal';
+import { strings } from '@locales/i18n';
+import { CLEAR_PRIVACY_SECTION } from '@SecuritySettings.constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
-import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
+} from '@component-library/components/Buttons/Button';
+import SDKConnect from '@app/core/SDKConnect/SDKConnect';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});

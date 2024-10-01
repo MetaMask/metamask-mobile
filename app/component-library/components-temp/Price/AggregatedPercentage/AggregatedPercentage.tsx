@@ -2,13 +2,13 @@ import React from 'react';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Texts/Text';
 import { View } from 'react-native';
-import { renderFiat } from '../../../../util/number';
+import { renderFiat } from '@util/number';
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '@selectors/currencyRateController';
 import styleSheet from './AggregatedPercentage.styles';
-import { useStyles } from '../../../hooks';
+import { useStyles } from '@hooks';
 
 export interface AggregatedPercentageProps {
   ethFiat: number;

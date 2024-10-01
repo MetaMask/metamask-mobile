@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
-import { selectChainId } from '../../../selectors/networkController';
-import { selectShowFiatInTestnets } from '../../../selectors/settings';
-import { TEST_NETWORK_IDS } from '../../../constants/network';
+import { selectChainId } from '@selectors/networkController';
+import { selectShowFiatInTestnets } from '@selectors/settings';
+import { TEST_NETWORK_IDS } from '@constants/network';
 
 /**
  * Returns true if the fiat value should be hidden for testnet networks.

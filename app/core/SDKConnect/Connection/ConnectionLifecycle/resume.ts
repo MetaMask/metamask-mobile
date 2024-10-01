@@ -1,5 +1,5 @@
-import DevLogger from '../../utils/DevLogger';
-import { Connection } from '../Connection';
+import DevLogger from '@utils/DevLogger';
+import { Connection } from '@Connection';
 
 function resume({ instance }: { instance: Connection }) {
   DevLogger.log(`Connection::resume() id=${instance.channelId}`);

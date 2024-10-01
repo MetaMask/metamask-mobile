@@ -1,11 +1,11 @@
 import { omit, pick } from 'lodash';
 import approvalResult from './ApprovalResult';
 import smartTransactionStatus from './SmartTransactionStatus';
-import { ApprovalTypes } from '../../../../../../../core/RPCMethods/RPCMethodMiddleware';
-import { Actions } from '../TemplateConfirmation';
-import { Colors } from '../../../../../../../util/theme/models';
+import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
+import { Actions } from '@TemplateConfirmation';
+import { Colors } from '@util/theme/models';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
-import { TemplateRendererInput } from '../../../../../../UI/TemplateRenderer/types';
+import { TemplateRendererInput } from '@UI/TemplateRenderer/types';
 
 export interface ConfirmationTemplateValues {
   cancelText?: string;

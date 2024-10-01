@@ -1,22 +1,22 @@
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
   TRIGGER_TYPES,
-} from '../../constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
+} from '@constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
 import {
   label_address_from,
   label_address_to,
   NotificationState,
-} from '../types/NotificationState';
+} from '@types/NotificationState';
 import {
   getNativeTokenDetailsByChainId,
   getNotificationBadge,
   formatAmount,
   getNetworkFees,
-} from '../../methods/common';
-import { formatAddress } from '../../../address';
+} from '@methods/common';
+import { formatAddress } from '@address';
 
 type NativeSentReceiveNotification = ExtractedNotification<
   TRIGGER_TYPES.ETH_RECEIVED | TRIGGER_TYPES.ETH_SENT

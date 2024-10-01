@@ -4,11 +4,11 @@ import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
-import { Colors } from '../../../../util/theme/models';
-import { QuickAmount } from '../types';
+} from '@component-library/components/Icons/Icon';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
+import { Colors } from '@util/theme/models';
+import { QuickAmount } from '@types';
 
 const INSET = 25;
 const createStyles = (colors: Colors) =>

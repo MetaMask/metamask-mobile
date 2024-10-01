@@ -14,30 +14,30 @@ import { useNavigation } from '@react-navigation/native';
 // External dependencies.
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import Engine from '../../../core/Engine';
+} from '@component-library/components/BottomSheets/BottomSheet';
+import Engine from '@core/Engine';
 import {
   addPermittedAccounts,
   getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
-import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import Logger from '../../../util/Logger';
+} from '@core/Permissions';
+import AccountConnectMultiSelector from '@AccountConnect/AccountConnectMultiSelector';
+import NetworkConnectMultiSelector from '@NetworkConnect/NetworkConnectMultiSelector';
+import Logger from '@util/Logger';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../component-library/components/Toast';
-import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAccounts, Account } from '../../hooks/useAccounts';
-import getAccountNameWithENS from '../../../util/accounts';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
-import { getActiveTabUrl } from '../../../util/transactions';
-import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+} from '@component-library/components/Toast';
+import { ToastOptions } from '@component-library/components/Toast/Toast.types';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { useAccounts, Account } from '@hooks/useAccounts';
+import getAccountNameWithENS from '@util/accounts';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { getUrlObj, prefixUrlWithProtocol } from '@util/browser';
+import { getActiveTabUrl } from '@util/transactions';
+import { strings } from '@locales/i18n';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { selectAccountsLength } from '@selectors/accountTrackerController';
+import { selectNetworkConfigurations } from '@selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -46,16 +46,16 @@ import {
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
-import { USER_INTENT } from '../../../constants/permissions';
-import useFavicon from '../../hooks/useFavicon/useFavicon';
+import { USER_INTENT } from '@constants/permissions';
+import useFavicon from '@hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { RootState } from '../../../reducers';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
-import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { selectInternalAccounts } from '@selectors/accountsController';
+import { selectPermissionControllerState } from '@selectors/snaps/permissionController';
+import { RootState } from '@reducers';
+import { isMultichainVersion1Enabled } from '@util/networks';
+import PermissionsSummary from '@components/UI/PermissionsSummary';
+import { PermissionsSummaryProps } from '@components/UI/PermissionsSummary/PermissionsSummary.types';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();

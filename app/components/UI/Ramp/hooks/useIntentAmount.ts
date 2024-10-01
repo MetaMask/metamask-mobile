@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { type BN } from 'ethereumjs-util';
-import { useRampSDK } from '../sdk';
-import parseAmount from '../utils/parseAmount';
-import { toTokenMinimalUnit } from '../../../../util/number';
+import { useRampSDK } from '@sdk';
+import parseAmount from '@utils/parseAmount';
+import { toTokenMinimalUnit } from '@util/number';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 
 /**

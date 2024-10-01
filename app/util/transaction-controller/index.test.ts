@@ -1,7 +1,7 @@
 import { WalletDevice } from '@metamask/transaction-controller';
 //eslint-disable-next-line import/no-namespace
 import * as TransactionControllerUtils from './index';
-import Engine from '../../core/Engine';
+import Engine from '@core/Engine';
 
 const { addTransaction, estimateGas, ...proxyMethods } =
   TransactionControllerUtils;
@@ -12,7 +12,7 @@ const TRANSACTION_OPTIONS_MOCK = {
   origin: 'origin',
 };
 
-jest.mock('../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     TransactionController: {
       addTransaction: jest.fn(),

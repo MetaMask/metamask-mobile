@@ -1,5 +1,5 @@
 // External dependencies.
-import { ListItemProps } from '../../../List/ListItem/ListItem.types';
+import { ListItemProps } from '@List/ListItem/ListItem.types';
 
 /**
  * SelectValueBase component props.

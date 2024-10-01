@@ -10,13 +10,13 @@ import {
   InteractionManager,
   Image,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
 import { connect } from 'react-redux';
-import { isMainNet } from '../../../util/networks';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import { isMainNet } from '@util/networks';
+import { ThemeContext, mockTheme } from '@util/theme';
+import { selectChainId } from '@selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -107,7 +107,7 @@ const createStyles = (colors) =>
     },
   });
 
-const openSeaLogo = require('../../../images/opensea-logo-flat-colored-blue.png'); // eslint-disable-line
+const openSeaLogo = require('@images/opensea-logo-flat-colored-blue.png'); // eslint-disable-line
 
 /**
  * View that contains a collectible contract information as description, total supply and address

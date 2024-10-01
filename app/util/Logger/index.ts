@@ -3,8 +3,8 @@ import {
   captureException,
   withScope,
 } from '@sentry/react-native';
-import StorageWrapper from '../../store/storage-wrapper';
-import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
+import StorageWrapper from '@store/storage-wrapper';
+import { METRICS_OPT_IN, AGREED, DEBUG } from '@constants/storage';
 
 interface ExtraInfo {
   message?: string;

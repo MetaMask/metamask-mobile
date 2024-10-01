@@ -1,10 +1,10 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import { fontStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
+import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import { fontStyles } from '@styles/common';
+import StyledButton from '@UI/StyledButton';
+import { strings } from '@locales/i18n';
+import { useTheme } from '@util/theme';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

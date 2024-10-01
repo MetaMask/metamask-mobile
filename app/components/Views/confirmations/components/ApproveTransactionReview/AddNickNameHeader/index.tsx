@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../locales/i18n';
+import Text from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 
 interface HeaderProps {

@@ -1,13 +1,13 @@
 import React from 'react';
 import OrderListItem from './OrderListItem';
-import { FiatOrder } from '../../../../../reducers/fiatOrders';
+import { FiatOrder } from '@reducers/fiatOrders';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
+} from '@util/test/renderWithProvider';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../../constants/on-ramp';
+} from '@constants/on-ramp';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {

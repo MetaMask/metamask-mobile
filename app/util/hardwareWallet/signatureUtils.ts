@@ -1,7 +1,7 @@
-import { handleSignatureAction } from '../confirmation/signatureUtils';
-import { getKeyringByAddress } from '../address';
+import { handleSignatureAction } from '@confirmation/signatureUtils';
+import { getKeyringByAddress } from '@address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

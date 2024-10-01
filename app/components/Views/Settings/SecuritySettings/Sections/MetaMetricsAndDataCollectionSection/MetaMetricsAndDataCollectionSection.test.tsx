@@ -1,16 +1,16 @@
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { backgroundState } from '@util/test/initial-root-state';
 
 import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   MetaMetrics,
   MetaMetricsEvents,
-} from '../../../../../../core/Analytics';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../locales/i18n';
+} from '@core/Analytics';
+import Routes from '@constants/navigation/Routes';
+import { strings } from '@locales/i18n';
 
 const { InteractionManager, Alert, Linking } =
   jest.requireActual('react-native');
@@ -37,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../../../core/Analytics/MetaMetrics');
+jest.mock('@core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   trackEvent: jest.fn(),
@@ -49,12 +49,12 @@ const mockMetrics = {
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 jest.mock(
-  '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+  '@util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ userProp: 'User value' }),
 );
 
 jest.mock(
-  '../../../../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  '@util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   () => jest.fn().mockReturnValue({ deviceProp: 'Device value' }),
 );
 

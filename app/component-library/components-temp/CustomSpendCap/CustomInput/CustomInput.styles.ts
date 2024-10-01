@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { StyleSheet, TextStyle } from 'react-native';
 
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '@util/theme/models';
 /**
  * Style sheet for Custom Input component.
  *

@@ -1,4 +1,4 @@
-import ethAccounts from '../eth_accounts';
+import ethAccounts from '@eth_accounts';
 
 /**
  * Legacy RPC method handlers

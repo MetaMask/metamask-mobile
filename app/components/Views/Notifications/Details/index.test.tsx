@@ -5,8 +5,8 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 import NotificationsDetails from './index';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
+import { backgroundState } from '@util/test/initial-root-state';
+import MOCK_NOTIFICATIONS from '@components/UI/Notification/__mocks__/mock_notifications';
 
 const mockInitialState = {
   settings: {
@@ -17,7 +17,7 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../../actions/alert', () => ({
+jest.mock('@actions/alert', () => ({
   showAlert: jest.fn(),
 }));
 

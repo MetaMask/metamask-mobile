@@ -1,19 +1,19 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { useStyles } from '../../../../hooks/useStyles';
+import { useStyles } from '@hooks/useStyles';
 import stylesheet from './SnapPermissionCell.styles';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Card from '../../../../../component-library/components/Cards/Card';
+} from '@component-library/components/Icons/Icon';
+import Card from '@component-library/components/Cards/Card';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
-import { toDateFormat } from '../../../../../util/date';
+} from '@component-library/components/Texts/Text';
+import { strings } from '@locales/i18n';
+import { toDateFormat } from '@util/date';
 import {
   SNAP_PERMISSIONS_DATE,
   SNAP_PERMISSIONS_TITLE,

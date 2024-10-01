@@ -1,4 +1,4 @@
-import { makeMethodMiddlewareMaker } from '../utils';
+import { makeMethodMiddlewareMaker } from '@utils';
 import legacyHandlers from './util';
 
 /**

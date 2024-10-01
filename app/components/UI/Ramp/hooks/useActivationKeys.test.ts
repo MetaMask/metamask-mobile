@@ -1,11 +1,11 @@
 import { act, waitFor } from '@testing-library/react-native';
 import useActivationKeys from './useActivationKeys';
-import { SDK } from '../sdk';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import initialRootState from '../../../../util/test/initial-root-state';
-import { ActivationKey } from '../../../../reducers/fiatOrders/types';
+import { SDK } from '@sdk';
+import { renderHookWithProvider } from '@util/test/renderWithProvider';
+import initialRootState from '@util/test/initial-root-state';
+import { ActivationKey } from '@reducers/fiatOrders/types';
 
-jest.mock('../sdk', () => ({
+jest.mock('@sdk', () => ({
   SDK: {
     getActivationKeys: jest.fn().mockReturnValue([]),
     setActivationKeys: jest.fn(),

@@ -1,7 +1,7 @@
 import React from 'react';
-import BaseListItem from '../../../../Base/ListItem';
-import Row from '../../components/Row';
-import SkeletonText from '../../components/SkeletonText';
+import BaseListItem from '@Base/ListItem';
+import Row from '@components/Row';
+import SkeletonText from '@components/SkeletonText';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

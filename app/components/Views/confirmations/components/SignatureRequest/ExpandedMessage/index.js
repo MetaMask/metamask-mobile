@@ -8,13 +8,13 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { fontStyles, baseStyles } from '../../../../../../styles/common';
-import WebsiteIcon from '../../../../../UI/WebsiteIcon';
+import { fontStyles, baseStyles } from '@styles/common';
+import WebsiteIcon from '@UI/WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../../../../locales/i18n';
-import Device from '../../../../../../util/device';
-import { getHost } from '../../../../../../util/browser';
-import { ThemeContext, mockTheme } from '../../../../../../util/theme';
+import { strings } from '@locales/i18n';
+import Device from '@util/device';
+import { getHost } from '@util/browser';
+import { ThemeContext, mockTheme } from '@util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({

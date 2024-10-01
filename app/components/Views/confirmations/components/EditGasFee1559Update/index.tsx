@@ -7,38 +7,38 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import Text from '../../../../Base/Text';
-import StyledButton from '../../../../UI/StyledButton';
-import RangeInput from '../../../../Base/RangeInput';
+import Text from '@Base/Text';
+import StyledButton from '@UI/StyledButton';
+import RangeInput from '@Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '../../../../UI/Swaps/components/InfoModal';
+import InfoModal from '@UI/Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../../../locales/i18n';
-import Alert, { AlertType } from '../../../../Base/Alert';
-import HorizontalSelector from '../../../../Base/HorizontalSelector';
+import { strings } from '@locales/i18n';
+import Alert, { AlertType } from '@Base/Alert';
+import HorizontalSelector from '@Base/HorizontalSelector';
 import {
   getDecimalChainId,
   isMainnetByChainId,
-} from '../../../../../util/networks';
+} from '@util/networks';
 import BigNumber from 'bignumber.js';
-import FadeAnimationView from '../../../../UI/FadeAnimationView';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import FadeAnimationView from '@UI/FadeAnimationView';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
-import useModalHandler from '../../../../Base/hooks/useModalHandler';
-import AppConstants from '../../../../../core/AppConstants';
-import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import TimeEstimateInfoModal from '@UI/TimeEstimateInfoModal';
+import useModalHandler from '@Base/hooks/useModalHandler';
+import AppConstants from '@core/AppConstants';
+import { useGasTransaction } from '@core/GasPolling/GasPolling';
+import { useAppThemeFromContext, mockTheme } from '@util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors.js';
+import { EditGasViewSelectorsIDs } from '@e2e/selectors/EditGasView.selectors.js';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT as GAS_INCREMENT,
   GAS_LIMIT_MIN,
   GAS_PRICE_MIN as GAS_MIN,
-} from '../../../../../util/gasUtils';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+} from '@util/gasUtils';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const EditGasFee1559Update = ({
   selectedGasValue,

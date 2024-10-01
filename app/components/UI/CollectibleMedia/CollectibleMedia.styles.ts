@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import scaling from '../../../util/scaling';
-import Device from '../../../util/device';
-import { Theme } from '../../../util/theme/models';
+import scaling from '@util/scaling';
+import Device from '@util/device';
+import { Theme } from '@util/theme/models';
 
 import { MEDIA_WIDTH_MARGIN } from './Collectible.constants';
 

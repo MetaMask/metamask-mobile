@@ -4,8 +4,8 @@ import { View } from 'react-native';
 import { render } from '@testing-library/react-native';
 
 // External dependencies
-import { AVATARNETWORK_IMAGE_TESTID } from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
-import { AvatarSize } from '../../../../Avatars/Avatar';
+import { AVATARNETWORK_IMAGE_TESTID } from '@Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { AvatarSize } from '@Avatars/Avatar';
 
 // Internal dependencies
 import BadgeNetwork from './BadgeNetwork';

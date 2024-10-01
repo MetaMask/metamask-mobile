@@ -1,12 +1,12 @@
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import BatchRPCManager from '../BatchRPCManager';
-import { wait } from '../utils/wait.util';
+import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import BatchRPCManager from '@BatchRPCManager';
+import { wait } from '@utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 
-jest.mock('../BatchRPCManager');
-jest.mock('../../BackgroundBridge/BackgroundBridge');
-jest.mock('../utils/DevLogger');
-jest.mock('../utils/wait.util');
+jest.mock('@BatchRPCManager');
+jest.mock('@BackgroundBridge/BackgroundBridge');
+jest.mock('@utils/DevLogger');
+jest.mock('@utils/wait.util');
 
 describe('handleBatchRpcResponse', () => {
   let batchRPCManager = {} as unknown as BatchRPCManager;

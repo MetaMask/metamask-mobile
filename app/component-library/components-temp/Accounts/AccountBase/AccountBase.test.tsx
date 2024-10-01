@@ -5,7 +5,7 @@ import AccountBase from './AccountBase';
 import {
   TEST_ACCOUNT_ADDRESS,
   BADGE_PROPS,
-} from '../AccountBalance/AccountBalance.constants';
+} from '@AccountBalance/AccountBalance.constants';
 
 describe('AccountBase', () => {
   it('should render AccountBase', () => {

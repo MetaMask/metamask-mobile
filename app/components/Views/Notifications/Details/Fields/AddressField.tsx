@@ -5,21 +5,21 @@ import Avatar, {
   AvatarAccountType,
   AvatarSize,
   AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { RootState } from '../../../../../reducers';
-import { ModalFieldAddress } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
-import EthereumAddress from '../../../../UI/EthereumAddress';
+} from '@component-library/components/Texts/Text';
+import { RootState } from '@reducers';
+import { ModalFieldAddress } from '@util/notifications/notification-states/types/NotificationModalDetails';
+import EthereumAddress from '@UI/EthereumAddress';
 import useCopyClipboard, {
   CopyClipboardAlertMessage,
-} from '../hooks/useCopyClipboard';
-import useStyles from '../useStyles';
+} from '@hooks/useCopyClipboard';
+import useStyles from '@useStyles';
 
 type AddressFieldProps = ModalFieldAddress;
 

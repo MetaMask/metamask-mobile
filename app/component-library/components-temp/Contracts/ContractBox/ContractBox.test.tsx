@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import TEST_ADDRESS from '../../../../constants/address';
+import TEST_ADDRESS from '@constants/address';
 import { ContractBoxProps } from './ContractBox.types';
 import ContractBox from './ContractBox';
 import {

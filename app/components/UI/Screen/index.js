@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { SafeAreaView, View } from 'react-native';
-import { baseStyles } from '../../../styles/common';
+import { baseStyles } from '@styles/common';
 
 /**
  * Base view component providing consistent styling meant to wrap other views

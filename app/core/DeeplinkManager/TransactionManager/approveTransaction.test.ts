@@ -1,12 +1,12 @@
 /* eslint-disable import/no-namespace */
-import * as AddressUtilsModule from '../../../util/address';
-import * as NetworksUtilsModule from '../../../util/networks';
-import * as TransactionsUtilsModule from '../../../util/transactions';
-import Engine from '../../Engine';
-import NotificationManager from '../../NotificationManager';
+import * as AddressUtilsModule from '@util/address';
+import * as NetworksUtilsModule from '@util/networks';
+import * as TransactionsUtilsModule from '@util/transactions';
+import Engine from '@Engine';
+import NotificationManager from '@NotificationManager';
 import approveTransaction from './approveTransaction';
-import { addTransaction } from '../../../util/transaction-controller';
-import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { addTransaction } from '@util/transaction-controller';
+import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
@@ -16,10 +16,10 @@ const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
   'Account 1',
 );
 
-jest.mock('../../../util/networks');
-jest.mock('../../../util/transactions');
-jest.mock('../../../util/address');
-jest.mock('../../Engine', () => ({
+jest.mock('@util/networks');
+jest.mock('@util/transactions');
+jest.mock('@util/address');
+jest.mock('@Engine', () => ({
   context: {
     NetworkController: { setProviderType: jest.fn() },
     PreferencesController: {
@@ -34,11 +34,11 @@ jest.mock('../../Engine', () => ({
     },
   },
 }));
-jest.mock('../../NotificationManager');
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('@NotificationManager');
+jest.mock('@locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
-jest.mock('../../../util/transaction-controller', () => ({
+jest.mock('@util/transaction-controller', () => ({
   __esModule: true,
   addTransaction: jest.fn(),
 }));

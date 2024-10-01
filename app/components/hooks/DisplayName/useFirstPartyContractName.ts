@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
-import { selectChainId } from '../../../selectors/networkController';
-import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
+import { selectChainId } from '@selectors/networkController';
+import FIRST_PARTY_CONTRACT_NAMES from '@constants/first-party-contracts';
 
 export interface UseFirstPartyContractNameRequest {
   chainId?: Hex;

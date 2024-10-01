@@ -2,9 +2,9 @@ import {
   resetDappConnections,
   resetApprovedHosts,
   resetConnections,
-} from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
-import SDKConnect from '../SDKConnect';
+} from '@app/actions/sdk';
+import { store } from '@app/store';
+import SDKConnect from '@SDKConnect';
 
 async function removeAll(instance: SDKConnect): Promise<boolean> {
   const removeChannels = async (connections: Record<string, unknown>): Promise<boolean> => {

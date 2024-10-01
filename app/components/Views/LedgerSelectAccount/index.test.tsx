@@ -1,12 +1,12 @@
 import React from 'react';
 import LedgerSelectAccount from './index';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import renderWithProvider from '@util/test/renderWithProvider';
+import Engine from '@core/Engine';
+import useLedgerBluetooth from '@hooks/Ledger/useLedgerBluetooth';
 
 const mockedNavigate = jest.fn();
 
-jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
+jest.mock('@hooks/Ledger/useLedgerBluetooth', () => ({
   __esModule: true,
   default: jest.fn((_deviceId?: string) => ({
     isSendingLedgerCommands: false,
@@ -27,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   context: {
     KeyringController: {
       state: {

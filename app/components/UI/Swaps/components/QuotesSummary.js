@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image } from 'react-native';
-import Text from '../../../Base/Text';
-import { useTheme } from '../../../../util/theme';
+import Text from '@Base/Text';
+import { useTheme } from '@util/theme';
 
 // eslint-disable-next-line import/no-commonjs
-const piggyBank = require('../../../../images/piggybank.png');
+const piggyBank = require('@images/piggybank.png');
 
 const createStyles = (colors) =>
   StyleSheet.create({

@@ -1,8 +1,8 @@
 import qs from 'qs';
 import { Alert } from 'react-native';
 import UrlParser from 'url-parse';
-import { strings } from '../../../../locales/i18n';
-import { PROTOCOLS } from '../../../constants/deeplinks';
+import { strings } from '@locales/i18n';
+import { PROTOCOLS } from '@constants/deeplinks';
 import extractURLParams from './extractURLParams';
 
 jest.mock('qs', () => ({

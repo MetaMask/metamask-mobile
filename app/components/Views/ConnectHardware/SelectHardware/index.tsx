@@ -10,21 +10,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '@locales/i18n';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { fontStyles } from '../../../../styles/common';
+} from '@component-library/components/Texts/Text';
+import Routes from '@constants/navigation/Routes';
+import { MetaMetricsEvents } from '@core/Analytics';
+import { fontStyles } from '@styles/common';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
-} from '../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
+} from '@util/theme';
+import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { useMetrics } from '@components/hooks/useMetrics';
+import { HardwareDeviceTypes } from '@constants/keyringTypes';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

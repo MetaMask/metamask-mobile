@@ -5,8 +5,8 @@ import {
   getActivationKeys,
   removeActivationKey,
   updateActivationKey,
-} from '../../../../reducers/fiatOrders';
-import { SDK } from '../sdk';
+} from '@reducers/fiatOrders';
+import { SDK } from '@sdk';
 
 interface Options {
   provider?: boolean;

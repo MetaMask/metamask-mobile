@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from '@Avatars/Avatar/variants/AvatarAccount';
 
 // Internal dependencies.
 import { PickerAccountProps } from './PickerAccount.types';

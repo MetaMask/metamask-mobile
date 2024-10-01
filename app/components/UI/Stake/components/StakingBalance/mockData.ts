@@ -1,4 +1,4 @@
-import { TokenI } from '../../../../UI/Tokens/types';
+import { TokenI } from '@UI/Tokens/types';
 import {
   GetStakesApiResponse,
   GetVaultDataApiResponse,

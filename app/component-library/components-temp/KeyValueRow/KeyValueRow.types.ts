@@ -1,10 +1,10 @@
 import {
   IconProps,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
+} from '@component-library/components/Icons/Icon';
+import { ButtonIconSizes } from '@components/Buttons/ButtonIcon';
 import { ReactNode } from 'react';
-import { TextProps } from '../../components/Texts/Text/Text.types';
+import { TextProps } from '@components/Texts/Text/Text.types';
 import { ViewProps } from 'react-native';
 
 /**

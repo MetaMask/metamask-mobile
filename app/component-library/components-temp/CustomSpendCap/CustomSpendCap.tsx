@@ -2,16 +2,16 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { strings } from '../../../../locales/i18n';
-import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-import { TOKEN_APPROVAL_SPENDING_CAP } from '../../../constants/urls';
-import formatNumber from '../../../util/formatNumber';
-import { isNumber } from '../../../util/number';
-import Button, { ButtonVariants } from '../../components/Buttons/Button';
-import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
-import Text, { TextVariant } from '../../components/Texts/Text';
+import { strings } from '@locales/i18n';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import { TOKEN_APPROVAL_SPENDING_CAP } from '@constants/urls';
+import formatNumber from '@util/formatNumber';
+import { isNumber } from '@util/number';
+import Button, { ButtonVariants } from '@components/Buttons/Button';
+import Icon, { IconName, IconSize } from '@components/Icons/Icon';
+import Text, { TextVariant } from '@components/Texts/Text';
 // External dependencies.
-import { useStyles } from '../../hooks';
+import { useStyles } from '@hooks';
 import CustomInput from './CustomInput';
 // Internal dependencies.
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';

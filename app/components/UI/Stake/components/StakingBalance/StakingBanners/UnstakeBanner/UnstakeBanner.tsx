@@ -2,10 +2,10 @@ import React from 'react';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
-} from '../../../../../../../component-library/components/Banners/Banner';
-import Text from '../../../../../../../component-library/components/Texts/Text';
+} from '@component-library/components/Banners/Banner';
+import Text from '@component-library/components/Texts/Text';
 import { renderUnstakingTimeRemaining } from './utils';
-import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
+import { BannerProps } from '@component-library/components/Banners/Banner/Banner.types';
 
 export type UnstakingBannerProps = Pick<BannerProps, 'style'> & {
   timeRemaining: {

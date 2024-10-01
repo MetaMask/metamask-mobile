@@ -3,9 +3,9 @@ import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Animated from 'react-native-reanimated';
 import BaseNotification from './../BaseNotification';
-import Device from '../../../../util/device';
+import Device from '@util/device';
 import ElevatedView from 'react-native-elevated-view';
-import { colors as importedColors } from '../../../../styles/common';
+import { colors as importedColors } from '@styles/common';
 
 const styles = StyleSheet.create({
   modalTypeViewBrowser: {

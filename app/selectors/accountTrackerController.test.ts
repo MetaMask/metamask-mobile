@@ -1,15 +1,15 @@
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
-} from '../util/test/accountsControllerTestUtils';
-import { RootState } from '../reducers';
+} from '@util/test/accountsControllerTestUtils';
+import { RootState } from '@reducers';
 import { selectAccountBalanceByChainId } from './accountTrackerController';
-import { mockNetworkState } from '../util/test/network';
-import mockedEngine from '../core/__mocks__/MockedEngine';
+import { mockNetworkState } from '@util/test/network';
+import mockedEngine from '@core/__mocks__/MockedEngine';
 
 const MOCK_CHAIN_ID = '0x1';
 
-jest.mock('../core/Engine', () => ({
+jest.mock('@core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 

@@ -1,9 +1,9 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import engineReducer from '../core/redux/slices/engine';
+import engineReducer from '@core/redux/slices/engine';
 import featureFlagsReducer, {
   FeatureFlagsState,
-} from '../core/redux/slices/featureFlags';
+} from '@core/redux/slices/featureFlags';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -24,15 +24,15 @@ import networkOnboardReducer from './networkSelector';
 import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
-import { EngineState } from '../core/Engine';
+import { EngineState } from '@core/Engine';
 import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
-import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
-import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
-import originThrottlingReducer from '../core/redux/slices/originThrottling';
-import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import inpageProviderReducer from '@core/redux/slices/inpageProvider';
+import smartTransactionsReducer from '@core/redux/slices/smartTransactions';
+import transactionMetricsReducer from '@core/redux/slices/transactionMetrics';
+import originThrottlingReducer from '@core/redux/slices/originThrottling';
+import notificationsAccountsProvider from '@core/redux/slices/notifications';
 /**
  * Infer state from a reducer
  *

@@ -1,4 +1,4 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import { renderScreen } from '@util/test/renderWithProvider';
 import Root from './';
 
 jest.mock('redux-persist', () => {
@@ -19,7 +19,7 @@ jest.mock('redux-persist', () => {
   };
 });
 
-jest.mock('../../../util/test/configureStore', () => {
+jest.mock('@util/test/configureStore', () => {
   const configureMockStore = jest.requireActual('redux-mock-store').default;
   return () => configureMockStore([])();
 });

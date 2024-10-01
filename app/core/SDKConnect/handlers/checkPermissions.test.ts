@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import Engine from '../../Engine';
-import { Connection } from '../Connection';
+import Engine from '@Engine';
+import { Connection } from '@Connection';
 import checkPermissions from './checkPermissions';
 import { PermissionController } from '@metamask/permission-controller';
-import { getPermittedAccounts } from '../../../core/Permissions';
+import { getPermittedAccounts } from '@core/Permissions';
 import { KeyringController } from '@metamask/keyring-controller';
 
-jest.mock('../Connection', () => ({
-  RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,
+jest.mock('@Connection', () => ({
+  RPC_METHODS: jest.requireActual('@Connection').RPC_METHODS,
 }));
-jest.mock('../../Engine');
-jest.mock('../../../core/Permissions');
+jest.mock('@Engine');
+jest.mock('@core/Permissions');
 jest.mock('@metamask/preferences-controller');
 jest.mock('@metamask/approval-controller');
-jest.mock('../utils/DevLogger');
+jest.mock('@utils/DevLogger');
 
 describe('checkPermissions', () => {
   let connection = {

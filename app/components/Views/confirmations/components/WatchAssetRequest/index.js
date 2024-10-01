@@ -3,24 +3,24 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import URL from 'url-parse';
 import { useSelector } from 'react-redux';
-import { fontStyles } from '../../../../../styles/common';
-import { strings } from '../../../../../../locales/i18n';
-import ActionView from '../../../../UI/ActionView';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
-import TokenImage from '../../../../UI/TokenImage';
-import Device from '../../../../../util/device';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { fontStyles } from '@styles/common';
+import { strings } from '@locales/i18n';
+import ActionView from '@UI/ActionView';
+import { renderFromTokenMinimalUnit } from '@util/number';
+import TokenImage from '@UI/TokenImage';
+import Device from '@util/device';
+import { MetaMetricsEvents } from '@core/Analytics';
 
-import useTokenBalance from '../../../../hooks/useTokenBalance';
-import { useTheme } from '../../../../../util/theme';
-import NotificationManager from '../../../../../core/NotificationManager';
-import { selectChainId } from '../../../../../selectors/networkController';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
-import { getActiveTabUrl } from '../../../../../util/transactions';
+import useTokenBalance from '@hooks/useTokenBalance';
+import { useTheme } from '@util/theme';
+import NotificationManager from '@core/NotificationManager';
+import { selectChainId } from '@selectors/networkController';
+import ApproveTransactionHeader from '@ApproveTransactionHeader';
+import { getActiveTabUrl } from '@util/transactions';
 import { isEqual } from 'lodash';
-import { AssetWatcherSelectorsIDs } from '../../../../../../e2e/selectors/Modals/AssetWatcher.selectors';
-import { getDecimalChainId } from '../../../../../util/networks';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { AssetWatcherSelectorsIDs } from '@e2e/selectors/Modals/AssetWatcher.selectors';
+import { getDecimalChainId } from '@util/networks';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({

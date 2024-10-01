@@ -1,5 +1,5 @@
-import { ActionType } from '../../actions/security';
-import { SecuritySettingsState } from '../../actions/security/state';
+import { ActionType } from '@actions/security';
+import { SecuritySettingsState } from '@actions/security/state';
 import securityReducer from '.';
 
 describe('securityReducer', () => {

@@ -1,13 +1,13 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import Engine from '../../../core/Engine';
+import Engine from '@core/Engine';
 import { AppState } from 'react-native';
-import SDKConnect from '../SDKConnect';
-import DevLogger from '../utils/DevLogger';
+import SDKConnect from '@SDKConnect';
+import DevLogger from '@utils/DevLogger';
 import {
   wait,
   waitForCondition,
   waitForKeychainUnlocked,
-} from '../utils/wait.util';
+} from '@utils/wait.util';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {

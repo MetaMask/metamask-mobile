@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import StorageWrapper from '../../../store/storage-wrapper';
-import Logger from '../../../util/Logger';
-import { EXISTING_USER } from '../../../constants/storage';
-import { Authentication } from '../../../core';
-import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { resetVaultBackup } from '../../../core/BackupVault/backupVault';
-import { useMetrics } from '../useMetrics';
+import StorageWrapper from '@store/storage-wrapper';
+import Logger from '@util/Logger';
+import { EXISTING_USER } from '@constants/storage';
+import { Authentication } from '@core';
+import AUTHENTICATION_TYPE from '@constants/userProperties';
+import { resetVaultBackup } from '@core/BackupVault/backupVault';
+import { useMetrics } from '@useMetrics';
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
