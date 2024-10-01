@@ -7,7 +7,7 @@ import {
 } from '@util/networks';
 import { MetaMetricsEvents, MetaMetrics } from '@core/Analytics';
 import { selectNetworkConfigurations } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
 import { RestrictedMethods } from '@core/Permissions/constants';
 

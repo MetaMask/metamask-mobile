@@ -4,7 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { toDataUrl } from '@util/blockies';
-import { AvatarSize } from '@Avatar.types';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 // Defaults
 export const DEFAULT_AVATARBASE_SIZE = AvatarSize.Md;

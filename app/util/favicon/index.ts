@@ -1,7 +1,7 @@
 import Logger from '@util/Logger';
-import { DOMParser } from '@util/xmldom/xmldom';
-import { store } from '@store';
-import { storeFavicon } from '@util/actions/browser';
+import { DOMParser } from '@xmldom/xmldom';
+import { store } from '@store/index';
+import { storeFavicon } from '@actions/browser';
 import isUrl from 'is-url';
 import { isNumber } from 'lodash';
 import { ImageSourcePropType } from 'react-native';

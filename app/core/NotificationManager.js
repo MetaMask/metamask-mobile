@@ -17,7 +17,7 @@ import {
 import { safeToChecksumAddress } from '@util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {

@@ -1,5 +1,5 @@
 // External dependencies.
-import { IconSize } from '@Icons/Icon';
+import { IconSize } from '@component-library/components/Icons/Icon';
 import { TextVariant } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.

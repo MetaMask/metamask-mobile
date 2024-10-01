@@ -7,7 +7,7 @@ import AppConstants from '@core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '@locales/i18n';
 import { selectChainId } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import { getBlockaidMetricsParams } from '@util/blockaid';
 import Device from '@util/device';
 import { getDecimalChainId } from '@util/networks';

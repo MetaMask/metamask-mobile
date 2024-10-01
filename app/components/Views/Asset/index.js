@@ -51,7 +51,7 @@ import {
 import { selectSelectedInternalAccount } from '@selectors/accountsController';
 import { updateIncomingTransactions } from '@util/transaction-controller';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
-import { store } from '@store';
+import { store } from '@store/index';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '@selectors/transactionController';
 

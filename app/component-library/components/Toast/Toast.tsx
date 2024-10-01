@@ -25,9 +25,9 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
+import Avatar, { AvatarSize, AvatarVariant } from '@component-library/components/Avatars/Avatar';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
-import Button, { ButtonVariants } from '@Buttons/Button';
+import Button, { ButtonVariants } from '@component-library/components/Buttons/Button';
 
 // Internal dependencies.
 import {

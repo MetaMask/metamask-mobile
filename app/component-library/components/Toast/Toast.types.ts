@@ -4,7 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 // External Dependencies.
 import { AvatarAccountType } from '@Avatars/Avatar/variants/AvatarAccount';
 import { ButtonProps } from '@Buttons/Button/Button.types';
-import { IconName } from '@Icons/Icon';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 /**
  * Toast variants.

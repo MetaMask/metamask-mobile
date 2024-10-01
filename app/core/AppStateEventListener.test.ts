@@ -1,5 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { store } from '@store';
+import { store } from '@store/index';
 import Logger from '@util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { AppStateEventListener } from './AppStateEventListener';
@@ -45,10 +45,12 @@ describe('AppStateEventListener', () => {
     (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
     });
-    (AppState.addEventListener as jest.Mock).mockImplementation((_, listener) => {
-      mockAppStateListener = listener;
-      return { remove: jest.fn() };
-    });
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
     appStateManager = new AppStateEventListener();
     appStateManager.init(store);
   });
@@ -58,28 +60,39 @@ describe('AppStateEventListener', () => {
   });
 
   it('subscribes to AppState changes on instantiation', () => {
-    expect(AppState.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+    expect(AppState.addEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
   });
 
   it('throws error if store is initialized more than once', () => {
-    expect(() => appStateManager.init(store)).toThrow('store is already initialized');
-    expect(Logger.error).toHaveBeenCalledWith(new Error('store is already initialized'));
+    expect(() => appStateManager.init(store)).toThrow(
+      'store is already initialized',
+    );
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('store is already initialized'),
+    );
   });
 
   it('tracks event when app becomes active and conditions are met', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: true },
     });
-    (extractURLParams as jest.Mock).mockReturnValue({ params: { attributionId: 'test123' } });
+    (extractURLParams as jest.Mock).mockReturnValue({
+      params: { attributionId: 'test123' },
+    });
 
-    appStateManager.setCurrentDeeplink('metamask://connect?attributionId=test123');
+    appStateManager.setCurrentDeeplink(
+      'metamask://connect?attributionId=test123',
+    );
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
       { attributionId: 'test123' },
-      true
+      true,
     );
   });
 
@@ -94,7 +107,7 @@ describe('AppStateEventListener', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
       {},
-      true
+      true,
     );
   });
 
@@ -109,7 +122,7 @@ describe('AppStateEventListener', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
       { attributionId: undefined },
-      true
+      true,
     );
   });
 
@@ -123,14 +136,16 @@ describe('AppStateEventListener', () => {
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'AppStateManager: Error processing app state change'
+      'AppStateManager: Error processing app state change',
     );
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('cleans up the AppState listener on cleanup', () => {
     const mockRemove = jest.fn();
-    (AppState.addEventListener as jest.Mock).mockReturnValue({ remove: mockRemove });
+    (AppState.addEventListener as jest.Mock).mockReturnValue({
+      remove: mockRemove,
+    });
 
     appStateManager = new AppStateEventListener();
     appStateManager.init(store);
@@ -163,6 +178,8 @@ describe('AppStateEventListener', () => {
     jest.advanceTimersByTime(2000);
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
-    expect(Logger.error).toHaveBeenCalledWith(new Error('store is not initialized'));
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('store is not initialized'),
+    );
   });
 });

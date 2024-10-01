@@ -1,5 +1,5 @@
 import { updateDappConnection } from '@actions/sdk';
-import { store } from '@store';
+import { store } from '@store/index';
 import { ConnectionProps } from '@Connection';
 import SDKConnect from '@SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';

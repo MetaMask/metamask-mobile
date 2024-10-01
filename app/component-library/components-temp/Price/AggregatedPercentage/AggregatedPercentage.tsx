@@ -8,7 +8,7 @@ import { renderFiat } from '@util/number';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '@selectors/currencyRateController';
 import styleSheet from './AggregatedPercentage.styles';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 export interface AggregatedPercentageProps {
   ethFiat: number;

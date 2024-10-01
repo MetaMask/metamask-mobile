@@ -3,11 +3,11 @@ import { useDispatch } from 'react-redux';
 import { StyleSheet, Text, View } from 'react-native';
 import setOnboardingWizardStep from '@actions/wizard';
 import { strings } from '@locales/i18n';
-import Coachmark from '@Coachmark';
+import Coachmark from '@components/UI/OnboardingWizard/Coachmark';
 
 import Device from '@util/device';
 
-import onboardingStyles from '@styles';
+import onboardingStyles from '@components/UI/OnboardingWizard/styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,

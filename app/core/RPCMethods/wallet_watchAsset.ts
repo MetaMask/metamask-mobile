@@ -1,7 +1,7 @@
 import Engine from '@core/Engine';
 
 import { safeToChecksumAddress } from '@util/address';
-import { store } from '@store';
+import { store } from '@store/index';
 
 import { getPermittedAccounts } from '@core/Permissions';
 import { isSmartContractAddress } from '@util/transactions';

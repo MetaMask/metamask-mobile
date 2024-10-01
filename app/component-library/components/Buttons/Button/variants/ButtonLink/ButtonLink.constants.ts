@@ -2,11 +2,11 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { ButtonSize } from '@Button.types';
+import { ButtonSize } from '@component-library/components/Buttons/Button/Button.types';
 import {
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
   SAMPLE_BUTTONBASE_PROPS,
-} from '@foundation/ButtonBase/ButtonBase.constants';
+} from '@component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.constants';
 import { TextColor } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.

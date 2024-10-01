@@ -26,7 +26,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '@component-library/components/Icons/Icon';
-import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '@util/theme/models';
 import { WhatsNewModalSelectorsIDs } from '@e2e/selectors/Modals/WhatsNewModal.selectors';

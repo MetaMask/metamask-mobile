@@ -3,8 +3,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import { ButtonSize } from '@Button.types';
-import { IconName } from '@Icons/Icon';
+import { ButtonSize } from '@component-library/components/Buttons/Button/Button.types';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';

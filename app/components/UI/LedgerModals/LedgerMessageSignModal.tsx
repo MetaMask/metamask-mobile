@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
-import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import { createStyles } from './styles';
 import {
   createNavigationDetails,

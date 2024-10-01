@@ -5,8 +5,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
-import BadgeBase from '@foundation/BadgeBase';
+import { useStyles } from '@components/hooks/useStyles';
+import BadgeBase from '@component-library/components/Badges/Badge/foundation/BadgeBase';
 
 // Internal dependencies
 import { BadgeStatusProps } from './BadgeStatus.types';

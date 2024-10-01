@@ -7,7 +7,7 @@ import formatNumber from '@util/formatNumber';
 import { dotAndCommaDecimalFormatter } from '@util/number';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import {
   CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
   CUSTOM_SPEND_CAP_INPUT_TEST_ID,

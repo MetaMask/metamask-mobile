@@ -1,7 +1,7 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
 import { resetConnections } from '@actions/sdk';
-import { store } from '@store';
+import { store } from '@store/index';
 import Routes from '@constants/navigation/Routes';
 import { selectChainId } from '@selectors/networkController';
 import Device from '@util/device';

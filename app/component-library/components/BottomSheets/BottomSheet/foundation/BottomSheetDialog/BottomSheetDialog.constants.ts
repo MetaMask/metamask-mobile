@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { AnimationDuration } from '@constants/animation.constants';
+import { AnimationDuration } from '@component-library/constants/animation.constants';
 
 // Defaults
 /**

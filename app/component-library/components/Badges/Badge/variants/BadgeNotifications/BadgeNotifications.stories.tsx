@@ -4,7 +4,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies
-import { IconName } from '@Icons/Icon';
+import { IconName } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies
 import { default as BadgeBadgeNotificationssComponent } from './BadgeNotifications';

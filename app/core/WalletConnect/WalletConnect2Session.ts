@@ -21,7 +21,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import { addTransaction } from '@util/transaction-controller';
 import { getPermittedAccounts } from '@core/Permissions';
 import { hideWCLoadingState, showWCLoadingState } from './wc-utils';

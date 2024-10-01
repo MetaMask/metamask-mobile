@@ -1,6 +1,6 @@
 // External dependencies.
 import { TextProps, TextColor } from '@Text/Text.types';
-import { IconProps } from '@Icons/Icon';
+import { IconProps } from '@component-library/components/Icons/Icon';
 
 /**
  * TextWithPrefixIcon component props.

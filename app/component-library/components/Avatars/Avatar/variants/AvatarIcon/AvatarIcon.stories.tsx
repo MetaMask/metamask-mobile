@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 // External dependencies.
-import { AvatarSize } from '@Avatar.types';
-import { IconName, IconColor } from '@Icons/Icon';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';;
+import { IconName, IconColor } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import { default as AvatarIconComponent } from './AvatarIcon';

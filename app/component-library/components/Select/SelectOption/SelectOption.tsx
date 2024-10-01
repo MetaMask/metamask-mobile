@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import ListItemSelect from '@List/ListItemSelect/ListItemSelect';
 import SelectValue from '@SelectValue/SelectValue';
 

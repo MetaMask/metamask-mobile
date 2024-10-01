@@ -1,6 +1,6 @@
 import EngineService from './EngineService';
 import Engine from '@core/Engine';
-import { store } from '@store';
+import { store } from '@store/index';
 
 jest.mock('@util/test/network-store.js', () => jest.fn());
 jest.mock('@store', () => ({

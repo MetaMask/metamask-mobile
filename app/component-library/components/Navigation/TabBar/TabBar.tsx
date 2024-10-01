@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import TabBarItem from '@TabBarItem';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import Routes from '@constants/navigation/Routes';
 import { useTheme } from '@util/theme';
 import { MetaMetricsEvents } from '@core/Analytics';
@@ -20,7 +20,7 @@ import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import { colors as importedColors } from '@styles/common';
-import { AvatarSize } from '@Avatars/Avatar';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import OnboardingWizard from '@components/UI/OnboardingWizard';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {

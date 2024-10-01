@@ -2,9 +2,10 @@
 import React from 'react';
 
 // External dependencies.
-import BadgeBase from '@foundation/BadgeBase';
-import { useComponentSize, useStyles } from '@components/hooks';
-import Icon, { IconSize, IconColor } from '@Icons/Icon';
+import BadgeBase from '@component-library/components/Badges/Badge/foundation/BadgeBase';
+import { useComponentSize } from '@component-library/hooks';
+import { useStyles } from '@components/hooks/useStyles';
+import Icon, { IconSize, IconColor } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies
 import { BadgeNotificationsProps } from './BadgeNotifications.types';

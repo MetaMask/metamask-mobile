@@ -2,7 +2,7 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
 import { DEFAULT_BANNERALERT_SEVERITY } from './variants/BannerAlert/BannerAlert.constants';
-import { ButtonVariants } from '@Buttons/Button';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
 
 // Internal dependencies.
 import { BannerVariant, BannerProps } from './Banner.types';

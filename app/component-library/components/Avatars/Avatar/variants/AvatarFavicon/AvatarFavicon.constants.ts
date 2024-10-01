@@ -4,8 +4,8 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { IconName } from '@Icons/Icon';
-import { AvatarSize } from '@Avatar.types';
+import { IconName } from '@component-library/components/Icons/Icon';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';

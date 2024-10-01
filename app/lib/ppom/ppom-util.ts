@@ -7,7 +7,7 @@ import {
   SecurityAlertSource,
 } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '@core/Engine';
-import { store } from '@store';
+import { store } from '@store/index';
 import { isBlockaidFeatureEnabled } from '@util/blockaid';
 import Logger from '@util/Logger';
 import { updateSecurityAlertResponse } from '@util/transaction-controller';

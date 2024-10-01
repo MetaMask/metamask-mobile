@@ -6,10 +6,10 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import Text from '@component-library/components/Texts/Text';
-import Button from '@Buttons/Button';
-import ButtonIcon from '@Buttons/ButtonIcon';
+import Button from '@component-library/components/Buttons/Button';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon'
 
 // Internal dependencies.
 import styleSheet from './BannerBase.styles';

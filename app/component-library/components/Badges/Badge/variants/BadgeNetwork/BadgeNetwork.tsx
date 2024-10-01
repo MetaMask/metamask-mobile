@@ -4,9 +4,10 @@
 import React from 'react';
 
 // External dependencies.
-import { useComponentSize, useStyles } from '@components/hooks';
-import BadgeBase from '@foundation/BadgeBase';
-import Avatar, { AvatarVariant } from '@Avatars/Avatar';
+import { useComponentSize } from '@component-library/hooks';
+import { useStyles } from '@components/hooks/useStyles';
+import BadgeBase from '@component-library/components/Badges/Badge/foundation/BadgeBase';
+import Avatar, { AvatarVariant } from '@component-library/components/Avatars/Avatar';
 
 // Internal dependencies
 import { BadgeNetworkProps } from './BadgeNetwork.types';

@@ -5,7 +5,7 @@ import {
   resetConnections,
 } from '@actions/sdk';
 import { RootState } from '@reducers';
-import { store } from '@store';
+import { store } from '@store/index';
 import Logger from '@util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '@SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';

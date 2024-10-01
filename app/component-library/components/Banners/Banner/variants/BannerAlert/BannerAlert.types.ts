@@ -1,6 +1,6 @@
 // External dependencies.
 import { BannerBaseProps } from '@foundation/BannerBase/BannerBase.types';
-import { IconName } from '@Icons/Icon';
+import { IconName } from '@component-library/components/Icons/Icon';
 import { BannerVariant } from '@Banner.types';
 
 /**

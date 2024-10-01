@@ -5,7 +5,7 @@ import React from 'react';
 import { DimensionValue, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import styleSheet from './ListItem.styles';

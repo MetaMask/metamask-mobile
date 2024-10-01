@@ -3,7 +3,7 @@ import {
   resetApprovedHosts,
   resetConnections,
 } from '@actions/sdk';
-import { store } from '@store';
+import { store } from '@store/index';
 import SDKConnect from '@SDKConnect';
 
 async function removeAll(instance: SDKConnect): Promise<boolean> {

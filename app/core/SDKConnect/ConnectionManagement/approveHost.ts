@@ -1,5 +1,5 @@
 import { resetApprovedHosts, resetConnections } from '@actions/sdk';
-import { store } from '@store';
+import { store } from '@store/index';
 import AppConstants from '@core/AppConstants';
 import SDKConnect, { approveHostProps } from '@SDKConnect';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';

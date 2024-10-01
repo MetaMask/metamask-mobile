@@ -5,7 +5,7 @@ import React from 'react';
 import { Text as RNText } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import { TextProps } from './Text.types';

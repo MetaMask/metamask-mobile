@@ -17,7 +17,7 @@ import {
 import { strings } from '@locales/i18n';
 import { mmStorage } from '@util/settings';
 import { STORAGE_IDS } from '@util/settings/storage/constants';
-import { store } from '@store';
+import { store } from '@store/index';
 import Logger from '@util/Logger';
 import { withTimeout } from '@util/methods';
 

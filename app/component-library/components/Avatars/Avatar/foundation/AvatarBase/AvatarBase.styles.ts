@@ -3,7 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '@util/theme/models';
-import { BORDERWIDTH_BY_AVATARSIZE } from '@Avatar.constants';
+import { BORDERWIDTH_BY_AVATARSIZE } from '@component-library/components/Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.
 import { AvatarBaseStyleSheetVars } from './AvatarBase.types';

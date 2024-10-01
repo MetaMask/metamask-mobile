@@ -4,7 +4,7 @@ import React from 'react';
 
 // External dependencies.
 import { SAMPLE_SELECTVALUE_PROPS } from '@SelectValue/SelectValue.constants';
-import Icon, { IconName, IconColor, IconSize } from '@Icons/Icon';
+import Icon, { IconName, IconColor, IconSize } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import { SelectButtonBaseProps } from './SelectButtonBase.types';

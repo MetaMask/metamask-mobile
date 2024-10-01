@@ -2,11 +2,11 @@ import React, { useCallback, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useDispatch } from 'react-redux';
 
-import Coachmark from '@Coachmark';
+import Coachmark from '@components/UI/OnboardingWizard/Coachmark';
 import Device from '@util/device';
 import setOnboardingWizardStep from '@actions/wizard';
 import { strings } from '@locales/i18n';
-import onboardingStyles from '@styles';
+import onboardingStyles from '@components/UI/OnboardingWizard/styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,

@@ -6,7 +6,7 @@ import StorageWrapper from '@store/storage-wrapper';
 import { regex } from '@util/regex';
 import { AGREED, METRICS_OPT_IN } from '@constants/storage';
 import { isE2E } from '@util/test/utils';
-import { store } from '@store';
+import { store } from '@store/index';
 
 /**
  * This symbol matches all object properties when used in a mask

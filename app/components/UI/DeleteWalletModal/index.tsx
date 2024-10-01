@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
-import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import WarningExistingUserModal from '@WarningExistingUserModal';
 import { useDeleteWallet } from '@components/hooks/DeleteWallet';
 import { strings } from '@locales/i18n';

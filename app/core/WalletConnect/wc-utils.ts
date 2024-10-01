@@ -1,7 +1,7 @@
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
-import { store } from '@store';
+import { store } from '@store/index';
 import { wait } from '@core/SDKConnect/utils/wait.util';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '@constants/navigation/Routes';

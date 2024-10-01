@@ -1,6 +1,6 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 import { resetConnections } from '@actions/sdk';
-import { store } from '@store';
+import { store } from '@store/index';
 import Logger from '@util/Logger';
 import AppConstants from '@core/AppConstants';
 import { Connection } from '@Connection';

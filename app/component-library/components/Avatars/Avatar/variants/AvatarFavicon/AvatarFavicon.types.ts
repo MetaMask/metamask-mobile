@@ -2,7 +2,7 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { AvatarBaseProps } from '@component-library/components/AvatarBase';
+import { AvatarBaseProps } from '@component-library/components/Avatars/Avatar/foundation/AvatarBase';
 
 /**
  * AvatarFavicon component props.

@@ -2,8 +2,11 @@
 import { ColorValue, TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '@Icons/Icon';
-import { ButtonSize, ButtonWidthTypes } from '@Button.types';
+import { IconProps } from '@component-library/components/Icons/Icon';
+import {
+  ButtonSize,
+  ButtonWidthTypes,
+} from '@component-library/components/Buttons/Button/Button.types';
 import { TextVariant } from '@component-library/components/Texts/Text';
 
 /**

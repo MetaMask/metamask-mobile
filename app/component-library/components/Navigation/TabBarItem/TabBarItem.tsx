@@ -5,12 +5,12 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies
 import styleSheet from './TabBarItem.styles';
 import { TabBarItemProps } from './TabBarItem.types';
-import Avatar, { AvatarVariant } from '@Avatars/Avatar';
+import Avatar, { AvatarVariant } from '@component-library/components/Avatars/Avatar';
 
 const TabBarItem = ({
   style,

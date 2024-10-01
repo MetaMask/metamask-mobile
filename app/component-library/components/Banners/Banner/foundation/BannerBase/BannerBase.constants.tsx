@@ -5,10 +5,10 @@ import React from 'react';
 
 // External dependencies.
 import { TextVariant } from '@component-library/components/Texts/Text';
-import { ButtonVariants, ButtonSize } from '@Buttons/Button';
+import { ButtonVariants, ButtonSize } from '@component-library/components/Buttons/Button';
 import { ButtonProps } from '@Buttons/Button/Button.types';
-import { ButtonIconSizes } from '@Buttons/ButtonIcon';
-import Icon, { IconName, IconColor } from '@Icons/Icon';
+import { ButtonIconSizes } from '@component-library/components/Buttons/ButtonIcon'
+import Icon, { IconName, IconColor } from '@component-library/components/Icons/Icon';
 import { SAMPLE_ICON_PROPS } from '@Icons/Icon/Icon.constants';
 
 // Internal dependencies.

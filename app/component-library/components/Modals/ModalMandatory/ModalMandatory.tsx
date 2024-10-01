@@ -13,7 +13,7 @@ import { WebView } from '@metamask/react-native-webview';
 // External dependencies.
 import ButtonPrimary from '@Buttons/Button/variants/ButtonPrimary';
 import Text from '@component-library/components/Texts/Text';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import { useTheme } from '@util/theme';
 import ReusableModal, {
   ReusableModalRef,

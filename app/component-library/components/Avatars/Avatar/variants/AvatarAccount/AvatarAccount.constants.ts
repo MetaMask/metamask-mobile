@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { AvatarSize } from '@Avatar.types';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { AvatarAccountType, AvatarAccountProps } from './AvatarAccount.types';

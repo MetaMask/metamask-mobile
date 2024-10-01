@@ -2,7 +2,7 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies
-import { AvatarSize } from '@Avatar.types';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 /**
  * AvatarBase component props.

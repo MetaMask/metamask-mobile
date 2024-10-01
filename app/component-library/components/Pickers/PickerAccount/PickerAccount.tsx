@@ -5,10 +5,10 @@ import React, { forwardRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
+import Avatar, { AvatarSize, AvatarVariant } from '@component-library/components/Avatars/Avatar';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { formatAddress } from '@util/address';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import { strings } from '@locales/i18n';
 
 // Internal dependencies.

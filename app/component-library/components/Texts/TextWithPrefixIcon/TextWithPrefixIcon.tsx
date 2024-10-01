@@ -5,9 +5,9 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
-import Icon from '@Icons/Icon';
-import Text from '@Text/Text';
+import { useStyles } from '@components/hooks/useStyles';
+import Icon from '@component-library/components/Icons/Icon';
+import Text from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { TextWithPrefixIconProps } from './TextWithPrefixIcon.types';

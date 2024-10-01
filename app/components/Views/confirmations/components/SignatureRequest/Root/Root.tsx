@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import setSignatureRequestSecurityAlertResponse from '@actions/signatureRequest';
-import { store } from '@store';
+import { store } from '@store/index';
 import { useTheme } from '@util/theme';
 import useConfirmationRedesignEnabled from '@components/hooks/useConfirmationRedesignEnabled';
 import PersonalSign from '@PersonalSign';

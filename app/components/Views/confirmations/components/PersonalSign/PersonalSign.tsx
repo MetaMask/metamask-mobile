@@ -24,7 +24,7 @@ import { SigningModalSelectorsIDs } from '@e2e/selectors/Modals/SigningModal.sel
 import { useMetrics } from '@components/hooks/useMetrics';
 import AppConstants from '@core/AppConstants';
 import { selectChainId } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import Logger from '@util/Logger';
 import { getBlockaidMetricsParams } from '@util/blockaid';
 import createExternalSignModelNav from '@util/hardwareWallet/signatureUtils';

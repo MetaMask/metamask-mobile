@@ -4,7 +4,7 @@
 import { ImageSourcePropType, Platform } from 'react-native';
 
 // External dependencies.
-import { AvatarSize } from '@Avatar.types';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';
 import { BrowserViewSelectorsIDs } from '@e2e/selectors/Browser/BrowserView.selectors';
 import generateTestId from '@wdio/utils/generateTestId';
 

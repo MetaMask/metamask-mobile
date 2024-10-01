@@ -3,7 +3,7 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { AvatarSize } from '@Avatar.types';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';

@@ -25,7 +25,7 @@ import { msBetweenDates, msToHours } from '@util/date';
 import { addTransaction } from '@util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
-import { store } from '@store';
+import { store } from '@store/index';
 import { selectChainId } from '@selectors/networkController';
 import ppomUtil from '@lib/ppom/ppom-util';
 

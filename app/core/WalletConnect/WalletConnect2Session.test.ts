@@ -5,7 +5,7 @@ import WalletConnect2Session from './WalletConnect2Session';
 import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { SessionTypes } from '@walletconnect/types';
-import { store } from '@store';
+import { store } from '@store/index';
 import Engine from '@core/Engine';
 
 jest.mock('@core/AppConstants', () => ({

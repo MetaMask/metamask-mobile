@@ -24,7 +24,7 @@ import {
 import ImportedEngine from '@core/Engine';
 import { strings } from '@locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '@util/address';
-import { store } from '@store';
+import { store } from '@store/index';
 import { removeBookmark } from '@actions/bookmarks';
 import setOnboardingWizardStep from '@actions/wizard';
 import { v1 as random } from 'uuid';

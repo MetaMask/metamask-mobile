@@ -6,9 +6,9 @@
 import React from 'react';
 
 // External dependencies.
-import Button, { ButtonVariants } from '@Buttons/Button';
-import ButtonIcon from '@Buttons/ButtonIcon';
-import { IconName, IconColor } from '@Icons/Icon';
+import Button, { ButtonVariants } from '@component-library/components/Buttons/Button';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon'
+import { IconName, IconColor } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import { default as HeaderBaseComponent } from './HeaderBase';

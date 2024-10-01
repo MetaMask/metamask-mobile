@@ -1,7 +1,7 @@
 import { disconnectAll } from '@actions/sdk';
 import SDKConnect from '@SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
-import { store } from '@store';
+import { store } from '@store/index';
 
 function pause(instance: SDKConnect) {
   if (instance.state.paused) return;

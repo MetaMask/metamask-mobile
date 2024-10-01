@@ -5,10 +5,10 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
-import Button, { ButtonVariants } from '@Buttons/Button';
+import Avatar, { AvatarSize, AvatarVariant } from '@component-library/components/Avatars/Avatar';
+import Button, { ButtonVariants } from '@component-library/components/Buttons/Button';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import styleSheet from './TagUrl.styles';

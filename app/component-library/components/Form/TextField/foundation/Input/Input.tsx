@@ -5,7 +5,7 @@ import React, { useCallback, useState } from 'react';
 import { TextInput } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import { DEFAULT_TEXT_VARIANT } from '@Texts/Text/Text.constants';
 
 // Internal dependencies.

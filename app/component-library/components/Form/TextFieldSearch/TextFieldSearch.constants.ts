@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { IconName, IconSize } from '@Icons/Icon';
-import { ButtonIconSizes } from '@Buttons/ButtonIcon';
+import { IconName, IconSize } from '@component-library/components/Icons/Icon';
+import { ButtonIconSizes } from '@component-library/components/Buttons/ButtonIcon';
 import { DEFAULT_TEXTFIELD_SIZE } from '@TextField/TextField.constants';
 
 // Internal dependencies.

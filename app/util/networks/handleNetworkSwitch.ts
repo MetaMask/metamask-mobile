@@ -7,7 +7,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 
 /**
  * Switch to the given chain ID.

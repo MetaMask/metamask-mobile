@@ -3,7 +3,7 @@ import React from 'react';
 
 // External dependencies.
 import { TextVariant, TextColor } from '@components/Base/Text';
-import { IconName, IconSize, IconColor } from '@Icons/Icon';
+import { IconName, IconSize, IconColor } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import { default as TextWithPrefixIconComponent } from './TextWithPrefixIcon';

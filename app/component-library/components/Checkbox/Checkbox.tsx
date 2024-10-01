@@ -5,9 +5,9 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Icon from '@Icons/Icon';
-import { useStyles } from '@components/hooks';
-import Text from '@Texts/Text/Text';
+import Icon from '@component-library/components/Icons/Icon';
+import { useStyles } from '@components/hooks/useStyles';
+import Text from '@component-library/components/Texts/Text/Text'
 
 // Internal dependencies.
 import { CheckboxProps } from './Checkbox.types';

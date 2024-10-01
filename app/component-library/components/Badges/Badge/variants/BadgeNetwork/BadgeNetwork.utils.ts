@@ -1,4 +1,4 @@
-import { AvatarSize } from '@Avatars/Avatar';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 
 const getScaledStyles = (
   size: number,

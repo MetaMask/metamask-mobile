@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import checkSafeNetwork from './networkChecker.util';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;

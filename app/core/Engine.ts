@@ -157,7 +157,7 @@ import {
   getDecimalChainId,
 } from '@util/networks';
 import AppConstants from './AppConstants';
-import { store } from '@store';
+import { store } from '@store/index';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,

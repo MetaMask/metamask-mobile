@@ -10,7 +10,7 @@ import Text, {
 } from '@component-library/components/Texts/Text';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
-import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import WarningExistingUserModal from '@WarningExistingUserModal';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';

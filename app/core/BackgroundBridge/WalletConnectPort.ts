@@ -1,7 +1,7 @@
 import Engine from '@core/Engine';
 import AppConstants from '@core/AppConstants';
 import { selectChainId } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 
 // eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const EventEmitter = require('events').EventEmitter;

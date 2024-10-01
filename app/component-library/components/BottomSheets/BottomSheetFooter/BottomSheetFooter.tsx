@@ -5,8 +5,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
-import Button from '@Buttons/Button';
+import { useStyles } from '@components/hooks/useStyles';
+import Button from '@component-library/components/Buttons/Button';
 
 // Internal dependencies.
 import styleSheet from './BottomSheetFooter.styles';

@@ -6,10 +6,10 @@ import { View } from 'react-native';
 
 // External dependencies.
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
-import Button, { ButtonVariants } from '@Buttons/Button';
-import ButtonIcon from '@Buttons/ButtonIcon';
-import { IconName, IconColor } from '@Icons/Icon';
-import { useStyles } from '@components/hooks';
+import Button, { ButtonVariants } from '@component-library/components/Buttons/Button';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon'
+import { IconName, IconColor } from '@component-library/components/Icons/Icon';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import styleSheet from './SheetHeader.styles';

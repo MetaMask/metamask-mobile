@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { StyleSheet, Text, View } from 'react-native';
-import Coachmark from '@Coachmark';
+import Coachmark from '@components/UI/OnboardingWizard/Coachmark';
 import setOnboardingWizardStep from '@actions/wizard';
 import { strings } from '@locales/i18n';
-import onboardingStyles from '@styles';
+import onboardingStyles from '@components/UI/OnboardingWizard/styles';
 import Routes from '@constants/navigation/Routes';
 
 import Device from '@util/device';

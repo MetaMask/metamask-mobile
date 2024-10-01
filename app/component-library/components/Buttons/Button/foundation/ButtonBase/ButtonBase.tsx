@@ -6,8 +6,8 @@ import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import Text from '@component-library/components/Texts/Text';
-import Icon from '@Icons/Icon';
-import { useStyles } from '@components/hooks';
+import Icon from '@component-library/components/Icons/Icon';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';

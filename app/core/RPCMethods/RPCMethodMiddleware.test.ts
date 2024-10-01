@@ -9,7 +9,7 @@ import {
 import type { TransactionParams } from '@metamask/transaction-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '@core/Engine';
-import { store } from '@store';
+import { store } from '@store/index';
 import { getPermittedAccounts } from '@core/Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {

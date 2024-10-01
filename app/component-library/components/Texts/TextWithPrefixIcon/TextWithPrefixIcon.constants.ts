@@ -1,7 +1,11 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
 import { TextColor, TextVariant } from '@Text/Text.types';
-import { IconName, IconSize, IconColor } from '@Icons/Icon';
+import {
+  IconName,
+  IconSize,
+  IconColor,
+} from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import { TextWithPrefixIconProps } from './TextWithPrefixIcon.types';

@@ -10,7 +10,7 @@ import Avatar, {
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { formatAddress } from '@util/address';
 import Icon, { IconName, IconSize } from '@components/Icons/Icon';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import Button, { ButtonVariants } from '@components/Buttons/Button';
 import Identicon from '@components/UI/Identicon';
 

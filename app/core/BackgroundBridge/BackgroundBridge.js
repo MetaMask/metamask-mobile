@@ -20,7 +20,7 @@ import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
-import { store } from '@store';
+import { store } from '@store/index';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import snapMethodMiddlewareBuilder from '@core/Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';

@@ -13,7 +13,7 @@ import { getSdkError } from '@walletconnect/utils';
 
 import { updateWC2Metadata } from '@actions/sdk';
 import { selectChainId } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import StorageWrapper from '@store/storage-wrapper';
 import Logger from '@util/Logger';
 import AppConstants from '@core/AppConstants';

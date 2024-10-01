@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import styleSheet from './Overlay.styles';

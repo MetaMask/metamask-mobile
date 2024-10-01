@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { ButtonVariants } from '@Buttons/Button';
+import { ButtonVariants } from '@component-library/components/Buttons/Button';
 
 // Internal dependencies.
 import {

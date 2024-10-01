@@ -4,9 +4,13 @@ import {
   TextVariant,
   TextColor,
 } from '@component-library/components/Texts/Text';
-import { IconName, IconColor, IconSize } from '@Icons/Icon';
+import {
+  IconName,
+  IconColor,
+  IconSize,
+} from '@component-library/components/Icons/Icon';
 import { VerticalAlignment } from '@List/ListItem';
-import { AvatarSize } from '@Avatars/Avatar';
+import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import { SAMPLE_AVATAR_PROPS } from '@Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.

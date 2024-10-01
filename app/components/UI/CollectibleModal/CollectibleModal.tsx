@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { newAssetTransaction } from '@actions/transaction';
 import CollectibleMedia from '@components/UI/CollectibleMedia';
 import { baseStyles } from '@styles/common';
-import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import Routes from '@constants/navigation/Routes';
 import CollectibleOverview from '@components/UI/CollectibleOverview';
 import { collectiblesSelector } from '@reducers/collectibles';

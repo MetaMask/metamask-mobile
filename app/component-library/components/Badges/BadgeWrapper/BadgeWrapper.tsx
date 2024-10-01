@@ -4,7 +4,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useComponentSize, useStyles } from '@components/hooks';
+import { useComponentSize } from '@component-library/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies
 import { BadgeWrapperProps } from './BadgeWrapper.types';

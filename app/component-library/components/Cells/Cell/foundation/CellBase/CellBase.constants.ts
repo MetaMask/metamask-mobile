@@ -1,5 +1,9 @@
 // External dependencies.
-import { AvatarSize, AvatarVariant, AvatarAccountType } from '@Avatars/Avatar';
+import {
+  AvatarSize,
+  AvatarVariant,
+  AvatarAccountType,
+} from '@component-library/components/Avatars/Avatar';
 import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
 import { TextVariant } from '@component-library/components/Texts/Text';
 

@@ -1,5 +1,5 @@
 // Internal dependencies.
-import { ButtonBaseProps } from '@foundation/ButtonBase';
+import { ButtonBaseProps } from '@component-library/components/Buttons/Button/foundation/ButtonBase';
 
 /**
  * ButtonPrimary component props.

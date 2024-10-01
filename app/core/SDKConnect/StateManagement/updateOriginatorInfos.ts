@@ -1,6 +1,6 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { resetConnections } from '@actions/sdk';
-import { store } from '@store';
+import { store } from '@store/index';
 import SDKConnect from '@SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 

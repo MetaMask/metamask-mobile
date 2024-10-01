@@ -2,7 +2,11 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { IconSize, IconName, IconColor } from '@Icons/Icon';
+import {
+  IconSize,
+  IconName,
+  IconColor,
+} from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import {

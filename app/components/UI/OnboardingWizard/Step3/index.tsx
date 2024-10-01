@@ -2,10 +2,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { StyleSheet, Text, View } from 'react-native';
-import Coachmark from '@Coachmark';
+import Coachmark from '@components/UI/OnboardingWizard/Coachmark';
 import setOnboardingWizardStep from '@actions/wizard';
 import { strings } from '@locales/i18n';
-import onboardingStyles from '@styles';
+import onboardingStyles from '@components/UI/OnboardingWizard/styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
@@ -13,7 +13,7 @@ import {
 import { useTheme } from '@util/theme';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
-import useHandleLayout from '@useHandleLayout';
+import useHandleLayout from '@components/UI/OnboardingWizard/useHandleLayout';
 
 const styles = StyleSheet.create({
   main: {

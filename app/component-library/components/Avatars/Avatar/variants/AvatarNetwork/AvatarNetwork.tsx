@@ -5,10 +5,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import AvatarBase from '@component-library/components/AvatarBase';
+import AvatarBase from '@component-library/components/Avatars/Avatar/foundation/AvatarBase';
 import Text from '@component-library/components/Texts/Text';
-import { useStyles } from '@components/hooks';
-import { TEXTVARIANT_BY_AVATARSIZE } from '@Avatar.constants';
+import { useStyles } from '@components/hooks/useStyles';
+import { TEXTVARIANT_BY_AVATARSIZE } from '@component-library/components/Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';

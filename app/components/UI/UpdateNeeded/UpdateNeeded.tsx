@@ -8,7 +8,7 @@ import Text, {
 import { createNavigationDetails } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';
 import { useTheme } from '@util/theme';
-import ReusableModal, { ReusableModalRef } from '@ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import Logger from '@util/Logger';
 import Button, {
   ButtonSize,

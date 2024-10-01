@@ -24,7 +24,7 @@ import { CONTACT_ALREADY_SAVED, SYMBOL_ERROR } from '@constants/error';
 import { PROTOCOLS } from '@constants/deeplinks';
 import TransactionTypes from '@core/TransactionTypes';
 import { selectChainId } from '@selectors/networkController';
-import { store } from '@store';
+import { store } from '@store/index';
 import { regex } from '@util/regex';
 import Logger from '@util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';

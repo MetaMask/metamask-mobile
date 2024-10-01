@@ -5,7 +5,7 @@ import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import Input from './foundation/Input';
 
 // Internal dependencies.

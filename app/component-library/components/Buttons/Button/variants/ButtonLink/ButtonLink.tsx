@@ -5,9 +5,9 @@ import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import Text from '@component-library/components/Texts/Text';
-import { useStyles } from '@components/hooks';
-import Button from '@foundation/ButtonBase';
-import { ButtonSize } from '@Button.types';
+import { useStyles } from '@components/hooks/useStyles';
+import Button from '@component-library/components/Buttons/Button/foundation/ButtonBase';
+import { ButtonSize } from '@component-library/components/Buttons/Button/Button.types';
 
 // Internal dependencies.
 import { ButtonLinkProps } from './ButtonLink.types';

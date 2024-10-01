@@ -5,10 +5,10 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
-import Icon, { IconName, IconSize } from '@Icons/Icon';
+import Avatar, { AvatarSize, AvatarVariant } from '@component-library/components/Avatars/Avatar';
+import Icon, { IconName, IconSize } from '@component-library/components/Icons/Icon';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import { PickerNetworkProps } from './PickerNetwork.types';

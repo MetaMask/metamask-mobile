@@ -11,7 +11,7 @@ import Button, { ButtonVariants } from '@components/Buttons/Button';
 import Icon, { IconName, IconSize } from '@components/Icons/Icon';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import CustomInput from './CustomInput';
 // Internal dependencies.
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';

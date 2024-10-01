@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import Avatar from '@Avatar';
 import Text from '@component-library/components/Texts/Text';
 

@@ -3,7 +3,7 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '@util/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
-import { store } from '@store';
+import { store } from '@store/index';
 import { selectChainId } from '@selectors/networkController';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import PPOMUtils from '@util/lib/ppom/ppom-util';

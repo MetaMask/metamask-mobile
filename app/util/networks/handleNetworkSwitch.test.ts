@@ -1,6 +1,6 @@
 import Engine from '@core/Engine';
 import { SEPOLIA } from '@constants/network';
-import { store } from '@store';
+import { store } from '@store/index';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
 const mockEngine = Engine;

@@ -28,7 +28,7 @@ jest.mock('@store', () => {
 });
 
 // Import the store module after the mock is set up
-import { store } from '@store';
+import { store } from '@store/index';
 
 // Make sure to clear all mocks after each test
 afterEach(() => {

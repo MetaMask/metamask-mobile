@@ -1,4 +1,4 @@
-import { store } from '@store';
+import { store } from '@store/index';
 import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import { processAttribution } from './processAttribution';
 

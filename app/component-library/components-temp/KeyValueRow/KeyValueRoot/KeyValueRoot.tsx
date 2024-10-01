@@ -1,4 +1,4 @@
-import { useStyles } from '@components/hooks';
+import { useStyles } from '@components/hooks/useStyles';
 import React from 'react';
 import { View } from 'react-native';
 import { KeyValueRowRootProps } from '@KeyValueRow.types';

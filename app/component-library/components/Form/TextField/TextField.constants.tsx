@@ -5,7 +5,7 @@ import React from 'react';
 // External dependencies.
 import { TextVariant } from '@component-library/components/Texts/Text';
 import { SAMPLE_ICON_PROPS } from '@Icons/Icon/Icon.constants';
-import Icon from '@Icons/Icon';
+import Icon from '@component-library/components/Icons/Icon';
 import HelpText from '@HelpText';
 
 // Internal dependencies.

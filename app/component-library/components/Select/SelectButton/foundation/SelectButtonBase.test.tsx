@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import Icon, { IconName, IconColor, IconSize } from '@Icons/Icon';
+import Icon, { IconName, IconColor, IconSize } from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.
 import SelectButtonBase from './SelectButtonBase';

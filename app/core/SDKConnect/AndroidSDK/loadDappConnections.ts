@@ -1,5 +1,5 @@
 import { RootState } from '@reducers';
-import { store } from '@store';
+import { store } from '@store/index';
 import { ConnectionProps } from '@Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 

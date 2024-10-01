@@ -4,8 +4,8 @@
 import React, { useCallback, useState } from 'react';
 
 // External dependencies.
-import ButtonIcon from '@Buttons/ButtonIcon';
-import Icon from '@Icons/Icon';
+import ButtonIcon from '@component-library/components/Buttons/ButtonIcon'
+import Icon from '@component-library/components/Icons/Icon';
 import TextField from '@TextField/TextField';
 
 // Internal dependencies.

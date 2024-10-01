@@ -3,7 +3,7 @@ import React from 'react';
 
 // External dependencies.
 import ListItemColumn, { WidthType } from '@List/ListItemColumn';
-import Icon, { IconName } from '@Icons/Icon';
+import Icon, { IconName } from '@component-library/components/Icons/Icon';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
