@@ -16,7 +16,7 @@ interface GenericButtonProps {
    * it can be a text node, an image, or an icon
    * or an Array with a combination of them
    */
-  children: React.ReactNode;
+  children?: React.ReactNode;
   /**
    * Styles to be applied to the GenericButton
    */
