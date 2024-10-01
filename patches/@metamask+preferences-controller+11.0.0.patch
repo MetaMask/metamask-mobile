@@ -130,7 +130,7 @@ index 30e985c..860cc41 100644
     * A setter for the user preferences to enable/disable rpc methods.
     *
 diff --git a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
-index 7e3ba15..6fe9c9e 100644
+index 7e3ba15..a3d1bf3 100644
 --- a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 @@ -69,9 +69,10 @@ export type PreferencesState = {
@@ -146,7 +146,7 @@ index 7e3ba15..6fe9c9e 100644
      /**
       * Controls whether "security alerts" are enabled
       */
-@@ -98,6 +99,14 @@ export type PreferencesState = {
+@@ -98,6 +99,22 @@ export type PreferencesState = {
       * Controls whether token detection is enabled
       */
      useTokenDetection: boolean;
@@ -158,10 +158,18 @@ index 7e3ba15..6fe9c9e 100644
 +     * Controls whether transaction simulations are opted into
 +     */
 +    useTransactionSimulations: boolean;
++    /**
++     * Controls whether transaction simulations are opted into
++     */
++    useTransactionSimulations: boolean;
++    /**
++     * Controls which order tokens are sorted in
++     */
++    tokenSortConfig: Record<string, string>;
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
-@@ -121,7 +130,7 @@ export declare function getDefaultPreferencesState(): {
+@@ -121,7 +138,7 @@ export declare function getDefaultPreferencesState(): {
      isIpfsGatewayEnabled: boolean;
      isMultiAccountBalancesEnabled: boolean;
      lostIdentities: {};
@@ -170,7 +178,7 @@ index 7e3ba15..6fe9c9e 100644
      securityAlertsEnabled: boolean;
      selectedAddress: string;
      showIncomingTransactions: {
-@@ -149,6 +158,8 @@ export declare function getDefaultPreferencesState(): {
+@@ -149,6 +166,8 @@ export declare function getDefaultPreferencesState(): {
      showTestNetworks: boolean;
      useNftDetection: boolean;
      useTokenDetection: boolean;
@@ -179,7 +187,7 @@ index 7e3ba15..6fe9c9e 100644
  };
  /**
   * Controller that stores shared settings and exposes convenience methods
-@@ -217,11 +228,16 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -217,11 +236,16 @@ export declare class PreferencesController extends BaseController<typeof name, P
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -199,7 +207,7 @@ index 7e3ba15..6fe9c9e 100644
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -260,6 +276,18 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -260,6 +284,18 @@ export declare class PreferencesController extends BaseController<typeof name, P
       * @param isIncomingTransactionNetworkEnable - true to enable incoming transactions
       */
      setEnableNetworkIncomingTransactions(chainId: EtherscanSupportedHexChainId, isIncomingTransactionNetworkEnable: boolean): void;
