@@ -33,9 +33,7 @@ interface StakeButtonProps {
 export const StakeButton = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
   // TODO: Replace "any" with type
