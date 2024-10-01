@@ -5,13 +5,7 @@ import React from 'react';
 import OnboardingSuccess from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
-
-// Define ProviderConfig type
-interface ProviderConfig {
-  type: string;
-  chainId: string;
-}
+import { selectProviderConfig, ProviderConfig } from '../../../selectors/networkController';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -36,11 +30,14 @@ jest.mock('react-redux', () => ({
 
 const mockProviderConfig: ProviderConfig = {
   type: 'mainnet',
-  chainId: '1',
+  chainId: '0x1',
+  ticker: '',
+  rpcUrl: '',
+  nickname: undefined
 };
 
 describe('OnboardingSuccess', () => {
-  it('should render correctly and handle onDone', () => {
+  it('should render correctly', () => {
     (useSelector as jest.Mock).mockImplementation((selector: typeof selectProviderConfig) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
