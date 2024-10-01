@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { useTheme } from '../../../util/theme';
-import { Theme } from '../../../util/theme/models';
+import { Theme, ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,7 +14,7 @@ interface FoxProps {
   style?: ViewStyle;
   customStyle?: string;
   customContent?: string;
-  forwardedRef?: React.ForwardedRef<unknown>;
+  forwardedRef?: React.ForwardedRef<WebView>;
 }
 
 const createStyles = (colors: ThemeColors) =>
@@ -1558,7 +1558,7 @@ Fox.propTypes = {
   forwardedRef: PropTypes.any,
 };
 
-const FoxWithRef = forwardRef((props, ref) => (
+const FoxWithRef = forwardRef<WebView<{}>, Omit<FoxProps, 'forwardedRef'>>((props, ref) => (
   <Fox {...props} forwardedRef={ref} />
 ));
 FoxWithRef.displayName = 'FoxWithRef';
