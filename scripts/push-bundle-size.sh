@@ -40,9 +40,9 @@ if ! git clone "$repo_url" "$temp_dir"; then
 fi
 
 # Get commit ID and bundle size
-commit_id=$(git rev-parse HEAD)
-bundle_size=$(stat -f%z "ios/main.jsbundle" 2>/dev/null || stat -c%s "ios/main.jsbundle")
-timestamp=$(date +%s%3N)
+commit_id="$(git rev-parse HEAD)"
+bundle_size="$(stat -f%z 'ios/main.jsbundle' 2>/dev/null || stat -c%s 'ios/main.jsbundle')"
+timestamp="$(date +%s%3N)"
 output_file="$temp_dir/stats/bundle_size_data.js"
 
 ./scripts/update_bundle_size.py "$output_file" "$commit_id" "$bundle_size" "$timestamp"
