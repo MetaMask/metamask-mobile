@@ -117,6 +117,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     tabBar: {
       borderColor: colors.background.default,
+      marginBottom: 8,
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
