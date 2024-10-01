@@ -198,7 +198,7 @@ jobs:
         run: ./scripts/push-bundle-size.sh
         env:
           GITHUB_ACTOR: metamaskbot
-          MOBILE_BUNDLESIZE_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
     runs-on: ubuntu-20.04
