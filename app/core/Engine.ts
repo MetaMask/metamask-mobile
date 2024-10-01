@@ -2006,18 +2006,6 @@ class Engine {
     // Clear selected network
     // TODO implement this method on SelectedNetworkController
     // SelectedNetworkController.unsetAllDomains()
-    //Clear assets info
-    /*     TokensController.update({
-      allTokens: {},
-      allIgnoredTokens: {},
-      ignoredTokens: [],
-      tokens: [],
-    }); 
-    NftController.update({
-      allNftContracts: {},
-      allNfts: {},
-      ignoredNfts: [],
-    });*/
 
     TokenBalancesController.reset();
     TokenRatesController.update({ marketData: {} });
