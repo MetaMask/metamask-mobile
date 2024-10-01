@@ -181,7 +181,7 @@ jobs:
           path: ios/main.jsbundle
       
   ship-js-bundle-size-check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [js-bundle-size-check]
     #if: github.ref == 'refs/heads/main'
     steps:
