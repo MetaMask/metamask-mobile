@@ -517,7 +517,7 @@ exports[`AccountRightButton should render correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#f2f4f6",
+                                  "backgroundColor": "#ffffff",
                                   "borderColor": "#ffffff",
                                   "borderRadius": 16,
                                   "borderWidth": 2,
@@ -540,21 +540,24 @@ exports[`AccountRightButton should render correctly 1`] = `
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
-                                style={
+                              <Image
+                                onError={[Function]}
+                                resizeMode="contain"
+                                source={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "default": {
+                                      "uri": "MockImage",
+                                    },
                                   }
                                 }
-                              >
-                                P
-                              </Text>
+                                style={
+                                  {
+                                    "height": 32,
+                                    "width": 32,
+                                  }
+                                }
+                                testID="network-avatar-image"
+                              />
                             </View>
                           </View>
                         </View>

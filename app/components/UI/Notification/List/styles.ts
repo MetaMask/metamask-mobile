@@ -9,13 +9,47 @@ export const createStyles = ({ colors, typography }: Theme) =>
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
-      marginHorizontal: 8,
+    },
+    itemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 32,
+    },
+    unreadItemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.info.muted,
+    },
+    readItemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.background.default,
+    },
+    unreadDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.info.default,
+      position: 'absolute',
+      marginTop: 16,
+      marginLeft: 8,
+    },
+    readDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      position: 'absolute',
+      marginTop: 16,
+      marginLeft: 8,
     },
     wrapper: {
       flex: 1,
       paddingVertical: 10,
       justifyContent: 'center',
       borderRadius: 10,
+      backgroundColor: colors.primary.default,
     },
     loaderContainer: {
       position: 'absolute',

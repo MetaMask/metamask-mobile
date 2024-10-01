@@ -60,6 +60,19 @@ class Gestures {
   }
 
   /**
+   * Wait for an element at a specific index to be visible and then tap it.
+   *
+   * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to tap
+   * @param {number} index - Index of the element to tap
+   * @param {number} timeout - Timeout for waiting (default: 15000ms)
+   */
+  static async TapAtIndex(elementID, index, timeout = 15000) {
+    const element = (await elementID).atIndex(index);
+    await waitFor(element).toBeVisible().withTimeout(timeout);
+    await element.tap();
+  }
+
+  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableWebElement>} elementID - ID of the element to tap
@@ -102,7 +115,7 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-    await this.clearField(element);
+    await this.clearField(elementID);
 
     await element.typeText(text + '\n');
   }

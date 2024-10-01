@@ -159,7 +159,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 18,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -194,7 +194,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -202,7 +202,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               }
             }
           >
-            If you disconnect your accounts from test, you’ll need to reconnect to use them again.
+            If you disconnect from test, you’ll need to reconnect your accounts and networks to use this site again.
           </Text>
         </View>
         <View
@@ -235,14 +235,13 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -273,14 +272,13 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Primary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

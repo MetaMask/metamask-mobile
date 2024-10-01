@@ -58,7 +58,6 @@ import {
   selectIsIpfsGatewayEnabled,
   selectIsMultiAccountBalancesEnabled,
   selectDisplayNftMedia,
-  selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
@@ -89,7 +88,6 @@ import {
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
-  NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
@@ -121,12 +119,17 @@ import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -141,7 +144,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -169,7 +172,11 @@ const Settings: React.FC = () => {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
-
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserHistory = useSelector((state: any) => state.browser.history);
@@ -190,7 +197,9 @@ const Settings: React.FC = () => {
     selectUseTransactionSimulations,
   );
 
-  const useNftDetection = useSelector(selectUseNftDetection);
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   const seedphraseBackedUp = useSelector(
     // TODO: Replace "any" with type
@@ -271,8 +280,20 @@ const Settings: React.FC = () => {
   ]);
 
   useEffect(() => {
-    !isBasicFunctionalityEnabled && disableProfileSyncing();
-  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+        isProfileSyncingEnabled && (await disableProfileSyncing());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    disableProfileSyncing,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+    isProfileSyncingEnabled,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -562,27 +583,6 @@ const Settings: React.FC = () => {
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
-  const toggleNftAutodetect = useCallback(
-    (value) => {
-      const { PreferencesController } = Engine.context;
-      if (value) {
-        PreferencesController.setDisplayNftMedia(value);
-      }
-      PreferencesController.setUseNftDetection(value);
-      const traits = {
-        [UserProfileProperty.NFT_AUTODETECTION]: value
-          ? UserProfileProperty.ON
-          : UserProfileProperty.OFF,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
-        ...traits,
-        location: 'app_settings',
-      });
-    },
-    [addTraitsToUser, trackEvent],
-  );
-
   const renderDisplayNftMedia = useCallback(
     () => (
       <View style={styles.halfSetting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
@@ -706,43 +706,6 @@ const Settings: React.FC = () => {
       </View>
     ),
     [colors, styles, useTransactionSimulations, theme.brandColors.white],
-  );
-
-  const renderAutoDetectNft = useCallback(
-    () => (
-      <View
-        style={styles.setting}
-        testID={NFT_AUTO_DETECT_MODE_SECTION}
-        ref={detectNftComponentRef}
-      >
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.nft_autodetect_mode')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={useNftDetection}
-              onValueChange={toggleNftAutodetect}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.autodetect_nft_desc')}
-        </Text>
-      </View>
-    ),
-    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
   const setIpfsGateway = (gateway: string) => {
@@ -1016,6 +979,13 @@ const Settings: React.FC = () => {
       });
     } else {
       await enableProfileSyncing();
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'profile_syncing',
+        old_value: isProfileSyncingEnabled,
+        new_value: !isProfileSyncingEnabled,
+        was_notifications_on: isNotificationEnabled,
+      });
     }
   };
 
@@ -1036,6 +1006,9 @@ const Settings: React.FC = () => {
   const profileSyncModalMessage = !isProfileSyncingEnabled
     ? strings('app_settings.enabling_profile_sync')
     : strings('app_settings.disabling_profile_sync');
+
+  const modalLoading = profileSyncLoading || disableNotificationsLoading;
+  const modalError = profileSyncError || disableNotificationsError;
 
   return (
     <ScrollView
@@ -1074,7 +1047,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1114,7 +1093,11 @@ const Settings: React.FC = () => {
           {strings('app_settings.token_nft_ens_subheading')}
         </Text>
         {renderDisplayNftMedia()}
-        {isMainnet && renderAutoDetectNft()}
+        {isMainnet && (
+          <View ref={detectNftComponentRef}>
+            <AutoDetectNFTSettings />
+          </View>
+        )}
         {renderIpfsGateway()}
         <Text
           variant={TextVariant.BodyLGMedium}
@@ -1139,9 +1122,9 @@ const Settings: React.FC = () => {
         {renderHint()}
       </View>
       <SwitchLoadingModal
-        loading={profileSyncLoading}
+        loading={modalLoading}
         loadingText={profileSyncModalMessage}
-        error={profileSyncError}
+        error={modalError}
       />
     </ScrollView>
   );

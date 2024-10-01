@@ -30,4 +30,6 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   isAutoScrollEnabled?: boolean;
   onBack: () => void;
   connection?: ConnectionProps;
+  screenTitle?: string;
+  isRenderedAsBottomSheet?: boolean;
 }

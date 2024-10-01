@@ -7,7 +7,7 @@ describe('BiometryButton', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <BiometryButton
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        // eslint-disable-next-line no-empty-function
         onPress={() => {}}
         hidden={false}
         biometryType={AUTHENTICATION_TYPE.BIOMETRIC}

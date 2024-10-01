@@ -1,3 +1,20 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js
+index 542e3f6..af49a85 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-4ODKGWYQ.js
+@@ -69,9 +69,10 @@ var AssetsContractController = class extends _basecontroller.BaseControllerV1 {
+       this.configure({ ipfsGateway });
+     });
+     onNetworkDidChange((networkState) => {
+-      if (this.config.chainId !== networkState.providerConfig.chainId) {
++      const {configuration: { chainId}} = this.getNetworkClientById(networkState.selectedNetworkClientId);
++      if (this.config.chainId !== chainId) {
+         this.configure({
+-          chainId: networkState.providerConfig.chainId
++          chainId,
+         });
+       }
+     });
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
 index 0dc70ec..461a210 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
@@ -23,6 +40,59 @@ index 0dc70ec..461a210 100644
        }
      };
      return acc;
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js b/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
+index 45254ad..83634ab 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-ELSMS5S7.js
+@@ -87,6 +87,7 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
+     const nativeCurrencyForExchangeRate = Object.values(
+       _controllerutils.TESTNET_TICKER_SYMBOLS
+     ).includes(nativeCurrency) ? _controllerutils.FALL_BACK_VS_CURRENCY : nativeCurrency;
++    let shouldUpdateState = true;
+     try {
+       if (currentCurrency && nativeCurrency && // if either currency is an empty string we can skip the comparison
+       // because it will result in an error from the api and ultimately
+@@ -103,23 +104,27 @@ var CurrencyRateController = class extends _pollingcontroller.StaticIntervalPoll
+       }
+     } catch (error) {
+       if (!(error instanceof Error && error.message.includes("market does not exist for this coin pair"))) {
++        // Don't update state on transient / unexpected errors
++        shouldUpdateState = false;
+         throw error;
+       }
+     } finally {
+       try {
+-        this.update(() => {
+-          return {
+-            currencyRates: {
+-              ...currencyRates,
+-              [nativeCurrency]: {
+-                conversionDate,
+-                conversionRate,
+-                usdConversionRate
+-              }
+-            },
+-            currentCurrency
+-          };
+-        });
++        if (shouldUpdateState) {
++          this.update(() => {
++            return {
++              currencyRates: {
++                ...currencyRates,
++                [nativeCurrency]: {
++                  conversionDate,
++                  conversionRate,
++                  usdConversionRate
++                }
++              },
++              currentCurrency
++            };
++          });
++        }
+       } finally {
+         releaseLock();
+       }
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 index ee6155c..06a3a04 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
@@ -311,7 +381,7 @@ index ee6155c..06a3a04 100644
  };
  var NftDetectionController_default = NftDetectionController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
-index 76e3362..5ab79a4 100644
+index 76e3362..057c90e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 @@ -34,7 +34,7 @@ var STATIC_MAINNET_TOKEN_LIST = Object.entries(
@@ -347,7 +417,18 @@ index 76e3362..5ab79a4 100644
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _trackMetaMetricsEvent, trackMetaMetricsEvent);
      const { isUnlocked } = this.messagingSystem.call(
        "KeyringController:getState"
-@@ -203,6 +206,7 @@ _isDetectionEnabledFromPreferences = new WeakMap();
+@@ -165,7 +168,9 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     if (!this.isActive) {
+       return;
+     }
+-    const addressAgainstWhichToDetect = selectedAddress ?? _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress);
++    const currentAddress = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress);
++    const currentAddressChecksum = _controllerutils.toChecksumHexAddress.call(void 0, currentAddress)
++    const addressAgainstWhichToDetect = _controllerutils.toChecksumHexAddress.call(void 0, selectedAddress) ?? currentAddressChecksum;
+     const { chainId, networkClientId: selectedNetworkClientId } = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn).call(this, networkClientId);
+     const chainIdAgainstWhichToDetect = chainId;
+     const networkClientIdAgainstWhichToDetect = selectedNetworkClientId;
+@@ -203,6 +208,7 @@ _isDetectionEnabledFromPreferences = new WeakMap();
  _isDetectionEnabledForNetwork = new WeakMap();
  _getBalancesInSingleCall = new WeakMap();
  _trackMetaMetricsEvent = new WeakMap();
@@ -355,6 +436,21 @@ index 76e3362..5ab79a4 100644
  _registerEventListeners = new WeakSet();
  registerEventListeners_fn = function() {
    this.messagingSystem.subscribe("KeyringController:unlock", async () => {
+@@ -224,12 +230,10 @@ registerEventListeners_fn = function() {
+   );
+   this.messagingSystem.subscribe(
+     "PreferencesController:stateChange",
+-    async ({ selectedAddress: newSelectedAddress, useTokenDetection }) => {
+-      const isSelectedAddressChanged = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress) !== newSelectedAddress;
++    async ({ useTokenDetection }) => {
+       const isDetectionChangedFromPreferences = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _isDetectionEnabledFromPreferences) !== useTokenDetection;
+-      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAddress, newSelectedAddress);
+       _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isDetectionEnabledFromPreferences, useTokenDetection);
+-      if (isSelectedAddressChanged || isDetectionChangedFromPreferences) {
++      if (isDetectionChangedFromPreferences) {
+         await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this, {
+           selectedAddress: _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress)
+         });
 @@ -324,7 +328,7 @@ getSlicesOfTokensToDetect_fn = function({
    chainId,
    selectedAddress
@@ -755,6 +851,27 @@ index cd8f792..b20db8a 100644
  var TokenBalancesController_default = TokenBalancesController;
  
  
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js b/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
+index b8722af..dbff48b 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
+@@ -103,10 +103,14 @@ var TokensController = class extends _basecontroller.BaseControllerV1 {
+     );
+     this.messagingSystem.subscribe(
+       "NetworkController:networkDidChange",
+-      ({ providerConfig }) => {
++      ({selectedNetworkClientId}) => {
+         const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
+         const { selectedAddress } = this.config;
+-        const { chainId } = providerConfig;
++        const selectedNetworkClient = this.messagingSystem.call(
++          'NetworkController:getNetworkClientById',
++          selectedNetworkClientId,
++        );
++        const { chainId } = selectedNetworkClient.configuration;
+         this.abortController.abort();
+         this.abortController = new AbortController();
+         this.configure({ chainId });
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
 index 8c506d9..bd798ec 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js

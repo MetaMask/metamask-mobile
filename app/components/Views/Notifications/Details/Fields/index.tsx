@@ -9,6 +9,7 @@ import NFTCollectionField from './NFTCollectionField';
 import StakingProviderField from './StakingProviderField';
 import SwapsRateField from './SwapsRateField';
 import TransactionField from './TransactionField';
+import type { Notification } from '../../../../../util/notifications/types';
 
 interface Props {
   modalField: ModalField;
@@ -20,12 +21,17 @@ interface Props {
    * Function to set the network fee collapsed state
    */
   setIsCollapsed: (isCollapsed: boolean) => void;
+  /**
+   * Notification object
+   */
+  notification: Notification;
 }
 
 export default function ModalField({
   modalField,
   isCollapsed,
   setIsCollapsed,
+  notification,
 }: Props) {
   if (modalField.type === 'ModalField-AnnouncementDescription')
     return <AnnouncementDescriptionField {...modalField} />;
@@ -40,13 +46,7 @@ export default function ModalField({
     return <NFTCollectionField {...modalField} />;
 
   if (modalField.type === 'ModalField-Network')
-    return (
-      <NetworkField
-        {...modalField}
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-      />
-    );
+    return <NetworkField {...modalField} />;
 
   if (modalField.type === 'ModalField-NetworkFee')
     return (
@@ -54,6 +54,7 @@ export default function ModalField({
         {...modalField}
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
+        notification={notification}
       />
     );
 
@@ -64,7 +65,7 @@ export default function ModalField({
     return <SwapsRateField {...modalField} />;
 
   if (modalField.type === 'ModalField-Transaction')
-    return <TransactionField {...modalField} />;
+    return <TransactionField {...modalField} notification={notification} />;
 
   return null;
 }

@@ -1,37 +1,33 @@
 import { useCallback, useEffect } from 'react';
-import notifee, {
-  Event as NotifeeEvent,
-  EventType,
-} from '@notifee/react-native';
-import NotificationManager from '../../../core/NotificationManager';
-import Routes from '../../../constants/navigation/Routes';
-import { setupAndroidChannel } from '../setupAndroidChannels';
-import { SimpleNotification } from '../types';
-import Device from '../../../util/device';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  isNotificationsFeatureEnabled,
+  TRIGGER_TYPES,
+} from '../../../util/notifications';
+import { Notification } from '../../../util/notifications/types';
+import { Linking } from 'react-native';
 
-const useNotificationHandler = (
-  bootstrapAndroidInitialNotification: () => Promise<void>,
-  navigation: NavigationProp<ParamListBase>,
-) => {
+const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
   const performActionBasedOnOpenedNotificationType = useCallback(
-    async (notification: SimpleNotification) => {
-      const { data } = notification;
-
-      if (data && data.action === 'tx') {
-        if (data.id) {
-          NotificationManager.setTransactionToView(data.id);
-        }
-        if (navigation) {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
-        }
+    async (notification: Notification) => {
+      if (
+        notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+        notification.data.externalLink
+      ) {
+        Linking.openURL(notification.data.externalLink.externalLinkUrl);
+      } else {
+        navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
+          notificationId: notification.id,
+        });
       }
     },
     [navigation],
   );
 
-  const handleOpenedNotification = useCallback(
-    (notification?: SimpleNotification) => {
+  const handlePressedNotification = useCallback(
+    (notification?: Notification) => {
       if (!notification) {
         return;
       }
@@ -40,31 +36,36 @@ const useNotificationHandler = (
     [performActionBasedOnOpenedNotificationType],
   );
 
-  const handleNotificationPressed = useCallback(
-    (event: NotifeeEvent) => {
-      if (event.type === EventType.PRESS) {
-        handleOpenedNotification(event.detail.notification);
-      }
-    },
-    [handleOpenedNotification],
-  );
-
   useEffect(() => {
-    // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
-    notifee.setBadgeCount(0);
+    if (!isNotificationsFeatureEnabled()) return;
 
-    bootstrapAndroidInitialNotification();
-    setTimeout(() => {
-      if (Device.isAndroid()) {
-        setupAndroidChannel();
-      }
-      notifee.onForegroundEvent(handleNotificationPressed);
-    }, 1000);
-  }, [
-    bootstrapAndroidInitialNotification,
-    navigation,
-    handleNotificationPressed,
-  ]);
+    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handlePressedNotification,
+        }),
+    );
+
+    NotificationsService.onBackgroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handlePressedNotification,
+        }),
+    );
+
+    return () => {
+      unsubscribeForegroundEvent();
+    };
+  }, [handlePressedNotification]);
+
+  return {
+    performActionBasedOnOpenedNotificationType,
+    handlePressedNotification,
+  };
 };
 
 export default useNotificationHandler;

@@ -1,4 +1,4 @@
-import { web } from 'detox';
+import { web, system } from 'detox';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -8,7 +8,8 @@ class Matchers {
    * Get element by ID.
    *
    * @param {string} elementId - Match elements with the specified testID
-   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   * @param {number} [index] - Index of the element (default: 0)
+   * @return {Promise<Detox.IndexableNativeElement | Detox.NativeElement>} - Resolves to the located element
    */
   static async getElementByID(elementId, index) {
     if (index) {
@@ -48,7 +49,8 @@ class Matchers {
    * Get element by label.
    *
    * @param {string} label - Match elements with the specified accessibility label (iOS) or content description (Android)
-   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   * @param {number} index - Index of the element (default: 0)
+   * @return {Promise<Detox.NativeElement>} - Resolves to the located element
    */
   static async getElementByLabel(label, index = 0) {
     return element(by.label(label)).atIndex(index);
@@ -95,7 +97,7 @@ class Matchers {
    *
    * @param {string} webviewID - The web ID of the inner element to locate within the webview
    * @param {string} innerID - The web ID of the browser webview
-   * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
+   * @return {Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade>} Resolves to the located element
    */
   static async getElementByWebID(webviewID, innerID) {
     const myWebView = this.getWebViewByID(webviewID);
@@ -118,7 +120,7 @@ class Matchers {
    * Get element by XPath.
    * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
-   * @return {Promise<Detox.WebElement>} - Resolves to the located element
+   * @return {Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade>} - Resolves to the located element
    */
   static async getElementByXPath(webviewID, xpath) {
     const myWebView = this.getWebViewByID(webviewID);
@@ -150,6 +152,17 @@ class Matchers {
  */
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
+  }
+
+
+  /**
+   * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.
+   *
+   * @param {string} text - Match elements with the specified text
+   * @return {Promise<Detox.SystemElement>} - Resolves to the located element
+   */
+  static async getSystemElementByText(text) {
+    return system.element(by.system.label(text));
   }
 }
 

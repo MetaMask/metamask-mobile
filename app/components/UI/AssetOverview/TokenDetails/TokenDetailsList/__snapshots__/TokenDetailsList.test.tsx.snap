@@ -1,67 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TokenDetails should render correctly 1`] = `
-<View
-  style={
-    {
-      "marginTop": 20,
-    }
-  }
->
+<View>
   <Text
+    accessibilityRole="text"
     style={
-      [
-        {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
-          "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 18,
-            "fontWeight": "600",
-            "marginVertical": 3,
-          },
-          undefined,
-          undefined,
-          {
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 16,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginVertical": 0,
-            "paddingVertical": 8,
-          },
-        ],
-      ]
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingVertical": 8,
+      }
     }
   >
     Token details
@@ -93,7 +45,7 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -121,7 +73,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -160,7 +112,7 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -175,7 +127,7 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -205,7 +157,7 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -220,7 +172,7 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,

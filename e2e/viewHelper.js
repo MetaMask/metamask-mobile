@@ -1,6 +1,7 @@
 'use strict';
 
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
+import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
 import NetworkEducationModal from './pages/modals/NetworkEducationModal';
@@ -9,7 +10,6 @@ import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -59,16 +59,6 @@ have to have all these workarounds in the tests
   }
 
   try {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    console.log('The marketing consent modal is not visible');
-  }
-
-  try {
     await Assertions.checkIfVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
@@ -76,6 +66,21 @@ have to have all these workarounds in the tests
     /* eslint-disable no-undef */
 
     console.log('The marketing toast is not visible');
+  }
+};
+
+export const skipNotificationsDeviceSettings = async () => {
+
+  await TestHelpers.delay(1000);
+
+  try {
+    await Assertions.checkIfVisible(EnableDeviceNotificationsAlert.stepOneContainer);
+    await EnableDeviceNotificationsAlert.tapOnNotEnableDeviceNotificationsButton();
+    await Assertions.checkIfNotVisible(EnableDeviceNotificationsAlert.stepOneContainer);
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The notification device alert modal is not visible');
   }
 };
 
@@ -94,12 +99,13 @@ export const importWalletWithRecoveryPhrase = async () => {
   await ImportWalletView.enterPassword(validAccount.password);
   await ImportWalletView.reEnterPassword(validAccount.password);
 
-  // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
+  //'Should dismiss Enable device Notifications checks alert'
+  await this.skipNotificationsDeviceSettings();
+  // Should dismiss Automatic Security checks screen
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
-
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await this.closeOnboardingModals();
@@ -131,9 +137,11 @@ export const CreateNewWallet = async () => {
   await device.enableSynchronization();
   await Assertions.checkIfVisible(WalletView.container);
 
-  //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
+  //'Should dismiss Enable device Notifications checks alert'
+  await this.skipNotificationsDeviceSettings();
+  //'Should dismiss Automatic Security checks screen'
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 

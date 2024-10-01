@@ -24,10 +24,19 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'mainnet',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
       AccountTrackerController: {
@@ -104,6 +113,7 @@ jest.mock('../../../../../util/ENSUtils', () => ({
 jest.mock('../../../../../lib/ppom/ppom-util', () => ({
   ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
   validateRequest: jest.fn(),
+  isChainSupported: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({

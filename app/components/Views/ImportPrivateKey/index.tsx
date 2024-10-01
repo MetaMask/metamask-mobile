@@ -6,6 +6,7 @@ import {
   Text,
   View,
   ActivityIndicator,
+  DimensionValue,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../UI/StyledButton';
@@ -19,6 +20,8 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selectors/ImportAccountFromPrivateKey.selectors';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import Routes from '../../../constants/navigation/Routes';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -26,7 +29,7 @@ import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selecto
 const ImportPrivateKey = () => {
   const [privateKey, setPrivateKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [inputWidth, setInputWidth] = useState(
+  const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
   const navigation = useNavigation();
@@ -109,7 +112,9 @@ const ImportPrivateKey = () => {
   };
 
   const scanPkey = () => {
-    navigation.navigate('QRScanner', {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Scanner,
+      disableTabber: true,
       onScanSuccess,
     });
   };

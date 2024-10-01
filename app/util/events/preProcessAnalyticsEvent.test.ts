@@ -1,36 +1,34 @@
+import { JsonMap } from '@segment/analytics-react-native';
 import preProcessAnalyticsEvent from './preProcessAnalyticsEvent';
 
 describe('preProcessAnalyticsEvent', () => {
-  it('should correctly process empty input', () => {
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent({});
-    expect(userParams).toEqual({});
-    expect(anonymousParams).toEqual({});
+  it('processes empty input', () => {
+    const [nonAnonymousProperties, anonymousProperties] =
+      preProcessAnalyticsEvent({});
+    expect(nonAnonymousProperties).toEqual({});
+    expect(anonymousProperties).toEqual({});
   });
 
-  it('should return empty objects for both userParams and anonymousParams when params is undefined', () => {
+  it('returns empty objects for both nonAnonymousProperties and anonymousProperties when properties is undefined', () => {
     // Simulate calling the function with undefined by casting undefined to any
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      undefined as any,
-    );
+    const [nonAnonymousProperties, anonymousProperties] =
+      preProcessAnalyticsEvent(undefined as unknown as JsonMap);
 
-    expect(userParams).toEqual({});
-    expect(anonymousParams).toEqual({});
+    expect(nonAnonymousProperties).toEqual({});
+    expect(anonymousProperties).toEqual({});
   });
 
-  it('should process non-object properties correctly', () => {
-    const params = {
+  it('processes non-object properties', () => {
+    const properties = {
       prop1: 'value1',
       prop2: 123,
     };
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
-    expect(userParams).toEqual(params);
-    expect(anonymousParams).toEqual(params);
+    const [nonAnonymousProperties] = preProcessAnalyticsEvent(properties);
+    expect(nonAnonymousProperties).toEqual(properties);
   });
 
-  it('should separate anonymous and non-anonymous object properties', () => {
-    const params = {
+  it('separates anonymous and non-anonymous object properties', () => {
+    const properties = {
       account_type: 'Imported',
       active_currency: { anonymous: true, value: 'FOXY' },
       chain_id: '59144',
@@ -39,8 +37,9 @@ describe('preProcessAnalyticsEvent', () => {
       request_source: 'In-App-Browser',
       speed_set: 'medium',
     };
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
-    expect(userParams).toEqual({
+    const [nonAnonymousProperties, anonymousProperties] =
+      preProcessAnalyticsEvent(properties);
+    expect(nonAnonymousProperties).toEqual({
       account_type: 'Imported',
       chain_id: '59144',
       gas_estimate_type: 'fee-market',
@@ -48,28 +47,21 @@ describe('preProcessAnalyticsEvent', () => {
       request_source: 'In-App-Browser',
       speed_set: 'medium',
     });
-    expect(anonymousParams).toEqual({
-      account_type: 'Imported',
+    expect(anonymousProperties).toEqual({
       active_currency: 'FOXY',
-      chain_id: '59144',
-      gas_estimate_type: 'fee-market',
-      gas_mode: 'Basic',
-      request_source: 'In-App-Browser',
-      speed_set: 'medium',
     });
   });
 
-  it('should ignore arrays and add them to both user and anonymous params', () => {
-    const params = {
+  it('ignores arrays and add them to non-anonymous properties', () => {
+    const properties = {
       arrayProp: [1, 2, 3],
     };
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
-    expect(userParams).toEqual(params);
-    expect(anonymousParams).toEqual(params);
+    const [nonAnonymousProperties] = preProcessAnalyticsEvent(properties);
+    expect(nonAnonymousProperties).toEqual(properties);
   });
 
-  it('should handle mixed types of properties correctly', () => {
-    const params = {
+  it('handles mixed types of properties', () => {
+    const properties = {
       account_type: 'Imported',
       active_currency: { anonymous: true, value: 'FOXY' },
       chain_id: '59144',
@@ -79,8 +71,9 @@ describe('preProcessAnalyticsEvent', () => {
       speed_set: 'medium',
       arrayProp: ['a', 'b', 'c'],
     };
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
-    expect(userParams).toEqual({
+    const [nonAnonymousProperties, anonymousProperties] =
+      preProcessAnalyticsEvent(properties);
+    expect(nonAnonymousProperties).toEqual({
       account_type: 'Imported',
       chain_id: '59144',
       gas_estimate_type: 'fee-market',
@@ -89,22 +82,20 @@ describe('preProcessAnalyticsEvent', () => {
       speed_set: 'medium',
       arrayProp: ['a', 'b', 'c'],
     });
-    expect(anonymousParams).toEqual({
-      account_type: 'Imported',
+    expect(anonymousProperties).toEqual({
       active_currency: 'FOXY',
-      chain_id: '59144',
-      gas_estimate_type: 'fee-market',
-      gas_mode: 'Basic',
-      request_source: 'In-App-Browser',
-      speed_set: 'medium',
-      arrayProp: ['a', 'b', 'c'],
     });
   });
+
+  it('adds non-anonymous object properties without anonymous key to nonAnonymousProperties', () => {
+    const properties = {
+      non_anonymous_object: { value: 'testValue' },
+    };
+    const [nonAnonymousProperties, anonymousProperties] =
+      preProcessAnalyticsEvent(properties);
+    expect(nonAnonymousProperties).toEqual({
+      non_anonymous_object: 'testValue',
+    });
+    expect(anonymousProperties).toEqual({});
+  });
 });
-
-/*
-
-{"category": "Send Flow", "properties": {"action": "Send Flow", "name": "Adds Amount"}} {"network": "linea-mainnet"}
-{"category": "Send Transaction Started"} {"account_type": "Imported", "active_currency": {"anonymous": true, "value": "FOXY"}, "chain_id": "59144", "gas_estimate_type": "fee-market", "gas_mode": "Basic", "request_source": "In-App-Browser", "speed_set": "medium"}
-
-*/

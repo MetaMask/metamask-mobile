@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -78,21 +79,20 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
           backgroundState: {
             ...backgroundState,
             NetworkController: {
-              ...backgroundState.NetworkController,
-              providerConfig: {
-                chainId: chainId ?? '0x38',
-                ticker: 'BNB',
-                nickname: 'BNB Smart Chain',
-              },
-              networkConfigurations: {
-                networkId1: {
+              ...mockNetworkState(
+                {
+                  chainId: chainId ?? '0x38',
+                  id: 'networkId2',
+                  nickname: 'BNB Smart Chain',
+                  ticker: 'BNB',
+                },
+                {
                   chainId: '0x89',
+                  id: 'networkId1',
                   nickname: 'Polygon Mainnet',
-                  rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-                  rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
                   ticker: 'MATIC',
                 },
-              },
+              ),
             },
           },
         },
@@ -109,6 +109,14 @@ jest.mock('../../../../../core/Engine', () => ({
     NetworkController: {
       setProviderType: jest.fn(),
       setActiveNetwork: jest.fn(),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -301,7 +309,7 @@ describe('NetworkSwitcher View', () => {
     ).toMatchInlineSnapshot(`
       [
         [
-          "MATIC",
+          "POL",
         ],
       ]
     `);

@@ -1,5 +1,7 @@
-import React, { useCallback, useState } from 'react';
-import { Platform, Switch, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { ActivityIndicator, Platform, Switch, View } from 'react-native';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Text, {
@@ -21,8 +23,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useSwitchNotifications } from '../../../../../util/notifications/hooks/useSwitchNotifications';
-import { useListNotifications } from '../../../../../util/notifications/hooks/useNotifications';
+import { useUpdateAccountSetting } from '../../../../../util/notifications/hooks/useUpdateAccountSetting';
 
 interface NotificationOptionsToggleProps {
   address: string;
@@ -30,39 +31,10 @@ interface NotificationOptionsToggleProps {
   icon?: AvatarAccountType | IconName;
   type?: string;
   testId?: string;
-
-  isEnabled: boolean;
-  isLoading?: boolean;
   disabledSwitch?: boolean;
+  isLoading?: boolean;
+  isEnabled: boolean;
   refetchAccountSettings: () => Promise<void>;
-}
-
-function useUpdateAccountSetting(
-  address: string,
-  refetchAccountSettings: () => Promise<void>,
-) {
-  const { switchAccountNotifications } = useSwitchNotifications();
-  const { listNotifications: refetch } = useListNotifications();
-
-  // Local states
-  const [loading, setLoading] = useState(false);
-
-  const toggleAccount = useCallback(
-    async (state: boolean) => {
-      setLoading(true);
-      try {
-        await switchAccountNotifications([address], state);
-        await refetchAccountSettings();
-        refetch();
-      } catch {
-        // Do nothing (we don't need to propagate this)
-      }
-      setLoading(false);
-    },
-    [address, refetch, refetchAccountSettings, switchAccountNotifications],
-  );
-
-  return { toggleAccount, loading };
 }
 
 /**
@@ -77,16 +49,29 @@ const NotificationOptionToggle = ({
   testId,
   isEnabled,
   disabledSwitch,
+  isLoading,
   refetchAccountSettings,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
+  const { trackEvent } = useMetrics();
 
-  const { toggleAccount } = useUpdateAccountSetting(
+  const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
     address,
     refetchAccountSettings,
   );
+
+  const loading = isLoading || isUpdatingAccount;
+
+  const handleToggleAccountNotifications = useCallback(async () => {
+    trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
+      settings_type: 'account_notifications',
+      old_value: isEnabled,
+      new_value: !isEnabled,
+    });
+    await toggleAccount(!isEnabled);
+  }, [isEnabled, toggleAccount, trackEvent]);
 
   return (
     <View style={styles.container}>
@@ -110,28 +95,32 @@ const NotificationOptionToggle = ({
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>
-        {address ? (
+        {Boolean(address) && (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {type === NotificationsToggleTypes.ACTIONS
-              ? address
-              : formatAddress(address, 'short')}
+              ? address.toLowerCase()
+              : formatAddress(address, 'short').toLowerCase()}
           </Text>
-        ) : null}
+        )}
       </View>
       <View style={styles.switchElement}>
-        <Switch
-          value={isEnabled}
-          onValueChange={() => toggleAccount(!isEnabled)}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          disabled={disabledSwitch}
-          {...generateTestId(Platform, testId)}
-        />
+        {isLoading || loading ? (
+          <ActivityIndicator />
+        ) : (
+          <Switch
+            style={styles.switch}
+            value={isEnabled}
+            onChange={handleToggleAccountNotifications}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            disabled={disabledSwitch}
+            ios_backgroundColor={colors.border.muted}
+            {...generateTestId(Platform, testId)}
+          />
+        )}
       </View>
     </View>
   );
