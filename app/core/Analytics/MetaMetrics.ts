@@ -625,7 +625,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param event - Legacy analytics event
    * @param properties - Object containing any event relevant traits or properties (optional).
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   * @deprecated use `trackEvent(ITrackingEvent, boolean)` instead
+   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
    */
   trackEvent(
     // Legacy signature
@@ -689,7 +689,11 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording?: boolean,
   ): void;
 
-  // Implementation
+  /*
+   * Implementation for both legacy deprecated and new signatures
+   *
+   * Use the new `trackEvent(ITrackingEvent,boolean)` signature
+   */
   trackEvent(
     _event: IMetaMetricsEvent | ITrackingEvent,
     _propertiesOrSaveData?: CombinedProperties | boolean,

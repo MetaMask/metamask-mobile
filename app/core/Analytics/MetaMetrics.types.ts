@@ -46,12 +46,12 @@ export interface IMetaMetrics {
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
-   * Legacy event tracking
+   * Track an event (deprecated legacy signature)
    *
    * @param event - Legacy analytics event
    * @param properties - Object containing any event relevant traits or properties (optional).
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   * @deprecated use `trackEvent(ITrackingEvent, boolean)` instead
+   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
    */
   trackEvent(
     event: IMetaMetricsEvent,
@@ -59,50 +59,7 @@ export interface IMetaMetrics {
     saveDataRecording?: boolean,
   ): void;
   /**
-   * Track an event
-   *
-   * The function allows to track non-anonymous and anonymous events:
-   * - with properties and without properties,
-   * - with a unique trackEvent function
-   *
-   * ## Regular non-anonymous events
-   * Regular events are tracked with the user ID and can have properties set
-   *
-   * ## Anonymous events
-   * Anonymous tracking track sends two events: one with the anonymous ID and one with the user ID
-   * - The anonymous event includes sensitive properties so you can know **what** but not **who**
-   * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
-   *
-   * @example basic non-anonymous tracking with no properties:
-   * trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
-   *
-   * @example track with non-anonymous properties:
-   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-   *   option_chosen: 'Browser Bottom Bar Menu',
-   *   number_of_tabs: undefined,
-   * });
-   *
-   * @example you can also track with non-anonymous properties (new properties structure):
-   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-   *   properties: {
-   *     option_chosen: 'Browser Bottom Bar Menu',
-   *     number_of_tabs: undefined,
-   *   },
-   * });
-   *
-   * @example track an anonymous event (without properties)
-   * trackEvent(MetaMetricsEvents.SWAP_COMPLETED);
-   *
-   * @example track an anonymous event with properties
-   * trackEvent(MetaMetricsEvents.GAS_FEES_CHANGED, {
-   *   sensitiveProperties: { ...parameters },
-   * });
-   *
-   * @example track an event with both anonymous and non-anonymous properties
-   * trackEvent(MetaMetricsEvents.MY_EVENT, {
-   *   properties: { ...nonAnonymousParameters },
-   *   sensitiveProperties: { ...anonymousParameters },
-   * });
+   * Track an event (new signature)
    *
    * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
@@ -166,6 +123,9 @@ export const isTrackingEvent = (
 ): event is ITrackingEvent =>
   (event as ITrackingEvent).saveDataRecording !== undefined;
 
+/*
+ * new event properties structure with two distinct properties lists
+ */
 export interface ITrackingEvent {
   readonly name: string;
   properties: JsonMap;
@@ -175,7 +135,8 @@ export interface ITrackingEvent {
   get hasProperties(): boolean;
 }
 /**
- * MetaMetrics event interface
+ * legacy MetaMetrics event interface
+ * @deprecated use ITrackingEvent with MetricsEventBuilder instead
  */
 export interface IMetaMetricsEvent {
   category: string;
@@ -227,9 +188,12 @@ export interface IDeleteRegulationStatus {
   dataDeletionRequestStatus: DataDeleteStatus;
 }
 
-// event properties structure with two distinct properties lists
-// for sensitive (anonymous) and regular (non-anonymous) properties
-// this structure and naming is mirroring how the extension metrics works.
+/*
+ * Legacy event properties structure with two distinct properties lists
+ * for sensitive (anonymous) and regular (non-anonymous) properties
+ * this structure and naming is mirroring how the extension metrics works.
+ * @deprecated use ITrackingEvent with MetricsEventBuilder instead
+ */
 export interface EventProperties {
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;
@@ -242,5 +206,8 @@ export const isCombinedProperties = (
   properties !== null &&
   !Array.isArray(properties);
 
-// EventProperties is the new type, direct JsonMap is for backward compatibility
+/*
+ * EventProperties type is now legacy, direct JsonMap is for backward compatibility
+ * @deprecated use ITrackingEvent with MetricsEventBuilder instead
+ */
 export type CombinedProperties = JsonMap | EventProperties;

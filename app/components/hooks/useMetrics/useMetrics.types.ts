@@ -25,7 +25,7 @@ export interface IUseMetricsHook {
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
 
   /**
-   * @deprecated use {@link trackEvent(ITrackingEvent, boolean)}
+   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
    */
   trackEvent(
     event: IMetaMetricsEvent,

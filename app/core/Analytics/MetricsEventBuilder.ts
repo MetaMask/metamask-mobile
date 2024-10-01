@@ -80,12 +80,12 @@ class TrackingEvent implements ITrackingEvent {
  * @example
  * import { useMetrics } from '../../../components/hooks/useMetrics';
  *
- * const { createEventBuilder } = useMetrics();
+ * const { trackEvent, createEventBuilder } = useMetrics();
  *
- * createEventBuilder(MetaMetricsEvents.MY_EVENT)
+ * trackEvent(createEventBuilder(MetaMetricsEvents.MY_EVENT)
  *  .addProperties({ normalProp: 'value' })
  *  .addSensitiveProperties({ sensitiveProp: 'value' })
- *  .build().track();
+ *  .build());
  */
 class MetricsEventBuilder {
   readonly #trackingEvent: ITrackingEvent;
