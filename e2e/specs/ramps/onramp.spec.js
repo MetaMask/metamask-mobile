@@ -11,7 +11,7 @@ import {
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeRamps } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
@@ -19,7 +19,7 @@ import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeRamps('Buy Crypto'), () => {
+describe(SmokeAssets('Buy Crypto'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
