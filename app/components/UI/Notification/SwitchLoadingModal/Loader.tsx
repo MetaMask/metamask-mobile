@@ -12,7 +12,7 @@ import Icon, {
   IconColor,
 } from '@component-library/components/Icons/Icon';
 
-import Spinner from '@AnimatedSpinner';
+import Spinner from '@components/UI/AnimatedSpinner';
 import Button, {
   ButtonSize,
   ButtonVariants,

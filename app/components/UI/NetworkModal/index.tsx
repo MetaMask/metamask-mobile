@@ -2,7 +2,7 @@ import Modal from 'react-native-modal';
 import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { strings } from '@locales/i18n';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '@core/Engine';

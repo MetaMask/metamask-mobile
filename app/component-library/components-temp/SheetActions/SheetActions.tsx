@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { Platform, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Button, {
   ButtonSize,
   ButtonVariants,

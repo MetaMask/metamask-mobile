@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { getBuildNumber } from 'react-native-device-info';
 import { useAppConfig } from '@AppConfig';
-import { createUpdateNeededNavDetails } from '@UI/UpdateNeeded/UpdateNeeded';
+import { createUpdateNeededNavDetails } from '@components/UI/UpdateNeeded/UpdateNeeded';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InteractionManager } from 'react-native';

@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import { NetworkSettings } from './'; // Import the undecorated component
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { ThemeContext, mockTheme } from '@app/util/theme';
+import { ThemeContext, mockTheme } from '@util/theme';
 import { backgroundState } from '@util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '@util/networks/isNetworkUiRedesignEnabled';
 

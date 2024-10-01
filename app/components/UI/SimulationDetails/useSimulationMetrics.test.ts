@@ -14,7 +14,7 @@ import { MetaMetricsEvents } from '@core/Analytics';
 import {
   useDisplayNames,
   DisplayNameVariant,
-} from '@hooks/DisplayName/useDisplayName';
+} from '@components/hooks/DisplayName/useDisplayName';
 import { BalanceChange, AssetType } from './types';
 import {
   FiatType,
@@ -35,7 +35,7 @@ jest.mock('react', () => ({
 }));
 
 jest.mock('./useLoadingTime');
-jest.mock('@hooks/DisplayName/useDisplayName');
+jest.mock('@components/hooks/DisplayName/useDisplayName');
 jest.mock('@core/redux/slices/transactionMetrics');
 jest.mock('@components/hooks/useMetrics');
 

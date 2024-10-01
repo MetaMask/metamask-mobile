@@ -5,7 +5,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Text from '@component-library/components/Texts/Text';
 
 // Internal dependencies.

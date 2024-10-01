@@ -122,9 +122,9 @@ export function formatCurrency(value, currencyCode) {
   )
     ? `${Number(value)} ${upperCaseCurrencyCode}`
     : new Intl.NumberFormat(I18n.locale, {
-        currency: upperCaseCurrencyCode,
-        style: 'currency',
-      }).format(Number(value));
+      currency: upperCaseCurrencyCode,
+      style: 'currency',
+    }).format(Number(value));
 
   return formatedCurrency;
 }

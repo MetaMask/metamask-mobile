@@ -1,13 +1,13 @@
 import AppConstants from '@core/AppConstants';
 import SDKConnect from '@SDKConnect';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '@SDKConnectConstants';
-import DevLogger from '@utils/DevLogger';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import approveHost from './approveHost';
 
 jest.mock('@core/AppConstants');
 jest.mock('@SDKConnect');
-jest.mock('@SDKConnectConstants');
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/SDKConnectConstants');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),

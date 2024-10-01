@@ -24,7 +24,7 @@ declare module '*.svg' {
   export default content;
 }
 
-declare module 'images/image-icons' {
+declare module '@images/image-icons' {
   const content: { [key: string]: ImageSourcePropType };
   export default content;
 }

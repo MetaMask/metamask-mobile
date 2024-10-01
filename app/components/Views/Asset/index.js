@@ -36,12 +36,12 @@ import {
 } from '@util/networks';
 import { mockTheme, ThemeContext } from '@util/theme';
 import { addAccountTimeFlagFilter } from '@util/transactions';
-import AssetOverview from '@UI/AssetOverview';
-import { getNetworkNavbarOptions } from '@UI/Navbar';
-import { isSwapsAllowed } from '@UI/Swaps/utils';
-import Transactions from '@UI/Transactions';
+import AssetOverview from '@components/UI/AssetOverview';
+import { getNetworkNavbarOptions } from '@components/UI/Navbar';
+import { isSwapsAllowed } from '@components/UI/Swaps/utils';
+import Transactions from '@components/UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '@UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
 import { getRampNetworks } from '@reducers/fiatOrders';
 import Device from '@util/device';
 import {
@@ -81,15 +81,15 @@ const createStyles = (colors) =>
     },
     footerBorder: Device.isAndroid()
       ? {
-          borderTopWidth: 1,
-          borderColor: colors.border.muted,
-        }
+        borderTopWidth: 1,
+        borderColor: colors.border.muted,
+      }
       : {
-          shadowColor: colors.overlay.default,
-          shadowOpacity: 0.3,
-          shadowOffset: { height: 4, width: 0 },
-          shadowRadius: 8,
-        },
+        shadowColor: colors.overlay.default,
+        shadowOpacity: 0.3,
+        shadowOffset: { height: 4, width: 0 },
+        shadowRadius: 8,
+      },
     footerButton: {
       flexGrow: 1,
       flexShrink: 1,
@@ -201,13 +201,13 @@ class Asset extends PureComponent {
         colors,
         shouldShowMoreOptionsInNavBar
           ? () =>
-              navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: 'AssetOptions',
-                params: {
-                  isNativeCurrency: isNativeToken,
-                  address: route.params?.address,
-                },
-              })
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: 'AssetOptions',
+              params: {
+                isNativeCurrency: isNativeToken,
+                address: route.params?.address,
+              },
+            })
           : undefined,
         true,
         contentOffset,
@@ -238,7 +238,7 @@ class Asset extends PureComponent {
     if (
       prevProps.chainId !== this.props.chainId ||
       prevProps.selectedInternalAccount.address !==
-        this.props.selectedInternalAccount?.address
+      this.props.selectedInternalAccount?.address
     ) {
       this.showLoaderAndNormalize();
     } else {

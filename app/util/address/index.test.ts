@@ -19,7 +19,7 @@ import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
   mockSimpleKeyringAddress,
-} from '@test/keyringControllerTestUtils';
+} from '@util/test/keyringControllerTestUtils';
 
 const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 

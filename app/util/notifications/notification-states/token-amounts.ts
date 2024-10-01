@@ -1,4 +1,4 @@
-import { getAmount, getUsdAmount } from '@methods/common';
+import { getAmount, getUsdAmount } from '@util/methods/common';
 
 export function getTokenAmount(token: {
   amount: string;

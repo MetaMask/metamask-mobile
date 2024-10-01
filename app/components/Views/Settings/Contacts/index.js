@@ -2,15 +2,15 @@ import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { connect } from 'react-redux';
-import AddressList from '@confirmations/SendFlow/AddressList';
-import StyledButton from '@UI/StyledButton';
+import AddressList from '@components/Views/confirmations/SendFlow/AddressList';
+import StyledButton from '@components/UI/StyledButton';
 import Engine from '@core/Engine';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { mockTheme, ThemeContext } from '@util/theme';
 import { selectChainId } from '@selectors/networkController';
-import Routes from '@app/constants/navigation/Routes';
+import Routes from '@constants/navigation/Routes';
 
 import { ContactsViewSelectorIDs } from '@e2e/selectors/Settings/Contacts/ContacsView.selectors';
 import { selectAddressBook } from '@selectors/addressBookController';
@@ -81,7 +81,7 @@ class Contacts extends PureComponent {
       prevProps.addressBook &&
       this.props.addressBook &&
       JSON.stringify(prevProps.addressBook[chainId]) !==
-        JSON.stringify(this.props.addressBook[chainId])
+      JSON.stringify(this.props.addressBook[chainId])
     )
       this.updateAddressList();
   };

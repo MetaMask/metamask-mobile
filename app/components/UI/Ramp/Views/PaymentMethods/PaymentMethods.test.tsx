@@ -7,8 +7,8 @@ import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
 import { createBuildQuoteNavDetails } from '@BuildQuote/BuildQuote';
 
-import useRegions from '@hooks/useRegions';
-import usePaymentMethods from '@hooks/usePaymentMethods';
+import useRegions from '@components/hooks/useRegions';
+import usePaymentMethods from '@components/hooks/usePaymentMethods';
 import { RampType, Region } from '@types';
 import { RampSDK } from '@sdk';
 import Routes from '@constants/navigation/Routes';
@@ -104,7 +104,7 @@ let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockuseRegionsInitialValues,
 };
 
-jest.mock('@hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+jest.mock('@components/hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockQueryGetPaymentMethods = jest.fn();
 
@@ -122,7 +122,7 @@ let mockUsePaymentMethodsValues = {
   ...mockUsePaymentMethodsInitialValues,
 };
 
-jest.mock('@hooks/usePaymentMethods', () =>
+jest.mock('@components/hooks/usePaymentMethods', () =>
   jest.fn(() => mockUsePaymentMethodsValues),
 );
 
@@ -137,7 +137,7 @@ jest.mock('@util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('PaymentMethods View', () => {
   afterEach(() => {

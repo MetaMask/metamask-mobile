@@ -6,7 +6,7 @@ jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(''),
   setItem: jest.fn().mockResolvedValue(''),
 }));
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@store', () => ({
   store: {
     getState: jest.fn(() => ({

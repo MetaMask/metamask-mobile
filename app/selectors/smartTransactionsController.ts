@@ -9,7 +9,7 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { selectSelectedInternalAccountChecksummedAddress } from './accountsController';
-import { getAllowedSmartTransactionsChainIds } from '@app/constants/smartTransactions';
+import { getAllowedSmartTransactionsChainIds } from '@constants/smartTransactions';
 
 export const selectSmartTransactionsEnabled = (state: RootState) => {
   const selectedAddress =

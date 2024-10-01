@@ -15,7 +15,7 @@ import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
 import { isMultichainVersion1Enabled } from '@util/networks';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import PermissionItem from './PermissionItem';
 import mockPermissionItems from './PermissionItem/PermissionItem.constants';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';

@@ -4,12 +4,9 @@ import { selectChainId } from '@selectors/networkController';
 import { AppState } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '@core/AppConstants';
-import {
-  setSwapsLiveness,
-  swapsLivenessSelector,
-} from '@reducers/swaps';
+import { setSwapsLiveness, swapsLivenessSelector } from '@reducers/swaps';
 import Logger from '@util/Logger';
-import useInterval from '@hooks/useInterval';
+import useInterval from '@components/hooks/useInterval';
 import { isSwapsAllowed } from './utils';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;

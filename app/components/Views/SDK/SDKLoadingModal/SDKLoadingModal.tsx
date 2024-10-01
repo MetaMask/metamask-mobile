@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 
 // External dependencies
-import SDKLoading from '@UI/SDKLoading';
+import SDKLoading from '@components/UI/SDKLoading';
 import BottomSheet, {
   BottomSheetRef,
 } from '@component-library/components/BottomSheets/BottomSheet';

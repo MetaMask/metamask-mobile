@@ -7,7 +7,7 @@ import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
 import { useStyles } from '@component-library/hooks';
-import AssetElement from '@AssetElement';
+import AssetElement from '@components/UI/AssetElement';
 import NetworkMainAssetLogo from '@NetworkMainAssetLogo';
 import { selectNetworkName } from '@selectors/networkInfos';
 import { useSelector } from 'react-redux';
@@ -32,8 +32,8 @@ import {
   fixDisplayAmount,
   formatPercent,
   PercentageOutputFormat,
-} from '@utils/value';
-import { multiplyValueByPowerOfTen } from '@utils/bignumber';
+} from '@core/SDKConnect/utils/value';
+import { multiplyValueByPowerOfTen } from '@core/SDKConnect/utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,

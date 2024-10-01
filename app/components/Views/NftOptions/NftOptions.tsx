@@ -9,7 +9,7 @@ import Icon, {
   IconName,
 } from '@component-library/components/Icons/Icon';
 import { selectChainId } from '@selectors/networkController';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
 import Text, {
   TextColor,

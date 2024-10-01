@@ -1,15 +1,17 @@
 import removeConnection from './removeConnection';
 import { Connection } from '@Connection';
-import DevLogger from '@utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 jest.mock('@Connection');
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('removeConnection', () => {
   let mockConnection: Connection;
 
   const mockDisapprove = jest.fn();
-  const mockDisconnect = jest.fn().mockImplementation(() => Promise.resolve(true));
+  const mockDisconnect = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(true));
   const mockOnDisconnect = jest.fn();
   const mockSetLoading = jest.fn();
 

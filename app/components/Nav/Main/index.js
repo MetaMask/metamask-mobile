@@ -16,16 +16,16 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
-import GlobalAlert from '@UI/GlobalAlert';
+import GlobalAlert from '@components/UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '@core/NotificationManager';
 import Engine from '@core/Engine';
 import AppConstants from '@core/AppConstants';
 import I18n, { strings } from '@locales/i18n';
-import FadeOutOverlay from '@UI/FadeOutOverlay';
-import BackupAlert from '@UI/BackupAlert';
-import Notification from '@UI/Notification';
-import RampOrders from '@UI/Ramp';
+import FadeOutOverlay from '@components/UI/FadeOutOverlay';
+import BackupAlert from '@components/UI/BackupAlert';
+import Notification from '@components/UI/Notification';
+import RampOrders from '@components/UI/Ramp';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -34,11 +34,11 @@ import {
   removeNotVisibleNotifications,
 } from '@actions/notification';
 
-import ProtectYourWalletModal from '@UI/ProtectYourWalletModal';
+import ProtectYourWalletModal from '@components/UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
-import SkipAccountSecurityModal from '@UI/SkipAccountSecurityModal';
+import SkipAccountSecurityModal from '@components/UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
-import SwapsLiveness from '@UI/Swaps/SwapsLiveness';
+import SwapsLiveness from '@components/UI/Swaps/SwapsLiveness';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -46,7 +46,7 @@ import {
 } from '@actions/infuraAvailability';
 
 import { createStackNavigator } from '@react-navigation/stack';
-import ReviewModal from '@UI/ReviewModal';
+import ReviewModal from '@components/UI/ReviewModal';
 import { useTheme } from '@util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { colors as importedColors } from '@styles/common';
@@ -54,8 +54,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '@component-library/components/Toast';
-import { useEnableAutomaticSecurityChecks } from '@hooks/EnableAutomaticSecurityChecks';
-import { useMinimumVersions } from '@hooks/MinimumVersions';
+import { useEnableAutomaticSecurityChecks } from '@components/hooks/EnableAutomaticSecurityChecks';
+import { useMinimumVersions } from '@components/hooks/MinimumVersions';
 import navigateTermsOfUse from '@util/termsOfUse/termsOfUse';
 import {
   selectChainId,

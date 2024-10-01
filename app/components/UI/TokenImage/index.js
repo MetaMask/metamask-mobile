@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import AssetIcon from '@AssetIcon';
-import Identicon from '@Identicon';
+import AssetIcon from '@components/UI/AssetIcon';
+import Identicon from '@components/UI/Identicon';
 import isUrl from 'is-url';
 import { connect, useSelector } from 'react-redux';
 import { selectTokenList } from '@selectors/tokenListController';

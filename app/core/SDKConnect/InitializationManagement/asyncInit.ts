@@ -3,14 +3,14 @@ import {
   disconnectAll,
   resetApprovedHosts,
   resetConnections,
-} from '@app/actions/sdk';
-import { RootState } from '@app/reducers';
+} from '@actions/sdk';
+import { RootState } from '@reducers';
 import { store } from '@store';
 import Logger from '@util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '@SDKConnect';
-import DevLogger from '@utils/DevLogger';
-import { wait } from '@utils/wait.util';
-import AppConstants from '@app/core/AppConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { wait } from '@core/SDKConnect/utils/wait.util';
+import AppConstants from '@core/AppConstants';
 
 const asyncInit = async ({
   navigation,

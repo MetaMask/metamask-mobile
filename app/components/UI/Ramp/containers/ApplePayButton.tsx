@@ -6,14 +6,14 @@ import {
   FiatOrder,
 } from '@reducers/fiatOrders';
 import ApplePayButtonComponent from '@components/ApplePayButton';
-import useApplePay, { ABORTED } from '@hooks/useApplePay';
+import useApplePay, { ABORTED } from '@components/hooks/useApplePay';
 import Logger from '@util/Logger';
 import { strings } from '@locales/i18n';
 import { setLockTime } from '@actions/settings';
 import { aggregatorOrderToFiatOrder } from '@orderProcessor/aggregator';
 import NotificationManager from '@core/NotificationManager';
 import { useRampSDK } from '@sdk';
-import useHandleSuccessfulOrder from '@hooks/useHandleSuccessfulOrder';
+import useHandleSuccessfulOrder from '@components/hooks/useHandleSuccessfulOrder';
 
 function buildAuthenticationUrl(url: string, redirectUrl: string) {
   const urlObject = new URL(url);

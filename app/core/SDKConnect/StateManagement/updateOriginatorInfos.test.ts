@@ -6,7 +6,7 @@ import updateOriginatorInfos from './updateOriginatorInfos';
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('@SDKConnect');
 jest.mock('@store/storage-wrapper');
-jest.mock('@AppConstants');
+jest.mock('@core/AppConstants');
 
 jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn(),

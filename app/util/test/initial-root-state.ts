@@ -1,14 +1,14 @@
 import type { RootState } from '@reducers';
 import type { EngineState } from '@core/Engine';
-import { initialState as initialFiatOrdersState } from '@reducers/fiatOrders';
-import { initialState as initialSecurityState } from '@reducers/security';
+import { initialState as initialFiatOrdersState } from '@util/reducers/fiatOrders';
+import { initialState as initialSecurityState } from '@util/reducers/security';
 import { initialState as initialInpageProvider } from '@core/redux/slices/inpageProvider';
 import { initialState as initialSmartTransactions } from '@core/redux/slices/smartTransactions';
 import { initialState as transactionMetrics } from '@core/redux/slices/transactionMetrics';
 import { initialState as originThrottling } from '@core/redux/slices/originThrottling';
 import { initialState as initialFeatureFlagsState } from '@core/redux/slices/featureFlags';
 import initialBackgroundState from './initial-background-state.json';
-import { userInitialState } from '@reducers/user';
+import { userInitialState } from '@util/reducers/user';
 
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import TransactionEditor from './components/TransactionEditor';
 import Modal from 'react-native-modal';
 import { safeBNToHex } from '@util/number';
-import { getTransactionOptionsTitle } from '@UI/Navbar';
+import { getTransactionOptionsTitle } from '@components/UI/Navbar';
 import { resetTransaction } from '@actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '@core/NotificationManager';
@@ -26,7 +26,7 @@ import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
 import Logger from '@util/Logger';
 import { KEYSTONE_TX_CANCELED } from '@constants/error';
 import { ThemeContext, mockTheme } from '@util/theme';
-import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
+import { createLedgerTransactionModalNavDetails } from '@components/UI/LedgerModals/LedgerTransactionModal';
 import {
   TX_CANCELLED,
   TX_CONFIRMED,
@@ -354,8 +354,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {

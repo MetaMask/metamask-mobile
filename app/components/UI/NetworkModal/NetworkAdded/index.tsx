@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 import { NetworkAddedModalSelectorsIDs } from '@e2e/selectors/Modals/NetworkAddedModal.selectors';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import KeypadComponent from '@Base/Keypad';
+import KeypadComponent from '@components/Base/Keypad';
 import { useTheme } from '@util/theme';
 import { colors as importedColors } from '@styles/common';
 import { Colors, Shadows } from '@util/theme/models';

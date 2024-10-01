@@ -24,7 +24,7 @@ import { useTheme } from '@util/theme';
 import Device from '@util/device';
 import StorageWrapper from '@store/storage-wrapper';
 import { isTest } from '@util/test/utils';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { RootState } from '@reducers';
 
 const createStyles = ({ colors, typography }: Theme) =>

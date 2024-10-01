@@ -2,7 +2,7 @@
 import React from 'react';
 
 // External dependencies.
-import { TextVariant, TextColor } from '@Text';
+import { TextVariant, TextColor } from '@components/Base/Text';
 import { IconName, IconSize, IconColor } from '@Icons/Icon';
 
 // Internal dependencies.

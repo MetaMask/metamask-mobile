@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { useParams } from '@util/navigation/navUtils';
 import { useStyles } from '@component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';

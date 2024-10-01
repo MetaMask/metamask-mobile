@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Box from './Box';
 import { useTheme } from '@util/theme';

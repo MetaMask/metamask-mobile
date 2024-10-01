@@ -12,7 +12,7 @@ import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '@core/Engine';
 import I18n, { strings } from '@locales/i18n';
-import { safeToChecksumAddress } from '@address';
+import { safeToChecksumAddress } from '@util/address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -23,22 +23,22 @@ import {
   weiToFiat,
   weiToFiatNumber,
   toTokenMinimalUnit,
-} from '@number';
+} from '@util/number';
 import AppConstants from '@core/AppConstants';
-import { isMainnetByChainId } from '@networks';
+import { isMainnetByChainId } from '@util/networks';
 import { UINT256_BN_MAX_VALUE } from '@constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '@constants/error';
 import {
   addCurrencies,
   multiplyCurrencies,
   subtractCurrencies,
-} from '@conversion';
+} from '@util/conversion';
 import {
   decGWEIToHexWEI,
   getValueFromWeiHex,
   formatETHFee,
   sumHexWEIs,
-} from '@conversions';
+} from '@util/conversions';
 import {
   addEth,
   addFiat,
@@ -46,7 +46,7 @@ import {
   formatCurrency,
   getTransactionFee,
   roundExponential,
-} from '@confirm-tx';
+} from '@util/confirm-tx';
 
 import Logger from '@util/Logger';
 import { handleMethodData } from '@util/transaction-controller';
@@ -455,11 +455,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -1029,7 +1029,7 @@ export const parseTransactionEIP1559 = (
     maxPriorityFeeNative,
     nativeCurrency,
     Boolean(maxPriorityFeePerGasTimesGasLimitHex) &&
-      maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
+    maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
   );
   const renderableMaxPriorityFeeConversion = formatCurrency(
     maxPriorityFeeConversion,
@@ -1528,7 +1528,7 @@ export const getIsSwapApproveOrSwapTransaction = (
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          swapsUtils.getSwapsContractAddress(chainId)))
+        swapsUtils.getSwapsContractAddress(chainId)))
   );
 };
 

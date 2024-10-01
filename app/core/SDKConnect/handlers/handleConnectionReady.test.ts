@@ -2,20 +2,20 @@ import handleConnectionReady from './handleConnectionReady';
 
 import { ApprovalController } from '@metamask/approval-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import AppConstants from '@app/core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import { Connection } from '@Connection';
 import checkPermissions from './checkPermissions';
 
-import Engine from '@Engine';
-import { HOUR_IN_MS } from '@SDKConnectConstants';
+import Engine from '@core/Engine';
+import { HOUR_IN_MS } from '@core/SDKConnect/SDKConnectConstants';
 import { setupBridge } from './setupBridge';
 
 jest.mock('@metamask/approval-controller');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('@app/core/AppConstants');
+jest.mock('@core/AppConstants');
 jest.mock('@util/Logger');
 jest.mock('@Connection');
-jest.mock('@utils/wait.util');
+jest.mock('@core/SDKConnect/utils/wait.util');
 jest.mock('./setupBridge');
 jest.mock('./checkPermissions');
 jest.mock('./handleSendMessage');

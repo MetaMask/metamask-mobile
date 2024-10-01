@@ -10,11 +10,11 @@ jest.mock('react-native-background-timer', () => ({
   setInterval: jest.fn(),
   clearInterval: jest.fn(),
 }));
-jest.mock('@Engine');
+jest.mock('@core');
 jest.mock('@util/Logger');
 jest.mock('@util/device');
 jest.mock('@SDKConnect');
-jest.mock('@utils/wait.util');
+jest.mock('@core/SDKConnect/utils/wait.util');
 
 describe('handleAppState', () => {
   let mockInstance = {} as unknown as SDKConnect;

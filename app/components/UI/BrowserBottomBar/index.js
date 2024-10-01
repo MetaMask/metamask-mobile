@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
-import TabCountIcon from '@Tabs/TabCountIcon';
+import TabCountIcon from '@components/UI/Tabs/TabCountIcon';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';

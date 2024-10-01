@@ -33,7 +33,7 @@ jest.mock('@react-navigation/compat', () => {
 });
 
 jest.mock('@QRScanner', () => jest.fn(() => null));
-jest.mock('@UI/ReceiveRequest', () => jest.fn(() => null));
+jest.mock('@components/UI/ReceiveRequest', () => jest.fn(() => null));
 
 describe('QRTabSwitcher', () => {
   it('renders QRScanner by default', () => {

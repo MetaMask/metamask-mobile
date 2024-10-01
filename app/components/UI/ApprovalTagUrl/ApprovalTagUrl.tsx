@@ -9,7 +9,7 @@ import AppConstants from '@core/AppConstants';
 import { selectInternalAccounts } from '@selectors/accountsController';
 import { selectAccountsByChainId } from '@selectors/accountTrackerController';
 import { prefixUrlWithProtocol } from '@util/browser';
-import useFavicon from '@hooks/useFavicon/useFavicon';
+import useFavicon from '@components/hooks/useFavicon/useFavicon';
 import stylesheet from './ApprovalTagUrl.styles';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;

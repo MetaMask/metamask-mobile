@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import AnimatedTransactionModal from '@UI/AnimatedTransactionModal';
-import TransactionReview from '@components/TransactionReview';
+import AnimatedTransactionModal from '@components/UI/AnimatedTransactionModal';
+import TransactionReview from '@components/Views/confirmations/components/TransactionReview';
 import {
   hexToBN,
   fromWei,
@@ -26,8 +26,8 @@ import Engine from '@core/Engine';
 import collectiblesTransferInformation from '@util/collectibles-transfer';
 import { safeToChecksumAddress } from '@util/address';
 import { shallowEqual } from '@util/general';
-import EditGasFee1559 from '@UI/EditGasFee1559';
-import EditGasFeeLegacy from '@components/EditGasFeeLegacyUpdate';
+import EditGasFee1559 from '@components/UI/EditGasFee1559';
+import EditGasFeeLegacy from '@components/UI/EditGasFeeLegacy';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '@core/AppConstants';
 import {
@@ -241,8 +241,8 @@ class TransactionEditor extends PureComponent {
         dappSuggestedGasPrice
           ? fromWei(dappSuggestedGasPrice, 'gwei')
           : gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? this.props.gasFeeEstimates[selected]
-          : this.props.gasFeeEstimates.gasPrice;
+            ? this.props.gasFeeEstimates[selected]
+            : this.props.gasFeeEstimates.gasPrice;
 
       const LegacyGasData = this.parseTransactionDataLegacy(
         {
@@ -520,9 +520,9 @@ class TransactionEditor extends PureComponent {
         const tokenAmountToSend = selectedAsset && value && value.toString(16);
         return to && tokenAmountToSend
           ? generateTransferData('transfer', {
-              toAddress: to,
-              amount: tokenAmountToSend,
-            })
+            toAddress: to,
+            amount: tokenAmountToSend,
+          })
           : undefined;
       },
       ERC721: () => {
@@ -637,9 +637,9 @@ class TransactionEditor extends PureComponent {
 
     const totalError = this.validateTotal(
       EIP1559GasData?.totalMaxHex ||
-        this.state.EIP1559GasData.totalMaxHex ||
-        LegacyGasData?.totalHex ||
-        this.state.LegacyGasData.totalHex,
+      this.state.EIP1559GasData.totalMaxHex ||
+      LegacyGasData?.totalHex ||
+      this.state.LegacyGasData.totalHex,
     );
     const amountError = await validateAmount(
       assetType,

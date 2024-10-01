@@ -1,5 +1,5 @@
 import migrate from './021';
-import { IPFS_DEFAULT_GATEWAY_URL } from '@app/constants/network';
+import { IPFS_DEFAULT_GATEWAY_URL } from '@constants/network';
 import { backgroundState } from '@util/test/initial-root-state';
 
 describe('Migration #21', () => {

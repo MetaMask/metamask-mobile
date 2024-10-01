@@ -41,7 +41,7 @@ import ExtendedKeyringTypes, {
 } from '@constants/keyringTypes';
 import { forgetLedger } from '@core/Ledger/Ledger';
 import Engine from '@core/Engine';
-import BlockingActionModal from '@UI/BlockingActionModal';
+import BlockingActionModal from '@components/UI/BlockingActionModal';
 import { useTheme } from '@util/theme';
 import { Hex } from '@metamask/utils';
 

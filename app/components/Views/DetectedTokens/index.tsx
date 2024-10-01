@@ -9,7 +9,7 @@ import { FlatList } from 'react-native-gesture-handler';
 // External Dependencies
 import { MetaMetricsEvents } from '@core/Analytics';
 import { fontStyles } from '@styles/common';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import Token from './components/Token';
 import Engine from '@core/Engine';
 import NotificationManager from '@core/NotificationManager';

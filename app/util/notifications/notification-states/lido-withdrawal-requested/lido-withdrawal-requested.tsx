@@ -3,15 +3,15 @@ import {
   ModalFieldType,
   ModalFooterType,
   TRIGGER_TYPES,
-} from '@constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
-import { NotificationState } from '@types/NotificationState';
+} from '@util/constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@util/node-guard';
+import { NotificationState } from '@util/types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
   getNotificationBadge,
-} from '@methods/common';
-import { getTokenAmount } from '@token-amounts';
+} from '@util/methods/common';
+import { getTokenAmount } from '@util/token-amounts';
 
 type LidoWithdrawalRequestedNotification =
   ExtractedNotification<TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED>;

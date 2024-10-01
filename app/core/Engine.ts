@@ -224,7 +224,7 @@ import SmartTransactionsController, {
   type SmartTransactionsControllerEvents,
   type SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
-import { getAllowedSmartTransactionsChainIds } from '@app/constants/smartTransactions';
+import { getAllowedSmartTransactionsChainIds } from '@constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '@reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';

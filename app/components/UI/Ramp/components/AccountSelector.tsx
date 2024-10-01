@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import EthereumAddress from '@EthereumAddress';
-import JSIdenticon from '@Identicon';
-import Text from '@Base/Text';
-import JSSelectorButton from '@Base/SelectorButton';
+import EthereumAddress from '@components/UI/EthereumAddress';
+import JSIdenticon from '@components/UI/Identicon';
+import Text from '@components/Base/Text';
+import JSSelectorButton from '@components/Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
-import { createAccountSelectorNavDetails } from '@Views/AccountSelector';
+import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
 import { selectSelectedInternalAccount } from '@selectors/accountsController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

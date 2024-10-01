@@ -29,14 +29,14 @@ import { Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
-import TextLegacy from '@Base/Text';
+import TextLegacy from '@components/Base/Text';
 import ScreenLayout from '@components/ScreenLayout';
 import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
 import ErrorView from '@components/ErrorView';
 import Row from '@components/Row';
 import Quote from '@components/Quote';
 import InfoAlert from '@components/InfoAlert';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 
 import Text, {
   TextVariant,
@@ -53,8 +53,8 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 
-import useAnalytics from '@hooks/useAnalytics';
-import useQuotes from '@hooks/useQuotes';
+import useAnalytics from '@components/hooks/useAnalytics';
+import useQuotes from '@components/hooks/useQuotes';
 import { useRampSDK } from '@sdk';
 import { useStyles } from '@component-library/hooks';
 import {
@@ -64,8 +64,8 @@ import {
 import Routes from '@constants/navigation/Routes';
 import { strings } from '@locales/i18n';
 import LoadingAnimation from '@components/LoadingAnimation';
-import useInterval from '@hooks/useInterval';
-import useInAppBrowser from '@hooks/useInAppBrowser';
+import useInterval from '@components/hooks/useInterval';
+import useInAppBrowser from '@components/hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '@Checkout';
 import { PROVIDER_LINKS, ScreenLocation } from '@types';
 import Logger from '@util/Logger';

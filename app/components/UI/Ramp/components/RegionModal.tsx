@@ -16,13 +16,13 @@ import Fuse from 'fuse.js';
 import { strings } from '@locales/i18n';
 import ScreenLayout from './ScreenLayout';
 import Feather from 'react-native-vector-icons/Feather';
-import Text from '@Base/Text';
-import BaseListItem from '@Base/ListItem';
-import ModalDragger from '@Base/ModalDragger';
+import Text from '@components/Base/Text';
+import BaseListItem from '@components/Base/ListItem';
+import ModalDragger from '@components/Base/ModalDragger';
 import { useTheme } from '@util/theme';
 import RegionAlert from './RegionAlert';
 import { RampType, Region, ScreenLocation } from '@types';
-import useAnalytics from '@hooks/useAnalytics';
+import useAnalytics from '@components/hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
 
 // TODO: Convert into typescript and correctly type

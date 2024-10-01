@@ -8,8 +8,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { getAssetTestId } from '@wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { backgroundState } from '@util/test/initial-root-state';
 import { strings } from '@locales/i18n';
-import AppConstants from '@app/core/AppConstants';
-import Routes from '@app/constants/navigation/Routes';
+import AppConstants from '@core/AppConstants';
+import Routes from '@constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
 
 jest.mock('@core/Engine', () => ({

@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
-import { TextVariant } from '@Texts/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
 
 // Defaults
 export const DEFAULT_HEADERBASE_TITLE_TEXTVARIANT = TextVariant.HeadingSM;

@@ -19,10 +19,10 @@ import Text, {
 import StorageWrapper from '@store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from '@metamask/react-native-button';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { fontStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import FadeOutOverlay from '@UI/FadeOutOverlay';
+import FadeOutOverlay from '@components/UI/FadeOutOverlay';
 import setOnboardingWizardStep from '@actions/wizard';
 import { setAllowLoginWithRememberMe } from '@actions/security';
 import { connect } from 'react-redux';
@@ -32,7 +32,7 @@ import {
   updateAuthTypeStorageFlags,
 } from '@util/authentication';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import { BiometryButton } from '@UI/BiometryButton';
+import { BiometryButton } from '@components/UI/BiometryButton';
 import Logger from '@util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
@@ -42,14 +42,14 @@ import {
 } from '@constants/storage';
 import Routes from '@constants/navigation/Routes';
 import { passwordRequirementsMet } from '@util/password';
-import ErrorBoundary from '@ErrorBoundary';
+import ErrorBoundary from '@components/Views/ErrorBoundary';
 import { toLowerCaseEquals } from '@util/general';
 import { Authentication } from '@core';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
 import { ThemeContext, mockTheme } from '@util/theme';
-import AnimatedFox from '@Base/AnimatedFox';
-import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
-import { createRestoreWalletNavDetailsNested } from '@RestoreWallet/RestoreWallet';
+import AnimatedFox from '@components/Base/AnimatedFox';
+import { LoginOptionsSwitch } from '@components/UI/LoginOptionsSwitch';
+import { createRestoreWalletNavDetailsNested } from '@components/Views/RestoreWallet';
 import { parseVaultValue } from '@util/validators';
 import { getVaultFromBackup } from '@core/BackupVault';
 import { containsErrorMessage } from '@util/errorHandling';

@@ -1,8 +1,8 @@
 import React from 'react';
-import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '@ApprovalModal';
-import AccountApproval from '@UI/AccountApproval';
+import AccountApproval from '@components/UI/AccountApproval';
 
 export interface ConnectApprovalProps {
   // TODO: Replace "any" with type

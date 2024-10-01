@@ -7,7 +7,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
-jest.mock('@hooks/useApprovalRequest', () => () => ({
+jest.mock('@components/hooks/useApprovalRequest', () => () => ({
   onConfirm: mockConfirmSpy,
   onReject: mockRejectSpy,
 }));

@@ -1,5 +1,5 @@
 import { decrypt, encrypt, PrivateKey } from 'eciesjs';
-import DevLogger from '@utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 /**
  * These properties are optional and should only be used during development for debugging purposes.

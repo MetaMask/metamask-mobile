@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import dappUrlList from '@util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import WebsiteIcon from '@WebsiteIcon';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
 import { fontStyles } from '@styles/common';
 import { getHost } from '@util/browser';
 import { ThemeContext, mockTheme } from '@util/theme';

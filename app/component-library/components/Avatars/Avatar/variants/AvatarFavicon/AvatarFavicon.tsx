@@ -6,10 +6,10 @@ import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Icon from '@Icons/Icon';
 import { ICONSIZE_BY_AVATARSIZE } from '@Avatar.constants';
-import AvatarBase from '@foundation/AvatarBase';
+import AvatarBase from '@component-library/components/AvatarBase';
 
 // Internal dependencies.
 import { isNumber } from 'lodash';

@@ -5,7 +5,7 @@ import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
 } from '@constants/storage';
-import { whatsNewList } from '@components/UI/WhatsNewModal';
+import { whatsNewList } from '@util/components/UI/WhatsNewModal';
 import StorageWrapper from '@store/storage-wrapper';
 import { NETWORKS_CHAIN_ID } from '@constants/network';
 import { store } from '@store';

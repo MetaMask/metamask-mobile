@@ -5,7 +5,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
-import ActionModal from '@ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

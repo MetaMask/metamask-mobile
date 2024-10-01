@@ -1,6 +1,6 @@
 import { Connection } from '@Connection';
 import SDKConnect from '@SDKConnect';
-import { waitForCondition } from '@utils/wait.util';
+import { waitForCondition } from '@core/SDKConnect/utils/wait.util';
 import reconnect from './reconnect';
 
 jest.mock('@Connection', () => ({
@@ -21,8 +21,8 @@ jest.mock('@Connection', () => ({
   ),
 }));
 jest.mock('@SDKConnect');
-jest.mock('@utils/DevLogger');
-jest.mock('@utils/wait.util');
+jest.mock('@core/SDKConnect/utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/wait.util');
 
 describe('reconnect', () => {
   let mockInstance = {} as unknown as SDKConnect;

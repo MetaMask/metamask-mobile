@@ -11,7 +11,7 @@ import { strings } from '@locales/i18n';
 import Button, {
   ButtonVariants,
 } from '@component-library/components/Buttons/Button';
-import useTooltipModal from '@hooks/useTooltipModal';
+import useTooltipModal from '@components/hooks/useTooltipModal';
 import { BannerProps } from '@component-library/components/Banners/Banner/Banner.types';
 import { useStyles } from '@component-library/hooks';
 import styleSheet from './ClaimBanner.styles';

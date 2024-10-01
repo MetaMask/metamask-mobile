@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import Modal from 'react-native-modal';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
-import ModalDragger from '@Base/ModalDragger';
-import Text from '@Base/Text';
-import Alert, { AlertType } from '@Base/Alert';
+import ModalDragger from '@components/Base/ModalDragger';
+import Text from '@components/Base/Text';
+import Alert, { AlertType } from '@components/Base/Alert';
 import TokenIcon from './TokenIcon';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 

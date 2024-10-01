@@ -11,7 +11,7 @@ import renderWithProvider, {
 import ClipboardManager from '@core/ClipboardManager';
 import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
 import { backgroundState } from '@util/test/initial-root-state';
-import { Account } from '@hooks/useAccounts';
+import { Account } from '@components/hooks/useAccounts';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   internalAccount2,

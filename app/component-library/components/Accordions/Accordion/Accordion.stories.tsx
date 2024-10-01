@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { mockTheme } from '@util/theme';
-import Text, { TextVariant } from '@Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { SAMPLE_ACCORDIONHEADER_PROPS } from './foundation/AccordionHeader/AccordionHeader.constants';
 import { AccordionHeaderHorizontalAlignment } from './foundation/AccordionHeader/AccordionHeader.types';
 

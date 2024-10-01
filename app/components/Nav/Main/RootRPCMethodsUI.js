@@ -43,24 +43,24 @@ import {
   selectChainId,
   selectProviderType,
 } from '@selectors/networkController';
-import WatchAssetApproval from '@Approvals/WatchAssetApproval';
-import SignatureApproval from '@Approvals/SignatureApproval';
-import AddChainApproval from '@Approvals/AddChainApproval';
-import SwitchChainApproval from '@Approvals/SwitchChainApproval';
-import WalletConnectApproval from '@Approvals/WalletConnectApproval';
-import ConnectApproval from '@Approvals/ConnectApproval';
+import WatchAssetApproval from '@components/Approvals/WatchAssetApproval';
+import SignatureApproval from '@components/Approvals/SignatureApproval';
+import AddChainApproval from '@components/Approvals/AddChainApproval';
+import SwitchChainApproval from '@components/Approvals/SwitchChainApproval';
+import WalletConnectApproval from '@components/Approvals/WalletConnectApproval';
+import ConnectApproval from '@components/Approvals/ConnectApproval';
 import {
   TransactionApproval,
   TransactionModalType,
-} from '@Approvals/TransactionApproval';
-import PermissionApproval from '@Approvals/PermissionApproval';
-import FlowLoaderModal from '@Approvals/FlowLoaderModal';
-import TemplateConfirmationModal from '@Approvals/TemplateConfirmationModal';
+} from '@components/Approvals/TransactionApproval';
+import PermissionApproval from '@components/Approvals/PermissionApproval';
+import FlowLoaderModal from '@components/Approvals/FlowLoaderModal';
+import TemplateConfirmationModal from '@components/Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '@selectors/tokenListController';
 import { selectTokens } from '@selectors/tokensController';
 import { getDeviceId } from '@core/Ledger/Ledger';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
-import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
+import { createLedgerTransactionModalNavDetails } from '@components/UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '@constants/keyringTypes';
 import Confirm from '@components/Views/confirmations/Confirm';
 import { useMetrics } from '@components/hooks/useMetrics';
@@ -72,7 +72,7 @@ import { selectSwapsTransactions } from '@selectors/transactionController';
 import { updateSwapsTransaction } from '@util/swaps/swaps-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import InstallSnapApproval from '@Approvals/InstallSnapApproval';
+import InstallSnapApproval from '@components/Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -304,7 +304,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
+              onConfirmationComplete: () => { },
               type: 'signTransaction',
             }),
           );

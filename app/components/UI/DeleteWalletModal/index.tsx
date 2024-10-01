@@ -15,7 +15,7 @@ import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '@ReusableModal';
 import WarningExistingUserModal from '@WarningExistingUserModal';
-import { useDeleteWallet } from '@hooks/DeleteWallet';
+import { useDeleteWallet } from '@components/hooks/DeleteWallet';
 import { strings } from '@locales/i18n';
 import { tlc } from '@util/general';
 import { useTheme } from '@util/theme';

@@ -12,8 +12,8 @@ import {
   RenderHookOptions,
 } from '@testing-library/react-native';
 
-import { mockTheme, ThemeContext } from '@theme';
-import { Theme } from '@theme/models';
+import { mockTheme, ThemeContext } from '@util/theme';
+import { Theme } from '@util/theme/models';
 import configureStore from './configureStore';
 import { RootState } from '@reducers';
 

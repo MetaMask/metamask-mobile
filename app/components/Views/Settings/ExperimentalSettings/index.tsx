@@ -8,7 +8,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '@component-library/components/Texts/Text';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
@@ -16,9 +16,9 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '@component-library/components/Buttons/Button';
-import Device from '@app/util/device';
-import { SES_URL } from '@app/constants/urls';
-import Routes from '@app/constants/navigation/Routes';
+import Device from '@util/device';
+import { SES_URL } from '@constants/urls';
+import Routes from '@constants/navigation/Routes';
 
 const storage = new MMKV(); // id: mmkv.default
 

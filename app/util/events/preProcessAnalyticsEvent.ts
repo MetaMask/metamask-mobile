@@ -1,4 +1,4 @@
-import { JsonMap } from '@segment/analytics-react-native';
+import { JsonMap } from '@util/segment/analytics-react-native';
 
 function preProcessAnalyticsEvent(properties: JsonMap) {
   const nonAnonymousProperties: JsonMap = {};

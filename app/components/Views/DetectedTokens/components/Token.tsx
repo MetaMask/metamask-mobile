@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Token as TokenType } from '@metamask/assets-controllers';
-import EthereumAddress from '@UI/EthereumAddress';
+import EthereumAddress from '@components/UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import CheckBox from '@react-native-community/checkbox';
 import { strings } from '@locales/i18n';
-import TokenImage from '@UI/TokenImage';
+import TokenImage from '@components/UI/TokenImage';
 import { fontStyles } from '@styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '@actions/alert';

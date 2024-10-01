@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 
 // External dependencies
-import SDKFeedback from '@UI/SDKFeedback';
+import SDKFeedback from '@components/UI/SDKFeedback';
 import BottomSheet, {
   BottomSheetRef,
 } from '@component-library/components/BottomSheets/BottomSheet';

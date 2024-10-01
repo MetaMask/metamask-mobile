@@ -14,7 +14,7 @@ import {
   selectTicker,
 } from '@selectors/networkController';
 import { NetworkList } from '@util/networks';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import Name from '@Name/Name';
 import { NameType } from '@Name/Name.types';
 import { AssetIdentifier, AssetType } from '@types';

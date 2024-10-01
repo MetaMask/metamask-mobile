@@ -18,7 +18,7 @@ import {
   getLabelTextByAddress,
   renderAccountName,
 } from '@util/address';
-import useAddressBalance from '@hooks/useAddressBalance/useAddressBalance';
+import useAddressBalance from '@components/hooks/useAddressBalance/useAddressBalance';
 import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
@@ -26,7 +26,7 @@ import {
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
 import { selectInternalAccounts } from '@selectors/accountsController';
-import ApprovalTagUrl from '@UI/ApprovalTagUrl';
+import ApprovalTagUrl from '@components/UI/ApprovalTagUrl';
 
 const ApproveTransactionHeader = ({
   from,

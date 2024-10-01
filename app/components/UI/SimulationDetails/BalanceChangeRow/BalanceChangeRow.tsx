@@ -5,7 +5,7 @@ import { View, ViewProps } from 'react-native';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import { BalanceChange } from '@types';
 import AmountPill from '@AmountPill/AmountPill';
 import AssetPill from '@AssetPill/AssetPill';

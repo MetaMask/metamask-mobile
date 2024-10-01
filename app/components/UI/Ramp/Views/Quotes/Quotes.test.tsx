@@ -22,7 +22,7 @@ import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
 import { RampSDK } from '@sdk';
-import useQuotes from '@hooks/useQuotes';
+import useQuotes from '@components/hooks/useQuotes';
 
 import Routes from '@constants/navigation/Routes';
 import { backgroundState } from '@util/test/initial-root-state';
@@ -96,8 +96,8 @@ jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
-jest.mock('@hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
+jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
@@ -131,7 +131,7 @@ let mockUseQuotesValues: Partial<ReturnType<typeof useQuotes>> = {
   ...mockUseQuotesInitialValues,
 };
 
-jest.mock('@hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
+jest.mock('@components/hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
 
 describe('Quotes', () => {
   afterEach(() => {

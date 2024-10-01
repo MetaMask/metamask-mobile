@@ -23,7 +23,7 @@ import generateDeviceAnalyticsMetaData, {
 import { MetaMetricsEvents } from '@core/Analytics';
 import { setDataCollectionForMarketing } from '@actions/security';
 import Routes from '@constants/navigation/Routes';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 

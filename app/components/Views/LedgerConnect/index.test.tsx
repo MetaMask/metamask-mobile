@@ -1,11 +1,11 @@
 import React from 'react';
 import LedgerConnect from '.';
 import renderWithProvider from '@util/test/renderWithProvider';
-import useBluetoothPermissions from '@hooks/useBluetoothPermissions';
-import useBluetooth from '@hooks/Ledger/useBluetooth';
+import useBluetoothPermissions from '@components/hooks/useBluetoothPermissions';
+import useBluetooth from '@components/hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
-} from '@hooks/Ledger/useBluetoothDevices';
+} from '@components/hooks/Ledger/useBluetoothDevices';
 import { fireEvent } from '@testing-library/react-native';
 import {
   useNavigation,
@@ -35,10 +35,10 @@ interface UseBluetoothDevicesHook {
   deviceScanError: boolean;
 }
 
-jest.mock('@hooks/useBluetoothPermissions');
-jest.mock('@hooks/Ledger/useBluetooth');
-jest.mock('@hooks/Ledger/useBluetoothDevices');
-jest.mock('@hooks/Ledger/useLedgerBluetooth');
+jest.mock('@components/hooks/useBluetoothPermissions');
+jest.mock('@components/hooks/Ledger/useBluetooth');
+jest.mock('@components/hooks/Ledger/useBluetoothDevices');
+jest.mock('@components/hooks/Ledger/useLedgerBluetooth');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -75,7 +75,7 @@ jest.mock('@core/Engine', () => ({
   },
 }));
 
-jest.mock('@hooks/Ledger/useBluetooth', () => ({
+jest.mock('@components/hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     bluetoothOn: true,
@@ -83,7 +83,7 @@ jest.mock('@hooks/Ledger/useBluetooth', () => ({
   })),
 }));
 
-jest.mock('@hooks/Ledger/useBluetoothDevices', () => ({
+jest.mock('@components/hooks/Ledger/useBluetoothDevices', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     devices: [],
@@ -91,7 +91,7 @@ jest.mock('@hooks/Ledger/useBluetoothDevices', () => ({
   })),
 }));
 
-jest.mock('@hooks/useBluetoothPermissions', () => ({
+jest.mock('@components/hooks/useBluetoothPermissions', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     hasBluetoothPermissions: true,

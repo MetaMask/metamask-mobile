@@ -14,10 +14,10 @@ import Fuse from 'fuse.js';
 import { strings } from '@locales/i18n';
 import ScreenLayout from './ScreenLayout';
 
-import Text from '@Base/Text';
-import BaseListItem from '@Base/ListItem';
-import ModalDragger from '@Base/ModalDragger';
-import TokenIcon from '@Swaps/components/TokenIcon';
+import Text from '@components/Base/Text';
+import BaseListItem from '@components/Base/ListItem';
+import ModalDragger from '@components/Base/ModalDragger';
+import TokenIcon from '@components/UI/Swaps/components/TokenIcon';
 import { useTheme } from '@util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { Colors } from '@util/theme/models';

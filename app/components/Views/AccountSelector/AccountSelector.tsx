@@ -9,7 +9,7 @@ import React, {
 import { View } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '@UI/AccountSelectorList';
+import AccountSelectorList from '@components/UI/AccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
 } from '@component-library/components/BottomSheets/BottomSheet';
@@ -17,7 +17,7 @@ import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import UntypedEngine from '@core/Engine';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { strings } from '@locales/i18n';
-import { useAccounts } from '@hooks/useAccounts';
+import { useAccounts } from '@components/hooks/useAccounts';
 import Button, {
   ButtonSize,
   ButtonVariants,

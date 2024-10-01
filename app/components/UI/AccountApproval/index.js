@@ -10,16 +10,16 @@ import { connect } from 'react-redux';
 import { strings } from '@locales/i18n';
 import Text from '@component-library/components/Texts/Text';
 import NotificationManager from '@core/NotificationManager';
-import AccountInfoCard from '@AccountInfoCard';
-import StyledButton from '@StyledButton';
-import TransactionHeader from '@TransactionHeader';
+import AccountInfoCard from '@components/UI/AccountInfoCard';
+import StyledButton from '@components/UI/StyledButton';
+import TransactionHeader from '@components/UI/TransactionHeader';
 
 import { MetaMetricsEvents } from '@core/Analytics';
 
 import CheckBox from '@react-native-community/checkbox';
 import { shuffle } from 'lodash';
 import URL from 'url-parse';
-import AppConstants from '@app/core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 import { ConnectAccountModalSelectorsIDs } from '@e2e/selectors/Modals/ConnectAccountModal.selectors';
 import generateTestId from '@wdio/utils/generateTestId';
@@ -102,7 +102,7 @@ class AccountApproval extends PureComponent {
     otps: shuffle(this.props.currentPageInformation.otps || []),
     otp:
       this.props.currentPageInformation.origin ===
-        AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
+      AppConstants.DEEPLINKS.ORIGIN_QR_CODE &&
       this.props.currentPageInformation.reconnect &&
       this.props.currentPageInformation.apiVersion,
     isUrlFlaggedAsPhishing: false,
@@ -297,7 +297,7 @@ class AccountApproval extends PureComponent {
     const hasRememberMe =
       !currentPageInformation.reconnect &&
       this.props.currentPageInformation.origin ===
-        AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
+      AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
 
     return (
       <View

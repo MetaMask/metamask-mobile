@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 
 // Internal dependencies.
 import { IconProps, IconColor } from './Icon.types';

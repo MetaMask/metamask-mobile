@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import { useTheme } from '@util/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppThemeKey } from '@util/theme/models';

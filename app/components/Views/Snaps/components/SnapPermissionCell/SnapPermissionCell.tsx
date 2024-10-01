@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import stylesheet from './SnapPermissionCell.styles';
 import Icon, {
   IconColor,

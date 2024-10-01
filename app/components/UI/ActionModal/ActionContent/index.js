@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 

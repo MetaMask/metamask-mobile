@@ -1,4 +1,4 @@
-import { isString } from '@lodash';
+import { isString } from '@util/lodash';
 
 /**
  * The method escape RTL character in string

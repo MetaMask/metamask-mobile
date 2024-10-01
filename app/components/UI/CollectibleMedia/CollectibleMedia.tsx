@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import RemoteImage from '@Base/RemoteImage';
-import MediaPlayer from '@Views/MediaPlayer';
-import Text from '@Base/Text';
+import RemoteImage from '@components/Base/RemoteImage';
+import MediaPlayer from '@components/Views/MediaPlayer';
+import Text from '@components/Base/Text';
 import { isIPFSUri } from '@util/general';
 import { useSelector } from 'react-redux';
 import {

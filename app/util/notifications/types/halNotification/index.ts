@@ -1,6 +1,6 @@
 import type { TRIGGER_TYPES } from '@constants/triggers';
 import type { components } from './schema';
-import type { Compute } from '@type-utils';
+import type { Compute } from '@util/type-utils';
 
 export type Data_MetamaskSwapCompleted =
   components['schemas']['Data_MetamaskSwapCompleted'];

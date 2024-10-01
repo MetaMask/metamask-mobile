@@ -18,7 +18,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '@selectors/networkController';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import styleSheet from './AssetOptions.styles';
 import { selectTokenList } from '@selectors/tokenListController';
 import Logger from '@util/Logger';

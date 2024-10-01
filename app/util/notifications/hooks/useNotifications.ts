@@ -16,7 +16,7 @@ import {
   fetchAndUpdateMetamaskNotifications,
   markMetamaskNotificationsAsRead,
   updateOnChainTriggersByAccount,
-} from '@actions/notification/helpers';
+} from '@util/actions/notification/helpers';
 import { getNotificationsList } from '@selectors/notifications';
 
 /**

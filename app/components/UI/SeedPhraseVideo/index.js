@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { InteractionManager, StyleSheet, View } from 'react-native';
-import MediaPlayer from '@Views/MediaPlayer';
+import MediaPlayer from '@components/Views/MediaPlayer';
 import scaling from '@util/scaling';
 import I18n from '@locales/i18n';
 import recoveryPhraseVideo from '@videos/recovery-phrase.mp4';

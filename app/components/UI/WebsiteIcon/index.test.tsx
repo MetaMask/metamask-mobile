@@ -15,7 +15,7 @@ interface WebsiteIconProps {
 }
 
 // Mock the HOC
-jest.mock('@hooks/useFavicon/withFaviconAwareness', () => ({
+jest.mock('@components/hooks/useFavicon/withFaviconAwareness', () => ({
   __esModule: true,
   default:
     (Component: React.ComponentType<WebsiteIconProps>) =>

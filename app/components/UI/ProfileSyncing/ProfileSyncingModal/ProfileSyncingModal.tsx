@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import BottomSheet, {
   BottomSheetRef,
 } from '@component-library/components/BottomSheets/BottomSheet';

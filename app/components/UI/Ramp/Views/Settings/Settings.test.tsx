@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Settings from './Settings';
-import useActivationKeys from '@hooks/useActivationKeys';
+import useActivationKeys from '@components/hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '@sdk';
 import { ActivationKey } from '@reducers/fiatOrders/types';
 import {
@@ -72,7 +72,7 @@ const mockUseActivationKeysInitialValues: ReturnType<typeof useActivationKeys> =
 
 let mockUseActivationKeysValues = mockUseActivationKeysInitialValues;
 
-jest.mock('@hooks/useActivationKeys', () =>
+jest.mock('@components/hooks/useActivationKeys', () =>
   jest.fn(() => mockUseActivationKeysValues),
 );
 

@@ -4,7 +4,7 @@ import {
   cacheFavicon,
   isFaviconSVG,
 } from '.';
-import { storeFavicon } from '@actions/browser';
+import { storeFavicon } from '@util/actions/browser';
 
 jest.mock('@store', () => {
   const actual = jest.requireActual('@store');

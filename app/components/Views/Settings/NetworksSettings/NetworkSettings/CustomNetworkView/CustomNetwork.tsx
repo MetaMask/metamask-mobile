@@ -1,9 +1,9 @@
 import React, { memo } from 'react';
-import NetworkModals from '@UI/NetworkModal';
+import NetworkModals from '@components/UI/NetworkModal';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
-import CustomText from '@Base/Text';
+import CustomText from '@components/Base/Text';
 import EmptyPopularList from '@emptyList';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '@locales/i18n';

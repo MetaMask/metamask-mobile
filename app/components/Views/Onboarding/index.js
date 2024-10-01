@@ -15,35 +15,35 @@ import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
 import StorageWrapper from '@store/storage-wrapper';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import {
   fontStyles,
   baseStyles,
   colors as importedColors,
 } from '@styles/common';
-import OnboardingScreenWithBg from '@UI/OnboardingScreenWithBg';
+import OnboardingScreenWithBg from '@components/UI/OnboardingScreenWithBg';
 import { strings } from '@locales/i18n';
 import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
-import FadeOutOverlay from '@UI/FadeOutOverlay';
+import FadeOutOverlay from '@components/UI/FadeOutOverlay';
 import {
   getTransparentBackOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
-} from '@UI/Navbar';
+} from '@components/UI/Navbar';
 import Device from '@util/device';
-import BaseNotification from '@UI/Notification/BaseNotification';
+import BaseNotification from '@components/UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '@actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '@reducers/legalNotices';
 import PreventScreenshot from '@core/PreventScreenshot';
-import WarningExistingUserModal from '@UI/WarningExistingUserModal';
+import WarningExistingUserModal from '@components/UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '@constants/navigation';
 import { EXISTING_USER } from '@constants/storage';
 import { MetaMetricsEvents } from '@core/Analytics';
-import { withMetricsAwareness } from '@hooks/useMetrics';
+import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { Authentication } from '@core';
 import { ThemeContext, mockTheme } from '@util/theme';
-import AnimatedFox from '@Base/AnimatedFox';
+import AnimatedFox from '@components/Base/AnimatedFox';
 import { OnboardingSelectorIDs } from '@e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '@constants/navigation/Routes';

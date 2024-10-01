@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import { fontStyles } from '@styles/common';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 

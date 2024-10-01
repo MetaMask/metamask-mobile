@@ -6,7 +6,7 @@ import { View } from 'react-native';
 import Badge, { BadgeVariant } from '@Badge';
 import { SAMPLE_BADGENETWORK_PROPS } from '@Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 import { mockTheme } from '@util/theme';
-import Text, { TextVariant } from '@Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import {

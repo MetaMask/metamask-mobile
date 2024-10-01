@@ -6,9 +6,9 @@ import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '@store';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 
-jest.mock('@AppConstants', () => ({
+jest.mock('@core/AppConstants', () => ({
   WALLET_CONNECT: {
     PROJECT_ID: 'test-project-id',
     METADATA: {
@@ -33,7 +33,7 @@ jest.mock('@walletconnect/se-sdk', () => ({
   })),
 }));
 
-jest.mock('@BackgroundBridge/BackgroundBridge', () =>
+jest.mock('@core/BackgroundBridge/BackgroundBridge', () =>
   jest.fn().mockImplementation(() => ({
     onMessage: jest.fn(),
     onDisconnect: jest.fn(),
@@ -42,17 +42,17 @@ jest.mock('@BackgroundBridge/BackgroundBridge', () =>
 );
 
 jest.mock('@react-navigation/native');
-jest.mock('@Engine');
-jest.mock('@SDKConnect/utils/DevLogger', () => ({
+jest.mock('@core');
+jest.mock('@core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
-jest.mock('@Permissions');
+jest.mock('@core/Permissions');
 jest.mock('@store', () => ({
   store: {
     getState: jest.fn(),
   },
 }));
-jest.mock('@RPCMethods/RPCMethodMiddleware');
+jest.mock('@core/RPCMethods/RPCMethodMiddleware');
 jest.mock('./wc-utils', () => ({
   hideWCLoadingState: jest.fn(),
   showWCLoadingState: jest.fn(),

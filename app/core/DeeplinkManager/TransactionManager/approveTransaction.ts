@@ -5,8 +5,8 @@ import { strings } from '@locales/i18n';
 import { getAddress } from '@util/address';
 import { addTransaction } from '@util/transaction-controller';
 import DeeplinkManager from '@DeeplinkManager';
-import Engine from '@Engine';
-import NotificationManager from '@NotificationManager';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

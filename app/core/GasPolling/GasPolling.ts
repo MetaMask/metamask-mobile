@@ -16,7 +16,7 @@ import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
 } from '@util/transactions';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import {
   GetEIP1559TransactionDataProps,
   LegacyProps,

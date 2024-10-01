@@ -15,7 +15,7 @@ import Button, {
   ButtonSize,
 } from '@component-library/components/Buttons/Button';
 
-import { getNavigationOptionsTitle } from '@Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import {
   createNavigationDetails,
   useParams,

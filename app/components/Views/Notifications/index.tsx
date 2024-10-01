@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '@e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
-import Notifications from '@UI/Notification/List';
+import Notifications from '@components/UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '@util/notifications';
 import { IconName } from '@component-library/components/Icons/Icon';
 
@@ -16,7 +16,7 @@ import Button, {
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import Empty from '@UI/Notification/Empty';
+import Empty from '@components/UI/Notification/Empty';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 import {

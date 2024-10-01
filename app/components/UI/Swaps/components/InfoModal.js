@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Text from '@Base/Text';
-import Title from '@Base/Title';
+import Text from '@components/Base/Text';
+import Title from '@components/Base/Title';
 import { useTheme } from '@util/theme';
 
 const createStyles = (colors, shadows) =>

@@ -8,14 +8,14 @@ import {
   SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import OnboardingProgress from '@UI/OnboardingProgress';
-import ActionView from '@UI/ActionView';
-import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import OnboardingProgress from '@components/UI/OnboardingProgress';
+import ActionView from '@components/UI/ActionView';
+import { ScreenshotDeterrent } from '@components/UI/ScreenshotDeterrent';
 import { strings } from '@locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '@actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import { getOnboardingNavbarOptions } from '@components/UI/Navbar';
 import { shuffle, compareMnemonics } from '@util/mnemonic';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { useTheme } from '@util/theme';

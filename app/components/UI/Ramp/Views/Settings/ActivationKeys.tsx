@@ -24,7 +24,7 @@ import Button, {
 import Row from '@components/Row';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
-import useActivationKeys from '@hooks/useActivationKeys';
+import useActivationKeys from '@components/hooks/useActivationKeys';
 
 import { useRampSDK } from '@sdk';
 

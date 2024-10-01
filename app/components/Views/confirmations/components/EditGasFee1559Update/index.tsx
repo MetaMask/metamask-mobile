@@ -7,25 +7,25 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import Text from '@Base/Text';
-import StyledButton from '@UI/StyledButton';
-import RangeInput from '@Base/RangeInput';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
+import RangeInput from '@components/Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '@UI/Swaps/components/InfoModal';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '@locales/i18n';
-import Alert, { AlertType } from '@Base/Alert';
-import HorizontalSelector from '@Base/HorizontalSelector';
+import Alert, { AlertType } from '@components/Base/Alert';
+import HorizontalSelector from '@components/Base/HorizontalSelector';
 import {
   getDecimalChainId,
   isMainnetByChainId,
 } from '@util/networks';
 import BigNumber from 'bignumber.js';
-import FadeAnimationView from '@UI/FadeAnimationView';
+import FadeAnimationView from '@components/UI/FadeAnimationView';
 import { MetaMetricsEvents } from '@core/Analytics';
 
-import TimeEstimateInfoModal from '@UI/TimeEstimateInfoModal';
-import useModalHandler from '@Base/hooks/useModalHandler';
+import TimeEstimateInfoModal from '@components/UI/TimeEstimateInfoModal';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 import AppConstants from '@core/AppConstants';
 import { useGasTransaction } from '@core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '@util/theme';

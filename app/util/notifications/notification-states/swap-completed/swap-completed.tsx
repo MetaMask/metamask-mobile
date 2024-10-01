@@ -3,16 +3,16 @@ import {
   ModalFieldType,
   ModalFooterType,
   TRIGGER_TYPES,
-} from '@constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
-import { NotificationState } from '@types/NotificationState';
+} from '@util/constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@util/node-guard';
+import { NotificationState } from '@util/types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-} from '@methods/common';
-import { getTokenAmount, getTokenUSDAmount } from '@token-amounts';
+} from '@util/methods/common';
+import { getTokenAmount, getTokenUSDAmount } from '@util/token-amounts';
 
 type SwapCompletedNotification =
   ExtractedNotification<TRIGGER_TYPES.METAMASK_SWAP_COMPLETED>;

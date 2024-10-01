@@ -6,7 +6,7 @@ import {
   getIsSwapApproveOrSwapTransaction,
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
-} from '@transactions';
+} from '@util/transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
 export const getTransactionType = (

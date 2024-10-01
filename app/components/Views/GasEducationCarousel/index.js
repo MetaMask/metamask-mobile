@@ -8,14 +8,14 @@ import {
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { baseStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import FadeOutOverlay from '@UI/FadeOutOverlay';
+import FadeOutOverlay from '@components/UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { getTransparentOnboardingNavbarOptions } from '@UI/Navbar';
-import OnboardingScreenWithBg from '@UI/OnboardingScreenWithBg';
-import Text from '@Base/Text';
+import { getTransparentOnboardingNavbarOptions } from '@components/UI/Navbar';
+import OnboardingScreenWithBg from '@components/UI/OnboardingScreenWithBg';
+import Text from '@components/Base/Text';
 import { connect } from 'react-redux';
 import Device from '@util/device';
 import { useTheme } from '@util/theme';

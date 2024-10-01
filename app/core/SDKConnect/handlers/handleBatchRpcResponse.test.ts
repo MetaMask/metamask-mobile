@@ -1,12 +1,12 @@
-import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
-import BatchRPCManager from '@BatchRPCManager';
-import { wait } from '@utils/wait.util';
+import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
+import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
+import { wait } from '@core/SDKConnect/utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 
-jest.mock('@BatchRPCManager');
-jest.mock('@BackgroundBridge/BackgroundBridge');
-jest.mock('@utils/DevLogger');
-jest.mock('@utils/wait.util');
+jest.mock('@core/SDKConnect/BatchRPCManager');
+jest.mock('@core/BackgroundBridge/BackgroundBridge');
+jest.mock('@core/SDKConnect/utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/wait.util');
 
 describe('handleBatchRpcResponse', () => {
   let batchRPCManager = {} as unknown as BatchRPCManager;

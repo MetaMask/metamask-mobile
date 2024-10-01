@@ -18,7 +18,7 @@ import Text, {
 } from '@component-library/components/Texts/Text';
 import { useStyles } from '@component-library/hooks';
 import { USER_INTENT } from '@constants/permissions';
-import AccountSelectorList from '@UI/AccountSelectorList';
+import AccountSelectorList from '@components/UI/AccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '@component-library/components/Form/HelpText';

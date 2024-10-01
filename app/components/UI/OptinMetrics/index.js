@@ -14,7 +14,7 @@ import {
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '@styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { getOptinMetricsNavbarOptions } from '@Navbar';
+import { getOptinMetricsNavbarOptions } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import setOnboardingWizardStep from '@actions/wizard';
 import { connect } from 'react-redux';
@@ -25,7 +25,7 @@ import AppConstants from '@core/AppConstants';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
-} from '@hooks/useMetrics';
+} from '@components/hooks/useMetrics';
 import StorageWrapper from '@store/storage-wrapper';
 import { ThemeContext } from '@util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '@e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
@@ -185,24 +185,24 @@ class OptinMetrics extends PureComponent {
 
   actionsList = isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
-        action: value,
-        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-        description: strings(
-          `privacy_policy.action_description_${value}_description`,
-        ),
-      }))
+      action: value,
+      prefix: strings(`privacy_policy.action_description_${value}_prefix`),
+      description: strings(
+        `privacy_policy.action_description_${value}_description`,
+      ),
+    }))
     : [1, 2, 3, 4, 5].map((value) => {
-        const actionVal = value <= 2 ? 0 : 1;
-        return {
-          action: actionVal,
-          prefix: actionVal
-            ? `${strings('privacy_policy.action_description_never_legacy')} `
-            : '',
-          description: strings(
-            `privacy_policy.action_description_${value}_legacy`,
-          ),
-        };
-      });
+      const actionVal = value <= 2 ? 0 : 1;
+      return {
+        action: actionVal,
+        prefix: actionVal
+          ? `${strings('privacy_policy.action_description_never_legacy')} `
+          : '',
+        description: strings(
+          `privacy_policy.action_description_${value}_legacy`,
+        ),
+      };
+    });
 
   updateNavBar = () => {
     const { navigation } = this.props;

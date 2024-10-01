@@ -2,17 +2,17 @@ import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import AddCustomToken from '@UI/AddCustomToken';
-import SearchTokenAutocomplete from '@UI/SearchTokenAutocomplete';
+import AddCustomToken from '@components/UI/AddCustomToken';
+import SearchTokenAutocomplete from '@components/UI/SearchTokenAutocomplete';
 import ScrollableTabView, {
   TabBarProps,
 } from 'react-native-scrollable-tab-view';
 import { strings } from '@locales/i18n';
-import AddCustomCollectible from '@UI/AddCustomCollectible';
+import AddCustomCollectible from '@components/UI/AddCustomCollectible';
 import {
   getImportTokenNavbarOptions,
   getNetworkNavbarOptions,
-} from '@UI/Navbar';
+} from '@components/UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,

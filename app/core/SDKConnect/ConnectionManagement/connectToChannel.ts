@@ -1,21 +1,21 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
-import { resetConnections } from '@app/actions/sdk';
-import { store } from '@app/store';
+import { resetConnections } from '@actions/sdk';
+import { store } from '@store';
 import Routes from '@constants/navigation/Routes';
 import { selectChainId } from '@selectors/networkController';
 import Device from '@util/device';
-import Engine from '@Engine';
-import { Minimizer } from '@NativeModules';
-import { getPermittedAccounts } from '@Permissions';
+import Engine from '@core/Engine';
+import { Minimizer } from '@core/NativeModules';
+import { getPermittedAccounts } from '@core/Permissions';
 import { Connection, ConnectionProps } from '@Connection';
-import checkPermissions from '@handlers/checkPermissions';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '@SDKConnectConstants';
-import DevLogger from '@utils/DevLogger';
+import checkPermissions from '@core/SDKConnect/handlers/checkPermissions';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { SDKConnect } from './../SDKConnect';
-import { wait, waitForCondition } from '@utils/wait.util';
+import { wait, waitForCondition } from '@core/SDKConnect/utils/wait.util';
 import Logger from '@util/Logger';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 
 async function connectToChannel({
   id,
@@ -139,7 +139,7 @@ async function connectToChannel({
       // TODO: send rejected event
 
       // first needs to connect without key exchange to send the event
-      await instance.state.connected[id].remote.reject({channelId: id});
+      await instance.state.connected[id].remote.reject({ channelId: id });
 
       instance.removeChannel({ channelId: id, sendTerminate: true });
       // cleanup connection

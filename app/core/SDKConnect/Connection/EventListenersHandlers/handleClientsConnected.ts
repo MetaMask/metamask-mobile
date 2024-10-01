@@ -1,8 +1,8 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import Logger from '@util/Logger';
-import Engine from '@Engine';
-import DevLogger from '@utils/DevLogger';
-import { waitForKeychainUnlocked } from '@utils/wait.util';
+import Engine from '@core/Engine';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { waitForKeychainUnlocked } from '@core/SDKConnect/utils/wait.util';
 import { Connection } from '@Connection';
 
 function handleClientsConnected(instance: Connection) {

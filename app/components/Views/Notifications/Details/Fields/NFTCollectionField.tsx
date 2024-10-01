@@ -11,7 +11,7 @@ import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
 import { ModalFieldNFTCollectionImage } from '@util/notifications/notification-states/types/NotificationModalDetails';
-import RemoteImage from '@Base/RemoteImage';
+import RemoteImage from '@components/Base/RemoteImage';
 import useStyles from '@useStyles';
 
 type NFTCollectionFieldProps = ModalFieldNFTCollectionImage;

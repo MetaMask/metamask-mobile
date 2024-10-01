@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '@styles/common';
-import { getPaymentRequestOptionsTitle } from '@UI/Navbar';
+import { getPaymentRequestOptionsTitle } from '@components/UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
@@ -31,7 +31,7 @@ import {
 } from '@util/number';
 import { strings } from '@locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   generateETHLink,
@@ -557,11 +557,11 @@ class PaymentRequest extends PureComponent {
     if (selectedAsset.symbol !== 'ETH') {
       secondaryAmount = exchangeRate
         ? balanceToFiat(
-            undefAmount,
-            conversionRate,
-            exchangeRate,
-            currentCurrency,
-          )
+          undefAmount,
+          conversionRate,
+          exchangeRate,
+          currentCurrency,
+        )
         : undefined;
     } else {
       secondaryAmount = weiToFiat(

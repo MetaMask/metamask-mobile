@@ -5,7 +5,7 @@ import Ionicon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import generateTestId from '@wdio/utils/generateTestId';
 import { useTheme } from '@util/theme';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import styleSheet from './AssetActionButton.styles';
 import { useStyles } from '@component-library/hooks';
 

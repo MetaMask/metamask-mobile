@@ -1,4 +1,4 @@
-import { IPFS_DEFAULT_GATEWAY_URL } from '@app/constants/network';
+import { IPFS_DEFAULT_GATEWAY_URL } from '@constants/network';
 
 export default function migrate(state) {
   const outdatedIpfsGateways = [

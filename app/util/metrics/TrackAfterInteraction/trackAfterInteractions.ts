@@ -1,6 +1,6 @@
 import { IMetaMetricsEvent, MetaMetrics } from '@core/Analytics';
 import { InteractionManager } from 'react-native';
-import { JsonMap } from '@segment/analytics-react-native';
+import { JsonMap } from '@util/segment/analytics-react-native';
 
 /**
  * track or save event async after all interactions are done

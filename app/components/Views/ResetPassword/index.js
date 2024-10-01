@@ -22,12 +22,12 @@ import StorageWrapper from '@store/storage-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '@actions/user';
 import { setLockTime } from '@actions/settings';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import Engine from '@core/Engine';
 import Device from '@util/device';
 import { fontStyles, baseStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '@core/AppConstants';
 import zxcvbn from 'zxcvbn';
@@ -49,8 +49,8 @@ import {
 import { Authentication } from '@core';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
 import { ThemeContext, mockTheme } from '@util/theme';
-import AnimatedFox from '@Base/AnimatedFox';
-import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
+import AnimatedFox from '@components/Base/AnimatedFox';
+import { LoginOptionsSwitch } from '@components/UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '@core/Vault';
 import Logger from '@util/Logger';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
@@ -690,11 +690,11 @@ class ResetPassword extends PureComponent {
                       </Text>
                     </Text>
                   )) || (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={styles.hintLabel}
-                    />
-                  )}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles.hintLabel}
+                      />
+                    )}
                 </View>
                 <View style={styles.field}>
                   <Text variant={TextVariant.BodySM} style={styles.hintLabel}>

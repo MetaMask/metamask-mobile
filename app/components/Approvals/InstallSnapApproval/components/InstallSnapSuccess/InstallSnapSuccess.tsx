@@ -24,7 +24,7 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import { InstallSnapFlowProps } from '@InstallSnapApproval.types';
 import { SNAP_INSTALL_OK } from '@InstallSnapApproval.constants';
 import SNAP_INSTALL_SUCCESS from './InstallSnapSuccess.constants';

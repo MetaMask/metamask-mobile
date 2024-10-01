@@ -1,8 +1,8 @@
 import { strings } from '@locales/i18n';
 import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
-import { TRIGGER_TYPES } from '@constants';
-import { ExtractedNotification } from '@node-guard';
+import { TRIGGER_TYPES } from '@util/constants';
+import { ExtractedNotification } from '@util/node-guard';
 import { Notification } from '@util/notifications';
 
 export interface NotificationState<T extends Notification = Notification> {

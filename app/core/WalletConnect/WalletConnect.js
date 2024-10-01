@@ -1,6 +1,6 @@
 import RNWalletConnect from '@walletconnect/client';
 import { v1 as random } from 'uuid';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import Logger from '@util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -11,23 +11,23 @@ import {
 } from '@util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '@constants/storage';
 import { WalletDevice } from '@metamask/transaction-controller';
-import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
   ApprovalTypes,
-} from '@RPCMethods/RPCMethodMiddleware';
+} from '@core/RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
-import { Minimizer } from '@NativeModules';
-import AppConstants from '@AppConstants';
+import { Minimizer } from '@core/NativeModules';
+import AppConstants from '@core/AppConstants';
 import { strings } from '@locales/i18n';
-import NotificationManager from '@NotificationManager';
+import NotificationManager from '@core/NotificationManager';
 import { msBetweenDates, msToHours } from '@util/date';
 import { addTransaction } from '@util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '@store';
 import { selectChainId } from '@selectors/networkController';
-import ppomUtil from '@app/lib/ppom/ppom-util';
+import ppomUtil from '@lib/ppom/ppom-util';
 
 const hub = new EventEmitter();
 let connectors = [];

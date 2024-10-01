@@ -12,7 +12,7 @@ import { createStyles } from './styles';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { createNavigationDetails } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';

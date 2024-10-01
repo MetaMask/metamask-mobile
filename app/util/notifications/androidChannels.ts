@@ -1,4 +1,4 @@
-import { AndroidChannel, AndroidImportance } from '@notifee/react-native';
+import { AndroidChannel, AndroidImportance } from '@util/notifee/react-native';
 
 export enum ChannelId {
   DEFAULT_NOTIFICATION_CHANNEL_ID = 'DEFAULT_NOTIFICATION_CHANNEL_ID',

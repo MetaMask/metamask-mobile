@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react';
 import { render, act } from '@testing-library/react-native';
 
 // External dependencies.
-import Text from '@Texts/Text';
+import Text from '@component-library/components/Texts/Text';
 
 // Internal dependencies
 import BottomSheetDialog from './BottomSheetDialog';

@@ -2,19 +2,19 @@ import dayjs, { Dayjs } from 'dayjs';
 import isYesterday from 'dayjs/plugin/isYesterday';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-import notifee from '@notifee/react-native';
+import notifee from '@util/notifee/react-native';
 import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import Engine from '@core/Engine';
-import { IconName } from '@component-library/components/Icons/Icon';
-import { hexWEIToDecETH, hexWEIToDecGWEI } from '@conversions';
-import { TRIGGER_TYPES } from '@constants';
-import { Notification } from '@types';
-import { calcTokenAmount } from '@transactions';
-import images from '@images/image-icons';
+import { IconName } from '@util/component-library/components/Icons/Icon';
+import { hexWEIToDecETH, hexWEIToDecGWEI } from '@util/conversions';
+import { TRIGGER_TYPES } from '@util/constants';
+import { Notification } from '@util/types';
+import { calcTokenAmount } from '@util/transactions';
+import images from '@util/images/image-icons';
 import CHAIN_SCANS_URLS from '@constants/urls';
 import I18n, { strings } from '@locales/i18n';
 

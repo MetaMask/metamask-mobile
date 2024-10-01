@@ -16,7 +16,7 @@ import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 import { BrowserViewSelectorsIDs } from '@e2e/selectors/Browser/BrowserView.selectors';
 import Url from 'url-parse';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 
 const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const getDappMainUrl = () => {

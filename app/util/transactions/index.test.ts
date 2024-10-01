@@ -6,7 +6,7 @@ import * as controllerUtilsModule from '@metamask/controller-utils';
 
 import { handleMethodData } from '@util/transaction-controller';
 
-import { BNToHex } from '@number';
+import { BNToHex } from '@util/number';
 import { UINT256_BN_MAX_VALUE } from '@constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '@constants/error';
 import {

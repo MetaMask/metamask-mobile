@@ -4,7 +4,7 @@ import { backgroundState } from '@util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
 } from '@util/test/renderWithProvider';
-import useBalance from '@Ramp/hooks/useBalance';
+import useBalance from '@components/UI/Ramp/hooks/useBalance';
 import { toTokenMinimalUnit } from '@util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
@@ -55,7 +55,7 @@ const mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
   ...mockUseBalanceInitialValue,
 };
 
-jest.mock('@Ramp/hooks/useBalance', () =>
+jest.mock('@components/UI/Ramp/hooks/useBalance', () =>
   jest.fn(() => mockUseBalanceValues),
 );
 

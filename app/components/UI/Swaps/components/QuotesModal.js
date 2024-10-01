@@ -23,9 +23,9 @@ import {
   weiToFiat,
   calculateEthFeeForMultiLayer,
 } from '@util/number';
-import { getQuotesSourceMessage } from '@utils';
-import Text from '@Base/Text';
-import Title from '@Base/Title';
+import { getQuotesSourceMessage } from '@components/UI/Swaps/utils';
+import Text from '@components/Base/Text';
+import Title from '@components/Base/Title';
 import Ratio from './Ratio';
 import { useTheme } from '@util/theme';
 import {

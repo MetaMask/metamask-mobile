@@ -4,7 +4,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 
 import Icon, {
   IconName,

@@ -3,7 +3,7 @@ import notifee, {
   AndroidChannel,
   AndroidImportance,
   EventType,
-} from '@notifee/react-native';
+} from '@util/notifee/react-native';
 import { Linking } from 'react-native';
 import { ChannelId } from '@util/notifications/androidChannels';
 import NotificationsService from './NotificationService';

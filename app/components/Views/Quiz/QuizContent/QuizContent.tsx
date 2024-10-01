@@ -12,7 +12,7 @@ import Button, {
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import stylesheet from './styles';
 
 const QuizContent = ({

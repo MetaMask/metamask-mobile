@@ -1,6 +1,6 @@
 import { Image } from 'react-native';
 import React from 'react';
-import images from 'images/image-icons';
+import images from '@images/image-icons';
 
 interface ImageIconPropTypes {
   image: string;

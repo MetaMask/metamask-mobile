@@ -1,5 +1,5 @@
 import React from 'react';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import PropTypes from 'prop-types';
 import {
   Keyboard,

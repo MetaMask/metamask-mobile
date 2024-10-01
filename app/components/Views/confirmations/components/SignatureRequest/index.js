@@ -15,13 +15,13 @@ import { isHardwareAccount } from '@util/address';
 import { getAnalyticsParams } from '@util/confirmation/signatureUtils';
 import Device from '@util/device';
 import { ThemeContext, mockTheme } from '@util/theme';
-import AccountInfoCard from '@UI/AccountInfoCard';
-import ActionView, { ConfirmButtonState } from '@UI/ActionView';
-import QRSigningDetails from '@UI/QRHardware/QRSigningDetails';
-import withQRHardwareAwareness from '@UI/QRHardware/withQRHardwareAwareness';
-import WebsiteIcon from '@UI/WebsiteIcon';
-import BlockaidBanner from '@BlockaidBanner/BlockaidBanner';
-import { ResultType } from '@BlockaidBanner/BlockaidBanner.types';
+import AccountInfoCard from '@components/UI/AccountInfoCard';
+import ActionView, { ConfirmButtonState } from '@components/UI/ActionView';
+import QRSigningDetails from '@components/UI/QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '@components/UI/QRHardware/withQRHardwareAwareness';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
+import BlockaidBanner from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner';
+import { ResultType } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 const getCleanUrl = (url) => {
   try {

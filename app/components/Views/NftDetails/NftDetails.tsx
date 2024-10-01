@@ -5,7 +5,7 @@ import {
   TextLayoutEventData,
   View,
 } from 'react-native';
-import { getNftDetailsNavbarOptions } from '@UI/Navbar';
+import { getNftDetailsNavbarOptions } from '@components/UI/Navbar';
 import Text from '@component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '@util/navigation/navUtils';

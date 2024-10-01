@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { TextVariant } from '@Texts/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
 import { ButtonVariants, ButtonSize } from '@Buttons/Button';
 import { ButtonProps } from '@Buttons/Button/Button.types';
 import { ButtonIconSizes } from '@Buttons/ButtonIcon';

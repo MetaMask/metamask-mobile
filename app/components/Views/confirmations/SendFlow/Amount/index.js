@@ -18,13 +18,13 @@ import {
   setTransactionObject,
   resetTransaction,
 } from '@actions/transaction';
-import { getSendFlowTitle } from '@UI/Navbar';
-import StyledButton from '@UI/StyledButton';
+import { getSendFlowTitle } from '@components/UI/Navbar';
+import StyledButton from '@components/UI/StyledButton';
 import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
-import TokenImage from '@UI/TokenImage';
+import TokenImage from '@components/UI/TokenImage';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
@@ -53,17 +53,17 @@ import {
 } from '@util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
-import ErrorMessage from '@ErrorMessage';
+import ErrorMessage from '@components/Views/confirmations/SendFlow/ErrorMessage';
 import { getGasLimit } from '@util/custom-gas';
 import Engine from '@core/Engine';
-import CollectibleMedia from '@UI/CollectibleMedia';
+import CollectibleMedia from '@components/UI/CollectibleMedia';
 import collectiblesTransferInformation from '@util/collectibles-transfer';
 import { strings } from '@locales/i18n';
 import Device from '@util/device';
 import { BN } from 'ethereumjs-util';
 import { MetaMetricsEvents } from '@core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
-import NetworkMainAssetLogo from '@UI/NetworkMainAssetLogo';
+import NetworkMainAssetLogo from '@components/UI/NetworkMainAssetLogo';
 import { renderShortText } from '@util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '@util/conversions';
@@ -74,7 +74,7 @@ import {
 } from '@reducers/collectibles';
 import { gte } from '@util/lodash';
 import { ThemeContext, mockTheme } from '@util/theme';
-import Alert, { AlertType } from '@Base/Alert';
+import Alert, { AlertType } from '@components/Base/Alert';
 
 import {
   selectChainId,
@@ -94,7 +94,7 @@ import { PREFIX_HEX_STRING } from '@constants/transaction';
 import Routes from '@constants/navigation/Routes';
 import { getRampNetworks } from '@reducers/fiatOrders';
 import { swapsLivenessSelector } from '@reducers/swaps';
-import { isSwapsAllowed } from '@UI/Swaps/utils';
+import { isSwapsAllowed } from '@components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '@util/regex';
 import { AmountViewSelectorsIDs } from '@e2e/selectors/SendFlow/AmountView.selectors';
@@ -102,7 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
-import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 

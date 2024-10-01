@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import Modal from 'react-native-modal';
 
-import ModalDragger from '@Base/ModalDragger';
-import Text from '@Base/Text';
-import SlippageSlider from '@SlippageSlider';
+import ModalDragger from '@components/Base/ModalDragger';
+import Text from '@components/Base/Text';
+import SlippageSlider from '@components/UI/SlippageSlider';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 

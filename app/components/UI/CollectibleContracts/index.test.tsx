@@ -10,7 +10,7 @@ import renderWithProvider, {
 import { act } from '@testing-library/react-hooks';
 
 // eslint-disable-next-line import/no-namespace
-import * as allSelectors from '@app/reducers/collectibles/index.js';
+import * as allSelectors from '@reducers/collectibles/index.js';
 import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '@core/Engine';
 

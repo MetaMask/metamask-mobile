@@ -5,7 +5,7 @@ import {
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
   SAMPLE_BUTTONBASE_PROPS,
 } from '@foundation/ButtonBase/ButtonBase.constants';
-import { TextColor } from '@Texts/Text';
+import { TextColor } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { ButtonSecondaryProps } from './ButtonSecondary.types';

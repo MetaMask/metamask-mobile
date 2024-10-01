@@ -29,7 +29,7 @@ const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
 
-jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,

@@ -7,7 +7,7 @@ import Text, {
   TextColor,
 } from '@component-library/components/Texts/Text';
 import { useStyles } from '@component-library/hooks';
-import ActionModal from '@UI/ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import { strings } from '@locales/i18n';
 import { CLEAR_PRIVACY_SECTION } from '@SecuritySettings.constants';
 import Button, {
@@ -15,7 +15,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '@component-library/components/Buttons/Button';
-import SDKConnect from '@app/core/SDKConnect/SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});

@@ -1,6 +1,6 @@
 import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
 import { RestrictedMethods, CaveatTypes } from './constants';
-import ImportedEngine from '@Engine';
+import ImportedEngine from '@core/Engine';
 import Logger from '@util/Logger';
 import { getUniqueList } from '@util/general';
 import TransactionTypes from '@TransactionTypes';

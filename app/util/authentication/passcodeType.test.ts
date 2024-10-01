@@ -1,6 +1,6 @@
 import { passcodeType } from './passcodeType';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
-import Device from '@device';
+import Device from '@util/device';
 import { Platform } from 'react-native';
 
 describe('Biometry utils: passcode string type by device type', () => {

@@ -5,7 +5,7 @@ import { renderScreen } from '@util/test/renderWithProvider';
 import GetStarted from './GetStarted';
 import { RampType, Region } from '@types';
 import { RampSDK } from '@sdk';
-import useRampNetwork from '@hooks/useRampNetwork';
+import useRampNetwork from '@components/hooks/useRampNetwork';
 import Routes from '@constants/navigation/Routes';
 import { backgroundState } from '@util/test/initial-root-state';
 
@@ -31,7 +31,7 @@ const mockUseRampNetworkInitialValue: Partial<
 
 let mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
 
-jest.mock('@hooks/useRampNetwork', () =>
+jest.mock('@components/hooks/useRampNetwork', () =>
   jest.fn(() => mockUseRampNetworkValue),
 );
 
@@ -80,7 +80,7 @@ jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('GetStarted', () => {
   afterEach(() => {

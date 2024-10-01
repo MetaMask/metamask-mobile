@@ -18,7 +18,7 @@ jest.mock(
   () => 'AvatarNetwork',
 );
 jest.mock('@Name/Name', () => 'Name');
-jest.mock('@hooks/useStyles', () => ({
+jest.mock('@components/hooks/useStyles', () => ({
   useStyles: () => ({ styles: {} }),
 }));
 

@@ -7,8 +7,8 @@ import { View } from 'react-native';
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
 import Button, { ButtonVariants } from '@Buttons/Button';
-import Text, { TextVariant } from '@Texts/Text';
-import { useStyles } from '@hooks';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
+import { useStyles } from '@components/hooks';
 
 // Internal dependencies.
 import styleSheet from './TagUrl.styles';

@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Image, StyleSheet, View, Text, Platform } from 'react-native';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { fontStyles } from '@styles/common';
-import AnimatedFox from '@Base/AnimatedFox';
+import AnimatedFox from '@components/Base/AnimatedFox';
 import { ThemeContext, mockTheme } from '@util/theme';
 import Device from '@util/device';
 import generateTestId from '@wdio/utils/generateTestId';

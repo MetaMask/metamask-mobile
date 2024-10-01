@@ -15,12 +15,12 @@ import {
   mockTheme,
   useAppThemeFromContext,
 } from '@util/theme';
-import useModalHandler from '@Base/hooks/useModalHandler';
-import Summary from '@Base/Summary';
-import Text from '@Base/Text';
-import FadeAnimationView from '@UI/FadeAnimationView';
-import InfoModal from '@UI/Swaps/components/InfoModal';
-import TimeEstimateInfoModal from '@UI/TimeEstimateInfoModal';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
+import Summary from '@components/Base/Summary';
+import Text from '@components/Base/Text';
+import FadeAnimationView from '@components/UI/FadeAnimationView';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import TimeEstimateInfoModal from '@components/UI/TimeEstimateInfoModal';
 import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';
 import { TransactionEIP1559UpdateProps } from './types';

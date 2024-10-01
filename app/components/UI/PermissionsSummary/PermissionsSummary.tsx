@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { SafeAreaView, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '@locales/i18n';
@@ -25,7 +25,7 @@ import Button, {
   ButtonVariants,
 } from '@component-library/components/Buttons/Button';
 import { getHost } from '@util/browser';
-import WebsiteIcon from '@WebsiteIcon';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
 import useSelectedAccount from '@Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '@component-library/hooks';

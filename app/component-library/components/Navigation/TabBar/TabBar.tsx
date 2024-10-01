@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import TabBarItem from '@TabBarItem';
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Routes from '@constants/navigation/Routes';
 import { useTheme } from '@util/theme';
 import { MetaMetricsEvents } from '@core/Analytics';

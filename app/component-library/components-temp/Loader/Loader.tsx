@@ -3,7 +3,7 @@ import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 
 // Internal dependencies.
 import styleSheet from './Loader.styles';

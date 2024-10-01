@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import FiatOnTestnetsFriction from './FiatOnTestnetsFriction';
 import renderWithProvider from '@util/test/renderWithProvider';
 import { strings } from '@locales/i18n';
-import AppConstants from '@app/core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 jest.mock('@react-navigation/native');
 jest.mock('react-native-safe-area-context', () => ({

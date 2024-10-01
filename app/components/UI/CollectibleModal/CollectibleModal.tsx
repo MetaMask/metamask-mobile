@@ -9,11 +9,11 @@ import React, {
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { newAssetTransaction } from '@actions/transaction';
-import CollectibleMedia from '@CollectibleMedia';
+import CollectibleMedia from '@components/UI/CollectibleMedia';
 import { baseStyles } from '@styles/common';
 import ReusableModal, { ReusableModalRef } from '@ReusableModal';
 import Routes from '@constants/navigation/Routes';
-import CollectibleOverview from '@UI/CollectibleOverview';
+import CollectibleOverview from '@components/UI/CollectibleOverview';
 import { collectiblesSelector } from '@reducers/collectibles';
 import {
   selectDisplayNftMedia,
@@ -23,7 +23,7 @@ import styles from './CollectibleModal.styles';
 import { CollectibleModalParams } from './CollectibleModal.types';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '@util/navigation/navUtils';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { selectChainId } from '@selectors/networkController';
 import { getDecimalChainId } from '@util/networks';

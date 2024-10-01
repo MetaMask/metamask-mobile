@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '@locales/i18n';
 import Device from '@util/device';
-import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import { ScreenshotDeterrent } from '@components/UI/ScreenshotDeterrent';
 import { ThemeContext, mockTheme } from '@util/theme';
 
 import { ImportPrivateKeySuccessScreenSelectorsIDs } from '@e2e/selectors/ImportPrivateKeySuccessScreen.selectors';

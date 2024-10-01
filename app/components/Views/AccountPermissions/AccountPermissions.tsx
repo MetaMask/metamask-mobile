@@ -29,7 +29,7 @@ import {
 } from '@component-library/components/Toast';
 import { ToastOptions } from '@component-library/components/Toast/Toast.types';
 import { MetaMetricsEvents } from '@core/Analytics';
-import { useAccounts, Account } from '@hooks/useAccounts';
+import { useAccounts, Account } from '@components/hooks/useAccounts';
 import getAccountNameWithENS from '@util/accounts';
 import { IconName } from '@component-library/components/Icons/Icon';
 import { getUrlObj, prefixUrlWithProtocol } from '@util/browser';
@@ -47,7 +47,7 @@ import {
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
 import { USER_INTENT } from '@constants/permissions';
-import useFavicon from '@hooks/useFavicon/useFavicon';
+import useFavicon from '@components/hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { selectInternalAccounts } from '@selectors/accountsController';

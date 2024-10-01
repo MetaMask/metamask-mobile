@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { View } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
-import { getWebviewNavbar } from '@UI/Navbar';
+import { getWebviewNavbar } from '@components/UI/Navbar';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '@util/Logger';
 import { baseStyles } from '@styles/common';

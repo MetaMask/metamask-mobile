@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '@Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { mockTheme } from '@util/theme';
 import { getFontStyleVariant, FontWeight } from '@Texts/Text/Text.utils';
 

@@ -1,5 +1,5 @@
 // External dependencies.
-import { AvatarBaseProps } from '@foundation/AvatarBase';
+import { AvatarBaseProps } from '@component-library/components/AvatarBase';
 
 /**
  * AvatarAccount variants.

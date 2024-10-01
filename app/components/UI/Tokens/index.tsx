@@ -19,7 +19,7 @@ import {
 } from '@util/number';
 import Engine from '@core/Engine';
 import Logger from '@util/Logger';
-import AssetElement from '@AssetElement';
+import AssetElement from '@components/UI/AssetElement';
 import { safeToChecksumAddress } from '@util/address';
 import { MetaMetricsEvents } from '@core/Analytics';
 import NetworkMainAssetLogo from '@NetworkMainAssetLogo';
@@ -40,11 +40,11 @@ import {
   selectTicker,
 } from '@selectors/networkController';
 import { selectNetworkName } from '@selectors/networkInfos';
-import { createDetectedTokensNavDetails } from '@Views/DetectedTokens';
+import { createDetectedTokensNavDetails } from '@components/Views/DetectedTokens';
 import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '@component-library/components/Badges/Badge/Badge.types';
 
-import images from 'images/image-icons';
+import images from '@images/image-icons';
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import AvatarToken from '@component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
@@ -69,10 +69,10 @@ import Icon, {
 } from '@component-library/components/Icons/Icon';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useRampNetwork from '@Ramp/hooks/useRampNetwork';
-import { createBuyNavigationDetails } from '@Ramp/routes/utils';
+import useRampNetwork from '@components/UI/Ramp/hooks/useRampNetwork';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 import Badge from '@component-library/components/Badges/Badge/Badge';
-import useTokenBalancesController from '@hooks/useTokenBalancesController/useTokenBalancesController';
+import useTokenBalancesController from '@components/hooks/useTokenBalancesController/useTokenBalancesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -81,13 +81,13 @@ import { selectDetectedTokens } from '@selectors/tokensController';
 import { selectContractExchangeRates } from '@selectors/tokenRatesController';
 import { selectUseTokenDetection } from '@selectors/preferencesController';
 import { useMetrics } from '@components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '@hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
+import useIsOriginalNativeTokenSymbol from '@components/hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '@app/component-library/components/Buttons/ButtonIcon';
-import Box from '@UI/Ramp/components/Box';
-import SheetHeader from '@app/component-library/components/Sheet/SheetHeader';
-import { isPortfolioUrl } from '@app/util/url';
+} from '@component-library/components/Buttons/ButtonIcon';
+import Box from '@components/UI/Ramp/components/Box';
+import SheetHeader from '@component-library/components/Sheet/SheetHeader';
+import { isPortfolioUrl } from '@util/url';
 import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
 import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '@component-library/components-temp/Price/PercentageChange';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
-import BaseListItem from '@Base/ListItem';
+import BaseListItem from '@components/Base/ListItem';
 import Box from '@Box';
 import SkeletonText from '@SkeletonText';
 

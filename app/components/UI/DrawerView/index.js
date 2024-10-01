@@ -22,8 +22,8 @@ import {
   getBlockExplorerName,
   getDecimalChainId,
 } from '@util/networks';
-import Identicon from '@Identicon';
-import StyledButton from '@StyledButton';
+import Identicon from '@components/UI/Identicon';
+import StyledButton from '@components/UI/StyledButton';
 import { renderFromWei, renderFiat } from '@util/number';
 import { strings } from '@locales/i18n';
 import Modal from 'react-native-modal';
@@ -42,12 +42,12 @@ import Device from '@util/device';
 import AppConstants from '@core/AppConstants';
 import { MetaMetricsEvents } from '@core/Analytics';
 import URL from 'url-parse';
-import EthereumAddress from '@EthereumAddress';
+import EthereumAddress from '@components/UI/EthereumAddress';
 import { getEther } from '@util/transactions';
 import { newAssetTransaction } from '@actions/transaction';
 import { protectWalletModalVisible } from '@actions/user';
 import DeeplinkManager from '@core/DeeplinkManager/SharedDeeplinkManager';
-import SettingsNotification from '@SettingsNotification';
+import SettingsNotification from '@components/UI/SettingsNotification';
 import { RPC } from '@constants/network';
 import { findRouteNameFromNavigatorState } from '@util/general';
 import {
@@ -82,8 +82,8 @@ import { selectContractBalances } from '@selectors/tokenBalancesController';
 import { selectSelectedInternalAccount } from '@selectors/accountsController';
 
 import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher';
-import { createAccountSelectorNavDetails } from '@Views/AccountSelector';
-import NetworkInfo from '@NetworkInfo';
+import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
+import NetworkInfo from '@components/UI/NetworkInfo';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
@@ -1136,7 +1136,7 @@ class DrawerView extends PureComponent {
                           style={[
                             styles.menuItem,
                             item.routeNames &&
-                            item.routeNames.includes(currentRoute)
+                              item.routeNames.includes(currentRoute)
                               ? styles.selectedRoute
                               : null,
                           ]}
@@ -1157,7 +1157,7 @@ class DrawerView extends PureComponent {
                               styles.menuItemName,
                               !item.icon ? styles.noIcon : null,
                               item.routeNames &&
-                              item.routeNames.includes(currentRoute)
+                                item.routeNames.includes(currentRoute)
                                 ? styles.selectedName
                                 : null,
                             ]}

@@ -22,7 +22,7 @@ import {
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '@util/theme';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { HardwareDeviceTypes } from '@constants/keyringTypes';
 

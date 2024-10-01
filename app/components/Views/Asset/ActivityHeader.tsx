@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { strings } from '@locales/i18n';
 import { useStyles } from '@component-library/hooks';
-import { Asset } from '@UI/AssetOverview/AssetOverview.types';
+import { Asset } from '@components/UI/AssetOverview/AssetOverview.types';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';

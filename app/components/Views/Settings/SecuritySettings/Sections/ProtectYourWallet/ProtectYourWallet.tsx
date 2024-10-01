@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '@component-library/components/Texts/Text';
-import SeedPhraseVideo from '@UI/SeedPhraseVideo';
+import SeedPhraseVideo from '@components/UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';

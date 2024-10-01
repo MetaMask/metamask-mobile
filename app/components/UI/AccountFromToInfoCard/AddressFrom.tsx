@@ -17,7 +17,7 @@ import {
   getLabelTextByAddress,
   renderAccountName,
 } from '@util/address';
-import useAddressBalance from '@hooks/useAddressBalance/useAddressBalance';
+import useAddressBalance from '@components/hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalAccounts } from '@selectors/accountsController';
 

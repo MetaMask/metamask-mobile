@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ProgressBar from 'react-native-progress/Bar';
-import FadeView from '@FadeView';
+import FadeView from '@components/UI/FadeView';
 import { ThemeContext, mockTheme } from '@util/theme';
 
 /**

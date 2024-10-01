@@ -1,5 +1,5 @@
-import { TRIGGER_TYPES } from '@constants';
-import { Notification } from '@types';
+import { TRIGGER_TYPES } from '@util/constants';
+import { Notification } from '@util/types';
 
 /**
  * TODO - remove this once we upgrade TS.

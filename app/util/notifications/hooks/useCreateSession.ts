@@ -10,7 +10,7 @@ import {
 import {
   disableProfileSyncing,
   signIn,
-} from '@actions/notification/helpers';
+} from '@util/actions/notification/helpers';
 
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,

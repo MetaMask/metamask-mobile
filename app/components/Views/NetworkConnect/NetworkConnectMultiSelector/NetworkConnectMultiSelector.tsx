@@ -25,7 +25,7 @@ import styleSheet from './NetworkConnectMultiSelector.styles';
 import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.types';
 import Routes from '@constants/navigation/Routes';
 import Checkbox from '@component-library/components/Checkbox';
-import NetworkSelectorList from '@UI/NetworkSelectorList/NetworkSelectorList';
+import NetworkSelectorList from '@components/UI/NetworkSelectorList/NetworkSelectorList';
 import { PopularList } from '@util/networks/customNetworks';
 
 const NetworkConnectMultiSelector = ({

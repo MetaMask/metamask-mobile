@@ -1,5 +1,5 @@
 import React from 'react';
-import BaseListItem from '@Base/ListItem';
+import BaseListItem from '@components/Base/ListItem';
 import Row from '@components/Row';
 import SkeletonText from '@components/SkeletonText';
 

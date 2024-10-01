@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Engine from '@Engine';
-import { Minimizer } from '@NativeModules';
+import Engine from '@core/Engine';
+import { Minimizer } from '@core/NativeModules';
 import Logger from '@util/Logger';
-import { wait } from '@utils/wait.util';
+import { wait } from '@core/SDKConnect/utils/wait.util';
 import AndroidService from '@AndroidService';
-import { METHODS_TO_DELAY, RPC_METHODS } from '@SDKConnectConstants';
-import handleBatchRpcResponse from '@handlers/handleBatchRpcResponse';
-import DevLogger from '@utils/DevLogger';
+import {
+  METHODS_TO_DELAY,
+  RPC_METHODS,
+} from '@core/SDKConnect/SDKConnectConstants';
+import handleBatchRpcResponse from '@core/SDKConnect/handlers/handleBatchRpcResponse';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { AccountsController } from '@metamask/accounts-controller';
 
 async function sendMessage(

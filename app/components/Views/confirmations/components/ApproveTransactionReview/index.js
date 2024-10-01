@@ -7,9 +7,9 @@ import {
   ScrollView,
 } from 'react-native';
 import Eth from 'ethjs-query';
-import ActionView, { ConfirmButtonState } from '@UI/ActionView';
+import ActionView, { ConfirmButtonState } from '@components/UI/ActionView';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '@UI/Navbar';
+import { getApproveNavbar } from '@components/UI/Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '@util/browser';
 import {
@@ -44,12 +44,12 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '@component-library/components/Avatars/Avatar';
-import Identicon from '@UI/Identicon';
+import Identicon from '@components/UI/Identicon';
 import TransactionTypes from '@core/TransactionTypes';
 import { showAlert } from '@actions/alert';
 import { MetaMetricsEvents } from '@core/Analytics';
-import TransactionHeader from '@UI/TransactionHeader';
-import TransactionReviewDetailsCard from '@TransactionReview/TransactionReviewDetailsCard';
+import TransactionHeader from '@components/UI/TransactionHeader';
+import TransactionReviewDetailsCard from '@components/Views/confirmations/components/TransactionReview/TransactionReviewDetailsCard';
 import AppConstants from '@core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '@constants/transaction';
 import { getBlockaidTransactionMetricsParams } from '@util/blockaid';
@@ -67,11 +67,11 @@ import CustomSpendCap from '@component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '@util/Logger';
 import ButtonLink from '@component-library/components/Buttons/Button/variants/ButtonLink';
-import TransactionReview from '@TransactionReview/TransactionReviewEIP1559Update';
+import TransactionReview from '@components/Views/confirmations/components/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '@core/ClipboardManager';
 import { ThemeContext, mockTheme } from '@util/theme';
-import withQRHardwareAwareness from '@UI/QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '@UI/QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '@components/UI/QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '@components/UI/QRHardware/QRSigningDetails';
 import Routes from '@constants/navigation/Routes';
 import createStyles from './styles';
 import {
@@ -88,19 +88,19 @@ import { selectCurrentTransactionSecurityAlertResponse } from '@selectors/confir
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import ApproveTransactionHeader from '@ApproveTransactionHeader';
+import ApproveTransactionHeader from '@components/Views/confirmations/components/ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
 import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
 import { getRampNetworks } from '@reducers/fiatOrders';
 import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
-import InfoModal from '@UI/Swaps/components/InfoModal';
-import { ResultType } from '@BlockaidBanner/BlockaidBanner.types';
-import TransactionBlockaidBanner from '@TransactionBlockaidBanner/TransactionBlockaidBanner';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import { ResultType } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import TransactionBlockaidBanner from '@components/Views/confirmations/components/TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '@util/regex';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
-import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '@core/WalletConnect/WalletConnectV2';
@@ -584,8 +584,8 @@ class ApproveTransactionReview extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -839,9 +839,8 @@ class ApproveTransactionReview extends PureComponent {
       networkConfigurations,
     );
 
-    const tokenLabel = `${
-      tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
-    } (#${tokenValue})`;
+    const tokenLabel = `${tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
+      } (#${tokenValue})`;
 
     const isERC2OToken = tokenStandard === ERC20;
     const isNonERC20Token = tokenStandard !== ERC20;
@@ -1001,36 +1000,36 @@ class ApproveTransactionReview extends PureComponent {
                         )}
                         {((isERC2OToken && isReadyToApprove) ||
                           isNonFungibleToken) && (
-                          <View style={styles.transactionWrapper}>
-                            <TransactionReview
-                              gasSelected={gasSelected}
-                              primaryCurrency={primaryCurrency}
-                              hideTotal
-                              noMargin
-                              onEdit={this.edit}
-                              chainId={this.props.chainId}
-                              onUpdatingValuesStart={onUpdatingValuesStart}
-                              onUpdatingValuesEnd={onUpdatingValuesEnd}
-                              animateOnChange={animateOnChange}
-                              isAnimating={isAnimating}
-                              gasEstimationReady={gasEstimationReady}
-                              legacy={!showFeeMarket}
-                              gasObject={
-                                !showFeeMarket
-                                  ? legacyGasObject
-                                  : eip1559GasObject
-                              }
-                              gasObjectLegacy={legacyGasObject}
-                              updateTransactionState={updateTransactionState}
-                              onlyGas
-                              multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-                            />
-                          </View>
-                        )}
+                            <View style={styles.transactionWrapper}>
+                              <TransactionReview
+                                gasSelected={gasSelected}
+                                primaryCurrency={primaryCurrency}
+                                hideTotal
+                                noMargin
+                                onEdit={this.edit}
+                                chainId={this.props.chainId}
+                                onUpdatingValuesStart={onUpdatingValuesStart}
+                                onUpdatingValuesEnd={onUpdatingValuesEnd}
+                                animateOnChange={animateOnChange}
+                                isAnimating={isAnimating}
+                                gasEstimationReady={gasEstimationReady}
+                                legacy={!showFeeMarket}
+                                gasObject={
+                                  !showFeeMarket
+                                    ? legacyGasObject
+                                    : eip1559GasObject
+                                }
+                                gasObjectLegacy={legacyGasObject}
+                                updateTransactionState={updateTransactionState}
+                                onlyGas
+                                multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+                              />
+                            </View>
+                          )}
                         {gasError && (
                           <View style={styles.errorWrapper}>
                             {isTestNetworkWithFaucet(chainId) ||
-                            isNativeTokenBuySupported ? (
+                              isNativeTokenBuySupported ? (
                               <TouchableOpacity onPress={errorPress}>
                                 <Text reset style={styles.error}>
                                   {gasError}
@@ -1295,12 +1294,12 @@ class ApproveTransactionReview extends PureComponent {
         {viewDetails
           ? this.renderTransactionReview()
           : shouldVerifyContractDetails
-          ? this.renderVerifyContractDetails()
-          : showBlockExplorerModal
-          ? this.renderBlockExplorerView()
-          : isSigningQRObject
-          ? this.renderQRDetails()
-          : this.renderDetails()}
+            ? this.renderVerifyContractDetails()
+            : showBlockExplorerModal
+              ? this.renderBlockExplorerView()
+              : isSigningQRObject
+                ? this.renderQRDetails()
+                : this.renderDetails()}
       </View>
     );
   };

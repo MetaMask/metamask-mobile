@@ -1,7 +1,7 @@
 import { store } from '@store';
-import { addToViewedDapp } from '@actions/browser';
+import { addToViewedDapp } from '@util/actions/browser';
 import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
-import { prefixUrlWithProtocol } from '@browser';
+import { prefixUrlWithProtocol } from '@util/browser';
 import { selectInternalAccounts } from '@selectors/accountsController';
 
 /**

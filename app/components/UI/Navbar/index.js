@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
 import React from 'react';
-import NavbarTitle from '@NavbarTitle';
-import ModalNavbarTitle from '@ModalNavbarTitle';
-import AccountRightButton from '@AccountRightButton';
+import NavbarTitle from '@components/UI/NavbarTitle';
+import ModalNavbarTitle from '@components/UI/ModalNavbarTitle';
+import AccountRightButton from '@components/UI/AccountRightButton';
 import {
   Alert,
   Image,
@@ -25,7 +25,7 @@ import { importAccountFromPrivateKey } from '@util/address';
 import { isNotificationsFeatureEnabled } from '@util/notifications';
 import Device from '@util/device';
 import PickerNetwork from '@component-library/components/Pickers/PickerNetwork';
-import BrowserUrlBar from '@BrowserUrlBar';
+import BrowserUrlBar from '@components/UI/BrowserUrlBar';
 import generateTestId from '@wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '@wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '@wdio/screen-objects/testIDs/Screens/RequestToken.testIds';

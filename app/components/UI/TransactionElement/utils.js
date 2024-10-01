@@ -29,7 +29,7 @@ import {
 } from '@util/transactions';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { isSwapsNativeAsset } from '@Swaps/utils';
+import { isSwapsNativeAsset } from '@components/UI/Swaps/utils';
 import { toLowerCaseEquals } from '@util/general';
 import Engine from '@core/Engine';
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
@@ -736,8 +736,8 @@ function decodeSwapsTx(args) {
     sourceToken.symbol === 'ETH'
       ? totalAmountForEthSourceTokenFormatted
       : decimalSourceAmount
-      ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
-      : `${totalEthGas} ${ticker}`;
+        ? `${decimalSourceAmount} ${sourceToken.symbol} + ${totalEthGas} ${ticker}`
+        : `${totalEthGas} ${ticker}`;
 
   const isSwap = swapTransaction.action === 'swap';
   let notificationKey, actionKey, value, fiatValue;
@@ -747,8 +747,7 @@ function decodeSwapsTx(args) {
       destinationToken: destinationToken.symbol,
     });
     notificationKey = strings(
-      `swaps.notification_label.${
-        tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'
+      `swaps.notification_label.${tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'
       }`,
       {
         sourceToken: sourceToken.symbol,
@@ -764,8 +763,7 @@ function decodeSwapsTx(args) {
       ),
     });
     notificationKey = strings(
-      `swaps.notification_label.${
-        tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'
+      `swaps.notification_label.${tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'
       }`,
       { sourceToken: sourceToken.symbol },
     );
@@ -774,7 +772,7 @@ function decodeSwapsTx(args) {
   const sourceExchangeRate = isSwapsNativeAsset(sourceToken)
     ? 1
     : contractExchangeRates?.[safeToChecksumAddress(sourceToken.address)]
-        ?.price;
+      ?.price;
   const renderSourceTokenFiatNumber = balanceToFiatNumber(
     decimalSourceAmount,
     conversionRate,
@@ -784,7 +782,7 @@ function decodeSwapsTx(args) {
   const destinationExchangeRate = isSwapsNativeAsset(destinationToken)
     ? 1
     : contractExchangeRates?.[safeToChecksumAddress(destinationToken.address)]
-        ?.price;
+      ?.price;
   const renderDestinationTokenFiatNumber = balanceToFiatNumber(
     decimalDestinationAmount,
     conversionRate,

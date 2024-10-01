@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import ListItem from '@List/ListItem';
 import ListItemColumn, { WidthType } from '@List/ListItemColumn';
 

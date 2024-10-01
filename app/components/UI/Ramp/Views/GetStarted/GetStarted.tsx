@@ -1,19 +1,19 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image, View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text from '@Base/Text';
-import StyledButton from '@StyledButton';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
 import ScreenLayout from '@components/ScreenLayout';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 import { useRampSDK } from '@sdk';
 import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
 import Routes from '@constants/navigation/Routes';
-import useAnalytics from '@hooks/useAnalytics';
-import useRampNetwork from '@hooks/useRampNetwork';
+import useAnalytics from '@components/hooks/useAnalytics';
+import useRampNetwork from '@components/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
-import useRegions from '@hooks/useRegions';
+import useRegions from '@components/hooks/useRegions';
 import { useParams } from '@util/navigation/navUtils';
 import { RampIntent } from '@types';
 

@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
 import { useRampSDK, withRampSDK } from '@sdk';
-import BaseListItem from '@Base/ListItem';
+import BaseListItem from '@components/Base/ListItem';
 import ScreenLayout from '@components/ScreenLayout';
 import Row from '@components/Row';
 import Text, {
@@ -19,8 +19,8 @@ import Button, {
 
 import { strings } from '@locales/i18n';
 import { useAppTheme } from '@util/theme';
-import { getNavigationOptionsTitle } from '@Navbar';
-import useAnalytics from '@hooks/useAnalytics';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
+import useAnalytics from '@components/hooks/useAnalytics';
 
 // Internal dependencies
 import ActivationKeys from './ActivationKeys';

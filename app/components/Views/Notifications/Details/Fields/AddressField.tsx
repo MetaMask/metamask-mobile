@@ -15,10 +15,10 @@ import Text, {
 } from '@component-library/components/Texts/Text';
 import { RootState } from '@reducers';
 import { ModalFieldAddress } from '@util/notifications/notification-states/types/NotificationModalDetails';
-import EthereumAddress from '@UI/EthereumAddress';
+import EthereumAddress from '@components/UI/EthereumAddress';
 import useCopyClipboard, {
   CopyClipboardAlertMessage,
-} from '@hooks/useCopyClipboard';
+} from '@components/hooks/useCopyClipboard';
 import useStyles from '@useStyles';
 
 type AddressFieldProps = ModalFieldAddress;

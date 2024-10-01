@@ -5,17 +5,17 @@ import {
   SubjectType,
 } from '@metamask/permission-controller';
 import { SnapRpcHookArgs } from '@metamask/snaps-utils';
-import { RestrictedMethods } from '@Permissions/constants';
+import { RestrictedMethods } from '@core/Permissions/constants';
 import { keyringSnapPermissionsBuilder } from '@SnapKeyring/keyringSnapsPermissions';
 import { SnapId } from '@metamask/snaps-sdk';
-import { EngineContext } from '@Engine';
+import { EngineContext } from '@core';
 import { handleSnapRequest } from './utils';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
 ): SnapId | null {
   const { snapId } = request;
-  return typeof snapId === 'string' ? snapId as SnapId : null;
+  return typeof snapId === 'string' ? (snapId as SnapId) : null;
 }
 // Snaps middleware
 /*

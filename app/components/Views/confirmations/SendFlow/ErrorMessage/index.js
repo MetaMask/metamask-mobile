@@ -2,8 +2,8 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
-import Alert, { AlertType } from '@Base/Alert';
-import Text from '@Base/Text';
+import Alert, { AlertType } from '@components/Base/Alert';
+import Text from '@components/Base/Text';
 import { CommonSelectorsIDs } from '@e2e/selectors/Common.selectors';
 
 const styles = StyleSheet.create({

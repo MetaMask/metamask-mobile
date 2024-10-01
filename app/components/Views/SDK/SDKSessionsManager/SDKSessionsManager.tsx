@@ -22,7 +22,7 @@ import Text, {
 import Routes from '@constants/navigation/Routes';
 import { RootState } from '@reducers';
 import { SDKSelectorsIDs } from '@e2e/selectors/Settings/SDK.selectors';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
 
 interface SDKSessionsManagerProps {

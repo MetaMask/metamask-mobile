@@ -3,23 +3,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import EthereumAddress from '@UI/EthereumAddress';
+import EthereumAddress from '@components/UI/EthereumAddress';
 import Engine from '@core/Engine';
 import { MetaMetricsEvents } from '@core/Analytics';
 
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import Text from '@component-library/components/Texts/Text';
-import InfoModal from '@UI/Swaps/components/InfoModal';
-import Identicon from '@UI/Identicon';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import Identicon from '@components/UI/Identicon';
 import Feather from 'react-native-vector-icons/Feather';
 import { strings } from '@locales/i18n';
-import GlobalAlert from '@UI/GlobalAlert';
+import GlobalAlert from '@components/UI/GlobalAlert';
 import { showAlert } from '@actions/alert';
 import ClipboardManager from '@core/ClipboardManager';
-import Header from '@AddNickNameHeader';
-import ShowBlockExplorer from '@ShowBlockExplorer';
+import Header from '@components/Views/confirmations/components/AddNickNameHeader';
+import ShowBlockExplorer from '@components/Views/confirmations/components/ShowBlockExplorer';
 import { useTheme } from '@util/theme';
 import createStyles from './styles';
 import { AddNicknameProps } from './types';
@@ -27,7 +27,7 @@ import {
   validateAddressOrENS,
   shouldShowBlockExplorer,
 } from '@util/address';
-import ErrorMessage from '@SendFlow/ErrorMessage';
+import ErrorMessage from '@components/Views/confirmations/SendFlow/ErrorMessage';
 import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,

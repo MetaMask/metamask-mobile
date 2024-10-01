@@ -1,20 +1,20 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
 import Device from '@util/device';
-import Engine from '@Engine';
-import handleConnectionReady from '@handlers/handleConnectionReady';
+import Engine from '@core/Engine';
+import handleConnectionReady from '@core/SDKConnect/handlers/handleConnectionReady';
 import { Connection } from '@Connection';
 import handleClientsReady from './handleClientsReady';
 
 jest.mock('@Connection');
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('@Engine');
-jest.mock('@handlers/handleConnectionReady');
+jest.mock('@core');
+jest.mock('@core/SDKConnect/handlers/handleConnectionReady');
 jest.mock('@util/Logger');
 jest.mock('@util/device');
-jest.mock('@NativeModules');
+jest.mock('@core/NativeModules');
 jest.mock('@constants/navigation/Routes');
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('handleClientsReady', () => {
   let mockInstance: Connection;

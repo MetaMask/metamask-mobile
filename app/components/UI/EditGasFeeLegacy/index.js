@@ -10,18 +10,18 @@ import {
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import BigNumber from 'bignumber.js';
-import Text from '@Base/Text';
-import StyledButton from '@StyledButton';
-import RangeInput from '@Base/RangeInput';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
+import RangeInput from '@components/Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '@Swaps/components/InfoModal';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '@locales/i18n';
-import Alert, { AlertType } from '@Base/Alert';
-import HorizontalSelector from '@Base/HorizontalSelector';
+import Alert, { AlertType } from '@components/Base/Alert';
+import HorizontalSelector from '@components/Base/HorizontalSelector';
 import Device from '@util/device';
 import { getDecimalChainId, isMainnetByChainId } from '@util/networks';
-import FadeAnimationView from '@FadeAnimationView';
+import FadeAnimationView from '@components/UI/FadeAnimationView';
 import { MetaMetricsEvents } from '@core/Analytics';
 
 import AppConstants from '@core/AppConstants';
@@ -420,9 +420,8 @@ const EditGasFeeLegacy = ({
                     </Text>
                     <Text noMargin link bold style={styles.advancedOptionsIcon}>
                       <Icon
-                        name={`ios-arrow-${
-                          showAdvancedOptions ? 'up' : 'down'
-                        }`}
+                        name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'
+                          }`}
                       />
                     </Text>
                   </TouchableOpacity>
@@ -507,8 +506,8 @@ const EditGasFeeLegacy = ({
                 showRangeInfoModal === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : showRangeInfoModal === 'gas_price'
-                  ? strings('edit_gas_fee_eip1559.gas_price')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.gas_price')
+                    : null
               }
               toggleModal={() => setShowRangeInfoModal(null)}
               body={

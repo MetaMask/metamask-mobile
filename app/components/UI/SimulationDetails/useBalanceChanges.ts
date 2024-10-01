@@ -26,7 +26,7 @@ import {
   selectCurrentCurrency,
 } from '@selectors/currencyRateController';
 import { selectChainId } from '@selectors/networkController';
-import { useAsyncResultOrThrow } from '@hooks/useAsyncResult';
+import { useAsyncResultOrThrow } from '@components/hooks/useAsyncResult';
 
 const NATIVE_DECIMALS = 18;
 

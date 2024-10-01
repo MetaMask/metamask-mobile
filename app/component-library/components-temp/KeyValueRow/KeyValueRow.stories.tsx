@@ -5,7 +5,7 @@ import KeyValueRowComponent, {
   KeyValueRowFieldIconSides,
   TooltipSizes,
 } from './index';
-import Text, { TextColor, TextVariant } from '@components/Texts/Text';
+import Text, { TextColor, TextVariant } from '@component-library/components/Texts/Text';
 import Title from '@components/Base/Title';
 import { IconColor, IconName, IconSize } from '@components/Icons/Icon';
 

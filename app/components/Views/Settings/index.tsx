@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import SettingsDrawer from '@UI/SettingsDrawer';
-import { getSettingsNavigationOptions } from '@UI/Navbar';
+import SettingsDrawer from '@components/UI/SettingsDrawer';
+import { getSettingsNavigationOptions } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { useSelector } from 'react-redux';

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
-import WebsiteIcon from '@WebsiteIcon';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
 import { getHost, getUrlObj } from '@util/browser';
 import networkList, {
   isMultichainVersion1Enabled,
@@ -136,8 +136,8 @@ const TransactionHeader = (props) => {
         originIsWalletConnect
           ? origin.split(WALLET_CONNECT_ORIGIN)[1]
           : originIsMMSDKRemoteConn
-          ? origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]
-          : url,
+            ? origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1]
+            : url,
       ).protocol === 'https:'
         ? 'lock'
         : 'warning';

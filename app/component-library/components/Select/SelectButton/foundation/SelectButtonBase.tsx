@@ -5,7 +5,7 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import SelectValue from '@SelectValue/SelectValue';
 
 // Internal dependencies.

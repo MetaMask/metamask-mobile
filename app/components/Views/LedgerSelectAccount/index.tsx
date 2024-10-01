@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '@core/Engine';
-import AccountSelector from '@UI/HardwareWallet/AccountSelector';
-import BlockingActionModal from '@UI/BlockingActionModal';
+import AccountSelector from '@components/UI/HardwareWallet/AccountSelector';
+import BlockingActionModal from '@components/UI/BlockingActionModal';
 import { strings } from '@locales/i18n';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { useAssetFromTheme, useTheme } from '@util/theme';
-import useMetrics from '@hooks/useMetrics/useMetrics';
+import useMetrics from '@components/hooks/useMetrics/useMetrics';
 import ledgerDeviceLightImage from 'images/ledger-device-light.png';
 import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
 import {
@@ -28,7 +28,7 @@ import { HardwareDeviceTypes } from '@constants/keyringTypes';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '@constants/pagination';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
-import useLedgerBluetooth from '@hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth from '@components/hooks/Ledger/useLedgerBluetooth';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_BIP44_STRING,
@@ -38,7 +38,7 @@ import {
   LEDGER_LIVE_STRING,
   LEDGER_UNKNOWN_STRING,
 } from '@core/Ledger/constants';
-import SelectOptionSheet from '@UI/SelectOptionSheet';
+import SelectOptionSheet from '@components/UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 
 interface OptionType {

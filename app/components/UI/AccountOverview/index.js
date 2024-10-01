@@ -27,8 +27,8 @@ import {
 } from '@util/address';
 import Device from '@util/device';
 import { ThemeContext, mockTheme } from '@util/theme';
-import EthereumAddress from '@EthereumAddress';
-import Identicon from '@Identicon';
+import EthereumAddress from '@components/UI/EthereumAddress';
+import Identicon from '@components/UI/Identicon';
 import { MetaMetricsEvents } from '@core/Analytics';
 import AppConstants from '@core/AppConstants';
 import Engine from '@core/Engine';
@@ -38,7 +38,7 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccountChecksummedAddress,
 } from '@selectors/accountsController';
-import { createAccountSelectorNavDetails } from '@Views/AccountSelector';
+import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
@@ -298,7 +298,7 @@ class AccountOverview extends PureComponent {
       const ens = await doENSReverseLookup(account.address, chainId);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
-    } catch {}
+    } catch { }
   };
 
   onOpenPortfolio = () => {

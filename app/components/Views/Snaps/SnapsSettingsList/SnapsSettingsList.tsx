@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 import { SnapElement } from '@components/SnapElement';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { createNavigationDetails } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';
 import { strings } from '@locales/i18n';

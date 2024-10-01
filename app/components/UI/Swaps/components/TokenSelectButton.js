@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 
-import SelectorButton from '@Base/SelectorButton';
-import Text from '@Base/Text';
+import SelectorButton from '@components/Base/SelectorButton';
+import Text from '@components/Base/Text';
 import TokenIcon from './TokenIcon';
 
 const styles = StyleSheet.create({

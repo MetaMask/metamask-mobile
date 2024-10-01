@@ -2,7 +2,10 @@
 
 // External dependencies.
 import { IconName, IconSize } from '@Icons/Icon';
-import { TextVariant, TextColor } from '@Texts/Text';
+import {
+  TextVariant,
+  TextColor,
+} from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { CheckboxProps } from './Checkbox.types';

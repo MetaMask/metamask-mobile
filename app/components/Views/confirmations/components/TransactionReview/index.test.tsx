@@ -15,7 +15,7 @@ import renderWithProvider, {
 import { backgroundState } from '@util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '@component-library/components/Accordions/Accordion/Accordion.constants';
-import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '@BlockaidBanner/BlockaidBanner.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
 import { RootState } from '@reducers';

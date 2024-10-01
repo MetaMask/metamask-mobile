@@ -1,14 +1,14 @@
 'use strict';
 import React from 'react';
 import { SafeAreaView, Image, View, StyleSheet } from 'react-native';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import NetInfo from '@react-native-community/netinfo';
 import { baseStyles, fontStyles } from '@styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
-import StyledButton from '@UI/StyledButton';
-import { getOfflineModalNavbar } from '@UI/Navbar';
-import AndroidBackHandler from '@AndroidBackHandler';
+import StyledButton from '@components/UI/StyledButton';
+import { getOfflineModalNavbar } from '@components/UI/Navbar';
+import AndroidBackHandler from '@components/Views/AndroidBackHandler';
 import Device from '@util/device';
 import AppConstants from '@core/AppConstants';
 import { connect } from 'react-redux';

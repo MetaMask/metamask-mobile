@@ -8,9 +8,9 @@ import {
 } from 'json-rpc-engine';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import { store } from '@store';
-import { getPermittedAccounts } from '@Permissions';
+import { getPermittedAccounts } from '@core/Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
   PermissionConstraint,
@@ -26,7 +26,7 @@ import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
-} from '@Permissions/specifications';
+} from '@core/Permissions/specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 import {
   processOriginThrottlingRejection,
@@ -40,7 +40,7 @@ import { ProviderConfig } from '@selectors/networkController';
 
 jest.mock('./spam');
 
-jest.mock('@Engine', () => ({
+jest.mock('@core', () => ({
   context: {
     PreferencesController: {
       state: {},
@@ -81,7 +81,7 @@ const mockStore = store as unknown as {
   dispatch: jest.Mock;
 };
 
-jest.mock('@Permissions', () => ({
+jest.mock('@core/Permissions', () => ({
   getPermittedAccounts: jest.fn(),
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;

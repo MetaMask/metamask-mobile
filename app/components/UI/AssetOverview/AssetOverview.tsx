@@ -31,11 +31,11 @@ import {
   weiToFiat,
 } from '@util/number';
 import { getEther } from '@util/transactions';
-import Text from '@Base/Text';
-import { createWebviewNavDetails } from '@Views/SimpleWebview';
+import Text from '@components/Base/Text';
+import { createWebviewNavDetails } from '@components/Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
-} from '@hooks/useTokenHistoricalPrices';
+} from '@components/hooks/useTokenHistoricalPrices';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
@@ -50,7 +50,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { getDecimalChainId } from '@util/networks';
 import { useMetrics } from '@components/hooks/useMetrics';
-import { createBuyNavigationDetails } from '@Ramp/routes/utils';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 import { TokenI } from '@Tokens/types';
 import AssetDetailsActions from '@components/Views/AssetDetails/AssetDetailsActions';
 

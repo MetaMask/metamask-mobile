@@ -1,4 +1,4 @@
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import {
   startGasPolling,
   getEIP1559TransactionData,
@@ -6,7 +6,7 @@ import {
 } from './GasPolling';
 import { parseTransactionEIP1559 } from '@util/transactions';
 import { GasFeeOptions, GetEIP1559TransactionDataProps } from './types';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 import { Hex } from '@metamask/utils';
 jest.mock('@util/transactions');
 const mockedParseTransactionEIP1559 =
@@ -16,7 +16,7 @@ const mockedParseTransactionEIP1559 =
 
 const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
 
-jest.mock('@Engine', () => ({
+jest.mock('@core', () => ({
   context: {
     GasFeeController: {
       gasFeeEstimates: {},

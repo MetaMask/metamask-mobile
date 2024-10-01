@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Alert, { AlertType } from '@Base/Alert';
+import Alert, { AlertType } from '@components/Base/Alert';
 import { useTheme } from '@util/theme';
 
 interface Props {

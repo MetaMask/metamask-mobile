@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import SettingsButtonSection from '@UI/SettingsButtonSection';
+import SettingsButtonSection from '@components/UI/SettingsButtonSection';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 import { SECURITY_SETTINGS_DELETE_WALLET_BUTTON } from '@SecuritySettings.constants';

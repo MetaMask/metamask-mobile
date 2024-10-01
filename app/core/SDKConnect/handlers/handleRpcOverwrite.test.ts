@@ -1,7 +1,7 @@
 import overwriteRPCWith from './handleRpcOverwrite';
-import { RPC_METHODS } from '@SDKConnectConstants';
+import { RPC_METHODS } from '@core/SDKConnect/SDKConnectConstants';
 
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('handleRpcOverwrite', () => {
   const accountAddress = '0x123';

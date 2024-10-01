@@ -3,13 +3,13 @@ import { WC2Manager } from './WalletConnectV2';
 // @ts-ignore: Ignoring the import error for testing purposes
 import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 import StorageWrapper from '@store/storage-wrapper';
 
-jest.mock('@AppConstants', () => ({
+jest.mock('@core/AppConstants', () => ({
   WALLET_CONNECT: {
     PROJECT_ID: 'test-project-id',
     METADATA: {
@@ -87,7 +87,7 @@ jest.mock('@walletconnect/se-sdk', () => ({
   },
 }));
 
-jest.mock('@Engine', () => ({
+jest.mock('@core', () => ({
   context: {
     AccountsController: {
       getSelectedAccount: jest.fn().mockReturnValue({
@@ -107,7 +107,7 @@ jest.mock('@Engine', () => ({
   },
 }));
 
-jest.mock('@Permissions', () => ({
+jest.mock('@core/Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
@@ -138,7 +138,7 @@ jest.mock('./WalletConnect2Session', () => ({
   })),
 }));
 
-jest.mock('@BackgroundBridge/BackgroundBridge', () => ({
+jest.mock('@core/BackgroundBridge/BackgroundBridge', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     inpageProvider: {},

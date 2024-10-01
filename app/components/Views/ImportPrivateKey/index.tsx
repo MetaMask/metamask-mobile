@@ -9,8 +9,8 @@ import {
   DimensionValue,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '@UI/StyledButton';
-import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import StyledButton from '@components/UI/StyledButton';
+import { ScreenshotDeterrent } from '@components/UI/ScreenshotDeterrent';
 import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';

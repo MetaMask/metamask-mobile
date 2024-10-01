@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { SafeAreaView, View } from 'react-native';
-import { getNftFullImageNavbarOptions } from '@UI/Navbar';
+import { getNftFullImageNavbarOptions } from '@components/UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '@util/navigation/navUtils';
 import { useStyles } from '@component-library/hooks';

@@ -6,9 +6,9 @@ import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
-import Text, { TextVariant } from '@Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { formatAddress } from '@util/address';
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import { strings } from '@locales/i18n';
 
 // Internal dependencies.

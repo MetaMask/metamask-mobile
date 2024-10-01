@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';
 

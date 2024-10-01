@@ -17,7 +17,7 @@ import { selectSelectedInternalAccount } from '@selectors/accountsController';
 import { doENSReverseLookup } from '@util/ENSUtils';
 import { renderFromWei, hexToBN } from '@util/number';
 import { getEther, getTicker } from '@util/transactions';
-import { AddressFrom } from '@UI/AddressInputs';
+import { AddressFrom } from '@components/UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

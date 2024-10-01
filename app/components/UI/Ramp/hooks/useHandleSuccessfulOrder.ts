@@ -10,7 +10,7 @@ import Engine from '@core/Engine';
 import NotificationManager from '@core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '@reducers/fiatOrders';
 import { toLowerCaseEquals } from '@util/general';
-import useThunkDispatch from '@hooks/useThunkDispatch';
+import useThunkDispatch from '@components/hooks/useThunkDispatch';
 import { useRampSDK } from '@sdk';
 import { getNotificationDetails, stateHasOrder } from '@utils';
 import useAnalytics from './useAnalytics';

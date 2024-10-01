@@ -8,22 +8,22 @@ import createStyles from './styles';
 import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getImportTokenNavbarOptions } from '@Navbar';
+import { getImportTokenNavbarOptions } from '@components/UI/Navbar';
 import Badge, {
   BadgeVariant,
 } from '@component-library/components/Badges/Badge';
 import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
-import AssetIcon from '@AssetIcon';
+import AssetIcon from '@components/UI/AssetIcon';
 import {
   getTestNetImageByChainId,
   isLineaMainnet,
   isMainNet,
   isTestNet,
 } from '@util/networks';
-import images from 'images/image-icons';
-import SkeletonText from '@Ramp/components/SkeletonText';
+import images from '@images/image-icons';
+import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
 import { TOKEN_BALANCE_LOADING } from '@Tokens/constants';
-import useBalance from '@Ramp/hooks/useBalance';
+import useBalance from '@components/UI/Ramp/hooks/useBalance';
 import {
   ButtonSize,
   ButtonVariants,
@@ -33,7 +33,7 @@ import BottomSheetFooter, {
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ScrollView } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
-import Box from '@Ramp/components/Box';
+import Box from '@components/UI/Ramp/components/Box';
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import Routes from '@constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';

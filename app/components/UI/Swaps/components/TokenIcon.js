@@ -2,8 +2,8 @@ import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
-import RemoteImage from '@Base/RemoteImage';
-import Text from '@Base/Text';
+import RemoteImage from '@components/Base/RemoteImage';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 import imageIcons from '@images/image-icons';
 

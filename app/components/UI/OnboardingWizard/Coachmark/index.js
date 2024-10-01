@@ -5,7 +5,7 @@ import {
   colors as importedColors,
   fontStyles,
 } from '@styles/common';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { mockTheme, ThemeContext } from '@util/theme';
 import ButtonIcon, {

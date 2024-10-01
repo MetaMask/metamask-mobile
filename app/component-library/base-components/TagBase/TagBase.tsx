@@ -4,9 +4,9 @@
 import React from 'react';
 
 // External dependencies.
-import { useComponentSize, useStyles } from '@hooks';
-import Text from '@components/Texts/Text';
-import ListItem from '@components/List/ListItem';
+import { useComponentSize, useStyles } from '@component-library/hooks';
+import Text from '@component-library/components/Texts/Text';
+import ListItem from '@component-library/components/List/ListItem';
 
 // Internal dependencies.
 import styleSheet from './TagBase.styles';

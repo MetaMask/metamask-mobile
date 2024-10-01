@@ -1,4 +1,4 @@
-import DevLogger from '@utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { Connection } from '@Connection';
 
 function handleClientsWaiting({ instance }: { instance: Connection }) {

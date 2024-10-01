@@ -4,14 +4,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '@styles/common';
 import StorageWrapper from '@store/storage-wrapper';
-import OnboardingProgress from '@UI/OnboardingProgress';
+import OnboardingProgress from '@components/UI/OnboardingProgress';
 import { strings } from '@locales/i18n';
 import { showAlert } from '@actions/alert';
-import AndroidBackHandler from '@AndroidBackHandler';
+import AndroidBackHandler from '@components/Views/AndroidBackHandler';
 import Device from '@util/device';
-import Confetti from '@UI/Confetti';
-import HintModal from '@UI/HintModal';
-import { getTransparentOnboardingNavbarOptions } from '@UI/Navbar';
+import Confetti from '@components/UI/Confetti';
+import HintModal from '@components/UI/HintModal';
+import { getTransparentOnboardingNavbarOptions } from '@components/UI/Navbar';
 import setOnboardingWizardStep from '@actions/wizard';
 import {
   ONBOARDING_WIZARD,
@@ -20,7 +20,7 @@ import {
 import { MetaMetricsEvents } from '@core/Analytics';
 import { ThemeContext, mockTheme } from '@util/theme';
 import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
-import OnboardingSuccess from '@OnboardingSuccess';
+import OnboardingSuccess from '@components/Views/OnboardingSuccess';
 
 const createStyles = (colors) =>
   StyleSheet.create({

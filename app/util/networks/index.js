@@ -1,5 +1,5 @@
 import URL from 'url-parse';
-import networksWithImages from 'images/image-icons';
+import networksWithImages from '@images/image-icons';
 import {
   MAINNET,
   NETWORKS_CHAIN_ID,
@@ -8,8 +8,8 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-} from '@app/constants/network';
-import { NetworkSwitchErrorType } from '@app/constants/error';
+} from '@constants/network';
+import { NetworkSwitchErrorType } from '@constants/error';
 import {
   ChainId,
   NetworkType,
@@ -18,10 +18,10 @@ import {
 } from '@metamask/controller-utils';
 import { isStrictHexString } from '@metamask/utils';
 import Engine from '@core/Engine';
-import { toLowerCaseEquals } from '@general';
-import { fastSplit } from '@number';
+import { toLowerCaseEquals } from '@util/general';
+import { fastSplit } from '@util/number';
 import handleNetworkSwitch from './handleNetworkSwitch';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 
 export { handleNetworkSwitch };
 
@@ -38,7 +38,7 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
-} from '@etherscan';
+} from '@util/etherscan';
 import {
   LINEA_FAUCET,
   LINEA_MAINNET_BLOCK_EXPLORER,

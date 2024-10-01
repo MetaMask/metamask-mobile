@@ -6,7 +6,7 @@ import {
   TextInput,
 } from 'react-native';
 import React from 'react';
-import ActionModal from '@UI/ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 import Text, {

@@ -10,7 +10,7 @@ import Device from '@util/device';
 import { ThemeContext, mockTheme } from '@util/theme';
 import ClipboardManager from '@core/ClipboardManager';
 import { showAlert } from '@actions/alert';
-import GlobalAlert from '@UI/GlobalAlert';
+import GlobalAlert from '@components/UI/GlobalAlert';
 import {
   selectConversionRate,
   selectCurrentCurrency,

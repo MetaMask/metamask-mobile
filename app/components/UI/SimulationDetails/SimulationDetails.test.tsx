@@ -8,7 +8,7 @@ import {
   SimulationTokenStandard,
 } from '@metamask/transaction-controller';
 
-import AnimatedSpinner from '@AnimatedSpinner';
+import AnimatedSpinner from '@components/UI/AnimatedSpinner';
 import SimulationDetails from './SimulationDetails';
 import useBalanceChanges from './useBalanceChanges';
 import { AssetType } from './types';
@@ -46,7 +46,7 @@ const simulationDataMock = {
   ],
 } as SimulationData;
 
-jest.mock('@hooks/useStyles', () => ({
+jest.mock('@components/hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {},
     theme: {
@@ -57,7 +57,7 @@ jest.mock('@hooks/useStyles', () => ({
   }),
 }));
 
-jest.mock('@AnimatedSpinner');
+jest.mock('@components/UI/AnimatedSpinner');
 jest.mock('./BalanceChangeList/BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
 jest.mock('./useSimulationMetrics');

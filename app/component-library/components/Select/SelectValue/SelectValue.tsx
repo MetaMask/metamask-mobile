@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Text from '@Texts/Text/Text';
 import Avatar from '@Avatars/Avatar';
 

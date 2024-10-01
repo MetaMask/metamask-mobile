@@ -12,9 +12,9 @@ import Logger from '@util/Logger';
 import Device from '@util/device';
 import { strings } from '@locales/i18n';
 
-import Text from '@Base/Text';
-import Title from '@Base/Title';
-import Fox from '@Fox';
+import Text from '@components/Base/Text';
+import Title from '@components/Base/Title';
+import Fox from '@components/UI/Fox';
 import backgroundShapes from './backgroundShapes';
 import { useTheme } from '@util/theme';
 
@@ -154,37 +154,37 @@ function LoadingAnimation({
     () =>
       headPan
         ? metadata.reduce((acc, curr, index) => {
-            // Vertical position is random and is in range [-0.6, 0.6]
-            // making the head not look so steep up/down
-            const y = Math.random() * 0.6 * (Math.random() < 0.5 ? -1 : 1);
-            const isNegativeY = y < 0;
+          // Vertical position is random and is in range [-0.6, 0.6]
+          // making the head not look so steep up/down
+          const y = Math.random() * 0.6 * (Math.random() < 0.5 ? -1 : 1);
+          const isNegativeY = y < 0;
 
-            // Horizontal position will be to the left or right depending 70% on the
-            // index, this ensures the head moves from left to right in these cases
-            // Otherwise is random.
-            const isNegativeX =
-              Math.random() < 0.7 ? index % 2 === 0 : Math.random() < 0.5;
-            const x = isNegativeX ? -1 : 1;
+          // Horizontal position will be to the left or right depending 70% on the
+          // index, this ensures the head moves from left to right in these cases
+          // Otherwise is random.
+          const isNegativeX =
+            Math.random() < 0.7 ? index % 2 === 0 : Math.random() < 0.5;
+          const x = isNegativeX ? -1 : 1;
 
-            // Head pan values, horizontal pan value is randomly changed by [-0.4,0.4]
-            // so the head rotates differently some times.
-            const panRadioX = (x + (0.8 * Math.random() - 0.8)) * PAN_RADIO;
-            const panRadioY = y * PAN_RADIO;
+          // Head pan values, horizontal pan value is randomly changed by [-0.4,0.4]
+          // so the head rotates differently some times.
+          const panRadioX = (x + (0.8 * Math.random() - 0.8)) * PAN_RADIO;
+          const panRadioY = y * PAN_RADIO;
 
-            // Icons positions are compensated by their size according to the position
-            const radioY = AGG_RADIO * y - (isNegativeY ? 40 : 0);
-            // Horizontal position depends on vertical position, making the logo sit
-            // in a radius from origin and not always same horizontal distance
-            const radioX =
-              Math.sqrt(1 - Math.pow(y, 2)) * x * AGG_RADIO -
-              (isNegativeX ? 95 : 0);
+          // Icons positions are compensated by their size according to the position
+          const radioY = AGG_RADIO * y - (isNegativeY ? 40 : 0);
+          // Horizontal position depends on vertical position, making the logo sit
+          // in a radius from origin and not always same horizontal distance
+          const radioX =
+            Math.sqrt(1 - Math.pow(y, 2)) * x * AGG_RADIO -
+            (isNegativeX ? 95 : 0);
 
-            return {
-              ...acc,
-              [curr.key]: [panRadioX, panRadioY, radioX, radioY],
-            };
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          }, {})
+          return {
+            ...acc,
+            [curr.key]: [panRadioX, panRadioY, radioX, radioY],
+          };
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        }, {})
         : {},
     [metadata, headPan],
   );
@@ -194,13 +194,13 @@ function LoadingAnimation({
     () =>
       headPan
         ? metadata.reduce(
-            (acc, curr) => ({
-              ...acc,
-              [curr.key]: new Animated.Value(0),
-            }),
-            {},
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          )
+          (acc, curr) => ({
+            ...acc,
+            [curr.key]: new Animated.Value(0),
+          }),
+          {},
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )
         : {},
     [metadata, headPan],
   );
@@ -210,72 +210,72 @@ function LoadingAnimation({
     () =>
       headPan
         ? [
-            // Animated.delay(INITIAL_DELAY),
-            ...metadata.reduce(
-              (acc, cur, index, array) => [
-                ...acc,
-                // Time to delay next iteration, this is the amount of time the head looks at the icon
-                Animated.delay(index > 0 ? DELAY : 0),
-                // Track the current index of the array
-                Animated.timing(currentQuoteIndexValue, {
-                  toValue: index,
-                  duration: 0,
-                  useNativeDriver: true,
-                }),
-                Animated.parallel([
-                  // If is not the first aggregator, reduce previous aggregator opacity to 1
-                  index > 0 &&
-                    Animated.timing(opacities[array[index - 1].key], {
-                      toValue: 0,
-                      duration: PAN_DURATION,
-                      useNativeDriver: true,
-                    }),
-                  // Set current aggregator opacity to 1
-                  Animated.timing(opacities[cur.key], {
-                    toValue: 1,
-                    duration: PAN_DURATION,
-                    useNativeDriver: true,
-                  }),
-                  // Update progress bar given the current index
-                  Animated.timing(progressValue, {
-                    toValue:
-                      (FINALIZING_PERCENTAGE / array.length) * (index + 1),
-                    duration: PAN_DURATION,
-                    useNativeDriver: false,
-                  }),
-                  // Make the fox head pan to the aggregator position
-                  !Device.isAndroid() &&
-                    Animated.timing(foxHeadPan, {
-                      toValue: {
-                        x: positions[cur.key][0],
-                        y: positions[cur.key][1],
-                      },
-                      duration: PAN_DURATION,
-                      useNativeDriver: true,
-                    }),
-                ]),
-              ],
-              [],
-            ),
-            // Final animation of the sequence
-            Animated.delay(DELAY),
-            Animated.parallel([
-              // Set last aggregator icon opacity to 0
-              Animated.timing(opacities[[...metadata].pop()?.key], {
-                toValue: 0,
-                duration: PAN_DURATION,
+          // Animated.delay(INITIAL_DELAY),
+          ...metadata.reduce(
+            (acc, cur, index, array) => [
+              ...acc,
+              // Time to delay next iteration, this is the amount of time the head looks at the icon
+              Animated.delay(index > 0 ? DELAY : 0),
+              // Track the current index of the array
+              Animated.timing(currentQuoteIndexValue, {
+                toValue: index,
+                duration: 0,
                 useNativeDriver: true,
               }),
-              // Reset to fox head to origing
-              !Device.isAndroid() &&
-                Animated.timing(foxHeadPan, {
-                  toValue: { x: 0, y: 0 },
+              Animated.parallel([
+                // If is not the first aggregator, reduce previous aggregator opacity to 1
+                index > 0 &&
+                Animated.timing(opacities[array[index - 1].key], {
+                  toValue: 0,
                   duration: PAN_DURATION,
                   useNativeDriver: true,
                 }),
-            ]),
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          ]
+                // Set current aggregator opacity to 1
+                Animated.timing(opacities[cur.key], {
+                  toValue: 1,
+                  duration: PAN_DURATION,
+                  useNativeDriver: true,
+                }),
+                // Update progress bar given the current index
+                Animated.timing(progressValue, {
+                  toValue:
+                    (FINALIZING_PERCENTAGE / array.length) * (index + 1),
+                  duration: PAN_DURATION,
+                  useNativeDriver: false,
+                }),
+                // Make the fox head pan to the aggregator position
+                !Device.isAndroid() &&
+                Animated.timing(foxHeadPan, {
+                  toValue: {
+                    x: positions[cur.key][0],
+                    y: positions[cur.key][1],
+                  },
+                  duration: PAN_DURATION,
+                  useNativeDriver: true,
+                }),
+              ]),
+            ],
+            [],
+          ),
+          // Final animation of the sequence
+          Animated.delay(DELAY),
+          Animated.parallel([
+            // Set last aggregator icon opacity to 0
+            Animated.timing(opacities[[...metadata].pop()?.key], {
+              toValue: 0,
+              duration: PAN_DURATION,
+              useNativeDriver: true,
+            }),
+            // Reset to fox head to origing
+            !Device.isAndroid() &&
+            Animated.timing(foxHeadPan, {
+              toValue: { x: 0, y: 0 },
+              duration: PAN_DURATION,
+              useNativeDriver: true,
+            }),
+          ]),
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        ]
         : [],
     [
       currentQuoteIndexValue,

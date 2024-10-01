@@ -5,9 +5,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import AvatarBase from '@foundation/AvatarBase';
-import Text from '@Texts/Text';
-import { useStyles } from '@hooks';
+import AvatarBase from '@component-library/components/AvatarBase';
+import Text from '@component-library/components/Texts/Text';
+import { useStyles } from '@components/hooks';
 import { TEXTVARIANT_BY_AVATARSIZE } from '@Avatar.constants';
 
 // Internal dependencies.

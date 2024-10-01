@@ -1,7 +1,7 @@
 import React from 'react';
-import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
-import NetworkVerificationInfo from '@UI/NetworkVerificationInfo';
+import NetworkVerificationInfo from '@components/UI/NetworkVerificationInfo';
 import BottomSheet from '@component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '@component-library/hooks';
 import { View } from 'react-native';

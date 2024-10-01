@@ -15,8 +15,8 @@ import {
 import { sanitizeString } from '@util/string';
 import { useTheme } from '@util/theme';
 import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
-import SignatureRequest from '@SignatureRequest';
-import ExpandedMessage from '@SignatureRequest/ExpandedMessage';
+import SignatureRequest from '@components/Views/confirmations/components/SignatureRequest';
+import ExpandedMessage from '@components/Views/confirmations/components/SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
@@ -29,7 +29,7 @@ import Logger from '@util/Logger';
 import { getBlockaidMetricsParams } from '@util/blockaid';
 import createExternalSignModelNav from '@util/hardwareWallet/signatureUtils';
 import { getDecimalChainId } from '@util/networks';
-import { SecurityAlertResponse } from '@BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Converts a hexadecimal string to a utf8 string.

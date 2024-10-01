@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import StyledButton from '@StyledButton';
-import Text from '@Base/Text';
+import StyledButton from '@components/UI/StyledButton';
+import Text from '@components/Base/Text';
 import { strings } from '@locales/i18n';
 import Device from '@util/device';
 import { useAssetFromTheme } from '@util/theme';

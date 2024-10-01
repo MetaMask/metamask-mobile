@@ -6,12 +6,12 @@ import {
   TextInput,
   InteractionManager,
 } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '@locales/i18n';
 import { createStyles } from './styles';
 import { useTheme } from '@util/theme';
-import UrlAutocomplete from '@UI/UrlAutocomplete';
+import UrlAutocomplete from '@components/UI/UrlAutocomplete';
 import { BrowserUrlModalSelectorsIDs } from '@e2e/selectors/Modals/BrowserUrlModal.selectors';
 import {
   createNavigationDetails,

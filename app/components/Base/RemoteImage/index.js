@@ -12,10 +12,10 @@ import FadeIn from 'react-native-fade-in-image';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import { SvgUri } from 'react-native-svg';
 import isUrl from 'is-url';
-import ComponentErrorBoundary from '@UI/ComponentErrorBoundary';
-import useIpfsGateway from '@hooks/useIpfsGateway';
+import ComponentErrorBoundary from '@components/UI/ComponentErrorBoundary';
+import useIpfsGateway from '@components/hooks/useIpfsGateway';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import Identicon from '@UI/Identicon';
+import Identicon from '@components/UI/Identicon';
 import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -31,11 +31,11 @@ import {
   isMainNet,
   isTestNet,
 } from '@util/networks';
-import images from 'images/image-icons';
+import images from '@images/image-icons';
 import { selectNetworkName } from '@selectors/networkInfos';
 
 import { BadgeAnchorElementShape } from '@component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import useSvgUriViewBox from '@hooks/useSvgUriViewBox';
+import useSvgUriViewBox from '@components/hooks/useSvgUriViewBox';
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import Logger from '@util/Logger';
 

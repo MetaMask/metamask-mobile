@@ -1,5 +1,5 @@
-import AppConstants from '@AppConstants';
-import getRpcMethodMiddleware from '@RPCMethods/RPCMethodMiddleware';
+import AppConstants from '@core/AppConstants';
+import getRpcMethodMiddleware from '@core/RPCMethods/RPCMethodMiddleware';
 import { DappClient } from './dapp-sdk-types';
 
 const getDefaultBridgeParams = (clientInfo: DappClient) => ({

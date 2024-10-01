@@ -1,9 +1,10 @@
 import { NetworkController } from '@metamask/network-controller';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
-import Engine from '@Engine';
-import { Minimizer } from '@NativeModules';
-import { RPCQueueManager } from '@RPCQueueManager';
+import Engine from '@core/Engine';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
+import { Minimizer } from '@core/NativeModules';
+import { RPCQueueManager } from '@core/SDKConnect/RPCQueueManager';
 
 import {
   EventType,
@@ -11,25 +12,24 @@ import {
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
 import Logger from '@util/Logger';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 
 import {
   wait,
   waitForAndroidServiceBinding,
   waitForKeychainUnlocked,
-} from '@utils/wait.util';
+} from '@core/SDKConnect/utils/wait.util';
 
-import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
-import { SDKConnect } from '@SDKConnect';
+import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
 
 import { KeyringController } from '@metamask/keyring-controller';
 
 import { PermissionController } from '@metamask/permission-controller';
 import { PROTOCOLS } from '@constants/deeplinks';
-import BatchRPCManager from '@BatchRPCManager';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '@SDKConnectConstants';
-import handleCustomRpcCalls from '@handlers/handleCustomRpcCalls';
-import DevLogger from '@utils/DevLogger';
+import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';
+import handleCustomRpcCalls from '@core/SDKConnect/handlers/handleCustomRpcCalls';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import sendMessage from './AndroidService/sendMessage';
 import { DappClient, DappConnections } from './dapp-sdk-types';

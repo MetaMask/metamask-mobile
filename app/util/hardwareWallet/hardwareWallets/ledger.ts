@@ -1,4 +1,4 @@
-import { createNavigationDetails } from '@navigation/navUtils';
+import { createNavigationDetails } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';
 import { getDeviceId } from '@core/Ledger/Ledger';
 export interface LedgerSignModelNavParams {

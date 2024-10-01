@@ -323,7 +323,7 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('SendTransaction View', () => {
   afterEach(() => {

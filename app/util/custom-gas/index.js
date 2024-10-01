@@ -1,8 +1,8 @@
 import { BN } from 'ethereumjs-util';
-import { renderFromWei, weiToFiat, toWei, conversionUtil } from '@number';
+import { renderFromWei, weiToFiat, toWei, conversionUtil } from '@util/number';
 import { strings } from '@locales/i18n';
 import TransactionTypes from '@core/TransactionTypes';
-import { estimateGas } from '@transaction-controller';
+import { estimateGas } from '@util/transaction-controller';
 import { hexToBN } from '@metamask/controller-utils';
 
 export const ETH = 'ETH';

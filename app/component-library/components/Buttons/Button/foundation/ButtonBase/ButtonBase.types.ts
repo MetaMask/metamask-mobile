@@ -4,7 +4,7 @@ import { ColorValue, TouchableOpacityProps } from 'react-native';
 // External dependencies.
 import { IconProps } from '@Icons/Icon';
 import { ButtonSize, ButtonWidthTypes } from '@Button.types';
-import { TextVariant } from '@Texts/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
 
 /**
  * ButtonBase component props.

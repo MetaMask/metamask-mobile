@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import { View } from 'react-native';
 import {
   KeyValueRowSectionAlignments,

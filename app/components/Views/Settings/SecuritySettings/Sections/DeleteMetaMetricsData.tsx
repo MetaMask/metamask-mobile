@@ -4,8 +4,8 @@ import {
   DataDeleteResponseStatus,
   MetaMetricsEvents,
 } from '@core/Analytics';
-import { useMetrics } from '@hooks/useMetrics';
-import SettingsButtonSection from '@UI/SettingsButtonSection';
+import { useMetrics } from '@components/hooks/useMetrics';
+import SettingsButtonSection from '@components/UI/SettingsButtonSection';
 import { strings } from '@locales/i18n';
 import {
   CONSENSYS_PRIVACY_POLICY,

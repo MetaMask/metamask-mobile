@@ -20,8 +20,8 @@ import { connect, useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '@styles/common';
-import Tokens from '@UI/Tokens';
-import { getWalletNavbarOptions } from '@UI/Navbar';
+import Tokens from '@components/UI/Tokens';
+import { getWalletNavbarOptions } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '@util/number';
 import {
@@ -37,11 +37,11 @@ import {
 } from '@component-library/components/Toast';
 import NotificationsService from '@util/notifications/services/NotificationService';
 import Engine from '@core/Engine';
-import CollectibleContracts from '@UI/CollectibleContracts';
+import CollectibleContracts from '@components/UI/CollectibleContracts';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { getTicker } from '@util/transactions';
-import OnboardingWizard from '@UI/OnboardingWizard';
-import ErrorBoundary from '@ErrorBoundary';
+import OnboardingWizard from '@components/UI/OnboardingWizard';
+import ErrorBoundary from '@components/Views/ErrorBoundary';
 import { useTheme } from '@util/theme';
 import { shouldShowSmartTransactionsOptInModal } from '@util/onboarding';
 import Logger from '@util/Logger';
@@ -77,7 +77,7 @@ import Text, {
 } from '@component-library/components/Texts/Text';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { RootState } from '@reducers';
-import usePrevious from '@hooks/usePrevious';
+import usePrevious from '@components/hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import { selectAccountBalanceByChainId } from '@selectors/accountTrackerController';
 import { selectUseNftDetection } from '@selectors/preferencesController';

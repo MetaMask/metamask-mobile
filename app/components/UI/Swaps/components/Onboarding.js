@@ -13,8 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '@locales/i18n';
 import Device from '@util/device';
-import Text from '@Base/Text';
-import StyledButton from '@StyledButton';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
 import { useTheme, useAssetFromTheme } from '@util/theme';
 
 /* eslint-disable import/no-commonjs */

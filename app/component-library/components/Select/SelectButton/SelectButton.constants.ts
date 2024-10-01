@@ -1,6 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
-import { TextVariant, TextColor } from '@Texts/Text';
+import {
+  TextVariant,
+  TextColor,
+} from '@component-library/components/Texts/Text';
 import { IconName, IconColor, IconSize } from '@Icons/Icon';
 import { VerticalAlignment } from '@List/ListItem';
 import { AvatarSize } from '@Avatars/Avatar';

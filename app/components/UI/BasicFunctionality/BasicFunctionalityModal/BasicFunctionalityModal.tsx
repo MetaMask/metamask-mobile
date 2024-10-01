@@ -29,7 +29,7 @@ import Routes from '@constants/navigation/Routes';
 import NotificationsService from '@util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { useEnableNotifications } from '@util/notifications/hooks/useNotifications';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import {
   selectIsProfileSyncingEnabled,
   selectIsMetamaskNotificationsEnabled,

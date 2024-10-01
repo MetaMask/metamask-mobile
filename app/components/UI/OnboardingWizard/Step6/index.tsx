@@ -5,7 +5,7 @@ import Device from '@util/device';
 import Coachmark from '@Coachmark';
 import setOnboardingWizardStep from '@actions/wizard';
 import { strings } from '@locales/i18n';
-import { createBrowserNavDetails } from '@Views/Browser';
+import { createBrowserNavDetails } from '@components/Views/Browser';
 
 import onboardingStyles from '@styles';
 import {
@@ -14,7 +14,7 @@ import {
 } from '@core/Analytics';
 import { useTheme } from '@util/theme';
 import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {

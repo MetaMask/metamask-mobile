@@ -11,17 +11,20 @@ import Client, {
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
 
-import { updateWC2Metadata } from '@app/actions/sdk';
+import { updateWC2Metadata } from '@actions/sdk';
 import { selectChainId } from '@selectors/networkController';
 import { store } from '@store';
 import StorageWrapper from '@store/storage-wrapper';
 import Logger from '@util/Logger';
-import AppConstants from '@AppConstants';
-import Engine from '@Engine';
-import { getPermittedAccounts } from '@Permissions';
-import DevLogger from '@SDKConnect/utils/DevLogger';
-import getAllUrlParams from '@SDKConnect/utils/getAllUrlParams.util';
-import { wait, waitForKeychainUnlocked } from '@SDKConnect/utils/wait.util';
+import AppConstants from '@core/AppConstants';
+import Engine from '@core/Engine';
+import { getPermittedAccounts } from '@core/Permissions';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import getAllUrlParams from '@core/SDKConnect/utils/getAllUrlParams.util';
+import {
+  wait,
+  waitForKeychainUnlocked,
+} from '@core/SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import parseWalletConnectUri, {

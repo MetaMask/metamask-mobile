@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useAccounts } from '@hooks/useAccounts';
+import { useAccounts } from '@components/hooks/useAccounts';
 import { Account } from './../../../hooks/useAccounts/useAccounts.types';
 
 const useSelectedAccount = (): Account | undefined => {

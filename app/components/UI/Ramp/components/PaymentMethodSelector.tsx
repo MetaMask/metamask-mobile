@@ -4,8 +4,8 @@ import Box from './Box';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useTheme } from '@util/theme';
 
-import ListItemBase from '@Base/ListItem';
-import Text from '@Base/Text';
+import ListItemBase from '@components/Base/ListItem';
+import Text from '@components/Base/Text';
 import { Colors } from '@util/theme/models';
 
 // TODO: Convert into typescript and correctly type

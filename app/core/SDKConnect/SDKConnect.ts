@@ -1,6 +1,6 @@
 import { NativeEventSubscription } from 'react-native';
 import Logger from '@util/Logger';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';

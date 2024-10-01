@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useEffect, useRef } from 'react';
-import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '@core/Analytics';
-import { createAccountConnectNavDetails } from '@Views/AccountConnect';
+import { createAccountConnectNavDetails } from '@components/Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '@selectors/accountTrackerController';
 import { useMetrics } from '@components/hooks/useMetrics';

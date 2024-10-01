@@ -8,7 +8,7 @@ import { BadgeProps, BadgeVariant } from '@Badge/Badge.types';
 import { SAMPLE_BADGENETWORK_PROPS } from '@Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 import { SAMPLE_BADGESTATUS_PROPS } from '@Badge/variants/BadgeStatus/BadgeStatus.constants';
 import Badge from '@Badge/Badge';
-import Text, { TextVariant, TextColor } from '@Texts/Text';
+import Text, { TextVariant, TextColor } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { default as BadgeWrapperComponent } from './BadgeWrapper';

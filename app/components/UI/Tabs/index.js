@@ -22,7 +22,7 @@ import { MetaMetricsEvents } from '@core/Analytics';
 import { fontStyles, colors as importedColors } from '@styles/common';
 import Device from '@util/device';
 import { ThemeContext, mockTheme } from '@util/theme';
-import withMetricsAwareness from '@hooks/useMetrics/withMetricsAwareness';
+import withMetricsAwareness from '@components/hooks/useMetrics/withMetricsAwareness';
 import TabThumbnail from './TabThumbnail';
 
 const THUMB_VERTICAL_MARGIN = 15;
@@ -32,7 +32,7 @@ const THUMB_HEIGHT =
   THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor(
   (Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) /
-    THUMB_HEIGHT,
+  THUMB_HEIGHT,
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 

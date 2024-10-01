@@ -8,14 +8,14 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '@core/Engine';
-import AnimatedQRScannerModal from '@UI/QRHardware/AnimatedQRScanner';
-import AccountSelector from '@UI/HardwareWallet/AccountSelector';
+import AnimatedQRScannerModal from '@components/UI/QRHardware/AnimatedQRScanner';
+import AccountSelector from '@components/UI/HardwareWallet/AccountSelector';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import BlockingActionModal from '@UI/BlockingActionModal';
+import BlockingActionModal from '@components/UI/BlockingActionModal';
 import { strings } from '@locales/i18n';
 import { UR } from '@ngraveio/bc-ur';
-import Alert, { AlertType } from '@Base/Alert';
+import Alert, { AlertType } from '@components/Base/Alert';
 import { MetaMetricsEvents } from '@core/Analytics';
 
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';

@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useComponentSize, useStyles } from '@hooks';
+import { useComponentSize, useStyles } from '@components/hooks';
 import BadgeBase from '@foundation/BadgeBase';
 import Avatar, { AvatarVariant } from '@Avatars/Avatar';
 

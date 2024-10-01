@@ -6,7 +6,7 @@ jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
   clearAll: jest.fn().mockResolvedValue([]),
 }));
-jest.mock('@AppConstants');
+jest.mock('@core/AppConstants');
 jest.mock('@SDKConnect');
 
 describe('removeAll', () => {

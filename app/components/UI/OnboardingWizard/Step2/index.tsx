@@ -13,7 +13,7 @@ import {
 } from '@core/Analytics';
 import { useTheme } from '@util/theme';
 import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import useHandleLayout from '@useHandleLayout';
 
 const styles = StyleSheet.create({

@@ -28,7 +28,7 @@ import { useNetworkInfo } from '@selectors/selectedNetworkController';
 import { getHost } from '@util/browser';
 import Device from '@util/device';
 import { ThemeContext, mockTheme } from '@util/theme';
-import WebsiteIcon from '@WebsiteIcon';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
 import useSelectedAccount from './useSelectedAccount';

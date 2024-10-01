@@ -11,9 +11,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Icon, { IconSize, IconName } from '@Icons/Icon';
-import Text, { TextVariant } from '@Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { DEFAULT_ACCORDION_EXPANDDURATION } from '@Accordion.constants';
 
 // Internal dependencies.

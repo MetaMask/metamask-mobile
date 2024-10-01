@@ -19,8 +19,8 @@ import ScrollableTabView, {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
 import StorageWrapper from '@store/storage-wrapper';
-import ActionView from '@UI/ActionView';
-import ButtonReveal from '@UI/ButtonReveal';
+import ActionView from '@components/UI/ActionView';
+import ButtonReveal from '@components/UI/ButtonReveal';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -29,8 +29,8 @@ import Icon, {
   IconSize,
   IconName,
 } from '@component-library/components/Icons/Icon';
-import InfoModal from '@UI/Swaps/components/InfoModal';
-import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import { ScreenshotDeterrent } from '@components/UI/ScreenshotDeterrent';
 import { showAlert } from '@actions/alert';
 import { recordSRPRevealTimestamp } from '@actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '@constants/error';

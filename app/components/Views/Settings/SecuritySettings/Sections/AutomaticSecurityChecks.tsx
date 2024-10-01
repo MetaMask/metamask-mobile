@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { SecurityOptionToggle } from '@UI/SecurityOptionToggle';
+import { SecurityOptionToggle } from '@components/UI/SecurityOptionToggle';
 import { strings } from '@locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAutomaticSecurityChecks } from '@actions/security';

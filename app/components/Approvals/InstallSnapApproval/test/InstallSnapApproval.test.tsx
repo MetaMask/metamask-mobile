@@ -4,7 +4,7 @@ import { ApprovalRequest } from '@metamask/approval-controller';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import InstallSnapApproval from '@InstallSnapApproval';
-import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECTION_REQUEST,
@@ -16,7 +16,7 @@ import {
 import SNAP_INSTALL_SUCCESS from '@components/InstallSnapSuccess/InstallSnapSuccess.constants';
 import SNAP_INSTALL_ERROR from '@components/InstallSnapError/InstallSnapError.constants';
 
-jest.mock('@Views/confirmations/hooks/useApprovalRequest');
+jest.mock('@components/Views/confirmations/hooks/useApprovalRequest');
 
 const onConfirm = jest.fn();
 const onReject = jest.fn();

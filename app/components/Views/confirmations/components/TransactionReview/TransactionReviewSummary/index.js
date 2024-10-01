@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, View } from 'react-native';
 import { fontStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import WarningMessage from '@SendFlow/WarningMessage';
+import WarningMessage from '@components/Views/confirmations/SendFlow/WarningMessage';
 import { ThemeContext, mockTheme } from '@util/theme';
 import { isTestNet } from '@util/networks';
 
@@ -95,9 +95,8 @@ class TransactionReviewSummary extends PureComponent {
   };
 
   renderWarning = () => (
-    <Text>{`${strings('transaction.approve_warning')} ${
-      this.props.assetAmount
-    }`}</Text>
+    <Text>{`${strings('transaction.approve_warning')} ${this.props.assetAmount
+      }`}</Text>
   );
 
   render = () => {

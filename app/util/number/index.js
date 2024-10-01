@@ -11,9 +11,9 @@ import {
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
-import currencySymbols from '@currency-symbols.json';
-import { isZero } from '@lodash';
-import { regex } from '@regex';
+import currencySymbols from '@util/currency-symbols.json';
+import { isZero } from '@util/lodash';
+import { regex } from '@util/regex';
 export { BNToHex };
 
 // Big Number Constants
@@ -165,8 +165,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   if (value === '.') {
     throw new Error(
       '[number] while converting number ' +
-        tokenValue +
-        ' to token minimal util, invalid value',
+      tokenValue +
+      ' to token minimal util, invalid value',
     );
   }
   // Split it into a whole and fractional part
@@ -174,8 +174,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   if (comps.length > 2) {
     throw new Error(
       '[number] while converting number ' +
-        tokenValue +
-        ' to token minimal util,  too many decimal points',
+      tokenValue +
+      ' to token minimal util,  too many decimal points',
     );
   }
   let whole = comps[0],
@@ -189,8 +189,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   if (fraction.length > decimals) {
     throw new Error(
       '[number] while converting number ' +
-        tokenValue +
-        ' to token minimal util, too many decimal places',
+      tokenValue +
+      ' to token minimal util, too many decimal places',
     );
   }
   while (fraction.length < decimals) {

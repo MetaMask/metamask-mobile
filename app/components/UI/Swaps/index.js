@@ -48,13 +48,13 @@ import {
   isSwapsNativeAsset,
   isDynamicToken,
 } from './utils';
-import { getSwapsAmountNavbar } from '@Navbar';
+import { getSwapsAmountNavbar } from '@components/UI/Navbar';
 
-import useModalHandler from '@Base/hooks/useModalHandler';
-import Text from '@Base/Text';
-import Keypad from '@Base/Keypad';
-import StyledButton from '@StyledButton';
-import ScreenView from '@Base/ScreenView';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
+import Text from '@components/Base/Text';
+import Keypad from '@components/Base/Keypad';
+import StyledButton from '@components/UI/StyledButton';
+import ScreenView from '@components/Base/ScreenView';
 import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
@@ -63,7 +63,7 @@ import useBalance from './utils/useBalance';
 import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '@util/general';
-import { AlertType } from '@Base/Alert';
+import { AlertType } from '@components/Base/Alert';
 import { isZero, gte } from '@util/lodash';
 import { useTheme } from '@util/theme';
 import {
@@ -79,7 +79,7 @@ import { selectContractExchangeRates } from '@selectors/tokenRatesController';
 import { selectAccounts } from '@selectors/accountTrackerController';
 import { selectContractBalances } from '@selectors/tokenBalancesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
-import AccountSelector from '@Ramp/components/AccountSelector';
+import AccountSelector from '@components/UI/Ramp/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '@e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '@util/networks';
 import { useMetrics } from '@components/hooks/useMetrics';
@@ -706,10 +706,10 @@ function SwapsAmountView({
               <Text style={styles.amountInvalid}>
                 {hasInvalidDecimals
                   ? strings('swaps.allows_up_to_decimals', {
-                      symbol: sourceToken.symbol,
-                      decimals: sourceToken.decimals,
-                      // eslint-disable-next-line no-mixed-spaces-and-tabs
-                    })
+                    symbol: sourceToken.symbol,
+                    decimals: sourceToken.decimals,
+                    // eslint-disable-next-line no-mixed-spaces-and-tabs
+                  })
                   : strings('swaps.not_enough', { symbol: sourceToken.symbol })}
               </Text>
             ) : isAmountZero ? (
@@ -779,7 +779,7 @@ function SwapsAmountView({
         </View>
         <View>
           {Boolean(destinationToken) &&
-          !isSwapsNativeAsset(destinationToken) ? (
+            !isSwapsNativeAsset(destinationToken) ? (
             destinationTokenHasEnoughOcurrances ? (
               <TouchableOpacity
                 onPress={explorer.isValid ? handleVerifyPress : undefined}
@@ -806,7 +806,7 @@ function SwapsAmountView({
               <ActionAlert
                 type={
                   !destinationToken.occurances ||
-                  isDynamicToken(destinationToken)
+                    isDynamicToken(destinationToken)
                     ? AlertType.Error
                     : AlertType.Warning
                 }
@@ -823,19 +823,19 @@ function SwapsAmountView({
                   >
                     <Text style={textStyle} bold centered>
                       {!destinationToken.occurrences ||
-                      isDynamicToken(destinationToken)
+                        isDynamicToken(destinationToken)
                         ? strings('swaps.added_manually', {
-                            symbol: destinationToken.symbol,
-                            // eslint-disable-next-line no-mixed-spaces-and-tabs
-                          })
+                          symbol: destinationToken.symbol,
+                          // eslint-disable-next-line no-mixed-spaces-and-tabs
+                        })
                         : strings('swaps.only_verified_on', {
-                            symbol: destinationToken.symbol,
-                            occurrences: destinationToken.occurrences,
-                            // eslint-disable-next-line no-mixed-spaces-and-tabs
-                          })}
+                          symbol: destinationToken.symbol,
+                          occurrences: destinationToken.occurrences,
+                          // eslint-disable-next-line no-mixed-spaces-and-tabs
+                        })}
                     </Text>
                     {!destinationToken.occurrences ||
-                    isDynamicToken(destinationToken) ? (
+                      isDynamicToken(destinationToken) ? (
                       <Text style={textStyle} centered>
                         {`${strings('swaps.verify_this_token_on')} `}
                         {explorer.isValid ? (

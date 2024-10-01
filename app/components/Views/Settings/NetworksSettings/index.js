@@ -11,7 +11,7 @@ import { connect } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '@styles/common';
 import CustomText from '@components/Base/Text';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import Networks, {
   getAllNetworks,
@@ -19,12 +19,12 @@ import Networks, {
   isDefaultMainnet,
   isLineaMainnet,
 } from '@util/networks';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import Engine from '@core/Engine';
 import { LINEA_MAINNET, MAINNET, RPC } from '@constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { mockTheme, ThemeContext } from '@util/theme';
-import ImageIcons from '@UI/ImageIcon';
+import ImageIcons from '@components/UI/ImageIcon';
 import { ADD_NETWORK_BUTTON } from '@wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '@util/sanitizeUrl';
 import {
@@ -40,7 +40,7 @@ import Routes from '@constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '@e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '@util/transaction-controller';
 import { NetworksTicker } from '@metamask/controller-utils';
-import NetworkSearchTextInput from '@NetworkSelector/NetworkSearchTextInput';
+import NetworkSearchTextInput from '@components/Views/NetworkSelector/NetworkSearchTextInput';
 
 const createStyles = (colors) =>
   StyleSheet.create({

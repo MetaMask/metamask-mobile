@@ -19,14 +19,14 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
   SNAP_INSTALL_CONNECTION_REQUEST,
 } from './InstallSnapConnectionRequest.constants';
-import { useFavicon } from '@hooks/useFavicon';
-import { SnapAvatar } from '@UI/Snaps/SnapAvatar/SnapAvatar';
+import { useFavicon } from '@components/hooks/useFavicon';
+import { SnapAvatar } from '@components/UI/Snaps/SnapAvatar/SnapAvatar';
 
 const InstallSnapConnectionRequest = ({
   approvalRequest,

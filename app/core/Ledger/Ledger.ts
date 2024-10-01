@@ -1,7 +1,7 @@
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '@constants/keyringTypes';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import {
   LedgerKeyring,
   LedgerMobileBridge,

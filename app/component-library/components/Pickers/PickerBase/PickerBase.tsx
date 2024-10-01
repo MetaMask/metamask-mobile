@@ -5,7 +5,7 @@ import React, { forwardRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Icon, { IconName, IconSize } from '@Icons/Icon';
 
 // Internal dependencies.

@@ -7,10 +7,10 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '@components/Avatars/Avatar';
-import Text, { TextVariant } from '@components/Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { formatAddress } from '@util/address';
 import Icon, { IconName, IconSize } from '@components/Icons/Icon';
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import Button, { ButtonVariants } from '@components/Buttons/Button';
 import Identicon from '@components/UI/Identicon';
 

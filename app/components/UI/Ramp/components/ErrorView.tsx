@@ -2,13 +2,13 @@ import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '@util/theme';
-import Title from '@Base/Title';
-import Text from '@Base/Text';
-import StyledButton from '@StyledButton';
+import Title from '@components/Base/Title';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { Colors } from '@util/theme/models';
 import { ScreenLocation } from '@types';
-import useAnalytics from '@hooks/useAnalytics';
+import useAnalytics from '@components/hooks/useAnalytics';
 import { useRampSDK } from '@sdk';
 
 type IconType = 'error' | 'info' | 'expired';

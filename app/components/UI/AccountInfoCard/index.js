@@ -29,8 +29,8 @@ import {
   getNormalizedTxState,
   getTicker,
 } from '@util/transactions';
-import ApproveTransactionHeader from '@Views/confirmations/components/ApproveTransactionHeader';
-import Identicon from '@Identicon';
+import ApproveTransactionHeader from '@components/Views/confirmations/components/ApproveTransactionHeader';
+import Identicon from '@components/UI/Identicon';
 import { selectInternalAccounts } from '@selectors/accountsController';
 
 const createStyles = (colors) =>

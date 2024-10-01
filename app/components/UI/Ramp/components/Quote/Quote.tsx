@@ -17,10 +17,10 @@ import Animated, {
 import { QuoteResponse, SellQuoteResponse } from '@consensys/on-ramp-sdk';
 import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '@Box';
-import Text from '@Base/Text';
-import Title from '@Base/Title';
-import BaseListItem from '@Base/ListItem';
-import StyledButton from '@StyledButton';
+import Text from '@components/Base/Text';
+import Title from '@components/Base/Title';
+import BaseListItem from '@components/Base/ListItem';
+import StyledButton from '@components/UI/StyledButton';
 import {
   renderFiat,
   renderFromTokenMinimalUnit,
@@ -28,7 +28,7 @@ import {
 } from '@util/number';
 import { strings } from '@locales/i18n';
 import ApplePayButton from '@containers/ApplePayButton';
-import RemoteImage from '@Base/RemoteImage';
+import RemoteImage from '@components/Base/RemoteImage';
 
 import TagColored from '@component-library/components-temp/TagColored';
 import Row from '@Row';

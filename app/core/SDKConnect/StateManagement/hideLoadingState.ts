@@ -1,6 +1,6 @@
 import Routes from '@constants/navigation/Routes';
 import SDKConnect from '@SDKConnect';
-import DevLogger from '@utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 async function hideLoadingState({ instance }: { instance: SDKConnect }) {
   instance.state.sdkLoadingState = {};

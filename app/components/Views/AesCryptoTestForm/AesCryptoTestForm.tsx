@@ -9,7 +9,7 @@ import {
 } from '@core/Encryptor';
 import { useTheme } from '@util/theme';
 
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 
 import TestForm from './Form';

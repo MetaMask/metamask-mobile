@@ -11,7 +11,7 @@ import {
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
 import { captureSentryFeedback } from '@util/sentry/utils';
-import { RevealPrivateCredential } from '@RevealPrivateCredential';
+import { RevealPrivateCredential } from '@components/Views/RevealPrivateCredential';
 import Logger from '@util/Logger';
 import { fontStyles } from '@styles/common';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -306,14 +306,14 @@ class ErrorBoundary extends Component {
   render() {
     return this.state.backupSeedphrase
       ? this.renderWithSafeArea(
-          <RevealPrivateCredential
-            credentialName={'seed_phrase'}
-            cancel={this.cancelExportSeedphrase}
-            navigation={this.props.navigation}
-          />,
-        )
+        <RevealPrivateCredential
+          credentialName={'seed_phrase'}
+          cancel={this.cancelExportSeedphrase}
+          navigation={this.props.navigation}
+        />,
+      )
       : this.state.error
-      ? this.renderWithSafeArea(
+        ? this.renderWithSafeArea(
           <Fallback
             errorMessage={this.getErrorMessage()}
             resetError={this.resetError}
@@ -323,7 +323,7 @@ class ErrorBoundary extends Component {
             sentryId={this.state.sentryId}
           />,
         )
-      : this.props.children;
+        : this.props.children;
   }
 }
 

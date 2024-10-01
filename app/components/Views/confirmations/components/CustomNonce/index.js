@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>

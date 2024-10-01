@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
 import { act } from '@testing-library/react-hooks';
-import { MetaMetricsEvents } from '@hooks/useMetrics';
+import { MetaMetricsEvents } from '@components/hooks/useMetrics';
 import { renderHookWithProvider } from '@util/test/renderWithProvider';
 import Engine from '@core/Engine';
 

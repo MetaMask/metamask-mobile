@@ -5,17 +5,17 @@ import { strings } from '@locales/i18n';
 import { mockTheme, useAppThemeFromContext } from '@util/theme';
 import { Colors } from '@util/theme/models';
 import Device from '@util/device';
-import useBluetooth from '@hooks/Ledger/useBluetooth';
-import useBluetoothPermissions from '@hooks/useBluetoothPermissions';
+import useBluetooth from '@components/hooks/Ledger/useBluetooth';
+import useBluetoothPermissions from '@components/hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
-} from '@hooks/Ledger/useBluetoothDevices';
+} from '@components/hooks/Ledger/useBluetoothDevices';
 import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '@core/Ledger/ledgerErrors';
-import SelectOptionSheet, { ISelectOption } from '@UI/SelectOptionSheet';
+import SelectOptionSheet, { ISelectOption } from '@components/UI/SelectOptionSheet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

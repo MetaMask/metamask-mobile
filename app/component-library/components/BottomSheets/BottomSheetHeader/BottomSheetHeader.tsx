@@ -4,8 +4,8 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '@hooks';
-import HeaderBase from '@HeaderBase';
+import { useStyles } from '@components/hooks';
+import HeaderBase from '@component-library/components/HeaderBase';
 import ButtonIcon from '@Buttons/ButtonIcon';
 import { IconName, IconColor } from '@Icons/Icon';
 

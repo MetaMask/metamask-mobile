@@ -1,4 +1,4 @@
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@util/wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { regex, hasDecimals } from '.';
 
 describe('REGEX :: hasDecimals', () => {

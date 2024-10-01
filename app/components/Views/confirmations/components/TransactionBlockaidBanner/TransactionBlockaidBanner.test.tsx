@@ -6,7 +6,7 @@ import renderWithProvider, {
 import { TESTID_ACCORDION_CONTENT } from '@component-library/components/Accordions/Accordion/Accordion.constants';
 import { TESTID_ACCORDIONHEADER } from '@component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
 
-import { ResultType, Reason } from '@BlockaidBanner/BlockaidBanner.types';
+import { ResultType, Reason } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
 import { RootState } from '@reducers';
 

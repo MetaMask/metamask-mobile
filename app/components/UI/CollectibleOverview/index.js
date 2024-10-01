@@ -13,13 +13,13 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import RemoteImage from '@Base/RemoteImage';
+import RemoteImage from '@components/Base/RemoteImage';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { baseStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import Text from '@Base/Text';
-import StyledButton from '@UI/StyledButton';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '@util/device';
@@ -283,11 +283,9 @@ const CollectibleOverview = ({
   const shareCollectible = useCallback(() => {
     if (!collectible?.externalLink) return;
     Share.open({
-      message: `${strings('collectible.share_check_out_nft')} ${
-        collectible.externalLink
-      }\n${strings('collectible.share_via')} ${
-        AppConstants.SHORT_HOMEPAGE_URL
-      }`,
+      message: `${strings('collectible.share_check_out_nft')} ${collectible.externalLink
+        }\n${strings('collectible.share_via')} ${AppConstants.SHORT_HOMEPAGE_URL
+        }`,
     });
   }, [collectible.externalLink]);
 
@@ -366,7 +364,7 @@ const CollectibleOverview = ({
 
   const isCollectionIconRenderable = Boolean(
     displayNftMedia ||
-      (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(collectible.logo)),
+    (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(collectible.logo)),
   );
 
   return gestureHandlerWrapper(
@@ -564,8 +562,8 @@ export default connect(
   Device.isIos()
     ? CollectibleOverview
     : gestureHandlerRootHOC(CollectibleOverview, {
-        flex: 0,
-        zIndex: 0,
-        elevation: 0,
-      }),
+      flex: 0,
+      zIndex: 0,
+      elevation: 0,
+    }),
 );

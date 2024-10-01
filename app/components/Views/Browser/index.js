@@ -31,14 +31,14 @@ import Logger from '@util/Logger';
 import getAccountNameWithENS from '@util/accounts';
 import Device from '@util/device';
 import { useTheme } from '@util/theme';
-import Tabs from '@UI/Tabs';
-import BrowserTab from '@BrowserTab';
+import Tabs from '@components/UI/Tabs';
+import BrowserTab from '@components/Views/BrowserTab';
 
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { selectNetworkConfigurations } from '@selectors/networkController';
-import { getBrowserViewNavbarOptions } from '@UI/Navbar';
+import { getBrowserViewNavbarOptions } from '@components/UI/Navbar';
 import { selectPermissionControllerState } from '@selectors/snaps/permissionController';
 
 const margin = 16;

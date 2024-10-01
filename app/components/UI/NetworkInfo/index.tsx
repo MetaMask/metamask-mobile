@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { RPC } from '@constants/network';
 import { connect, useSelector } from 'react-redux';

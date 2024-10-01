@@ -1,9 +1,9 @@
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 
 import { safeToChecksumAddress } from '@util/address';
 import { store } from '@store';
 
-import { getPermittedAccounts } from '@Permissions';
+import { getPermittedAccounts } from '@core/Permissions';
 import { isSmartContractAddress } from '@util/transactions';
 import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,

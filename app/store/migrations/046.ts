@@ -2,7 +2,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkType } from '@metamask/controller-utils';
-import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '@app/constants/urls';
+import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '@constants/urls';
 import { ensureValidState } from './util';
 import { CHAINLIST_CURRENCY_SYMBOLS_MAP } from '@constants/network';
 

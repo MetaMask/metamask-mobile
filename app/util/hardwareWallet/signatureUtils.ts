@@ -1,5 +1,5 @@
-import { handleSignatureAction } from '@confirmation/signatureUtils';
-import { getKeyringByAddress } from '@address';
+import { handleSignatureAction } from '@util/confirmation/signatureUtils';
+import { getKeyringByAddress } from '@util/address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
 import ExtendedKeyringTypes from '@constants/keyringTypes';
 

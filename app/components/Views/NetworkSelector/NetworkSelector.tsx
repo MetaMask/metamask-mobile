@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
-import images from 'images/image-icons';
+import images from '@images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
@@ -71,7 +71,7 @@ import {
   InfuraNetworkType,
   TESTNET_TICKER_SYMBOLS,
 } from '@metamask/controller-utils';
-import InfoModal from '@app/components/UI/Swaps/components/InfoModal';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '@util/hideKeyFromUrl';
 import CustomNetwork from '@Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { NetworksSelectorSelectorsIDs } from '@e2e/selectors/Settings/NetworksView.selectors';

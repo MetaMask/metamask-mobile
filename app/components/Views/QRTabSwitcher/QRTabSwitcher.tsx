@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
 import QRScanner from '@QRScanner';
 import { strings } from '@locales/i18n';
-import ReceiveRequest from '@UI/ReceiveRequest';
+import ReceiveRequest from '@components/UI/ReceiveRequest';
 import { useTheme } from '@util/theme';
 import { createNavigationDetails } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';

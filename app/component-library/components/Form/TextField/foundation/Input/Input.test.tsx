@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { TextVariant } from '@Texts/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
 import { mockTheme } from '@util/theme';
 
 // Internal dependencies.

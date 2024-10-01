@@ -11,7 +11,7 @@ import AssetSearch from '@AssetSearch';
 import Engine from '@core/Engine';
 import { MetaMetricsEvents } from '@core/Analytics';
 
-import Alert, { AlertType } from '@Base/Alert';
+import Alert, { AlertType } from '@components/Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '@constants/on-ramp';

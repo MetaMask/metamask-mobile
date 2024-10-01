@@ -1,5 +1,5 @@
 import RNWalletConnect from '@walletconnect/client';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { flushPromises } from '@util/test/utils';
 
@@ -19,7 +19,7 @@ const mockSessionRequest = {
   ],
 };
 jest.mock('@walletconnect/client');
-jest.mock('@Engine', () => ({
+jest.mock('@core', () => ({
   context: {
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValueOnce(true),

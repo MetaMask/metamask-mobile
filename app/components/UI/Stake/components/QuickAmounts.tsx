@@ -12,7 +12,7 @@ import {
 } from '@component-library/components/Texts/Text';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';
-import type { QuickAmount } from '@Ramp/types';
+import type { QuickAmount } from '@components/UI/Ramp/types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

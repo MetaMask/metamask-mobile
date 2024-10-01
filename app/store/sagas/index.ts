@@ -23,9 +23,9 @@ import {
   getFeatureFlagsSuccess,
   getFeatureFlagsError,
   FeatureFlagsState,
-} from '@app/core/redux/slices/featureFlags';
+} from '@core/redux/slices/featureFlags';
 
-import launchDarklyURL from '@app/util/featureFlags';
+import launchDarklyURL from '@util/featureFlags';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;

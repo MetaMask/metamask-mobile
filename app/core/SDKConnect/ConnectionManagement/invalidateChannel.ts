@@ -1,8 +1,5 @@
-import {
-  resetApprovedHosts,
-  resetConnections,
-} from '@app/actions/sdk';
-import { store } from '@app/store';
+import { resetApprovedHosts, resetConnections } from '@actions/sdk';
+import { store } from '@store';
 import AppConstants from '@core/AppConstants';
 import SDKConnect from '@SDKConnect';
 

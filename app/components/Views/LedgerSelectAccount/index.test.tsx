@@ -2,11 +2,11 @@ import React from 'react';
 import LedgerSelectAccount from './index';
 import renderWithProvider from '@util/test/renderWithProvider';
 import Engine from '@core/Engine';
-import useLedgerBluetooth from '@hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth from '@components/hooks/Ledger/useLedgerBluetooth';
 
 const mockedNavigate = jest.fn();
 
-jest.mock('@hooks/Ledger/useLedgerBluetooth', () => ({
+jest.mock('@components/hooks/Ledger/useLedgerBluetooth', () => ({
   __esModule: true,
   default: jest.fn((_deviceId?: string) => ({
     isSendingLedgerCommands: false,

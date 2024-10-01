@@ -5,18 +5,18 @@ import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
-import useAnalytics from '@hooks/useAnalytics';
-import useThunkDispatch from '@hooks/useThunkDispatch';
+import useAnalytics from '@components/hooks/useAnalytics';
+import useThunkDispatch from '@components/hooks/useThunkDispatch';
 import ScreenLayout from '@components/ScreenLayout';
 import OrderDetail from '@components/OrderDetails';
 import Row from '@components/Row';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import {
   getOrderById,
   updateFiatOrder,
 } from '@reducers/fiatOrders';
 import { strings } from '@locales/i18n';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import Routes from '@constants/navigation/Routes';
 import { processFiatOrder } from '@index';
 import {
@@ -28,7 +28,7 @@ import Logger from '@util/Logger';
 import { RootState } from '@reducers';
 import { FIAT_ORDER_STATES } from '@constants/on-ramp';
 import ErrorView from '@components/ErrorView';
-import useInterval from '@hooks/useInterval';
+import useInterval from '@components/hooks/useInterval';
 import AppConstants from '@core/AppConstants';
 import {
   createBuyNavigationDetails,

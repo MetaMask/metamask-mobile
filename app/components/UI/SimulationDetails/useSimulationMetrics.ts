@@ -12,8 +12,8 @@ import {
   UseDisplayNameRequest,
   UseDisplayNameResponse,
   useDisplayNames,
-} from '@hooks/DisplayName/useDisplayName';
-import { NameType } from '@UI/Name/Name.types';
+} from '@components/hooks/DisplayName/useDisplayName';
+import { NameType } from '@components/UI/Name/Name.types';
 import useLoadingTime from './useLoadingTime';
 import { calculateTotalFiat } from './FiatDisplay/FiatDisplay';
 import { BalanceChange } from './types';

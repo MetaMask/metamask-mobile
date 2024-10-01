@@ -12,14 +12,14 @@ import {
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '@styles/common';
-import StyledButton from '@UI/StyledButton';
-import OnboardingProgress from '@UI/OnboardingProgress';
+import StyledButton from '@components/UI/StyledButton';
+import OnboardingProgress from '@components/UI/OnboardingProgress';
 import { strings } from '@locales/i18n';
-import AndroidBackHandler from '@AndroidBackHandler';
+import AndroidBackHandler from '@components/Views/AndroidBackHandler';
 import Device from '@util/device';
-import ActionModal from '@UI/ActionModal';
-import SeedphraseModal from '@UI/SeedphraseModal';
-import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import ActionModal from '@components/UI/ActionModal';
+import SeedphraseModal from '@components/UI/SeedphraseModal';
+import { getOnboardingNavbarOptions } from '@components/UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '@constants/onboarding';
 import { MetaMetricsEvents } from '@core/Analytics';
 

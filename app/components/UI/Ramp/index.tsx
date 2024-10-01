@@ -20,8 +20,8 @@ import {
   removeAuthenticationUrl,
   getOrderById,
 } from '@reducers/fiatOrders';
-import useInterval from '@hooks/useInterval';
-import useThunkDispatch, { ThunkAction } from '@hooks/useThunkDispatch';
+import useInterval from '@components/hooks/useInterval';
+import useThunkDispatch, { ThunkAction } from '@components/hooks/useThunkDispatch';
 import processOrder from './orderProcessor';
 import processCustomOrderIdData from './orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';

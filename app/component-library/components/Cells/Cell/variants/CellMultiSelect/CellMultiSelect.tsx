@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import ListItemMultiSelect from '@List/ListItemMultiSelect';
 import CellBase from '@foundation/CellBase';
 import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';

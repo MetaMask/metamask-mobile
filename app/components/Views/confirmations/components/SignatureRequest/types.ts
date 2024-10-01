@@ -1,4 +1,4 @@
-import { SecurityAlertResponse } from '@BlockaidBanner/BlockaidBanner.types';
+import { SecurityAlertResponse } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 export interface MessageInfo {
   origin: string;

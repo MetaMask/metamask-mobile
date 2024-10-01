@@ -7,7 +7,7 @@ import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
 import { useTheme } from '@util/theme';
 import { useTokenListEntry } from '@components/hooks/DisplayName/useTokenListEntry';
-import { NameType } from '@UI/Name/Name.types';
+import { NameType } from '@components/UI/Name/Name.types';
 
 interface IdenticonProps {
   /**

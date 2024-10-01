@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '@actions/alert';
-import Transactions from '@UI/Transactions';
+import Transactions from '@components/UI/Transactions';
 import {
   TX_UNAPPROVED,
   TX_SUBMITTED,

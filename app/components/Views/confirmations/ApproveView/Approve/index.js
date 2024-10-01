@@ -1,16 +1,16 @@
 import React, { PureComponent } from 'react';
 import { Alert, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { getApproveNavbar } from '@UI/Navbar';
+import { getApproveNavbar } from '@components/UI/Navbar';
 import { connect } from 'react-redux';
 import {
   safeToChecksumAddress,
   isHardwareAccount,
 } from '@util/address';
 import Engine from '@core/Engine';
-import AnimatedTransactionModal from '@UI/AnimatedTransactionModal';
-import ApproveTransactionReview from '@components/ApproveTransactionReview';
-import AddNickname from '@components/ApproveTransactionReview/AddNickname';
+import AnimatedTransactionModal from '@components/UI/AnimatedTransactionModal';
+import ApproveTransactionReview from '@components/Views/confirmations/components/ApproveTransactionReview';
+import AddNickname from '@components/Views/confirmations/components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '@locales/i18n';
 import { getNetworkNonce } from '@util/networks';
@@ -31,15 +31,15 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import NotificationManager from '@core/NotificationManager';
 import { MetaMetricsEvents } from '@core/Analytics';
 import Logger from '@util/Logger';
-import EditGasFee1559 from '@components/EditGasFee1559Update';
-import EditGasFeeLegacy from '@components/EditGasFeeLegacyUpdate';
+import EditGasFee1559 from '@components/Views/confirmations/components/EditGasFee1559Update';
+import EditGasFeeLegacy from '@components/Views/confirmations/components/EditGasFeeLegacyUpdate';
 import AppConstants from '@core/AppConstants';
 import { shallowEqual } from '@util/general';
 import { KEYSTONE_TX_CANCELED } from '@constants/error';
-import GlobalAlert from '@UI/GlobalAlert';
+import GlobalAlert from '@components/UI/GlobalAlert';
 import checkIfAddressIsSaved from '@util/checkAddress';
 import { ThemeContext, mockTheme } from '@util/theme';
-import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
+import { createLedgerTransactionModalNavDetails } from '@components/UI/LedgerModals/LedgerTransactionModal';
 import {
   startGasPolling,
   stopGasPolling,
@@ -60,7 +60,7 @@ import {
   selectAccounts,
   selectAccountsLength,
 } from '@selectors/accountTrackerController';
-import ShowBlockExplorer from '@components/ApproveTransactionReview/ShowBlockExplorer';
+import ShowBlockExplorer from '@components/Views/confirmations/components/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '@core/Ledger/Ledger';

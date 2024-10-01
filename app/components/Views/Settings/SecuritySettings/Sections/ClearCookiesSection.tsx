@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { strings } from '@locales/i18n';
 import Device from '@util/device';
 import Logger from '@util/Logger';
-import ActionModal from '@UI/ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import { ClearCookiesSectionSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/ClearCookiesSection.selectors';
 import Text, {
   TextVariant,

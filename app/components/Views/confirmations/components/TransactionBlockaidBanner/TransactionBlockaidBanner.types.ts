@@ -1,4 +1,4 @@
-import { BlockaidBannerProps } from '@BlockaidBanner/BlockaidBanner.types';
+import { BlockaidBannerProps } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 export type TransactionBlockaidBannerProps = Omit<
   BlockaidBannerProps,

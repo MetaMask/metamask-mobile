@@ -1,5 +1,5 @@
 import React from 'react';
-import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import {
@@ -7,10 +7,10 @@ import {
   ApprovalRequest,
 } from '@metamask/approval-controller';
 import FlowLoaderModal from './FlowLoaderModal';
-import useApprovalFlow from '@Views/confirmations/hooks/useApprovalFlow';
+import useApprovalFlow from '@components/Views/confirmations/hooks/useApprovalFlow';
 
-jest.mock('@Views/confirmations/hooks/useApprovalRequest');
-jest.mock('@Views/confirmations/hooks/useApprovalFlow');
+jest.mock('@components/Views/confirmations/hooks/useApprovalRequest');
+jest.mock('@components/Views/confirmations/hooks/useApprovalFlow');
 
 const APPROVAL_FLOW_MOCK: ApprovalFlowState = {
   id: 'testId1',

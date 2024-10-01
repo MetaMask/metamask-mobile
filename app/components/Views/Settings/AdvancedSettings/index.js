@@ -8,10 +8,10 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
-import ActionModal from '@UI/ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import Engine from '@core/Engine';
 import { baseStyles } from '@styles/common';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import {
   setShowCustomNonce,
   setShowFiatOnTestnets,
@@ -41,9 +41,9 @@ import Button, {
 } from '@component-library/components/Buttons/Button';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { wipeTransactions } from '@util/transaction-controller';
-import AppConstants from '@app/core/AppConstants';
+import AppConstants from '@core/AppConstants';
 import { downloadStateLogs } from '@util/logs';
-import AutoDetectTokensSettings from '@AutoDetectTokensSettings';
+import AutoDetectTokensSettings from '@components/Views/Settings/AutoDetectTokensSettings';
 
 const createStyles = (colors) =>
   StyleSheet.create({

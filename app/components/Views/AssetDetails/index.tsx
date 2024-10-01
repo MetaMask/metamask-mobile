@@ -8,15 +8,15 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getNetworkNavbarOptions } from '@UI/Navbar';
+import { getNetworkNavbarOptions } from '@components/UI/Navbar';
 import { fontStyles } from '@styles/common';
 import ClipboardManager from '@core/ClipboardManager';
 import { showAlert } from '@actions/alert';
 import { strings } from '@locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
-import EthereumAddress from '@UI/EthereumAddress';
+import EthereumAddress from '@components/UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
-import TokenImage from '@UI/TokenImage';
+import TokenImage from '@components/UI/TokenImage';
 import Networks, { getDecimalChainId } from '@util/networks';
 import Engine from '@core/Engine';
 import Logger from '@util/Logger';
@@ -27,7 +27,7 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '@util/number';
-import WarningMessage from '@confirmations/SendFlow/WarningMessage';
+import WarningMessage from '@components/Views/confirmations/SendFlow/WarningMessage';
 import { useTheme } from '@util/theme';
 import { MetaMetricsEvents } from '@core/Analytics';
 import Routes from '@constants/navigation/Routes';

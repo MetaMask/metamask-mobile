@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import EthereumAddress from '@EthereumAddress';
-import JSIdenticon from '@Identicon';
-import Text from '@Base/Text';
+import EthereumAddress from '@components/UI/EthereumAddress';
+import JSIdenticon from '@components/UI/Identicon';
+import Text from '@components/Base/Text';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';

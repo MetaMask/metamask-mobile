@@ -1,5 +1,5 @@
 import SecureKeychain from '@SecureKeychain';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import {
   EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,

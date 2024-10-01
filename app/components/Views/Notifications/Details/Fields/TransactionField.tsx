@@ -17,7 +17,7 @@ import Text, {
 import { ModalFieldTransaction } from '@util/notifications/notification-states/types/NotificationModalDetails';
 import useCopyClipboard, {
   CopyClipboardAlertMessage,
-} from '@hooks/useCopyClipboard';
+} from '@components/hooks/useCopyClipboard';
 import useStyles from '@useStyles';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { MetaMetricsEvents } from '@core/Analytics';

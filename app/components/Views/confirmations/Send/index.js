@@ -8,8 +8,8 @@ import {
   View,
 } from 'react-native';
 import Engine from '@core/Engine';
-import EditAmount from '@SendFlow/Amount';
-import ConfirmSend from '@SendFlow/Confirm';
+import EditAmount from '@components/Views/confirmations/SendFlow/Amount';
+import ConfirmSend from '@components/Views/confirmations/SendFlow/Confirm';
 import {
   toBN,
   BNToHex,
@@ -19,7 +19,7 @@ import {
 } from '@util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '@locales/i18n';
-import { getTransactionOptionsTitle } from '@UI/Navbar';
+import { getTransactionOptionsTitle } from '@components/UI/Navbar';
 import { connect } from 'react-redux';
 import {
   resetTransaction,

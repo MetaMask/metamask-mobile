@@ -1,4 +1,4 @@
-import { IconName } from '@component-library/components/Icons/Icon';
+import { IconName } from '@util/component-library/components/Icons/Icon';
 import { ImageSourcePropType } from 'react-native';
 
 export interface NotificationMenuItem {

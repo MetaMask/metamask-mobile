@@ -1,5 +1,5 @@
-import UntypedEngine from '@Engine';
-import AppConstants from '@AppConstants';
+import UntypedEngine from '@core/Engine';
+import AppConstants from '@core/AppConstants';
 import { getVaultFromBackup } from '@BackupVault';
 import { store as importedStore } from '@store';
 import Logger from '@util/Logger';

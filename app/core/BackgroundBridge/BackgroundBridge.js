@@ -6,23 +6,23 @@ import {
   METAMASK_DOMAIN,
 } from '@metamask/selected-network-controller';
 import EthQuery from '@metamask/eth-query';
-import MobilePortStream from '@MobilePortStream';
+import MobilePortStream from '@core/MobilePortStream';
 import { setupMultiplex } from '@util/streams';
 import {
   createOriginMiddleware,
   createLoggerMiddleware,
 } from '@util/middlewares';
-import Engine from '@Engine';
-import { createSanitizationMiddleware } from '@SanitizationMiddleware';
+import Engine from '@core/Engine';
+import { createSanitizationMiddleware } from '@core/SanitizationMiddleware';
 import Logger from '@util/Logger';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '@store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import snapMethodMiddlewareBuilder from '@Snaps/SnapsMethodMiddleware';
+import snapMethodMiddlewareBuilder from '@core/Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
@@ -33,12 +33,12 @@ const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
-import DevLogger from '@SDKConnect/utils/DevLogger';
-import { getPermittedAccounts } from '@Permissions';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { getPermittedAccounts } from '@core/Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
-import { NETWORK_ID_LOADING } from '@redux/slices/inpageProvider';
-import createUnsupportedMethodMiddleware from '@RPCMethods/createUnsupportedMethodMiddleware';
-import createLegacyMethodMiddleware from '@RPCMethods/createLegacyMethodMiddleware';
+import { NETWORK_ID_LOADING } from '@core/redux/slices/inpageProvider';
+import createUnsupportedMethodMiddleware from '@core/RPCMethods/createUnsupportedMethodMiddleware';
+import createLegacyMethodMiddleware from '@core/RPCMethods/createLegacyMethodMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -87,8 +87,8 @@ export class BackgroundBridge extends EventEmitter {
     this.port = isRemoteConn
       ? new RemotePort(sendMessage)
       : this.isWalletConnect
-      ? new WalletConnectPort(wcRequestActions)
-      : new Port(this._webviewRef, isMainFrame);
+        ? new WalletConnectPort(wcRequestActions)
+        : new Port(this._webviewRef, isMainFrame);
 
     this.engine = null;
 

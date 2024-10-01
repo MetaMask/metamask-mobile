@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // Internal dependencies.
-import { TextVariant } from '@Texts/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
 
 // Defaults
 export const DEFAULT_LABEL_TEXT_VARIANT = TextVariant.BodyMD;

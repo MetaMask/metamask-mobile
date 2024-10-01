@@ -3,7 +3,7 @@ import React from 'react';
 
 // External dependencies.
 import BadgeBase from '@foundation/BadgeBase';
-import { useComponentSize, useStyles } from '@hooks';
+import { useComponentSize, useStyles } from '@components/hooks';
 import Icon, { IconSize, IconColor } from '@Icons/Icon';
 
 // Internal dependencies

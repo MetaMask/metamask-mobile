@@ -13,7 +13,7 @@ import {
   getEtherscanBaseUrl,
 } from '@util/etherscan';
 import { findBlockExplorerForRpc } from '@util/networks';
-import WebviewProgressBar from '@UI/WebviewProgressBar';
+import WebviewProgressBar from '@components/UI/WebviewProgressBar';
 
 const styles = StyleSheet.create({
   progressBarWrapper: {

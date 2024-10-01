@@ -5,11 +5,11 @@ import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AddressList from '@AddressList';
-import Text from '@Base/Text';
-import WarningMessage from '@WarningMessage';
-import { getSendFlowTitle } from '@UI/Navbar';
-import StyledButton from '@UI/StyledButton';
+import AddressList from '@components/Views/confirmations/SendFlow/AddressList';
+import Text from '@components/Base/Text';
+import WarningMessage from '@components/Views/confirmations/SendFlow/WarningMessage';
+import { getSendFlowTitle } from '@components/UI/Navbar';
+import StyledButton from '@components/UI/StyledButton';
 import { MetaMetricsEvents } from '@core/Analytics';
 import {
   getDecimalChainId,
@@ -33,7 +33,7 @@ import {
   setRecipient,
   setSelectedAsset,
 } from '@actions/transaction';
-import ErrorMessage from '@ErrorMessage';
+import ErrorMessage from '@components/Views/confirmations/SendFlow/ErrorMessage';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 import {
@@ -52,12 +52,12 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccountChecksummedAddress,
 } from '@selectors/accountsController';
-import AddToAddressBookWrapper from '@UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '@UI/Ramp/utils';
-import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import AddToAddressBookWrapper from '@components/UI/AddToAddressBookWrapper';
+import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 import { getRampNetworks } from '@reducers/fiatOrders';
-import SendFlowAddressFrom from '@AddressFrom';
-import SendFlowAddressTo from '@AddressTo';
+import SendFlowAddressFrom from '@components/Views/confirmations/SendFlow/AddressFrom';
+import SendFlowAddressTo from '@components/Views/confirmations/SendFlow/AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '@e2e/selectors/SendView.selectors';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
@@ -376,8 +376,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-      ? matchingAccount.metadata.name
-      : null;
+        ? matchingAccount.metadata.name
+        : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {

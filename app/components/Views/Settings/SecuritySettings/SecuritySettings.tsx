@@ -13,10 +13,10 @@ import {
 import StorageWrapper from '@store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '@constants/network';
-import ActionModal from '@UI/ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import { clearHistory } from '@actions/browser';
 import Logger from '@util/Logger';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { setLockTime } from '@actions/settings';
 import { SIMULATION_DETALS_ARTICLE_URL } from '@constants/urls';
 import { strings } from '@locales/i18n';
@@ -30,8 +30,8 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '@constants/storage';
-import HintModal from '@UI/HintModal';
-import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
+import HintModal from '@components/UI/HintModal';
+import { MetaMetricsEvents, useMetrics } from '@components/hooks/useMetrics';
 import { Authentication } from '@core';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
 import { useTheme } from '@util/theme';
@@ -69,7 +69,7 @@ import {
 } from '@wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '@wdio/utils/generateTestId';
 import ipfsGateways from '@util/ipfs-gateways.json';
-import SelectComponent from '@UI/SelectComponent';
+import SelectComponent from '@components/UI/SelectComponent';
 import { timeoutFetch } from '@util/general';
 import createStyles from './SecuritySettings.styles';
 import {
@@ -101,7 +101,7 @@ import Networks, {
   getNetworkImageSource,
   toggleUseSafeChainsListValidation,
 } from '@util/networks';
-import images from 'images/image-icons';
+import images from '@images/image-icons';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { SecurityPrivacyViewSelectorsIDs } from '@e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
@@ -114,8 +114,8 @@ import Button, {
   ButtonWidthTypes,
 } from '@component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '@util/metrics/TrackError/trackErrorAsAnalytics';
-import BasicFunctionalityComponent from '@UI/BasicFunctionality/BasicFunctionality';
-import ProfileSyncingComponent from '@UI/ProfileSyncing/ProfileSyncing';
+import BasicFunctionalityComponent from '@components/UI/BasicFunctionality/BasicFunctionality';
+import ProfileSyncingComponent from '@components/UI/ProfileSyncing/ProfileSyncing';
 import Routes from '@constants/navigation/Routes';
 import { MetaMetrics } from '@core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';

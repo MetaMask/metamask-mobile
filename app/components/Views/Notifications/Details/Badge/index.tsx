@@ -6,7 +6,7 @@ import Badge, {
 } from '@component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '@component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { TRIGGER_TYPES } from '@util/notifications';
-import NetworkMainAssetLogo from '@UI/NetworkMainAssetLogo';
+import NetworkMainAssetLogo from '@components/UI/NetworkMainAssetLogo';
 
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import AvatarToken from '@component-library/components/Avatars/Avatar/variants/AvatarToken';

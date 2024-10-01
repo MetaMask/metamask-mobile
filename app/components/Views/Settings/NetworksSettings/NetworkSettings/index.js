@@ -14,7 +14,7 @@ import {
   fontStyles,
   colors as staticColors,
 } from '@styles/common';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import Networks, {
   isprivateConnection,
@@ -34,8 +34,8 @@ import AppConstants from '@core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { PopularList } from '@util/networks/customNetworks';
-import WarningMessage from '@confirmations/SendFlow/WarningMessage';
-import InfoModal from '@UI/Swaps/components/InfoModal';
+import WarningMessage from '@components/Views/confirmations/SendFlow/WarningMessage';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
@@ -61,7 +61,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '@selectors/networkController';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 import { NetworksViewSelectorsIDs } from '@e2e/selectors/Settings/NetworksView.selectors';
 import {
   NetworksTicker,
@@ -73,7 +73,7 @@ import { updateIncomingTransactions } from '@util/transaction-controller';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Routes from '@constants/navigation/Routes';
-import { selectUseSafeChainsListValidation } from '@app/selectors/preferencesController';
+import { selectUseSafeChainsListValidation } from '@selectors/preferencesController';
 import withIsOriginalNativeToken from './withIsOriginalNativeToken';
 import { compose } from 'redux';
 import Icon, {
@@ -706,8 +706,8 @@ export class NetworkSettings extends PureComponent {
       isCustomMainnet
         ? navigation.navigate('OptinMetrics')
         : shouldNetworkSwitchPopToWallet
-        ? navigation.navigate('WalletView')
-        : navigation.goBack();
+          ? navigation.navigate('WalletView')
+          : navigation.goBack();
     }
   };
 
@@ -1651,7 +1651,7 @@ export class NetworkSettings extends PureComponent {
       >
         <View style={styles.informationWrapper}>
           {(isNetworkUiRedesignEnabled() && !shouldShowPopularNetworks) ||
-          networkTypeOrRpcUrl ? (
+            networkTypeOrRpcUrl ? (
             this.customNetwork(networkTypeOrRpcUrl)
           ) : (
             <ScrollableTabView

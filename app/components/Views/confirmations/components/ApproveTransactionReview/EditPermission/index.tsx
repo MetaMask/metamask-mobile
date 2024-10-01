@@ -7,12 +7,12 @@ import {
   TextInput,
 } from 'react-native';
 import { fontStyles } from '@styles/common';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { isNumber } from '@util/number';
-import ConnectHeader from '@UI/ConnectHeader';
+import ConnectHeader from '@components/UI/ConnectHeader';
 import Device from '@util/device';
-import ErrorMessage from '@SendFlow/ErrorMessage';
+import ErrorMessage from '@components/Views/confirmations/SendFlow/ErrorMessage';
 import { useTheme } from '@util/theme';
 import formatNumber from '@util/formatNumber';
 

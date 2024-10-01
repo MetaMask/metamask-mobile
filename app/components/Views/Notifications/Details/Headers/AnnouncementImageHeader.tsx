@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { ModalHeaderAnnouncementImage } from '@util/notifications/notification-states/types/NotificationModalDetails';
-import RemoteImage from '@Base/RemoteImage';
+import RemoteImage from '@components/Base/RemoteImage';
 import useStyles from '@useStyles';
 
 type AnnouncementImageHeaderProps = ModalHeaderAnnouncementImage;

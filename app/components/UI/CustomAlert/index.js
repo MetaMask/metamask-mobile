@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { ViewPropTypes, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import Modal from 'react-native-modal';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { fontStyles } from '@styles/common';
 import { ThemeContext, mockTheme } from '@util/theme';
 

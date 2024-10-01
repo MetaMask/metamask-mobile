@@ -40,7 +40,7 @@ import {
 } from '@util/address';
 import { getUrlObj, prefixUrlWithProtocol } from '@util/browser';
 import { getActiveTabUrl } from '@util/transactions';
-import { Account, useAccounts } from '@hooks/useAccounts';
+import { Account, useAccounts } from '@components/hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
@@ -60,8 +60,8 @@ import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { RootState } from '@reducers';
 import { trackDappViewedEvent } from '@util/metrics';
 import { useTheme } from '@util/theme';
-import useFavicon from '@hooks/useFavicon/useFavicon';
-import { SourceType } from '@hooks/useMetrics/useMetrics.types';
+import useFavicon from '@components/hooks/useFavicon/useFavicon';
+import { SourceType } from '@components/hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,

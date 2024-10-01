@@ -4,23 +4,23 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
 import { renderScreen } from '@util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
-import useRegions from '@hooks/useRegions';
+import useRegions from '@components/hooks/useRegions';
 import { RampSDK } from '@sdk';
 import Routes from '@constants/navigation/Routes';
 import { backgroundState } from '@util/test/initial-root-state';
-import useCryptoCurrencies from '@hooks/useCryptoCurrencies';
-import useFiatCurrencies from '@hooks/useFiatCurrencies';
-import usePaymentMethods from '@hooks/usePaymentMethods';
-import useGasPriceEstimation from '@hooks/useGasPriceEstimation';
+import useCryptoCurrencies from '@components/hooks/useCryptoCurrencies';
+import useFiatCurrencies from '@components/hooks/useFiatCurrencies';
+import usePaymentMethods from '@components/hooks/usePaymentMethods';
+import useGasPriceEstimation from '@components/hooks/useGasPriceEstimation';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
   mockPaymentMethods,
   mockRegionsData,
 } from './BuildQuote.constants';
-import useLimits from '@hooks/useLimits';
-import useAddressBalance from '@hooks/useAddressBalance/useAddressBalance';
-import useBalance from '@hooks/useBalance';
+import useLimits from '@components/hooks/useLimits';
+import useAddressBalance from '@components/hooks/useAddressBalance/useAddressBalance';
+import useBalance from '@components/hooks/useBalance';
 import { toTokenMinimalUnit } from '@util/number';
 import { RampType } from '@reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '@constants/on-ramp';
@@ -89,7 +89,7 @@ const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
 let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockUseRegionsInitialValues,
 };
-jest.mock('@hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+jest.mock('@components/hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockGetCryptoCurrencies = jest.fn();
 
@@ -107,7 +107,7 @@ let mockUseCryptoCurrenciesValues: Partial<
 > = {
   ...mockUseCryptoCurrenciesInitialValues,
 };
-jest.mock('@hooks/useCryptoCurrencies', () =>
+jest.mock('@components/hooks/useCryptoCurrencies', () =>
   jest.fn(() => mockUseCryptoCurrenciesValues),
 );
 
@@ -130,7 +130,7 @@ let mockUseFiatCurrenciesValues: Partial<ReturnType<typeof useFiatCurrencies>> =
   {
     ...mockUseFiatCurrenciesInitialValues,
   };
-jest.mock('@hooks/useFiatCurrencies', () =>
+jest.mock('@components/hooks/useFiatCurrencies', () =>
   jest.fn(() => mockUseFiatCurrenciesValues),
 );
 
@@ -150,7 +150,7 @@ let mockUsePaymentMethodsValues = {
   ...mockUsePaymentMethodsInitialValues,
 };
 
-jest.mock('@hooks/usePaymentMethods', () =>
+jest.mock('@components/hooks/usePaymentMethods', () =>
   jest.fn(() => mockUsePaymentMethodsValues),
 );
 
@@ -178,14 +178,14 @@ let mockUseLimitsValues = {
   ...mockUseLimitsInitialValues,
 };
 
-jest.mock('@hooks/useLimits', () => jest.fn(() => mockUseLimitsValues));
+jest.mock('@components/hooks/useLimits', () => jest.fn(() => mockUseLimitsValues));
 
 const mockUseAddressBalanceInitialValue: ReturnType<typeof useAddressBalance> =
   {
     addressBalance: '5.36385 ETH',
   };
 
-jest.mock('@hooks/useAddressBalance/useAddressBalance', () =>
+jest.mock('@components/hooks/useAddressBalance/useAddressBalance', () =>
   jest.fn(() => mockUseAddressBalanceInitialValue),
 );
 
@@ -198,7 +198,7 @@ let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
   ...mockUseBalanceInitialValue,
 };
 
-jest.mock('@hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
+jest.mock('@components/hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
 
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
@@ -248,18 +248,18 @@ const mockUseGasPriceEstimationInitialValue: ReturnType<
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
   mockUseGasPriceEstimationInitialValue;
 
-jest.mock('@hooks/useGasPriceEstimation', () =>
+jest.mock('@components/hooks/useGasPriceEstimation', () =>
   jest.fn(() => mockUseGasPriceEstimationValue),
 );
 
-jest.mock('@hooks/useIntentAmount');
+jest.mock('@components/hooks/useIntentAmount');
 
 jest.mock('@util/navigation/navUtils', () => ({
   ...jest.requireActual('@util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('@hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('BuildQuote View', () => {
   afterEach(() => {

@@ -4,7 +4,7 @@ import PersonalSign from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { WALLET_CONNECT_ORIGIN } from '@util/walletconnect';
-import SignatureRequest from '@SignatureRequest';
+import SignatureRequest from '@components/Views/confirmations/components/SignatureRequest';
 import Engine from '@core/Engine';
 import NotificationManager from '@core/NotificationManager';
 import { InteractionManager } from 'react-native';

@@ -19,7 +19,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '@component-library/components/Icons/Icon';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import { Colors } from '@util/theme/models';
 import { SmartTransactionsOptInModalSelectorsIDs } from '@e2e/selectors/Modals/SmartTransactionsOptInModal.selectors';
 import Engine from '@core/Engine';
@@ -28,7 +28,7 @@ import Button, {
 } from '@component-library/components/Buttons/Button';
 import AppConstants from '@core/AppConstants';
 import backgroundImage from '@images/smart-transactions-opt-in-bg.png';
-import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '@components/hooks/useMetrics';
 import { useDispatch } from 'react-redux';
 import { updateOptInModalAppVersionSeen } from '@core/redux/slices/smartTransactions';
 

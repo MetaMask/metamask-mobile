@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import ConnectHeader from '@UI/ConnectHeader';
+import ConnectHeader from '@components/UI/ConnectHeader';
 import { strings } from '@locales/i18n';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 import { getDecimalChainId } from '@util/networks';
 

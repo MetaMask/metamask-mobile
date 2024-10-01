@@ -5,7 +5,7 @@ import BottomModal from '@components/UI/BottomModal';
 import { useTheme } from '@util/theme';
 import Footer from '@components/Confirm/Footer';
 import Title from '@components/Confirm/Title';
-import useConfirmationRedesignEnabled from '@hooks/useConfirmationRedesignEnabled';
+import useConfirmationRedesignEnabled from '@components/hooks/useConfirmationRedesignEnabled';
 import createStyles from './style';
 
 const Confirm = () => {

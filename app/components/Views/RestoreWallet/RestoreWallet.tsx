@@ -6,7 +6,7 @@ import { createStyles } from './styles';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import {
   createNavigationDetails,
   useParams,

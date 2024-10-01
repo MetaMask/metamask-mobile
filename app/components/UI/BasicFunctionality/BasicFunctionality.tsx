@@ -4,10 +4,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '@component-library/components/Texts/Text';
-import { useTheme } from '@app/util/theme';
+import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';
 import { useSelector } from 'react-redux';
-import { RootState } from '@app/reducers';
+import { RootState } from '@reducers';
 import styles from './BasicFunctionality.styles';
 import { BasicFunctionalityComponentProps } from './BasicFunctionality.types';
 import AppConstants from '@core/AppConstants';

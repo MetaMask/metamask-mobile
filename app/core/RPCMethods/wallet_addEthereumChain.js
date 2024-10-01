@@ -2,7 +2,7 @@ import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
 import { ChainId, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '@util/jsonRpcRequest';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   getDecimalChainId,
@@ -76,14 +76,14 @@ const wallet_addEthereumChain = async ({
   // Remove trailing slashes
   const firstValidRPCUrl = dirtyFirstValidRPCUrl
     ? // https://github.com/MetaMask/mobile-planning/issues/1589
-      dirtyFirstValidRPCUrl.replace(/([^/])\/+$/g, '$1')
+    dirtyFirstValidRPCUrl.replace(/([^/])\/+$/g, '$1')
     : dirtyFirstValidRPCUrl;
 
   const firstValidBlockExplorerUrl =
     blockExplorerUrls !== null && Array.isArray(blockExplorerUrls)
       ? blockExplorerUrls.find((blockExplorerUrl) =>
-          validUrl.isHttpsUri(blockExplorerUrl),
-        )
+        validUrl.isHttpsUri(blockExplorerUrl),
+      )
       : null;
 
   if (!firstValidRPCUrl) {

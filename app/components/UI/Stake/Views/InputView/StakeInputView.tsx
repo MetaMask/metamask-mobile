@@ -26,13 +26,13 @@ import {
   toWei,
   weiToFiatNumber,
 } from '@util/number';
-import Keypad from '@Base/Keypad';
-import { useStyles } from '@hooks/useStyles';
-import { getStakeInputNavbar } from '@Navbar';
-import ScreenLayout from '@Ramp/components/ScreenLayout';
+import Keypad from '@components/Base/Keypad';
+import { useStyles } from '@components/hooks/useStyles';
+import { getStakeInputNavbar } from '@components/UI/Navbar';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import CurrencyToggle from '@components/CurrencySwitch';
 import QuickAmounts from '@components/QuickAmounts';
-import useBalance from '@hooks/useBalance';
+import useBalance from '@components/hooks/useBalance';
 import styleSheet from './StakeInputView.styles';
 import EstimatedAnnualRewardsCard from '@components/EstimatedAnnualRewardsCard';
 import Routes from '@constants/navigation/Routes';

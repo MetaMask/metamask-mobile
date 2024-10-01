@@ -3,21 +3,21 @@ import {
   ModalFieldType,
   ModalFooterType,
   TRIGGER_TYPES,
-} from '@constants';
-import { ExtractedNotification, isOfTypeNodeGuard } from '@node-guard';
+} from '@util/constants';
+import { ExtractedNotification, isOfTypeNodeGuard } from '@util/node-guard';
 import {
   label_address_from,
   label_address_to,
   NotificationState,
-} from '@types/NotificationState';
+} from '@util/types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
   getNetworkFees,
   getNotificationBadge,
-} from '@methods/common';
-import { getTokenAmount, getTokenUSDAmount } from '@token-amounts';
-import { formatAddress } from '@address';
+} from '@util/methods/common';
+import { getTokenAmount, getTokenUSDAmount } from '@util/token-amounts';
+import { formatAddress } from '@util/address';
 
 type ERC20Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC20_RECEIVED | TRIGGER_TYPES.ERC20_SENT

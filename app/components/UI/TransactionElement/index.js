@@ -15,13 +15,13 @@ import { toDateFormat } from '@util/date';
 import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '@util/address';
 import { connect } from 'react-redux';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import Modal from 'react-native-modal';
 import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '@util/transactions';
-import ListItem from '@Base/ListItem';
-import StatusText from '@Base/StatusText';
-import DetailsModal from '@Base/DetailsModal';
+import ListItem from '@components/Base/ListItem';
+import StatusText from '@components/Base/StatusText';
+import DetailsModal from '@components/Base/DetailsModal';
 import { isMainNet } from '@util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
@@ -221,17 +221,16 @@ class TransactionElement extends PureComponent {
     const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
       incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
-    return `${
-      (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
-            tx.time,
-          )} ${strings(
-            'transactions.from_device_label',
-            // eslint-disable-next-line no-mixed-spaces-and-tabs
-          )}`
-        : `${toDateFormat(tx.time)}
+    return `${(!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
+      ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
+        tx.time,
+      )} ${strings(
+        'transactions.from_device_label',
+        // eslint-disable-next-line no-mixed-spaces-and-tabs
+      )}`
+      : `${toDateFormat(tx.time)}
       `
-    }`;
+      }`;
   };
 
   /**

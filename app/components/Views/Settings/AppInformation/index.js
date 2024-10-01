@@ -18,7 +18,7 @@ import {
 import { fontStyles } from '@styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import AppConstants from '@core/AppConstants';
 import { ThemeContext, mockTheme } from '@util/theme';
 import { AboutMetaMaskSelectorsIDs } from '@e2e/selectors/Settings/AboutMetaMask.selectors';

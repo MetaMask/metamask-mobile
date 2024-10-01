@@ -1,4 +1,4 @@
-import Device from '@device';
+import Device from '@util/device';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
 
 /**

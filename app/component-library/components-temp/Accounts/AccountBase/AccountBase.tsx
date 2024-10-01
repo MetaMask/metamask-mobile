@@ -5,7 +5,7 @@ import Badge from '@component-library/components/Badges/Badge';
 import Avatar, { AvatarVariant } from '@components/Avatars/Avatar';
 import { AvatarAccountType } from '@components/Avatars/Avatar/variants/AvatarAccount';
 import BadgeWrapper from '@components/Badges/BadgeWrapper';
-import Text, { TextVariant } from '@components/Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
   ACCOUNT_BASE_TEST_ID,

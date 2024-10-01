@@ -2,20 +2,22 @@ import {
   resetDappConnections,
   resetApprovedHosts,
   resetConnections,
-} from '@app/actions/sdk';
-import { store } from '@app/store';
+} from '@actions/sdk';
+import { store } from '@store';
 import SDKConnect from '@SDKConnect';
 
 async function removeAll(instance: SDKConnect): Promise<boolean> {
-  const removeChannels = async (connections: Record<string, unknown>): Promise<boolean> => {
+  const removeChannels = async (
+    connections: Record<string, unknown>,
+  ): Promise<boolean> => {
     try {
       await Promise.all(
-        Object.keys(connections).map(id =>
+        Object.keys(connections).map((id) =>
           instance.removeChannel({
             channelId: id,
             sendTerminate: true,
-          })
-        )
+          }),
+        ),
       );
       return true;
     } catch (error) {
@@ -51,9 +53,8 @@ async function removeAll(instance: SDKConnect): Promise<boolean> {
 
       return true;
     }
-      console.error('Failed to remove all connections');
-      return false;
-
+    console.error('Failed to remove all connections');
+    return false;
   } catch (error) {
     console.error('Error in removeAll:', error);
     return false;

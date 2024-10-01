@@ -2,8 +2,8 @@
 import * as AddressUtilsModule from '@util/address';
 import * as NetworksUtilsModule from '@util/networks';
 import * as TransactionsUtilsModule from '@util/transactions';
-import Engine from '@Engine';
-import NotificationManager from '@NotificationManager';
+import Engine from '@core/Engine';
+import NotificationManager from '@core/NotificationManager';
 import approveTransaction from './approveTransaction';
 import { addTransaction } from '@util/transaction-controller';
 import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
@@ -19,7 +19,7 @@ const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
 jest.mock('@util/networks');
 jest.mock('@util/transactions');
 jest.mock('@util/address');
-jest.mock('@Engine', () => ({
+jest.mock('@core', () => ({
   context: {
     NetworkController: { setProviderType: jest.fn() },
     PreferencesController: {
@@ -34,7 +34,7 @@ jest.mock('@Engine', () => ({
     },
   },
 }));
-jest.mock('@NotificationManager');
+jest.mock('@core/NotificationManager');
 jest.mock('@locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));

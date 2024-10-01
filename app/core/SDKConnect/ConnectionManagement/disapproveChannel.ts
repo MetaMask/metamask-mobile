@@ -1,6 +1,6 @@
 import AppConstants from '@core/AppConstants';
 import SDKConnect from '@SDKConnect';
-import DevLogger from '@utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 function disapproveChannel({
   channelId,

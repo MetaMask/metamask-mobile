@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Box from './Box';
-import BaseListItem from '@Base/ListItem';
-import Text from '@Base/Text';
+import BaseListItem from '@components/Base/ListItem';
+import Text from '@components/Base/Text';
 import CurrencyChevron from './CurrencyChevron';
 
 // TODO: Convert into typescript and correctly type optionals

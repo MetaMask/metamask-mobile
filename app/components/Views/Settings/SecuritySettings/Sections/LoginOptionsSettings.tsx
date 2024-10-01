@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SecurityOptionToggle } from '@UI/SecurityOptionToggle';
+import { SecurityOptionToggle } from '@components/UI/SecurityOptionToggle';
 import { strings } from '@locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '@core';

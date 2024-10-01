@@ -1,13 +1,13 @@
 import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { getNetworkNavbarOptions } from '@UI/Navbar';
+import { getNetworkNavbarOptions } from '@components/UI/Navbar';
 import { connect } from 'react-redux';
-import Collectibles from '@UI/Collectibles';
-import CollectibleContractOverview from '@UI/CollectibleContractOverview';
+import Collectibles from '@components/UI/Collectibles';
+import CollectibleContractOverview from '@components/UI/CollectibleContractOverview';
 import Engine from '@core/Engine';
 import Modal from 'react-native-modal';
-import CollectibleContractInformation from '@UI/CollectibleContractInformation';
+import CollectibleContractInformation from '@components/UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '@actions/modals';
 import { toLowerCaseEquals } from '@util/general';
 import { collectiblesSelector } from '@reducers/collectibles';

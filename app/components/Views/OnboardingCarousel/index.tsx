@@ -11,13 +11,13 @@ import {
 import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { MetaMetricsEvents, IMetaMetricsEvent } from '@core/Analytics';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { fontStyles, baseStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import FadeOutOverlay from '@UI/FadeOutOverlay';
+import FadeOutOverlay from '@components/UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { getTransparentOnboardingNavbarOptions } from '@UI/Navbar';
-import OnboardingScreenWithBg from '@UI/OnboardingScreenWithBg';
+import { getTransparentOnboardingNavbarOptions } from '@components/UI/Navbar';
+import OnboardingScreenWithBg from '@components/UI/OnboardingScreenWithBg';
 import Device from '@util/device';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '@util/theme';

@@ -1,9 +1,9 @@
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import { useRampSDK } from '@sdk';
 
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import styleSheet from './Quotes.styles';
 
 import { strings } from '@locales/i18n';

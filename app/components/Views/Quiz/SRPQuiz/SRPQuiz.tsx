@@ -2,13 +2,13 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Linking, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import ReusableModal, { ReusableModalRef } from '@UI/ReusableModal';
+import ReusableModal, { ReusableModalRef } from '@components/UI/ReusableModal';
 import { ButtonVariants } from '@component-library/components/Buttons/Button';
 import Icon, {
   IconSize,
   IconName,
 } from '@component-library/components/Icons/Icon';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import { strings } from '@locales/i18n';
 import { MetaMetricsEvents } from '@core/Analytics';
 import Routes from '@constants/navigation/Routes';

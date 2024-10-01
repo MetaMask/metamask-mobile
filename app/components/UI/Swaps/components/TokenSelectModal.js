@@ -27,18 +27,18 @@ import {
   weiToFiat,
 } from '@util/number';
 import { safeToChecksumAddress } from '@util/address';
-import { isSwapsNativeAsset } from '@utils';
+import { isSwapsNativeAsset } from '@components/UI/Swaps/utils/';
 import { strings } from '@locales/i18n';
 import { fontStyles } from '@styles/common';
 
-import Text from '@Base/Text';
-import ListItem from '@Base/ListItem';
-import ModalDragger from '@Base/ModalDragger';
+import Text from '@components/Base/Text';
+import ListItem from '@components/Base/ListItem';
+import ModalDragger from '@components/Base/ModalDragger';
 import TokenIcon from './TokenIcon';
-import Alert from '@Base/Alert';
-import useBlockExplorer from '@utils/useBlockExplorer';
-import useFetchTokenMetadata from '@utils/useFetchTokenMetadata';
-import useModalHandler from '@Base/hooks/useModalHandler';
+import Alert from '@components/Base/Alert';
+import useBlockExplorer from '@components/hooks/useBlockExplorer';
+import useFetchTokenMetadata from '@components/UI/Swaps/utils/useFetchTokenMetadata';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 
 import {
@@ -185,10 +185,10 @@ function TokenSelectModal({
     () =>
       initialTokens?.length > 0
         ? initialTokens.filter(
-            (token) =>
-              typeof token !== 'undefined' &&
-              !excludedAddresses.includes(token?.address?.toLowerCase()),
-          )
+          (token) =>
+            typeof token !== 'undefined' &&
+            !excludedAddresses.includes(token?.address?.toLowerCase()),
+        )
         : filteredTokens,
     [excludedAddresses, filteredTokens, initialTokens],
   );

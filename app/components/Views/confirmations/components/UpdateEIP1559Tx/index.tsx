@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import EditGasFee1559Update from '@EditGasFee1559Update';
+import EditGasFee1559Update from '@components/Views/confirmations/components/EditGasFee1559Update';
 import { connect } from 'react-redux';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';

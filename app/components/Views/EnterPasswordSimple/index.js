@@ -10,11 +10,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 
 import { baseStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { passwordRequirementsMet } from '@util/password';
 import { ThemeContext, mockTheme } from '@util/theme';
 

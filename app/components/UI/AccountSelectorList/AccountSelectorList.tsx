@@ -22,7 +22,7 @@ import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/
 import { isDefaultAccountName } from '@util/ENSUtils';
 import { strings } from '@locales/i18n';
 import { AvatarVariant } from '@component-library/components/Avatars/Avatar/Avatar.types';
-import { Account, Assets } from '@hooks/useAccounts';
+import { Account, Assets } from '@components/hooks/useAccounts';
 import UntypedEngine from '@core/Engine';
 import { removeAccountsFromPermissions } from '@core/Permissions';
 

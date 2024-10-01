@@ -2,8 +2,8 @@ import resume from './resume';
 import SDKConnect from '@SDKConnect';
 
 jest.mock('@SDKConnect');
-jest.mock('@utils/DevLogger');
-jest.mock('@utils/wait.util');
+jest.mock('@core/SDKConnect/utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/wait.util');
 
 describe('resume', () => {
   let mockInstance = {} as unknown as SDKConnect;

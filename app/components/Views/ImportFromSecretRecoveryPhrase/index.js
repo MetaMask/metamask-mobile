@@ -40,11 +40,11 @@ import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher';
 import { setLockTime } from '@actions/settings';
 import setOnboardingWizardStep from '@actions/wizard';
 import { strings } from '@locales/i18n';
-import TermsAndConditions from '@TermsAndConditions';
-import { getOnboardingNavbarOptions } from '@UI/Navbar';
-import StyledButton from '@UI/StyledButton';
-import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
-import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import TermsAndConditions from '@components/Views/TermsAndConditions';
+import { getOnboardingNavbarOptions } from '@components/UI/Navbar';
+import StyledButton from '@components/UI/StyledButton';
+import { LoginOptionsSwitch } from '@components/UI/LoginOptionsSwitch';
+import { ScreenshotDeterrent } from '@components/UI/ScreenshotDeterrent';
 import {
   BIOMETRY_CHOICE_DISABLED,
   ONBOARDING_WIZARD,

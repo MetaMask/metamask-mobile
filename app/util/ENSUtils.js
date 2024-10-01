@@ -11,7 +11,7 @@ const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
 const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
 import { EMPTY_ADDRESS } from '@constants/transaction';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 
 /**
  * Utility class with the single responsibility
@@ -114,7 +114,7 @@ export async function doENSLookup(ensName, chainId) {
       if (resolvedAddress === EMPTY_ADDRESS) return;
       return resolvedAddress;
       // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) { }
   }
 }
 

@@ -16,8 +16,8 @@ import Text, {
 import { useAccounts } from '@components/hooks/useAccounts';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { AvatarAccountType } from '@component-library/components/Avatars/Avatar';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
-import SwitchLoadingModal from '@UI/Notification/SwitchLoadingModal';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
+import SwitchLoadingModal from '@components/UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 import { useStyles } from '@component-library/hooks';
 

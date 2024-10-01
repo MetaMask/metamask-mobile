@@ -8,7 +8,7 @@ import Engine from '@core/Engine';
 import { selectUseNftDetection } from '@selectors/preferencesController';
 import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '@components/hooks/useMetrics';
 import Text, {
   TextVariant,
   TextColor,

@@ -11,8 +11,8 @@ import Icon, {
 import { useNavigation } from '@react-navigation/native';
 import Routes from '@constants/navigation/Routes';
 import { strings } from '@locales/i18n';
-import BasicFunctionalityComponent from '@UI/BasicFunctionality/BasicFunctionality';
-import ManageNetworksComponent from '@UI/ManageNetworks/ManageNetworks';
+import BasicFunctionalityComponent from '@components/UI/BasicFunctionality/BasicFunctionality';
+import ManageNetworksComponent from '@components/UI/ManageNetworks/ManageNetworks';
 import AppConstants from '@core/AppConstants';
 import styles from './index.styles';
 import ProfileSyncingComponent from '@components/UI/ProfileSyncing/ProfileSyncing';
@@ -21,7 +21,7 @@ import { selectIsProfileSyncingEnabled } from '@selectors/notifications';
 import { isNotificationsFeatureEnabled } from '@util/notifications';
 import { enableProfileSyncing } from '@actions/notification/helpers';
 import { RootState } from '@reducers';
-import { MetaMetricsEvents, useMetrics } from '@hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '@components/hooks/useMetrics';
 
 const DefaultSettings = () => {
   const navigation = useNavigation();

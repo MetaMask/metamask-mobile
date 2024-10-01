@@ -13,7 +13,7 @@ import {
 } from '@constants/urls';
 import { useTheme } from '@util/theme';
 import { createStyles } from './styles';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import generateTestId from '@wdio/utils/generateTestId';
 import { QR_CONTINUE_BUTTON } from '@wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 

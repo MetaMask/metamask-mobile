@@ -23,7 +23,7 @@ import { showSimpleNotification } from '@actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { LEDGER_SUPPORT_LINK } from '@constants/urls';
 
 import ledgerDeviceDarkImage from '@images/ledger-device-dark.png';
@@ -34,7 +34,7 @@ import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '@core/Ledger/ledgerErrors';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import createStyles from './index.styles';
-import { BluetoothInterface } from '@hooks/Ledger/useBluetoothDevices';
+import { BluetoothInterface } from '@components/hooks/Ledger/useBluetoothDevices';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;

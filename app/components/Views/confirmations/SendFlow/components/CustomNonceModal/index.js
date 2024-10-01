@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import ModalDragger from '@Base/ModalDragger';
-import Text from '@Base/Text';
-import StyledButton from '@UI/StyledButton';
+import ModalDragger from '@components/Base/ModalDragger';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
 import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';

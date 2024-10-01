@@ -5,9 +5,9 @@ import { TextInput, View } from 'react-native';
 import { strings } from '@locales/i18n';
 import formatNumber from '@util/formatNumber';
 import { dotAndCommaDecimalFormatter } from '@util/number';
-import Text, { TextVariant } from '@components/Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 import {
   CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
   CUSTOM_SPEND_CAP_INPUT_TEST_ID,

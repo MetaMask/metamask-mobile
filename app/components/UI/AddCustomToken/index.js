@@ -17,12 +17,12 @@ import { isSmartContractAddress } from '@util/transactions';
 import { MetaMetricsEvents } from '@core/Analytics';
 
 import AppConstants from '@core/AppConstants';
-import Alert, { AlertType } from '@Base/Alert';
+import Alert, { AlertType } from '@components/Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NotificationManager from '@core/NotificationManager';
 import { ThemeContext, mockTheme } from '@util/theme';
 import { ImportTokenViewSelectorsIDs } from '@e2e/selectors/wallet/ImportTokenView.selectors';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
@@ -491,20 +491,20 @@ class AddCustomToken extends PureComponent {
     const addressInputStyle = onFocusAddress
       ? { ...styles.textInput, ...styles.textInputFocus }
       : warningAddress
-      ? styles.textInputError
-      : styles.textInput;
+        ? styles.textInputError
+        : styles.textInput;
 
     const textInputDecimalsStyle = !isDecimalEditable
       ? { ...styles.textInput, ...styles.textInputDisabled }
       : warningDecimals
-      ? styles.textInputError
-      : styles.textInput;
+        ? styles.textInputError
+        : styles.textInput;
 
     const textInputSymbolStyle = !isSymbolEditable
       ? { ...styles.textInput, ...styles.textInputDisabled }
       : warningSymbol
-      ? styles.textInputError
-      : styles.textInput;
+        ? styles.textInputError
+        : styles.textInput;
 
     const { title, url } = getBlockExplorerAddressUrl(
       this.props.type,

@@ -2,11 +2,11 @@ import Engine from '@core/Engine';
 import {
   ResultType,
   SecurityAlertResponse,
-} from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '@util/components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import { store } from '@store';
 import { selectChainId } from '@selectors/networkController';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import PPOMUtils from '@lib/ppom/ppom-util';
+import PPOMUtils from '@util/lib/ppom/ppom-util';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;

@@ -5,11 +5,11 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Hex } from '@metamask/utils';
 import i18n, { strings } from '@locales/i18n';
 import { useStyles } from '@component-library/hooks';
-import Title from '@Base/Title';
+import Title from '@components/Base/Title';
 import useTokenDescriptions, {
   TokenDescriptions,
-} from '@hooks/useTokenDescriptions';
-import { Asset } from '@AssetOverview.types';
+} from '@components/hooks/useTokenDescriptions';
+import { Asset } from '@components/UI/AssetOverview.types';
 import styleSheet from './AboutAsset.styles';
 import ContentDisplay from './ContentDisplay';
 

@@ -3,8 +3,8 @@ import { SafeAreaView, Text, TextInput, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
 import { fontStyles } from '@styles/common';
-import ActionView from '@UI/ActionView';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import ActionView from '@components/UI/ActionView';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import { ThemeContext, mockTheme } from '@util/theme';
 
 import { AddBookmarkViewSelectorsIDs } from '@e2e/selectors/Browser/AddBookmarkView.selectors';

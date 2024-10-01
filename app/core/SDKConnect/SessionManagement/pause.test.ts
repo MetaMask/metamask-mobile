@@ -2,7 +2,7 @@ import pause from './pause';
 import SDKConnect from '@SDKConnect';
 
 jest.mock('@SDKConnect');
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('pause', () => {
   let mockInstance = {} as unknown as SDKConnect;

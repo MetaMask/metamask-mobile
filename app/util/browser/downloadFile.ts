@@ -3,7 +3,7 @@ import Share, { ShareOptions } from 'react-native-share';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import { strings } from '@locales/i18n';
-import Device from '@device';
+import Device from '@util/device';
 
 interface DownloadResult {
   success: boolean;

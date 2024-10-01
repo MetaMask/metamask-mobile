@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { strings } from '@locales/i18n';
 import { useStyles } from '@component-library/hooks';
 import styleSheet from './Balance.styles';
-import AssetElement from '@AssetElement';
+import AssetElement from '@components/UI/AssetElement';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '@selectors/networkInfos';
 import { selectChainId } from '@selectors/networkController';

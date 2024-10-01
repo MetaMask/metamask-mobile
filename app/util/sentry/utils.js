@@ -1,11 +1,11 @@
 /* eslint-disable import/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
-import extractEthJsErrorMessage from '@extractEthJsErrorMessage';
+import extractEthJsErrorMessage from '@util/extractEthJsErrorMessage';
 import StorageWrapper from '@store/storage-wrapper';
-import { regex } from '@regex';
+import { regex } from '@util/regex';
 import { AGREED, METRICS_OPT_IN } from '@constants/storage';
-import { isE2E } from '@test/utils';
+import { isE2E } from '@util/test/utils';
 import { store } from '@store';
 
 /**
@@ -496,11 +496,11 @@ export function setupSentry() {
       integrations:
         metricsOptIn === AGREED
           ? [
-              ...integrations,
-              new Sentry.ReactNativeTracing({
-                routingInstrumentation,
-              }),
-            ]
+            ...integrations,
+            new Sentry.ReactNativeTracing({
+              routingInstrumentation,
+            }),
+          ]
           : integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: __DEV__ ? 1.0 : 0.08,
@@ -513,4 +513,4 @@ export function setupSentry() {
 }
 
 // eslint-disable-next-line no-empty-function
-export function deleteSentryData() {}
+export function deleteSentryData() { }

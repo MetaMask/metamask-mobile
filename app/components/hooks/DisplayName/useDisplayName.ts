@@ -1,5 +1,5 @@
 import { Hex } from '@metamask/utils';
-import { NameType } from '@UI/Name/Name.types';
+import { NameType } from '@components/UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
 import { useWatchedNFTNames } from './useWatchedNFTName';
 import { useTokenListEntries } from './useTokenListEntry';

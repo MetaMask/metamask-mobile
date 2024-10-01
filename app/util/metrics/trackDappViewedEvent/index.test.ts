@@ -1,6 +1,6 @@
 import trackDappViewedEvent from './index';
 import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
-import { createMockAccountsControllerState } from '@test/accountsControllerTestUtils';
+import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '@selectors/keyringController/testUtils';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';

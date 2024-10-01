@@ -1,6 +1,6 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
-import AppConstants from '@AppConstants';
+import AppConstants from '@core/AppConstants';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
 import loadDappConnections from './AndroidSDK/loadDappConnections';

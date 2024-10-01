@@ -2,10 +2,10 @@ import React, { PureComponent } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '@locales/i18n';
-import StyledButton from '@StyledButton'; // eslint-disable-line  import/no-unresolved
-import AssetIcon from '@AssetIcon';
+import StyledButton from '@components/UI/StyledButton'; // eslint-disable-line  import/no-unresolved
+import AssetIcon from '@components/UI/AssetIcon';
 import { fontStyles } from '@styles/common';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 
 const styles = StyleSheet.create({
   rowWrapper: {

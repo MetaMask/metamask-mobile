@@ -7,8 +7,8 @@ import { TouchableOpacity } from 'react-native';
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '@Avatars/Avatar';
 import Icon, { IconName, IconSize } from '@Icons/Icon';
-import Text, { TextVariant } from '@Texts/Text';
-import { useStyles } from '@hooks';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
+import { useStyles } from '@components/hooks';
 
 // Internal dependencies.
 import { PickerNetworkProps } from './PickerNetwork.types';

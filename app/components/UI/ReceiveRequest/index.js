@@ -19,22 +19,22 @@ import { showAlert } from '@actions/alert';
 import { protectWalletModalVisible } from '@actions/user';
 
 import { fontStyles } from '@styles/common';
-import GlobalAlert from '@GlobalAlert';
-import StyledButton from '@StyledButton';
+import GlobalAlert from '@components/UI/GlobalAlert';
+import StyledButton from '@components/UI/StyledButton';
 import ClipboardManager from '@core/ClipboardManager';
 import { ThemeContext, mockTheme } from '@util/theme';
 import {
   selectChainId,
   selectTicker,
 } from '@selectors/networkController';
-import { isNetworkRampSupported } from '@Ramp/utils';
-import { createBuyNavigationDetails } from '@Ramp/routes/utils';
+import { isNetworkRampSupported } from '@components/UI/Ramp/utils';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import { getRampNetworks } from '@reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '@e2e/selectors/Modals/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { getDecimalChainId } from '@util/networks';
-import QRAccountDisplay from '@Views/QRAccountDisplay';
+import QRAccountDisplay from '@components/Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '@images/fox.png';
 
 const { height: windowHeight, width: windowWidth } = Dimensions.get('window');

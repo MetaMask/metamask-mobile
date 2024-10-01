@@ -34,7 +34,7 @@ import { selectTokensByAddress } from '@selectors/tokensController';
 import { selectGasFeeControllerEstimateType } from '@selectors/gasFeeController';
 import { baseStyles, fontStyles } from '@styles/common';
 import { isHardwareAccount } from '@util/address';
-import { createLedgerTransactionModalNavDetails } from '@UI/LedgerModals/LedgerTransactionModal';
+import { createLedgerTransactionModalNavDetails } from '@components/UI/LedgerModals/LedgerTransactionModal';
 import Device from '@util/device';
 import Logger from '@util/Logger';
 import {
@@ -46,14 +46,14 @@ import {
 import { addHexPrefix, hexToBN, renderFromWei } from '@util/number';
 import { mockTheme, ThemeContext } from '@util/theme';
 import { validateTransactionActionBalance } from '@util/transactions';
-import withQRHardwareAwareness from '@QRHardware/withQRHardwareAwareness';
-import TransactionActionModal from '@TransactionActionModal';
-import TransactionElement from '@TransactionElement';
-import UpdateEIP1559Tx from '@Views/confirmations/components/UpdateEIP1559Tx';
+import withQRHardwareAwareness from '@components/UI/QRHardware/withQRHardwareAwareness';
+import TransactionActionModal from '@components/UI/TransactionActionModal';
+import TransactionElement from '@components/UI/TransactionElement';
+import UpdateEIP1559Tx from '@components/Views/confirmations/components/UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
-} from '@AssetOverview/PriceChart/PriceChart.context';
+} from '@components/UI/AssetOverview/PriceChart/PriceChart.context';
 import { providerErrors } from '@metamask/rpc-errors';
 import {
   selectConversionRate,
@@ -566,7 +566,7 @@ class Transactions extends PureComponent {
     const onConfirmation = (isComplete) => {
       if (isComplete) {
         transaction.speedUpParams &&
-        transaction.speedUpParams?.type === 'SpeedUp'
+          transaction.speedUpParams?.type === 'SpeedUp'
           ? this.onSpeedUpCompleted()
           : this.onCancelCompleted();
       }
@@ -752,8 +752,8 @@ class Transactions extends PureComponent {
     const transactions =
       submittedTransactions && submittedTransactions.length
         ? submittedTransactions
-            .sort((a, b) => b.time - a.time)
-            .concat(confirmedTransactions)
+          .sort((a, b) => b.time - a.time)
+          .concat(confirmedTransactions)
         : this.props.transactions;
 
     const renderRetryGas = (rate) => {

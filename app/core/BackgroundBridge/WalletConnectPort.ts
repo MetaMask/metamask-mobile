@@ -1,5 +1,5 @@
-import Engine from '@Engine';
-import AppConstants from '@AppConstants';
+import Engine from '@core/Engine';
+import AppConstants from '@core/AppConstants';
 import { selectChainId } from '@selectors/networkController';
 import { store } from '@store';
 

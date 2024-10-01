@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 import { View } from 'react-native';
-import ActionModal from '@ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import createStyles from './styles';
 import Text, {
   TextVariant,

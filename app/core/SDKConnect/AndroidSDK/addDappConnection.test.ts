@@ -4,7 +4,7 @@ import addDappConnection from './addDappConnection';
 
 jest.mock('@Connection');
 jest.mock('@SDKConnect');
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(''),
 }));

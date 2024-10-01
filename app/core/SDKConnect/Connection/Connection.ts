@@ -6,13 +6,13 @@ import {
 } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
-import AppConstants from '@AppConstants';
-import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
-import BatchRPCManager from '@BatchRPCManager';
-import RPCQueueManager from '@RPCQueueManager';
+import AppConstants from '@core/AppConstants';
+import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
+import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
+import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
 import { ApprovedHosts, approveHostProps } from '@SDKConnect';
-import { CONNECTION_LOADING_EVENT } from '@SDKConnectConstants';
-import DevLogger from '@utils/DevLogger';
+import { CONNECTION_LOADING_EVENT } from '@core/SDKConnect/SDKConnectConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import sendAuthorized from './Auth/sendAuthorized';
 import {
   connect,
@@ -28,7 +28,7 @@ import {
   handleReceivedMessage,
 } from './EventListenersHandlers';
 import handleClientsWaiting from './EventListenersHandlers/handleClientsWaiting';
-import setupBridge from '@handlers/setupBridge';
+import setupBridge from '@core/SDKConnect/handlers/setupBridge';
 
 export interface ConnectionProps {
   id: string;
@@ -317,7 +317,13 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
+  disconnect({
+    terminate,
+    context,
+  }: {
+    terminate: boolean;
+    context?: string;
+  }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 

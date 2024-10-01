@@ -1,7 +1,7 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { DappClient } from '@AndroidSDK/dapp-sdk-types';
 import { Connection } from '@Connection';
-import RPCQueueManager from '@RPCQueueManager';
+import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
 import { SDKConnect } from '@SDKConnect';
 import {
   waitForAndroidServiceBinding,
@@ -14,7 +14,7 @@ import {
   waitForUserLoggedIn,
 } from './wait.util';
 
-jest.mock('@app/store/index', () => ({
+jest.mock('@store/index', () => ({
   store: {
     getState: jest.fn(),
   },

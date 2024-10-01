@@ -2,11 +2,11 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
-import Text from '@Base/Text';
-import AssetActionButton from '@AssetOverview/AssetActionButton';
+import Text from '@components/Base/Text';
+import AssetActionButton from '@components/UI/AssetOverview/AssetActionButton';
 import InfoModal from './InfoModal';
 
-import useModalHandler from '@Base/hooks/useModalHandler';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 import { strings } from '@locales/i18n';
 
 const styles = StyleSheet.create({

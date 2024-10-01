@@ -7,21 +7,24 @@ import { PROTOCOLS } from '@constants/deeplinks';
 import AppConstants from '@core/AppConstants';
 import Engine from '@core/Engine';
 import Logger from '@util/Logger';
-import BackgroundBridge from '@BackgroundBridge/BackgroundBridge';
+import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
 import { DappClient, DappConnections } from '@AndroidSDK/dapp-sdk-types';
 import getDefaultBridgeParams from '@AndroidSDK/getDefaultBridgeParams';
-import BatchRPCManager from '@BatchRPCManager';
-import RPCQueueManager from '@RPCQueueManager';
+import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
+import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
 import SDKConnect from '@SDKConnect';
 import {
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
   RPC_METHODS,
-} from '@SDKConnectConstants';
-import handleBatchRpcResponse from '@handlers/handleBatchRpcResponse';
-import handleCustomRpcCalls from '@handlers/handleCustomRpcCalls';
-import DevLogger from '@utils/DevLogger';
-import { wait, waitForKeychainUnlocked } from '@utils/wait.util';
+} from '@core/SDKConnect/SDKConnectConstants';
+import handleBatchRpcResponse from '@core/SDKConnect/handlers/handleBatchRpcResponse';
+import handleCustomRpcCalls from '@core/SDKConnect/handlers/handleCustomRpcCalls';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import {
+  wait,
+  waitForKeychainUnlocked,
+} from '@core/SDKConnect/utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

@@ -29,7 +29,7 @@ import { useStyles } from '@component-library/hooks';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import Title from '@Base/Title';
+import Title from '@components/Base/Title';
 import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';

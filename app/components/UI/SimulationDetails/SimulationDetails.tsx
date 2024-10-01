@@ -17,8 +17,8 @@ import Icon, {
   IconSize,
 } from '@component-library/components/Icons/Icon';
 import InfoModal from '@components/UI/Swaps/components/InfoModal';
-import { useStyles } from '@hooks/useStyles';
-import AnimatedSpinner, { SpinnerSize } from '@AnimatedSpinner';
+import { useStyles } from '@components/hooks/useStyles';
+import AnimatedSpinner, { SpinnerSize } from '@components/UI/AnimatedSpinner';
 import useBalanceChanges from './useBalanceChanges';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import styleSheet from './SimulationDetails.styles';

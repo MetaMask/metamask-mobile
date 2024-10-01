@@ -3,8 +3,8 @@ import { merge } from 'lodash';
 import initialRootState from '@util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { GOERLI, SEPOLIA } from '@app/constants/network';
-import NetworkList from '@app/util/networks';
+import { GOERLI, SEPOLIA } from '@constants/network';
+import NetworkList from '@util/networks';
 
 const oldState = {
   engine: {

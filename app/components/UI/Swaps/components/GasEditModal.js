@@ -7,15 +7,15 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import InfoModal from './InfoModal';
-import EditGasFeeLegacy from '@EditGasFeeLegacy';
-import EditGasFee1559 from '@EditGasFee1559';
+import EditGasFeeLegacy from '@components/Views/confirmations/components/EditGasFeeLegacyUpdate';
+import EditGasFee1559 from '@components/UI/EditGasFee1559';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,
 } from '@util/transactions';
-import useModalHandler from '@Base/hooks/useModalHandler';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 import { strings } from '@locales/i18n';
 import AppConstants from '@core/AppConstants';
 import { useTheme } from '@util/theme';
@@ -72,8 +72,8 @@ function GasEditModal({
     customGasFee
       ? customGasFee.selected ?? null
       : gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-      ? defaultGasFeeOptionFeeMarket
-      : defaultGasFeeOptionLegacy,
+        ? defaultGasFeeOptionFeeMarket
+        : defaultGasFeeOptionLegacy,
   );
   const [stopUpdateGas, setStopUpdateGas] = useState(false);
   const [hasEnoughEthBalance, setHasEnoughEthBalance] = useState(true);
@@ -311,8 +311,8 @@ function GasEditModal({
       customGasFee
         ? customGasFee.selected ?? null
         : gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-        ? GAS_OPTIONS.HIGH
-        : GAS_OPTIONS.MEDIUM,
+          ? GAS_OPTIONS.HIGH
+          : GAS_OPTIONS.MEDIUM,
     );
     dismiss();
   }, [customGasFee, dismiss, gasEstimateType]);

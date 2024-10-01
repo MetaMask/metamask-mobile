@@ -7,7 +7,7 @@ import { useAccounts } from '@components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { backgroundState } from '@util/test/initial-root-state';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 import {
   createMockAccountsControllerState,
   createMockAccountsControllerStateWithSnap,

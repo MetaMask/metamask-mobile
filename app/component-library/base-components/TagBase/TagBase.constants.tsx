@@ -3,10 +3,10 @@
 import React from 'react';
 
 // External dependencies
-import Icon from '@components/Icons/Icon';
-import { SAMPLE_ICON_PROPS } from '@components/Icons/Icon/Icon.constants';
-import { SAMPLE_TEXT_PROPS } from '@components/Texts/Text/Text.constants';
-import { TextVariant } from '@components/Texts/Text';
+import Icon from '@component-library/components/Icons/Icon';
+import { SAMPLE_ICON_PROPS } from '@component-library/components/Icons/Icon/Icon.constants';
+import { SAMPLE_TEXT_PROPS } from '@component-library/components/Texts/Text/Text.constants';
+import { TextVariant } from '@component-library/components/Texts/Text';
 
 // Internal dependencies
 import { TagShape, TagSeverity, TagBaseProps } from './TagBase.types';

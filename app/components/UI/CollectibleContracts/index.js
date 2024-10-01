@@ -13,7 +13,7 @@ import { connect } from 'react-redux';
 import { fontStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
 import Engine from '@core/Engine';
-import CollectibleContractElement from '@CollectibleContractElement';
+import CollectibleContractElement from '@components/UI/CollectibleContractElement';
 import { MetaMetricsEvents } from '@core/Analytics';
 import {
   collectibleContractsSelector,
@@ -22,11 +22,11 @@ import {
   isNftFetchingProgressSelector,
 } from '@reducers/collectibles';
 import { removeFavoriteCollectible } from '@actions/collectibles';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import AppConstants from '@core/AppConstants';
 import { toLowerCaseEquals } from '@util/general';
 import { compareTokenIds } from '@util/tokens';
-import CollectibleDetectionModal from '@CollectibleDetectionModal';
+import CollectibleDetectionModal from '@components/UI/CollectibleDetectionModal';
 import { useTheme } from '@util/theme';
 import { MAINNET } from '@constants/network';
 import {

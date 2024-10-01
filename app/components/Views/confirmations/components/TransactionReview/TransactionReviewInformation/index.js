@@ -36,18 +36,18 @@ import {
   isTestNet,
   isTestNetworkWithFaucet,
 } from '@util/networks';
-import CustomNonceModal from '@SendFlow/components/CustomNonceModal';
+import CustomNonceModal from '@components/Views/confirmations/SendFlow/components/CustomNonceModal';
 import {
   setNonce,
   setProposedNonce,
 } from '@actions/transaction';
-import TransactionReviewEIP1559 from '@TransactionReviewEIP1559';
+import TransactionReviewEIP1559 from '@components/Views/confirmations/components/TransactionReview/TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import CustomNonce from '@CustomNonce';
+import CustomNonce from '@components/Views/confirmations/components/CustomNonce';
 import Logger from '@util/Logger';
 import { ThemeContext, mockTheme } from '@util/theme';
 import AppConstants from '@core/AppConstants';
-import WarningMessage from '@SendFlow/WarningMessage';
+import WarningMessage from '@components/Views/confirmations/SendFlow/WarningMessage';
 import {
   selectChainId,
   selectTicker,
@@ -57,10 +57,10 @@ import {
   selectCurrentCurrency,
 } from '@selectors/currencyRateController';
 import { selectContractExchangeRates } from '@selectors/tokenRatesController';
-import { createBrowserNavDetails } from '@Browser';
+import { createBrowserNavDetails } from '@components/Views/Browser';
 import { isNetworkRampNativeTokenSupported } from '@components/UI/Ramp/utils';
 import { getRampNetworks } from '@reducers/fiatOrders';
-import { createBuyNavigationDetails } from '@UI/Ramp/routes/utils';
+import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
 import { withMetricsAwareness } from '@components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
 
@@ -355,16 +355,14 @@ class TransactionReviewInformation extends PureComponent {
           currentCurrency,
           amountToken,
         );
-        const totalValue = `${
-          amountToken + ' ' + selectedAsset.symbol
-        } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${amountToken + ' ' + selectedAsset.symbol
+          } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       ERC721: () => {
         const totalFiat = totalGasFiat;
-        const totalValue = `${selectedAsset.name}  (#${
-          selectedAsset.tokenId
-        }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${selectedAsset.name}  (#${selectedAsset.tokenId
+          }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       default: () => [undefined, undefined],
@@ -514,13 +512,11 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         });
 
-        renderableTotalMinNative = `${selectedAsset.name} ${
-          ' (#' + selectedAsset.tokenId + ')'
-        } + ${renderableTotalMinNative}`;
+        renderableTotalMinNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
+          } + ${renderableTotalMinNative}`;
 
-        renderableTotalMaxNative = `${selectedAsset.name} ${
-          ' (#' + selectedAsset.tokenId + ')'
-        } + ${renderableTotalMaxNative}`;
+        renderableTotalMaxNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
+          } + ${renderableTotalMaxNative}`;
 
         return [
           renderableTotalMinNative,

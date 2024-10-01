@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import AUTO_LOCK_OPTIONS, { AUTO_LOCK_SECTION } from './constants';
 import { setLockTime } from '@actions/settings';
 import { useStyles } from '@component-library/hooks';
-import SelectComponent from '@UI/SelectComponent';
+import SelectComponent from '@components/UI/SelectComponent';
 import Text, {
   TextVariant,
   TextColor,

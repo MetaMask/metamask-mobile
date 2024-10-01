@@ -1,6 +1,6 @@
 import SDKConnect from '@SDKConnect';
-import DevLogger from '@utils/DevLogger';
-import { wait } from '@utils/wait.util';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { wait } from '@core/SDKConnect/utils/wait.util';
 
 async function resume({
   channelId,

@@ -4,7 +4,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 
 // Internal dependencies
 import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import ErrorMessage from '.';
+import ErrorMessage from '@components/Views/confirmations/SendFlow/ErrorMessage';
 
 describe('ErrorMessage', () => {
   it('should render correctly', () => {

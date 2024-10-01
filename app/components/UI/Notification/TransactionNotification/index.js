@@ -11,11 +11,11 @@ import {
   fontStyles,
   colors as importedColors,
 } from '@styles/common';
-import decodeTransaction from '@TransactionElement/utils';
-import TransactionActionContent from '@TransactionActionModal/TransactionActionContent';
-import ActionContent from '@ActionModal/ActionContent';
+import decodeTransaction from '@components/UI/TransactionElement/utils';
+import TransactionActionContent from '@components/UI/TransactionActionModal/TransactionActionContent';
+import ActionContent from '@components/UI/ActionModal/ActionContent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import TransactionDetails from '@TransactionElement/TransactionDetails';
+import TransactionDetails from '@components/UI/TransactionElement/TransactionDetails';
 import BaseNotification from './../BaseNotification';
 import Device from '@util/device';
 import ElevatedView from 'react-native-elevated-view';
@@ -442,7 +442,7 @@ const mapStateToProps = (state) => {
 
   const smartTransactions =
     SmartTransactionsController?.smartTransactionsState?.smartTransactions?.[
-      chainId
+    chainId
     ] || [];
 
   return {

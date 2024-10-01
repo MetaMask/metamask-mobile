@@ -12,7 +12,7 @@ import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '@reducers/notification';
 
 import { findRouteNameFromNavigatorState } from '@util/general';
-import usePrevious from '@hooks/usePrevious';
+import usePrevious from '@components/hooks/usePrevious';
 import {
   useSharedValue,
   withTiming,

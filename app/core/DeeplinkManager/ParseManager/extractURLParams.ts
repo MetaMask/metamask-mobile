@@ -4,7 +4,7 @@ import UrlParser from 'url-parse';
 import { strings } from '@locales/i18n';
 import { PROTOCOLS } from '@constants/deeplinks';
 import Logger from '@util/Logger';
-import DevLogger from '@SDKConnect/utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 export interface DeeplinkUrlParams {
   uri: string;

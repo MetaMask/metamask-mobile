@@ -10,29 +10,23 @@ import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '@constants/keyringTypes';
 import Engine from '@core/Engine';
 import { strings } from '@locales/i18n';
-import { tlc, toLowerCaseEquals } from '@general';
+import { tlc, toLowerCaseEquals } from '@util/general';
 import {
   doENSLookup,
   doENSReverseLookup,
   getCachedENSName,
   isDefaultAccountName,
 } from '@util/ENSUtils';
-import {
-  isMainnetByChainId,
-  findBlockExplorerForRpc,
-} from '@util/networks';
+import { isMainnetByChainId, findBlockExplorerForRpc } from '@util/networks';
 import { RPC } from '@constants/network';
 import { collectConfusables } from '@util/confusables';
-import {
-  CONTACT_ALREADY_SAVED,
-  SYMBOL_ERROR,
-} from '@app/constants/error';
+import { CONTACT_ALREADY_SAVED, SYMBOL_ERROR } from '@constants/error';
 import { PROTOCOLS } from '@constants/deeplinks';
 import TransactionTypes from '@core/TransactionTypes';
 import { selectChainId } from '@selectors/networkController';
 import { store } from '@store';
-import { regex } from '@app/util/regex';
-import Logger from '@app/util/Logger';
+import { regex } from '@util/regex';
+import Logger from '@util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';

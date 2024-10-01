@@ -12,8 +12,8 @@ import Icon, {
 import { renderShortAddress } from '@util/address';
 import useDisplayName, {
   DisplayNameVariant,
-} from '@hooks/DisplayName/useDisplayName';
-import Identicon from '@Identicon';
+} from '@components/hooks/DisplayName/useDisplayName';
+import Identicon from '@components/UI/Identicon';
 import { NameProperties, NameType } from './Name.types';
 import styleSheet from './Name.styles';
 

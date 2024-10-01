@@ -10,7 +10,7 @@ import Badge, {
   BadgeVariant,
 } from '@component-library/components/Badges/Badge';
 import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
-import AssetIcon from '@AssetIcon';
+import AssetIcon from '@components/UI/AssetIcon';
 import { useSelector } from 'react-redux';
 import { selectNetworkImageSource } from '@selectors/networkInfos';
 import { strings } from '@locales/i18n';

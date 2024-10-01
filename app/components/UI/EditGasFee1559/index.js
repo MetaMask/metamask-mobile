@@ -8,24 +8,24 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import Text from '@Base/Text';
-import StyledButton from '@StyledButton';
-import RangeInput from '@Base/RangeInput';
+import Text from '@components/Base/Text';
+import StyledButton from '@components/UI/StyledButton';
+import RangeInput from '@components/Base/RangeInput';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import InfoModal from '@Swaps/components/InfoModal';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '@locales/i18n';
-import Alert, { AlertType } from '@Base/Alert';
-import HorizontalSelector from '@Base/HorizontalSelector';
+import Alert, { AlertType } from '@components/Base/Alert';
+import HorizontalSelector from '@components/Base/HorizontalSelector';
 import Device from '@util/device';
 import { getDecimalChainId, isMainnetByChainId } from '@util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
-import FadeAnimationView from '@FadeAnimationView';
+import FadeAnimationView from '@components/UI/FadeAnimationView';
 import { MetaMetricsEvents } from '@core/Analytics';
 
-import TimeEstimateInfoModal from '@TimeEstimateInfoModal';
-import useModalHandler from '@Base/hooks/useModalHandler';
+import TimeEstimateInfoModal from '@components/UI/TimeEstimateInfoModal';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 import AppConstants from '@core/AppConstants';
 import { useTheme } from '@util/theme';
 import {
@@ -263,11 +263,11 @@ const EditGasFee1559 = ({
         setMaxPriorityFeeError(
           updateOption?.isCancel
             ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
-                cancel_value: updateFloor,
-              })
+              cancel_value: updateFloor,
+            })
             : strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
+              speed_up_floor_value: updateFloor,
+            }),
         );
       } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxPriorityFeeError(
@@ -304,11 +304,11 @@ const EditGasFee1559 = ({
         setMaxFeeError(
           updateOption?.isCancel
             ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
-                cancel_value: updateFloor,
-              })
+              cancel_value: updateFloor,
+            })
             : strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
+              speed_up_floor_value: updateFloor,
+            }),
         );
       } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
@@ -724,17 +724,17 @@ const EditGasFee1559 = ({
                 </Text>
                 {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
                   timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                  <TouchableOpacity
-                    hitSlop={styles.hitSlop}
-                    onPress={showTimeEstimateInfoModal}
-                  >
-                    <MaterialCommunityIcon
-                      name="information"
-                      size={14}
-                      style={styles.redInfo}
-                    />
-                  </TouchableOpacity>
-                )}
+                    <TouchableOpacity
+                      hitSlop={styles.hitSlop}
+                      onPress={showTimeEstimateInfoModal}
+                    >
+                      <MaterialCommunityIcon
+                        name="information"
+                        size={14}
+                        style={styles.redInfo}
+                      />
+                    </TouchableOpacity>
+                  )}
               </View>
             </FadeAnimationView>
             {!showInputs ? (
@@ -755,12 +755,12 @@ const EditGasFee1559 = ({
                 showInfoModal === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
                   : showInfoModal === 'max_priority_fee'
-                  ? strings('edit_gas_fee_eip1559.max_priority_fee')
-                  : showInfoModal === 'max_fee'
-                  ? strings('edit_gas_fee_eip1559.max_fee')
-                  : showInfoModal === 'new_gas_fee'
-                  ? strings('edit_gas_fee_eip1559.new_gas_fee')
-                  : null
+                    ? strings('edit_gas_fee_eip1559.max_priority_fee')
+                    : showInfoModal === 'max_fee'
+                      ? strings('edit_gas_fee_eip1559.max_fee')
+                      : showInfoModal === 'new_gas_fee'
+                        ? strings('edit_gas_fee_eip1559.new_gas_fee')
+                        : null
               }
               toggleModal={() => setShowInfoModal(null)}
               body={
@@ -775,11 +775,11 @@ const EditGasFee1559 = ({
                     {showInfoModal === 'max_fee' &&
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
                     {showInfoModal === 'new_gas_fee' &&
-                    updateOption &&
-                    updateOption.isCancel
+                      updateOption &&
+                      updateOption.isCancel
                       ? strings(
-                          'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
-                        )
+                        'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
+                      )
                       : strings('edit_gas_fee_eip1559.learn_more_new_gas_fee')}
                   </Text>
                 </View>

@@ -1,5 +1,5 @@
-import AppConstants from '@AppConstants';
-import DevLogger from '@utils/DevLogger';
+import AppConstants from '@core/AppConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { Connection } from '@Connection';
 
 function handleClientsDisconnected({

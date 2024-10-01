@@ -9,9 +9,9 @@ import Engine from '@core/Engine';
 import { baseStyles } from '@styles/common';
 import { selectChainId } from '@selectors/networkController';
 import { useTheme } from '@util/theme';
-import Text from '@Base/Text';
-import useExistingAddress from '@hooks/useExistingAddress';
-import ActionModal from '@ActionModal';
+import Text from '@components/Base/Text';
+import useExistingAddress from '@components/hooks/useExistingAddress';
+import ActionModal from '@components/UI/ActionModal';
 
 import createStyles from './styles';
 

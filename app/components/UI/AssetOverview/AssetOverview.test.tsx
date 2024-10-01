@@ -56,7 +56,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('@hooks/useStyles', () => ({
+jest.mock('@components/hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {},
     theme: {

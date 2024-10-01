@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { fontStyles, baseStyles } from '@styles/common';
-import WebsiteIcon from '@UI/WebsiteIcon';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { strings } from '@locales/i18n';
 import Device from '@util/device';

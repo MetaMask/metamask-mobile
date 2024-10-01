@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ChainId } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
-import TokenIcon from '@Swaps/components/TokenIcon';
+import TokenIcon from '@components/UI/Swaps/components/TokenIcon';
 import {
   selectChainId,
   selectTicker,

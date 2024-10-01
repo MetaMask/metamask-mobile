@@ -2,7 +2,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import InstallSnapPermissionsRequest from '@InstallSnapPermissionsRequest';
-import { SNAP_PERMISSION_CELL } from '@Views/Snaps/components/SnapPermissionCell/SnapPermissionCell.constants';
+import { SNAP_PERMISSION_CELL } from '@components/Views/Snaps/components/SnapPermissionCell/SnapPermissionCell.constants';
 
 describe('InstallSnapPermissionsRequest', () => {
   const installSnapDataApprovalRequest = {

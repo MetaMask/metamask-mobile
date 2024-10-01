@@ -16,16 +16,16 @@ import I18n, {
   getLanguages,
   setLocale,
 } from '@locales/i18n';
-import SelectComponent from '@UI/SelectComponent';
+import SelectComponent from '@components/UI/SelectComponent';
 import infuraCurrencies from '@util/infura-conversion.json';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
 import {
   setSearchEngine,
   setPrimaryCurrency,
   setUseBlockieIcon,
   setHideZeroBalanceTokens,
 } from '@actions/settings';
-import PickComponent from '@PickComponent';
+import PickComponent from '@components/Views/PickComponent';
 import { toDataUrl } from '@util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '@util/theme';

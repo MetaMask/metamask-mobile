@@ -30,7 +30,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '@component-library/components/Buttons/Button';
-import RemoteImage from '@Base/RemoteImage';
+import RemoteImage from '@components/Base/RemoteImage';
 
 import styleSheet from './SendTransaction.styles';
 import imageIcons from '@images/image-icons';
@@ -41,7 +41,7 @@ import {
   getProviderName,
   setFiatSellTxHash,
 } from '@reducers/fiatOrders';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { useParams } from '@util/navigation/navUtils';
 import {
   addHexPrefix,
@@ -55,7 +55,7 @@ import { addTransaction } from '@util/transaction-controller';
 import { NATIVE_ADDRESS } from '@constants/on-ramp';
 import { safeToChecksumAddress } from '@util/address';
 import { generateTransferData } from '@util/transactions';
-import useAnalytics from '@hooks/useAnalytics';
+import useAnalytics from '@components/hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
 import { RAMPS_SEND } from '@constants';
 

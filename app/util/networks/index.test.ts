@@ -20,8 +20,8 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-} from '@app/constants/network';
-import { NetworkSwitchErrorType } from '@app/constants/error';
+} from '@constants/network';
+import { NetworkSwitchErrorType } from '@constants/error';
 import { getNonceLock } from '@util/transaction-controller';
 import Engine from './../../core/Engine';
 

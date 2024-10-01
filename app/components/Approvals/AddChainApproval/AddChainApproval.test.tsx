@@ -1,11 +1,11 @@
 import React from 'react';
 import AddChainApproval from './AddChainApproval';
-import useApprovalRequest from '@Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 
-jest.mock('@Views/confirmations/hooks/useApprovalRequest');
+jest.mock('@components/Views/confirmations/hooks/useApprovalRequest');
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

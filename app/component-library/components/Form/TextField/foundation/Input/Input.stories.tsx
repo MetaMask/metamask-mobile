@@ -1,5 +1,5 @@
 // External dependencies.
-import { TextVariant } from '@Texts/Text';
+import { TextVariant } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.
 import { default as InputComponent } from './Input';

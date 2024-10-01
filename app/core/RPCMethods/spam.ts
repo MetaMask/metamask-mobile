@@ -4,7 +4,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 
 import { containsUserRejectedError } from '@util/middlewares';
 import Routes from '@constants/navigation/Routes';
-import { RPC_METHODS } from '@SDKConnect/SDKConnectConstants';
+import { RPC_METHODS } from '@core/SDKConnect/SDKConnectConstants';
 import {
   selectIsOriginBlockedForRPCRequests,
   onRPCRequestRejectedByUser,

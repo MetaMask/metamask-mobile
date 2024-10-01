@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
-import ActionModal from '@ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import { fontStyles } from '@styles/common';
 import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '@actions/user';

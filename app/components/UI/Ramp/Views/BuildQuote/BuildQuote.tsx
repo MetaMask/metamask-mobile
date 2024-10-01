@@ -15,22 +15,22 @@ import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 
 import { useRampSDK } from '@sdk';
-import usePaymentMethods from '@hooks/usePaymentMethods';
-import useRegions from '@hooks/useRegions';
-import useAnalytics from '@hooks/useAnalytics';
-import useFiatCurrencies from '@hooks/useFiatCurrencies';
-import useCryptoCurrencies from '@hooks/useCryptoCurrencies';
-import useLimits from '@hooks/useLimits';
-import useBalance from '@hooks/useBalance';
+import usePaymentMethods from '@components/hooks/usePaymentMethods';
+import useRegions from '@components/hooks/useRegions';
+import useAnalytics from '@components/hooks/useAnalytics';
+import useFiatCurrencies from '@components/hooks/useFiatCurrencies';
+import useCryptoCurrencies from '@components/hooks/useCryptoCurrencies';
+import useLimits from '@components/hooks/useLimits';
+import useBalance from '@components/hooks/useBalance';
 
-import useAddressBalance from '@hooks/useAddressBalance/useAddressBalance';
-import { Asset } from '@hooks/useAddressBalance/useAddressBalance.types';
-import useModalHandler from '@Base/hooks/useModalHandler';
+import useAddressBalance from '@components/hooks/useAddressBalance/useAddressBalance';
+import { Asset } from '@components/hooks/useAddressBalance/useAddressBalance.types';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 
-import Text from '@Base/Text';
-import BaseListItem from '@Base/ListItem';
-import BaseSelectorButton from '@Base/SelectorButton';
-import StyledButton from '@StyledButton';
+import Text from '@components/Base/Text';
+import BaseListItem from '@components/Base/ListItem';
+import BaseSelectorButton from '@components/Base/SelectorButton';
+import StyledButton from '@components/UI/StyledButton';
 
 import ScreenLayout from '@components/ScreenLayout';
 import Box from '@components/Box';
@@ -41,7 +41,7 @@ import AmountInput from '@components/AmountInput';
 import Keypad from '@components/Keypad';
 import QuickAmounts from '@components/QuickAmounts';
 import AccountSelector from '@components/AccountSelector';
-import TokenIcon from '@Swaps/components/TokenIcon';
+import TokenIcon from '@components/UI/Swaps/components/TokenIcon';
 import CustomActionButton from '@containers/CustomActionButton';
 import TokenSelectModal from '@components/TokenSelectModal';
 import PaymentMethodModal from '@components/PaymentMethodModal';
@@ -53,7 +53,7 @@ import SkeletonText from '@components/SkeletonText';
 import ErrorView from '@components/ErrorView';
 
 import { NATIVE_ADDRESS } from '@constants/on-ramp';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import {
   createNavigationDetails,
@@ -70,8 +70,8 @@ import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
 } from '@util/number';
-import useGasPriceEstimation from '@hooks/useGasPriceEstimation';
-import useIntentAmount from '@hooks/useIntentAmount';
+import useGasPriceEstimation from '@components/hooks/useGasPriceEstimation';
+import useIntentAmount from '@components/hooks/useIntentAmount';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

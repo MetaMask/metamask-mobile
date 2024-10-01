@@ -9,7 +9,7 @@ import {
   useAppThemeFromContext,
   mockTheme,
 } from '@util/theme';
-import ConnectHeader from '@UI/ConnectHeader';
+import ConnectHeader from '@components/UI/ConnectHeader';
 import ContractBox from '@component-library/components-temp/Contracts/ContractBox';
 import createStyles from './VerifyContractDetails.styles';
 import { VerifyContractDetailsProps } from './VerifyContractDetails.types';

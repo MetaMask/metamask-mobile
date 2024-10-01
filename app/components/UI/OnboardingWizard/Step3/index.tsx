@@ -11,7 +11,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '@core/Analytics';
 import { useTheme } from '@util/theme';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { OnboardingWizardModalSelectorsIDs } from '@e2e/selectors/Modals/OnboardingWizardModal.selectors';
 import useHandleLayout from '@useHandleLayout';
 

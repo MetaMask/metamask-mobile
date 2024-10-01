@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 import Routes from '@constants/navigation/Routes';
 import Logger from '@util/Logger';
 import Device from '@util/device';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import SDKConnect, { approveHostProps } from '@SDKConnect';
-import handleConnectionReady from '@handlers/handleConnectionReady';
-import DevLogger from '@utils/DevLogger';
+import handleConnectionReady from '@core/SDKConnect/handlers/handleConnectionReady';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { Connection } from '@Connection';
 import AppConstants from '@core/AppConstants';
 

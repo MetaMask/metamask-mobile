@@ -1,9 +1,9 @@
 import { Platform } from 'react-native';
 import Logger from '@util/Logger';
-import BatchRPCManager from '@BatchRPCManager';
-import { RPC_METHODS } from '@SDKConnectConstants';
-import DevLogger from '@utils/DevLogger';
-import { wait } from '@utils/wait.util';
+import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
+import { RPC_METHODS } from '@core/SDKConnect/SDKConnectConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
+import { wait } from '@core/SDKConnect/utils/wait.util';
 import overwriteRPCWith from './handleRpcOverwrite';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '@constants/navigation/Routes';

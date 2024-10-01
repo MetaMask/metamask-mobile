@@ -16,7 +16,7 @@ import Cell, {
   CellVariant,
 } from '@component-library/components/Cells/Cell';
 import TagUrl from '@component-library/components/Tags/TagUrl';
-import { useAccounts } from '@hooks/useAccounts';
+import { useAccounts } from '@components/hooks/useAccounts';
 import Routes from '@constants/navigation/Routes';
 import {
   getPermittedAccounts,

@@ -16,13 +16,13 @@ import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '@util/Logger';
 import { baseStyles } from '@styles/common';
-import StyledButton from '@UI/StyledButton';
-import OnboardingProgress from '@UI/OnboardingProgress';
+import StyledButton from '@components/UI/StyledButton';
+import OnboardingProgress from '@components/UI/OnboardingProgress';
 import { strings } from '@locales/i18n';
-import ActionView from '@UI/ActionView';
+import ActionView from '@components/UI/ActionView';
 import Engine from '@core/Engine';
-import { getOnboardingNavbarOptions } from '@UI/Navbar';
-import { ScreenshotDeterrent } from '@UI/ScreenshotDeterrent';
+import { getOnboardingNavbarOptions } from '@components/UI/Navbar';
+import { ScreenshotDeterrent } from '@components/UI/ScreenshotDeterrent';
 import {
   MANUAL_BACKUP_STEPS,
   SEED_PHRASE,
@@ -276,9 +276,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
                 <View style={styles.wordColumn}>
                   {words.slice(-half).map((word, i) => (
                     <View key={`word_${i}`} style={styles.wordWrapper}>
-                      <Text style={styles.word}>{`${
-                        i + (half + 1)
-                      }. ${word}`}</Text>
+                      <Text style={styles.word}>{`${i + (half + 1)
+                        }. ${word}`}</Text>
                     </View>
                   ))}
                 </View>

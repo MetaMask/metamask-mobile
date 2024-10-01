@@ -2,7 +2,7 @@ import React from 'react';
 import { Image } from 'react-native';
 
 import createStyles from './OrderListItem.styles';
-import BaseListItem from '@Base/ListItem';
+import BaseListItem from '@components/Base/ListItem';
 
 import { FiatOrder, getProviderName } from '@reducers/fiatOrders';
 import { strings } from '@locales/i18n';

@@ -5,11 +5,11 @@ import {
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '@util/theme';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import { strings } from '@locales/i18n';
 import { Colors } from '@util/theme/models';
 import Device from '@util/device';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

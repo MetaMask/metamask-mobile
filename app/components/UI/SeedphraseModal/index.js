@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import ActionModal from '@UI/ActionModal';
+import ActionModal from '@components/UI/ActionModal';
 import { useTheme } from '@util/theme';
 
 const createStyles = (colors) =>

@@ -1,7 +1,7 @@
 import Engine from '@core/Engine';
 import { BNToHex } from '@util/number';
 import Logger from '@util/Logger';
-import ExtendedKeyringTypes from '@app/constants/keyringTypes';
+import ExtendedKeyringTypes from '@constants/keyringTypes';
 
 const HD_KEY_TREE_ERROR = 'MetamaskController - No HD Key Tree found';
 const ZERO_BALANCE = '0x0';

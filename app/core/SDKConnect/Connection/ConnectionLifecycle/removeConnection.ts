@@ -1,4 +1,4 @@
-import DevLogger from '@utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { Connection } from '@Connection';
 
 async function removeConnection({
@@ -10,9 +10,13 @@ async function removeConnection({
   terminate: boolean;
   context?: string;
 }): Promise<boolean> {
-
-  const disconnected = await instance.disconnect({ terminate, context: 'Connection::removeConnection' });
-  DevLogger.log(`Connection::removeConnection() context=${context} id=${instance.channelId} disconnected=${disconnected}`);
+  const disconnected = await instance.disconnect({
+    terminate,
+    context: 'Connection::removeConnection',
+  });
+  DevLogger.log(
+    `Connection::removeConnection() context=${context} id=${instance.channelId} disconnected=${disconnected}`,
+  );
   if (disconnected) {
     instance.backgroundBridge?.onDisconnect();
     instance.isReady = false;

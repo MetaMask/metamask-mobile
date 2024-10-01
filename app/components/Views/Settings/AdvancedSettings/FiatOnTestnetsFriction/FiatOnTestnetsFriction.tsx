@@ -17,9 +17,9 @@ import Button, {
 import AppConstants from '@core/AppConstants';
 import createStyles from './FiatOnTestnetsFriction.styles';
 import { useNavigation } from '@react-navigation/native';
-import Text from '@Base/Text';
+import Text from '@components/Base/Text';
 import { useDispatch } from 'react-redux';
-import { setShowFiatOnTestnets } from '@app/actions/settings';
+import { setShowFiatOnTestnets } from '@actions/settings';
 import { FiatOnTestnetsModalSelectorsIDs } from '@e2e/selectors/Modals/FiatOnTestnetsModal.selectors';
 import Routes from '@constants/navigation/Routes';
 

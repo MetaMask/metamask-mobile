@@ -1,5 +1,5 @@
 import EngineService from './EngineService';
-import Engine from '@Engine';
+import Engine from '@core/Engine';
 import { store } from '@store';
 
 jest.mock('@util/test/network-store.js', () => jest.fn());
@@ -14,7 +14,7 @@ jest.mock('@store', () => ({
   },
 }));
 
-jest.mock('@Engine', () => {
+jest.mock('@core', () => {
   // Do not need to mock entire Engine. Only need subset of data for testing purposes.
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

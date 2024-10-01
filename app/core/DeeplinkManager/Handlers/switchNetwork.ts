@@ -1,7 +1,7 @@
 import { strings } from '@locales/i18n';
 import { showAlert } from '@actions/alert';
 import { handleNetworkSwitch } from '@util/networks';
-import DevLogger from '@SDKConnect/utils/DevLogger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import DeeplinkManager from '@DeeplinkManager';
 
 function switchNetwork({

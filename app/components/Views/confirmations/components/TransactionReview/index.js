@@ -51,15 +51,15 @@ import {
   getTransactionReviewActionKey,
   isApprovalTransaction,
 } from '@util/transactions';
-import AccountFromToInfoCard from '@UI/AccountFromToInfoCard';
-import ApprovalTagUrl from '@UI/ApprovalTagUrl';
-import ActionView, { ConfirmButtonState } from '@UI/ActionView';
-import QRSigningDetails from '@UI/QRHardware/QRSigningDetails';
-import withQRHardwareAwareness from '@UI/QRHardware/withQRHardwareAwareness';
-import SimulationDetails from '@UI/SimulationDetails/SimulationDetails';
-import TransactionHeader from '@UI/TransactionHeader';
-import { ResultType } from '@BlockaidBanner/BlockaidBanner.types';
-import TransactionBlockaidBanner from '@TransactionBlockaidBanner/TransactionBlockaidBanner';
+import AccountFromToInfoCard from '@components/UI/AccountFromToInfoCard';
+import ApprovalTagUrl from '@components/UI/ApprovalTagUrl';
+import ActionView, { ConfirmButtonState } from '@components/UI/ActionView';
+import QRSigningDetails from '@components/UI/QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '@components/UI/QRHardware/withQRHardwareAwareness';
+import SimulationDetails from '@components/UI/SimulationDetails/SimulationDetails';
+import TransactionHeader from '@components/UI/TransactionHeader';
+import { ResultType } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import TransactionBlockaidBanner from '@components/Views/confirmations/components/TransactionBlockaidBanner/TransactionBlockaidBanner';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';

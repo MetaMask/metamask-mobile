@@ -1,12 +1,9 @@
-import {
-  resetApprovedHosts,
-  resetConnections,
-} from '@app/actions/sdk';
-import { store } from '@app/store';
+import { resetApprovedHosts, resetConnections } from '@actions/sdk';
+import { store } from '@store';
 import AppConstants from '@core/AppConstants';
 import SDKConnect, { approveHostProps } from '@SDKConnect';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '@SDKConnectConstants';
-import DevLogger from '@utils/DevLogger';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 function approveHost({
   host,

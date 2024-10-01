@@ -1,5 +1,5 @@
 import { NetworksChainId } from '@metamask/controller-utils';
-import { GOERLI } from '@app/constants/network';
+import { GOERLI } from '@constants/network';
 
 export default function migrate(state) {
   const chainId =

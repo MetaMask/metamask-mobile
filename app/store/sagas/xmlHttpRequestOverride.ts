@@ -1,4 +1,4 @@
-import AppConstants from '@app/core/AppConstants';
+import AppConstants from '@core/AppConstants';
 
 if (process.env.JEST_WORKER_ID !== undefined) {
   // monkeypatch for Jest

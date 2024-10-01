@@ -1,5 +1,5 @@
 import Engine from '@core/Engine';
-import Logger from '@Logger';
+import Logger from '@util/Logger';
 
 const LOG_PREFIX = 'Swaps Transactions';
 

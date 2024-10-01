@@ -7,9 +7,9 @@ import ReusableModal, {
   ReusableModalRef,
 } from '@components/UI/ReusableModal';
 import Button, { ButtonSize, ButtonVariants } from '@Buttons/Button';
-import Text, { TextVariant } from '@Texts/Text';
+import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { strings } from '@locales/i18n';
-import { useStyles } from '@hooks';
+import { useStyles } from '@components/hooks';
 
 // Internal dependencies.
 import { ModalConfirmationProps } from './ModalConfirmation.types';

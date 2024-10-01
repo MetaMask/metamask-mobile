@@ -4,7 +4,7 @@ import { fontStyles, baseStyles } from '@styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import Identicon from '@Identicon';
+import Identicon from '@components/UI/Identicon';
 import {
   renderShortAddress,
   renderSlightlyLongAddress,
@@ -14,7 +14,7 @@ import {
 import { strings } from '@locales/i18n';
 import { hasZeroWidthPoints } from '@util/confusables';
 import { useTheme } from '@util/theme';
-import AddToAddressBookWrapper from '@AddToAddressBookWrapper/AddToAddressBookWrapper';
+import AddToAddressBookWrapper from '@components/UI/AddToAddressBookWrapper/AddToAddressBookWrapper';
 import { SendViewSelectorsIDs } from '@e2e/selectors/SendView.selectors';
 import Text, {
   TextVariant,
@@ -307,7 +307,7 @@ export const AddressTo = (props) => {
                     <View
                       style={
                         (styles.checkIconWrapper,
-                        isENS(toAddressName) ? {} : { paddingTop: 2 })
+                          isENS(toAddressName) ? {} : { paddingTop: 2 })
                       }
                     >
                       <AntIcon
@@ -431,7 +431,7 @@ export const AddressTo = (props) => {
                       <View
                         style={
                           (styles.checkIconWrapper,
-                          isENS(toAddressName) ? {} : { paddingTop: 2 })
+                            isENS(toAddressName) ? {} : { paddingTop: 2 })
                         }
                       >
                         <AntIcon

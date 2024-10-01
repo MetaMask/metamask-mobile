@@ -1,32 +1,32 @@
 import React from 'react';
 import renderWithProvider from '@util/test/renderWithProvider';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
-import useLedgerBluetooth from '@hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth from '@components/hooks/Ledger/useLedgerBluetooth';
 import {
   ERROR_STEP,
   OPEN_ETH_APP_STEP,
   RETRY_BUTTON,
   SEARCHING_FOR_DEVICE_STEP,
 } from './Steps/Steps.constants';
-import useBluetoothPermissions from '@hooks/useBluetoothPermissions';
-import useBluetooth from '@hooks/Ledger/useBluetooth';
+import useBluetoothPermissions from '@components/hooks/useBluetoothPermissions';
+import useBluetooth from '@components/hooks/Ledger/useBluetooth';
 import { act } from '@testing-library/react-hooks';
 import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '@core/Ledger/ledgerErrors';
 import { strings } from '@locales/i18n';
-import { useMetrics } from '@hooks/useMetrics';
+import { useMetrics } from '@components/hooks/useMetrics';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
 import { HardwareDeviceTypes } from '@constants/keyringTypes';
 
-jest.mock('@hooks/Ledger/useBluetooth', () => ({
+jest.mock('@components/hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('@hooks/Ledger/useLedgerBluetooth', () => ({
+jest.mock('@components/hooks/Ledger/useLedgerBluetooth', () => ({
   __esModule: true,
   default: jest.fn(),
 }));

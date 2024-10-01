@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '@styles/common';
-import { getPaymentRequestSuccessOptionsTitle } from '@UI/Navbar';
+import { getPaymentRequestSuccessOptionsTitle } from '@components/UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { showAlert } from '@actions/alert';

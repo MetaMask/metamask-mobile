@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import configureMockStore from 'redux-mock-store';
 import { interruptBiometrics, lockApp } from '@actions/user';
 
-jest.mock('@Engine', () => ({
+jest.mock('@core', () => ({
   context: {
     KeyringController: {
       setLocked: jest.fn().mockResolvedValue(true),

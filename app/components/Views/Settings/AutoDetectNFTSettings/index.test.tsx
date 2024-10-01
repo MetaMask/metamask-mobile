@@ -52,7 +52,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => mockNavigation),
 }));
 
-jest.mock('@hooks/useMetrics', () => ({
+jest.mock('@components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     addTraitsToUser: mockAddTraitsToUser,
     trackEvent: mockTrackEvent,

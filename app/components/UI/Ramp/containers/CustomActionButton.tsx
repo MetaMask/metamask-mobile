@@ -6,10 +6,10 @@ import {
 } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '@components/CustomActionButton';
 import { useRampSDK } from '@sdk';
-import useAnalytics from '@hooks/useAnalytics';
-import useInAppBrowser from '@hooks/useInAppBrowser';
+import useAnalytics from '@components/hooks/useAnalytics';
+import useInAppBrowser from '@components/hooks/useInAppBrowser';
 import Logger from '@util/Logger';
-import { createCheckoutNavDetails } from '@Views/Checkout';
+import { createCheckoutNavDetails } from '@components/Views/Checkout';
 
 interface Props {
   customAction: PaymentCustomAction;

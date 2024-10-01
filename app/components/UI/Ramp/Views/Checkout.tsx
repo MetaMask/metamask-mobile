@@ -8,7 +8,7 @@ import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { baseStyles } from '@styles/common';
 import { useTheme } from '@util/theme';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { useRampSDK, SDK } from '@sdk';
 import {
   addFiatCustomIdData,
@@ -24,10 +24,10 @@ import { createCustomOrderIdData } from '@orderProcessor/customOrderId';
 import ScreenLayout from '@components/ScreenLayout';
 import ErrorView from '@components/ErrorView';
 import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
-import useAnalytics from '@hooks/useAnalytics';
+import useAnalytics from '@components/hooks/useAnalytics';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
-import useHandleSuccessfulOrder from '@hooks/useHandleSuccessfulOrder';
+import useHandleSuccessfulOrder from '@components/hooks/useHandleSuccessfulOrder';
 
 interface CheckoutParams {
   url: string;

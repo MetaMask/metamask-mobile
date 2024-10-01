@@ -6,12 +6,12 @@ import { useSelector } from 'react-redux';
 
 import { strings } from '@locales/i18n';
 import { IAccount } from './types';
-import useBlockExplorer from '@hooks/useBlockExplorer';
+import useBlockExplorer from '@components/hooks/useBlockExplorer';
 import { useAccountsBalance } from './hooks';
 import { useTheme } from '@util/theme';
 import { createStyle } from './styles';
 import AccountDetails from '@AccountDetails';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { selectProviderConfig } from '@selectors/networkController';
 import generateTestId from '@wdio/utils/generateTestId';
 import {

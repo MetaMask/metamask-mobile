@@ -4,7 +4,7 @@ import removeChannel from './removeChannel';
 
 jest.mock('@core/AppConstants');
 jest.mock('@SDKConnect');
-jest.mock('@utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),

@@ -15,7 +15,7 @@ import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
 } from '@constants/storage';
-import StyledButton from '@StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import { useTheme } from '@util/theme';
 import Text, {
   TextColor,

@@ -4,9 +4,9 @@ import { View } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // External dependencies.
-import Alert, { AlertType } from '@Base/Alert';
-import Text from '@Base/Text';
-import { useTheme } from '@app/util/theme';
+import Alert, { AlertType } from '@components/Base/Alert';
+import Text from '@components/Base/Text';
+import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';
 import { useStyles } from '@component-library/hooks';
 

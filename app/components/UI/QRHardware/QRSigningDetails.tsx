@@ -21,13 +21,13 @@ import { strings } from '@locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { fontStyles } from '@styles/common';
-import AccountInfoCard from '@AccountInfoCard';
+import AccountInfoCard from '@components/UI/AccountInfoCard';
 import ActionView from '@ActionView';
 import { IQRState } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
-import Alert, { AlertType } from '@Base/Alert';
+import Alert, { AlertType } from '@components/Base/Alert';
 import { MetaMetricsEvents } from '@core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';

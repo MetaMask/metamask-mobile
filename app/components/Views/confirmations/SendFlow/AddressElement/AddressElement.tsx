@@ -9,7 +9,7 @@ import {
   renderShortAddress,
   getLabelTextByAddress,
 } from '@util/address';
-import Identicon from '@UI/Identicon';
+import Identicon from '@components/UI/Identicon';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@util/theme';
 import Text from '@component-library/components/Texts/Text/Text';

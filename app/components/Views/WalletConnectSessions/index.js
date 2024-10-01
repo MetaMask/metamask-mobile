@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { fontStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import { getNavigationOptionsTitle } from '@UI/Navbar';
-import WebsiteIcon from '@UI/WebsiteIcon';
+import { getNavigationOptionsTitle } from '@components/UI/Navbar';
+import WebsiteIcon from '@components/UI/WebsiteIcon';
 import StorageWrapper from '@store/storage-wrapper';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import WalletConnect from '@core/WalletConnect/WalletConnect';
@@ -21,7 +21,7 @@ import { ThemeContext, mockTheme } from '@util/theme';
 import PropTypes from 'prop-types';
 import WC2Manager, {
   isWC2Enabled,
-} from '@app/core/WalletConnect/WalletConnectV2';
+} from '@core/WalletConnect/WalletConnectV2';
 import { ExperimentalSelectorsIDs } from '@e2e/selectors/Settings/ExperimentalView.selectors';
 
 const createStyles = (colors) =>

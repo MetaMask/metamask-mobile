@@ -21,22 +21,22 @@ import {
   processOriginThrottlingRejection,
   validateOriginThrottling,
 } from './spam';
-import ImportedEngine from '@Engine';
+import ImportedEngine from '@core/Engine';
 import { strings } from '@locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '@util/address';
 import { store } from '@store';
 import { removeBookmark } from '@actions/bookmarks';
 import setOnboardingWizardStep from '@actions/wizard';
 import { v1 as random } from 'uuid';
-import { getPermittedAccounts } from '@Permissions';
-import AppConstants from '@AppConstants';
+import { getPermittedAccounts } from '@core/Permissions';
+import AppConstants from '@core/AppConstants';
 import PPOMUtil from '@lib/ppom/ppom-util';
 import { selectProviderConfig } from '@selectors/networkController';
 import { setEventStageError, setEventStage } from '@actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '@reducers/rpcEvents';
-import { regex } from '@app/util/regex';
-import Logger from '@app/util/Logger';
-import DevLogger from '@SDKConnect/utils/DevLogger';
+import { regex } from '@util/regex';
+import Logger from '@util/Logger';
+import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { addTransaction } from '@util/transaction-controller';
 import Routes from '@constants/navigation/Routes';
 

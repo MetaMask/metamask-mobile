@@ -14,18 +14,18 @@ import {
   getBlockExplorerTxUrl,
 } from '@util/networks';
 import Logger from '@util/Logger';
-import EthereumAddress from '@EthereumAddress';
-import TransactionSummary from '@Views/TransactionSummary';
+import EthereumAddress from '@components/UI/EthereumAddress';
+import TransactionSummary from '@components/Views/TransactionSummary';
 import { toDateFormat } from '@util/date';
-import StyledButton from '@StyledButton';
-import StatusText from '@Base/StatusText';
-import Text from '@Base/Text';
-import DetailsModal from '@Base/DetailsModal';
+import StyledButton from '@components/UI/StyledButton';
+import StatusText from '@components/Base/StatusText';
+import Text from '@components/Base/Text';
+import DetailsModal from '@components/Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '@constants/network';
 import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '@util/theme';
 import Engine from '@core/Engine';
-import decodeTransaction from '@TransactionElement/utils';
+import decodeTransaction from '@components/UI/TransactionElement/utils';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -39,7 +39,7 @@ import {
 import { selectTokensByAddress } from '@selectors/tokensController';
 import { selectContractExchangeRates } from '@selectors/tokenRatesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
-import { regex } from '@app/util/regex';
+import { regex } from '@util/regex';
 import { selectShouldUseSmartTransaction } from '@selectors/smartTransactionsController';
 import { selectPrimaryCurrency } from '@selectors/settings';
 import {

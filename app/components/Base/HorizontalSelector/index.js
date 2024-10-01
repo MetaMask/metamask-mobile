@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import Text from '@Text';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 
 const INNER_CIRCLE_SCALE = 0.445;

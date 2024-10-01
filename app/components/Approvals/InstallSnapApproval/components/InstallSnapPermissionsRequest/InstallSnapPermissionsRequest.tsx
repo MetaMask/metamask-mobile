@@ -20,9 +20,9 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
-import { useStyles } from '@hooks/useStyles';
+import { useStyles } from '@components/hooks/useStyles';
 import { InstallSnapFlowProps } from '@InstallSnapApproval.types';
-import { SnapPermissions } from '@Views/Snaps/components/SnapPermissions';
+import { SnapPermissions } from '@components/Views/Snaps/components/SnapPermissions';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_PERMISSIONS_REQUEST,

@@ -9,7 +9,7 @@ import parseDeeplink from './parseDeeplink';
 jest.mock('@constants/deeplinks');
 jest.mock('@util/Logger');
 jest.mock('@DeeplinkManager');
-jest.mock('@SDKConnect/utils/DevLogger');
+jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('./handleDappUrl');
 jest.mock('./handleMetaMaskDeeplink');
 jest.mock('./handleUniversalLink');

@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { strings } from '@locales/i18n';
 import { TRANSACTION_TYPES } from '@util/transactions';
-import Summary from '@Base/Summary';
-import Text from '@Base/Text';
+import Summary from '@components/Base/Summary';
+import Text from '@components/Base/Text';
 import { ThemeContext, mockTheme } from '@util/theme';
 import { isTestNet } from '@util/networks';
 

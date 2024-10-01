@@ -1,11 +1,11 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { DappClient } from '@AndroidSDK/dapp-sdk-types';
-import RPCQueueManager from '@RPCQueueManager';
+import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
 import { SDKConnect } from '@SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '@Connection';
 import { isE2E } from '@util/test/utils';
-import { store } from '@app/store/index';
+import { store } from '@store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>

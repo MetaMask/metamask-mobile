@@ -28,11 +28,11 @@ import {
   isMainnetByChainId,
 } from '@util/networks';
 import { useTheme } from '@util/theme';
-import Alert, { AlertType } from '@Base/Alert';
-import RangeInput from '@Base/RangeInput';
-import FadeAnimationView from '@UI/FadeAnimationView';
-import StyledButton from '@UI/StyledButton';
-import InfoModal from '@UI/Swaps/components/InfoModal';
+import Alert, { AlertType } from '@components/Base/Alert';
+import RangeInput from '@components/Base/RangeInput';
+import FadeAnimationView from '@components/UI/FadeAnimationView';
+import StyledButton from '@components/UI/StyledButton';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import createStyles from './styles';
 import { EditGasFeeLegacyUpdateProps, EditLegacyGasTransaction } from './types';
 import {

@@ -1,6 +1,6 @@
 import { IMetaMetricsEvent, MetaMetrics } from '@core/Analytics';
 import { InteractionManager } from 'react-native';
-import { JsonMap } from '@segment/analytics-react-native';
+import { JsonMap } from '@util/segment/analytics-react-native';
 
 /**
  * track onboarding event or save it for when metrics are enabled
@@ -11,7 +11,7 @@ import { JsonMap } from '@segment/analytics-react-native';
 const trackOnboarding = (
   event: IMetaMetricsEvent,
   properties: JsonMap = {},
-  saveOnboardingEvent?: (...args: [IMetaMetricsEvent]) => void
+  saveOnboardingEvent?: (...args: [IMetaMetricsEvent]) => void,
 ): void => {
   InteractionManager.runAfterInteractions(async () => {
     const metrics = MetaMetrics.getInstance();

@@ -1,17 +1,17 @@
 import React, { useState, useCallback } from 'react';
 import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
-import Summary from '@Base/Summary';
-import Text from '@Base/Text';
+import Summary from '@components/Base/Summary';
+import Text from '@components/Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { isMainnetByChainId, isTestNet } from '@util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import InfoModal from '@UI/Swaps/components/InfoModal';
-import FadeAnimationView from '@UI/FadeAnimationView';
+import InfoModal from '@components/UI/Swaps/components/InfoModal';
+import FadeAnimationView from '@components/UI/FadeAnimationView';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '@locales/i18n';
-import TimeEstimateInfoModal from '@UI/TimeEstimateInfoModal';
-import useModalHandler from '@Base/hooks/useModalHandler';
+import TimeEstimateInfoModal from '@components/UI/TimeEstimateInfoModal';
+import useModalHandler from '@components/Base/hooks/useModalHandler';
 import AppConstants from '@core/AppConstants';
 import Device from '@util/device';
 import { useTheme } from '@util/theme';
@@ -247,18 +247,18 @@ const TransactionReviewEIP1559 = ({
                     {timeEstimate}
                     {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
                       timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                      <TouchableOpacity
-                        style={styles.gasInfoContainer}
-                        onPress={showTimeEstimateInfoModal}
-                        hitSlop={styles.hitSlop}
-                      >
-                        <MaterialCommunityIcons
-                          name="information"
-                          size={13}
-                          style={styles.redInfo}
-                        />
-                      </TouchableOpacity>
-                    )}
+                        <TouchableOpacity
+                          style={styles.gasInfoContainer}
+                          onPress={showTimeEstimateInfoModal}
+                          hitSlop={styles.hitSlop}
+                        >
+                          <MaterialCommunityIcons
+                            name="information"
+                            size={13}
+                            style={styles.redInfo}
+                          />
+                        </TouchableOpacity>
+                      )}
                   </Text>
                 </View>
               </FadeAnimationView>

@@ -51,7 +51,7 @@ jest.mock('@selectors/currencyRateController.ts', () => ({
 }));
 
 const mockBalanceBN = new BN('1500000000000000000');
-jest.mock('@hooks/useBalance', () => ({
+jest.mock('@components/hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
     balance: '1.5',

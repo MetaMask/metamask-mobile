@@ -20,22 +20,22 @@ import Avatar, {
   AvatarVariant,
 } from '@component-library/components/Avatars/Avatar';
 import imageIcons from '@images/image-icons';
-import Text from '@Base/Text';
-import CustomNetwork from '@Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
-import customNetworkStyles from '@Views/Settings/NetworksSettings/NetworkSettings/styles';
-import { Network } from '@Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import Text from '@components/Base/Text';
+import CustomNetwork from '@components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+import customNetworkStyles from '@components/Views/Settings/NetworksSettings/NetworkSettings/styles';
+import { Network } from '@components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
-import useFetchRampNetworks from '@hooks/useFetchRampNetworks';
-import useRampNetwork from '@hooks/useRampNetwork';
-import useRampNetworksDetail from '@hooks/useRampNetworksDetail';
-import useAnalytics from '@hooks/useAnalytics';
+import useFetchRampNetworks from '@components/hooks/useFetchRampNetworks';
+import useRampNetwork from '@components/hooks/useRampNetwork';
+import useRampNetworksDetail from '@components/hooks/useRampNetworksDetail';
+import useAnalytics from '@components/hooks/useAnalytics';
 import { getRampNetworks } from '@reducers/fiatOrders';
 import { useRampSDK } from '@sdk';
 import { isNetworkRampSupported } from '@utils';
 
 import Engine from '@core/Engine';
 import { useTheme } from '@util/theme';
-import { getFiatOnRampAggNavbar } from '@Navbar';
+import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { selectNetworkConfigurations } from '@selectors/networkController';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';

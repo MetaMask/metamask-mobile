@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Alert, { AlertType } from '@Base/Alert';
-import Text from '@Base/Text';
+import Alert, { AlertType } from '@components/Base/Alert';
+import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 const AlertTypeKeys = Object.keys(AlertType);
 

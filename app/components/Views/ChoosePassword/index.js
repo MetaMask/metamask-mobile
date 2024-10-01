@@ -23,7 +23,7 @@ import {
   seedphraseNotBackedUp,
 } from '@actions/user';
 import { setLockTime } from '@actions/settings';
-import StyledButton from '@UI/StyledButton';
+import StyledButton from '@components/UI/StyledButton';
 import Engine from '@core/Engine';
 import Device from '@util/device';
 import {
@@ -32,10 +32,10 @@ import {
 } from '@util/authentication';
 import { fontStyles } from '@styles/common';
 import { strings } from '@locales/i18n';
-import { getOnboardingNavbarOptions } from '@UI/Navbar';
+import { getOnboardingNavbarOptions } from '@components/UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '@core/AppConstants';
-import OnboardingProgress from '@UI/OnboardingProgress';
+import OnboardingProgress from '@components/UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '@util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '@constants/navigation';
@@ -57,9 +57,9 @@ import { MetaMetricsEvents } from '@core/Analytics';
 import { Authentication } from '@core';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
 import { ThemeContext, mockTheme } from '@util/theme';
-import AnimatedFox from '@Base/AnimatedFox';
+import AnimatedFox from '@components/Base/AnimatedFox';
 
-import { LoginOptionsSwitch } from '@UI/LoginOptionsSwitch';
+import { LoginOptionsSwitch } from '@components/UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '@util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '@e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '@util/metrics/TrackOnboarding/trackOnboarding';
@@ -663,11 +663,11 @@ class ChoosePassword extends PureComponent {
                       </Text>
                     </Text>
                   )) || (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={styles.passwordStrengthLabel}
-                    />
-                  )}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles.passwordStrengthLabel}
+                      />
+                    )}
                 </View>
                 <View style={styles.field}>
                   <Text variant={TextVariant.BodySM}>
