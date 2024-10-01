@@ -25,6 +25,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
+import { RootState } from '../../../../../reducers';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -36,9 +37,7 @@ export const StakeButton = ({ asset }: StakeButtonProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
 
   const onStakeButtonPress = () => {

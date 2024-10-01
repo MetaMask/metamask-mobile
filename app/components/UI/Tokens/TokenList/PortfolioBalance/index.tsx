@@ -46,9 +46,7 @@ export const PortfolioBalance = () => {
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
