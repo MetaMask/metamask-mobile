@@ -303,7 +303,7 @@ type AppDispatch = Dispatch<OnboardingActionTypes>;
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   saveOnboardingEvent: (...eventArgs: [IMetaMetricsEvent]) => {
     const [event] = eventArgs;
-    return dispatch(SaveEvent(event))
+    return dispatch(SaveEvent(event));
   },
 });
 
