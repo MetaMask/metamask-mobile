@@ -89,13 +89,18 @@ describe(Regression('Swap from Token view'), () => {
     await TokenOverview.tapBackButton();
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol));
+    await Assertions.checkIfVisible(
+      ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+    );
     await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
 
     try {
       await Assertions.checkIfVisible(DetailsModal.title);
     } catch (e) {
-      await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
+      await ActivitiesView.tapOnSwapActivity(
+        sourceTokenSymbol,
+        destTokenSymbol,
+      );
       await Assertions.checkIfVisible(DetailsModal.title);
     }
 
