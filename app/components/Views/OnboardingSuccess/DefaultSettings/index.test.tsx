@@ -40,7 +40,7 @@ describe('DefaultSettings', () => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
-      <DefaultSettings navigation={useNavigation()} />,
+      <DefaultSettings />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
