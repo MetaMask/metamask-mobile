@@ -363,16 +363,18 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
+  	echo "Start iOS QA build..."
+
   	remapEnvVariableQA
 
 	prebuild_ios
 
-  	echo "Start QA build..."
+	export NO_FLIPPER=1
 
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
-    echo "$IOS_ENV"
+    	echo "$IOS_ENV"
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
@@ -389,6 +391,8 @@ buildIosQA(){
 
 
 buildAndroidQA(){
+	echo "Start Android QA build..."
+
   	remapEnvVariableQA
 
 	# if [ "$PRE_RELEASE" = false ] ; then
@@ -396,6 +400,8 @@ buildAndroidQA(){
 	# fi
 
 	prebuild_android
+
+	export NO_FLIPPER=1
 
 	# Generate APK
 	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
