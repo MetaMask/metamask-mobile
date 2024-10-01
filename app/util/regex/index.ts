@@ -46,7 +46,8 @@ export const regex: RegexTypes = {
   trailingZero: /\.?0+$/,
   transactionNonce: /^#/,
   url: new RegExp(
-    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',,=.+]+$/g,
+    // eslint-disable-next-line no-useless-escape
+    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:\/?#[\]@!&',,=.+]+$/g,
   ),
   urlHttpToHttps: /^http:\/\//,
   validChainId: /^[0-9]+$/u,
