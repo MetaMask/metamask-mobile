@@ -2695,6 +2695,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     undefined,
                                     undefined,
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -2867,6 +2868,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
+                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -4276,6 +4278,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     undefined,
                                     undefined,
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -4448,6 +4451,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
+                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -5857,6 +5861,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     undefined,
                                     undefined,
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -6029,6 +6034,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
+                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -7438,6 +7444,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     undefined,
                                     undefined,
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -7610,6 +7617,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
+                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -8559,6 +8567,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -8568,8 +8577,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       accessible={true}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
                                           "padding": 0,
                                         }
                                       }
@@ -8577,166 +8584,133 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       <View
                                         style={
                                           {
-                                            "flex": -1,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
-                                          useNativeDriver={true}
+                                          style={
+                                            {
+                                              "flex": -1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
                                         >
-                                          <Image
-                                            fadeIn={true}
-                                            onError={[Function]}
-                                            onLoadEnd={[Function]}
-                                            source={
-                                              {
-                                                "uri": undefined,
-                                              }
-                                            }
-                                            style={
-                                              [
-                                                {
-                                                  "borderRadius": 12,
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
-                                                {
-                                                  "borderRadius": 18,
-                                                  "height": 36,
-                                                  "width": 36,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
-                                            }
-                                          />
                                           <View
-                                            collapsable={false}
-                                            style={
-                                              {
-                                                "bottom": 0,
-                                                "left": 0,
-                                                "opacity": 1,
-                                                "position": "absolute",
-                                                "right": 0,
-                                                "top": 0,
-                                              }
-                                            }
+                                            useNativeDriver={true}
                                           >
-                                            <View
+                                            <Image
+                                              fadeIn={true}
+                                              onError={[Function]}
+                                              onLoadEnd={[Function]}
+                                              source={
+                                                {
+                                                  "uri": undefined,
+                                                }
+                                              }
                                               style={
                                                 [
+                                                  {
+                                                    "borderRadius": 12,
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
                                                   {
                                                     "borderRadius": 18,
                                                     "height": 36,
                                                     "width": 36,
                                                   },
-                                                  {
-                                                    "backgroundColor": "#eee",
-                                                  },
+                                                  undefined,
+                                                  undefined,
                                                   undefined,
                                                 ]
                                               }
                                             />
+                                            <View
+                                              collapsable={false}
+                                              style={
+                                                {
+                                                  "bottom": 0,
+                                                  "left": 0,
+                                                  "opacity": 1,
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "top": 0,
+                                                }
+                                              }
+                                            >
+                                              <View
+                                                style={
+                                                  [
+                                                    {
+                                                      "borderRadius": 18,
+                                                      "height": 36,
+                                                      "width": 36,
+                                                    },
+                                                    {
+                                                      "backgroundColor": "#eee",
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                              />
+                                            </View>
                                           </View>
                                         </View>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          adjustsFontSizeToFit={true}
-                                          numberOfLines={1}
+                                        <View
+                                          accessible={false}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Medium",
-                                              "fontSize": 16,
-                                              "fontWeight": "500",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "width": 16,
                                             }
                                           }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
                                         >
-                                          Ethereum
-                                        </Text>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": -1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View>
                                           <Text
+                                            accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
                                             style={
-                                              [
-                                                {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 30,
-                                                  "fontWeight": "400",
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#141618",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#141618",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": "500",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
+                                            Ethereum
+                                          </Text>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": -1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
+                                        >
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -8749,10 +8723,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                   },
                                                   undefined,
                                                   undefined,
-                                                  {
-                                                    "fontFamily": "EuclidCircularB-Bold",
-                                                    "fontWeight": "600",
-                                                  },
+                                                  undefined,
                                                   undefined,
                                                   {
                                                     "color": "#141618",
@@ -8781,33 +8752,78 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 ]
                                               }
                                             >
-                                              ETH
+                                              <Text
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#141618",
+                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontSize": 30,
+                                                      "fontWeight": "400",
+                                                      "marginVertical": 2,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontWeight": "600",
+                                                    },
+                                                    undefined,
+                                                    {
+                                                      "color": "#141618",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "color": "#141618",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
+                                                ETH
+                                              </Text>
+                                                
+                                              <Text
+                                                allowFontScaling={false}
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": undefined,
+                                                      "fontSize": 16,
+                                                    },
+                                                    {
+                                                      "color": "#141618",
+                                                      "marginLeft": 10,
+                                                    },
+                                                    {
+                                                      "fontFamily": "Entypo",
+                                                      "fontStyle": "normal",
+                                                      "fontWeight": "normal",
+                                                    },
+                                                    {},
+                                                  ]
+                                                }
+                                              >
+                                                
+                                              </Text>
                                             </Text>
-                                              
-                                            <Text
-                                              allowFontScaling={false}
-                                              style={
-                                                [
-                                                  {
-                                                    "color": undefined,
-                                                    "fontSize": 16,
-                                                  },
-                                                  {
-                                                    "color": "#141618",
-                                                    "marginLeft": 10,
-                                                  },
-                                                  {
-                                                    "fontFamily": "Entypo",
-                                                    "fontStyle": "normal",
-                                                    "fontWeight": "normal",
-                                                  },
-                                                  {},
-                                                ]
-                                              }
-                                            >
-                                              
-                                            </Text>
-                                          </Text>
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -8907,6 +8923,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                       false,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -8915,8 +8932,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 0,
                                       }
                                     }
@@ -8924,118 +8939,85 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": 1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <TouchableOpacity
-                                        accessibilityRole="button"
-                                        accessible={true}
-                                        hitSlop={
+                                      <View
+                                        style={
                                           {
-                                            "bottom": 20,
-                                            "left": 20,
-                                            "right": 20,
-                                            "top": 20,
+                                            "flex": 1,
                                           }
                                         }
-                                        onPress={[Function]}
+                                        testID="listitemcolumn"
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          adjustsFontSizeToFit={true}
-                                          numberOfLines={1}
-                                          style={
+                                        <TouchableOpacity
+                                          accessibilityRole="button"
+                                          accessible={true}
+                                          hitSlop={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Medium",
-                                              "fontSize": 24,
-                                              "fontWeight": "500",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 32,
+                                              "bottom": 20,
+                                              "left": 20,
+                                              "right": 20,
+                                              "top": 20,
                                             }
                                           }
+                                          onPress={[Function]}
                                         >
-                                          $
-                                          0
-                                        </Text>
-                                      </TouchableOpacity>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 0,
-                                          "marginLeft": 8,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <TouchableOpacity
-                                        accessibilityRole="button"
-                                        accessible={true}
-                                        disabled={false}
-                                        hitSlop={
-                                          {
-                                            "bottom": 20,
-                                            "left": 20,
-                                            "right": 20,
-                                            "top": 20,
-                                          }
-                                        }
-                                        onPress={[Function]}
-                                      >
-                                        <View>
                                           <Text
+                                            accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
                                             style={
-                                              [
-                                                {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 30,
-                                                  "fontWeight": "400",
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#141618",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#141618",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontSize": 24,
+                                                "fontWeight": "500",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 32,
+                                              }
                                             }
                                           >
+                                            $
+                                            0
+                                          </Text>
+                                        </TouchableOpacity>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 0,
+                                            "marginLeft": 8,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <TouchableOpacity
+                                          accessibilityRole="button"
+                                          accessible={true}
+                                          disabled={false}
+                                          hitSlop={
+                                            {
+                                              "bottom": 20,
+                                              "left": 20,
+                                              "right": 20,
+                                              "top": 20,
+                                            }
+                                          }
+                                          onPress={[Function]}
+                                        >
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -9048,10 +9030,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                   },
                                                   undefined,
                                                   undefined,
-                                                  {
-                                                    "fontFamily": "EuclidCircularB-Bold",
-                                                    "fontWeight": "600",
-                                                  },
+                                                  undefined,
                                                   undefined,
                                                   {
                                                     "color": "#141618",
@@ -9080,35 +9059,80 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 ]
                                               }
                                             >
-                                              USD
+                                              <Text
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#141618",
+                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontSize": 30,
+                                                      "fontWeight": "400",
+                                                      "marginVertical": 2,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontWeight": "600",
+                                                    },
+                                                    undefined,
+                                                    {
+                                                      "color": "#141618",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "color": "#141618",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
+                                                USD
+                                              </Text>
+                                                
+                                              <Text
+                                                allowFontScaling={false}
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": undefined,
+                                                      "fontSize": 16,
+                                                    },
+                                                    {
+                                                      "color": "#141618",
+                                                      "marginLeft": 10,
+                                                    },
+                                                    {
+                                                      "fontFamily": "Entypo",
+                                                      "fontStyle": "normal",
+                                                      "fontWeight": "normal",
+                                                    },
+                                                    {},
+                                                  ]
+                                                }
+                                              >
+                                                
+                                              </Text>
                                             </Text>
-                                              
-                                            <Text
-                                              allowFontScaling={false}
-                                              style={
-                                                [
-                                                  {
-                                                    "color": undefined,
-                                                    "fontSize": 16,
-                                                  },
-                                                  {
-                                                    "color": "#141618",
-                                                    "marginLeft": 10,
-                                                  },
-                                                  {
-                                                    "fontFamily": "Entypo",
-                                                    "fontStyle": "normal",
-                                                    "fontWeight": "normal",
-                                                  },
-                                                  {},
-                                                ]
-                                              }
-                                            >
-                                              
-                                            </Text>
-                                          </Text>
-                                        </View>
-                                      </TouchableOpacity>
+                                          </View>
+                                        </TouchableOpacity>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -9219,6 +9243,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         undefined,
                                         undefined,
                                         undefined,
+                                        undefined,
                                       ]
                                     }
                                   >
@@ -9228,8 +9253,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         accessible={true}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
                                             "padding": 0,
                                           }
                                         }
@@ -9237,107 +9260,116 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         <View
                                           style={
                                             {
-                                              "flex": -1,
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
                                             }
                                           }
-                                          testID="listitemcolumn"
                                         >
-                                          <Text
-                                            allowFontScaling={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#141618",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                {
-                                                  "fontFamily": "simple-line-icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                        </View>
-                                        <View
-                                          accessible={false}
-                                          style={
-                                            {
-                                              "width": 16,
-                                            }
-                                          }
-                                          testID="listitem-gap"
-                                        />
-                                        <View
-                                          style={
-                                            {
-                                              "flex": 1,
-                                            }
-                                          }
-                                          testID="listitemcolumn"
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
+                                          <View
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": -1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            Credit or Debit Card
-                                          </Text>
-                                        </View>
-                                        <View
-                                          accessible={false}
-                                          style={
-                                            {
-                                              "width": 16,
-                                            }
-                                          }
-                                          testID="listitem-gap"
-                                        />
-                                        <View
-                                          style={
-                                            {
-                                              "flex": -1,
-                                            }
-                                          }
-                                          testID="listitemcolumn"
-                                        >
-                                          <Text
-                                            allowFontScaling={false}
+                                            <Text
+                                              allowFontScaling={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontSize": 20,
+                                                  },
+                                                  undefined,
+                                                  {
+                                                    "fontFamily": "simple-line-icons",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                          </View>
+                                          <View
+                                            accessible={false}
                                             style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
+                                              {
+                                                "width": 16,
+                                              }
+                                            }
+                                            testID="listitem-gap"
+                                          />
+                                          <View
+                                            style={
+                                              {
+                                                "flex": 1,
+                                              }
+                                            }
+                                            testID="listitemcolumn"
+                                          >
+                                            <Text
+                                              accessibilityRole="text"
+                                              adjustsFontSizeToFit={true}
+                                              numberOfLines={1}
+                                              style={
                                                 {
                                                   "color": "#141618",
-                                                  "marginLeft": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Entypo",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
+                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "500",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              Credit or Debit Card
+                                            </Text>
+                                          </View>
+                                          <View
+                                            accessible={false}
+                                            style={
+                                              {
+                                                "width": 16,
+                                              }
                                             }
+                                            testID="listitem-gap"
+                                          />
+                                          <View
+                                            style={
+                                              {
+                                                "flex": -1,
+                                              }
+                                            }
+                                            testID="listitemcolumn"
                                           >
-                                            
-                                          </Text>
+                                            <Text
+                                              allowFontScaling={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "color": "#141618",
+                                                    "marginLeft": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Entypo",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -11754,6 +11786,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -11763,8 +11796,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       accessible={true}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
                                           "padding": 0,
                                         }
                                       }
@@ -11772,166 +11803,133 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       <View
                                         style={
                                           {
-                                            "flex": -1,
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
                                           }
                                         }
-                                        testID="listitemcolumn"
                                       >
                                         <View
-                                          useNativeDriver={true}
+                                          style={
+                                            {
+                                              "flex": -1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
                                         >
-                                          <Image
-                                            fadeIn={true}
-                                            onError={[Function]}
-                                            onLoadEnd={[Function]}
-                                            source={
-                                              {
-                                                "uri": undefined,
-                                              }
-                                            }
-                                            style={
-                                              [
-                                                {
-                                                  "borderRadius": 12,
-                                                  "height": 24,
-                                                  "width": 24,
-                                                },
-                                                {
-                                                  "borderRadius": 18,
-                                                  "height": 36,
-                                                  "width": 36,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
-                                            }
-                                          />
                                           <View
-                                            collapsable={false}
-                                            style={
-                                              {
-                                                "bottom": 0,
-                                                "left": 0,
-                                                "opacity": 1,
-                                                "position": "absolute",
-                                                "right": 0,
-                                                "top": 0,
-                                              }
-                                            }
+                                            useNativeDriver={true}
                                           >
-                                            <View
+                                            <Image
+                                              fadeIn={true}
+                                              onError={[Function]}
+                                              onLoadEnd={[Function]}
+                                              source={
+                                                {
+                                                  "uri": undefined,
+                                                }
+                                              }
                                               style={
                                                 [
+                                                  {
+                                                    "borderRadius": 12,
+                                                    "height": 24,
+                                                    "width": 24,
+                                                  },
                                                   {
                                                     "borderRadius": 18,
                                                     "height": 36,
                                                     "width": 36,
                                                   },
-                                                  {
-                                                    "backgroundColor": "#eee",
-                                                  },
+                                                  undefined,
+                                                  undefined,
                                                   undefined,
                                                 ]
                                               }
                                             />
+                                            <View
+                                              collapsable={false}
+                                              style={
+                                                {
+                                                  "bottom": 0,
+                                                  "left": 0,
+                                                  "opacity": 1,
+                                                  "position": "absolute",
+                                                  "right": 0,
+                                                  "top": 0,
+                                                }
+                                              }
+                                            >
+                                              <View
+                                                style={
+                                                  [
+                                                    {
+                                                      "borderRadius": 18,
+                                                      "height": 36,
+                                                      "width": 36,
+                                                    },
+                                                    {
+                                                      "backgroundColor": "#eee",
+                                                    },
+                                                    undefined,
+                                                  ]
+                                                }
+                                              />
+                                            </View>
                                           </View>
                                         </View>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": 1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          adjustsFontSizeToFit={true}
-                                          numberOfLines={1}
+                                        <View
+                                          accessible={false}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Medium",
-                                              "fontSize": 16,
-                                              "fontWeight": "500",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "width": 16,
                                             }
                                           }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": 1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
                                         >
-                                          Ethereum
-                                        </Text>
-                                      </View>
-                                      <View
-                                        accessible={false}
-                                        style={
-                                          {
-                                            "width": 16,
-                                          }
-                                        }
-                                        testID="listitem-gap"
-                                      />
-                                      <View
-                                        style={
-                                          {
-                                            "flex": -1,
-                                          }
-                                        }
-                                        testID="listitemcolumn"
-                                      >
-                                        <View>
                                           <Text
+                                            accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
                                             style={
-                                              [
-                                                {
-                                                  "color": "#141618",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 30,
-                                                  "fontWeight": "400",
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#141618",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                {
-                                                  "color": "#141618",
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": "500",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
                                             }
                                           >
+                                            Ethereum
+                                          </Text>
+                                        </View>
+                                        <View
+                                          accessible={false}
+                                          style={
+                                            {
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="listitem-gap"
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "flex": -1,
+                                            }
+                                          }
+                                          testID="listitemcolumn"
+                                        >
+                                          <View>
                                             <Text
                                               style={
                                                 [
@@ -11944,10 +11942,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                   },
                                                   undefined,
                                                   undefined,
-                                                  {
-                                                    "fontFamily": "EuclidCircularB-Bold",
-                                                    "fontWeight": "600",
-                                                  },
+                                                  undefined,
                                                   undefined,
                                                   {
                                                     "color": "#141618",
@@ -11976,33 +11971,78 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 ]
                                               }
                                             >
-                                              ETH
+                                              <Text
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": "#141618",
+                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontSize": 30,
+                                                      "fontWeight": "400",
+                                                      "marginVertical": 2,
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontWeight": "600",
+                                                    },
+                                                    undefined,
+                                                    {
+                                                      "color": "#141618",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    {
+                                                      "color": "#141618",
+                                                    },
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                    undefined,
+                                                  ]
+                                                }
+                                              >
+                                                ETH
+                                              </Text>
+                                                
+                                              <Text
+                                                allowFontScaling={false}
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": undefined,
+                                                      "fontSize": 16,
+                                                    },
+                                                    {
+                                                      "color": "#141618",
+                                                      "marginLeft": 10,
+                                                    },
+                                                    {
+                                                      "fontFamily": "Entypo",
+                                                      "fontStyle": "normal",
+                                                      "fontWeight": "normal",
+                                                    },
+                                                    {},
+                                                  ]
+                                                }
+                                              >
+                                                
+                                              </Text>
                                             </Text>
-                                              
-                                            <Text
-                                              allowFontScaling={false}
-                                              style={
-                                                [
-                                                  {
-                                                    "color": undefined,
-                                                    "fontSize": 16,
-                                                  },
-                                                  {
-                                                    "color": "#141618",
-                                                    "marginLeft": 10,
-                                                  },
-                                                  {
-                                                    "fontFamily": "Entypo",
-                                                    "fontStyle": "normal",
-                                                    "fontWeight": "normal",
-                                                  },
-                                                  {},
-                                                ]
-                                              }
-                                            >
-                                              
-                                            </Text>
-                                          </Text>
+                                          </View>
                                         </View>
                                       </View>
                                     </View>
@@ -12102,6 +12142,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                       false,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -12110,8 +12151,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 0,
                                       }
                                     }
@@ -12119,42 +12158,51 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": 1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <TouchableOpacity
-                                        accessibilityRole="button"
-                                        accessible={true}
-                                        hitSlop={
+                                      <View
+                                        style={
                                           {
-                                            "bottom": 20,
-                                            "left": 20,
-                                            "right": 20,
-                                            "top": 20,
+                                            "flex": 1,
                                           }
                                         }
-                                        onPress={[Function]}
+                                        testID="listitemcolumn"
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          adjustsFontSizeToFit={true}
-                                          numberOfLines={1}
-                                          style={
+                                        <TouchableOpacity
+                                          accessibilityRole="button"
+                                          accessible={true}
+                                          hitSlop={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Medium",
-                                              "fontSize": 24,
-                                              "fontWeight": "500",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 32,
+                                              "bottom": 20,
+                                              "left": 20,
+                                              "right": 20,
+                                              "top": 20,
                                             }
                                           }
+                                          onPress={[Function]}
                                         >
-                                          0 ETH
-                                        </Text>
-                                      </TouchableOpacity>
+                                          <Text
+                                            accessibilityRole="text"
+                                            adjustsFontSizeToFit={true}
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontSize": 24,
+                                                "fontWeight": "500",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 32,
+                                              }
+                                            }
+                                          >
+                                            0 ETH
+                                          </Text>
+                                        </TouchableOpacity>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -12262,6 +12310,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         undefined,
                                         undefined,
                                         undefined,
+                                        undefined,
                                       ]
                                     }
                                   >
@@ -12271,8 +12320,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         accessible={true}
                                         style={
                                           {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
                                             "padding": 0,
                                           }
                                         }
@@ -12280,107 +12327,116 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         <View
                                           style={
                                             {
-                                              "flex": -1,
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
                                             }
                                           }
-                                          testID="listitemcolumn"
                                         >
-                                          <Text
-                                            allowFontScaling={false}
-                                            style={
-                                              [
-                                                {
-                                                  "color": "#141618",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                {
-                                                  "fontFamily": "simple-line-icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
-                                            }
-                                          >
-                                            
-                                          </Text>
-                                        </View>
-                                        <View
-                                          accessible={false}
-                                          style={
-                                            {
-                                              "width": 16,
-                                            }
-                                          }
-                                          testID="listitem-gap"
-                                        />
-                                        <View
-                                          style={
-                                            {
-                                              "flex": 1,
-                                            }
-                                          }
-                                          testID="listitemcolumn"
-                                        >
-                                          <Text
-                                            accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
+                                          <View
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
+                                                "flex": -1,
                                               }
                                             }
+                                            testID="listitemcolumn"
                                           >
-                                            Credit or Debit Card
-                                          </Text>
-                                        </View>
-                                        <View
-                                          accessible={false}
-                                          style={
-                                            {
-                                              "width": 16,
-                                            }
-                                          }
-                                          testID="listitem-gap"
-                                        />
-                                        <View
-                                          style={
-                                            {
-                                              "flex": -1,
-                                            }
-                                          }
-                                          testID="listitemcolumn"
-                                        >
-                                          <Text
-                                            allowFontScaling={false}
+                                            <Text
+                                              allowFontScaling={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontSize": 20,
+                                                  },
+                                                  undefined,
+                                                  {
+                                                    "fontFamily": "simple-line-icons",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                          </View>
+                                          <View
+                                            accessible={false}
                                             style={
-                                              [
-                                                {
-                                                  "color": undefined,
-                                                  "fontSize": 16,
-                                                },
+                                              {
+                                                "width": 16,
+                                              }
+                                            }
+                                            testID="listitem-gap"
+                                          />
+                                          <View
+                                            style={
+                                              {
+                                                "flex": 1,
+                                              }
+                                            }
+                                            testID="listitemcolumn"
+                                          >
+                                            <Text
+                                              accessibilityRole="text"
+                                              adjustsFontSizeToFit={true}
+                                              numberOfLines={1}
+                                              style={
                                                 {
                                                   "color": "#141618",
-                                                  "marginLeft": 10,
-                                                },
-                                                {
-                                                  "fontFamily": "Entypo",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                {},
-                                              ]
+                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontSize": 16,
+                                                  "fontWeight": "500",
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                }
+                                              }
+                                            >
+                                              Credit or Debit Card
+                                            </Text>
+                                          </View>
+                                          <View
+                                            accessible={false}
+                                            style={
+                                              {
+                                                "width": 16,
+                                              }
                                             }
+                                            testID="listitem-gap"
+                                          />
+                                          <View
+                                            style={
+                                              {
+                                                "flex": -1,
+                                              }
+                                            }
+                                            testID="listitemcolumn"
                                           >
-                                            
-                                          </Text>
+                                            <Text
+                                              allowFontScaling={false}
+                                              style={
+                                                [
+                                                  {
+                                                    "color": undefined,
+                                                    "fontSize": 16,
+                                                  },
+                                                  {
+                                                    "color": "#141618",
+                                                    "marginLeft": 10,
+                                                  },
+                                                  {
+                                                    "fontFamily": "Entypo",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                          </View>
                                         </View>
                                       </View>
                                     </View>

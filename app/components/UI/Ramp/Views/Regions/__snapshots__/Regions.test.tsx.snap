@@ -579,6 +579,7 @@ exports[`Regions View renders correctly 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -1385,6 +1386,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
+                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -2654,6 +2656,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
+                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -3945,6 +3948,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -4771,6 +4775,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -5107,6 +5112,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
+                                      undefined,
                                       undefined,
                                       undefined,
                                       {
@@ -5971,6 +5977,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -6307,6 +6314,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
+                                      undefined,
                                       undefined,
                                       undefined,
                                       {
@@ -7171,6 +7179,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -7875,7 +7884,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                       "backgroundColor": "#ffffff",
                                                       "borderRadius": 4,
                                                       "opacity": 1,
-                                                      "padding": 16,
                                                       "paddingHorizontal": 24,
                                                       "position": "relative",
                                                     }
@@ -7886,9 +7894,124 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                     accessible={true}
                                                     style={
                                                       {
+                                                        "padding": 16,
+                                                      }
+                                                    }
+                                                  >
+                                                    <View
+                                                      style={
+                                                        {
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                        }
+                                                      }
+                                                    >
+                                                      <View
+                                                        style={
+                                                          {
+                                                            "flex": 1,
+                                                          }
+                                                        }
+                                                        testID="listitemcolumn"
+                                                      >
+                                                        <View
+                                                          style={
+                                                            {
+                                                              "alignItems": "center",
+                                                              "flexDirection": "row",
+                                                            }
+                                                          }
+                                                        >
+                                                          <View
+                                                            style={
+                                                              {
+                                                                "paddingRight": 16,
+                                                              }
+                                                            }
+                                                          >
+                                                            <Text
+                                                              accessibilityRole="text"
+                                                              style={
+                                                                {
+                                                                  "color": "#141618",
+                                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                                  "fontSize": 14,
+                                                                  "fontWeight": "400",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 22,
+                                                                }
+                                                              }
+                                                            >
+                                                              🇨🇱
+                                                            </Text>
+                                                          </View>
+                                                          <View>
+                                                            <Text
+                                                              accessibilityRole="text"
+                                                              style={
+                                                                {
+                                                                  "color": "#141618",
+                                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                                  "fontSize": 16,
+                                                                  "fontWeight": "500",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 24,
+                                                                }
+                                                              }
+                                                            >
+                                                              Chile
+                                                            </Text>
+                                                          </View>
+                                                        </View>
+                                                      </View>
+                                                    </View>
+                                                  </View>
+                                                </TouchableOpacity>
+                                                <View
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#bbc0c566",
+                                                      "height": 1,
+                                                      "width": "100%",
+                                                    }
+                                                  }
+                                                />
+                                              </View>
+                                            </View>
+                                            <View
+                                              onFocusCapture={[Function]}
+                                              onLayout={[Function]}
+                                              style={null}
+                                            >
+                                              <TouchableOpacity
+                                                accessibilityRole="button"
+                                                accessible={true}
+                                                disabled={false}
+                                                onPress={[Function]}
+                                                style={
+                                                  {
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 4,
+                                                    "opacity": 1,
+                                                    "paddingHorizontal": 24,
+                                                    "position": "relative",
+                                                  }
+                                                }
+                                              >
+                                                <View
+                                                  accessibilityRole="none"
+                                                  accessible={true}
+                                                  style={
+                                                    {
+                                                      "padding": 16,
+                                                    }
+                                                  }
+                                                >
+                                                  <View
+                                                    style={
+                                                      {
                                                         "alignItems": "center",
                                                         "flexDirection": "row",
-                                                        "padding": 0,
                                                       }
                                                     }
                                                   >
@@ -7928,7 +8051,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               }
                                                             }
                                                           >
-                                                            🇨🇱
+                                                            🇦🇷
                                                           </Text>
                                                         </View>
                                                         <View>
@@ -7945,111 +8068,9 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               }
                                                             }
                                                           >
-                                                            Chile
+                                                            Argentina
                                                           </Text>
                                                         </View>
-                                                      </View>
-                                                    </View>
-                                                  </View>
-                                                </TouchableOpacity>
-                                                <View
-                                                  style={
-                                                    {
-                                                      "backgroundColor": "#bbc0c566",
-                                                      "height": 1,
-                                                      "width": "100%",
-                                                    }
-                                                  }
-                                                />
-                                              </View>
-                                            </View>
-                                            <View
-                                              onFocusCapture={[Function]}
-                                              onLayout={[Function]}
-                                              style={null}
-                                            >
-                                              <TouchableOpacity
-                                                accessibilityRole="button"
-                                                accessible={true}
-                                                disabled={false}
-                                                onPress={[Function]}
-                                                style={
-                                                  {
-                                                    "backgroundColor": "#ffffff",
-                                                    "borderRadius": 4,
-                                                    "opacity": 1,
-                                                    "padding": 16,
-                                                    "paddingHorizontal": 24,
-                                                    "position": "relative",
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  accessibilityRole="none"
-                                                  accessible={true}
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "flexDirection": "row",
-                                                      "padding": 0,
-                                                    }
-                                                  }
-                                                >
-                                                  <View
-                                                    style={
-                                                      {
-                                                        "flex": 1,
-                                                      }
-                                                    }
-                                                    testID="listitemcolumn"
-                                                  >
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "alignItems": "center",
-                                                          "flexDirection": "row",
-                                                        }
-                                                      }
-                                                    >
-                                                      <View
-                                                        style={
-                                                          {
-                                                            "paddingRight": 16,
-                                                          }
-                                                        }
-                                                      >
-                                                        <Text
-                                                          accessibilityRole="text"
-                                                          style={
-                                                            {
-                                                              "color": "#141618",
-                                                              "fontFamily": "EuclidCircularB-Regular",
-                                                              "fontSize": 14,
-                                                              "fontWeight": "400",
-                                                              "letterSpacing": 0,
-                                                              "lineHeight": 22,
-                                                            }
-                                                          }
-                                                        >
-                                                          🇦🇷
-                                                        </Text>
-                                                      </View>
-                                                      <View>
-                                                        <Text
-                                                          accessibilityRole="text"
-                                                          style={
-                                                            {
-                                                              "color": "#141618",
-                                                              "fontFamily": "EuclidCircularB-Medium",
-                                                              "fontSize": 16,
-                                                              "fontWeight": "500",
-                                                              "letterSpacing": 0,
-                                                              "lineHeight": 24,
-                                                            }
-                                                          }
-                                                        >
-                                                          Argentina
-                                                        </Text>
                                                       </View>
                                                     </View>
                                                   </View>
