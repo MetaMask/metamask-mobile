@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ViewProps, StyleSheet, ViewStyle, Platform, StyleProp } from 'react-native';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 import GenericButton from '../GenericButton'; // eslint-disable-line import/no-unresolved
 import { useTheme } from '../../../util/theme';
 
@@ -57,7 +59,7 @@ Button.propTypes = {
   /**
    * Function to be called on press
    */
-  onPress: PropTypes.func,
+  onPress: PropTypes.func as PropTypes.Validator<() => void>,
 };
 
 export default Button;
