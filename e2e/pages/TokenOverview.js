@@ -30,16 +30,6 @@ export default class TokenOverview {
   static async scrollOnScreen() {
     await TestHelpers.swipe(TOKEN_PRICE, 'up', 'fast', 0.6);
   }
-  static async scrollToTokenAcitivity() {
-    // await TestHelpers.scrollTo(TOKEN_PRICE, 'up', 'fast', 0.6);
-    // await TestHelpers.scrollTo(TOKEN_PRICE, 'up', 'fast', 0.6);
-    // await TestHelpers.swipe('Chainlink Token activity', 'up', 'fast', 0.6);
-
-    await waitFor(element(by.text('ChainLink Token activity')))
-      .toBeVisible()
-      .whileElement(by.id('scroll-2'))
-      .scroll(50, 'down');
-  }
 
   static async tapBackButton() {
     await TestHelpers.waitAndTap(ImportTokenViewSelectorsIDs.BACK_BUTTON);
