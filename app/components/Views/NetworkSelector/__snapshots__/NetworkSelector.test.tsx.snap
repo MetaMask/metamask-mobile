@@ -694,7 +694,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     "position": "relative",
                                   }
                                 }
-                                testID="cellselect"
+                                testID="network-cell-Avalanche Mainnet C-Chain"
                               >
                                 <View
                                   accessibilityRole="none"
@@ -791,7 +791,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     "position": "relative",
                                   }
                                 }
-                                testID="cellselect"
+                                testID="network-cell-Polygon Mainnet"
                               >
                                 <View
                                   accessibilityRole="none"
@@ -888,7 +888,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     "position": "relative",
                                   }
                                 }
-                                testID="cellselect"
+                                testID="network-cell-Optimism"
                               >
                                 <View
                                   accessibilityRole="none"
@@ -985,7 +985,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     "position": "relative",
                                   }
                                 }
-                                testID="cellselect"
+                                testID="network-cell-Gnosis Chain"
                               >
                                 <View
                                   accessibilityRole="none"
