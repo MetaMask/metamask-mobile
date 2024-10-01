@@ -57,7 +57,7 @@ class EngineService {
       { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',
-        key: 'TokensController:stateChange',
+        key: `${engine.context.TokensController.name}:stateChange`,
       },
       {
         name: 'TokenDetectionController',
