@@ -10,7 +10,7 @@ interface AndroidBackHandlerProps {
   /**
    * Custom callback to call on back press event
    */
-  customBackPress?: () => void;
+  customBackPress: () => void;
 }
 
 /**
