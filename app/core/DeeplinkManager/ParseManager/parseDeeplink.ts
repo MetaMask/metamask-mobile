@@ -10,6 +10,7 @@ import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
 
 function parseDeeplink({
   deeplinkManager: instance,
@@ -98,8 +99,14 @@ function parseDeeplink({
         error as Error,
         'DeepLinkManager:parse error parsing deeplink',
       );
-
-      Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
+      if (origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
+        Alert.alert(
+          strings('qr_scanner.unrecognized_address_qr_code_title'),
+          strings('qr_scanner.unrecognized_address_qr_code_desc'),
+        );
+      } else {
+        Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
+      }
     }
 
     return false;

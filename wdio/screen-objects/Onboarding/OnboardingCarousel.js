@@ -3,6 +3,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
+import { PerformanceRegressionSelectorIDs } from '../../../e2e/selectors/PerformanceRegression.selectors'
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
@@ -27,6 +28,17 @@ class WelcomeScreen {
     return Selectors.getXpathElementByResourceId(
       WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
     );
+  }
+
+  async getLaunchDuration() {
+    return await Selectors.getXpathElementByResourceId(
+      PerformanceRegressionSelectorIDs.APP_START_TIME_ID,
+    );
+  }
+
+  async isGetLaunchDurationDisplayed() {
+    const element = await this.getLaunchDuration();
+    await expect(element).toBeDisplayed();
   }
 
   async waitForSplashAnimationToDisplay() {
