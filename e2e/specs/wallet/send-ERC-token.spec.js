@@ -64,7 +64,7 @@ describe(SmokeCore('Send ERC Token'), () => {
   it('should send token to address via asset overview screen', async () => {
     await WalletView.tapOnToken('ChainLink Token');
     await TestHelpers.delay(3500);
-    await TokenOverview.scrollToTokenAcitivity();
+    await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3500);
     await TokenOverview.tapSendButton();
     await SendView.inputAddress(SEND_ADDRESS);
