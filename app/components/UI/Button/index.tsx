@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes, StyleSheet, ViewStyle } from 'react-native';
-import GenericButton from '../GenericButton'; // eslint-disable-line import/no-unresolved
+import { ViewProps, StyleSheet, ViewStyle } from 'react-native';
+import GenericButton from './GenericButton'; // eslint-disable-line import/no-unresolved
 import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
@@ -53,7 +53,7 @@ Button.propTypes = {
   /**
    * Styles to be applied to the Button
    */
-  style: ViewPropTypes.style,
+  style: ViewProps.style,
   /**
    * Function to be called on press
    */
