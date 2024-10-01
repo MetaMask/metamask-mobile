@@ -31,9 +31,12 @@ jest.mock('react-redux', () => ({
 
 const mockNetworkName = 'Ethereum Main Network';
 
+type RootState = any; // TODO: Replace 'any' with the actual RootState type
+type Selector = (state: RootState) => string;
+
 describe('DefaultSettings', () => {
   it('should render correctly', () => {
-    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+    (useSelector as jest.Mock).mockImplementation((selector: Selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
     const { toJSON } = renderWithProvider(
