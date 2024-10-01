@@ -48,8 +48,8 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'.05'} | ${'ETH'}          | ${'USDT'}
-    ${'100'} | ${'USDT'}         | ${'ETH'}
+    ${'2'}   | ${'ETH'}          | ${'USDT'}
+    ${'1'}   | ${'USDT'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -91,7 +91,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.fetchingQuotes);
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
-      await SwapView.tapIUnderstandPriceWarning();
+      await SwapView.tapIUnderstandPriceWarning(sourceTokenSymbol);
       await SwapView.swipeToSwap();
       try {
         await Assertions.checkIfVisible(
