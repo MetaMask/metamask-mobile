@@ -1,31 +1,8 @@
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { Theme } from '@metamask/design-tokens';
 
-interface Colors {
-  primary: {
-    default: string;
-    inverse: string;
-    muted?: string;
-  };
-  warning: {
-    default: string;
-  };
-  background: {
-    default: string;
-  };
-  text: {
-    alternative: string;
-  };
-  error: {
-    default: string;
-    inverse: string;
-  };
-  overlay: {
-    inverse: string;
-  };
-}
-
-const createStyles = (colors: Colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       padding: 15,
