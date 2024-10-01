@@ -99,8 +99,8 @@ export const TokenListItem = ({
     : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
   // render balances according to primary currency
-  let mainBalance, secondaryBalance;
-  mainBalance = TOKEN_BALANCE_LOADING;
+  let mainBalance = TOKEN_BALANCE_LOADING;
+  let secondaryBalance;
 
   // Set main and secondary balances based on the primary currency and asset type.
   if (primaryCurrency === 'ETH') {
@@ -123,11 +123,13 @@ export const TokenListItem = ({
     // Adjust balances for native currencies in non-ETH scenarios.
     if (asset.isETH) {
       // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
-      mainBalance = !balanceFiat
-        ? balanceValueFormatted // Show crypto value if fiat setting is not preferred.
-        : isOriginalNativeTokenSymbol // Check for safe network to decide on fiat display.
-        ? balanceFiat
-        : null;
+      if (!balanceFiat) {
+        mainBalance = balanceValueFormatted; // Show crypto value if fiat is not preferred
+      } else if (isOriginalNativeTokenSymbol) {
+        mainBalance = balanceFiat; // Show fiat value if it's a safe network
+      } else {
+        mainBalance = ''; // Otherwise, set to an empty string
+      }
       // Secondary balance mirrors the main balance logic for consistency.
       secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
     }
