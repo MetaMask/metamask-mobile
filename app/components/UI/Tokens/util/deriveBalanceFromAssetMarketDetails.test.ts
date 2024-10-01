@@ -50,7 +50,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     (safeToChecksumAddress as jest.Mock).mockReturnValue('0x123');
   });
 
-  it('should return balanceFiat and balanceValueFormatted when token data is available', () => {
+  it('returns balanceFiat and balanceValueFormatted when token data is available', () => {
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('2');
     (balanceToFiatNumber as jest.Mock).mockReturnValue(4);
     (addCurrencySymbol as jest.Mock).mockReturnValue('$4.00');
@@ -69,7 +69,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return TOKEN_BALANCE_LOADING when balance is missing and asset is not ETH', () => {
+  it('returns TOKEN_BALANCE_LOADING when token balance is missing', () => {
     const modifiedAsset = { ...asset, balance: '' };
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('');
 
@@ -87,7 +87,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return balanceFiat and TOKEN_BALANCE_LOADING if conversionRate is not available and asset is not ETH', () => {
+  it('returns balanceFiat and TOKEN_BALANCE_LOADING if token conversionRate is not available', () => {
     const result = deriveBalanceFromAssetMarketDetails(
       asset,
       tokenExchangeRates,
@@ -102,7 +102,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return balanceFiat and TOKEN_BALANCE_LOADING if conversionRate is not available and asset is ETH', () => {
+  it('returns balanceFiat and TOKEN_BALANCE_LOADING if ETH conversionRate is not available', () => {
     const modifiedAsset = { ...asset, isETH: true };
     const result = deriveBalanceFromAssetMarketDetails(
       modifiedAsset,
@@ -118,7 +118,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return TOKEN_RATE_UNDEFINED when tokenMarketData is not available', () => {
+  it('returns TOKEN_RATE_UNDEFINED when tokenMarketData is not available', () => {
     const result = deriveBalanceFromAssetMarketDetails(
       asset,
       {},
@@ -133,7 +133,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('should return < 0.01 USD if fiat balance is less than 0.01', () => {
+  it('returns "< 0.01 USD" if fiat balance is less than 0.01', () => {
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('2');
     (balanceToFiatNumber as jest.Mock).mockReturnValue(0.005);
     (addCurrencySymbol as jest.Mock).mockReturnValue('$0.01');
