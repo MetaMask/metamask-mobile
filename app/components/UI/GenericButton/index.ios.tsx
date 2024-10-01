@@ -1,6 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { ViewPropTypes, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, ViewStyle } from 'react-native';
 
 /**
  * @deprecated The `<GenericButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
@@ -10,7 +9,25 @@ import { ViewPropTypes, TouchableOpacity } from 'react-native';
  * If you would like to help with the replacement of the old `Button` component, please submit a pull request against this GitHub issue:
  * {@link https://github.com/MetaMask/metamask-mobile/issues/8107}
  */
-const GenericButton = (props) => (
+
+interface GenericButtonProps {
+  /**
+   * Children components of the GenericButton
+   * it can be a text node, an image, or an icon
+   * or an Array with a combination of them
+   */
+  children: React.ReactNode;
+  /**
+   * Styles to be applied to the GenericButton
+   */
+  style?: ViewStyle;
+  /**
+   * Function to be called on press
+   */
+  onPress?: () => void;
+}
+
+const GenericButton: React.FC<GenericButtonProps> = (props) => (
   <TouchableOpacity
     onPress={props.onPress}
     style={props.style}
@@ -19,22 +36,5 @@ const GenericButton = (props) => (
     {props.children}
   </TouchableOpacity>
 );
-
-GenericButton.propTypes = {
-  /**
-   * Children components of the GenericButton
-   * it can be a text node, an image, or an icon
-   * or an Array with a combination of them
-   */
-  children: PropTypes.any,
-  /**
-   * Styles to be applied to the GenericButton
-   */
-  style: ViewPropTypes.style,
-  /**
-   * Function to be called on press
-   */
-  onPress: PropTypes.func,
-};
 
 export default GenericButton;
