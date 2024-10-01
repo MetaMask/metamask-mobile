@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, FlatList, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   useMetrics,
   MetaMetricsEvents,
@@ -33,9 +32,7 @@ export const TokenList = ({
   onRefresh,
   showRemoveMenu,
 }: TokenListProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 

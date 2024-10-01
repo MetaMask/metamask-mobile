@@ -4,7 +4,6 @@ import { Hex } from '@metamask/utils';
 import { zeroAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useTheme } from '../../../../../util/theme';
@@ -62,9 +61,7 @@ export const TokenListItem = ({
   showRemoveMenu,
   setShowScamWarningModal,
 }: TokenListItemProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { data: tokenBalances } = useTokenBalancesController();
 

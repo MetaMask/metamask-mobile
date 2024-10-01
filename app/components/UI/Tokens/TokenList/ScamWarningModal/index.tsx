@@ -17,7 +17,6 @@ import {
 } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface ScamWarningModalProps {
@@ -29,9 +28,7 @@ export const ScamWarningModal = ({
   showScamWarningModal,
   setShowScamWarningModal,
 }: ScamWarningModalProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
 
   const ticker = useSelector(selectTicker);

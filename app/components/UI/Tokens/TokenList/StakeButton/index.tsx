@@ -1,7 +1,6 @@
 import React from 'react';
 import { TokenI, BrowserTab } from '../../types';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
