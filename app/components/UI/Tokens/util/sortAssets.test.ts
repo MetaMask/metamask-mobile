@@ -130,7 +130,7 @@ describe('sortAssets function - nested value handling with dates and numeric sor
     );
   });
 
-  test('handles undefined deeply nested value gracefully when sorting', () => {
+  test('handles undefined deeply nested value when sorting', () => {
     const invlaidAsset = {
       name: 'Asset Y',
       balance: '600',
