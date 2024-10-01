@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { useTheme } from '../../../util/theme';
+import { Theme } from '../../../util/theme/models';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,7 +17,7 @@ interface FoxProps {
   forwardedRef?: React.ForwardedRef<WebView>;
 }
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme) =>
   StyleSheet.create({
     webView: {
       flex: 1,
@@ -30,7 +31,7 @@ function Fox({
   customContent = '',
   forwardedRef,
   ...props
-}) {
+}: FoxProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const opacityControl = useSharedValue(0);
