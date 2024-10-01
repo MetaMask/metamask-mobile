@@ -1,16 +1,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import SettingsNotification from './';
-import { StyleSheet } from 'react-native';
-
-const defaultStyle = StyleSheet.create({
-  defaultStyle: {},
-});
 
 describe('SettingsNotification', () => {
   it('should render correctly as warning', () => {
     const wrapper = shallow(
-      <SettingsNotification isWarning style={defaultStyle.defaultStyle}>
+      <SettingsNotification isWarning>
         {'this is a warning'}
       </SettingsNotification>,
     );
@@ -19,7 +14,7 @@ describe('SettingsNotification', () => {
 
   it('should render correctly as notification', () => {
     const wrapper = shallow(
-      <SettingsNotification isWarning isNotification style={defaultStyle.defaultStyle}>
+      <SettingsNotification isWarning isNotification>
         {'this is a notification'}
       </SettingsNotification>,
     );
