@@ -6,7 +6,7 @@ import {
 } from '../../../core/Analytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
-import MetricsEventBuilder from '../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -51,7 +51,7 @@ class MockEventDataBuilder extends MetricsEventBuilder {
   addProperties = jest.fn().mockReturnThis();
   addSensitiveProperties = jest.fn().mockReturnThis();
   setSaveDataRecording = jest.fn().mockReturnThis();
-  track = jest.fn();
+  build = jest.fn().mockReturnThis();
 }
 
 describe('useMetrics', () => {
@@ -76,7 +76,7 @@ describe('useMetrics', () => {
         "getMetaMetricsId": undefined,
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
-        "trackEvent": [Function],
+        "trackEvent": [MockFunction],
       }
     `);
   });
@@ -119,7 +119,7 @@ describe('useMetrics', () => {
       isEnabledValue = isEnabled();
     });
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event, {}, true);
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event);
     expect(mockMetrics.enable).toHaveBeenCalledWith(true);
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({});
 

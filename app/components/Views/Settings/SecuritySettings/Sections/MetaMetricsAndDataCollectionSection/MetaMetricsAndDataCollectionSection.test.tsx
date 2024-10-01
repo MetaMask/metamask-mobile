@@ -214,7 +214,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { is_metrics_opted_in: true, updated_after_onboarding: true },
-            true,
           );
         });
       });
@@ -299,7 +298,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               1,
               MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
               { is_metrics_opted_in: true, updated_after_onboarding: true },
-              true,
             );
           }
 
@@ -315,7 +313,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             !metaMetricsInitiallyEnabled ? 2 : 1,
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { has_marketing_consent: true, location: 'settings' },
-            true,
           );
         });
       };
@@ -366,7 +363,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { has_marketing_consent: false, location: 'settings' },
-            true,
           );
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.MODAL.ROOT_MODAL_FLOW,
