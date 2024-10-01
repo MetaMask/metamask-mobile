@@ -150,17 +150,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   );
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
-
   const hideZeroBalanceTokens = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.hideZeroBalanceTokens,
+    (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
   const detectedTokens = useSelector(selectDetectedTokens);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );

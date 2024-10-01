@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -344,7 +345,7 @@ const Wallet = ({
       await NotificationsService.isDeviceNotificationEnabled();
     }
     checkIfNotificationsAreEnabled();
-  });
+  }, []);
 
   /**
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
@@ -406,8 +407,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } =
-          Engine.context;
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },
@@ -640,16 +640,12 @@ const Wallet = ({
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: RootState) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
   currentRouteName: getCurrentRoute(state),
 });
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   storePrivacyPolicyShownDate: () =>
     dispatch(storePrivacyPolicyShownDateAction(Date.now())),
   storePrivacyPolicyClickedOrClosed: () =>
