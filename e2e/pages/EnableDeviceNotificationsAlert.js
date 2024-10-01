@@ -1,4 +1,5 @@
-import TestHelpers from '../helpers';
+import Gestures from '../utils/Gestures';
+import Matchers from '../utils/Matchers';
 
 import {
   ENABLE_DEVICE_NOTIFICATIONS_CONTAINER_ID,
@@ -6,22 +7,30 @@ import {
   ENABLE_DEVICE_NOTIFICATIONS_YES_BUTTON_ID
 } from '../../wdio/screen-objects/testIDs/Screens/EnableDeviceNotificationsChecksAlert.testIds';
 
-export default class EnableDeviceNotificationsAlert {
-  static async tapNoThanks() {
-    await TestHelpers.waitAndTapByLabel(
-      ENABLE_DEVICE_NOTIFICATIONS_NO_THANKS_BUTTON_ID
-    );
+class EnableDeviceNotificationsAlert {
+  get stepOneContainer() {
+    return Matchers.getSystemElementByText(ENABLE_DEVICE_NOTIFICATIONS_CONTAINER_ID);
   }
 
-  static async tapYes() {
-    await TestHelpers.waitAndTapByLabel(
+  get getEnableDeviceNotificationsButton() {
+    return Matchers.getSystemElementByText(
       ENABLE_DEVICE_NOTIFICATIONS_YES_BUTTON_ID,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(
-      ENABLE_DEVICE_NOTIFICATIONS_CONTAINER_ID,
+  get getNotEnableDeviceNotificationsButton() {
+    return Matchers.getSystemElementByText(
+      ENABLE_DEVICE_NOTIFICATIONS_NO_THANKS_BUTTON_ID,
     );
   }
+
+  async tapOnEnableDeviceNotificationsButton() {
+    await Gestures.waitAndTap(this.getEnableDeviceNotificationsButton);
+  }
+
+  async tapOnNotEnableDeviceNotificationsButton() {
+    await Gestures.waitAndTap(this.getNotEnableDeviceNotificationsButton);
+  }
 }
+
+export default new EnableDeviceNotificationsAlert();
