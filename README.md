@@ -41,7 +41,7 @@ cd metamask-mobile
 
 **Firebase Messaging Setup**
 
-Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` file in the `android/app` directory as well your .env files (ios.env, js.env, android.env), adding GOOGLE_SERVICES_B64 variable depending on the environment you are running the app (ios/android).
+Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` file in the `android/app` directory as well your `.env` files (`.ios.env`, `.js.env`, `.android.env`), adding `GOOGLE_SERVICES_B64` variable depending on the environment you are running the app (ios/android).
 
 The value you should provide to GOOGLE_SERVICES_B64 is the base64 encoded version of your Firebase project config file, which can be generated as follows:
 
