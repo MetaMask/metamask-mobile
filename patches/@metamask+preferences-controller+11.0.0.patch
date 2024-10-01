@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
-index 30e985c..41106f3 100644
+index 30e985c..860cc41 100644
 --- a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
 +++ b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
-@@ -17,13 +17,16 @@ var metadata = {
+@@ -17,13 +17,17 @@ var metadata = {
    isIpfsGatewayEnabled: { persist: true, anonymous: true },
    isMultiAccountBalancesEnabled: { persist: true, anonymous: true },
    lostIdentities: { persist: true, anonymous: false },
@@ -18,10 +18,11 @@ index 30e985c..41106f3 100644
 +  useTokenDetection: { persist: true, anonymous: true },
 +  smartTransactionsOptInStatus: { persist: true, anonymous: true },
 +  useTransactionSimulations: { persist: true, anonymous: true },
++  tokenSortConfig: { persist: true, anonymous: true },
  };
  var name = "PreferencesController";
  function getDefaultPreferencesState() {
-@@ -37,7 +40,7 @@ function getDefaultPreferencesState() {
+@@ -37,7 +41,7 @@ function getDefaultPreferencesState() {
      isIpfsGatewayEnabled: true,
      isMultiAccountBalancesEnabled: true,
      lostIdentities: {},
@@ -30,7 +31,7 @@ index 30e985c..41106f3 100644
      securityAlertsEnabled: false,
      selectedAddress: "",
      showIncomingTransactions: {
-@@ -64,7 +67,10 @@ function getDefaultPreferencesState() {
+@@ -64,7 +68,15 @@ function getDefaultPreferencesState() {
      },
      showTestNetworks: false,
      useNftDetection: false,
@@ -39,10 +40,15 @@ index 30e985c..41106f3 100644
 +    useSafeChainsListValidation: true,
 +    smartTransactionsOptInStatus: false,
 +    useTransactionSimulations: true,
++    tokenSortConfig: {
++      key: 'tokenFiatAmount',
++      order: 'dsc',
++      sortCallback: 'stringNumeric',
++    },
    };
  }
  var _syncIdentities, syncIdentities_fn;
-@@ -213,9 +219,9 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -213,9 +225,9 @@ var PreferencesController = class extends _basecontroller.BaseController {
     * @param useNftDetection - Boolean indicating user preference on NFT detection.
     */
    setUseNftDetection(useNftDetection) {
@@ -54,7 +60,7 @@ index 30e985c..41106f3 100644
        );
      }
      this.update((state) => {
-@@ -223,18 +229,33 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -223,18 +235,33 @@ var PreferencesController = class extends _basecontroller.BaseController {
      });
    }
    /**
@@ -93,7 +99,7 @@ index 30e985c..41106f3 100644
    /**
     * Toggle the security alert enabled setting.
     *
-@@ -245,6 +266,29 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -245,6 +272,29 @@ var PreferencesController = class extends _basecontroller.BaseController {
        state.securityAlertsEnabled = securityAlertsEnabled;
      });
    }
