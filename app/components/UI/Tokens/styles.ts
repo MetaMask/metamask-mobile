@@ -99,7 +99,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       marginHorizontal: 16,
       justifyContent: 'space-between',
-      marginVertical: 24,
+      paddingTop: 24,
     },
     fiatBalance: {
       ...fontStyles.normal,

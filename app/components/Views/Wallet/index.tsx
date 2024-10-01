@@ -96,6 +96,7 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -111,12 +112,11 @@ const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.primary.default,
     },
     tabStyle: {
-      paddingBottom: 0,
+      paddingBottom: 8,
       paddingVertical: 8,
     },
     tabBar: {
       borderColor: colors.background.default,
-      marginTop: 16,
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
@@ -406,8 +406,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } =
-          Engine.context;
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },
@@ -565,29 +564,32 @@ const Wallet = ({
         {selectedAddress ? (
           <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          // eslint-disable-next-line react/jsx-no-bind
-          onChangeTab={onChangeTab}
-        >
-          <Tokens
-            tabLabel={strings('wallet.tokens')}
-            key={'tokens-tab'}
-            navigation={navigation}
-            // TODO - Consolidate into the correct type.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            tokens={assets}
-          />
-          <CollectibleContracts
-            // TODO - Extend component to support injected tabLabel prop.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            tabLabel={strings('wallet.collectibles')}
-            key={'nfts-tab'}
-            navigation={navigation}
-          />
-        </ScrollableTabView>
+        <View>
+          <PortfolioBalance />
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            // eslint-disable-next-line react/jsx-no-bind
+            onChangeTab={onChangeTab}
+          >
+            <Tokens
+              tabLabel={strings('wallet.tokens')}
+              key={'tokens-tab'}
+              navigation={navigation}
+              // TODO - Consolidate into the correct type.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tokens={assets}
+            />
+            <CollectibleContracts
+              // TODO - Extend component to support injected tabLabel prop.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tabLabel={strings('wallet.collectibles')}
+              key={'nfts-tab'}
+              navigation={navigation}
+            />
+          </ScrollableTabView>
+        </View>
       </View>
     );
   }, [
