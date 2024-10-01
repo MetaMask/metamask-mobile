@@ -57,6 +57,8 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
+  PhishingControllerActions,
+  PhishingControllerEvents,
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
@@ -237,18 +239,6 @@ const encryptor = new Encryptor({
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-// TODO remove these custom types when the PhishingController is to version >= 7.0.0
-interface MaybeUpdateState {
-  type: `${PhishingController['name']}:maybeUpdateState`;
-  handler: PhishingController['maybeUpdateState'];
-}
-
-interface TestOrigin {
-  type: `${PhishingController['name']}:testOrigin`;
-  handler: PhishingController['test'];
-}
-
-type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 type AuthenticationControllerActions = AuthenticationController.AllowedActions;
 type UserStorageControllerActions = UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
@@ -263,6 +253,7 @@ type SnapsGlobalActions =
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SubjectMetadataControllerEvents
+  | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
@@ -716,7 +707,6 @@ class Engine {
     });
 
     const phishingController = new PhishingController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
