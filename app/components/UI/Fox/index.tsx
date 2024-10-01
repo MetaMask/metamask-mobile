@@ -14,10 +14,10 @@ interface FoxProps {
   style?: ViewStyle;
   customStyle?: string;
   customContent?: string;
-  forwardedRef?: React.ForwardedRef<WebView>;
+  forwardedRef?: React.ForwardedRef<unknown>;
 }
 
-const createStyles = (colors: Theme) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     webView: {
       flex: 1,
