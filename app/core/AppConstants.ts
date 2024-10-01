@@ -43,6 +43,7 @@ export default {
   HOMEPAGE_URL:
     process.env.MM_HOMEPAGE ||
     'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
+  OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
   USER_AGENT: Device.isAndroid()
