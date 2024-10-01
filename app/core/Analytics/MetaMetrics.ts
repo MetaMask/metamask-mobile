@@ -649,6 +649,9 @@ class MetaMetrics implements IMetaMetrics {
    * - The anonymous event includes sensitive properties so you can know **what** but not **who**
    * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
    *
+   * @example prefer using the hook {@link useMetrics} in your components
+   * const { trackEvent, createEventBuilder } = useMetrics();
+   *
    * @example basic non-anonymous tracking with no properties:
    * trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
    *

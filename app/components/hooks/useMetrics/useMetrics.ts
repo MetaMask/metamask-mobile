@@ -64,6 +64,7 @@ import { MetaMetrics } from '../../../core/Analytics';
  * @example a full hook destructuring:
  * const {
  *   trackEvent,
+ *   createEventBuilder,
  *   enable,
  *   addTraitsToUser,
  *   createDataDeletionTask,
