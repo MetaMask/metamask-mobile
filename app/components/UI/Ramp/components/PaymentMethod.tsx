@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
-import BaseListItem from '../../../Base/ListItem';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
 import { useTheme } from '../../../../util/theme';
@@ -131,8 +130,29 @@ const PaymentMethod: React.FC<Props> = ({
   const { name, logo, amountTier, delay: time, detail } = payment;
 
   return (
-    <Box onPress={onPress} highlighted={highlighted}>
-      <ListItem style={{ padding: 0 }}>
+    <Box onPress={onPress} highlighted={highlighted} compact>
+      <ListItem
+        bottomAccessory={
+          <>
+            <View style={[styles.line, compact && styles.compactLine]} />
+
+            <Text variant={TextVariant.BodySM}>
+              <Feather name="clock" /> {renderTime(time)} •{' '}
+              {new Array(amountTier[1]).fill('').map((_, index) => (
+                <Text
+                  key={index}
+                  color={
+                    index >= amountTier[0] ? TextColor.Muted : TextColor.Default
+                  }
+                >
+                  $
+                </Text>
+              ))}{' '}
+              {renderTiers(amountTier, isBuy)}
+            </Text>
+          </>
+        }
+      >
         <ListItemColumn>
           <View
             style={[styles.iconWrapper, compact && styles.compactIconWrapper]}
@@ -164,21 +184,6 @@ const PaymentMethod: React.FC<Props> = ({
           ) : null}
         </ListItemColumn>
       </ListItem>
-
-      <View style={[styles.line, compact && styles.compactLine]} />
-
-      <Text variant={TextVariant.BodySM}>
-        <Feather name="clock" /> {renderTime(time)} •{' '}
-        {new Array(amountTier[1]).fill('').map((_, index) => (
-          <Text
-            key={index}
-            color={index >= amountTier[0] ? TextColor.Muted : TextColor.Default}
-          >
-            $
-          </Text>
-        ))}{' '}
-        {renderTiers(amountTier, isBuy)}
-      </Text>
     </Box>
   );
 };
