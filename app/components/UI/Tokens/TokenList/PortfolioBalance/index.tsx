@@ -26,7 +26,9 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { BrowserTab } from '../../types';
@@ -115,8 +117,8 @@ export const PortfolioBalance = () => {
     <View style={styles.portfolioBalance}>
       <View>
         <Text
-          style={styles.fiatBalance}
           testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+          variant={TextVariant.DisplayMD}
         >
           {fiatBalance}
         </Text>

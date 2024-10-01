@@ -101,12 +101,6 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'space-between',
       paddingTop: 24,
     },
-    fiatBalance: {
-      ...fontStyles.normal,
-      fontSize: 32,
-      lineHeight: 40,
-      fontWeight: '500',
-    },
     portfolioLink: { marginLeft: 8 },
     bottomModal: {
       justifyContent: 'flex-end',
