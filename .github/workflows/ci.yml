@@ -175,7 +175,7 @@ jobs:
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
 
       - name: Upload iOS bundle
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-bundle
           path: ios/main.jsbundle
