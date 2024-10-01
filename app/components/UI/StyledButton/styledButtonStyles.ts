@@ -162,10 +162,10 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-function getStyles(type: string, colors: unknown) {
+function getStyles(type: string, colors: Colors) {
   const styles = createStyles(colors);
 
-  let fontStyle: unknown, containerStyle: unknown;
+  let fontStyle: TextStyle, containerStyle: ViewStyle;
 
   switch (type) {
     case 'orange':
