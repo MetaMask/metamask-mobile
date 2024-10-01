@@ -19,7 +19,7 @@ class TrackingEvent implements ITrackingEvent {
       this.#name = event.name;
       this.#properties = event.properties || {};
       this.#sensitiveProperties = event.sensitiveProperties || {};
-      this.#saveDataRecording = event.saveDataRecording || true;
+      this.#saveDataRecording = event.saveDataRecording ?? true;
     } else {
       this.#name = event.category;
       this.#properties = {};
@@ -107,11 +107,10 @@ class MetricsEventBuilder {
    * @param properties a map of properties to add to the event
    */
   addProperties(properties: JsonMap) {
-    this.#trackingEvent.properties = Object.assign(
-      {},
-      this.#trackingEvent.properties,
-      properties,
-    );
+    this.#trackingEvent.properties = {
+      ...this.#trackingEvent.properties,
+      ...properties,
+    };
     return this;
   }
 
@@ -120,11 +119,10 @@ class MetricsEventBuilder {
    * @param properties a map of properties to add to the event
    */
   addSensitiveProperties(properties: JsonMap) {
-    this.#trackingEvent.sensitiveProperties = Object.assign(
-      {},
-      this.#trackingEvent.sensitiveProperties,
-      properties,
-    );
+    this.#trackingEvent.sensitiveProperties = {
+      ...this.#trackingEvent.sensitiveProperties,
+      ...properties,
+    };
     return this;
   }
 

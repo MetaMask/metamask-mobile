@@ -136,7 +136,6 @@ export interface ITrackingEvent {
 }
 /**
  * legacy MetaMetrics event interface
- * @deprecated use ITrackingEvent with MetricsEventBuilder instead
  */
 export interface IMetaMetricsEvent {
   category: string;
