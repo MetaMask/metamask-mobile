@@ -74,6 +74,7 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -233,7 +234,6 @@ import { zeroAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
@@ -1317,7 +1317,6 @@ class Engine {
       // but only breaking change is Node version and bumped dependencies
       getNetworkClientRegistry:
         networkController.getNetworkClientRegistry.bind(networkController),
-      // @ts-expect-error TODO: resolve types
       getNetworkState: () => networkController.state,
       hooks: {
         publish: (transactionMeta) => {
@@ -1355,7 +1354,6 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
@@ -1746,7 +1744,6 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
-    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
