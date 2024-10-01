@@ -18,9 +18,9 @@ if [[ -z "${GITHUB_ACTOR:-}" ]]; then
     exit 1
 fi
 
-# Check for MOBILE_BUNDLESIZE_TOKEN
-if [[ -z "${MOBILE_BUNDLESIZE_TOKEN:-}" ]]; then
-    log "Error: MOBILE_BUNDLESIZE_TOKEN environment variable must be set"
+# Check for GITHUB_TOKEN
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+    log "Error: GITHUB_TOKEN environment variable must be set"
     exit 1
 fi
 
