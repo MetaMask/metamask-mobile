@@ -2,10 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import Title from '../../../../Base/Title';
 import styleSheet from '../TokenDetails.styles';
 import { MarketDetails } from '../TokenDetails';
 import TokenDetailsListItem from '../TokenDetailsListItem';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 interface MarketDetailsListProps {
   marketDetails: MarketDetails;
@@ -18,7 +20,9 @@ const MarketDetailsList: React.FC<MarketDetailsListProps> = ({
 
   return (
     <View>
-      <Title style={styles.title}>{strings('token.market_details')}</Title>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        {strings('token.market_details')}
+      </Text>
       <View style={styles.listWrapper}>
         {marketDetails.marketCap && (
           <TokenDetailsListItem

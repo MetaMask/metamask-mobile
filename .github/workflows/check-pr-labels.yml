@@ -26,13 +26,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
 
       - name: Install dependencies
         run: yarn --immutable
+        working-directory: '.github/scripts'
 
       - name: Check PR has required labels
         id: check-pr-has-required-labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run check-pr-has-required-labels
+        working-directory: '.github/scripts'

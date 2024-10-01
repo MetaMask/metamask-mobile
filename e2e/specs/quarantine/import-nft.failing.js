@@ -2,7 +2,7 @@
 import { SmokeAssets } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
-import AddCustomTokenView from '../../pages/AddCustomTokenView';
+import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import { loginToApp } from '../../viewHelper';
 import {
   withFixtures,
@@ -38,16 +38,16 @@ describe(SmokeAssets('Import NFT'), () => {
         await WalletView.scrollDownOnNFTsTab();
         // Tap on the add collectibles button
         await WalletView.tapImportNFTButton();
-        await AddCustomTokenView.isVisible();
+        await Assertions.checkIfVisible(ImportNFTView.container);
         // Input incorrect contract address
-        await AddCustomTokenView.typeInNFTAddress('1234');
-        await AddCustomTokenView.typeInNFTIdentifier('');
-        await AddCustomTokenView.isNFTAddressWarningVisible();
-        await AddCustomTokenView.tapBackButton();
+        await ImportNFTView.typeInNFTAddress('1234');
+        await ImportNFTView.typeInNFTIdentifier('');
+        await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
+        //await ImportNFTView.tapBackButton();
         await WalletView.tapImportNFTButton();
-        await AddCustomTokenView.isVisible();
-        await AddCustomTokenView.typeInNFTAddress(erc1155ContractAddress);
-        await AddCustomTokenView.typeInNFTIdentifier('1');
+        await Assertions.checkIfVisible(ImportNFTView.container);
+        await ImportNFTView.typeInNFTAddress(erc1155ContractAddress);
+        await ImportNFTView.typeInNFTIdentifier('1');
         await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load
         await Assertions.checkIfVisible(WalletView.nftInWallet('TestDappNFTs'));

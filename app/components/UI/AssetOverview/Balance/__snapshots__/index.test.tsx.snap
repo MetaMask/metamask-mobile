@@ -9,60 +9,18 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
   }
 >
   <Text
+    accessibilityRole="text"
     style={
-      [
-        {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
-          "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 18,
-            "fontWeight": "600",
-            "marginVertical": 3,
-          },
-          undefined,
-          undefined,
-          {
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 16,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginVertical": 0,
-            "paddingHorizontal": 15,
-            "paddingVertical": 8,
-          },
-        ],
-      ]
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingHorizontal": 15,
+        "paddingVertical": 4,
+      }
     }
   >
     Your balance
@@ -279,60 +237,18 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
   }
 >
   <Text
+    accessibilityRole="text"
     style={
-      [
-        {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
-          "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 18,
-            "fontWeight": "600",
-            "marginVertical": 3,
-          },
-          undefined,
-          undefined,
-          {
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 16,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginVertical": 0,
-            "paddingHorizontal": 15,
-            "paddingVertical": 8,
-          },
-        ],
-      ]
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingHorizontal": 15,
+        "paddingVertical": 4,
+      }
     }
   >
     Your balance

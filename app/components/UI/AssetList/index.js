@@ -6,7 +6,6 @@ import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-un
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 
 const styles = StyleSheet.create({
   rowWrapper: {
@@ -80,7 +79,6 @@ export default class AssetList extends PureComponent {
               containerStyle={styles.item}
               onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
               key={i}
-              testID={ImportTokenViewSelectorsIDs.CONTAINER}
             >
               <View style={styles.assetListElement}>
                 <AssetIcon address={address} logo={iconUrl} />

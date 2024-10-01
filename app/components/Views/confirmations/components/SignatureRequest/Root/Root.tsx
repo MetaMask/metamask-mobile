@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import setSignatureRequestSecurityAlertResponse from '../../../../../../actions/signatureRequest';
 import { store } from '../../../../../../store';
 import { useTheme } from '../../../../../../util/theme';
-import useRedesignEnabled from '../../../hooks/useRedesignEnabled';
+import useConfirmationRedesignEnabled from '../../../hooks/useConfirmationRedesignEnabled';
 import PersonalSign from '../../PersonalSign';
 import TypedSign from '../../TypedSign';
 import { MessageParams } from '../types';
@@ -40,7 +40,7 @@ const Root = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.modals.signMessageModalVisible,
   );
-  const { isRedesignedEnabled } = useRedesignEnabled();
+  const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);

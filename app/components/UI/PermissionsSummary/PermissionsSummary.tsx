@@ -47,6 +47,8 @@ const PermissionsSummary = ({
   showActionButtons = true,
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
+  isDisconnectAllShown = true,
+  isNetworkSwitch = false,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
@@ -223,20 +225,20 @@ const PermissionsSummary = ({
               </View>
             </View>
           </View>
-          {renderEndAccessory()}
+          {!isNetworkSwitch && renderEndAccessory()}
         </View>
       </TouchableOpacity>
     );
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.mainContainer}>
         <View>
           {renderHeader()}
           <View style={styles.title}>
             <TextComponent variant={TextVariant.HeadingSM}>
-              {!isAlreadyConnected
+              {!isAlreadyConnected || isNetworkSwitch
                 ? strings('permissions.title_dapp_url_wants_to', {
                     dappUrl: new URL(currentPageInformation.url).hostname,
                   })
@@ -245,11 +247,11 @@ const PermissionsSummary = ({
                   })}
             </TextComponent>
           </View>
-          {renderAccountPermissionsRequestInfoCard()}
+          {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
         <View>
-          {isAlreadyConnected && (
+          {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}

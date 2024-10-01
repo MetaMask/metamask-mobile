@@ -33,6 +33,20 @@ export interface GetStakesApiResponse {
   exchangeRate: string;
 }
 
+export interface Vault {
+  apy: string; //BigDecimal!
+  capacity: string; //BigInt!
+  displayName: string | null; //String
+  feePercent: number; // Int!
+  totalAssets: string; //BigInt!
+  addressString: string; //String!
+}
+
+export interface GetVaultDataApiResponse
+  extends Pick<Vault, 'apy' | 'capacity' | 'feePercent' | 'totalAssets'> {
+  vaultAddress: string;
+}
+
 export interface UnstakingRequest extends ExitRequestWithClaimedAssetInfo {
   assetsToDisplay: string;
 }

@@ -5,8 +5,8 @@ jest.mock('../core/Engine', () => ({
   context: {
     PhishingController: {
       maybeUpdateState: jest.fn(),
-      test: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { result: true };
+      test: jest.fn((origin: string) => {
+        if (origin === 'http://phishing.com') return { result: true };
         return { result: false };
       }),
     },
@@ -15,6 +15,7 @@ jest.mock('../core/Engine', () => ({
 
 describe('linkCheck', () => {
   it('should correctly check links for safety', () => {
+    expect(isLinkSafe('example.com')).toEqual(false);
     expect(isLinkSafe('htps://ww.example.com/')).toEqual(false);
     expect(isLinkSafe('https://ww.example.com/')).toEqual(true);
     expect(isLinkSafe('http://example com/page?id=123')).toEqual(false);
