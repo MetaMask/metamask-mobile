@@ -135,7 +135,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourceToken: asset.address,
         sourcePage: 'MainView',
       },
     });

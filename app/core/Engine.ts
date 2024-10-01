@@ -1633,7 +1633,10 @@ export class Engine {
           // allowedActions: [
           //   'GasFeeController:getEIP1559GasFeeEstimates',
           // ],
-          allowedActions: [],
+          allowedActions: [
+            'NetworkController:findNetworkClientIdByChainId',
+            'NetworkController:getNetworkClientById',
+          ],
           allowedEvents: [],
         }),
         // TODO: Remove once GasFeeController exports this action type
