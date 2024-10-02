@@ -103,7 +103,11 @@ export const getSmartTransactionMetricsProperties = async (
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
-  if (waitForSmartTransaction && !smartTransaction?.statusMetadata && controllerMessenger) {
+  const shouldWaitForSmartTransactionConfirmationDoneEvent = 
+    waitForSmartTransaction && 
+    !smartTransaction?.statusMetadata && // We get this after polling for a status for a Smart Transaction.
+    controllerMessenger;
+  if (shouldWaitForSmartTransactionConfirmationDoneEvent) {
     smartTransaction = await waitForSmartTransactionConfirmationDone(
       controllerMessenger
     );
