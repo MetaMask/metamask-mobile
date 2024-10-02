@@ -18,48 +18,39 @@ describe('MetricsEventBuilder', () => {
   });
 
   it('creates a tracking event from new ITrackingEvent type', () => {
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addProperties({ trackingProp: 'trackingValue' })
       .addSensitiveProperties({ sensitiveProp: 'sensitiveValue' })
       .setSaveDataRecording(false)
       .build();
 
-    expect(trackingEvent.name).toBe(mockLegacyEvent.category);
-    expect(trackingEvent.properties).toEqual({ trackingProp: 'trackingValue' });
-    expect(trackingEvent.sensitiveProperties).toEqual({
+    expect(event.name).toBe(mockLegacyEvent.category);
+    expect(event.properties).toEqual({ trackingProp: 'trackingValue' });
+    expect(event.sensitiveProperties).toEqual({
       sensitiveProp: 'sensitiveValue',
     });
-    expect(trackingEvent.saveDataRecording).toBe(false);
+    expect(event.saveDataRecording).toBe(false);
 
-    const rebuiltEvent =
-      MetricsEventBuilder.createEventBuilder(trackingEvent).build();
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event).build();
 
-    expect(rebuiltEvent.name).toBe(trackingEvent.name);
-    expect(rebuiltEvent.properties).toEqual(trackingEvent.properties);
-    expect(rebuiltEvent.sensitiveProperties).toEqual(
-      trackingEvent.sensitiveProperties,
-    );
-    expect(rebuiltEvent.saveDataRecording).toBe(
-      trackingEvent.saveDataRecording,
-    );
+    expect(rebuiltEvent.name).toBe(event.name);
+    expect(rebuiltEvent.properties).toEqual(event.properties);
+    expect(rebuiltEvent.sensitiveProperties).toEqual(event.sensitiveProperties);
+    expect(rebuiltEvent.saveDataRecording).toBe(event.saveDataRecording);
   });
 
   it('adds properties', () => {
     const newProps: JsonMap = { newProp: 'newValue' };
 
-    const legacyEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addProperties(newProps)
       .build();
-    expect(legacyEvent.properties).toEqual(newProps);
+    expect(event.properties).toEqual(newProps);
 
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties(newProps)
       .build();
-    expect(trackingEvent.properties).toEqual(newProps);
+    expect(rebuiltEvent.properties).toEqual(newProps);
   });
 
   it('adds sensitive properties', () => {
@@ -67,76 +58,101 @@ describe('MetricsEventBuilder', () => {
       sensitiveNewProp: 'sensitiveNewValue',
     };
 
-    const legacyEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addSensitiveProperties(newSensitiveProps)
       .build();
-    expect(legacyEvent.sensitiveProperties).toEqual(newSensitiveProps);
+    expect(event.sensitiveProperties).toEqual(newSensitiveProps);
 
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addSensitiveProperties(newSensitiveProps)
       .build();
-    expect(trackingEvent.sensitiveProperties).toEqual(newSensitiveProps);
+    expect(rebuiltEvent.sensitiveProperties).toEqual(newSensitiveProps);
   });
 
   it('removes properties', () => {
-    const legacyEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addProperties({ newProp: 'newValue' })
       .removeProperties(['newProp'])
       .build();
-    expect(legacyEvent.properties).toEqual({});
+    expect(event.properties).toEqual({});
 
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties({ newProp: 'newValue' })
       .removeProperties(['newProp'])
       .build();
-    expect(trackingEvent.properties).toEqual({});
+    expect(rebuiltEvent.properties).toEqual({});
   });
 
   it('removes sensitive properties', () => {
-    const legacyEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addSensitiveProperties({ sensitiveNewProp: 'sensitiveNewValue' })
       .removeSensitiveProperties(['sensitiveNewProp'])
       .build();
-    expect(legacyEvent.sensitiveProperties).toEqual({});
+    expect(event.sensitiveProperties).toEqual({});
 
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addSensitiveProperties({ sensitiveNewProp: 'sensitiveNewValue' })
       .removeSensitiveProperties(['sensitiveNewProp'])
       .build();
-    expect(trackingEvent.sensitiveProperties).toEqual({});
+    expect(rebuiltEvent.sensitiveProperties).toEqual({});
   });
 
   it('identifies anonymous events', () => {
-    const legacyEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addSensitiveProperties({ sensitiveProp: 'value' })
       .build();
-    expect(legacyEvent.isAnonymous).toBe(true);
+    expect(event.isAnonymous).toBe(true);
 
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addSensitiveProperties({ sensitiveProp: 'value' })
       .build();
-    expect(trackingEvent.isAnonymous).toBe(true);
+    expect(rebuiltEvent.isAnonymous).toBe(true);
   });
 
   it('identifies events with properties', () => {
-    const legacyEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
       .addProperties({ normalProp: 'value' })
       .build();
-    expect(legacyEvent.hasProperties).toBe(true);
+    expect(event.hasProperties).toBe(true);
 
-    const trackingEvent = MetricsEventBuilder.createEventBuilder(
-      mockLegacyEvent,
-    )
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
       .addProperties({ normalProp: 'value' })
       .build();
-    expect(trackingEvent.hasProperties).toBe(true);
+    expect(rebuiltEvent.hasProperties).toBe(true);
+  });
+
+  it('identifies events without any properties', () => {
+    const event =
+      MetricsEventBuilder.createEventBuilder(mockLegacyEvent).build();
+    expect(event.hasProperties).toBe(false);
+
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event).build();
+    expect(rebuiltEvent.hasProperties).toBe(false);
+  });
+
+  it('identifies events with sensitive properties', () => {
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+      .addSensitiveProperties({ sensitiveProp: 'value' })
+      .build();
+    expect(event.hasProperties).toBe(true);
+
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
+      .addSensitiveProperties({ sensitiveProp: 'value' })
+      .build();
+    expect(rebuiltEvent.hasProperties).toBe(true);
+  });
+
+  it('identifies events with both properties and sensitive properties', () => {
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+      .addProperties({ normalProp: 'value' })
+      .addSensitiveProperties({ sensitiveProp: 'value' })
+      .build();
+    expect(event.hasProperties).toBe(true);
+
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
+      .addProperties({ normalProp: 'value' })
+      .addSensitiveProperties({ sensitiveProp: 'value' })
+      .build();
+    expect(rebuiltEvent.hasProperties).toBe(true);
   });
 });
