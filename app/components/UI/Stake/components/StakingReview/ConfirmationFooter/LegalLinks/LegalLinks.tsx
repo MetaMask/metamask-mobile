@@ -15,27 +15,19 @@ const FooterLegalLinks = () => {
 
   const navigation = useNavigation();
 
-  const handleNavigateToTermsOfUse = () =>
+  const handleNavigateToWebView = (url: string) =>
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-      },
-    });
-
-  const handleNavigateToRiskDisclosure = () =>
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.STAKING_RISK_DISCLOSURE,
-      },
+      params: { url },
     });
 
   return (
     <View style={styles.termsOfServiceButtonGroup}>
       <TouchableOpacity
         activeOpacity={0.5}
-        onPress={handleNavigateToTermsOfUse}
+        onPress={() =>
+          handleNavigateToWebView(AppConstants.URLS.TERMS_AND_CONDITIONS)
+        }
         style={styles.legalLink}
       >
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
@@ -44,7 +36,9 @@ const FooterLegalLinks = () => {
       </TouchableOpacity>
       <TouchableOpacity
         activeOpacity={0.5}
-        onPress={handleNavigateToRiskDisclosure}
+        onPress={() =>
+          handleNavigateToWebView(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
+        }
         style={styles.legalLink}
       >
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
