@@ -106,7 +106,7 @@ const SnapSettings = () => {
   }, []);
 
   const handleRemoveSnap = useCallback(() => {
-    if (isKeyringSnap) {
+    if (isKeyringSnap && keyringAccounts.length > 0) {
       setIsShowingSnapKeyringRemoveWarning(true);
     } else {
       removeSnap();
