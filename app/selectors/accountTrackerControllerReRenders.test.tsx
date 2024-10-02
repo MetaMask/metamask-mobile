@@ -18,7 +18,7 @@ import {
   MOCK_ADDRESS_2,
   expectedUuid,
 } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import {
   selectAccountBalanceByChainId,
   selectAccountsByChainId,

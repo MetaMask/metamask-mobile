@@ -21,8 +21,8 @@ import BaseListItem from '@components/Base/ListItem';
 import ModalDragger from '@components/Base/ModalDragger';
 import { useTheme } from '@util/theme';
 import RegionAlert from './RegionAlert';
-import { RampType, Region, ScreenLocation } from '@types';
-import useAnalytics from '@components/hooks/useAnalytics';
+import { RampType, Region, ScreenLocation } from '@components/UI/Ramp/types';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
 
 // TODO: Convert into typescript and correctly type

@@ -8,7 +8,7 @@ import renderWithProvider, {
 import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '@e2e/selectors/Modals/WalletActionsModal.selectors';
 import { backgroundState } from '@util/test/initial-root-state';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 

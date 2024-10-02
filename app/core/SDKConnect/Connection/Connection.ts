@@ -10,7 +10,7 @@ import AppConstants from '@core/AppConstants';
 import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
 import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
 import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
-import { ApprovedHosts, approveHostProps } from '@SDKConnect';
+import { ApprovedHosts, approveHostProps } from '@core/SDKConnect/SDKConnect';
 import { CONNECTION_LOADING_EVENT } from '@core/SDKConnect/SDKConnectConstants';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import sendAuthorized from './Auth/sendAuthorized';

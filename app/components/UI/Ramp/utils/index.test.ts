@@ -27,7 +27,7 @@ import {
 import { FIAT_ORDER_STATES } from '@constants/on-ramp';
 import { FiatOrder, RampType } from '@reducers/fiatOrders/types';
 import { getOrders } from '@reducers/fiatOrders';
-import type { RootState } from '@reducers';
+import type { RootState } from '@reducers/index';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {

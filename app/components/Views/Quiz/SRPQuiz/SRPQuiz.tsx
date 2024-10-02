@@ -14,8 +14,8 @@ import { MetaMetricsEvents } from '@core/Analytics';
 import Routes from '@constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '@constants/urls';
 
-import { QuizStage } from '@types';
-import { QuizContent } from '@QuizContent';
+import { QuizStage } from '@components/Views/Quiz/types';
+import { QuizContent } from '@components/Views/Quiz/QuizContent';
 import stylesheet from './styles';
 import { useMetrics } from '@components/hooks/useMetrics';
 

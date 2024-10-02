@@ -6,7 +6,7 @@ import { backgroundState } from '@util/test/initial-root-state';
 import LockScreen from './';
 import Routes from '@constants/navigation/Routes';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},

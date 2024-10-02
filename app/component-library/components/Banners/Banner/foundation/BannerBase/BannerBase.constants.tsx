@@ -9,7 +9,7 @@ import { ButtonVariants, ButtonSize } from '@component-library/components/Button
 import { ButtonProps } from '@Buttons/Button/Button.types';
 import { ButtonIconSizes } from '@component-library/components/Buttons/ButtonIcon'
 import Icon, { IconName, IconColor } from '@component-library/components/Icons/Icon';
-import { SAMPLE_ICON_PROPS } from '@Icons/Icon/Icon.constants';
+import { SAMPLE_ICON_PROPS } from '@component-library/components/Icons/Icon/Icon.constants';
 
 // Internal dependencies.
 import { BannerBaseProps } from './BannerBase.types';

@@ -27,7 +27,7 @@ import Text, {
 } from '@component-library/components/Texts/Text';
 import { useStyles } from '@component-library/hooks';
 import { formatAddress, getLabelTextByAddress } from '@util/address';
-import { AccountConnectScreens } from '@AccountConnect.types';
+import { AccountConnectScreens } from '@components/Views/AccountConnect/AccountConnect.types';
 
 // Internal dependencies.
 import { USER_INTENT } from '@constants/permissions';

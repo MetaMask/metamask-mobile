@@ -22,7 +22,7 @@ import {
 } from '@util/networks';
 import images from '@images/image-icons';
 import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
-import { TOKEN_BALANCE_LOADING } from '@Tokens/constants';
+import { TOKEN_BALANCE_LOADING } from '@components/UI/Tokens/constants';
 import useBalance from '@components/UI/Ramp/hooks/useBalance';
 import {
   ButtonSize,

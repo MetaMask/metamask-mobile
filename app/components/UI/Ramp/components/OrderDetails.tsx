@@ -22,13 +22,13 @@ import {
   toTokenMinimalUnit,
 } from '@util/number';
 import { FiatOrder, getProviderName } from '@reducers/fiatOrders';
-import useBlockExplorer from '@Swaps/utils/useBlockExplorer';
+import useBlockExplorer from '@components/UI/Swaps/utils/useBlockExplorer';
 import Spinner from '@components/UI/AnimatedSpinner';
-import useAnalytics from '@components/hooks/useAnalytics';
-import { PROVIDER_LINKS } from '@types';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
+import { PROVIDER_LINKS } from '@components/UI/Ramp/types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '@constants/on-ramp';
-import { getOrderAmount } from '@utils';
+import { getOrderAmount } from '@components/UI/Ramp/utils';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,

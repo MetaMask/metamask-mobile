@@ -8,7 +8,7 @@ import ScreenLayout from './ScreenLayout';
 import ModalDragger from '@components/Base/ModalDragger';
 import PaymentMethod from './PaymentMethod';
 
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';
 import { RampType, Region, ScreenLocation } from '@types';

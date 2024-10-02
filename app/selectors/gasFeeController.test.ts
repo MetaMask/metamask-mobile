@@ -3,7 +3,7 @@ import {
   selectGasFeeControllerEstimateType,
   selectGasFeeControllerEstimates,
 } from './gasFeeController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 describe('GasFeeController Selectors', () => {
   describe('selectGasFeeControllerEstimates', () => {

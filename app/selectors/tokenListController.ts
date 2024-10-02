@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { TokenListState } from '@metamask/assets-controllers';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { tokenListToArray } from '@util/tokens';
 import { createDeepEqualSelector } from '@selectors/util';
 

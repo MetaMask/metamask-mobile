@@ -9,7 +9,7 @@ import {
   AllProperties,
 } from './utils';
 import { DeepPartial } from '@util/test/renderWithProvider';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { NetworkStatus } from '@metamask/network-controller';
 
 jest.mock('@sentry/react-native', () => ({

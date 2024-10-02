@@ -76,7 +76,7 @@ import Text, {
   TextColor,
 } from '@component-library/components/Texts/Text';
 import { useMetrics } from '@components/hooks/useMetrics';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import usePrevious from '@components/hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '@selectors/accountsController';
 import { selectAccountBalanceByChainId } from '@selectors/accountTrackerController';

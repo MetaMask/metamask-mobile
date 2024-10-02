@@ -1,6 +1,6 @@
 import React from 'react';
 import OptIn from '.';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { backgroundState } from '@util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,

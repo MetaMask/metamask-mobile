@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import Engine from '@core/Engine';
 import Logger from '@util/Logger';
 import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import handleBatchRpcResponse from '@core/SDKConnect/handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '@core/SDKConnect/handlers/handleCustomRpcCalls';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
@@ -13,7 +13,7 @@ import { DappClient } from '@AndroidSDK/dapp-sdk-types';
 import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('react-native');
 jest.mock('@core/BackgroundBridge/BackgroundBridge');
 jest.mock('@core/SDKConnect/utils/DevLogger');

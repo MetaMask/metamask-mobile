@@ -16,7 +16,7 @@ import Engine from '@core/Engine';
 
 import TestHelpers from '@e2e/helpers';
 import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 

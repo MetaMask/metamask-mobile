@@ -9,7 +9,7 @@ import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from './useSwitchNotifications';
-import * as Actions from '@util/actions/notification/helpers';
+import * as Actions from '@actions/notification/helpers';
 import initialRootState from '@util/test/initial-root-state';
 import Engine from '@core/Engine';
 import * as Selectors from '@selectors/notifications';

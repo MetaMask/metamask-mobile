@@ -1,6 +1,6 @@
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { store } from '@store/index';
-import { ConnectionProps } from '@Connection';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 async function loadDappConnections(): Promise<{

@@ -1,7 +1,7 @@
 import pause from './pause';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('pause', () => {

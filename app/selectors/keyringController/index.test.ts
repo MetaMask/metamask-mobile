@@ -1,5 +1,5 @@
 import { selectKeyrings, selectFlattenedKeyringAccounts } from './index';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import {
   MOCK_SIMPLE_ACCOUNTS,
   MOCK_QR_ACCOUNTS,

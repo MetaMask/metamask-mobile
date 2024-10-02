@@ -8,7 +8,7 @@ import {
   internalAccount1,
   internalAccount2,
 } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Identity } from './036';
 

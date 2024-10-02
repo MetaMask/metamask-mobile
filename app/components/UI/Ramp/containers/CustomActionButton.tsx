@@ -6,7 +6,7 @@ import {
 } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '@components/CustomActionButton';
 import { useRampSDK } from '@sdk';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import useInAppBrowser from '@components/hooks/useInAppBrowser';
 import Logger from '@util/Logger';
 import { createCheckoutNavDetails } from '@components/Views/Checkout';

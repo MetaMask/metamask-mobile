@@ -18,7 +18,7 @@ import { TESTID_ACCORDION_CONTENT } from '@component-library/components/Accordio
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 jest.mock('@util/transactions', () => ({
   ...jest.requireActual('@util/transactions'),

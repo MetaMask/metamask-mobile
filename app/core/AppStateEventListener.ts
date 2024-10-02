@@ -1,6 +1,6 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { Store } from 'redux';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import Logger from '@util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { processAttribution } from './processAttribution';

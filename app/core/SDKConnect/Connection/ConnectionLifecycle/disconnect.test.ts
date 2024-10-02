@@ -1,9 +1,9 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import disconnect from './disconnect';
 
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('@util/Logger');
 jest.mock('@core/SDKConnect/utils/DevLogger');

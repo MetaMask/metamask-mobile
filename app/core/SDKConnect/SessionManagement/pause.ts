@@ -1,5 +1,5 @@
 import { disconnectAll } from '@actions/sdk';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { store } from '@store/index';
 

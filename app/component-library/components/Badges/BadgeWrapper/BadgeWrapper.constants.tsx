@@ -3,8 +3,8 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import Badge, { BadgeVariant } from '@Badge';
-import { SAMPLE_BADGENETWORK_PROPS } from '@Badge/variants/BadgeNetwork/BadgeNetwork.constants';
+import Badge, { BadgeVariant } from '@component-library/components/Badges/Badge';
+import { SAMPLE_BADGENETWORK_PROPS } from '@component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 import { mockTheme } from '@util/theme';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 

@@ -2,7 +2,7 @@ import type { InternalAccount } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Notification } from '@util/notifications/types/notification';
 
-import { MarkAsReadNotificationsParam } from '@util/actions/notification/helpers';
+import { MarkAsReadNotificationsParam } from '@actions/notification/helpers';
 
 export interface UseCreateSessionReturn {
   createSession: () => Promise<void>;

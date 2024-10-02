@@ -1,4 +1,4 @@
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { createSelector } from 'reselect';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 

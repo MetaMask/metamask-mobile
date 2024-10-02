@@ -2,14 +2,14 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { MessageType, OriginatorInfo } from '@metamask/sdk-communication-layer';
 import AppConstants from '@core/AppConstants';
 import Logger from '@util/Logger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import checkPermissions from './checkPermissions';
 import handleSendMessage from './handleSendMessage';
 
 import { providerErrors } from '@metamask/rpc-errors';
 import Engine from '@core/Engine';
-import { approveHostProps } from '@SDKConnect';
+import { approveHostProps } from '@core/SDKConnect/SDKConnect';
 import generateOTP from '@core/SDKConnect/utils/generateOTP.util';
 import { setupBridge } from './setupBridge';
 import { HOUR_IN_MS } from '@core/SDKConnect/SDKConnectConstants';

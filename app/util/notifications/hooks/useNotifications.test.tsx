@@ -12,11 +12,11 @@ import {
   useDisableNotifications,
   useMarkNotificationAsRead,
 } from './useNotifications';
-import { TRIGGER_TYPES } from '@util/constants';
+import { TRIGGER_TYPES } from '@util/notifications/constants';
 import createMockStore from 'redux-mock-store';
 import initialRootState from '@util/test/initial-root-state';
 import * as Selectors from '@selectors/notifications';
-import * as Actions from '@util/actions/notification/helpers';
+import * as Actions from '@actions/notification/helpers';
 import { Provider } from 'react-redux';
 import {
   createMockNotificationEthReceived,

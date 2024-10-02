@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import Device from '@util/device';
 import { Minimizer } from '@core/NativeModules';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import { RPC_METHODS } from '@core/SDKConnect/SDKConnectConstants';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { wait } from '@core/SDKConnect/utils/wait.util';

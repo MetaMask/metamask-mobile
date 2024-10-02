@@ -9,9 +9,9 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
-import Row from '@components/Row';
-import ScreenLayout from '@components/ScreenLayout';
-import PaymentMethodIcon from '@components/PaymentMethodIcon';
+import Row from '@components/UI/Ramp/components/Row';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
+import PaymentMethodIcon from '@components/UI/Ramp/components/PaymentMethodIcon';
 import Text, {
   TextColor,
   TextVariant,
@@ -35,7 +35,7 @@ import RemoteImage from '@components/Base/RemoteImage';
 import styleSheet from './SendTransaction.styles';
 import imageIcons from '@images/image-icons';
 
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import {
   getOrderById,
   getProviderName,
@@ -55,9 +55,9 @@ import { addTransaction } from '@util/transaction-controller';
 import { NATIVE_ADDRESS } from '@constants/on-ramp';
 import { safeToChecksumAddress } from '@util/address';
 import { generateTransferData } from '@util/transactions';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
-import { RAMPS_SEND } from '@constants';
+import { RAMPS_SEND } from '@components/UI/Ramp/constants';
 
 interface SendTransactionParams {
   orderId?: string;

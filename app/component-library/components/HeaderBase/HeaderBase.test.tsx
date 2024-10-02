@@ -5,7 +5,7 @@ import { render } from '@testing-library/react-native';
 // External dependencies.
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { mockTheme } from '@util/theme';
-import { getFontStyleVariant, FontWeight } from '@Texts/Text/Text.utils';
+import { getFontStyleVariant, FontWeight } from '@component-library/components/Texts/Text/Text.utils';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';

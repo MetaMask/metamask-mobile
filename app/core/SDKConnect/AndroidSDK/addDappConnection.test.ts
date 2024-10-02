@@ -1,9 +1,9 @@
-import { ConnectionProps } from '@Connection';
-import SDKConnect from '@SDKConnect';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import addDappConnection from './addDappConnection';
 
-jest.mock('@Connection');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/Connection');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue(''),

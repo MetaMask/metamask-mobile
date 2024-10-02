@@ -11,7 +11,7 @@ import { ResultType, Reason } from './BlockaidBanner.types';
 import renderWithProvider, {
   DeepPartial,
 } from '@util/test/renderWithProvider';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 jest.mock('@util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),

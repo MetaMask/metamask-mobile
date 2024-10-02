@@ -35,7 +35,7 @@ import Row from '@Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '@component-library/hooks';
 import { isBuyQuote } from '@utils';
-import { RampType } from '@types';
+import { RampType } from '@components/UI/Ramp/types';
 // TODO: Convert into typescript and correctly type optionals
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

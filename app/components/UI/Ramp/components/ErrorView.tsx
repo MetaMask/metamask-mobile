@@ -7,9 +7,9 @@ import Text from '@components/Base/Text';
 import StyledButton from '@components/UI/StyledButton';
 import { strings } from '@locales/i18n';
 import { Colors } from '@util/theme/models';
-import { ScreenLocation } from '@types';
-import useAnalytics from '@components/hooks/useAnalytics';
-import { useRampSDK } from '@sdk';
+import { ScreenLocation } from '@components/UI/Ramp/types';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 
 type IconType = 'error' | 'info' | 'expired';
 

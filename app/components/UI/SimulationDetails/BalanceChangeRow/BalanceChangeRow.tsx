@@ -6,10 +6,10 @@ import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
 import { useStyles } from '@components/hooks/useStyles';
-import { BalanceChange } from '@types';
-import AmountPill from '@AmountPill/AmountPill';
-import AssetPill from '@AssetPill/AssetPill';
-import { IndividualFiatDisplay } from '@FiatDisplay/FiatDisplay';
+import { BalanceChange } from '@components/UI/SimulationDetails/types';
+import AmountPill from '@components/UI/SimulationDetails/AmountPill/AmountPill';
+import AssetPill from '@components/UI/SimulationDetails/AssetPill/AssetPill';
+import { IndividualFiatDisplay } from '@components/UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeRow.styles';
 
 interface BalanceChangeRowProperties extends ViewProps {

@@ -1,4 +1,4 @@
-import { Connection, ConnectionProps } from '@Connection';
+import { Connection, ConnectionProps } from '@core/SDKConnect/Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
 import connectToChannel from './connectToChannel';
@@ -8,7 +8,7 @@ jest.mock('@store/storage-wrapper', () => ({
   getItem: jest.fn().mockResolvedValue(''),
 }));
 jest.mock('@core/AppConstants');
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('./../SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@core/SDKConnect/SDKConnectConstants');

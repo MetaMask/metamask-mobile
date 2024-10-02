@@ -3,7 +3,7 @@ import { removeApprovedHost, removeConnection } from '@actions/sdk';
 import { store } from '@store/index';
 import AppConstants from '@core/AppConstants';
 import Engine from '@core/Engine';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 async function removeChannel({

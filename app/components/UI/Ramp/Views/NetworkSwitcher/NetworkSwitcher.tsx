@@ -11,9 +11,9 @@ import { ChainId, toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
-import ScreenLayout from '@components/ScreenLayout';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import ErrorView from '@components/ErrorView';
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 
 import Avatar, {
   AvatarSize,
@@ -28,7 +28,7 @@ import { Network } from '@components/Views/Settings/NetworksSettings/NetworkSett
 import useFetchRampNetworks from '@components/hooks/useFetchRampNetworks';
 import useRampNetwork from '@components/hooks/useRampNetwork';
 import useRampNetworksDetail from '@components/hooks/useRampNetworksDetail';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import { getRampNetworks } from '@reducers/fiatOrders';
 import { useRampSDK } from '@sdk';
 import { isNetworkRampSupported } from '@utils';

@@ -3,7 +3,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '@util/theme/models';
-import { TextColor } from '@Text/Text.types';
+import { TextColor } from '@component-library/components/Texts/Text/Text.types';
 
 // Internal dependencies.
 import { TextWithPrefixIconStyleSheetVars } from './TextWithPrefixIcon.types';

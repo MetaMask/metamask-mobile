@@ -15,7 +15,7 @@ import AvatarBase from '@component-library/components/Avatars/Avatar/foundation/
 import Text from '@component-library/components/Texts/Text';
 import { useStyles } from '@component-library/hooks';
 import styleSheet from './SnapAvatar.styles';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import { ViewStyle } from 'react-native';
 

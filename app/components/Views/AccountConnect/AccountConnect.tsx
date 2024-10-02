@@ -57,7 +57,7 @@ import {
 import AppConstants from '@core/AppConstants';
 import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { trackDappViewedEvent } from '@util/metrics';
 import { useTheme } from '@util/theme';
 import useFavicon from '@components/hooks/useFavicon/useFavicon';

@@ -7,7 +7,7 @@ import NetworkSwitcher from '@components/Views/NetworkSwitcher';
 import GetStarted from '@components/Views/GetStarted';
 import CheckoutWebView from '@components/Views/Checkout';
 import BuildQuote from '@components/Views/BuildQuote';
-import { RampType } from '@types';
+import { RampType } from '@components/UI/Ramp/types';
 import { RampSDKProvider } from '@sdk';
 import Routes from '@constants/navigation/Routes';
 import { colors } from './../../../../styles/common';

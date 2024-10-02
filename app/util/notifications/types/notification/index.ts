@@ -1,6 +1,6 @@
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import type { FC } from 'react';
-import { TRIGGER_TYPES } from '@util/constants';
+import { TRIGGER_TYPES } from '@util/notifications/constants';
 
 /**
  * The shape of a "generic" notification.

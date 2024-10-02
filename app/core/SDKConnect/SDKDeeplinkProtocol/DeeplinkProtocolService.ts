@@ -12,7 +12,7 @@ import { DappClient, DappConnections } from '@AndroidSDK/dapp-sdk-types';
 import getDefaultBridgeParams from '@AndroidSDK/getDefaultBridgeParams';
 import BatchRPCManager from '@core/SDKConnect/BatchRPCManager';
 import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import {
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,

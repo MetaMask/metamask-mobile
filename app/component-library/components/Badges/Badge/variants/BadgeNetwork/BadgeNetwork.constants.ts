@@ -5,7 +5,7 @@ import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import {
   SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL,
   SAMPLE_AVATARNETWORK_NAME,
-} from '@Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+} from '@component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
 import { BadgeNetworkProps } from './BadgeNetwork.types';

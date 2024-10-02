@@ -1,4 +1,4 @@
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import handleClientsDisconnected from './handleClientsDisconnected';
 
 jest.mock('@core/SDKConnect/utils/DevLogger');

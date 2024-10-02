@@ -5,11 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import useThunkDispatch from '@components/hooks/useThunkDispatch';
-import ScreenLayout from '@components/ScreenLayout';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import OrderDetail from '@components/OrderDetails';
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 import StyledButton from '@components/UI/StyledButton';
 import {
   getOrderById,
@@ -25,7 +25,7 @@ import {
 } from '@util/navigation/navUtils';
 import { useTheme } from '@util/theme';
 import Logger from '@util/Logger';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { FIAT_ORDER_STATES } from '@constants/on-ramp';
 import ErrorView from '@components/ErrorView';
 import useInterval from '@components/hooks/useInterval';

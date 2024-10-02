@@ -21,7 +21,7 @@ import Button, {
   ButtonWidthTypes,
 } from '@component-library/components/Buttons/Button';
 
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 import useActivationKeys from '@components/hooks/useActivationKeys';

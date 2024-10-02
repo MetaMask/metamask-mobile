@@ -92,7 +92,7 @@ import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selecto
 import { zeroAddress } from 'ethereumjs-util';
 import PercentageChange from '@component-library/components-temp/Price/PercentageChange';
 import AggregatedPercentage from '@component-library/components-temp/Price/AggregatedPercentage';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { Hex } from '@metamask/utils';
 import { isPooledStakingFeatureEnabled } from '@Stake/constants';
 

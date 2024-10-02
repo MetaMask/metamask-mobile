@@ -3,8 +3,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import Row from '@components/Row';
-import ScreenLayout from '@components/ScreenLayout';
+import Row from '@components/UI/Ramp/components/Row';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';

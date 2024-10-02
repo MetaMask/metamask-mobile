@@ -1,7 +1,7 @@
 import { strings } from '@locales/i18n';
 import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
-import { TRIGGER_TYPES } from '@util/constants';
+import { TRIGGER_TYPES } from '@util/notifications/constants';
 import { ExtractedNotification } from '@util/node-guard';
 import { Notification } from '@util/notifications';
 

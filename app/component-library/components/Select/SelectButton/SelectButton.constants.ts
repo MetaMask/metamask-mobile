@@ -11,7 +11,7 @@ import {
 } from '@component-library/components/Icons/Icon';
 import { VerticalAlignment } from '@List/ListItem';
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
-import { SAMPLE_AVATAR_PROPS } from '@Avatars/Avatar/Avatar.constants';
+import { SAMPLE_AVATAR_PROPS } from '@component-library/components/Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.
 import {

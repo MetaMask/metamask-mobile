@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import LearnMoreModal from '.';
-import { POOLED_STAKING_FAQ_URL } from '@constants';
+import { POOLED_STAKING_FAQ_URL } from '@components/UI/Stake/constants';
 import Routes from '@constants/navigation/Routes';
 import { renderScreen } from '@util/test/renderWithProvider';
 import { strings } from '@locales/i18n';

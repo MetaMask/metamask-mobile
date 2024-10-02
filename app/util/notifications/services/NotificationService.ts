@@ -4,9 +4,9 @@ import notifee, {
   EventType,
   EventDetail,
   AndroidChannel,
-} from '@util/notifee/react-native';
+} from '@notifee/react-native';
 
-import { Notification } from '@util/types';
+import { Notification } from '@util/notifications/types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -15,11 +15,11 @@ import {
 } from '@util/notifications/androidChannels';
 
 import { strings } from '@locales/i18n';
-import { mmStorage } from '@util/settings';
-import { STORAGE_IDS } from '@util/settings/storage/constants';
+import { mmStorage } from '@util/notifications';
+import { STORAGE_IDS } from '@util/notifications/settings/storage/constants';
 import { store } from '@store/index';
 import Logger from '@util/Logger';
-import { withTimeout } from '@util/methods';
+import { withTimeout } from '@util/notifications/methods';
 
 interface AlertButton {
   text: string;

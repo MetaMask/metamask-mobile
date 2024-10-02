@@ -8,7 +8,7 @@ import Text from '@components/Base/Text';
 import BaseListItem from '@components/Base/ListItem';
 import useModalHandler from '@components/Base/hooks/useModalHandler';
 
-import ScreenLayout from '@components/ScreenLayout';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import Box from '@components/Box';
 import RegionModal from '@components/RegionModal';
 import RegionAlert from '@components/RegionAlert';
@@ -26,7 +26,7 @@ import { createPaymentMethodsNavDetails } from '@PaymentMethods/PaymentMethods';
 
 import { useRampSDK } from '@sdk';
 import { Region } from '@types';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import useRegions from '@components/hooks/useRegions';
 
 // TODO: Convert into typescript and correctly type

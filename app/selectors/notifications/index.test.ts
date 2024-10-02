@@ -16,7 +16,7 @@ import {
   getMetamaskNotificationsReadCount,
   getOnChainMetamaskNotificationsUnreadCount,
 } from './index';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import {
   MOCK_AUTHENTICATION_CONTROLLER,
   MOCK_USER_STORAGE_CONTROLLER,

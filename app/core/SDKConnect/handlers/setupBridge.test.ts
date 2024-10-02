@@ -1,12 +1,12 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '@constants/deeplinks';
 import BackgroundBridge from '@core/BackgroundBridge/BackgroundBridge';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import setupBridge from './setupBridge';
 
 jest.mock('@core/BackgroundBridge/BackgroundBridge');
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('./handleSendMessage');
 jest.mock('@util/Logger');

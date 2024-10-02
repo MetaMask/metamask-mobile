@@ -1,6 +1,6 @@
 import BackgroundTimer from 'react-native-background-timer';
 import Device from '@util/device';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import handleAppState from './handleAppState';
 
 jest.mock('@metamask/keyring-controller');
@@ -13,7 +13,7 @@ jest.mock('react-native-background-timer', () => ({
 jest.mock('@core');
 jest.mock('@util/Logger');
 jest.mock('@util/device');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/wait.util');
 
 describe('handleAppState', () => {

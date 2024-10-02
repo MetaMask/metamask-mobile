@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux';
 import { selectIsProfileSyncingEnabled } from '@selectors/notifications';
 import { isNotificationsFeatureEnabled } from '@util/notifications';
 import { enableProfileSyncing } from '@actions/notification/helpers';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { MetaMetricsEvents, useMetrics } from '@components/hooks/useMetrics';
 
 const DefaultSettings = () => {

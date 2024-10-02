@@ -10,7 +10,7 @@ import OriginSpamModal, {
   BLOCK_BUTTON_TEST_ID,
   CONTINUE_BUTTON_TEST_ID,
 } from './OriginSpamModal';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

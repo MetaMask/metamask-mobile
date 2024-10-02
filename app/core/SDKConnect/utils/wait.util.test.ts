@@ -1,8 +1,8 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { DappClient } from '@AndroidSDK/dapp-sdk-types';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
-import { SDKConnect } from '@SDKConnect';
+import { SDKConnect } from '@core/SDKConnect/SDKConnect';
 import {
   waitForAndroidServiceBinding,
   waitForAsyncCondition,
@@ -20,7 +20,7 @@ jest.mock('@store/index', () => ({
   },
 }));
 
-jest.mock('@SDKConnect', () => ({
+jest.mock('@core/SDKConnect/SDKConnect', () => ({
   SDKConnect: {
     getInstance: jest.fn(),
   },

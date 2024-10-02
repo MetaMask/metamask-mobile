@@ -19,7 +19,7 @@ import Routes from '@constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import NotificationsService from '@util/notifications/services/NotificationService';
 import AppConstants from '@core/AppConstants';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { useEnableNotifications } from '@util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '@components/UI/Notification/SwitchLoadingModal';
 import {

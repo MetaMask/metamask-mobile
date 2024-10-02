@@ -1,5 +1,5 @@
 import React from 'react';
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 import SkeletonQuote from '@components/SkeletonQuote';
 
 interface Props {

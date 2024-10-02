@@ -2,10 +2,10 @@ import { KeyringController } from '@metamask/keyring-controller';
 import Engine from '@core/Engine';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { waitForKeychainUnlocked } from '@core/SDKConnect/utils/wait.util';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import handleClientsConnected from './handleClientsConnected';
 
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@metamask/keyring-controller');
 jest.mock('@util/Logger');
 jest.mock('@core');

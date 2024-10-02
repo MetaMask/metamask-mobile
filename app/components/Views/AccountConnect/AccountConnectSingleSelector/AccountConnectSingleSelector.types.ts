@@ -1,7 +1,7 @@
 // External dependencies.
 import { UseAccounts } from '@components/hooks/useAccounts';
 import { USER_INTENT } from '@constants/permissions';
-import { AccountConnectScreens } from '@AccountConnect.types';
+import { AccountConnectScreens } from '@components/Views/AccountConnect.types';
 
 /**
  * AccountConnectSingleSelector props.

@@ -8,7 +8,7 @@ import useBalance from '@components/UI/Ramp/hooks/useBalance';
 import { toTokenMinimalUnit } from '@util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 

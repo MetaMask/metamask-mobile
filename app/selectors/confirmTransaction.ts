@@ -1,5 +1,5 @@
 import { selectTransactions } from './transactionController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { selectGasFeeControllerEstimates } from './gasFeeController';
 import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';

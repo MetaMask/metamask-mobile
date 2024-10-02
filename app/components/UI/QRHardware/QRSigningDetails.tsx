@@ -22,7 +22,7 @@ import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { fontStyles } from '@styles/common';
 import AccountInfoCard from '@components/UI/AccountInfoCard';
-import ActionView from '@ActionView';
+import ActionView from '@components/UI/ActionView';
 import { IQRState } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';

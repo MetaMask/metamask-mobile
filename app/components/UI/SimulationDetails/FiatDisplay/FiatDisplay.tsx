@@ -8,7 +8,7 @@ import Text, {
 } from '@component-library/components/Texts/Text';
 import { strings } from '@locales/i18n';
 import useFiatFormatter from './useFiatFormatter';
-import { FIAT_UNAVAILABLE, FiatAmount } from '@types';
+import { FIAT_UNAVAILABLE, FiatAmount } from '@components/UI/SimulationDetails/types';
 import useHideFiatForTestnet from '@components/hooks/useHideFiatForTestnet';
 
 const styleSheet = () =>

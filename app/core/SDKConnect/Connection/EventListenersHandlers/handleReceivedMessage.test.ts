@@ -1,11 +1,11 @@
 import handleReceivedMessage from './handleReceivedMessage';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import Logger from '@util/Logger';
 import Engine from '@core/Engine';
 import { handleConnectionMessage } from '@core/SDKConnect/handlers/handleConnectionMessage';
 
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('@util/Logger');
 jest.mock('@core');

@@ -4,7 +4,7 @@ import {
   TextVariant,
   TextColor,
 } from '@component-library/components/Texts/Text';
-import { SAMPLE_AVATAR_PROPS } from '@Avatars/Avatar/Avatar.constants';
+import { SAMPLE_AVATAR_PROPS } from '@component-library/components/Avatars/Avatar/Avatar.constants';
 
 // Internal dependencies.
 import { SelectValueProps } from './SelectValue.types';

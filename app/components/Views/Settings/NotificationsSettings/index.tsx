@@ -5,7 +5,7 @@ import { ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
@@ -48,7 +48,7 @@ import {
 } from '@util/notifications/hooks/useSwitchNotifications';
 import styleSheet from './NotificationsSettings.styles';
 import AppConstants from '@core/AppConstants';
-import notificationsRows from './notificationsRows';
+import notificationsRows from '@components/Views/Settings/NotificationsSettings/notificationsRows';
 import { IconName } from '@component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '@core/Analytics/MetaMetrics.events';
 

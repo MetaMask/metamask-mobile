@@ -5,8 +5,8 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import Icon from '@Icons/Icon/Icon';
-import Avatar from '@Avatars/Avatar/Avatar';
+import Icon from '@component-library/components/Icons/Icon/Icon';
+import Avatar from '@component-library/components/Avatars/Avatar/Avatar';
 
 // Internal dependencies.
 import styleSheet from './SelectButton.styles';

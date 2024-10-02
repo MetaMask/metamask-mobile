@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
-import AccountAction from '@AccountAction/AccountAction';
+import AccountAction from '@components/Views/AccountAction/AccountAction';
 import { IconName } from '@component-library/components/Icons/Icon';
 import { strings } from '@locales/i18n';
 import { MetaMetricsEvents } from '@core/Analytics';

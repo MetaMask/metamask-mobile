@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch, View } from 'react-native';
 import { useTheme } from '@util/theme';
-import { createStyles } from '@NotificationOptionToggle/styles';
+import { createStyles } from '../NotificationOptionToggle/styles';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';

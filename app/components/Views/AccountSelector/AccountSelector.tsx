@@ -33,7 +33,7 @@ import {
 import styles from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '@actions/accounts';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { useMetrics } from '@components/hooks/useMetrics';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {

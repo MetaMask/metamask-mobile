@@ -5,13 +5,13 @@ import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
 import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
-import { TokenI } from '@Tokens/types';
+import { TokenI } from '@components/UI/Tokens/types';
 import generateTestId from '@wdio/utils/generateTestId';
 import { getAssetTestId } from '@wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_RATE_UNDEFINED,
-} from '@Tokens/constants';
+} from '@components/UI/Tokens/constants';
 import { Colors } from '@util/theme/models';
 import { fontStyles } from '@styles/common';
 import { useTheme } from '@util/theme';

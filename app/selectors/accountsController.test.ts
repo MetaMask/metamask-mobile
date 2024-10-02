@@ -17,7 +17,7 @@ import {
   createMockInternalAccount,
   createMockUuidFromAddress,
 } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { AGREED } from '@constants/storage';
 import {
   MOCK_KEYRINGS,

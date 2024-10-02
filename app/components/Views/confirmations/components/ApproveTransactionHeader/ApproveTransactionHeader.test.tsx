@@ -7,7 +7,7 @@ import ApproveTransactionHeader from '.';
 import { backgroundState } from '@util/test/initial-root-state';
 import { APPROVAL_TAG_URL_ORIGIN_PILL } from '@components/UI/ApprovalTagUrl';
 import { createMockAccountsControllerState } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 

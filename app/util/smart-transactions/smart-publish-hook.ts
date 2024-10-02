@@ -22,7 +22,7 @@ import {
 import { v1 as random } from 'uuid';
 import { decimalToHex } from '@util/conversions';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
-import { RAMPS_SEND } from '@util/components/UI/Ramp/constants';
+import { RAMPS_SEND } from '@components/UI/Ramp/constants';
 import { ControllerMessenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '@util/swaps/swaps-transactions';
 

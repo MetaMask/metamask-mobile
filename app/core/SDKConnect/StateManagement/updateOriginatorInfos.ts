@@ -1,7 +1,7 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { resetConnections } from '@actions/sdk';
 import { store } from '@store/index';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 function updateOriginatorInfos({

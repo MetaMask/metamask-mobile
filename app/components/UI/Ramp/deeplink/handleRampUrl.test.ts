@@ -1,5 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { RampType } from '@types';
+import { RampType } from '@components/UI/Ramp/types';
 import Routes from '@constants/navigation/Routes';
 import handleRampUrl from './handleRampUrl';
 import handleRedirection from './handleRedirection';

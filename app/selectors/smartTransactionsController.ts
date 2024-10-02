@@ -1,6 +1,6 @@
 import { NETWORKS_CHAIN_ID } from '@constants/network';
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { swapsSmartTxFlagEnabled } from '@reducers/swaps';
 import { isHardwareAccount } from '@util/address';
 import { selectChainId, selectProviderConfig } from './networkController';

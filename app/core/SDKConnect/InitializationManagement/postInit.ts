@@ -1,7 +1,7 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import Engine from '@core/Engine';
 import { AppState } from 'react-native';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import {
   wait,

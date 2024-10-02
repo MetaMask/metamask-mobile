@@ -6,7 +6,7 @@ import {
   deleteOnChainTriggersByAccount,
   setFeatureAnnouncementsEnabled,
   updateOnChainTriggersByAccount,
-} from '@util/actions/notification/helpers';
+} from '@actions/notification/helpers';
 import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '@core/Engine';
 import { useDispatch, useSelector } from 'react-redux';

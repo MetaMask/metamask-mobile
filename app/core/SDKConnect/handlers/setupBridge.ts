@@ -7,7 +7,7 @@ import getRpcMethodMiddleware, {
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '@constants/deeplinks';
 import Logger from '@util/Logger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import handleSendMessage from './handleSendMessage';
 

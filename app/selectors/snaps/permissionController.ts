@@ -1,4 +1,4 @@
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { memoize } from 'lodash';
 import { SubjectType } from '@metamask/permission-controller';
 

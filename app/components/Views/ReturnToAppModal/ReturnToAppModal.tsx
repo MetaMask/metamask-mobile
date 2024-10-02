@@ -4,13 +4,13 @@ import React, { useRef } from 'react';
 // External dependencies.
 import { strings } from '@locales/i18n';
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
-import styleSheet from '@AccountConnect/AccountConnectSingle/AccountConnectSingle.styles';
+import styleSheet from '@components/Views/AccountConnect/AccountConnectMultiSelector/AccountConnectMultiSelector.styles';
 import { useStyles } from '@component-library/hooks';
 import Text from '@component-library/components/Texts/Text';
 import BottomSheet from '@component-library/components/BottomSheets/BottomSheet';
 
 const ReturnToAppModal = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet: true });
 
   const sheetRef = useRef(null);
 

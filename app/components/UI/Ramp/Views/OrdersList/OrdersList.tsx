@@ -7,7 +7,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '@OrderDetails/OrderDetails';
 import OrderListItem from '@components/OrderListItem';
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 import createStyles from './OrdersList.styles';
 
 import Button, {

@@ -5,7 +5,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '@util/test/renderWithProvider';
 import EditGasFeeLegacyUpdate from '.';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const mockInitialState: (
   txnType?: 'none' | 'eth_gasPrice' | 'fee-market' | 'legacy' | undefined,

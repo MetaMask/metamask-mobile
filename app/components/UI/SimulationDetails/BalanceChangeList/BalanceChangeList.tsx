@@ -3,10 +3,10 @@ import React, { useMemo } from 'react';
 import { View, ViewProps } from 'react-native';
 
 import { useStyles } from '@components/hooks/useStyles';
-import { sortBalanceChanges } from '@sortBalanceChanges';
-import BalanceChangeRow from '@BalanceChangeRow/BalanceChangeRow';
-import { BalanceChange } from '@types';
-import { TotalFiatDisplay } from '@FiatDisplay/FiatDisplay';
+import { sortBalanceChanges } from '@components/helpers/sortBalanceChanges';
+import BalanceChangeRow from '@components/UI/SimulationDetails/BalanceChangeRow/BalanceChangeRow';
+import { BalanceChange } from '@components/UI/SimulationDetails/types';
+import { TotalFiatDisplay } from '@components/UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import styleSheet from './BalanceChangeList.styles';
 interface BalanceChangeListProperties extends ViewProps {
   heading: string;

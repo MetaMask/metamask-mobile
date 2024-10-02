@@ -8,7 +8,7 @@ import SwapCompletedState from './swap-completed/swap-completed';
 import LidoWithdrawalRequestedState from './lido-withdrawal-requested/lido-withdrawal-requested';
 import LidoStakeReadyToBeWithdrawnState from './lido-stake-ready-to-be-withdrawn/lido-stake-ready-to-be-withdrawn';
 import { NotificationState } from './types/NotificationState';
-import { TRIGGER_TYPES } from '@util/constants';
+import { TRIGGER_TYPES } from '@util/notifications/constants';
 
 /**
  * Each notification component has a specific shape it follows.

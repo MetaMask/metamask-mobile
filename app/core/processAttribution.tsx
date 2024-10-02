@@ -1,5 +1,5 @@
 import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { Store } from 'redux';
 
 interface ProcessAttributionParams {

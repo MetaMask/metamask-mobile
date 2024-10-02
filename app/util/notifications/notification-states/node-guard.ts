@@ -1,4 +1,4 @@
-import { TRIGGER_TYPES } from '@util/constants';
+import { TRIGGER_TYPES } from '@util/notifications/constants';
 import { Notification } from '@util/types';
 
 /**

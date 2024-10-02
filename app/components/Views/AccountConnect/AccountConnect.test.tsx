@@ -4,7 +4,7 @@ import renderWithProvider, {
 } from '@util/test/renderWithProvider';
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '@util/test/initial-root-state';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const mockedNavigate = jest.fn();
 const mockedTrackEvent = jest.fn();

@@ -3,7 +3,7 @@ import Logger from '@util/Logger';
 import Engine from '@core/Engine';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { waitForKeychainUnlocked } from '@core/SDKConnect/utils/wait.util';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 
 function handleClientsConnected(instance: Connection) {
   return async () => {

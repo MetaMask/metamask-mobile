@@ -2,7 +2,7 @@
 import { StyleProp, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
+import { AvatarProps } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 /**
  * Cell Account component props.

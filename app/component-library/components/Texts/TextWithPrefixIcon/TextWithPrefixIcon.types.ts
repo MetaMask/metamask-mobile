@@ -1,5 +1,5 @@
 // External dependencies.
-import { TextProps, TextColor } from '@Text/Text.types';
+import { TextProps, TextColor } from '@component-library/components/Texts/Text/Text.types';
 import { IconProps } from '@component-library/components/Icons/Icon';
 
 /**

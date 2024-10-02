@@ -13,7 +13,7 @@ import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
 import { selectGasFeeEstimates } from '@selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '@/selectors/gasFeeController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { selectPrimaryCurrency } from '@/selectors/settings';
 
 const CustomGasModal = ({

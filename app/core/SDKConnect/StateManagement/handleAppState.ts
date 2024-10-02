@@ -3,7 +3,7 @@ import Engine from '@core/Engine';
 import Logger from '@util/Logger';
 import Device from '@util/device';
 import BackgroundTimer from 'react-native-background-timer';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import { TIMEOUT_PAUSE_CONNECTIONS } from '@core/SDKConnect/SDKConnectConstants';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import {

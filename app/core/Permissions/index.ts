@@ -3,7 +3,7 @@ import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '@core/Engine';
 import Logger from '@util/Logger';
 import { getUniqueList } from '@util/general';
-import TransactionTypes from '@TransactionTypes';
+import TransactionTypes from '@core/TransactionTypes';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 

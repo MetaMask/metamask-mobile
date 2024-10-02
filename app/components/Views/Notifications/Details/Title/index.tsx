@@ -4,8 +4,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import NotificationsDetailViewSelectorsIDs from '@constants';
-import useStyles from '@useStyles';
+import NotificationsDetailViewSelectorsIDs from '@components/Views/Notifications/constants';
+import useStyles from '../useStyles';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const { styles } = useStyles();

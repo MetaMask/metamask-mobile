@@ -1,6 +1,6 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
 import Logger from '@util/Logger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 
 function sendAuthorized({
   force,

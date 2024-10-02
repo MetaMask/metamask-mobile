@@ -8,7 +8,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import * as Selectors from '@selectors/notifications';
-import * as Actions from '@util/actions/notification/helpers';
+import * as Actions from '@actions/notification/helpers';
 import useCreateSession from './useCreateSession';
 
 function arrangeStore() {

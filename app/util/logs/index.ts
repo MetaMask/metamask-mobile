@@ -9,7 +9,7 @@ import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 import Logger from '@util/Logger';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import Device from '@util/device';
 
 // TODO: Replace "any" with type

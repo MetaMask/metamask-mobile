@@ -20,7 +20,7 @@ import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '@selectors/accountsController';
 import { toLowerCaseEquals } from '@util/general';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import AddressFrom from './AddressFrom';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {

@@ -30,10 +30,10 @@ import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
 import TextLegacy from '@components/Base/Text';
-import ScreenLayout from '@components/ScreenLayout';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
 import ErrorView from '@components/ErrorView';
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 import Quote from '@components/Quote';
 import InfoAlert from '@components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
@@ -53,7 +53,7 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import useQuotes from '@components/hooks/useQuotes';
 import { useRampSDK } from '@sdk';
 import { useStyles } from '@component-library/hooks';

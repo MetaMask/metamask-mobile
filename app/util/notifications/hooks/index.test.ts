@@ -2,13 +2,13 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import notifee, {
   EventType,
   Event as NotifeeEvent,
-} from '@util/notifee/react-native';
+} from '@notifee/react-native';
 
 import useNotificationHandler from './index';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '@constants/navigation/Routes';
 import { Notification } from '@util/notifications/types';
-import { TRIGGER_TYPES } from '@util/constants';
+import { TRIGGER_TYPES } from '@util/notifications/constants';
 
 jest.mock('@util/device');
 jest.mock('@core/NotificationManager', () => ({

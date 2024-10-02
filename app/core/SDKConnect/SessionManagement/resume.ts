@@ -1,4 +1,4 @@
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { wait } from '@core/SDKConnect/utils/wait.util';
 

@@ -1,11 +1,11 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
-import { Connection } from '@Connection';
-import SDKConnect from '@SDKConnect';
+import { Connection } from '@core/SDKConnect/Connection';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import watchConnection from './watchConnection';
 
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('@Connection');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/Connection');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/AppConstants');
 jest.mock('@util/Logger');
 jest.mock('@core/SDKConnect/utils/DevLogger');

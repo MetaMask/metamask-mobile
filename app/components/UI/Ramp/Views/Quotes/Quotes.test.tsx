@@ -26,7 +26,7 @@ import useQuotes from '@components/hooks/useQuotes';
 
 import Routes from '@constants/navigation/Routes';
 import { backgroundState } from '@util/test/initial-root-state';
-import { RampType } from '@types';
+import { RampType } from '@components/UI/Ramp/types';
 
 function render(Component: React.ComponentType) {
   return renderScreen(

@@ -1,5 +1,5 @@
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 
 function handleClientsWaiting({ instance }: { instance: Connection }) {
   return () => {

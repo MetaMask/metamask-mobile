@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseListItem from '@components/Base/ListItem';
-import Row from '@components/Row';
+import Row from '@components/UI/Ramp/components/Row';
 import SkeletonText from '@components/SkeletonText';
 
 // TODO: Replace "any" with type

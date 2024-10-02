@@ -25,7 +25,7 @@ import Device from '@util/device';
 import StorageWrapper from '@store/storage-wrapper';
 import { isTest } from '@util/test/utils';
 import { useMetrics } from '@components/hooks/useMetrics';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({

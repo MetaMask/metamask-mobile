@@ -14,9 +14,9 @@ import {
   renderNumber,
   toTokenMinimalUnit,
 } from '@util/number';
-import { RampType } from '@types';
+import { RampType } from '@components/UI/Ramp/types';
 import { getOrders, FiatOrder } from '@reducers/fiatOrders';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { FIAT_ORDER_STATES } from '@constants/on-ramp';
 import { strings } from '@locales/i18n';
 import { getDecimalChainId } from '@util/networks';

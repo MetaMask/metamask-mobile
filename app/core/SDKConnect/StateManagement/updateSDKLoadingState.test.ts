@@ -1,8 +1,8 @@
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import { waitForKeychainUnlocked } from '@core/SDKConnect/utils/wait.util';
 import updateSDKLoadingState from './updateSDKLoadingState';
 
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@metamask/keyring-controller');
 jest.mock('@core/SDKConnect/utils/wait.util');

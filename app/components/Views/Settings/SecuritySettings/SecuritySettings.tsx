@@ -125,7 +125,7 @@ import {
 } from '@selectors/notifications';
 import { useProfileSyncing } from '@util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '@components/UI/Notification/SwitchLoadingModal';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '@util/notifications/hooks/useNotifications';
 import { isNotificationsFeatureEnabled } from '@util/notifications';

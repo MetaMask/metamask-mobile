@@ -15,7 +15,7 @@ import Button, {
 } from '@component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '@locales/i18n';
-import { POOLED_STAKING_FAQ_URL } from '@constants';
+import { POOLED_STAKING_FAQ_URL } from '@components/UI/Stake/constants';
 import createLearnMoreModalStyles from './LearnMoreModal.styles';
 
 const styles = createLearnMoreModalStyles();

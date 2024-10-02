@@ -13,7 +13,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { ModalFieldAddress } from '@util/notifications/notification-states/types/NotificationModalDetails';
 import EthereumAddress from '@components/UI/EthereumAddress';
 import useCopyClipboard, {

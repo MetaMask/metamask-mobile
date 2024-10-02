@@ -1,5 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import { wait } from '@core/SDKConnect/utils/wait.util';
 import asyncInit from './asyncInit';
 
@@ -11,7 +11,7 @@ jest.mock('@store/storage-wrapper', () => ({
 }));
 jest.mock('@core/AppConstants');
 jest.mock('@util/Logger');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@core/SDKConnect/utils/wait.util');
 jest.mock('@store', () => ({

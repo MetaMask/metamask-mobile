@@ -5,7 +5,7 @@ import {
 } from '@util/test/renderWithProvider';
 import AccountRightButton from './';
 import { backgroundState } from '@util/test/initial-root-state';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { mockNetworkState } from '@util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 

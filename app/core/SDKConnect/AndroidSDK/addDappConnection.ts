@@ -1,7 +1,7 @@
 import { updateDappConnection } from '@actions/sdk';
 import { store } from '@store/index';
-import { ConnectionProps } from '@Connection';
-import SDKConnect from '@SDKConnect';
+import { ConnectionProps } from '@core/SDKConnect/Connection';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
 async function addDappConnection(

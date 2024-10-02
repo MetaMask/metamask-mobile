@@ -4,10 +4,10 @@ import Routes from '@constants/navigation/Routes';
 import Logger from '@util/Logger';
 import Device from '@util/device';
 import Engine from '@core/Engine';
-import SDKConnect, { approveHostProps } from '@SDKConnect';
+import SDKConnect, { approveHostProps } from '@core/SDKConnect/SDKConnect';
 import handleConnectionReady from '@core/SDKConnect/handlers/handleConnectionReady';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import AppConstants from '@core/AppConstants';
 
 function handleClientsReady({

@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
 import { TokenRatesState } from '@metamask/assets-controllers';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { selectChainId } from './networkController';
 import { Hex } from '@metamask/utils';
 

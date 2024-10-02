@@ -11,7 +11,7 @@ import {
 import Logger from '@util/Logger';
 import Engine from '@core/Engine';
 import { getPermittedAccounts } from '@core/Permissions';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import {
   waitForAsyncCondition,

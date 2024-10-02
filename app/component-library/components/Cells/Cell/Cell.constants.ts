@@ -4,7 +4,7 @@ import {
   AvatarVariant,
   AvatarAccountType,
 } from '@component-library/components/Avatars/Avatar';
-import { AvatarProps } from '@Avatars/Avatar/Avatar.types';
+import { AvatarProps } from '@component-library/components/Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { CellProps } from './Cell.types';

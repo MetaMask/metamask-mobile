@@ -1,7 +1,7 @@
 import { resetApprovedHosts, resetConnections } from '@actions/sdk';
 import { store } from '@store/index';
 import AppConstants from '@core/AppConstants';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 
 function invalidateChannel({
   channelId,

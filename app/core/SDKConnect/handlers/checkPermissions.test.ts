@@ -2,14 +2,14 @@
 import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Engine from '@core/Engine';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import checkPermissions from './checkPermissions';
 import { PermissionController } from '@metamask/permission-controller';
 import { getPermittedAccounts } from '@core/Permissions';
 import { KeyringController } from '@metamask/keyring-controller';
 
-jest.mock('@Connection', () => ({
-  RPC_METHODS: jest.requireActual('@Connection').RPC_METHODS,
+jest.mock('@core/SDKConnect/Connection', () => ({
+  RPC_METHODS: jest.requireActual('@core/SDKConnect/Connection').RPC_METHODS,
 }));
 jest.mock('@core');
 jest.mock('@core/Permissions');

@@ -3,7 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
-import rootReducer, { RootState } from '@reducers';
+import rootReducer, { RootState } from '@reducers/index';
 import EngineService from '@core/EngineService';
 import { Authentication } from '@core';
 import LockManagerService from '@core/LockManagerService';

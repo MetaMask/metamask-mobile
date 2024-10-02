@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import { selectIsSecurityAlertsEnabled } from '@selectors/preferencesController';
 import Engine from '@core/Engine';
 import { MetaMetricsEvents } from '@core/Analytics';
-import SECURITY_ALERTS_TOGGLE_TEST_ID from '@constants';
+import SECURITY_ALERTS_TOGGLE_TEST_ID from '@components/Views/Settings/SecuritySettings/constants';
 import createStyles from './BlockaidSettings.styles';
 import { useMetrics } from '@components/hooks/useMetrics';
 

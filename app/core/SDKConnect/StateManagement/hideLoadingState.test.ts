@@ -1,9 +1,9 @@
 import hideLoadingState from './hideLoadingState'; // Adjust the import path as necessary
 import Routes from '@constants/navigation/Routes';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 
 jest.mock('@constants/navigation/Routes');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 
 describe('hideLoadingState', () => {
   let mockInstance = {} as unknown as SDKConnect;

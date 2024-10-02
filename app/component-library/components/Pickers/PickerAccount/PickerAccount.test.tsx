@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import { AvatarAccountType } from '@Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 // Internal dependencies.
 import PickerAccount from './PickerAccount';

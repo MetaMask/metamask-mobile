@@ -27,7 +27,7 @@ import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectAddressBook } from '@selectors/addressBookController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

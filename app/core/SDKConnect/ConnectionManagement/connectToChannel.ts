@@ -8,7 +8,7 @@ import Device from '@util/device';
 import Engine from '@core/Engine';
 import { Minimizer } from '@core/NativeModules';
 import { getPermittedAccounts } from '@core/Permissions';
-import { Connection, ConnectionProps } from '@Connection';
+import { Connection, ConnectionProps } from '@core/SDKConnect/Connection';
 import checkPermissions from '@core/SDKConnect/handlers/checkPermissions';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '@core/SDKConnect/SDKConnectConstants';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';

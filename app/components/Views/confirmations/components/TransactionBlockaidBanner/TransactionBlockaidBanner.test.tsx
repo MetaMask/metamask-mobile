@@ -8,7 +8,7 @@ import { TESTID_ACCORDIONHEADER } from '@component-library/components/Accordions
 
 import { ResultType, Reason } from '@components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 jest.mock('@core/Engine', () => ({
   context: {

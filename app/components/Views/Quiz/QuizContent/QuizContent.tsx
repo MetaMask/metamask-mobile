@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { IQuizInformationProps } from '@types';
+import { IQuizInformationProps } from '@components/Views/Quiz/types';
 import Icon, {
   IconSize,
   IconName,

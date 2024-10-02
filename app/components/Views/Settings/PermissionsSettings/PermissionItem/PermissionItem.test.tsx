@@ -3,7 +3,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '@util/test/renderWithProvider';
 import { backgroundState } from '@util/test/initial-root-state';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import PermissionItem from './PermissionItem';
 import mockPermissionItems from './PermissionItem.constants';
 

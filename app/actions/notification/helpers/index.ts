@@ -1,6 +1,6 @@
 import { getErrorMessage } from '@metamask/utils';
 
-import { notificationsErrors } from '@constants';
+import { notificationsErrors } from '@actions/notification/constants';
 import Engine from '@core/Engine';
 import { Notification } from '@util/notifications';
 

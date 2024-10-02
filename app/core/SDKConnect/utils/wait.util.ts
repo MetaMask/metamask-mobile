@@ -1,9 +1,9 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { DappClient } from '@AndroidSDK/dapp-sdk-types';
 import RPCQueueManager from '@core/SDKConnect/RPCQueueManager';
-import { SDKConnect } from '@SDKConnect';
+import { SDKConnect } from '@core/SDKConnect/SDKConnect';
 import DevLogger from './DevLogger';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import { isE2E } from '@util/test/utils';
 import { store } from '@store/index';
 

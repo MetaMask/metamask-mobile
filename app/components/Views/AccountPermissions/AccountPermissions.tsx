@@ -20,8 +20,8 @@ import {
   addPermittedAccounts,
   getPermittedAccountsByHostname,
 } from '@core/Permissions';
-import AccountConnectMultiSelector from '@AccountConnect/AccountConnectMultiSelector';
-import NetworkConnectMultiSelector from '@NetworkConnect/NetworkConnectMultiSelector';
+import AccountConnectMultiSelector from '@components/Views/AccountConnect/AccountConnectMultiSelector';
+import NetworkConnectMultiSelector from '@components/Views/NetworkConnect/NetworkConnectMultiSelector';
 import Logger from '@util/Logger';
 import {
   ToastContext,
@@ -52,7 +52,7 @@ import URLParse from 'url-parse';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { selectInternalAccounts } from '@selectors/accountsController';
 import { selectPermissionControllerState } from '@selectors/snaps/permissionController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { isMultichainVersion1Enabled } from '@util/networks';
 import PermissionsSummary from '@components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '@components/UI/PermissionsSummary/PermissionsSummary.types';

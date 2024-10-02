@@ -6,7 +6,7 @@ import { backgroundState } from '@util/test/initial-root-state';
 import App from './';
 import { MetaMetrics } from '@core/Analytics';
 import { waitFor } from '@testing-library/react-native';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const initialState: DeepPartial<RootState> = {
   user: {

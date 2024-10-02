@@ -1,7 +1,7 @@
 import resume from './resume';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@core/SDKConnect/utils/wait.util');
 

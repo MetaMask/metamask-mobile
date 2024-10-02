@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 import Device from '@util/device';
 import Engine from '@core/Engine';
 import handleConnectionReady from '@core/SDKConnect/handlers/handleConnectionReady';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import handleClientsReady from './handleClientsReady';
 
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('@core');
 jest.mock('@core/SDKConnect/handlers/handleConnectionReady');

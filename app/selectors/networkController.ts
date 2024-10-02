@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { NetworkState } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
 import Engine from '@core/Engine';

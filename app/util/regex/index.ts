@@ -1,5 +1,5 @@
 import { RegexTypes } from './index.types';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@util/wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
 export function hasDecimals(separator: string, decimalPlaces: string) {
   return new RegExp(`^\\d+\\${separator}\\d{${decimalPlaces}}$`, 'g');

@@ -2,7 +2,7 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '@util/test/accountsControllerTestUtils';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { selectAccountBalanceByChainId } from './accountTrackerController';
 import { mockNetworkState } from '@util/test/network';
 import mockedEngine from '@core/__mocks__/MockedEngine';

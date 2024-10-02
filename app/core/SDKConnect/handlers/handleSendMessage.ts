@@ -4,7 +4,7 @@ import AppConstants from '@core/AppConstants';
 import Logger from '@util/Logger';
 import Device from '@util/device';
 import { Minimizer } from '@core/NativeModules';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import {
   METHODS_TO_DELAY,
   RPC_METHODS,

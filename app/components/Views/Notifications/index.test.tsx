@@ -4,7 +4,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '@util/test/renderWithProvider';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { backgroundState } from '@util/test/initial-root-state';
 
 const navigationMock = {

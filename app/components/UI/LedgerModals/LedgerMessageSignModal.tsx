@@ -11,7 +11,7 @@ import { useAppThemeFromContext, mockTheme } from '@util/theme';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSignModal } from '@actions/modals';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 import { RPCStageTypes, iEventGroup } from '@reducers/rpcEvents';
 import { resetEventStage } from '@actions/rpcEvents';

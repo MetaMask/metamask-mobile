@@ -1,5 +1,5 @@
-import { Connection, ConnectionProps } from '@Connection';
-import SDKConnect from '@SDKConnect';
+import { Connection, ConnectionProps } from '@core/SDKConnect/Connection';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { waitForCondition } from '@core/SDKConnect/utils/wait.util';
 

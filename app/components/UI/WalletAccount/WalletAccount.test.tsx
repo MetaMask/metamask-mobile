@@ -18,7 +18,7 @@ import {
   expectedUuid2,
 } from '@util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '@e2e/selectors/wallet/WalletView.selectors';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';

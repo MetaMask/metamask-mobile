@@ -7,7 +7,7 @@ import SheetActions from '@component-library/components-temp/SheetActions';
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import AccountSelectorList from '@components/UI/AccountSelectorList';
 import { strings } from '@locales/i18n';
-import { AccountConnectScreens } from '@AccountConnect.types';
+import { AccountConnectScreens } from '@components/Views/AccountConnect.types';
 
 // Internal dependencies.
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';

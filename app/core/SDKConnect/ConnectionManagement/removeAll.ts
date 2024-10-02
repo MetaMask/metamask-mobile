@@ -4,7 +4,7 @@ import {
   resetConnections,
 } from '@actions/sdk';
 import { store } from '@store/index';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 
 async function removeAll(instance: SDKConnect): Promise<boolean> {
   const removeChannels = async (

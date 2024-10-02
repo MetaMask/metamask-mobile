@@ -1,8 +1,8 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import sendAuthorized from './sendAuthorized';
 
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('@util/Logger');
 

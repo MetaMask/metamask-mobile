@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Send from '.';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { MOCK_KEYRING_CONTROLLER } from '@selectors/keyringController/testUtils';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,

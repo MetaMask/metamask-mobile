@@ -3,11 +3,11 @@ import {
   IconName,
   IconSize,
 } from '@component-library/components/Icons/Icon';
-import { processHeader, processError, processString } from '@util';
+import { processHeader, processError, processString } from '@components/Views/confirmations/components/Approval/TemplateConfirmation/util';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { Colors } from '@util/theme/models';
-import { Actions } from '@TemplateConfirmation';
+import { Actions } from '@components/Views/confirmations/components/Approval/TemplateConfirmation/TemplateConfirmation';
 import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 
 const isApprovalResultTypeSuccess = (type: string): boolean =>

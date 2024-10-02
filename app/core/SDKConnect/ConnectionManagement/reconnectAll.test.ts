@@ -1,8 +1,8 @@
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import reconnectAll from './reconnectAll';
 
 jest.mock('@util/Logger');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('reconnectAll', () => {

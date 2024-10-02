@@ -41,7 +41,7 @@ import {
 import { ContractNickNameViewSelectorsIDs } from '@e2e/selectors/ContractNickNameView.selectors';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { selectInternalAccounts } from '@selectors/accountsController';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { selectAddressBook } from '@selectors/addressBookController';
 
 const getAnalyticsParams = () => ({});

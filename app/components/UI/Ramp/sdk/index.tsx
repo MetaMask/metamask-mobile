@@ -30,11 +30,11 @@ import {
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
 } from '@reducers/fiatOrders';
-import { RampIntent, RampType, Region } from '@types';
+import { RampIntent, RampType, Region } from '@components/UI/Ramp/types';
 
 import I18n, { I18nEvents } from '@locales/i18n';
 import Device from '@util/device';
-import useActivationKeys from '@components/hooks/useActivationKeys';
+import useActivationKeys from '@components/UI/Ramp/hooks/useActivationKeys';
 import { selectNickname } from '@selectors/networkController';
 
 const isDevelopment =

@@ -3,8 +3,8 @@ import { resetConnections } from '@actions/sdk';
 import { store } from '@store/index';
 import Logger from '@util/Logger';
 import AppConstants from '@core/AppConstants';
-import { Connection } from '@Connection';
-import SDKConnect from '@SDKConnect';
+import { Connection } from '@core/SDKConnect/Connection';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import { CONNECTION_LOADING_EVENT } from '@core/SDKConnect/SDKConnectConstants';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 

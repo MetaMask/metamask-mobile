@@ -1,10 +1,10 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import StorageWrapper from '@store/storage-wrapper';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import updateOriginatorInfos from './updateOriginatorInfos';
 
 jest.mock('@metamask/sdk-communication-layer');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@store/storage-wrapper');
 jest.mock('@core/AppConstants');
 

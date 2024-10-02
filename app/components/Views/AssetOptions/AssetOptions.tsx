@@ -27,7 +27,7 @@ import AppConstants from '@core/AppConstants';
 import { getDecimalChainId } from '@util/networks';
 import { isPortfolioUrl } from '@util/url';
 import { BrowserTab } from '@components/UI/Tokens/types';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 interface Option {
   label: string;
   onPress: () => void;

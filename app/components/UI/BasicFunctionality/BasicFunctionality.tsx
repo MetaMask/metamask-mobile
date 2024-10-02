@@ -7,7 +7,7 @@ import Text, {
 import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';
 import { useSelector } from 'react-redux';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import styles from './BasicFunctionality.styles';
 import { BasicFunctionalityComponentProps } from './BasicFunctionality.types';
 import AppConstants from '@core/AppConstants';

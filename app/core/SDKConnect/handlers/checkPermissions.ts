@@ -4,7 +4,7 @@ import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import AppConstants from '@core/AppConstants';
 import Engine from '@core/Engine';
 import { getPermittedAccounts } from '@core/Permissions';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import { HOUR_IN_MS } from '@core/SDKConnect/SDKConnectConstants';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import {

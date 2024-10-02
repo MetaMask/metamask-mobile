@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import { BigNumber } from 'bignumber.js';
 
 import BalanceChangeRow from './BalanceChangeRow';
-import { AssetType, BalanceChange } from '@types';
+import { AssetType, BalanceChange } from '@components/UI/SimulationDetails/types';
 
 jest.mock('@FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',

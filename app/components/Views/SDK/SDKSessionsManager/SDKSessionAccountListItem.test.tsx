@@ -5,7 +5,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '@util/test/renderWithProvider';
 import SDKSessionAccountListItem from './SDKSessionAccountListItem';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},

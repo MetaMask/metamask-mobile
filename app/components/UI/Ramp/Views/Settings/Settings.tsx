@@ -4,10 +4,10 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import { useRampSDK, withRampSDK } from '@sdk';
+import { useRampSDK, withRampSDK } from '@components/UI/Ramp/sdk';
 import BaseListItem from '@components/Base/ListItem';
-import ScreenLayout from '@components/ScreenLayout';
-import Row from '@components/Row';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
+import Row from '@components/UI/Ramp/components/Row';
 import Text, {
   TextVariant,
 } from '@component-library/components/Texts/Text';
@@ -20,7 +20,7 @@ import Button, {
 import { strings } from '@locales/i18n';
 import { useAppTheme } from '@util/theme';
 import { getNavigationOptionsTitle } from '@components/UI/Navbar';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 
 // Internal dependencies
 import ActivationKeys from './ActivationKeys';

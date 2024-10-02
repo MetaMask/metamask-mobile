@@ -8,7 +8,7 @@ import { IconName } from '@component-library/components/Icons/Icon';
 import initialBackgroundState from '@util/test/initial-background-state.json';
 
 import SVG_ETH_LOGO_PATH from '@component-library/components/Icons/Icon/assets/ethereum.svg';
-import type { RootState } from '@reducers';
+import type { RootState } from '@reducers/index';
 
 Linking.openURL = jest.fn(() => Promise.resolve('opened https://metamask.io!'));
 

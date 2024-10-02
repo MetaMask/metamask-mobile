@@ -4,10 +4,10 @@ import {
   resetApprovedHosts,
   resetConnections,
 } from '@actions/sdk';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { store } from '@store/index';
 import Logger from '@util/Logger';
-import SDKConnect, { ApprovedHosts, SDKSessions } from '@SDKConnect';
+import SDKConnect, { ApprovedHosts, SDKSessions } from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import { wait } from '@core/SDKConnect/utils/wait.util';
 import AppConstants from '@core/AppConstants';

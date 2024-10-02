@@ -1,9 +1,9 @@
 import AppConstants from '@core/AppConstants';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import removeChannel from './removeChannel';
 
 jest.mock('@core/AppConstants');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),

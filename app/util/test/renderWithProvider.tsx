@@ -15,7 +15,7 @@ import {
 import { mockTheme, ThemeContext } from '@util/theme';
 import { Theme } from '@util/theme/models';
 import configureStore from './configureStore';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown

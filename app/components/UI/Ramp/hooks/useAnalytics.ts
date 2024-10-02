@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
-import { AnalyticsEvents } from '@types';
+import { AnalyticsEvents } from '@components/UI/Ramp/types';
 import { MetaMetrics, MetaMetricsEvents } from '@core/Analytics';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [

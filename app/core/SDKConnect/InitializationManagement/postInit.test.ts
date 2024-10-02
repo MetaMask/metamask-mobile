@@ -1,5 +1,5 @@
 import postInit from './postInit';
-import SDKConnect from '@SDKConnect';
+import SDKConnect from '@core/SDKConnect/SDKConnect';
 import { KeyringController } from '@metamask/keyring-controller';
 import Engine from '@core/Engine';
 import { AppState } from 'react-native';
@@ -18,7 +18,7 @@ jest.mock('@core/Engine', () => ({
   },
 }));
 jest.mock('react-native');
-jest.mock('@SDKConnect');
+jest.mock('@core/SDKConnect/SDKConnect');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('@core/SDKConnect/utils/wait.util');
 

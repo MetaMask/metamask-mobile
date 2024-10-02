@@ -3,7 +3,7 @@ import handleConnectionReady from './handleConnectionReady';
 import { ApprovalController } from '@metamask/approval-controller';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import AppConstants from '@core/AppConstants';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import checkPermissions from './checkPermissions';
 
 import Engine from '@core/Engine';
@@ -14,7 +14,7 @@ jest.mock('@metamask/approval-controller');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('@core/AppConstants');
 jest.mock('@util/Logger');
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@core/SDKConnect/utils/wait.util');
 jest.mock('./setupBridge');
 jest.mock('./checkPermissions');

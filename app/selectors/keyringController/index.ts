@@ -1,5 +1,5 @@
-import { RootState } from '@reducers';
-import { createDeepEqualSelector } from '@util';
+import { RootState } from '@reducers/index';
+import { createDeepEqualSelector } from '@selectors/util';
 
 /**
  *

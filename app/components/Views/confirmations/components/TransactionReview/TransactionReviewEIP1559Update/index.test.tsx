@@ -8,7 +8,7 @@ import renderWithProvider, {
 } from '@util/test/renderWithProvider';
 import TransactionReviewEIP1559 from '.';
 import { backgroundState } from '@util/test/initial-root-state';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 
 const initialState: DeepPartial<RootState> = {
   settings: {},

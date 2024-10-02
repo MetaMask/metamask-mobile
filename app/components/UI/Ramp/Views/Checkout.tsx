@@ -21,10 +21,10 @@ import {
 } from '@util/navigation/navUtils';
 import { aggregatorOrderToFiatOrder } from '@orderProcessor/aggregator';
 import { createCustomOrderIdData } from '@orderProcessor/customOrderId';
-import ScreenLayout from '@components/ScreenLayout';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import ErrorView from '@components/ErrorView';
 import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 import useHandleSuccessfulOrder from '@components/hooks/useHandleSuccessfulOrder';

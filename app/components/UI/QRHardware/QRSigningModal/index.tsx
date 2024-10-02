@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Modal from 'react-native-modal';
-import { IQRState } from '@types';
+import { IQRState } from '@components/UI/QRHardware/types';
 import { StyleSheet, View } from 'react-native';
-import QRSigningDetails from '@QRSigningDetails';
+import QRSigningDetails from '@components/UI/QRHardware/QRSigningDetails';
 import { useTheme } from '@util/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { getNormalizedTxState } from '@util/transactions';

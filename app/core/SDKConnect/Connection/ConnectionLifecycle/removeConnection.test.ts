@@ -1,8 +1,8 @@
 import removeConnection from './removeConnection';
-import { Connection } from '@Connection';
+import { Connection } from '@core/SDKConnect/Connection';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 
-jest.mock('@Connection');
+jest.mock('@core/SDKConnect/Connection');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 
 describe('removeConnection', () => {

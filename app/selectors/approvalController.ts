@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 
 const selectApprovalControllerState = (state: RootState) =>

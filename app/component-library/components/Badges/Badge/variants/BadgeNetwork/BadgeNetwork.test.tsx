@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { render } from '@testing-library/react-native';
 
 // External dependencies
-import { AVATARNETWORK_IMAGE_TESTID } from '@Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { AVATARNETWORK_IMAGE_TESTID } from '@component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 
 // Internal dependencies

@@ -3,7 +3,7 @@ import notifee, {
   AndroidChannel,
   AndroidImportance,
   EventType,
-} from '@util/notifee/react-native';
+} from '@notifee/react-native';
 import { Linking } from 'react-native';
 import { ChannelId } from '@util/notifications/androidChannels';
 import NotificationsService from './NotificationService';
@@ -14,7 +14,7 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'ios' },
   Alert: { alert: jest.fn() },
 }));
-jest.mock('@settings', () => ({
+jest.mock('@util/notifications/settings', () => ({
   mmStorage: {
     getLocal: jest.fn(),
     saveLocal: jest.fn(),

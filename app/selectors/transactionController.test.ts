@@ -1,4 +1,4 @@
-import { RootState } from '@reducers';
+import { RootState } from '@reducers/index';
 import { selectTransactions } from './transactionController';
 
 describe('TransactionController Selectors', () => {

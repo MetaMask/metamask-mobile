@@ -1,4 +1,4 @@
-import { AndroidImportance } from '@util/notifee/react-native';
+import { AndroidImportance } from '@notifee/react-native';
 import {
   ChannelId,
   MetaMaskAndroidChannel,

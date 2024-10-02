@@ -26,7 +26,7 @@ import HelpText, {
 // Internal dependencies.
 import { ConnectAccountModalSelectorsIDs } from '@e2e/selectors/Modals/ConnectAccountModal.selectors';
 import { ACCOUNT_LIST_ADD_BUTTON_ID } from '@wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import AddAccountActions from '@AddAccountActions';
+import AddAccountActions from '@components/Views/AddAccountActions/AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,

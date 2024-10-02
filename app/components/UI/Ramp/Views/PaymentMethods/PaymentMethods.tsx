@@ -3,8 +3,8 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import Text from '@components/Base/Text';
-import Row from '@components/Row';
-import ScreenLayout from '@components/ScreenLayout';
+import Row from '@components/UI/Ramp/components/Row';
+import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import PaymentMethod from '@components/PaymentMethod';
 import SkeletonPaymentMethod from '@components/SkeletonPaymentMethod';
 import ErrorView from '@components/ErrorView';
@@ -17,7 +17,7 @@ import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 
-import useAnalytics from '@components/hooks/useAnalytics';
+import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import usePaymentMethods from '@components/hooks/usePaymentMethods';
 import useRegions from '@components/hooks/useRegions';
 
