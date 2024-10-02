@@ -161,6 +161,7 @@ const AccountConnectMultiSelector = ({
     };
 
     const onPress = () => {
+      setIsCheckboxListCliked(true);
       areAllAccountsSelected ? unselectAll() : selectAll();
     };
 
