@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import ButtonIcon, {
@@ -13,8 +13,8 @@ import createStyles from './style';
 import BottomModal from '../BottomModal';
 
 interface ExpandableSectionProps {
-  content: React.ReactNode;
-  modalContent: React.ReactNode;
+  content: ReactNode;
+  modalContent: ReactNode;
   modalTitle: string;
   openButtonTestId?: string;
   closeButtonTestId?: string;
