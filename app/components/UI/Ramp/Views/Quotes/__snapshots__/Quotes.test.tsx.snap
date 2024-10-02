@@ -3662,7 +3662,9 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             {
                                               "borderColor": "#0376c9",
                                             },
-                                            undefined,
+                                            {
+                                              "padding": 0,
+                                            },
                                             undefined,
                                           ]
                                         }
@@ -3672,10 +3674,71 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                           accessible={true}
                                           style={
                                             {
-                                              "padding": 0,
+                                              "padding": 16,
                                             }
                                           }
                                         >
+                                          <View
+                                            style={
+                                              {
+                                                "marginBottom": 8,
+                                              }
+                                            }
+                                          >
+                                            <TouchableOpacity
+                                              accessibilityHint="Shows provider details"
+                                              accessibilityLabel="Banxa (Staging) logo"
+                                              disabled={false}
+                                              onPress={[Function]}
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  source={
+                                                    {
+                                                      "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
+                                                    }
+                                                  }
+                                                  style={
+                                                    {
+                                                      "height": 24,
+                                                      "width": 65,
+                                                    }
+                                                  }
+                                                />
+                                                <Text
+                                                  allowFontScaling={false}
+                                                  style={
+                                                    [
+                                                      {
+                                                        "color": undefined,
+                                                        "fontSize": 12,
+                                                      },
+                                                      {
+                                                        "color": "#6a737d",
+                                                        "marginLeft": 8,
+                                                      },
+                                                      {
+                                                        "fontFamily": "Feather",
+                                                        "fontStyle": "normal",
+                                                        "fontWeight": "normal",
+                                                      },
+                                                      {},
+                                                    ]
+                                                  }
+                                                >
+                                                  
+                                                </Text>
+                                              </View>
+                                            </TouchableOpacity>
+                                          </View>
                                           <View
                                             style={
                                               {
@@ -3692,229 +3755,141 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               }
                                               testID="listitemcolumn"
                                             >
-                                              <TouchableOpacity
-                                                accessibilityHint="Shows provider details"
-                                                accessibilityLabel="Banxa (Staging) logo"
-                                                disabled={false}
-                                                onPress={[Function]}
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "flexDirection": "row",
-                                                    }
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
                                                   }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    source={
-                                                      {
-                                                        "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
-                                                      }
-                                                    }
-                                                    style={
-                                                      {
-                                                        "height": 24,
-                                                        "width": 65,
-                                                      }
-                                                    }
-                                                  />
-                                                  <Text
-                                                    allowFontScaling={false}
-                                                    style={
-                                                      [
-                                                        {
-                                                          "color": undefined,
-                                                          "fontSize": 12,
-                                                        },
-                                                        {
-                                                          "color": "#6a737d",
-                                                          "marginLeft": 8,
-                                                        },
-                                                        {
-                                                          "fontFamily": "Feather",
-                                                          "fontStyle": "normal",
-                                                          "fontWeight": "normal",
-                                                        },
-                                                        {},
-                                                      ]
-                                                    }
-                                                  >
-                                                    
-                                                  </Text>
-                                                </View>
-                                              </TouchableOpacity>
+                                                }
+                                              >
+                                                0.01714
+                                                 
+                                                ETH
+                                              </Text>
+                                            </View>
+                                            <View
+                                              accessible={false}
+                                              style={
+                                                {
+                                                  "width": 16,
+                                                }
+                                              }
+                                              testID="listitem-gap"
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "flex": -1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                ≈ 
+                                                $
+                                                 
+                                                46.97 AUD
+                                              </Text>
                                             </View>
                                           </View>
-                                        </View>
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "marginVertical": 8,
-                                              },
-                                              undefined,
-                                              {
-                                                "marginBottom": 0,
-                                              },
-                                              undefined,
-                                            ]
-                                          }
-                                        >
                                           <View
-                                            accessibilityRole="none"
-                                            accessible={true}
                                             style={
                                               {
-                                                "padding": 0,
+                                                "marginTop": 0,
                                               }
                                             }
                                           >
                                             <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                style={
-                                                  {
-                                                    "flex": 1,
-                                                  }
-                                                }
-                                                testID="listitemcolumn"
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": "500",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    }
-                                                  }
-                                                >
-                                                  0.01714
-                                                   
-                                                  ETH
-                                                </Text>
-                                              </View>
-                                              <View
-                                                accessible={false}
-                                                style={
-                                                  {
-                                                    "width": 16,
-                                                  }
-                                                }
-                                                testID="listitem-gap"
-                                              />
-                                              <View
-                                                style={
-                                                  {
-                                                    "flex": -1,
-                                                  }
-                                                }
-                                                testID="listitemcolumn"
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": "500",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    }
-                                                  }
-                                                >
-                                                  ≈ 
-                                                  $
-                                                   
-                                                  46.97 AUD
-                                                </Text>
-                                              </View>
-                                            </View>
-                                          </View>
-                                        </View>
-                                        <View
-                                          onLayout={[Function]}
-                                          style={
-                                            [
-                                              {
-                                                "marginTop": 4,
-                                                "overflow": "hidden",
-                                              },
-                                              {},
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginTop": 10,
-                                              }
-                                            }
-                                          >
-                                            <TouchableOpacity
-                                              accessibilityRole="button"
-                                              accessible={true}
-                                              activeOpacity={0.2}
-                                              disabled={false}
-                                              onPress={[Function]}
+                                              onLayout={[Function]}
                                               style={
                                                 [
-                                                  [
-                                                    {
-                                                      "borderRadius": 100,
-                                                      "justifyContent": "center",
-                                                      "padding": 15,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#0376c9",
-                                                    },
-                                                    undefined,
-                                                  ],
-                                                  null,
+                                                  {
+                                                    "marginTop": 4,
+                                                    "overflow": "hidden",
+                                                  },
+                                                  {},
                                                 ]
                                               }
                                             >
-                                              <Text
+                                              <View
                                                 style={
-                                                  [
-                                                    {
-                                                      "color": "#007aff",
-                                                      "fontSize": 17,
-                                                      "fontWeight": "500",
-                                                      "textAlign": "center",
-                                                    },
-                                                    null,
-                                                    [
-                                                      {
-                                                        "fontFamily": "EuclidCircularB-Bold",
-                                                        "fontSize": 14,
-                                                        "fontWeight": "600",
-                                                        "textAlign": "center",
-                                                      },
-                                                      {
-                                                        "color": "#ffffff",
-                                                      },
-                                                      undefined,
-                                                    ],
-                                                    null,
-                                                  ]
+                                                  {
+                                                    "marginTop": 10,
+                                                  }
                                                 }
                                               >
-                                                Continue with Banxa (Staging)
-                                              </Text>
-                                            </TouchableOpacity>
+                                                <TouchableOpacity
+                                                  accessibilityRole="button"
+                                                  accessible={true}
+                                                  activeOpacity={0.2}
+                                                  disabled={false}
+                                                  onPress={[Function]}
+                                                  style={
+                                                    [
+                                                      [
+                                                        {
+                                                          "borderRadius": 100,
+                                                          "justifyContent": "center",
+                                                          "padding": 15,
+                                                        },
+                                                        {
+                                                          "backgroundColor": "#0376c9",
+                                                        },
+                                                        undefined,
+                                                      ],
+                                                      null,
+                                                    ]
+                                                  }
+                                                >
+                                                  <Text
+                                                    style={
+                                                      [
+                                                        {
+                                                          "color": "#007aff",
+                                                          "fontSize": 17,
+                                                          "fontWeight": "500",
+                                                          "textAlign": "center",
+                                                        },
+                                                        null,
+                                                        [
+                                                          {
+                                                            "fontFamily": "EuclidCircularB-Bold",
+                                                            "fontSize": 14,
+                                                            "fontWeight": "600",
+                                                            "textAlign": "center",
+                                                          },
+                                                          {
+                                                            "color": "#ffffff",
+                                                          },
+                                                          undefined,
+                                                        ],
+                                                        null,
+                                                      ]
+                                                    }
+                                                  >
+                                                    Continue with Banxa (Staging)
+                                                  </Text>
+                                                </TouchableOpacity>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
@@ -3959,7 +3934,9 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             },
                                             undefined,
                                             false,
-                                            undefined,
+                                            {
+                                              "padding": 0,
+                                            },
                                             undefined,
                                           ]
                                         }
@@ -3969,10 +3946,70 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                           accessible={true}
                                           style={
                                             {
-                                              "padding": 0,
+                                              "padding": 16,
                                             }
                                           }
                                         >
+                                          <View
+                                            style={
+                                              {
+                                                "marginBottom": 8,
+                                              }
+                                            }
+                                          >
+                                            <TouchableOpacity
+                                              accessibilityHint="Shows provider details"
+                                              accessibilityLabel="MoonPay (Staging) logo"
+                                              disabled={true}
+                                            >
+                                              <View
+                                                style={
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  }
+                                                }
+                                              >
+                                                <Image
+                                                  onError={[Function]}
+                                                  source={
+                                                    {
+                                                      "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
+                                                    }
+                                                  }
+                                                  style={
+                                                    {
+                                                      "height": 24,
+                                                      "width": 88,
+                                                    }
+                                                  }
+                                                />
+                                                <Text
+                                                  allowFontScaling={false}
+                                                  style={
+                                                    [
+                                                      {
+                                                        "color": undefined,
+                                                        "fontSize": 12,
+                                                      },
+                                                      {
+                                                        "color": "#6a737d",
+                                                        "marginLeft": 8,
+                                                      },
+                                                      {
+                                                        "fontFamily": "Feather",
+                                                        "fontStyle": "normal",
+                                                        "fontWeight": "normal",
+                                                      },
+                                                      {},
+                                                    ]
+                                                  }
+                                                >
+                                                  
+                                                </Text>
+                                              </View>
+                                            </TouchableOpacity>
+                                          </View>
                                           <View
                                             style={
                                               {
@@ -3989,228 +4026,141 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               }
                                               testID="listitemcolumn"
                                             >
-                                              <TouchableOpacity
-                                                accessibilityHint="Shows provider details"
-                                                accessibilityLabel="MoonPay (Staging) logo"
-                                                disabled={true}
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "alignItems": "center",
-                                                      "flexDirection": "row",
-                                                    }
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
                                                   }
-                                                >
-                                                  <Image
-                                                    onError={[Function]}
-                                                    source={
-                                                      {
-                                                        "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
-                                                      }
-                                                    }
-                                                    style={
-                                                      {
-                                                        "height": 24,
-                                                        "width": 88,
-                                                      }
-                                                    }
-                                                  />
-                                                  <Text
-                                                    allowFontScaling={false}
-                                                    style={
-                                                      [
-                                                        {
-                                                          "color": undefined,
-                                                          "fontSize": 12,
-                                                        },
-                                                        {
-                                                          "color": "#6a737d",
-                                                          "marginLeft": 8,
-                                                        },
-                                                        {
-                                                          "fontFamily": "Feather",
-                                                          "fontStyle": "normal",
-                                                          "fontWeight": "normal",
-                                                        },
-                                                        {},
-                                                      ]
-                                                    }
-                                                  >
-                                                    
-                                                  </Text>
-                                                </View>
-                                              </TouchableOpacity>
+                                                }
+                                              >
+                                                0.0162
+                                                 
+                                                ETH
+                                              </Text>
+                                            </View>
+                                            <View
+                                              accessible={false}
+                                              style={
+                                                {
+                                                  "width": 16,
+                                                }
+                                              }
+                                              testID="listitem-gap"
+                                            />
+                                            <View
+                                              style={
+                                                {
+                                                  "flex": -1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontSize": 16,
+                                                    "fontWeight": "500",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                ≈ 
+                                                $
+                                                 
+                                                44.39 AUD
+                                              </Text>
                                             </View>
                                           </View>
-                                        </View>
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "marginVertical": 8,
-                                              },
-                                              undefined,
-                                              {
-                                                "marginBottom": 0,
-                                              },
-                                              undefined,
-                                            ]
-                                          }
-                                        >
                                           <View
-                                            accessibilityRole="none"
-                                            accessible={true}
                                             style={
                                               {
-                                                "padding": 0,
+                                                "marginTop": 0,
                                               }
                                             }
                                           >
                                             <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "flexDirection": "row",
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                style={
-                                                  {
-                                                    "flex": 1,
-                                                  }
-                                                }
-                                                testID="listitemcolumn"
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": "500",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    }
-                                                  }
-                                                >
-                                                  0.0162
-                                                   
-                                                  ETH
-                                                </Text>
-                                              </View>
-                                              <View
-                                                accessible={false}
-                                                style={
-                                                  {
-                                                    "width": 16,
-                                                  }
-                                                }
-                                                testID="listitem-gap"
-                                              />
-                                              <View
-                                                style={
-                                                  {
-                                                    "flex": -1,
-                                                  }
-                                                }
-                                                testID="listitemcolumn"
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    {
-                                                      "color": "#141618",
-                                                      "fontFamily": "EuclidCircularB-Medium",
-                                                      "fontSize": 16,
-                                                      "fontWeight": "500",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    }
-                                                  }
-                                                >
-                                                  ≈ 
-                                                  $
-                                                   
-                                                  44.39 AUD
-                                                </Text>
-                                              </View>
-                                            </View>
-                                          </View>
-                                        </View>
-                                        <View
-                                          onLayout={[Function]}
-                                          style={
-                                            [
-                                              {
-                                                "marginTop": 4,
-                                                "overflow": "hidden",
-                                              },
-                                              {},
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "marginTop": 10,
-                                              }
-                                            }
-                                          >
-                                            <TouchableOpacity
-                                              accessibilityRole="button"
-                                              accessible={true}
-                                              activeOpacity={0.2}
-                                              disabled={false}
-                                              onPress={[Function]}
+                                              onLayout={[Function]}
                                               style={
                                                 [
-                                                  [
-                                                    {
-                                                      "borderRadius": 100,
-                                                      "justifyContent": "center",
-                                                      "padding": 15,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#0376c9",
-                                                    },
-                                                    undefined,
-                                                  ],
-                                                  null,
+                                                  {
+                                                    "marginTop": 4,
+                                                    "overflow": "hidden",
+                                                  },
+                                                  {},
                                                 ]
                                               }
                                             >
-                                              <Text
+                                              <View
                                                 style={
-                                                  [
-                                                    {
-                                                      "color": "#007aff",
-                                                      "fontSize": 17,
-                                                      "fontWeight": "500",
-                                                      "textAlign": "center",
-                                                    },
-                                                    null,
-                                                    [
-                                                      {
-                                                        "fontFamily": "EuclidCircularB-Bold",
-                                                        "fontSize": 14,
-                                                        "fontWeight": "600",
-                                                        "textAlign": "center",
-                                                      },
-                                                      {
-                                                        "color": "#ffffff",
-                                                      },
-                                                      undefined,
-                                                    ],
-                                                    null,
-                                                  ]
+                                                  {
+                                                    "marginTop": 10,
+                                                  }
                                                 }
                                               >
-                                                Continue with MoonPay (Staging)
-                                              </Text>
-                                            </TouchableOpacity>
+                                                <TouchableOpacity
+                                                  accessibilityRole="button"
+                                                  accessible={true}
+                                                  activeOpacity={0.2}
+                                                  disabled={false}
+                                                  onPress={[Function]}
+                                                  style={
+                                                    [
+                                                      [
+                                                        {
+                                                          "borderRadius": 100,
+                                                          "justifyContent": "center",
+                                                          "padding": 15,
+                                                        },
+                                                        {
+                                                          "backgroundColor": "#0376c9",
+                                                        },
+                                                        undefined,
+                                                      ],
+                                                      null,
+                                                    ]
+                                                  }
+                                                >
+                                                  <Text
+                                                    style={
+                                                      [
+                                                        {
+                                                          "color": "#007aff",
+                                                          "fontSize": 17,
+                                                          "fontWeight": "500",
+                                                          "textAlign": "center",
+                                                        },
+                                                        null,
+                                                        [
+                                                          {
+                                                            "fontFamily": "EuclidCircularB-Bold",
+                                                            "fontSize": 14,
+                                                            "fontWeight": "600",
+                                                            "textAlign": "center",
+                                                          },
+                                                          {
+                                                            "color": "#ffffff",
+                                                          },
+                                                          undefined,
+                                                        ],
+                                                        null,
+                                                      ]
+                                                    }
+                                                  >
+                                                    Continue with MoonPay (Staging)
+                                                  </Text>
+                                                </TouchableOpacity>
+                                              </View>
+                                            </View>
                                           </View>
                                         </View>
                                       </View>
@@ -5204,7 +5154,9 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                   {
                                                     "borderColor": "#0376c9",
                                                   },
-                                                  undefined,
+                                                  {
+                                                    "padding": 0,
+                                                  },
                                                   undefined,
                                                 ]
                                               }
@@ -5214,10 +5166,71 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                 accessible={true}
                                                 style={
                                                   {
-                                                    "padding": 0,
+                                                    "padding": 16,
                                                   }
                                                 }
                                               >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "marginBottom": 8,
+                                                    }
+                                                  }
+                                                >
+                                                  <TouchableOpacity
+                                                    accessibilityHint="Shows provider details"
+                                                    accessibilityLabel="Banxa (Staging) logo"
+                                                    disabled={false}
+                                                    onPress={[Function]}
+                                                  >
+                                                    <View
+                                                      style={
+                                                        {
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                        }
+                                                      }
+                                                    >
+                                                      <Image
+                                                        onError={[Function]}
+                                                        source={
+                                                          {
+                                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
+                                                          }
+                                                        }
+                                                        style={
+                                                          {
+                                                            "height": 24,
+                                                            "width": 65,
+                                                          }
+                                                        }
+                                                      />
+                                                      <Text
+                                                        allowFontScaling={false}
+                                                        style={
+                                                          [
+                                                            {
+                                                              "color": undefined,
+                                                              "fontSize": 12,
+                                                            },
+                                                            {
+                                                              "color": "#6a737d",
+                                                              "marginLeft": 8,
+                                                            },
+                                                            {
+                                                              "fontFamily": "Feather",
+                                                              "fontStyle": "normal",
+                                                              "fontWeight": "normal",
+                                                            },
+                                                            {},
+                                                          ]
+                                                        }
+                                                      >
+                                                        
+                                                      </Text>
+                                                    </View>
+                                                  </TouchableOpacity>
+                                                </View>
                                                 <View
                                                   style={
                                                     {
@@ -5234,229 +5247,141 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     }
                                                     testID="listitemcolumn"
                                                   >
-                                                    <TouchableOpacity
-                                                      accessibilityHint="Shows provider details"
-                                                      accessibilityLabel="Banxa (Staging) logo"
-                                                      disabled={false}
-                                                      onPress={[Function]}
-                                                    >
-                                                      <View
-                                                        style={
-                                                          {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
-                                                          }
+                                                    <Text
+                                                      accessibilityRole="text"
+                                                      style={
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
                                                         }
-                                                      >
-                                                        <Image
-                                                          onError={[Function]}
-                                                          source={
-                                                            {
-                                                              "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
-                                                            }
-                                                          }
-                                                          style={
-                                                            {
-                                                              "height": 24,
-                                                              "width": 65,
-                                                            }
-                                                          }
-                                                        />
-                                                        <Text
-                                                          allowFontScaling={false}
-                                                          style={
-                                                            [
-                                                              {
-                                                                "color": undefined,
-                                                                "fontSize": 12,
-                                                              },
-                                                              {
-                                                                "color": "#6a737d",
-                                                                "marginLeft": 8,
-                                                              },
-                                                              {
-                                                                "fontFamily": "Feather",
-                                                                "fontStyle": "normal",
-                                                                "fontWeight": "normal",
-                                                              },
-                                                              {},
-                                                            ]
-                                                          }
-                                                        >
-                                                          
-                                                        </Text>
-                                                      </View>
-                                                    </TouchableOpacity>
+                                                      }
+                                                    >
+                                                      0.01714
+                                                       
+                                                      ETH
+                                                    </Text>
+                                                  </View>
+                                                  <View
+                                                    accessible={false}
+                                                    style={
+                                                      {
+                                                        "width": 16,
+                                                      }
+                                                    }
+                                                    testID="listitem-gap"
+                                                  />
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "flex": -1,
+                                                      }
+                                                    }
+                                                    testID="listitemcolumn"
+                                                  >
+                                                    <Text
+                                                      accessibilityRole="text"
+                                                      style={
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
+                                                      }
+                                                    >
+                                                      ≈ 
+                                                      $
+                                                       
+                                                      46.97 AUD
+                                                    </Text>
                                                   </View>
                                                 </View>
-                                              </View>
-                                              <View
-                                                style={
-                                                  [
-                                                    {
-                                                      "marginVertical": 8,
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "marginBottom": 0,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
                                                 <View
-                                                  accessibilityRole="none"
-                                                  accessible={true}
                                                   style={
                                                     {
-                                                      "padding": 0,
+                                                      "marginTop": 0,
                                                     }
                                                   }
                                                 >
                                                   <View
-                                                    style={
-                                                      {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
-                                                      }
-                                                    }
-                                                  >
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": 1,
-                                                        }
-                                                      }
-                                                      testID="listitemcolumn"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Medium",
-                                                            "fontSize": 16,
-                                                            "fontWeight": "500",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 24,
-                                                          }
-                                                        }
-                                                      >
-                                                        0.01714
-                                                         
-                                                        ETH
-                                                      </Text>
-                                                    </View>
-                                                    <View
-                                                      accessible={false}
-                                                      style={
-                                                        {
-                                                          "width": 16,
-                                                        }
-                                                      }
-                                                      testID="listitem-gap"
-                                                    />
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": -1,
-                                                        }
-                                                      }
-                                                      testID="listitemcolumn"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Medium",
-                                                            "fontSize": 16,
-                                                            "fontWeight": "500",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 24,
-                                                          }
-                                                        }
-                                                      >
-                                                        ≈ 
-                                                        $
-                                                         
-                                                        46.97 AUD
-                                                      </Text>
-                                                    </View>
-                                                  </View>
-                                                </View>
-                                              </View>
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  [
-                                                    {
-                                                      "marginTop": 4,
-                                                      "overflow": "hidden",
-                                                    },
-                                                    {},
-                                                  ]
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "marginTop": 10,
-                                                    }
-                                                  }
-                                                >
-                                                  <TouchableOpacity
-                                                    accessibilityRole="button"
-                                                    accessible={true}
-                                                    activeOpacity={0.2}
-                                                    disabled={false}
-                                                    onPress={[Function]}
+                                                    onLayout={[Function]}
                                                     style={
                                                       [
-                                                        [
-                                                          {
-                                                            "borderRadius": 100,
-                                                            "justifyContent": "center",
-                                                            "padding": 15,
-                                                          },
-                                                          {
-                                                            "backgroundColor": "#0376c9",
-                                                          },
-                                                          undefined,
-                                                        ],
-                                                        null,
+                                                        {
+                                                          "marginTop": 4,
+                                                          "overflow": "hidden",
+                                                        },
+                                                        {},
                                                       ]
                                                     }
                                                   >
-                                                    <Text
+                                                    <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#007aff",
-                                                            "fontSize": 17,
-                                                            "fontWeight": "500",
-                                                            "textAlign": "center",
-                                                          },
-                                                          null,
-                                                          [
-                                                            {
-                                                              "fontFamily": "EuclidCircularB-Bold",
-                                                              "fontSize": 14,
-                                                              "fontWeight": "600",
-                                                              "textAlign": "center",
-                                                            },
-                                                            {
-                                                              "color": "#ffffff",
-                                                            },
-                                                            undefined,
-                                                          ],
-                                                          null,
-                                                        ]
+                                                        {
+                                                          "marginTop": 10,
+                                                        }
                                                       }
                                                     >
-                                                      Continue with Banxa (Staging)
-                                                    </Text>
-                                                  </TouchableOpacity>
+                                                      <TouchableOpacity
+                                                        accessibilityRole="button"
+                                                        accessible={true}
+                                                        activeOpacity={0.2}
+                                                        disabled={false}
+                                                        onPress={[Function]}
+                                                        style={
+                                                          [
+                                                            [
+                                                              {
+                                                                "borderRadius": 100,
+                                                                "justifyContent": "center",
+                                                                "padding": 15,
+                                                              },
+                                                              {
+                                                                "backgroundColor": "#0376c9",
+                                                              },
+                                                              undefined,
+                                                            ],
+                                                            null,
+                                                          ]
+                                                        }
+                                                      >
+                                                        <Text
+                                                          style={
+                                                            [
+                                                              {
+                                                                "color": "#007aff",
+                                                                "fontSize": 17,
+                                                                "fontWeight": "500",
+                                                                "textAlign": "center",
+                                                              },
+                                                              null,
+                                                              [
+                                                                {
+                                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                                  "fontSize": 14,
+                                                                  "fontWeight": "600",
+                                                                  "textAlign": "center",
+                                                                },
+                                                                {
+                                                                  "color": "#ffffff",
+                                                                },
+                                                                undefined,
+                                                              ],
+                                                              null,
+                                                            ]
+                                                          }
+                                                        >
+                                                          Continue with Banxa (Staging)
+                                                        </Text>
+                                                      </TouchableOpacity>
+                                                    </View>
+                                                  </View>
                                                 </View>
                                               </View>
                                             </View>
@@ -5501,7 +5426,9 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                   },
                                                   undefined,
                                                   false,
-                                                  undefined,
+                                                  {
+                                                    "padding": 0,
+                                                  },
                                                   undefined,
                                                 ]
                                               }
@@ -5511,10 +5438,70 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                 accessible={true}
                                                 style={
                                                   {
-                                                    "padding": 0,
+                                                    "padding": 16,
                                                   }
                                                 }
                                               >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "marginBottom": 8,
+                                                    }
+                                                  }
+                                                >
+                                                  <TouchableOpacity
+                                                    accessibilityHint="Shows provider details"
+                                                    accessibilityLabel="MoonPay (Staging) logo"
+                                                    disabled={true}
+                                                  >
+                                                    <View
+                                                      style={
+                                                        {
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                        }
+                                                      }
+                                                    >
+                                                      <Image
+                                                        onError={[Function]}
+                                                        source={
+                                                          {
+                                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
+                                                          }
+                                                        }
+                                                        style={
+                                                          {
+                                                            "height": 24,
+                                                            "width": 88,
+                                                          }
+                                                        }
+                                                      />
+                                                      <Text
+                                                        allowFontScaling={false}
+                                                        style={
+                                                          [
+                                                            {
+                                                              "color": undefined,
+                                                              "fontSize": 12,
+                                                            },
+                                                            {
+                                                              "color": "#6a737d",
+                                                              "marginLeft": 8,
+                                                            },
+                                                            {
+                                                              "fontFamily": "Feather",
+                                                              "fontStyle": "normal",
+                                                              "fontWeight": "normal",
+                                                            },
+                                                            {},
+                                                          ]
+                                                        }
+                                                      >
+                                                        
+                                                      </Text>
+                                                    </View>
+                                                  </TouchableOpacity>
+                                                </View>
                                                 <View
                                                   style={
                                                     {
@@ -5531,228 +5518,141 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     }
                                                     testID="listitemcolumn"
                                                   >
-                                                    <TouchableOpacity
-                                                      accessibilityHint="Shows provider details"
-                                                      accessibilityLabel="MoonPay (Staging) logo"
-                                                      disabled={true}
-                                                    >
-                                                      <View
-                                                        style={
-                                                          {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
-                                                          }
+                                                    <Text
+                                                      accessibilityRole="text"
+                                                      style={
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
                                                         }
-                                                      >
-                                                        <Image
-                                                          onError={[Function]}
-                                                          source={
-                                                            {
-                                                              "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
-                                                            }
-                                                          }
-                                                          style={
-                                                            {
-                                                              "height": 24,
-                                                              "width": 88,
-                                                            }
-                                                          }
-                                                        />
-                                                        <Text
-                                                          allowFontScaling={false}
-                                                          style={
-                                                            [
-                                                              {
-                                                                "color": undefined,
-                                                                "fontSize": 12,
-                                                              },
-                                                              {
-                                                                "color": "#6a737d",
-                                                                "marginLeft": 8,
-                                                              },
-                                                              {
-                                                                "fontFamily": "Feather",
-                                                                "fontStyle": "normal",
-                                                                "fontWeight": "normal",
-                                                              },
-                                                              {},
-                                                            ]
-                                                          }
-                                                        >
-                                                          
-                                                        </Text>
-                                                      </View>
-                                                    </TouchableOpacity>
+                                                      }
+                                                    >
+                                                      0.0162
+                                                       
+                                                      ETH
+                                                    </Text>
+                                                  </View>
+                                                  <View
+                                                    accessible={false}
+                                                    style={
+                                                      {
+                                                        "width": 16,
+                                                      }
+                                                    }
+                                                    testID="listitem-gap"
+                                                  />
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "flex": -1,
+                                                      }
+                                                    }
+                                                    testID="listitemcolumn"
+                                                  >
+                                                    <Text
+                                                      accessibilityRole="text"
+                                                      style={
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
+                                                      }
+                                                    >
+                                                      ≈ 
+                                                      $
+                                                       
+                                                      44.39 AUD
+                                                    </Text>
                                                   </View>
                                                 </View>
-                                              </View>
-                                              <View
-                                                style={
-                                                  [
-                                                    {
-                                                      "marginVertical": 8,
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "marginBottom": 0,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
                                                 <View
-                                                  accessibilityRole="none"
-                                                  accessible={true}
                                                   style={
                                                     {
-                                                      "padding": 0,
+                                                      "marginTop": 0,
                                                     }
                                                   }
                                                 >
                                                   <View
-                                                    style={
-                                                      {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
-                                                      }
-                                                    }
-                                                  >
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": 1,
-                                                        }
-                                                      }
-                                                      testID="listitemcolumn"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Medium",
-                                                            "fontSize": 16,
-                                                            "fontWeight": "500",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 24,
-                                                          }
-                                                        }
-                                                      >
-                                                        0.0162
-                                                         
-                                                        ETH
-                                                      </Text>
-                                                    </View>
-                                                    <View
-                                                      accessible={false}
-                                                      style={
-                                                        {
-                                                          "width": 16,
-                                                        }
-                                                      }
-                                                      testID="listitem-gap"
-                                                    />
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": -1,
-                                                        }
-                                                      }
-                                                      testID="listitemcolumn"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Medium",
-                                                            "fontSize": 16,
-                                                            "fontWeight": "500",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 24,
-                                                          }
-                                                        }
-                                                      >
-                                                        ≈ 
-                                                        $
-                                                         
-                                                        44.39 AUD
-                                                      </Text>
-                                                    </View>
-                                                  </View>
-                                                </View>
-                                              </View>
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  [
-                                                    {
-                                                      "marginTop": 4,
-                                                      "overflow": "hidden",
-                                                    },
-                                                    {},
-                                                  ]
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "marginTop": 10,
-                                                    }
-                                                  }
-                                                >
-                                                  <TouchableOpacity
-                                                    accessibilityRole="button"
-                                                    accessible={true}
-                                                    activeOpacity={0.2}
-                                                    disabled={false}
-                                                    onPress={[Function]}
+                                                    onLayout={[Function]}
                                                     style={
                                                       [
-                                                        [
-                                                          {
-                                                            "borderRadius": 100,
-                                                            "justifyContent": "center",
-                                                            "padding": 15,
-                                                          },
-                                                          {
-                                                            "backgroundColor": "#0376c9",
-                                                          },
-                                                          undefined,
-                                                        ],
-                                                        null,
+                                                        {
+                                                          "marginTop": 4,
+                                                          "overflow": "hidden",
+                                                        },
+                                                        {},
                                                       ]
                                                     }
                                                   >
-                                                    <Text
+                                                    <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#007aff",
-                                                            "fontSize": 17,
-                                                            "fontWeight": "500",
-                                                            "textAlign": "center",
-                                                          },
-                                                          null,
-                                                          [
-                                                            {
-                                                              "fontFamily": "EuclidCircularB-Bold",
-                                                              "fontSize": 14,
-                                                              "fontWeight": "600",
-                                                              "textAlign": "center",
-                                                            },
-                                                            {
-                                                              "color": "#ffffff",
-                                                            },
-                                                            undefined,
-                                                          ],
-                                                          null,
-                                                        ]
+                                                        {
+                                                          "marginTop": 10,
+                                                        }
                                                       }
                                                     >
-                                                      Continue with MoonPay (Staging)
-                                                    </Text>
-                                                  </TouchableOpacity>
+                                                      <TouchableOpacity
+                                                        accessibilityRole="button"
+                                                        accessible={true}
+                                                        activeOpacity={0.2}
+                                                        disabled={false}
+                                                        onPress={[Function]}
+                                                        style={
+                                                          [
+                                                            [
+                                                              {
+                                                                "borderRadius": 100,
+                                                                "justifyContent": "center",
+                                                                "padding": 15,
+                                                              },
+                                                              {
+                                                                "backgroundColor": "#0376c9",
+                                                              },
+                                                              undefined,
+                                                            ],
+                                                            null,
+                                                          ]
+                                                        }
+                                                      >
+                                                        <Text
+                                                          style={
+                                                            [
+                                                              {
+                                                                "color": "#007aff",
+                                                                "fontSize": 17,
+                                                                "fontWeight": "500",
+                                                                "textAlign": "center",
+                                                              },
+                                                              null,
+                                                              [
+                                                                {
+                                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                                  "fontSize": 14,
+                                                                  "fontWeight": "600",
+                                                                  "textAlign": "center",
+                                                                },
+                                                                {
+                                                                  "color": "#ffffff",
+                                                                },
+                                                                undefined,
+                                                              ],
+                                                              null,
+                                                            ]
+                                                          }
+                                                        >
+                                                          Continue with MoonPay (Staging)
+                                                        </Text>
+                                                      </TouchableOpacity>
+                                                    </View>
+                                                  </View>
                                                 </View>
                                               </View>
                                             </View>
@@ -5825,7 +5725,9 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                   },
                                                   undefined,
                                                   false,
-                                                  undefined,
+                                                  {
+                                                    "padding": 0,
+                                                  },
                                                   undefined,
                                                 ]
                                               }
@@ -5835,10 +5737,70 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                 accessible={true}
                                                 style={
                                                   {
-                                                    "padding": 0,
+                                                    "padding": 16,
                                                   }
                                                 }
                                               >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "marginBottom": 8,
+                                                    }
+                                                  }
+                                                >
+                                                  <TouchableOpacity
+                                                    accessibilityHint="Shows provider details"
+                                                    accessibilityLabel="Transak (Staging) logo"
+                                                    disabled={true}
+                                                  >
+                                                    <View
+                                                      style={
+                                                        {
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                        }
+                                                      }
+                                                    >
+                                                      <Image
+                                                        onError={[Function]}
+                                                        source={
+                                                          {
+                                                            "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_light.png",
+                                                          }
+                                                        }
+                                                        style={
+                                                          {
+                                                            "height": 24,
+                                                            "width": 90,
+                                                          }
+                                                        }
+                                                      />
+                                                      <Text
+                                                        allowFontScaling={false}
+                                                        style={
+                                                          [
+                                                            {
+                                                              "color": undefined,
+                                                              "fontSize": 12,
+                                                            },
+                                                            {
+                                                              "color": "#6a737d",
+                                                              "marginLeft": 8,
+                                                            },
+                                                            {
+                                                              "fontFamily": "Feather",
+                                                              "fontStyle": "normal",
+                                                              "fontWeight": "normal",
+                                                            },
+                                                            {},
+                                                          ]
+                                                        }
+                                                      >
+                                                        
+                                                      </Text>
+                                                    </View>
+                                                  </TouchableOpacity>
+                                                </View>
                                                 <View
                                                   style={
                                                     {
@@ -5855,228 +5817,141 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     }
                                                     testID="listitemcolumn"
                                                   >
-                                                    <TouchableOpacity
-                                                      accessibilityHint="Shows provider details"
-                                                      accessibilityLabel="Transak (Staging) logo"
-                                                      disabled={true}
-                                                    >
-                                                      <View
-                                                        style={
-                                                          {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
-                                                          }
+                                                    <Text
+                                                      accessibilityRole="text"
+                                                      style={
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
                                                         }
-                                                      >
-                                                        <Image
-                                                          onError={[Function]}
-                                                          source={
-                                                            {
-                                                              "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/transak_light.png",
-                                                            }
-                                                          }
-                                                          style={
-                                                            {
-                                                              "height": 24,
-                                                              "width": 90,
-                                                            }
-                                                          }
-                                                        />
-                                                        <Text
-                                                          allowFontScaling={false}
-                                                          style={
-                                                            [
-                                                              {
-                                                                "color": undefined,
-                                                                "fontSize": 12,
-                                                              },
-                                                              {
-                                                                "color": "#6a737d",
-                                                                "marginLeft": 8,
-                                                              },
-                                                              {
-                                                                "fontFamily": "Feather",
-                                                                "fontStyle": "normal",
-                                                                "fontWeight": "normal",
-                                                              },
-                                                              {},
-                                                            ]
-                                                          }
-                                                        >
-                                                          
-                                                        </Text>
-                                                      </View>
-                                                    </TouchableOpacity>
+                                                      }
+                                                    >
+                                                      0.01591
+                                                       
+                                                      ETH
+                                                    </Text>
+                                                  </View>
+                                                  <View
+                                                    accessible={false}
+                                                    style={
+                                                      {
+                                                        "width": 16,
+                                                      }
+                                                    }
+                                                    testID="listitem-gap"
+                                                  />
+                                                  <View
+                                                    style={
+                                                      {
+                                                        "flex": -1,
+                                                      }
+                                                    }
+                                                    testID="listitemcolumn"
+                                                  >
+                                                    <Text
+                                                      accessibilityRole="text"
+                                                      style={
+                                                        {
+                                                          "color": "#141618",
+                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontSize": 16,
+                                                          "fontWeight": "500",
+                                                          "letterSpacing": 0,
+                                                          "lineHeight": 24,
+                                                        }
+                                                      }
+                                                    >
+                                                      ≈ 
+                                                      $
+                                                       
+                                                      43.59 AUD
+                                                    </Text>
                                                   </View>
                                                 </View>
-                                              </View>
-                                              <View
-                                                style={
-                                                  [
-                                                    {
-                                                      "marginVertical": 8,
-                                                    },
-                                                    undefined,
-                                                    {
-                                                      "marginBottom": 0,
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                              >
                                                 <View
-                                                  accessibilityRole="none"
-                                                  accessible={true}
                                                   style={
                                                     {
-                                                      "padding": 0,
+                                                      "marginTop": 0,
                                                     }
                                                   }
                                                 >
                                                   <View
-                                                    style={
-                                                      {
-                                                        "alignItems": "center",
-                                                        "flexDirection": "row",
-                                                      }
-                                                    }
-                                                  >
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": 1,
-                                                        }
-                                                      }
-                                                      testID="listitemcolumn"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Medium",
-                                                            "fontSize": 16,
-                                                            "fontWeight": "500",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 24,
-                                                          }
-                                                        }
-                                                      >
-                                                        0.01591
-                                                         
-                                                        ETH
-                                                      </Text>
-                                                    </View>
-                                                    <View
-                                                      accessible={false}
-                                                      style={
-                                                        {
-                                                          "width": 16,
-                                                        }
-                                                      }
-                                                      testID="listitem-gap"
-                                                    />
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": -1,
-                                                        }
-                                                      }
-                                                      testID="listitemcolumn"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Medium",
-                                                            "fontSize": 16,
-                                                            "fontWeight": "500",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 24,
-                                                          }
-                                                        }
-                                                      >
-                                                        ≈ 
-                                                        $
-                                                         
-                                                        43.59 AUD
-                                                      </Text>
-                                                    </View>
-                                                  </View>
-                                                </View>
-                                              </View>
-                                              <View
-                                                onLayout={[Function]}
-                                                style={
-                                                  [
-                                                    {
-                                                      "marginTop": 4,
-                                                      "overflow": "hidden",
-                                                    },
-                                                    {},
-                                                  ]
-                                                }
-                                              >
-                                                <View
-                                                  style={
-                                                    {
-                                                      "marginTop": 10,
-                                                    }
-                                                  }
-                                                >
-                                                  <TouchableOpacity
-                                                    accessibilityRole="button"
-                                                    accessible={true}
-                                                    activeOpacity={0.2}
-                                                    disabled={false}
-                                                    onPress={[Function]}
+                                                    onLayout={[Function]}
                                                     style={
                                                       [
-                                                        [
-                                                          {
-                                                            "borderRadius": 100,
-                                                            "justifyContent": "center",
-                                                            "padding": 15,
-                                                          },
-                                                          {
-                                                            "backgroundColor": "#0376c9",
-                                                          },
-                                                          undefined,
-                                                        ],
-                                                        null,
+                                                        {
+                                                          "marginTop": 4,
+                                                          "overflow": "hidden",
+                                                        },
+                                                        {},
                                                       ]
                                                     }
                                                   >
-                                                    <Text
+                                                    <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "color": "#007aff",
-                                                            "fontSize": 17,
-                                                            "fontWeight": "500",
-                                                            "textAlign": "center",
-                                                          },
-                                                          null,
-                                                          [
-                                                            {
-                                                              "fontFamily": "EuclidCircularB-Bold",
-                                                              "fontSize": 14,
-                                                              "fontWeight": "600",
-                                                              "textAlign": "center",
-                                                            },
-                                                            {
-                                                              "color": "#ffffff",
-                                                            },
-                                                            undefined,
-                                                          ],
-                                                          null,
-                                                        ]
+                                                        {
+                                                          "marginTop": 10,
+                                                        }
                                                       }
                                                     >
-                                                      Continue with Transak (Staging)
-                                                    </Text>
-                                                  </TouchableOpacity>
+                                                      <TouchableOpacity
+                                                        accessibilityRole="button"
+                                                        accessible={true}
+                                                        activeOpacity={0.2}
+                                                        disabled={false}
+                                                        onPress={[Function]}
+                                                        style={
+                                                          [
+                                                            [
+                                                              {
+                                                                "borderRadius": 100,
+                                                                "justifyContent": "center",
+                                                                "padding": 15,
+                                                              },
+                                                              {
+                                                                "backgroundColor": "#0376c9",
+                                                              },
+                                                              undefined,
+                                                            ],
+                                                            null,
+                                                          ]
+                                                        }
+                                                      >
+                                                        <Text
+                                                          style={
+                                                            [
+                                                              {
+                                                                "color": "#007aff",
+                                                                "fontSize": 17,
+                                                                "fontWeight": "500",
+                                                                "textAlign": "center",
+                                                              },
+                                                              null,
+                                                              [
+                                                                {
+                                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                                  "fontSize": 14,
+                                                                  "fontWeight": "600",
+                                                                  "textAlign": "center",
+                                                                },
+                                                                {
+                                                                  "color": "#ffffff",
+                                                                },
+                                                                undefined,
+                                                              ],
+                                                              null,
+                                                            ]
+                                                          }
+                                                        >
+                                                          Continue with Transak (Staging)
+                                                        </Text>
+                                                      </TouchableOpacity>
+                                                    </View>
+                                                  </View>
                                                 </View>
                                               </View>
                                             </View>

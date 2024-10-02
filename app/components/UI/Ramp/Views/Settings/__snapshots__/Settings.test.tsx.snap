@@ -453,8 +453,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 16,
                                       }
                                     }
@@ -462,59 +460,68 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": -1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "flex": -1,
                                           }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        🇪🇺
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          🇪🇺
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "width": 16,
                                           }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
-                                        Europe Union
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Europe Union
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                   <TouchableOpacity
@@ -1606,8 +1613,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 16,
                                       }
                                     }
@@ -1615,59 +1620,68 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     <View
                                       style={
                                         {
-                                          "flex": -1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "flex": -1,
                                           }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        🇪🇺
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          🇪🇺
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "width": 16,
                                           }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
-                                        Europe Union
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Europe Union
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                   <TouchableOpacity
@@ -2317,8 +2331,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 16,
                                       }
                                     }
@@ -2326,59 +2338,68 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": -1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "flex": -1,
                                           }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        🏳️
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          🏳️
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "width": 16,
                                           }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
-                                        No region selected
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          No region selected
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -2853,8 +2874,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 16,
                                       }
                                     }
@@ -2862,59 +2881,68 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": -1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "flex": -1,
                                           }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        🇪🇺
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          🇪🇺
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "width": 16,
                                           }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
-                                        Europe Union
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Europe Union
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                   <TouchableOpacity
@@ -3427,8 +3455,6 @@ exports[`Settings renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 16,
                                       }
                                     }
@@ -3436,59 +3462,68 @@ exports[`Settings renders correctly 1`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": -1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "flex": -1,
                                           }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        🇪🇺
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          🇪🇺
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "width": 16,
                                           }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
-                                        Europe Union
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Europe Union
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                   <TouchableOpacity
@@ -4001,8 +4036,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
                                         "padding": 16,
                                       }
                                     }
@@ -4010,59 +4043,68 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     <View
                                       style={
                                         {
-                                          "flex": -1,
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
                                         }
                                       }
-                                      testID="listitemcolumn"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <View
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "flex": -1,
                                           }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        🇪🇺
-                                      </Text>
-                                    </View>
-                                    <View
-                                      accessible={false}
-                                      style={
-                                        {
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="listitem-gap"
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "flex": -1,
-                                        }
-                                      }
-                                      testID="listitemcolumn"
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          🇪🇺
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
                                         style={
                                           {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "width": 16,
                                           }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
-                                        Europe Union
-                                      </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Europe Union
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                   <TouchableOpacity

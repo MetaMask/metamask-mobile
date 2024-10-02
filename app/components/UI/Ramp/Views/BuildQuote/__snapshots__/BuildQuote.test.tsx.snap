@@ -2694,43 +2694,37 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <View
                                         style={
@@ -2758,36 +2752,62 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                         }
                                       />
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "20%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -2870,89 +2890,130 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "30%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "50%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
                                     />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "30%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -4277,43 +4338,37 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <View
                                         style={
@@ -4341,36 +4396,62 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                         }
                                       />
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "20%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -4453,89 +4534,130 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "30%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "50%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
                                     />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "30%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -5860,43 +5982,37 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <View
                                         style={
@@ -5924,36 +6040,62 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                         }
                                       />
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "20%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -6036,89 +6178,130 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "30%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "50%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
                                     />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "30%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -7443,43 +7626,37 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
                                       <View
                                         style={
@@ -7507,36 +7684,62 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                         }
                                       />
                                     </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "20%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -7619,89 +7822,130 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     },
                                     undefined,
                                     undefined,
-                                    undefined,
+                                    {
+                                      "padding": 0,
+                                    },
                                     undefined,
                                   ]
                                 }
                               >
                                 <View
+                                  accessibilityRole="none"
+                                  accessible={true}
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "padding": 16,
+                                    }
                                   }
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "flex": 1,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "30%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "50%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
                                     />
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              {
+                                                "padding": 8,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "30%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                    </View>
                                   </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "backgroundColor": "#f2f4f6",
-                                          "borderRadius": 30,
-                                          "padding": 14,
-                                        },
-                                        {
-                                          "padding": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        {
-                                          "width": "20%",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
                                 </View>
                               </View>
                             </TouchableOpacity>
@@ -8469,37 +8713,18 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          false,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "marginHorizontal": 0,
-                                            "marginVertical": 3,
-                                          },
-                                        ]
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                          "marginHorizontal": 0,
+                                          "marginVertical": 3,
+                                        }
                                       }
                                     >
                                       🇨🇱
@@ -8566,7 +8791,9 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
@@ -8577,7 +8804,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       accessible={true}
                                       style={
                                         {
-                                          "padding": 0,
+                                          "padding": 16,
                                         }
                                       }
                                     >
@@ -8843,44 +9070,16 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#6a737d",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 12,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 20,
+                                    }
                                   }
                                 >
                                   Current balance
@@ -9152,44 +9351,16 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#d73847",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#d73847",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 12,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 20,
+                                    }
                                   }
                                 >
                                   Minimum deposit is
@@ -9244,7 +9415,9 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         },
                                         undefined,
                                         undefined,
-                                        undefined,
+                                        {
+                                          "padding": 0,
+                                        },
                                         undefined,
                                       ]
                                     }
@@ -9255,7 +9428,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         accessible={true}
                                         style={
                                           {
-                                            "padding": 0,
+                                            "padding": 16,
                                           }
                                         }
                                       >
@@ -11595,37 +11768,18 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          false,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "marginHorizontal": 0,
-                                            "marginVertical": 3,
-                                          },
-                                        ]
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                          "marginHorizontal": 0,
+                                          "marginVertical": 3,
+                                        }
                                       }
                                     >
                                       🇨🇱
@@ -11683,44 +11837,16 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        [
-                                          {
-                                            "color": "#141618",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          {
-                                            "textAlign": "center",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "color": "#141618",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       USD
@@ -11787,7 +11913,9 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
@@ -11798,7 +11926,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       accessible={true}
                                       style={
                                         {
-                                          "padding": 0,
+                                          "padding": 16,
                                         }
                                       }
                                     >
@@ -12064,44 +12192,16 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#6a737d",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 12,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 20,
+                                    }
                                   }
                                 >
                                   Current balance
@@ -12224,44 +12324,16 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#d73847",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#d73847",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 12,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 20,
+                                    }
                                   }
                                 >
                                   Enter a larger amount to continue
@@ -12313,7 +12385,9 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         },
                                         undefined,
                                         undefined,
-                                        undefined,
+                                        {
+                                          "padding": 0,
+                                        },
                                         undefined,
                                       ]
                                     }
@@ -12324,7 +12398,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         accessible={true}
                                         style={
                                           {
-                                            "padding": 0,
+                                            "padding": 16,
                                           }
                                         }
                                       >
