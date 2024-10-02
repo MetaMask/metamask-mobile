@@ -13,11 +13,11 @@ pipelines:
   build_all_targets_pipeline:
     stages:
       - create_build_all_targets: {}
-  #Builds MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store. Not for production release.
-  release_builds_to_test_flight:
+  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
+  release_builds_to_store_pipeline:
     stages:
-      - create_build_for_test_flight: {}
-      - deploy_build_for_test_flight: {}
+      - create_build_release: {}
+      - deploy_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -89,11 +89,11 @@ stages:
       - build_ios_release: {}
       - build_android_qa: {}
       - build_ios_qa: {}
-  create_build_for_test_flight:
+  create_build_release:
     workflows:
       - build_android_release: {}
       - build_ios_release: {}
-  deploy_build_for_test_flight:
+  deploy_build_release:
     workflows:
       - deploy_android_to_store: {}
       - deploy_ios_to_store: {}
@@ -249,6 +249,7 @@ workflows:
   prep_environment:
     steps:
       - script@1:
+          title: node, yarn, corepack installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -258,7 +259,7 @@ workflows:
 
                 set -e
 
-                # Install and enable NVM
+                # Add and enable NVM
                 wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
                 echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
                 sha256sum -c install-nvm.sh.SHA256SUM
@@ -276,15 +277,16 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
-          title: Install node, yarn and corepack
-  install_detox:
+  install_applesimutils:
     steps:
       - script@1:
+          title: applesimutils installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                scripts/detox-setup.sh
-          title: Install Detox Dependencies
+                echo "Now installing applesimutils..."
+                brew tap wix/brew
+                brew install applesimutils
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -569,7 +571,6 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -645,7 +646,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -737,8 +737,8 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - install_applesimutils
       - prep_environment
-      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -803,8 +803,8 @@ workflows:
           title: Deploy test report files
   ios_e2e_build:
     before_run:
+      - install_applesimutils
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -833,7 +833,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install ccache
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -890,8 +890,8 @@ workflows:
   ios_e2e_test:
     before_run:
       - setup
+      - install_applesimutils
       - prep_environment
-      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -997,16 +997,6 @@ workflows:
           inputs:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  build_ios_release_with_sourcemaps:
-    envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
-    after_run:
-      - build_ios_release
-  build_android_release_with_sourcemaps:
-    envs:
-      - SENTRY_DISABLE_AUTO_UPLOAD: false
-    after_run:
-      - build_android_release
   build_android_release:
     before_run:
       - code_setup
@@ -1070,7 +1060,7 @@ workflows:
           inputs:
             - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
-          title: Deploy Source Map
+          title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
