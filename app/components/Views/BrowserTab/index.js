@@ -113,7 +113,8 @@ import handleWebViewFocus from '../../../util/browser/webViewFocus';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
-const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
+  AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -363,7 +364,9 @@ export const BrowserTab = (props) => {
     const currentPage = checkUrl || url.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
-    return currentHost === HOMEPAGE_HOST;
+    return (
+      currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
+    );
   }, []);
 
   const notifyAllConnections = useCallback((payload, restricted = true) => {
