@@ -7,7 +7,6 @@ import createStyles from './style';
 interface InfoRowProps {
   label: string;
   children: ReactNode | string;
-  tooltip?: string;
 }
 
 const InfoRow = ({ label, children }: InfoRowProps) => {
