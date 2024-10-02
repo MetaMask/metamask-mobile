@@ -80,19 +80,17 @@ export const getShouldUpdateApprovalRequest = (
 
 const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: ControllerMessenger,
-): Promise<SmartTransaction | undefined> => {
-  return new Promise((resolve) => {
-    controllerMessenger.subscribe(
-      'SmartTransactionsController:smartTransactionConfirmationDone',
-      async (smartTransaction: SmartTransaction) => {
-        resolve(smartTransaction);
-      },
-    );
-    setTimeout(() => {
-      resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
-    }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
-  });
-};
+): Promise<SmartTransaction | undefined> => new Promise((resolve) => {
+  controllerMessenger.subscribe(
+    'SmartTransactionsController:smartTransactionConfirmationDone',
+    async (smartTransaction: SmartTransaction) => {
+      resolve(smartTransaction);
+    },
+  );
+  setTimeout(() => {
+    resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
+  }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
+});
 
 export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
