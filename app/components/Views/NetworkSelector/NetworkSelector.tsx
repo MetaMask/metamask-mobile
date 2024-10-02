@@ -489,7 +489,7 @@ const NetworkSelector = () => {
           size: avatarSize,
         }}
         isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
-        onPress={() => onNetworkChange(LINEA_MAINNET)}
+        onPress={() => onNetworkChange(LINEA_MAINNET, chainId)}
       />
     );
   };
