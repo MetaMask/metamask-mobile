@@ -442,7 +442,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const renderPermissionsSummaryScreen = useCallback(() => {
     // reset the first render flag, so when it re-renders the checkbox list containing all accounts, that the permittend ones are selected
     // this is a work around for the selected addresses being lost (why and when are they being lost anyway?)
-    if (isFirstRenderOfEditingAllAccountPermissions.current === false) {
+    if (
+      isMultichainVersion1Enabled &&
+      isFirstRenderOfEditingAllAccountPermissions.current === false
+    ) {
       isFirstRenderOfEditingAllAccountPermissions.current = true;
     }
 
@@ -607,13 +610,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       case AccountPermissionsScreens.ConnectMoreAccounts:
         return renderConnectMoreAccountsScreen();
       case AccountPermissionsScreens.EditAccountsPermissions:
-        return renderEditAccountsPermissionsScreen();
+        return (
+          isMultichainVersion1Enabled && renderEditAccountsPermissionsScreen()
+        );
       case AccountPermissionsScreens.ConnectMoreNetworks:
-        return renderConnectNetworksScreen();
+        return isMultichainVersion1Enabled && renderConnectNetworksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
       case AccountPermissionsScreens.PermissionsSummary:
-        return renderPermissionsSummaryScreen();
+        return isMultichainVersion1Enabled && renderPermissionsSummaryScreen();
     }
   }, [
     permissionsScreen,
