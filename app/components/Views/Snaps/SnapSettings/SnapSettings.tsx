@@ -111,7 +111,7 @@ const SnapSettings = () => {
     } else {
       removeSnap();
     }
-  }, [isKeyringSnap, removeSnap]);
+  }, [isKeyringSnap, keyringAccounts.length, removeSnap]);
 
 
   const handleRemoveSnapKeyring = useCallback(() => {
