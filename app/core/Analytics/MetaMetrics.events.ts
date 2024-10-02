@@ -359,7 +359,8 @@ enum EVENT_NAME {
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
   // Transactions
-  TRANSACTION_FINALIZED = 'Transaction Finalized',
+// Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).  
+TRANSACTION_FINALIZED = 'Transaction Finalized',  
 
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
