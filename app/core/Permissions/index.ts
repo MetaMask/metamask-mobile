@@ -164,7 +164,6 @@ export const removePermittedAccounts = (
       remainingAccounts,
     );
   }
-  return remainingAccounts;
 };
 
 export const removeAccountsFromPermissions = async (addresses: string[]) => {
