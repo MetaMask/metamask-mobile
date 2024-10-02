@@ -1757,6 +1757,7 @@ class Engine {
   }
 
 
+  // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
   _handleTransactionFinalizedEvent = async ( transactionEventPayload: TransactionEventPayload, properties: object ) => {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       store.getState(),

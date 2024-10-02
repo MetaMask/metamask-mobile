@@ -11,6 +11,8 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
 import type { ControllerMessenger } from '../../core/Engine';
 
+const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
+
 export const getTransactionType = (
   transactionMeta: TransactionMeta,
   chainId: Hex,
@@ -88,7 +90,7 @@ const waitForSmartTransactionConfirmationDone = (
     );
     setTimeout(() => {
       resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
-    }, 10000);
+    }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
   });
 };
 
