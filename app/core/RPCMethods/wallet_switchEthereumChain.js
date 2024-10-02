@@ -85,7 +85,7 @@ const wallet_switchEthereumChain = async ({
       return;
     }
 
-    let networkConfigurationId, networkConfiguration, chainId;
+    let networkConfigurationId, networkConfiguration;
     if (existingEntry) {
       [, networkConfiguration] = existingEntry;
       networkConfigurationId =
