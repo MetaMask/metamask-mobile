@@ -118,7 +118,7 @@ exports[`Confirm should match snapshot for personal sign 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#f2f4f6",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "minHeight": "90%",
@@ -127,9 +127,26 @@ exports[`Confirm should match snapshot for personal sign 1`] = `
         }
       }
     >
-      <Text>
-        TODO
-      </Text>
+      <View
+        style={
+          {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "700",
+            }
+          }
+        >
+          Signature request
+        </Text>
+      </View>
       <View
         style={
           {
@@ -157,6 +174,7 @@ exports[`Confirm should match snapshot for personal sign 1`] = `
                   "borderWidth": 1,
                 },
                 {
+                  "backgroundColor": "#f2f4f6",
                   "flex": 1,
                 },
               ],
