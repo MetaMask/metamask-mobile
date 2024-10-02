@@ -45,6 +45,8 @@ describe('StakingBalance', () => {
     fireEvent.press(screen.getByText(strings('stake.stake_more')));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.STAKING.STAKE);
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+    });
   });
 });
