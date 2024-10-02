@@ -19,6 +19,7 @@ import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
 import { store } from '../../../store';
 import Logger from '../../../util/Logger';
+import { withTimeout } from '../methods';
 
 interface AlertButton {
   text: string;
@@ -47,30 +48,30 @@ class NotificationsService {
         return map;
       }, new Map<ChannelId, boolean>());
     } catch (e) {
-      if (e instanceof Error) {
-        Logger.error(e, strings('notifications.error_checking_permission'));
-      } else {
-        Logger.error(
-          new Error(strings('notifications.error_checking_permission')),
-        );
-      }
+      Logger.error(
+        e as Error,
+        strings('notifications.error_checking_permission'),
+      );
       return new Map<ChannelId, boolean>();
     }
   }
 
   async getAllPermissions(shouldOpenSettings = true) {
-    const promises = [] as Promise<string>[];
-    notificationChannels.forEach((channel: AndroidChannel) => {
-      promises.push(this.createChannel(channel));
-    });
+    const promises: Promise<string>[] = notificationChannels.map(
+      (channel: AndroidChannel) =>
+        withTimeout(this.createChannel(channel), 5000),
+    );
     await Promise.allSettled(promises);
-    const permission = await this.requestPermission();
-    const blockedNotifications = await this.getBlockedNotifications();
+    const permission = await withTimeout(this.requestPermission(), 5000);
+    const blockedNotifications = await withTimeout(
+      this.getBlockedNotifications(),
+      5000,
+    );
     if (
       (permission !== 'authorized' || blockedNotifications.size !== 0) &&
       shouldOpenSettings
     ) {
-      this.requestPushNotificationsPermission();
+      await this.requestPushNotificationsPermission();
     }
     return { permission, blockedNotifications };
   }
@@ -135,13 +136,10 @@ class NotificationsService {
         strings('notifications.prompt_desc'),
       );
     } catch (e) {
-      if (e instanceof Error) {
-        Logger.error(e, strings('notifications.error_checking_permission'));
-      } else {
-        Logger.error(
-          new Error(strings('notifications.error_checking_permission')),
-        );
-      }
+      Logger.error(
+        e as Error,
+        strings('notifications.error_checking_permission'),
+      );
     }
   }
   openSystemSettings() {
@@ -193,7 +191,7 @@ class NotificationsService {
       await this.cancelTriggerNotification(detail.notification.id);
     }
 
-    if (detail?.notification?.data?.url) {
+    if (detail?.notification?.data) {
       callback?.(detail.notification as Notification);
     }
   };
