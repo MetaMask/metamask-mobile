@@ -21,6 +21,8 @@ const handleWebViewFocus = ({
   if (webviewRef.current) {
     if (!isFocused) {
       webviewRef.current.stopLoading();
+      // this reloads the webview to clear any setTimeOut's or setInterval's
+      webviewRef.current.reload();
     }
 
     if (previousChainId && previousChainId !== chainId) {
