@@ -3295,6 +3295,7 @@
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
     "estimated_annual_earnings": "Estimated annual earnings",
+    "estimated_annual_reward": "Est. annual Rewards",
     "accessibility_labels": {
       "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
@@ -3340,7 +3341,14 @@
       },
       "geo_blocked": "You are located in a geographic location where unstaking or staking is not permitted.",
       "approximately": "approximately"
-    }
+    },
+    "staking_from": "Staking from",
+    "interacting_with": "Interacting with",
+    "12_hours": "12 hours",
+    "terms_of_service": "Terms of service",
+    "risk_disclosure": "Risk disclosure",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3397,6 +3405,16 @@
     "reward_rate": {
       "title": "Reward rate",
       "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    },
+    "estimated_gas_fee": {
+      "title": "Estimated gas fee",
+      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. Metamask does not profit from gas fees.",
+      "gas_fluctuation": "Gas fees are estimated and will fluctuate based on network traffic and transaction complexity.",
+      "gas_learn_more": "Learn more about gas fees"
+    },
+    "reward_frequency": {
+      "title": "Reward frequency",
+      "tooltip": "Your staked balance updates every 12 hours to account for new rewards."
     }
   },
   "confirm": {

@@ -14,6 +14,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { KeyValueRowLabelProps, TooltipSizes } from '../KeyValueRow.types';
 import styleSheet from './KeyValueLabel.styles';
+import { isPreDefinedKeyValueRowLabel } from '../KeyValueRow.utils';
 
 /**
  * A label and tooltip component.
@@ -25,12 +26,7 @@ import styleSheet from './KeyValueLabel.styles';
  *
  * @returns {JSX.Element} The rendered KeyValueRowLabel component.
  */
-const KeyValueRowLabel = ({
-  label,
-  variant = TextVariant.BodyMDMedium,
-  color = TextColor.Default,
-  tooltip,
-}: KeyValueRowLabelProps) => {
+const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const { openTooltipModal } = useTooltipModal();
@@ -44,16 +40,23 @@ const KeyValueRowLabel = ({
 
   return (
     <View style={styles.labelContainer}>
-      <Label variant={variant} color={color}>
-        {label}
-      </Label>
+      {isPreDefinedKeyValueRowLabel(label) ? (
+        <Label
+          variant={label?.variant ?? TextVariant.BodyMDMedium}
+          color={label?.color ?? TextColor.Default}
+        >
+          {label.text}
+        </Label>
+      ) : (
+        label
+      )}
       {hasTooltip && (
         <ButtonIcon
           size={tooltip.size ?? TooltipSizes.Md}
           iconColor={IconColor.Muted}
           iconName={IconName.Question}
           accessibilityRole="button"
-          accessibilityLabel={`${tooltip.title}} tooltip`}
+          accessibilityLabel={`${tooltip.title} tooltip`}
           onPress={onNavigateToTooltipModal}
         />
       )}

@@ -21,7 +21,7 @@ interface KeyValueRowTooltip {
   /**
    * The text displayed within the tooltip body.
    */
-  text: string;
+  text: string | ReactNode;
   /**
    * Optional size of the tooltip icon.
    * @default TooltipSizes.Md
@@ -46,20 +46,7 @@ export enum KeyValueRowFieldIconSides {
  * @see KeyValueRowProps
  */
 interface KeyValueRowField {
-  /**
-   * The text to display.
-   */
-  text: string;
-  /**
-   * Optional text variant.
-   * @default TextVariant.BodyMDMedium
-   */
-  variant?: TextProps['variant'];
-  /**
-   * Optional text color.
-   * @default TextColor.Default
-   */
-  color?: TextProps['color'];
+  label: PreDefinedKeyValueRowLabel | ReactNode;
   /**
    * Optional icon to display. If undefined, no icon is displayed.
    */
@@ -74,16 +61,11 @@ export const IconSizes = IconSize;
 
 export const TooltipSizes = ButtonIconSizes;
 
-/**
- * The KeyValueRowLabel prop interface.
- *
- * @see KeyValueRowLabel in ./KeyValueRow.tsx
- */
-export interface KeyValueRowLabelProps {
+export interface PreDefinedKeyValueRowLabel {
   /**
    * Text to display.
    */
-  label: string;
+  text: string;
   /**
    * Optional text variant.
    * @default TextVariant.BodyMDMedium
@@ -94,6 +76,15 @@ export interface KeyValueRowLabelProps {
    * @default TextColor.Default
    */
   color?: TextProps['color'];
+}
+
+/**
+ * The KeyValueRowLabel prop interface.
+ *
+ * @see KeyValueRowLabel in ./KeyValueRow.tsx
+ */
+export interface KeyValueRowLabelProps {
+  label: PreDefinedKeyValueRowLabel | ReactNode;
   /**
    * Optional tooltip. If undefined, the tooltip won't be displayed.
    */

@@ -8,7 +8,6 @@ import {
 } from './KeyValueRow.types';
 import Icon from '../../components/Icons/Icon';
 import { View } from 'react-native';
-import { areKeyValueRowPropsEqual } from './KeyValueRow.utils';
 import KeyValueSection from './KeyValueSection/KeyValueSection';
 import KeyValueRowLabel from './KeyValueLabel/KeyValueLabel';
 import KeyValueRowRoot from './KeyValueRoot/KeyValueRoot';
@@ -45,12 +44,7 @@ const KeyValueRow = React.memo(({ field, value, style }: KeyValueRowProps) => {
             (fieldIcon.side === KeyValueRowFieldIconSides.LEFT ||
               fieldIcon.side === KeyValueRowFieldIconSides.BOTH ||
               !fieldIcon?.side) && <Icon {...fieldIcon} />}
-          <KeyValueRowLabel
-            label={field.text}
-            variant={field.variant}
-            color={field.color}
-            tooltip={field.tooltip}
-          />
+          <KeyValueRowLabel label={field.label} tooltip={field.tooltip} />
           {shouldShowFieldIcon &&
             (fieldIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
               fieldIcon?.side === KeyValueRowFieldIconSides.BOTH) && (
@@ -64,12 +58,7 @@ const KeyValueRow = React.memo(({ field, value, style }: KeyValueRowProps) => {
             (valueIcon?.side === KeyValueRowFieldIconSides.LEFT ||
               valueIcon?.side === KeyValueRowFieldIconSides.BOTH ||
               !valueIcon?.side) && <Icon {...valueIcon} />}
-          <KeyValueRowLabel
-            label={value.text}
-            variant={value.variant}
-            color={value.color}
-            tooltip={value.tooltip}
-          />
+          <KeyValueRowLabel label={value.label} tooltip={value.tooltip} />
           {shouldShowValueIcon &&
             (valueIcon?.side === KeyValueRowFieldIconSides.RIGHT ||
               valueIcon?.side === KeyValueRowFieldIconSides.BOTH) && (
@@ -79,7 +68,7 @@ const KeyValueRow = React.memo(({ field, value, style }: KeyValueRowProps) => {
       </KeyValueSection>
     </KeyValueRowRoot>
   );
-}, areKeyValueRowPropsEqual);
+});
 
 /**
  * Exported sub-components to provide a base for new KeyValueRow variants.

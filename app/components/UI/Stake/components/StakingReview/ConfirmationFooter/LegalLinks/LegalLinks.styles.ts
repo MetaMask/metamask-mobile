@@ -1,13 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
+const stylesSheet = () =>
   StyleSheet.create({
-    content: {
-      paddingBottom: 16,
-      paddingHorizontal: 32,
+    termsOfServiceButtonGroup: {
       flexDirection: 'row',
       justifyContent: 'center',
     },
+    legalLink: {
+      padding: 16,
+    },
   });
 
-export default styleSheet;
+export default stylesSheet;

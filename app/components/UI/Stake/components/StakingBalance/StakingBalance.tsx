@@ -31,6 +31,8 @@ import { BN } from 'ethereumjs-util';
 import bn from 'bignumber.js';
 import { fixDisplayAmount } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // TODO: Replace mock data when connecting to backend.
 const MOCK_STAKED_ETH_ASSET = {
@@ -122,12 +124,22 @@ const StakingBalance = () => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
+  const { navigate } = useNavigation();
+
+  // TEMP. TODO: Remove after happy path is done.
+  const navigateToStakeReviewScreen = () =>
+    navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE_REVIEW,
+      title: 'Stake',
+    });
+
   return (
     <View>
       <AssetElement
         asset={MOCK_STAKED_ETH_ASSET}
         mainBalance={MOCK_STAKED_ETH_ASSET.balance}
         balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
+        onPress={navigateToStakeReviewScreen}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}

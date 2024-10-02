@@ -139,6 +139,7 @@ const Routes = {
   },
   STAKING: {
     STAKE: 'Stake',
+    STAKE_REVIEW: 'StakeReview',
     UNSTAKE: 'Unstake',
     CLAIM: 'Claim',
     MODALS: {
