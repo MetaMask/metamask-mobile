@@ -114,6 +114,7 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
+import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
@@ -640,6 +641,10 @@ const App = (props) => {
         <Stack.Screen
           name={Routes.SHEET.PROFILE_SYNCING}
           component={ProfileSyncingModal}
+        />
+        <Stack.Screen
+          name={Routes.SHEET.RESET_NOTIFICATIONS}
+          component={ResetNotificationsModal}
         />
         <Stack.Screen
           name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
