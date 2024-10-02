@@ -369,8 +369,6 @@ buildIosQA(){
 
 	prebuild_ios
 
-	export NO_FLIPPER=1
-
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
@@ -400,8 +398,6 @@ buildAndroidQA(){
 	# fi
 
 	prebuild_android
-
-	export NO_FLIPPER=1
 
 	# Generate APK
 	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
