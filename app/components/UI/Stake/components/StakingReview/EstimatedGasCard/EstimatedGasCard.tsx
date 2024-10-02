@@ -23,6 +23,7 @@ const EstimatedGasCard = ({
 
   const { openTooltipModal } = useTooltipModal();
 
+  // TODO: Navigate to the edit gas bottom sheet
   const handleNavigateToEditGas = () =>
     openTooltipModal('TODO', 'Navigate to gas customization component');
 
