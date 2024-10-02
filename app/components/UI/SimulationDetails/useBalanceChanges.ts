@@ -205,6 +205,12 @@ export default function useBalanceChanges(
     return { pending: true, value: [] };
   }
 
+  console.log({
+    erc20TokenAddresses,
+    erc20FiatRatesPending: erc20FiatRates.pending,
+    erc20FiatRates: erc20FiatRates.value,
+  });
+
   const nativeChange = getNativeBalanceChange(
     nativeBalanceChange,
     nativeFiatRate,
