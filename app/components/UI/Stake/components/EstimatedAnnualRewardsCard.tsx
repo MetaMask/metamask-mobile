@@ -59,7 +59,10 @@ const EstimatedAnnualRewardsCard = ({
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('stake.metamask_pool')}
           </Text>
-          <TouchableOpacity onPress={onIconPress}>
+          <TouchableOpacity
+            onPress={onIconPress}
+            accessibilityLabel="Learn More"
+          >
             <Icon name={IconName.Question} color={IconColor.Alternative} />
           </TouchableOpacity>
         </View>
