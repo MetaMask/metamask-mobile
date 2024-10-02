@@ -440,12 +440,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const renderPermissionsSummaryScreen = useCallback(() => {
+    if (!isMultichainVersion1Enabled) {
+      return <React.Fragment />;
+    }
+
     // reset the first render flag, so when it re-renders the checkbox list containing all accounts, that the permittend ones are selected
     // this is a work around for the selected addresses being lost (why and when are they being lost anyway?)
-    if (
-      isMultichainVersion1Enabled &&
-      isFirstRenderOfEditingAllAccountPermissions.current === false
-    ) {
+    if (isFirstRenderOfEditingAllAccountPermissions.current === false) {
       isFirstRenderOfEditingAllAccountPermissions.current = true;
     }
 
@@ -472,6 +473,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const renderEditAccountsPermissionsScreen = useCallback(() => {
     let effectiveSelectedAddresses;
+
+    if (!isMultichainVersion1Enabled) {
+      return <React.Fragment />;
+    }
 
     if (isFirstRenderOfEditingAllAccountPermissions.current) {
       isFirstRenderOfEditingAllAccountPermissions.current = false;
@@ -610,15 +615,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       case AccountPermissionsScreens.ConnectMoreAccounts:
         return renderConnectMoreAccountsScreen();
       case AccountPermissionsScreens.EditAccountsPermissions:
-        return (
-          isMultichainVersion1Enabled && renderEditAccountsPermissionsScreen()
-        );
+        return renderEditAccountsPermissionsScreen();
       case AccountPermissionsScreens.ConnectMoreNetworks:
-        return isMultichainVersion1Enabled && renderConnectNetworksScreen();
+        return renderConnectNetworksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
       case AccountPermissionsScreens.PermissionsSummary:
-        return isMultichainVersion1Enabled && renderPermissionsSummaryScreen();
+        return renderPermissionsSummaryScreen();
     }
   }, [
     permissionsScreen,
