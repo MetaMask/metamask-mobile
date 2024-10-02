@@ -31,12 +31,12 @@ interface CustomRpcEndpoint {
 type RpcEndpoint = InfuraRpcEndpoint | CustomRpcEndpoint;
 
 export interface ProviderConfig {
-  id?: string | undefined;
-  nickname?: string | undefined;
-  rpcUrl?: string | undefined;
+  id?: string;
+  nickname?: string;
+  rpcUrl?: string;
   chainId: `0x${string}`;
   ticker: string;
-  rpcPrefs: { blockExplorerUrl?: string | undefined };
+  rpcPrefs: { blockExplorerUrl?: string };
   type: string;
 }
 

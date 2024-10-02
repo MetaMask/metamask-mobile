@@ -34,7 +34,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { PopularList } from '../../../../../util/networks/customNetworks';
-import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -85,7 +84,6 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { RpcEndpointType } from '@metamask/network-controller';
-import BottomSheetOverlay from '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -430,19 +428,6 @@ export class NetworkSettings extends PureComponent {
     );
   };
 
-  /**
-   * Gets the custom mainnet RPC URL from the frequent RPC list.
-   *
-   * @returns Custom mainnet RPC URL.
-   */
-  getCustomMainnetRPCURL = () => {
-    const { networkConfigurations } = this.props;
-    const networkConfiguration = Object.values(networkConfigurations).find(
-      ({ chainId: id }) => String(id) === String(Networks.mainnet.chainId),
-    );
-    return networkConfiguration?.rpcUrl || '';
-  };
-
   componentDidMount = () => {
     this.updateNavBar();
     const { route, networkConfigurations } = this.props;
@@ -710,7 +695,7 @@ export class NetworkSettings extends PureComponent {
       (item) => item.chainId !== chainId,
     );
 
-  handleNetworkUpdate = async (
+  handleNetworkUpdate = async ({
     rpcUrl,
     chainId,
     nickname,
@@ -726,7 +711,7 @@ export class NetworkSettings extends PureComponent {
     networkType,
     networkUrl,
     showNetworkOnboarding,
-  ) => {
+  }) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
     const url = new URL(rpcUrl);
@@ -870,7 +855,7 @@ export class NetworkSettings extends PureComponent {
 
     const isValidRpc = await this.validateRpcUrl();
     if (isValidRpc) {
-      await this.handleNetworkUpdate(
+      await this.handleNetworkUpdate({
         rpcUrl,
         chainId,
         nickname,
@@ -886,7 +871,7 @@ export class NetworkSettings extends PureComponent {
         networkType,
         networkUrl,
         showNetworkOnboarding,
-      );
+      });
     }
   };
 
@@ -1128,17 +1113,6 @@ export class NetworkSettings extends PureComponent {
       enableAction = false;
     }
     this.setState({ enableAction });
-  };
-
-  /**
-   * Returns if action button should be disabled because of the rpc url
-   * No rpc url set or rpc url set but, rpc url has not been validated yet or there is a warning for rpc url
-   */
-  disabledByRpcUrl = () => {
-    const { rpcUrl, validatedRpcURL, warningRpcUrl } = this.state;
-    return (
-      !rpcUrl || (rpcUrl && (!validatedRpcURL || warningRpcUrl !== undefined))
-    );
   };
 
   /**

@@ -44,7 +44,6 @@ import { updateIncomingTransactions } from '../../../../util/transaction-control
 import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { NetworkClientType } from '@metamask/network-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({

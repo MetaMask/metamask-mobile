@@ -17,12 +17,15 @@ export const selectConversionRate = createSelector(
     chainId: string,
     ticker: string,
     showFiatOnTestnets,
-  ) =>
-    chainId && isTestNet(chainId) && !showFiatOnTestnets
-      ? undefined
-      : ticker
-      ? currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate
-      : undefined,
+  ) => {
+    if (chainId && isTestNet(chainId) && !showFiatOnTestnets) {
+      return undefined;
+    } else if (ticker) {
+      return currencyRateControllerState?.currencyRates?.[ticker]
+        ?.conversionRate;
+    }
+    return undefined;
+  },
 );
 
 export const selectCurrentCurrency = createSelector(

@@ -87,7 +87,7 @@ const wallet_switchEthereumChain = async ({
 
     let networkConfigurationId, networkConfiguration, chainId;
     if (existingEntry) {
-      [chainId, networkConfiguration] = existingEntry;
+      [, networkConfiguration] = existingEntry;
       networkConfigurationId =
         networkConfiguration.rpcEndpoints[
           networkConfiguration.defaultRpcEndpointIndex

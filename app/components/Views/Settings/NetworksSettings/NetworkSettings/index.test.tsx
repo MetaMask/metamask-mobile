@@ -183,35 +183,6 @@ describe('NetworkSettings', () => {
     expect(isNetworkUiRedesignEnabled()).toBe(false);
   });
 
-  it('should return an empty string if the mainnet configuration is not found', () => {
-    const newProps = {
-      ...SAMPLE_NETWORKSETTINGS_PROPS,
-      networkConfigurations: {
-        '4': {
-          chainId: '4',
-          rpcEndpoints: [
-            {
-              url: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
-              type: RpcEndpointType.Infura,
-            },
-          ],
-        },
-      },
-    };
-
-    wrapper = shallow(
-      <Provider store={store}>
-        <NetworkSettings {...newProps} />
-      </Provider>,
-    )
-      .find(NetworkSettings)
-      .dive();
-
-    const instance = wrapper.instance();
-    const rpcUrl = instance.getCustomMainnetRPCURL();
-    expect(rpcUrl).toBe('');
-  });
-
   it('should update state and call getCurrentState on RPC URL change', async () => {
     const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
       route: {
