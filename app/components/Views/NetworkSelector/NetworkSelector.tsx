@@ -488,8 +488,8 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId}
-        onPress={() => onNetworkChange(LINEA_MAINNET, chainId)}
+        isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
+        onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
   };
@@ -553,7 +553,8 @@ const NetworkSelector = () => {
 
         return (
           <Cell
-            key={chainId}
+            key={`${chainId}-${rpcUrl}`}
+            testID={`network-cell-${name}`}
             variant={CellVariant.Select}
             title={name}
             avatarProps={{
@@ -562,10 +563,16 @@ const NetworkSelector = () => {
               imageSource: image,
               size: avatarSize,
             }}
-            isSelected={Boolean(chainId === selectedChainId && selectedRpcUrl)}
+            isSelected={Boolean(
+              chainId === selectedChainId && selectedRpcUrl === rpcUrl,
+            )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
-          />
+          >
+            {Boolean(
+              chainId === selectedChainId && selectedRpcUrl === rpcUrl,
+            ) && <View testID={`${name}-selected`} />}
+          </Cell>
         );
       },
     );

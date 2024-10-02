@@ -433,7 +433,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://home.metamask.io/',
+              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
               id: 1692550481062,
             },
           ],
