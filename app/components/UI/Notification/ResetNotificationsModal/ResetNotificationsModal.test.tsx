@@ -4,7 +4,6 @@ import React from 'react';
 // Internal dependencies.
 import ResetNotificationsModal from '.';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -38,9 +37,7 @@ jest.mock('@react-navigation/native', () => {
 describe('ProfileSyncingModal', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      <ResetNotificationsModal navigation={useNavigation()} />,
+      <ResetNotificationsModal />,
     );
     expect(toJSON()).toMatchSnapshot();
   });
