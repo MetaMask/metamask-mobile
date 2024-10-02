@@ -57,14 +57,14 @@ const AccountConnectMultiSelector = ({
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
-  const [isCheckboxListCliked, setIsCheckboxListCliked] = useState(false);
+  const [isCheckboxListClicked, setIsCheckboxListClicked] = useState(false);
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
   const onSelectAccount = useCallback(
     (accAddress) => {
-      setIsCheckboxListCliked(true);
+      isMultichainVersion1Enabled && setIsCheckboxListClicked(true);
       const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
       // Reconstruct selected addresses.
       const newAccountAddresses = accounts.reduce((acc, { address }) => {
@@ -161,7 +161,7 @@ const AccountConnectMultiSelector = ({
       onSelectAddress([]);
     };
     const onPress = () => {
-      setIsCheckboxListCliked(true);
+      isMultichainVersion1Enabled && setIsCheckboxListClicked(true);
       areAllAccountsSelected ? unselectAll() : selectAll();
     };
 
@@ -205,7 +205,7 @@ const AccountConnectMultiSelector = ({
           )}
           {areAnyAccountsSelected && (
             <Button
-              isDisabled={!isCheckboxListCliked}
+              isDisabled={isMultichainVersion1Enabled && !isCheckboxListClicked}
               variant={ButtonVariants.Primary}
               label={strings(
                 isMultichainVersion1Enabled
@@ -218,7 +218,9 @@ const AccountConnectMultiSelector = ({
                 },
               )}
               onPress={() =>
-                isCheckboxListCliked && onUserAction(USER_INTENT.Confirm)
+                isMultichainVersion1Enabled
+                  ? isCheckboxListClicked && onUserAction(USER_INTENT.Confirm)
+                  : onUserAction(USER_INTENT.Confirm)
               }
               size={ButtonSize.Lg}
               style={{
@@ -269,7 +271,7 @@ const AccountConnectMultiSelector = ({
     areNoAccountsSelected,
     hostname,
     toggleRevokeAllAccountPermissionsModal,
-    isCheckboxListCliked,
+    isCheckboxListClicked,
     showDisconnectAllButton,
   ]);
 
