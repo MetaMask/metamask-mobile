@@ -9,7 +9,7 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
-import { endTrace, TraceName } from '../util/trace';
+import { endTrace, TraceName, trace, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
@@ -47,13 +47,14 @@ const createStoreAndPersistor = async () => {
     middlewares.push(createReduxFlipperDebugger());
   }
 
+  trace({ name: TraceName.StorageRehydration, op: TraceOperation.StorageRehydration });
+
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
     preloadedState: initialState,
   });
 
-  endTrace({ name: TraceName.StorageRehydration });
   sagaMiddleware.run(rootSaga);
 
   /**
@@ -75,6 +76,8 @@ const createStoreAndPersistor = async () => {
      * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
      * - V8: SES_UNHANDLED_REJECTION
      */
+    endTrace({ name: TraceName.StorageRehydration });
+
     store.dispatch({
       type: 'TOGGLE_BASIC_FUNCTIONALITY',
       basicFunctionalityEnabled:

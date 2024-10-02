@@ -59,7 +59,7 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import { trace, endTrace, TraceName } from '../../../util/trace';
+import { trace, endTrace, TraceName, TraceOperation } from '../../../util/trace';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -246,7 +246,7 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    trace({ name: TraceName.LoginPasswordEntry });
+    trace({ name: TraceName.LoginPasswordEntry, op: TraceOperation.LoginPasswordEntry });
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -432,7 +432,7 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
-    trace({ name: TraceName.LoginUser });
+    trace({ name: TraceName.LoginUser, op: TraceOperation.LoginUser });
   };
 
   tryBiometric = async (e) => {

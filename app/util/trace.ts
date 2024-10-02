@@ -23,6 +23,14 @@ export enum TraceName {
   StorageRehydration = 'Storage Rehydration',
 }
 
+export enum TraceOperation {
+  SetupStore = 'setup.store',
+  LoginPasswordEntry = 'login.password.entry',
+  LoginUser = 'login.user',
+  EngineInitialization = 'engine.initialization',
+  StorageRehydration = 'storage.rehydration',
+}
+
 const ID_DEFAULT = 'default';
 const OP_DEFAULT = 'custom';
 export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -47,6 +55,7 @@ export interface TraceRequest {
   parentContext?: TraceContext;
   startTime?: number;
   tags?: Record<string, number | string | boolean>;
+  op?: string;
 }
 
 export interface EndTraceRequest {
@@ -156,13 +165,13 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, tags } = request;
+  const { data: attributes, name, parentContext, startTime, tags, op } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
     attributes,
     name,
-    op: OP_DEFAULT,
+    op: op || OP_DEFAULT,
     // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
     // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
     parentSpanId: parentSpan?.spanId,

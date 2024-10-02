@@ -493,15 +493,14 @@ export function setupSentry() {
       dsn,
       debug: __DEV__,
       environment,
-      integrations:
-        metricsOptIn === AGREED
-          ? [
-              ...integrations,
-              new Sentry.ReactNativeTracing({
-                routingInstrumentation,
-              }),
-            ]
-          : integrations,
+      integrations: true
+        ? [
+            ...integrations,
+            new Sentry.ReactNativeTracing({
+              routingInstrumentation,
+            }),
+          ]
+        : integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: __DEV__ ? 1.0 : 0.08,
       beforeSend: (report) => rewriteReport(report),
