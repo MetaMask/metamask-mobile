@@ -168,4 +168,3 @@ class MetricsEventBuilder {
 }
 
 export { MetricsEventBuilder };
-export type { ITrackingEvent };

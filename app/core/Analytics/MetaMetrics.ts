@@ -32,6 +32,7 @@ import {
   IMetaMetricsEvent,
   isCombinedProperties,
   ISegmentClient,
+  ITrackingEvent,
   isTrackingEvent,
 } from './MetaMetrics.types';
 import { v4 as uuidv4 } from 'uuid';
@@ -41,7 +42,6 @@ import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettin
 import { isE2E } from '../../util/test/utils';
 import convertLegacyProperties from '../../util/events/convertLegacyProperties';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
-import { ITrackingEvent } from './MetricsEventBuilder';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
