@@ -21,10 +21,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
 
       - name: Install dependencies
         run: yarn --immutable
+        working-directory: '.github/scripts'
 
       - name: Close release bug report issue
         id: close-release-bug-report-issue
@@ -32,3 +32,4 @@ jobs:
           BUG_REPORT_REPO: mobile-planning
           BUG_REPORT_TOKEN: ${{ secrets.BUG_REPORT_TOKEN }}
         run: yarn run close-release-bug-report-issue
+        working-directory: '.github/scripts'
