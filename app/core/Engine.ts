@@ -434,6 +434,12 @@ export type ControllerMessenger = ExtendedControllerMessenger<
   GlobalEvents
 >;
 
+interface TransactionEventPayload {
+  transactionMeta: TransactionMeta;
+  actionId?: string;
+  error?: string;
+}
+
 /**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
@@ -1398,8 +1404,6 @@ class Engine {
         metaMetricsId?: string;
       },
     ) => {
-      const { event, category, ...restParams } = params;
-
       MetaMetrics.getInstance().trackEvent(
         {
           category: params.event,
@@ -1753,25 +1757,26 @@ class Engine {
   }
 
 
-  _handleTransactionFinalizedEvent = async ( transactionEventPayload: TransactionMeta, properties: object ) => {
+  _handleTransactionFinalizedEvent = async ( transactionEventPayload: TransactionEventPayload, properties: object ) => {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       store.getState(),
     );
-    if (!shouldUseSmartTransaction) {
+    if (!shouldUseSmartTransaction || !transactionEventPayload.transactionMeta) {
       MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.TRANSACTION_FINALIZED,
         { ...properties }
       );
       return;
     }
-    const transactionMeta = { ...transactionEventPayload };
+    const { transactionMeta } = transactionEventPayload;
     const { SmartTransactionsController } = this.context;
     const waitForSmartTransaction = true;
     const smartTransactionMetricsProperties =
         await getSmartTransactionMetricsProperties(
           SmartTransactionsController,
           transactionMeta,
-          waitForSmartTransaction
+          waitForSmartTransaction,
+          this.controllerMessenger
         );
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.TRANSACTION_FINALIZED,
@@ -1782,17 +1787,17 @@ class Engine {
     )
   }
 
-  _handleTransactionDropped = async ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+  _handleTransactionDropped = async (transactionEventPayload: TransactionEventPayload) => {
     const properties = { status: 'dropped' };
-    await this._handleTransactionFinalizedEvent(transactionMeta, properties);
-  }
-
-  _handleTransactionConfirmed = async (transactionEventPayload: TransactionMeta) => {
-    const properties = { status: 'confirmed' };
     await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
   }
 
-  _handleTransactionFailed = async (transactionEventPayload: TransactionMeta) => {
+  _handleTransactionConfirmed = async (transactionMeta: TransactionMeta) => {
+    const properties = { status: 'confirmed' };
+    await this._handleTransactionFinalizedEvent({ transactionMeta }, properties);
+  }
+
+  _handleTransactionFailed = async (transactionEventPayload: TransactionEventPayload) => {
     const properties = { status: 'failed' };
     await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
   }

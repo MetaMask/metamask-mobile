@@ -9,6 +9,7 @@ import {
 } from '../transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import type { ControllerMessenger } from '../../core/Engine';
 
 export const getTransactionType = (
   transactionMeta: TransactionMeta,
@@ -76,10 +77,10 @@ export const getShouldUpdateApprovalRequest = (
 ): boolean => isDapp || isSend || isSwapTransaction;
 
 const waitForSmartTransactionConfirmationDone = (
-  smartTransactionsController: SmartTransactionsController,
+  controllerMessenger: ControllerMessenger,
 ): Promise<SmartTransaction | undefined> => {
   return new Promise((resolve) => {
-    smartTransactionsController.eventEmitter.on(
+    controllerMessenger.subscribe(
       'SmartTransactionsController:smartTransactionConfirmationDone',
       async (smartTransaction: SmartTransaction) => {
         resolve(smartTransaction);
@@ -95,15 +96,16 @@ export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
+  controllerMessenger?: ControllerMessenger
 ) => {
   if (!transactionMeta) return {};
   let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
-  if (waitForSmartTransaction && !smartTransaction?.statusMetadata) {
+  if (waitForSmartTransaction && !smartTransaction?.statusMetadata && controllerMessenger) {
     smartTransaction = await waitForSmartTransactionConfirmationDone(
-      smartTransactionsController,
+      controllerMessenger
     );
   }
   if (!smartTransaction?.statusMetadata) {
