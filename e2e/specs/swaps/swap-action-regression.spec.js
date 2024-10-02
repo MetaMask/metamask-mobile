@@ -18,12 +18,12 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { Regression } from '../../tags';
+import { SmokeSwaps } from '../../tags';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Multiple Swaps from Actions'), () => {
+describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
