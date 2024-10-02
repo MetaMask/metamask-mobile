@@ -150,8 +150,10 @@ const StakeInputView = () => {
   }, [isEth]);
 
   const handleStakePress = useCallback(() => {
-    // TODO: Display the Review bottom sheet: STAKE-824
-  }, []);
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE_REVIEW,
+    });
+  }, [navigation]);
 
   const percentageOptions = [
     { value: 0.25, label: '25%' },

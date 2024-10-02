@@ -16,7 +16,6 @@ import {
   MOCK_STAKING_REVIEW_DATA,
 } from './StakeReviewMockData';
 
-// TODO: Attach to staking flow after input screen
 const StakeReviewView = () => {
   const navigation = useNavigation();
 
