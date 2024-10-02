@@ -112,7 +112,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   });
   const previousPermittedAccounts = useRef<string[]>();
   const previousIdentitiesListSize = useRef<number>();
-  const isFirstRender = useRef<boolean>(true);
+  const isFirstRenderOfEditingAllAccountPermissions = useRef<boolean>(true);
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress: string = permittedAccountsByHostname[0];
 
@@ -240,8 +240,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     try {
       setIsLoading(true);
       let newActiveAddress;
+      let connectedAccountLength = 0;
+
       if (!isMutichainVersion1Enabled) {
         newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
+        connectedAccountLength = selectedAddresses.length;
       } else {
         // Function to normalize Ethereum addresses using checksum
         const normalizeAddresses = (addresses: string[]) =>
@@ -259,31 +262,39 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         const normalizedSelectedAddresses =
           normalizeAddresses(selectedAddresses);
 
-        if (
-          normalizedPermittedAccounts.length >
-          normalizedSelectedAddresses.length
-        ) {
-          // Accounts have been removed
+        let accountsToRemove: string[] = [];
+        let accountsToAdd: string[] = [];
 
-          // Identify the accounts that have been removed
-          const removedAccounts = normalizedPermittedAccounts.filter(
-            (accountId) => !normalizedSelectedAddresses.includes(accountId),
-          );
+        // Identify accounts to be added
+        accountsToAdd = normalizedSelectedAddresses.filter(
+          (account) => !normalizedPermittedAccounts.includes(account),
+        );
 
-          // Remove the permitted accounts that have been deselected
-          const remainingAddresses = removePermittedAccounts(
-            hostname,
-            removedAccounts,
-          );
-
-          // Set the new active address to the first account in the updated list
-          newActiveAddress = remainingAddresses[0];
+        // Add newly selected accounts
+        if (accountsToAdd.length > 0) {
+          newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
         } else {
-          // Accounts have been added
-
-          // Add the newly selected addresses to the permitted accounts
-          newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
+          // If no new accounts were added, set the first selected address as active
+          newActiveAddress = normalizedSelectedAddresses[0];
         }
+
+        if (!isFirstRenderOfEditingAllAccountPermissions.current) {
+          // Identify accounts to be removed
+          accountsToRemove = normalizedPermittedAccounts.filter(
+            (account) => !normalizedSelectedAddresses.includes(account),
+          );
+
+          // Remove accounts that are no longer selected
+          if (accountsToRemove.length > 0) {
+            removePermittedAccounts(hostname, accountsToRemove);
+          }
+        }
+
+        // Calculate the number of connected accounts after changes
+        connectedAccountLength =
+          normalizedPermittedAccounts.length +
+          accountsToAdd.length -
+          accountsToRemove.length;
       }
 
       const activeAccountName = getAccountNameWithENS({
@@ -292,7 +303,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress,
       });
 
-      const connectedAccountLength = selectedAddresses.length;
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
         labelOptions = [
@@ -317,11 +327,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         hasNoTimeout: false,
       });
       const totalAccounts = accountsLength;
-      // TODO: confirm this value is the newly added accounts or total connected accounts
-      const connectedAccounts = connectedAccountLength;
       trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
         number_of_accounts: totalAccounts,
-        number_of_accounts_connected: connectedAccounts,
+        number_of_accounts_connected: connectedAccountLength,
         number_of_networks: nonTestnetNetworks,
       });
     } catch (e) {
@@ -432,6 +440,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const renderPermissionsSummaryScreen = useCallback(() => {
+    // reset the first render flag, so when it re-renders the checkbox list containing all accounts, that the permittend ones are selected
+    // this is a work around for the selected addresses being lost (why and when are they being lost anyway?)
+    if (isFirstRenderOfEditingAllAccountPermissions.current === false) {
+      isFirstRenderOfEditingAllAccountPermissions.current = true;
+    }
+
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
@@ -455,8 +469,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const renderEditAccountsPermissionsScreen = useCallback(() => {
     let effectiveSelectedAddresses;
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+
+    if (isFirstRenderOfEditingAllAccountPermissions.current) {
+      isFirstRenderOfEditingAllAccountPermissions.current = false;
       effectiveSelectedAddresses = permittedAddresses;
     } else {
       effectiveSelectedAddresses = selectedAddresses;
@@ -496,8 +511,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     isRenderedAsBottomSheet,
   ]);
 
-  const renderConnectMoreAccountsScreen = useCallback(
-    () => (
+  const renderConnectMoreAccountsScreen = useCallback(() => {
+    // reset the first render flag, so when it re-renders the checkbox list containing all accounts, that the permittend ones are selected
+    // this is a work around for the selected addresses being lost (why and when are they being lost anyway?)
+    if (isFirstRenderOfEditingAllAccountPermissions.current === false) {
+      isFirstRenderOfEditingAllAccountPermissions.current = true;
+    }
+
+    return (
       <AccountConnectMultiSelector
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
@@ -513,19 +534,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
       />
-    ),
-    [
-      ensByAccountAddress,
-      selectedAddresses,
-      isLoading,
-      accountsFilteredByPermissions,
-      setUserIntent,
-      faviconSource,
-      urlWithProtocol,
-      secureIcon,
-      hostname,
-    ],
-  );
+    );
+  }, [
+    ensByAccountAddress,
+    selectedAddresses,
+    isLoading,
+    accountsFilteredByPermissions,
+    setUserIntent,
+    faviconSource,
+    urlWithProtocol,
+    secureIcon,
+    hostname,
+  ]);
 
   const renderConnectNetworksScreen = useCallback(
     () => (

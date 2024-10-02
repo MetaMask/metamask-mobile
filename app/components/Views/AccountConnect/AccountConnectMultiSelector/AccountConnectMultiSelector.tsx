@@ -56,12 +56,14 @@ const AccountConnectMultiSelector = ({
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
+  const [isCheckboxListCliked, setIsCheckboxListCliked] = useState(false);
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
 
   const onSelectAccount = useCallback(
     (accAddress) => {
+      setIsCheckboxListCliked(true);
       const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
       // Reconstruct selected addresses.
       const newAccountAddresses = accounts.reduce((acc, { address }) => {
@@ -202,6 +204,7 @@ const AccountConnectMultiSelector = ({
           )}
           {areAnyAccountsSelected && (
             <Button
+              isDisabled={!isCheckboxListCliked}
               variant={ButtonVariants.Primary}
               label={strings(
                 isMutichainVersion1Enabled
@@ -213,7 +216,9 @@ const AccountConnectMultiSelector = ({
                     : '',
                 },
               )}
-              onPress={() => onUserAction(USER_INTENT.Confirm)}
+              onPress={() =>
+                isCheckboxListCliked && onUserAction(USER_INTENT.Confirm)
+              }
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
