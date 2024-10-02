@@ -481,6 +481,7 @@
     "prettier-plugin-gherkin": "^1.1.1",
     "react-dom": "18.2.0",
     "react-native-cli": "2.0.1",
+    "react-native-flipper": "^0.263.0",
     "react-native-launch-arguments": "^4.0.1",
     "react-native-performance": "^5.1.2",
     "react-native-storybook-loader": "^2.0.4",

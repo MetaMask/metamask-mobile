@@ -534,6 +534,8 @@ PODS:
     - React-Core
   - react-native-fast-crypto (2.2.0):
     - React
+  - react-native-flipper (0.263.0):
+    - React-Core
   - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-gzip (1.1.0):
@@ -855,6 +857,7 @@ DEPENDENCIES:
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
   - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
+  - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
@@ -1031,6 +1034,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-cookies/cookies"
   react-native-fast-crypto:
     :path: "../node_modules/react-native-fast-crypto"
+  react-native-flipper:
+    :path: "../node_modules/react-native-flipper"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-gzip:
@@ -1229,6 +1234,7 @@ SPEC CHECKSUMS:
   react-native-compat: 8b6a38155e778a20a008aea837efd00e099b6fe8
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-fast-crypto: 5943c42466b86ad70be60d3a5f64bd22251e5d9e
+  react-native-flipper: 6cfd5991388121f7f96fc5171b93380f97ebb3c6
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
   react-native-in-app-review: db8bb167a5f238e7ceca5c242d6b36ce8c4404a4
