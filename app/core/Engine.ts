@@ -249,6 +249,7 @@ import { removeAccountsFromPermissions } from './Permissions';
 import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
 import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
+
 ///: END:ONLY_INCLUDE_IF
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -1262,6 +1263,21 @@ class Engine {
       }),
       nativeScryptCrypto: scrypt,
     });
+
+    setTimeout(async () => {
+      try {
+        // eslint-disable-next-line no-console
+        console.log('Starting performance tests without cache....');
+        await UserStorageController.runEncryptionPerfTestWithCache(scrypt);
+
+        // eslint-disable-next-line no-console
+        console.log('Starting performance tests with cache...');
+        await UserStorageController.runEncryptionPerfTestWithoutCache(scrypt);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('IT FAILED', e);
+      }
+    }, 5000);
 
     const notificationServicesController =
       new NotificationServicesController.Controller({
