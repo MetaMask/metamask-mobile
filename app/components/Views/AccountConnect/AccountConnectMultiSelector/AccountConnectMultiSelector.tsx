@@ -364,6 +364,8 @@ const AccountConnectMultiSelector = ({
       onBack,
       renderSelectAllCheckbox,
       screenTitle,
+      isCheckboxListCliked,
+      showDisconnectAllButton,
     ],
   );
 
