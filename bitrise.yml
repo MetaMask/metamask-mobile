@@ -804,6 +804,8 @@ workflows:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
   ios_e2e_build:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
       - install_detox
@@ -890,6 +892,8 @@ workflows:
       #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       #       - paths: node_modules
   ios_e2e_test:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
       - install_detox
