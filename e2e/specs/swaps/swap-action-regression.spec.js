@@ -37,7 +37,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Arbitrum)
+      .withNetworkController(CustomNetworks.Tenderly.Optimism)
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
@@ -60,7 +60,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   it('should be able to import account', async () => {
     const wallet = ethers.Wallet.createRandom();
     await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Arbitrum.providerConfig.rpcUrl, wallet.address);
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Optimism.providerConfig.rpcUrl, wallet.address);
 
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
@@ -86,7 +86,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.5'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Arbitrum}
+    ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Optimism}
     ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrapped'}$    |${'.4'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
@@ -96,7 +96,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       if (network.providerConfig.nickname !== currentNetwork)
       {
         await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname,network.isCustomNetwork);
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
 
         currentNetwork = network.providerConfig.nickname;

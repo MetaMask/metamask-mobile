@@ -95,7 +95,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       if (network.providerConfig.nickname !== currentNetwork)
       {
         await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname,network.isCustomNetwork);
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
 
         currentNetwork = network.providerConfig.nickname;
