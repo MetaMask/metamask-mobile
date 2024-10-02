@@ -160,7 +160,6 @@ const AccountConnectMultiSelector = ({
       if (isLoading) return;
       onSelectAddress([]);
     };
-
     const onPress = () => {
       setIsCheckboxListCliked(true);
       areAllAccountsSelected ? unselectAll() : selectAll();
@@ -270,6 +269,8 @@ const AccountConnectMultiSelector = ({
     areNoAccountsSelected,
     hostname,
     toggleRevokeAllAccountPermissionsModal,
+    isCheckboxListCliked,
+    showDisconnectAllButton,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
@@ -364,8 +365,6 @@ const AccountConnectMultiSelector = ({
       onBack,
       renderSelectAllCheckbox,
       screenTitle,
-      isCheckboxListCliked,
-      showDisconnectAllButton,
     ],
   );
 
