@@ -533,6 +533,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isAutoScrollEnabled={false}
         onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
         screenTitle={strings('accounts.connect_more_accounts')}
+        showDisconnectAllButton={false}
       />
     );
   }, [
