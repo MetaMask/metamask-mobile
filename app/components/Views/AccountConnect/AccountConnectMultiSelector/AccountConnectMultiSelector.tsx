@@ -294,10 +294,13 @@ const AccountConnectMultiSelector = ({
             )}
             <Text style={styles.description}>
               {isMutichainVersion1Enabled
-                ? strings('accounts.select_accounts_description')
+                ? accounts?.length > 0 &&
+                  strings('accounts.select_accounts_description')
                 : strings('accounts.connect_description')}
             </Text>
-            {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
+            {isMutichainVersion1Enabled &&
+              accounts?.length > 0 &&
+              renderSelectAllCheckbox()}
             {areAllAccountsSelected
               ? renderUnselectAllButton()
               : renderSelectAllButton()}
