@@ -96,6 +96,8 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { endTrace, TraceName } from '../../../util/trace';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -221,6 +223,10 @@ const Wallet = ({
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  useEffect(() => {
+    endTrace({ name: TraceName.LoginUser });
+  }, []);
 
   useEffect(() => {
     if (
@@ -406,8 +412,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } =
-          Engine.context;
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },

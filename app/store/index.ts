@@ -9,6 +9,7 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
+import { endTrace, TraceName } from '../util/trace';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
@@ -52,6 +53,7 @@ const createStoreAndPersistor = async () => {
     preloadedState: initialState,
   });
 
+  endTrace({ name: TraceName.StorageRehydration });
   sagaMiddleware.run(rootSaga);
 
   /**

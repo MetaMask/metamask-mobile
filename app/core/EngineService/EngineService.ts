@@ -3,6 +3,7 @@ import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
 import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
+import { trace, endTrace, TraceName } from '../../util/trace';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
@@ -32,7 +33,9 @@ class EngineService {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
+    trace({ name: TraceName.EngineInitialization });
     Engine.init(state);
+    endTrace({ name: TraceName.EngineInitialization });
     this.updateControllers(store, Engine);
   };
 

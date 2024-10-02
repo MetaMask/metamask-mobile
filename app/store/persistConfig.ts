@@ -7,11 +7,13 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { IUserReducer } from '../reducers/user';
+import { trace, TraceName } from '../util/trace';
 
 const TIMEOUT = 40000;
 
 const MigratedStorage = {
   async getItem(key: string) {
+    trace({ name: TraceName.StorageRehydration });
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {

@@ -16,6 +16,11 @@ export enum TraceName {
   Middleware = 'Middleware',
   NestedTest1 = 'Nested Test 1',
   NestedTest2 = 'Nested Test 2',
+  SetupStore = 'Setup Store',
+  LoginPasswordEntry = 'Login Password Entry',
+  LoginUser = 'Login User',
+  EngineInitialization = 'Engine Initialization',
+  StorageRehydration = 'Storage Rehydration',
 }
 
 const ID_DEFAULT = 'default';
