@@ -34,6 +34,8 @@ import {
   INCOMING_TRANSACTIONS,
   INCOMING_LINEA_MAINNET_TOGGLE,
   INCOMING_MAINNET_TOGGLE,
+  MAINNET_SECONDARY_TEXT,
+  LINEA_MAINNET_SECONDARY_TEXT,
 } from './index.constants';
 import { NetworksI } from './index.types';
 
@@ -72,7 +74,7 @@ const IncomingTransactionsSettings = () => {
           name: mainnetName,
           imageSource: images.ETHEREUM,
         }}
-        secondaryText="etherscan.io"
+        secondaryText={MAINNET_SECONDARY_TEXT}
         style={styles.cellBorder}
       >
         <Switch
@@ -108,7 +110,7 @@ const IncomingTransactionsSettings = () => {
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
         }}
-        secondaryText="lineascan.build"
+        secondaryText={LINEA_MAINNET_SECONDARY_TEXT}
         style={styles.cellBorder}
       >
         <Switch
