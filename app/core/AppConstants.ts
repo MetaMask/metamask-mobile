@@ -171,8 +171,6 @@ export default {
     WC: 'WalletConnect',
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
-    SDK_ANDROID: 'MetaMask-SDK-Android',
-    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',

@@ -104,6 +104,7 @@ import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -362,13 +363,14 @@ class ApproveTransactionReview extends PureComponent {
       // Check if it is walletConnect origin
       WC2Manager.getInstance().then((wc2) => {
         this.originIsWalletConnect = wc2.getSessions().some((session) => {
-          if (session.peer.metadata.url === origin) {
-            DevLogger.log(
-              `ApproveTransactionReview::componentDidMount Found matching session for origin ${origin}`,
-            );
-            return true;
-          }
-          return false;
+          DevLogger.log(
+            `ApproveTransactionReview::componentDidMount Found matching session for origin ${origin}`,
+          );
+          // Otherwise, compare the origin with the metadata URL
+          return (
+            session.peer.metadata.url === origin ||
+            origin.startsWith(WALLET_CONNECT_ORIGIN)
+          );
         });
       });
     }

@@ -274,7 +274,11 @@ class Approval extends PureComponent {
         DevLogger.log(
           `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
         );
-        return session.peer.metadata.url === origin;
+        // Otherwise, compare the origin with the metadata URL
+        return (
+          session.peer.metadata.url === origin ||
+          origin.startsWith(WALLET_CONNECT_ORIGIN)
+        );
       });
     }
     DevLogger.log(
