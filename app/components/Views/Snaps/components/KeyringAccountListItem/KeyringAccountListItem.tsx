@@ -17,16 +17,16 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-import { KEYRING_ACCOUNT_LIST_ITEM } from './KeyringAccountListItem.constants';
+import { KEYRING_ACCOUNT_LIST_ITEM, KEYRING_ACCOUNT_LIST_ITEM_BUTTON } from './KeyringAccountListItem.constants';
 interface KeyringAccountListItemProps {
   account: InternalAccount;
   snapUrl: string;
 }
 
-export default function KeyringAccountListItem({
+const KeyringAccountListItem = ({
   account,
   snapUrl,
-}: KeyringAccountListItemProps) {
+}: KeyringAccountListItemProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   return (
@@ -50,6 +50,7 @@ export default function KeyringAccountListItem({
         </View>
         <View style={styles.buttonContainer}>
           <ButtonIcon
+            testID={KEYRING_ACCOUNT_LIST_ITEM_BUTTON}
             iconName={IconName.Export}
             iconColor={IconColor.Primary}
             size={ButtonIconSizes.Lg}
@@ -60,4 +61,6 @@ export default function KeyringAccountListItem({
     </View>
   );
 }
+
+export default React.memo(KeyringAccountListItem);
 ///: END:ONLY_INCLUDE_IF
