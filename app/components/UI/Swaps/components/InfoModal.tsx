@@ -51,6 +51,18 @@ const createStyles = (colors, shadows) =>
     },
   });
 
+interface InfoModalProps {
+  title?: React.ReactNode;
+  body?: React.ReactNode;
+  isVisible?: boolean;
+  toggleModal: () => void;
+  message?: string;
+  propagateSwipe?: boolean;
+  urlText?: string;
+  url?: () => void;
+  testID?: string;
+}
+
 function InfoModal({
   title,
   body,
@@ -61,7 +73,7 @@ function InfoModal({
   urlText,
   url,
   testID,
-}) {
+}: InfoModalProps) {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
 
@@ -117,16 +129,5 @@ function InfoModal({
     </Modal>
   );
 }
-InfoModal.propTypes = {
-  isVisible: PropTypes.bool,
-  title: PropTypes.node,
-  body: PropTypes.node,
-  toggleModal: PropTypes.func,
-  propagateSwipe: PropTypes.bool,
-  message: PropTypes.string,
-  urlText: PropTypes.string,
-  url: PropTypes.func,
-  testID: PropTypes.string,
-};
 
 export default InfoModal;
