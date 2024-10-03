@@ -8,12 +8,12 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
+  hexToBN,
   renderFromWei,
   toHexadecimal,
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
-import { BN } from 'ethereumjs-util';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -34,7 +34,7 @@ const useBalance = () => {
   );
 
   const balanceBN = useMemo(
-    () => new BN(rawAccountBalance),
+    () => hexToBN(rawAccountBalance),
     [rawAccountBalance],
   );
 
