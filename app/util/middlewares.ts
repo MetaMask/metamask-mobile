@@ -69,19 +69,21 @@ export function containsUserRejectedError(errorMessage: string, errorCode?: numb
  */
 export function createLoggerMiddleware(opts: { origin: string }): (req: unknown, res: unknown, next: (cb: () => void) => void) => void {
   return function loggerMiddleware(
-    req: unknown,
-    res: unknown,
+    req: { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown },
+    res: { error?: unknown; [key: string]: unknown },
     next: (cb: () => void) => void,
   ) {
     next((cb: () => void) => {
       if (typeof res === 'object' && res !== null && 'error' in res) {
-        const { error, ...resWithoutError } = res as { error: unknown };
+        const { error, ...resWithoutError } = res;
         if (error) {
-          if (typeof error === 'object' && 'message' in error && 'code' in error) {
-            if (containsUserRejectedError(error.message as string, error.code as number)) {
+          if (typeof error === 'object' && error !== null && 'message' in error && 'code' in error) {
+            const errorMessage = typeof error.message === 'string' ? error.message : '';
+            const errorCode = typeof error.code === 'number' ? error.code : undefined;
+            if (containsUserRejectedError(errorMessage, errorCode)) {
               trackErrorAsAnalytics(
                 `Error in RPC response: User rejected`,
-                error.message as string,
+                errorMessage,
               );
             } else {
               /**
@@ -106,16 +108,16 @@ export function createLoggerMiddleware(opts: { origin: string }): (req: unknown,
                 req,
               };
 
-              if (typeof error === 'object' && 'data' in error) {
+              if (typeof error === 'object' && error !== null && 'data' in error) {
                 errorParams.data = error.data;
               }
 
-              Logger.error(error, errorParams);
+              Logger.error(error as Error, errorParams);
             }
           }
         }
       }
-      if (typeof req === 'object' && req !== null && 'isMetamaskInternal' in req) {
+      if (req.isMetamaskInternal) {
         return;
       }
       Logger.log(`RPC (${opts.origin}):`, req, '->', res);
