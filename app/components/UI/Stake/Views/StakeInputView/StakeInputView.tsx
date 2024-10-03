@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -8,10 +8,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import {
-  limitToMaximumDecimalPlaces,
-  renderFiat,
-} from '../../../../../util/number';
 import Keypad from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
@@ -28,7 +24,6 @@ const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
   const { balance, balanceFiatNumber, balanceBN } = useBalance();
 
   const {
@@ -44,6 +39,8 @@ const StakeInputView = () => {
     percentageOptions,
     handleAmountPress,
     handleKeypadChange,
+    calculateEstimatedAnnualRewards,
+    estimatedAnnualRewards,
   } = useStakingInputHandlers(balanceBN);
 
   const navigateToLearnMoreModal = () => {
@@ -67,29 +64,6 @@ const StakeInputView = () => {
   const balanceValue = isEth
     ? `${balance} ETH`
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
-
-  const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
-  const calculateEstimatedAnnualRewards = useCallback(() => {
-    if (isNonZeroAmount) {
-      // Limiting the decimal places to keep it consistent with other eth values in the input screen
-      const ethRewards = limitToMaximumDecimalPlaces(
-        parseFloat(amount) * parseFloat(annualRewardRate),
-        5,
-      );
-      if (isEth) {
-        setEstimatedAnnualRewards(`${ethRewards} ETH`);
-      } else {
-        const fiatRewards = renderFiat(
-          parseFloat(fiatAmount) * parseFloat(annualRewardRate),
-          currentCurrency,
-          2,
-        );
-        setEstimatedAnnualRewards(`${fiatRewards}`);
-      }
-    } else {
-      setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
-    }
-  }, [isNonZeroAmount, amount, isEth, fiatAmount, currentCurrency]);
 
   useEffect(() => {
     navigation.setOptions(getStakingNavbar(title, navigation, theme.colors));

@@ -12,11 +12,13 @@ import {
   fiatNumberToWei,
   fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
+  renderFiat,
 } from '../../../../util/number';
 
 const useStakingInputHandlers = (balance: BN) => {
   const [amount, setAmount] = useState('0');
   const [amountBN, setAmountBN] = useState<BN>(new BN(0));
+  const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
   const isNonZeroAmount = useMemo(() => amountBN.gt(new BN(0)), [amountBN]);
   const isOverMaximum = useMemo(() => {
@@ -28,6 +30,8 @@ const useStakingInputHandlers = (balance: BN) => {
   const [isEth, setIsEth] = useState<boolean>(true);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
+
+  const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
 
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
@@ -110,6 +114,28 @@ const useStakingInputHandlers = (balance: BN) => {
     [balance, conversionRate],
   );
 
+  const calculateEstimatedAnnualRewards = useCallback(() => {
+    if (isNonZeroAmount) {
+      // Limiting the decimal places to keep it consistent with other eth values in the input screen
+      const ethRewards = limitToMaximumDecimalPlaces(
+        parseFloat(amount) * parseFloat(annualRewardRate),
+        5,
+      );
+      if (isEth) {
+        setEstimatedAnnualRewards(`${ethRewards} ETH`);
+      } else {
+        const fiatRewards = renderFiat(
+          parseFloat(fiatAmount) * parseFloat(annualRewardRate),
+          currentCurrency,
+          2,
+        );
+        setEstimatedAnnualRewards(`${fiatRewards}`);
+      }
+    } else {
+      setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
+    }
+  }, [isNonZeroAmount, amount, isEth, fiatAmount, currentCurrency]);
+
   return {
     amount,
     amountBN,
@@ -126,6 +152,8 @@ const useStakingInputHandlers = (balance: BN) => {
     handleAmountPress,
     currentCurrency,
     conversionRate,
+    estimatedAnnualRewards,
+    calculateEstimatedAnnualRewards,
   };
 };
 
