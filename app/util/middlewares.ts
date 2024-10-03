@@ -20,7 +20,7 @@ const USER_REJECTED_ERROR_CODE = 4001;
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createOriginMiddleware(opts) {
+export function createOriginMiddleware(opts: { origin: string }): (req: unknown, _: unknown, next: () => void) => void {
   return function originMiddleware(
     /** @type {any} */ req,
     /** @type {any} */ _,
@@ -43,7 +43,7 @@ export function createOriginMiddleware(opts) {
  * @param {String} errorMessage
  * @returns {boolean}
  */
-export function containsUserRejectedError(errorMessage, errorCode) {
+export function containsUserRejectedError(errorMessage: string, errorCode?: number): boolean {
   try {
     if (!errorMessage || !(typeof errorMessage === 'string')) return false;
 
@@ -67,47 +67,55 @@ export function containsUserRejectedError(errorMessage, errorCode) {
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createLoggerMiddleware(opts) {
+export function createLoggerMiddleware(opts: { origin: string }): (req: unknown, res: unknown, next: (cb: () => void) => void) => void {
   return function loggerMiddleware(
-    /** @type {any} */ req,
-    /** @type {any} */ res,
-    /** @type {Function} */ next,
+    req: unknown,
+    res: unknown,
+    next: (cb: () => void) => void,
   ) {
-    next((/** @type {Function} */ cb) => {
-      if (res.error) {
-        const { error, ...resWithoutError } = res;
+    next((cb: () => void) => {
+      if (typeof res === 'object' && res !== null && 'error' in res) {
+        const { error, ...resWithoutError } = res as { error: unknown };
         if (error) {
-          if (containsUserRejectedError(error.message, error.code)) {
-            trackErrorAsAnalytics(
-              `Error in RPC response: User rejected`,
-              error.message,
-            );
-          } else {
-            /**
-             * Example of a rpc error:
-             * { "code":-32603,
-             *   "message":"Internal JSON-RPC error.",
-             *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
-             * }
-             * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
-             * making it easier to differentiate each error.
-             */
-            const errorParams = {
-              message: 'Error in RPC response',
-              orginalError: error,
-              res: resWithoutError,
-              req,
-            };
+          if (typeof error === 'object' && 'message' in error && 'code' in error) {
+            if (containsUserRejectedError(error.message as string, error.code as number)) {
+              trackErrorAsAnalytics(
+                `Error in RPC response: User rejected`,
+                error.message as string,
+              );
+            } else {
+              /**
+               * Example of a rpc error:
+               * { "code":-32603,
+               *   "message":"Internal JSON-RPC error.",
+               *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
+               * }
+               * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
+               * making it easier to differentiate each error.
+               */
+              const errorParams: {
+                message: string;
+                orginalError: unknown;
+                res: unknown;
+                req: unknown;
+                data?: unknown;
+              } = {
+                message: 'Error in RPC response',
+                orginalError: error,
+                res: resWithoutError,
+                req,
+              };
 
-            if (error.data) {
-              errorParams.data = error.data;
+              if (typeof error === 'object' && 'data' in error) {
+                errorParams.data = error.data;
+              }
+
+              Logger.error(error, errorParams);
             }
-
-            Logger.error(error, errorParams);
           }
         }
       }
-      if (req.isMetamaskInternal) {
+      if (typeof req === 'object' && req !== null && 'isMetamaskInternal' in req) {
         return;
       }
       Logger.log(`RPC (${opts.origin}):`, req, '->', res);
