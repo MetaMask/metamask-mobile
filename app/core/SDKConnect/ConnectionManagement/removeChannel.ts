@@ -37,7 +37,7 @@ async function removeChannel({
   if (instance.state.connected[channelId]) {
     try {
       const terminated = await instance.state.connected[channelId].removeConnection({
-        terminate: sendTerminate ?? false,
+        terminate: true,
         context: 'SDKConnect::removeChannel',
       });
       if(!terminated) {
