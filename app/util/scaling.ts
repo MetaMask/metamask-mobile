@@ -53,7 +53,7 @@ interface ScaleOptions {
   scaleVertical?: boolean;
   scaleUp?: boolean;
   baseSize?: number;
-  baseModel: number | undefined;
+  baseModel: number;
 }
 
 const scale = (
