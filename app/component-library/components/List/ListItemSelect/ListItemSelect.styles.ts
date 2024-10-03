@@ -27,7 +27,6 @@ const styleSheet = (params: {
       {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
-        padding: 16,
         borderRadius: 4,
         backgroundColor: colors.background.default,
       } as ViewStyle,
@@ -39,7 +38,7 @@ const styleSheet = (params: {
       backgroundColor: colors.primary.muted,
     },
     listItem: {
-      padding: 0,
+      padding: 16,
     },
     underlayBar: {
       marginVertical: 4,

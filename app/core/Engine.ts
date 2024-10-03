@@ -61,6 +61,8 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
+  PhishingControllerActions,
+  PhishingControllerEvents,
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
@@ -264,19 +266,6 @@ const encryptor = new Encryptor({
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-// TODO remove these custom types when the PhishingController is to version >= 7.0.0
-interface MaybeUpdateState {
-  type: `${PhishingController['name']}:maybeUpdateState`;
-  handler: PhishingController['maybeUpdateState'];
-}
-
-interface TestOrigin {
-  type: `${PhishingController['name']}:testOrigin`;
-  handler: PhishingController['test'];
-}
-
-type PhishingControllerActions = MaybeUpdateState | TestOrigin;
-
 type SnapsGlobalActions =
   | SnapControllerActions
   | SnapsRegistryActions
@@ -288,8 +277,7 @@ type SnapsGlobalEvents =
   | SnapControllerEvents
   | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
-  // TODO: uncomment once `Events` type is added to `PhishingController`
-  // | PhishingControllerEvents
+  | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
@@ -782,7 +770,6 @@ class Engine {
     });
 
     const phishingController = new PhishingController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
@@ -927,8 +914,6 @@ class Engine {
         this.controllerMessenger,
         'SnapController:updateSnapState',
       ),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       maybeUpdatePhishingList: this.controllerMessenger.call.bind(
         this.controllerMessenger,
         'PhishingController:maybeUpdateState',
@@ -936,11 +921,7 @@ class Engine {
       isOnPhishingList: (origin: string) =>
         this.controllerMessenger.call<'PhishingController:testOrigin'>(
           'PhishingController:testOrigin',
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           origin,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
         ).result,
       showDialog: (
         origin: string,
@@ -1625,7 +1606,6 @@ class Engine {
       permissionController,
       selectedNetworkController,
       new SignatureController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
