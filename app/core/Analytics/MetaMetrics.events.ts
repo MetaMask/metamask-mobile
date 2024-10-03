@@ -370,8 +370,8 @@ enum EVENT_NAME {
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
   // Profile Syncing
-  ACCOUNTS_SYNC_ACCOUNT_ADDED = 'Accounts Sync Account Added',
-  ACCOUNTS_SYNC_ACCOUNT_NAME_UPDATED = 'Accounts Sync Account Name Updated',
+  ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
+  ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
 }
 
 enum ACTIONS {
@@ -854,11 +854,9 @@ const events = {
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
 
   // Profile Syncing
-  ACCOUNTS_SYNC_ACCOUNT_ADDED: generateOpt(
-    EVENT_NAME.ACCOUNTS_SYNC_ACCOUNT_ADDED,
-  ),
+  ACCOUNTS_SYNC_ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_ACCOUNT_NAME_UPDATED: generateOpt(
-    EVENT_NAME.ACCOUNTS_SYNC_ACCOUNT_NAME_UPDATED,
+    EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
   ),
 };
 
