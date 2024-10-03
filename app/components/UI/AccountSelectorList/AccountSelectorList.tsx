@@ -19,8 +19,8 @@ import SensitiveText, {
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
-  safeToChecksumAddress,
   getLabelTextByAddress,
+  safeToChecksumAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -170,27 +170,15 @@ const AccountSelectorList = ({
     ],
   );
 
-  const getTagLabel = useCallback((address: string) => {
-    const label = getLabelTextByAddress(address);
-    console.log(
-      '[LABEL DEBUG] getTagLabel called for address:',
-      address,
-      'label:',
-      label,
-    );
-    return label;
-  }, []);
-
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
       item: { name, address, assets, type, isSelected, balanceError },
       index,
     }) => {
-      console.log('[LABEL DEBUG] Rendering account item for address:', address);
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getTagLabel(address);
+      const tagLabel = getLabelTextByAddress(address);
       console.log(
-        '[LABEL DEBUG] tagLabel for address:',
+        '[SNAP TAG LABEL DEBUG] tagLabel for address:',
         address,
         'is:',
         tagLabel,
@@ -257,7 +245,6 @@ const AccountSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
-      getTagLabel,
     ],
   );
 

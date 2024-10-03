@@ -279,13 +279,25 @@ export function getLabelTextByAddress(address: string) {
         return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
-        return (
-          internalAccount?.metadata.snap?.name ||
-          strings('accounts.snap_account_tag')
+        console.log(
+          '[SNAP TAG LABEL DEBUG] getLabelTextByAddress: Snap name:',
+          internalAccount?.metadata.snap?.name,
         );
+        const snapName =
+          internalAccount?.metadata.snap?.name ||
+          strings('accounts.snap_account_tag');
+        console.log('[SNAP TAG LABEL DEBUG] Returning label:', snapName);
+        return snapName;
       ///: END:ONLY_INCLUDE_IF
+      default:
+        console.log(
+          '[SNAP TAG LABEL DEBUG] Unexpected keyring type:',
+          keyring.type,
+        );
+        return null;
     }
   }
+  console.log('[SNAP TAG LABEL DEBUG] Returning null');
   return null;
 }
 
