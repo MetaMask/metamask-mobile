@@ -21,6 +21,7 @@ import styleSheet from './AccountHeaderCard.styles';
 import images from '../../../../../../images/image-icons';
 import { AccountHeaderCardProps } from './AccountHeaderCard.types';
 import AccountTag from '../AccountTag/AccountTag';
+import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 
 const AccountHeaderCard = ({ recipient }: AccountHeaderCardProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -30,6 +31,8 @@ const AccountHeaderCard = ({ recipient }: AccountHeaderCardProps) => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
+
+  const networkName = useSelector(selectNetworkName);
 
   return (
     <View>
@@ -87,8 +90,7 @@ const AccountHeaderCard = ({ recipient }: AccountHeaderCardProps) => {
                   imageSource={images.ETHEREUM}
                   size={AvatarSize.Xs}
                 />
-                {/* TODO: Replace hardcoded string with actual selected network */}
-                <Text>Ethereum mainnet</Text>
+                <Text>{networkName}</Text>
               </View>
             ),
           }}
