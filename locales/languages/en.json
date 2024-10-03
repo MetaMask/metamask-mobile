@@ -3336,7 +3336,8 @@
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
-    }
+    },
+    "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days."
   },
   "default_settings": {
     "title": "Your Wallet is ready",

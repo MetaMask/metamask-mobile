@@ -39,6 +39,9 @@ const styleSheet = (params: { theme: Theme }) => {
     keypad: {
       paddingHorizontal: 24,
     },
+    unstakeBanner: {
+      marginHorizontal: 16,
+    },
   });
 };
 

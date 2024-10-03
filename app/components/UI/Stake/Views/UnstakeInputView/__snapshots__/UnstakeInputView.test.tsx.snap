@@ -560,6 +560,66 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                         <View
                           style={
                             {
+                              "backgroundColor": "#0376c91a",
+                              "borderColor": "#0376c9",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginHorizontal": 16,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                          variant="Alert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#0376c9"
+                              height={24}
+                              name="Info"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "flexDirection": "row",

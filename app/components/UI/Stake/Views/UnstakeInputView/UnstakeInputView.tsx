@@ -32,7 +32,8 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import CurrencyToggle from '../../components/CurrencySwitch';
 import QuickAmounts from '../../components/QuickAmounts';
-import styleSheet from '../StakeInputView/StakeInputView.styles';
+import styleSheet from './UnstakeInputView.styles';
+import UnstakeInputViewBanner from './UnstakeBanner';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
@@ -183,7 +184,7 @@ const UnstakeInputView = () => {
           />
         </View>
       </View>
-
+      <UnstakeInputViewBanner style={styles.unstakeBanner} />
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleAmountPress}
