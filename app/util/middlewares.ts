@@ -20,9 +20,9 @@ const USER_REJECTED_ERROR_CODE = 4001;
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createOriginMiddleware(opts: { origin: string }): (req: unknown, _: unknown, next: () => void) => void {
+export function createOriginMiddleware(opts: { origin: string }): (req: { origin?: string; params?: unknown[] }, _: unknown, next: () => void) => void {
   return function originMiddleware(
-    /** @type {any} */ req,
+    req: { origin?: string; params?: unknown[] },
     /** @type {any} */ _,
     /** @type {Function} */ next,
   ) {
@@ -67,13 +67,13 @@ export function containsUserRejectedError(errorMessage: string, errorCode?: numb
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createLoggerMiddleware(opts: { origin: string }): (req: unknown, res: unknown, next: (cb: () => void) => void) => void {
+export function createLoggerMiddleware(opts: { origin: string }): (req: unknown, res: unknown, next: () => void) => void {
   return function loggerMiddleware(
     req: unknown,
     res: unknown,
-    next: (cb: () => void) => void,
+    next: () => void,
   ) {
-    next((cb: () => void) => {
+    next(() => {
       const typedReq = req as { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown };
       const typedRes = res as { error?: unknown; [key: string]: unknown };
 
@@ -124,7 +124,6 @@ export function createLoggerMiddleware(opts: { origin: string }): (req: unknown,
         return;
       }
       Logger.log(`RPC (${opts.origin}):`, typedReq, '->', typedRes);
-      cb();
     });
   };
 }
