@@ -69,13 +69,16 @@ export function containsUserRejectedError(errorMessage: string, errorCode?: numb
  */
 export function createLoggerMiddleware(opts: { origin: string }): (req: unknown, res: unknown, next: (cb: () => void) => void) => void {
   return function loggerMiddleware(
-    req: { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown },
-    res: { error?: unknown; [key: string]: unknown },
+    req: unknown,
+    res: unknown,
     next: (cb: () => void) => void,
   ) {
     next((cb: () => void) => {
-      if (typeof res === 'object' && res !== null && 'error' in res) {
-        const { error, ...resWithoutError } = res;
+      const typedReq = req as { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown };
+      const typedRes = res as { error?: unknown; [key: string]: unknown };
+
+      if (typeof typedRes === 'object' && typedRes !== null && 'error' in typedRes) {
+        const { error, ...resWithoutError } = typedRes;
         if (error) {
           if (typeof error === 'object' && error !== null && 'message' in error && 'code' in error) {
             const errorMessage = typeof error.message === 'string' ? error.message : '';
@@ -105,22 +108,22 @@ export function createLoggerMiddleware(opts: { origin: string }): (req: unknown,
                 message: 'Error in RPC response',
                 orginalError: error,
                 res: resWithoutError,
-                req,
+                req: typedReq,
               };
 
               if (typeof error === 'object' && error !== null && 'data' in error) {
                 errorParams.data = error.data;
               }
 
-              Logger.error(error as Error, errorParams);
+              Logger.error(error as unknown as Error, errorParams);
             }
           }
         }
       }
-      if (req.isMetamaskInternal) {
+      if (typedReq.isMetamaskInternal) {
         return;
       }
-      Logger.log(`RPC (${opts.origin}):`, req, '->', res);
+      Logger.log(`RPC (${opts.origin}):`, typedReq, '->', typedRes);
       cb();
     });
   };
