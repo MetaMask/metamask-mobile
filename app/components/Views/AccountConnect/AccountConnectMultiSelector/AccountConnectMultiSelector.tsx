@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, View, SafeAreaView } from 'react-native';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -34,7 +34,7 @@ import {
 } from './AccountConnectMultiSelector.types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
 
 const AccountConnectMultiSelector = ({
@@ -51,8 +51,10 @@ const AccountConnectMultiSelector = ({
   hostname,
   connection,
   onBack,
+  screenTitle,
+  isRenderedAsBottomSheet = true,
 }: AccountConnectMultiSelectorProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
@@ -91,7 +93,7 @@ const AccountConnectMultiSelector = ({
   const renderSelectAllButton = useCallback(
     () =>
       Boolean(accounts.length) &&
-      !isMutichainVersion1Enabled && (
+      !isMultichainVersion1Enabled && (
         <Button
           variant={ButtonVariants.Link}
           onPress={() => {
@@ -115,7 +117,7 @@ const AccountConnectMultiSelector = ({
   const renderUnselectAllButton = useCallback(
     () =>
       Boolean(accounts.length) &&
-      !isMutichainVersion1Enabled && (
+      !isMultichainVersion1Enabled && (
         <Button
           variant={ButtonVariants.Link}
           onPress={() => {
@@ -186,7 +188,7 @@ const AccountConnectMultiSelector = ({
     return (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
-          {!isMutichainVersion1Enabled && (
+          {!isMultichainVersion1Enabled && (
             <Button
               variant={ButtonVariants.Secondary}
               label={strings('accounts.cancel')}
@@ -195,14 +197,14 @@ const AccountConnectMultiSelector = ({
               style={styles.button}
             />
           )}
-          {!isMutichainVersion1Enabled && (
+          {!isMultichainVersion1Enabled && (
             <View style={styles.buttonSeparator} />
           )}
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
               label={strings(
-                isMutichainVersion1Enabled
+                isMultichainVersion1Enabled
                   ? 'app_settings.fiat_on_ramp.update'
                   : 'accounts.connect_with_count',
                 {
@@ -225,7 +227,7 @@ const AccountConnectMultiSelector = ({
             />
           )}
         </View>
-        {isMutichainVersion1Enabled && areNoAccountsSelected && (
+        {isMultichainVersion1Enabled && areNoAccountsSelected && (
           <View style={styles.disconnectAllContainer}>
             <View style={styles.helpTextContainer}>
               <HelpText severity={HelpTextSeverity.Error}>
@@ -263,66 +265,68 @@ const AccountConnectMultiSelector = ({
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (
-      <View style={styles.container}>
-        <SheetHeader
-          title={
-            isMutichainVersion1Enabled
-              ? strings('accounts.edit_accounts_title')
-              : strings('accounts.connect_accounts_title')
-          }
-          onBack={onBack}
-        />
-        <View style={styles.body}>
-          {!isMutichainVersion1Enabled && (
-            <TagUrl
-              imageSource={favicon}
-              label={urlWithProtocol}
-              iconName={secureIcon}
-            />
-          )}
-          <Text style={styles.description}>
-            {isMutichainVersion1Enabled
-              ? strings('accounts.select_accounts_description')
-              : strings('accounts.connect_description')}
-          </Text>
-          {isMutichainVersion1Enabled && renderSelectAllCheckbox()}
-          {areAllAccountsSelected
-            ? renderUnselectAllButton()
-            : renderSelectAllButton()}
-        </View>
-        <AccountSelectorList
-          onSelectAccount={onSelectAccount}
-          accounts={accounts}
-          ensByAccountAddress={ensByAccountAddress}
-          isLoading={isLoading}
-          selectedAddresses={selectedAddresses}
-          isMultiSelect
-          isRemoveAccountEnabled
-          isAutoScrollEnabled={isAutoScrollEnabled}
-        />
-        {connection?.originatorInfo?.apiVersion && (
-          <View style={styles.sdkInfoContainer}>
-            <View style={styles.sdkInfoDivier} />
-            <Text color={TextColor.Muted}>
-              SDK {connection?.originatorInfo?.platform} v
-              {connection?.originatorInfo?.apiVersion}
-            </Text>
-          </View>
-        )}
-        <View style={styles.addAccountButtonContainer}>
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('account_actions.add_account_or_hardware_wallet')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            onPress={() =>
-              setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
+      <SafeAreaView>
+        <View style={styles.container}>
+          <SheetHeader
+            title={
+              isMultichainVersion1Enabled
+                ? screenTitle
+                : strings('accounts.connect_accounts_title')
             }
-            {...generateTestId(Platform, ACCOUNT_LIST_ADD_BUTTON_ID)}
+            onBack={onBack}
           />
+          <View style={styles.body}>
+            {!isMultichainVersion1Enabled && (
+              <TagUrl
+                imageSource={favicon}
+                label={urlWithProtocol}
+                iconName={secureIcon}
+              />
+            )}
+            <Text style={styles.description}>
+              {isMultichainVersion1Enabled
+                ? strings('accounts.select_accounts_description')
+                : strings('accounts.connect_description')}
+            </Text>
+            {isMultichainVersion1Enabled && renderSelectAllCheckbox()}
+            {areAllAccountsSelected
+              ? renderUnselectAllButton()
+              : renderSelectAllButton()}
+          </View>
+          <AccountSelectorList
+            onSelectAccount={onSelectAccount}
+            accounts={accounts}
+            ensByAccountAddress={ensByAccountAddress}
+            isLoading={isLoading}
+            selectedAddresses={selectedAddresses}
+            isMultiSelect
+            isRemoveAccountEnabled
+            isAutoScrollEnabled={isAutoScrollEnabled}
+          />
+          {connection?.originatorInfo?.apiVersion && (
+            <View style={styles.sdkInfoContainer}>
+              <View style={styles.sdkInfoDivier} />
+              <Text color={TextColor.Muted}>
+                SDK {connection?.originatorInfo?.platform} v
+                {connection?.originatorInfo?.apiVersion}
+              </Text>
+            </View>
+          )}
+          <View style={styles.addAccountButtonContainer}>
+            <Button
+              variant={ButtonVariants.Link}
+              label={strings('account_actions.add_account_or_hardware_wallet')}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
+              onPress={() =>
+                setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
+              }
+              {...generateTestId(Platform, ACCOUNT_LIST_ADD_BUTTON_ID)}
+            />
+          </View>
+          <View style={styles.body}>{renderCtaButtons()}</View>
         </View>
-        <View style={styles.body}>{renderCtaButtons()}</View>
-      </View>
+      </SafeAreaView>
     ),
     [
       accounts,
@@ -347,6 +351,7 @@ const AccountConnectMultiSelector = ({
       styles.sdkInfoDivier,
       onBack,
       renderSelectAllCheckbox,
+      screenTitle,
     ],
   );
 

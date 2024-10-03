@@ -5,8 +5,6 @@
     "deceptive_request_title": "此请求属欺骗性质",
     "failed_title": "此请求可能不安全",
     "failed_description": "由于出现错误，安全服务提供商未验证此请求。请谨慎操作。",
-    "loading_title": "正在检查安全提醒......",
-    "loading_complete_title": "未收到提醒。在批准请求之前，请务必自行作出审慎调查。",
     "malicious_domain_description": "您正在与恶意网域交互。如果您批准此请求，可能会遭受资产损失。",
     "other_description": "如果您批准此请求，可能会遭受资产损失。",
     "raw_signature_farming_description": "如果您批准此请求，可能会有资产损失。",
@@ -688,9 +686,8 @@
     "suggest_transactions": "建议要批准的交易",
     "disconnect": "断开连接",
     "disconnect_all": "断开所有连接",
-    "reconnect_notice": "如果将您的账户与 {{dappUrl}} 断开连接，则需要重新连接才能再次使用。",
+    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
     "disconnect_all_accounts": "断开所有账户的连接",
-    "disconnect_you_from": "这将断开与 {{dappUrl}} 的连接",
     "deceptive_site_ahead": "前方为欺骗性网站",
     "deceptive_site_desc": "您尝试访问的网站并不安全。攻击者可能会诱使您做一些危险的事情",
     "learn_more": "了解详情",
@@ -815,24 +812,6 @@
     "show_fiat_on_testnets_modal_button": "继续",
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
-    "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
-    "enable_eth_sign": "Eth_sign 请求",
-    "enable_eth_sign_desc": "如果您启用此设置，您可能会收到不可读的签名请求。对您不理解的信息进行签名，可能会导致您放弃您的资金和 NFT。",
-    "enable_eth_sign_warning": "您面临网络钓鱼攻击的风险。关闭 eth_sign 以保护自己。",
-    "toggleEthSignModalBannerText": "如果要求您打开此设置，",
-    "toggleEthSignModalBannerBoldText": " 您可能遭受了诈骗。",
-    "toggleEthSignModalCheckBox": "我明白，如果我启用 eth_sign 请求，我可能失去所有资金和 NFT。",
-    "toggleEthSignModalDescription": "允许 eth_sign 请求可能会使您易于受到网络钓鱼攻击。始终检查 URL，并且在签署包含代码的消息时保持谨慎。",
-    "toggleEthSignModalFormError": "此文本错误。再试一次。",
-    "toggleEthSignModalFormLabel": "输入“我只签署我理解的内容”以继续",
-    "toggleEthSignModalFormValidation": "我只签署我理解的内容",
-    "toggleEthSignModalTitle": "使用风险自负",
-    "toggleEthSignModalEnable": "启用",
-    "toggleEthSignModalLearnMore": "了解更多。",
-    "toggleEthSignOff": "（建议）",
-    "toggleEthSignOn": "（不建议）",
-    "toggleEthSignContinueButton": "继续",
-    "toggleEthSignEnableButton": "启用",
     "show_custom_nonce": "自定义交易 nonce",
     "custom_nonce_desc": "打开这个功能可以改变确认屏幕上的 nonce（交易号码）。这是一个高级功能，请谨慎使用。",
     "accounts_identicon_title": "账户 Identicon",
@@ -1086,7 +1065,12 @@
     "simulation_details_description": "开启此选项，以便在确认交易之前估计交易余额的变化。这并不能保证交易的最终结果。 ",
     "simulation_details_learn_more": "了解更多。",
     "aes_crypto_test_form_title": "AES 加密 - 测试表",
-    "aes_crypto_test_form_description": "专为 E2E 测试开发的部分。如果这在您的应用程序中可见，请向 MetaMask 支持团队报告。"
+    "aes_crypto_test_form_description": "专为 E2E 测试开发的部分。如果这在您的应用程序中可见，请向 MetaMask 支持团队报告。",
+    "developer_options": {
+      "title": "Developer Options",
+      "generate_trace_test": "Generate Trace Test",
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+    }
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "生成随机盐",
@@ -1464,7 +1448,8 @@
     "hex_data_copied": "十六进制数据已复制到剪贴板",
     "invalid_recipient": "收件人无效",
     "invalid_recipient_description": "请检查地址，确保其为有效地址",
-    "swap_tokens": "兑换代币"
+    "swap_tokens": "兑换代币",
+    "fromWithColon": "From:"
   },
   "custom_gas": {
     "total": "总计",
@@ -1751,6 +1736,7 @@
     "continue": "继续",
     "cancel": "取消",
     "approve": "批准",
+    "update": "Update",
     "edit_network_details": "编辑网络详情",
     "malicious_network_warning": "恶意网络提供商可能会谎报区块链的状态，并记录您的网络活动。仅添加您信任的自定义网络。",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1758,10 +1744,12 @@
     "additional_network_information_title": "其他网络信息",
     "network_warning_desc": "此网络连接依赖于第三方。这种连接可靠程度可能会较低，或会使第三方能够跟踪活动。",
     "additonial_network_information_desc": "这些网络中的其中一些依赖于第三方。此连接可能不太可靠，或使第三方可进行活动跟踪。",
+    "connect_more_networks": "Connect more networks",
     "learn_more": "了解详情",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "切换到网络",
     "switch": "切换",
+    "select_all": "Select all",
     "new_network": "已添加新网络",
     "network_name": "{{networkName}}网络",
     "network_added": " 现已在网络选择工具中。",
@@ -1778,7 +1766,19 @@
     "show_test_networks": "显示测试网络",
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
     "network_deprecated_title": "该网络已弃用",
-    "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。"
+    "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。",
+    "edit_networks_title": "Edit networks"
+  },
+  "permissions": {
+    "title_this_site_wants_to": "This site wants to:",
+    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
+    "use_enabled_networks": "Use your enabled networks",
+    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
+    "requesting_for": "Requesting for ",
+    "manage_permissions": "Manage Permissions",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "select": {
     "cancel": "取消",
@@ -1795,8 +1795,7 @@
     "message": "消息",
     "message_from": "消息来自",
     "learn_more": "了解更多",
-    "read_more": "了解更多",
-    "eth_sign_warning": "谨慎行事。此操作有可能用来从您的账户提取资产。确保您信任此站点。"
+    "read_more": "了解更多"
   },
   "watch_asset_request": {
     "title": "添加建议代币",
@@ -2043,6 +2042,8 @@
     "back_to_safety": "返回以确保安全"
   },
   "notifications": {
+    "no_date": "Unknown",
+    "yesterday": "Yesterday",
     "staked": "已质押",
     "received": "已收到",
     "unstaked": "已解除质押",
@@ -2118,6 +2119,8 @@
     "success_withdrawal_title": "提取完成！",
     "error_title": "糟糕，出问题了:/",
     "received_title": "您已收到 {{amount}} {{assetType}}",
+    "default_message_title": "New transaction notification",
+    "default_message_description": "Tap to view this transaction",
     "received_payment_title": "已收到即时付款",
     "pending_message": "正在等待确认",
     "pending_deposit_message": "正在等待保证金完成",
@@ -2133,12 +2136,12 @@
     "cancelled_message": "点按以查看此交易",
     "received_message": "点按以查看此交易",
     "received_payment_message": "您已收到 {{amount}} DAI",
-    "prompt_title": "启用推送通知",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "出错了",
     "notifications_enabled_error_desc": "我们无法启用通知。请稍后再试。",
-    "prompt_desc": "启用通知，以便在您收到 ETH 或您的交易被确认时，MetaMask 能够让您知道。",
-    "prompt_ok": "是",
-    "prompt_cancel": "不，谢谢",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "已连接 {{title}}",
     "wc_signed_title": "已签名",
     "wc_sent_tx_title": "已发送交易",
@@ -2819,13 +2822,8 @@
   },
   "switch_custom_network": {
     "title_existing_network": "本站点希望切换网络",
-    "title_enabled_network": "此网站想要：",
     "title_new_network": "已增加新网络",
     "switch_warning": "这将把 MetaMask 中选择的网络切换到先前添加的网络：",
-    "use_enabled_networks": "使用您启用的网络",
-    "wants_to_see_your_accounts": "查看您的账户并建议交易",
-    "requesting_for": "请求 ",
-    "edit": "编辑",
     "add_network_and_give_dapp_permission_warning": "您正在将此网络添加到 MetaMask 并授予 {{dapp_origin}} 其使用许可。",
     "available": "现在可以在网络选择工具中使用。",
     "cancel": "取消",
@@ -2917,7 +2915,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "估算的燃料费",
-    "suggested_gas_fee": "%{origin} 建议燃料费",
+    "network_fee": "Network fee",
     "max_fee": "最大费用",
     "total": "共计",
     "max_amount": "最大金额",
@@ -3157,6 +3155,7 @@
     "ledger_reminder_message_step_four": "4. 使用下述精确定位后，定位已启用：",
     "ledger_reminder_message_step_four_Androidv12plus": "4. 附近设备已启用",
     "ledger_reminder_message_step_five": "5. 必须关闭请勿打扰",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "可用设备",
     "retry": "重试",
     "continue": "继续",
@@ -3187,7 +3186,15 @@
     "how_to_install_eth_webview_title": "如何安装以太坊应用程序",
     "nonce_too_low": "唯一交易标识号安全性过低",
     "nonce_too_low_error": "设置的唯一交易标识号安全性过低",
-    "select_accounts": "选择一个账户"
+    "select_accounts": "Select an account",
+    "select_hd_path": "Select HD Path",
+    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "ledger_live_path": "Ledger Live",
+    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "编辑账户名",
@@ -3241,7 +3248,21 @@
     "error_description": "{{snap}}安装失败。"
   },
   "stake": {
-    "stake": "质押"
+    "stake": "质押",
+    "stake_eth": "Stake ETH",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Estimated annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    },
+    "estimated_annual_rewards": "Estimated annual rewards",
+    "metamask_pool": "MetaMask Pool",
+    "enter_amount": "Enter amount",
+    "review": "Review",
+    "not_enough_eth": "Not enough ETH",
+    "balance": "Balance"
   },
   "default_settings": {
     "title": "您的钱包已准备就绪",
@@ -3290,6 +3311,14 @@
     "title": "我们注意到有多个请求"
   },
   "common": {
-    "please_wait": "请稍候"
+    "please_wait": "请稍候",
+    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
+    "disconnect": "Disconnect"
+  },
+  "tooltip_modal": {
+    "reward_rate": {
+      "title": "Reward rate",
+      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
   }
 }

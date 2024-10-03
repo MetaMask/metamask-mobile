@@ -4,12 +4,27 @@ import { $ } from 'execa';
 import { Listr } from 'listr2';
 import path from 'path';
 
-const IS_OSX = process.platform === 'darwin';
-const input = process.argv.slice(2)?.[0];
-// iOS builds are enabled by default on macOS only but can be enabled explicitly
-const BUILD_IOS = input === '--build-ios' || IS_OSX;
-const IS_NODE = input === '--node';
 const IS_CI = process.env.CI;
+const IS_OSX = process.platform === 'darwin';
+// iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
+let BUILD_IOS = IS_OSX;
+let IS_NODE = false;
+const args = process.argv.slice(2) || [];
+for (const arg of args) {
+  switch (arg) {
+    case '--build-ios':
+      BUILD_IOS = true;
+      continue;
+    case '--no-build-ios':
+      BUILD_IOS = false;
+      continue;
+    case '--node':
+      IS_NODE = true;
+      continue;
+    default:
+      throw new Error(`Unrecognized CLI arg ${arg}`);
+  }
+}
 
 const rendererOptions = {
   collapseErrors: false,
@@ -21,32 +36,68 @@ const rendererOptions = {
 /*
  * TODO: parse example env file and add missing variables to existing .js.env
  */
-const copyEnvVarsTask = {
-  title: 'Copy env vars',
-  task: async (_, task) => {
+const copyAndSourceEnvVarsTask = {
+  title: 'Copy and source environment variables',
+  task: (_, task) => {
     if (IS_CI) {
-      task.skip('CI detected');
-    } else {
-      const envFiles = ['.js.env', '.ios.env', '.android.env', '.e2e.env'];
-      envFiles.forEach((envFileName) => {
-        try {
-          fs.copyFileSync(
-            `${envFileName}.example`,
-            envFileName,
-            fs.constants.COPYFILE_EXCL,
-          );
-        } catch (err) {
-          // Ignore if file already exists
-          return;
-        }
-      });
+      return task.skip('Skipping copying and sourcing environment variables.');
     }
+
+    return task.newListr(
+      [
+        {
+          title: 'Copy env vars',
+          task: async () => {
+            const envFiles = [
+              '.js.env',
+              '.ios.env',
+              '.android.env',
+              '.e2e.env',
+            ];
+            envFiles.forEach((envFileName) => {
+              try {
+                fs.copyFileSync(
+                  `${envFileName}.example`,
+                  envFileName,
+                  fs.constants.COPYFILE_EXCL,
+                );
+              } catch (err) {
+                // Ignore if file already exists
+                return;
+              }
+            });
+          },
+        },
+        {
+          title: 'Source env vars',
+          task: async () => {
+            const envFiles = [
+              '.js.env',
+              '.ios.env',
+              '.android.env',
+              '.e2e.env',
+            ];
+            envFiles.forEach((envFileName) => {
+              `source ${envFileName}`;
+            });
+          },
+        },
+      ],
+      {
+        concurrent: false,
+        exitOnError: true,
+        rendererOptions,
+      },
+    );
   },
 };
 
-const ppomBuildTask = {
+const buildPpomTask = {
   title: 'Build PPOM',
   task: (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping building PPOM.');
+    }
     const $ppom = $({ cwd: 'ppom' });
 
     return task.newListr(
@@ -79,92 +130,31 @@ const ppomBuildTask = {
       {
         concurrent: false,
         exitOnError: true,
+        rendererOptions,
       },
     );
   },
 };
 
-const gemInstallTask = {
-  title: 'Install gems',
-  task: (_, task) =>
-    task.newListr(
-      [
-        {
-          title: 'Install gems using bundler',
-          task: async (_, gemInstallTask) => {
-            if (!BUILD_IOS) {
-              return gemInstallTask.skip('Skipping iOS.');
-            }
-            await $`bundle install`;
-          },
-        },
-      ],
-      {
-        exitOnError: true,
-        concurrent: false,
-        rendererOptions,
-      },
-    ),
-};
+const setupIosTask = {
+  title: 'Set up iOS',
+  task: async (_, task) => {
+    if (!BUILD_IOS) {
+      return task.skip('Skipping iOS set up.');
+    }
 
-const mainSetupTask = {
-  title: 'Dependencies setup',
-  task: (_, task) =>
-    task.newListr(
+    return task.newListr(
       [
         {
-          title: 'Install CocoaPods',
-          task: async (_, podInstallTask) => {
-            if (!BUILD_IOS) {
-              return podInstallTask.skip('Skipping iOS.');
-            }
-            await $`bundle exec pod install --project-directory=ios`;
+          title: 'Install bundler gem',
+          task: async () => {
+            await $`gem install bundler -v 2.5.8`;
           },
         },
         {
-          title: 'Run lavamoat allow-scripts',
+          title: 'Install gems',
           task: async () => {
-            await $`yarn allow-scripts`;
-          },
-        },
-        copyEnvVarsTask,
-      ],
-      {
-        exitOnError: false,
-        concurrent: true,
-        rendererOptions,
-      },
-    ),
-};
-
-const patchModulesTask = {
-  title: 'Patch modules',
-  task: (_, task) =>
-    task.newListr(
-      [
-        {
-          title: 'Build Inpage Bridge',
-          task: async () => {
-            await $`./scripts/build-inpage-bridge.sh`;
-          },
-        },
-        // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
-        {
-          title: 'React Native nodeify',
-          task: async () => {
-            await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
-          },
-        },
-        {
-          title: 'Jetify',
-          task: async () => {
-            await $`yarn jetify`;
-          },
-        },
-        {
-          title: 'Patch npm packages',
-          task: async () => {
-            await $`yarn patch-package`;
+            await $`yarn gem:bundle:install`;
           },
         },
         {
@@ -175,9 +165,9 @@ const patchModulesTask = {
           },
         },
         {
-          title: 'Init git submodules',
+          title: 'Install CocoaPods',
           task: async () => {
-            await $`git submodule update --init`;
+            await $`yarn pod:install`;
           },
         },
       ],
@@ -185,20 +175,62 @@ const patchModulesTask = {
         concurrent: false,
         exitOnError: true,
       },
-    ),
+    );
+  },
 };
 
-const sourceEnvs = {
-  title: 'Source env vars',
+const buildInpageBridgeTask = {
+  title: 'Build inpage bridge',
   task: async (_, task) => {
-    if (IS_CI) {
-      task.skip('CI detected');
-    } else {
-      const envFiles = ['.js.env', '.ios.env', '.android.env', '.e2e.env'];
-      envFiles.forEach((envFileName) => {
-        `source ${envFileName}`;
-      });
+    if (IS_NODE) {
+      return task.skip('Skipping building inpage bridge.');
     }
+    await $`./scripts/build-inpage-bridge.sh`;
+  },
+};
+
+const nodeifyTask = {
+  // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
+  title: 'Nodeify npm packages',
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping nodeifying npm packages.');
+    }
+    await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
+  },
+};
+
+const jetifyTask = {
+  title: 'Jetify npm packages for Android',
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping jetifying npm packages.');
+    }
+    await $`yarn jetify`;
+  },
+};
+
+const patchPackageTask = {
+  title: 'Patch npm packages',
+  task: async () => {
+    await $`yarn patch-package`;
+  },
+};
+
+const updateGitSubmodulesTask = {
+  title: 'Init git submodules',
+  task: async (_, task) => {
+    if (IS_NODE) {
+      return task.skip('Skipping init git submodules.');
+    }
+    await $`git submodule update --init`;
+  },
+};
+
+const runLavamoatAllowScriptsTask = {
+  title: 'Run lavamoat allow-scripts',
+  task: async () => {
+    await $`yarn allow-scripts`;
   },
 };
 
@@ -249,32 +281,53 @@ const generateTermsOfUseTask = {
       {
         concurrent: false,
         exitOnError: true,
+        rendererOptions,
       },
     ),
 };
 
-// Optimize for CI performance
-const yarnSetupNodeTask = {
-  title: 'Run yarn setup:node',
-  task: async () => {
-    await $`yarn setup:node`;
-  },
+/**
+ * Tasks that changes node modules and should run sequentially
+ */
+const prepareDependenciesTask = {
+  title: 'Prepare dependencies',
+  task: (_, task) =>
+    task.newListr(
+      [
+        copyAndSourceEnvVarsTask,
+        updateGitSubmodulesTask,
+        // Inpage bridge must generate before node modules are altered
+        buildInpageBridgeTask,
+        nodeifyTask,
+        jetifyTask,
+        runLavamoatAllowScriptsTask,
+        patchPackageTask,
+      ],
+      {
+        exitOnError: true,
+        concurrent: false,
+        rendererOptions,
+      },
+    ),
 };
 
-const taskList = IS_NODE
-  ? [yarnSetupNodeTask, generateTermsOfUseTask]
-  : [
-      gemInstallTask,
-      patchModulesTask,
-      mainSetupTask,
-      ppomBuildTask,
-      sourceEnvs,
-      generateTermsOfUseTask,
-    ];
+/**
+ * Tasks that are run concurrently
+ */
+const concurrentTasks = {
+  title: 'Concurrent tasks',
+  task: (_, task) =>
+    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask], {
+      concurrent: true,
+      exitOnError: true,
+      rendererOptions,
+    }),
+};
 
-const tasks = new Listr(taskList, {
-  exitOnError: true,
+const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
+  exitOnError: true,
+  rendererOptions,
 });
 
 await tasks.run();

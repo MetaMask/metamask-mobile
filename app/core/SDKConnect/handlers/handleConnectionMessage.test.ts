@@ -19,6 +19,8 @@ import handleSendMessage from './handleSendMessage';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
@@ -68,7 +70,6 @@ describe('handleConnectionMessage', () => {
   const mockSetLoading = jest.fn();
   const mockOnTerminate = jest.fn();
   const mockSendAuthorized = jest.fn();
-  const mockRpcQueueManagerAdd = jest.fn();
   const mockBackgroundBridgeOnMessage = jest.fn();
 
   let connection = {} as unknown as Connection;
@@ -77,6 +78,9 @@ describe('handleConnectionMessage', () => {
     method: 'eth_requestAccounts',
     params: [],
   } as unknown as CommunicationLayerMessage;
+
+  const mockGetId = jest.fn();
+  const mockAdd = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -87,7 +91,8 @@ describe('handleConnectionMessage', () => {
       onTerminate: mockOnTerminate,
       sendAuthorized: mockSendAuthorized,
       rpcQueueManager: {
-        add: mockRpcQueueManagerAdd,
+        getId: mockGetId,
+        add: mockAdd,
       },
       remote: {
         hasRelayPersistence: () => false,
@@ -100,10 +105,18 @@ describe('handleConnectionMessage', () => {
     (Engine.context as unknown) = {
       KeyringController: {} as unknown as KeyringController,
       NetworkController: {
-        state: {
-          providerConfig: {
+        getNetworkClientById: () => ({
+          configuration: {
             chainId: '0x1',
           },
+        }),
+        state: {
+          ...mockNetworkState({
+            chainId: CHAIN_IDS.MAINNET,
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          }),
         },
       } as unknown as NetworkController,
       AccountsController: {
@@ -243,7 +256,9 @@ describe('handleConnectionMessage', () => {
         connection,
         selectedAddress: toChecksumHexAddress(MOCK_ADDRESS),
         selectedChainId:
-          Engine.context.NetworkController.state.providerConfig.chainId,
+          Engine.context.NetworkController.state.networkConfigurations[
+            Engine.context.NetworkController.state.selectedNetworkClientId
+          ].chainId,
         rpc: {
           method: message.method,
           params: message.params,
@@ -256,22 +271,17 @@ describe('handleConnectionMessage', () => {
   describe('RPC Queue Manager interactions', () => {
     beforeEach(() => {
       mockCheckPermissions.mockResolvedValueOnce(true);
+      mockGetId.mockReturnValue(null); // Simulate that the message hasn't been processed
     });
 
     describe('When handleCustomRpcCalls return processedRpc', () => {
       let processedRpc: {
         method: string;
         id: string;
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        params: any[];
+        params: unknown[];
         jsonrpc: string;
-      } = {
-        method: '',
-        id: '',
-        params: [],
-        jsonrpc: '',
       };
+
       beforeEach(() => {
         processedRpc = {
           method: 'eth_requestAccounts',
@@ -282,27 +292,27 @@ describe('handleConnectionMessage', () => {
 
         mockHandleCustomRpcCalls.mockResolvedValueOnce(processedRpc);
       });
+
       it('should add processed RPC to the RPC queue', async () => {
         await handleConnectionMessage({ message, engine: Engine, connection });
 
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(1);
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledWith({
-          id: processedRpc?.id,
-          method: processedRpc?.method,
+        expect(mockAdd).toHaveBeenCalledTimes(1);
+        expect(mockAdd).toHaveBeenCalledWith({
+          id: processedRpc.id,
+          method: processedRpc.method,
         });
       });
     });
 
     describe('When handleCustomRpcCalls do NOT return processedRpc', () => {
       beforeEach(() => {
-        // @ts-ignore
         mockHandleCustomRpcCalls.mockResolvedValueOnce(undefined);
       });
 
-      it('should add processed RPC to the RPC queue', async () => {
+      it('should not add processed RPC to the RPC queue', async () => {
         await handleConnectionMessage({ message, engine: Engine, connection });
 
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(0);
+        expect(mockAdd).not.toHaveBeenCalled();
       });
     });
   });
@@ -311,15 +321,8 @@ describe('handleConnectionMessage', () => {
     let processedRpc: {
       method: string;
       id: string;
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params: any[];
+      params: unknown[];
       jsonrpc: string;
-    } = {
-      method: '',
-      id: '',
-      params: [],
-      jsonrpc: '',
     };
     beforeEach(() => {
       processedRpc = {

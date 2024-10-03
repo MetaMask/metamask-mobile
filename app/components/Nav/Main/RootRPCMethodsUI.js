@@ -62,12 +62,14 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import Confirm from '../../../components/Views/confirmations/Confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../util/smart-transactions';
 import { cloneDeep, isEqual } from 'lodash';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -86,15 +88,12 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
   const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
     useState([]);
 
-  const addTransactionMetaIdForListening = useCallback(
-    (txMetaId) => {
-      setTransactionMetaIdsForListening([
-        ...transactionMetaIdsForListening,
-        txMetaId,
-      ]);
-    },
-    [transactionMetaIdsForListening],
-  );
+  const addTransactionMetaIdForListening = useCallback((txMetaId) => {
+    setTransactionMetaIdsForListening((transactionMetaIdsForListening) => [
+      ...transactionMetaIdsForListening,
+      txMetaId,
+    ]);
+  }, []);
   const swapsTransactions = useSwapsTransactions();
 
   useEffect(() => {
@@ -144,8 +143,8 @@ const RootRPCMethodsUI = (props) => {
       try {
         const { TransactionController, SmartTransactionsController } =
           Engine.context;
-        const newSwapsTransactions = swapsTransactions;
-        const swapTransaction = newSwapsTransactions[transactionMeta.id];
+        const swapTransaction = swapsTransactions[transactionMeta.id];
+
         const {
           sentAt,
           gasEstimate,
@@ -187,15 +186,6 @@ const RootRPCMethodsUI = (props) => {
           ethBalance,
         );
 
-        newSwapsTransactions[transactionMeta.id].gasUsed = receipt.gasUsed;
-        if (tokensReceived) {
-          newSwapsTransactions[transactionMeta.id].receivedDestinationAmount =
-            new BigNumber(tokensReceived, 16).toString(10);
-        }
-        TransactionController.update((state) => {
-          state.swapsTransactions = newSwapsTransactions;
-        });
-
         const timeToMine = currentBlock.timestamp - sentAt;
         const estimatedVsUsedGasRatio = `${new BigNumber(receipt.gasUsed)
           .div(gasEstimate)
@@ -218,8 +208,20 @@ const RootRPCMethodsUI = (props) => {
           ...swapTransaction.analytics,
           account_type: getAddressAccountType(transactionMeta.txParams.from),
         };
-        delete newSwapsTransactions[transactionMeta.id].analytics;
-        delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
+
+        updateSwapsTransaction(transactionMeta.id, (swapsTransaction) => {
+          swapsTransaction.gasUsed = receipt.gasUsed;
+
+          if (tokensReceived) {
+            swapsTransaction.receivedDestinationAmount = new BigNumber(
+              tokensReceived,
+              16,
+            ).toString(10);
+          }
+
+          delete swapsTransaction.analytics;
+          delete swapsTransaction.paramsForAnalytics;
+        });
 
         const smartTransactionMetricsProperties =
           getSmartTransactionMetricsProperties(
@@ -236,6 +238,8 @@ const RootRPCMethodsUI = (props) => {
           is_smart_transaction: props.shouldUseSmartTransaction,
           ...smartTransactionMetricsProperties,
         };
+
+        Logger.log('Swaps', 'Sending metrics event', event);
 
         trackEvent(event, { sensitiveProperties: { ...parameters } });
       } catch (e) {
@@ -469,6 +473,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
+      <Confirm />
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval

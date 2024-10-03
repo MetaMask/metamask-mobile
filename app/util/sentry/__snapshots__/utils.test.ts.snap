@@ -80,11 +80,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
             "status": "available",
           },
         },
-        "providerConfig": {
-          "chainId": "0x1",
-          "ticker": "ETH",
-          "type": "mainnet",
-        },
         "selectedNetworkClientId": "string",
       },
       "NftController": {
@@ -95,9 +90,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       "NftDetectionController": "object",
       "PermissionController": {},
       "PreferencesController": {
-        "disabledRpcMethodPreferences": {
-          "eth_sign": false,
-        },
         "displayNftMedia": true,
         "featureFlags": {},
         "identities": "object",
