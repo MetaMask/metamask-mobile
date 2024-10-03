@@ -40,8 +40,7 @@ import {
 import { NetworksI } from './index.types';
 
 const IncomingTransactionsSettings = () => {
-  const theme = useTheme();
-  const { colors } = theme;
+  const { colors, brandColors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
 
   const showTestNetworks = useSelector(selectShowTestNetworks);
@@ -50,7 +49,7 @@ const IncomingTransactionsSettings = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
+  const supportedNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
 
   const toggleEnableIncomingTransactions = (
     hexChainId: EtherscanSupportedHexChainId,
@@ -90,7 +89,7 @@ const IncomingTransactionsSettings = () => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white}
+          thumbColor={brandColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
         />
@@ -126,7 +125,7 @@ const IncomingTransactionsSettings = () => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white}
+          thumbColor={brandColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
         />
@@ -139,7 +138,7 @@ const IncomingTransactionsSettings = () => {
       ({ nickname, rpcUrl, chainId }) => {
         if (!chainId) return null;
 
-        if (!Object.keys(myNetworks).includes(chainId)) return null;
+        if (!Object.keys(supportedNetworks).includes(chainId)) return null;
 
         const { name } = { name: nickname || rpcUrl };
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
@@ -151,7 +150,8 @@ const IncomingTransactionsSettings = () => {
             variant={CellVariant.Display}
             title={name}
             secondaryText={
-              myNetworks[chainId as keyof typeof myNetworks].domain
+              supportedNetworks[chainId as keyof typeof supportedNetworks]
+                .domain
             }
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -172,7 +172,7 @@ const IncomingTransactionsSettings = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={theme.brandColors.white}
+              thumbColor={brandColors.white}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -192,7 +192,9 @@ const IncomingTransactionsSettings = () => {
           key={chainId}
           variant={CellVariant.Display}
           title={name}
-          secondaryText={myNetworks[chainId as keyof typeof myNetworks].domain}
+          secondaryText={
+            supportedNetworks[chainId as keyof typeof supportedNetworks].domain
+          }
           avatarProps={{
             variant: AvatarVariant.Network,
             name,
@@ -205,7 +207,7 @@ const IncomingTransactionsSettings = () => {
             onValueChange={(value) => {
               chainId &&
                 toggleEnableIncomingTransactions(
-                  chainId as keyof typeof myNetworks,
+                  chainId as keyof typeof supportedNetworks,
                   value,
                 );
             }}
@@ -213,7 +215,7 @@ const IncomingTransactionsSettings = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={theme.brandColors.white}
+            thumbColor={brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
