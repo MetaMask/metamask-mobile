@@ -247,9 +247,12 @@ class Approval extends PureComponent {
     );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+    this.initialise();
+  };
 
+  initialise = async () => {
     // Detect origin: WalletConnect / SDK / InAppBrowser
-    this.detectOrigin();
+    await this.detectOrigin(); // Ensure detectOrigin finishes before proceeding
 
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
@@ -271,10 +274,16 @@ class Approval extends PureComponent {
       const wc2Manager = await WC2Manager.getInstance();
       const sessions = wc2Manager.getSessions();
       this.originIsWalletConnect = sessions.some((session) => {
-        DevLogger.log(
-          `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
-        );
-        return session.peer.metadata.url === origin;
+        if (
+          session.peer.metadata.url === origin ||
+          origin.startsWith(WALLET_CONNECT_ORIGIN)
+        ) {
+          DevLogger.log(
+            `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
+          );
+          return true;
+        }
+        return false;
       });
     }
     DevLogger.log(
