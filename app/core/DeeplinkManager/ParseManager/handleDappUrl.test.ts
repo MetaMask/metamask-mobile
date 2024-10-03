@@ -1,10 +1,10 @@
 import UrlParser from 'url-parse';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 
 // Mock DeeplinkManager and extractURLParams
-jest.mock('@DeeplinkManager', () =>
+jest.mock('@core/DeeplinkManager/DeeplinkManager', () =>
   jest.fn().mockImplementation(() => ({ _handleBrowserUrl: jest.fn() })),
 );
 

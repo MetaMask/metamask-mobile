@@ -1,9 +1,9 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import InstallSnapSuccess from '@InstallSnapSuccess';
-import SNAP_INSTALL_SUCCESS from '@InstallSnapSuccess.constants';
-import { SNAP_INSTALL_OK } from '@InstallSnapApproval.constants';
+import InstallSnapSuccess from '@components/Approvals/InstallSnapApproval/components/InstallSnapSuccess/InstallSnapSuccess';
+import SNAP_INSTALL_SUCCESS from '@components/Approvals/InstallSnapApproval/components/InstallSnapSuccess/InstallSnapSuccess.constants';
+import { SNAP_INSTALL_OK } from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 
 describe('InstallSnapSuccess', () => {
   const onConfirm = jest.fn();

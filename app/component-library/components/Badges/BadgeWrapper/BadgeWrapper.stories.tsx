@@ -4,10 +4,10 @@ import React from 'react';
 
 // External dependencies.
 import { mockTheme } from '@util/theme';
-import { BadgeProps, BadgeVariant } from '@Badge/Badge.types';
-import { SAMPLE_BADGENETWORK_PROPS } from '@Badge/variants/BadgeNetwork/BadgeNetwork.constants';
-import { SAMPLE_BADGESTATUS_PROPS } from '@Badge/variants/BadgeStatus/BadgeStatus.constants';
-import Badge from '@Badge/Badge';
+import { BadgeProps, BadgeVariant } from '@component-library/components/Badges/Badge/Badge.types';
+import { SAMPLE_BADGENETWORK_PROPS } from '@component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.constants';
+import { SAMPLE_BADGESTATUS_PROPS } from '@component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.constants';
+import Badge from '@component-library/components/Badges/Badge/Badge';
 import Text, { TextVariant, TextColor } from '@component-library/components/Texts/Text';
 
 // Internal dependencies.

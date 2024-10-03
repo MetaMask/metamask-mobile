@@ -22,7 +22,7 @@ import {
   ToastVariants,
 } from '@component-library/components/Toast';
 import { ToastOptions } from '@component-library/components/Toast/Toast.types';
-import { AccountPermissionsScreens } from '@AccountPermissions.types';
+import { AccountPermissionsScreens } from '@components/Views/AccountPermissions/AccountPermissions.types';
 import getAccountNameWithENS from '@util/accounts';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { selectAccountsLength } from '@selectors/accountTrackerController';

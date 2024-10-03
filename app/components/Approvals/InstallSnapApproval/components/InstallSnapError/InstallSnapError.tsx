@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import styleSheet from '@InstallSnapApproval.styles';
+import styleSheet from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.styles';
 import { strings } from '@locales/i18n';
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -25,8 +25,8 @@ import BottomSheetFooter, {
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '@components/hooks/useStyles';
-import { InstallSnapFlowProps } from '@InstallSnapApproval.types';
-import { SNAP_INSTALL_OK } from '@InstallSnapApproval.constants';
+import { InstallSnapFlowProps } from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.types';
+import { SNAP_INSTALL_OK } from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import SNAP_INSTALL_ERROR from './InstallSnapError.constants';
 
 const InstallSnapError = ({

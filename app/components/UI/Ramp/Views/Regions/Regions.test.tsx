@@ -4,10 +4,10 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '@util/test/renderWithProvider';
 
 import Regions from './Regions';
-import useRegions from '@components/hooks/useRegions';
-import { RampSDK } from '@sdk';
-import { RampType, Region } from '@types';
-import { createPaymentMethodsNavDetails } from '@PaymentMethods/PaymentMethods';
+import useRegions from '@components/UI/Ramp/hooks/useRegions';
+import { RampSDK } from '@components/UI/Ramp/sdk';
+import { RampType, Region } from '@components/UI/Ramp/types';
+import { createPaymentMethodsNavDetails } from '@components/UI/Ramp/Views/PaymentMethods/PaymentMethods';
 import Routes from '@constants/navigation/Routes';
 import { backgroundState } from '@util/test/initial-root-state';
 
@@ -91,7 +91,7 @@ let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockUseRegionsInitialValues,
 };
 
-jest.mock('@components/hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+jest.mock('@components/UI/Ramp/hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -114,7 +114,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/UI/Ramp/hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('Regions View', () => {
   afterEach(() => {

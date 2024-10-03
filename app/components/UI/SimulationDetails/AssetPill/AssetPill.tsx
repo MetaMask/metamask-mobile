@@ -15,9 +15,9 @@ import {
 } from '@selectors/networkController';
 import { NetworkList } from '@util/networks';
 import { useStyles } from '@components/hooks/useStyles';
-import Name from '@Name/Name';
-import { NameType } from '@Name/Name.types';
-import { AssetIdentifier, AssetType } from '@types';
+import Name from '@components/UI/Name';
+import { NameType } from '@components/UI/Name/Name.types';
+import { AssetIdentifier, AssetType } from '@components/UI/SimulationDetails/types';
 import styleSheet from './AssetPill.styles';
 
 interface AssetPillProperties extends ViewProps {

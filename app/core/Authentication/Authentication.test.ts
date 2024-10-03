@@ -9,7 +9,7 @@ import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '@constants/userProperties';
 // eslint-disable-next-line import/no-namespace
 import * as Keychain from 'react-native-keychain';
-import SecureKeychain from '@SecureKeychain';
+import SecureKeychain from '@core/SecureKeychain';
 import configureMockStore from 'redux-mock-store';
 import Logger from '@util/Logger';
 

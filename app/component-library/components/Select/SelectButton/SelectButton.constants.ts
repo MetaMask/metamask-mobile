@@ -9,7 +9,7 @@ import {
   IconColor,
   IconSize,
 } from '@component-library/components/Icons/Icon';
-import { VerticalAlignment } from '@List/ListItem';
+import { VerticalAlignment } from '@component-library/components/List/ListItem';
 import { AvatarSize } from '@component-library/components/Avatars/Avatar';
 import { SAMPLE_AVATAR_PROPS } from '@component-library/components/Avatars/Avatar/Avatar.constants';
 

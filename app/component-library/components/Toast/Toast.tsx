@@ -39,7 +39,7 @@ import {
 } from './Toast.types';
 import styles from './Toast.styles';
 import { ToastSelectorsIDs } from '@e2e/selectors/Modals/ToastModal.selectors';
-import { ButtonProps } from '@Buttons/Button/Button.types';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;

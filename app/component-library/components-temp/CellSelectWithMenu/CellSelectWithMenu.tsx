@@ -11,7 +11,7 @@ import { useStyles } from '@components/hooks/useStyles';
 import styleSheet from './CellSelectWithMenu.styles';
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
 import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
-import ListItemMultiSelectButton from '@ListItemMultiSelectButton/ListItemMultiSelectButton';
+import ListItemMultiSelectButton from '@component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton';
 import Avatar from '@component-library/components/Avatars/Avatar';
 import Text from '@component-library/components/Texts/Text';
 import {

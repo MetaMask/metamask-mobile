@@ -28,7 +28,7 @@ import {
 } from '@util/validators';
 import createStyles from './styles';
 import { useTheme } from '@util/theme';
-import { ScanSuccess, StartScan } from '@QRTabSwitcher';
+import { ScanSuccess, StartScan } from '@components/Views/QRTabSwitcher/QRTabSwitcher';
 
 const frameImage = require('@images/frame.png'); // eslint-disable-line import/no-commonjs
 

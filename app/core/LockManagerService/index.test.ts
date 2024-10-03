@@ -14,7 +14,7 @@ const mockSetTimeout = jest.fn();
 jest.mock('react-native-background-timer', () => ({
   setTimeout: () => mockSetTimeout(),
 }));
-jest.mock('@SecureKeychain', () => ({
+jest.mock('@core/SecureKeychain', () => ({
   getInstance: () => ({
     isAuthenticating: false,
   }),

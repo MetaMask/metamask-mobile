@@ -4,7 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 // External dependencies.
 import { IconName } from '@component-library/components/Icons/Icon';
 import { UseAccounts } from '@components/hooks/useAccounts';
-import { AccountPermissionsScreens } from '@AccountPermissions.types';
+import { AccountPermissionsScreens } from '@components/Views/AccountPermissions/AccountPermissions.types';
 import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 /**

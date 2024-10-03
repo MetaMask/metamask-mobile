@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import Avatar from '@Avatar';
+import Avatar from '@component-library/components/Avatars/Avatar';
 import Text from '@component-library/components/Texts/Text';
 
 // Internal dependencies.

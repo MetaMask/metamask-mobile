@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { selectChainId } from '@selectors/networkController';
 
-import type { BrowserTab } from '@Tokens/types';
+import type { BrowserTab } from '@components/UI/Tokens/types';
 import type { BrowserParams } from '@components/Views/Browser/Browser.types';
 import { getDecimalChainId } from '@util/networks';
 import { useMetrics } from '@components/hooks/useMetrics';

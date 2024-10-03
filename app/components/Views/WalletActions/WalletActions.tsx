@@ -34,7 +34,7 @@ import { WalletActionsModalSelectorsIDs } from '@e2e/selectors/Modals/WalletActi
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useMetrics } from '@components/hooks/useMetrics';
-import { QRTabSwitcherScreens } from '@QRTabSwitcher';
+import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher/QRTabSwitcher';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,

@@ -5,7 +5,7 @@ import { BigNumber } from 'bignumber.js';
 import BalanceChangeRow from './BalanceChangeRow';
 import { AssetType, BalanceChange } from '@components/UI/SimulationDetails/types';
 
-jest.mock('@FiatDisplay/FiatDisplay', () => ({
+jest.mock('@components/UI/SimulationDetails/FiatDisplay/FiatDisplay', () => ({
   IndividualFiatDisplay: 'IndividualFiatDisplay',
 }));
 
@@ -18,8 +18,8 @@ const balanceChangeMock: BalanceChange = {
   fiatAmount: 0,
 } as BalanceChange;
 
-jest.mock('@AmountPill/AmountPill', () => 'AmountPill');
-jest.mock('@AssetPill/AssetPill', () => 'AssetPill');
+jest.mock('@components/UI/SimulationDetails/AmountPill/AmountPill', () => 'AmountPill');
+jest.mock('@components/UI/SimulationDetails/AssetPill/AssetPill', () => 'AssetPill');
 
 describe('BalanceChangeList', () => {
   it('renders a balance change row', () => {

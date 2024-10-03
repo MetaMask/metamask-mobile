@@ -4,7 +4,7 @@ import React from 'react';
 // External dependencies.
 import Icon, { IconName } from '@component-library/components/Icons/Icon';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
-import ListItemColumn, { WidthType } from '@ListItemColumn';
+import ListItemColumn, { WidthType } from '@component-library/components/List/ListItemColumn';
 
 // Internal dependencies.
 import { default as ListItemComponent } from './ListItem';

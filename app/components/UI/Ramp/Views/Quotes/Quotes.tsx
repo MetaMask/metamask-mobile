@@ -31,11 +31,11 @@ import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
 import TextLegacy from '@components/Base/Text';
 import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
-import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
-import ErrorView from '@components/ErrorView';
+import ErrorViewWithReporting from '@components/UI/Ramp/components/ErrorViewWithReporting';
+import ErrorView from '@components/UI/Ramp/components/ErrorView';
 import Row from '@components/UI/Ramp/components/Row';
-import Quote from '@components/Quote';
-import InfoAlert from '@components/InfoAlert';
+import Quote from '@components/UI/Ramp/components/Quote';
+import InfoAlert from '@components/UI/Ramp/components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 
 import Text, {
@@ -54,8 +54,8 @@ import BottomSheetFooter, {
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
-import useQuotes from '@components/hooks/useQuotes';
-import { useRampSDK } from '@sdk';
+import useQuotes from '@components/UI/Ramp/hooks/useQuotes';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import { useStyles } from '@component-library/hooks';
 import {
   createNavigationDetails,
@@ -63,14 +63,14 @@ import {
 } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';
 import { strings } from '@locales/i18n';
-import LoadingAnimation from '@components/LoadingAnimation';
+import LoadingAnimation from '@components/UI/Ramp/components/LoadingAnimation';
 import useInterval from '@components/hooks/useInterval';
-import useInAppBrowser from '@components/hooks/useInAppBrowser';
-import { createCheckoutNavDetails } from '@Checkout';
-import { PROVIDER_LINKS, ScreenLocation } from '@types';
+import useInAppBrowser from '@components/UI/Ramp/hooks/useInAppBrowser';
+import { createCheckoutNavDetails } from '@components/UI/Ramp/Views/Checkout';
+import { PROVIDER_LINKS, ScreenLocation } from '@components/UI/Ramp/types';
 import Logger from '@util/Logger';
-import { isBuyQuote } from '@utils';
-import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
+import { isBuyQuote } from '@components/UI/Ramp/utils';
+import { getOrdersProviders } from '@reducers/fiatOrders';
 
 const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {

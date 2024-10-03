@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import useSDKMethod from './useSDKMethod';
 
 function usePaymentMethods() {

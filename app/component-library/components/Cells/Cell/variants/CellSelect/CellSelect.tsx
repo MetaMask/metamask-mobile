@@ -5,8 +5,8 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import ListItemSelect from '@List/ListItemSelect';
-import CellBase from '@foundation/CellBase';
+import ListItemSelect from '@component-library/components/List/ListItemSelect';
+import CellBase from '@component-library/components/Cells/Cell/foundation/CellBase';
 
 // Internal dependencies.
 import styleSheet from './CellSelect.styles';

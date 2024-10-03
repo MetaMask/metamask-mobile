@@ -23,7 +23,7 @@ import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
 // eslint-disable-next-line
-const { version } = require('@package.json');
+const { version } = require('../../../../../package.json');
 
 const lcLogguedRPCs = [
   'eth_sendTransaction',

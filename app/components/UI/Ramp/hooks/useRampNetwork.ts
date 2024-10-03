@@ -6,7 +6,7 @@ import {
 import {
   isNetworkRampNativeTokenSupported,
   isNetworkRampSupported,
-} from '@utils';
+} from '@components/UI/Ramp/utils';
 
 /**
  * Hook that returns a tuple of boolean indicating if the network is supported and the native token is supported

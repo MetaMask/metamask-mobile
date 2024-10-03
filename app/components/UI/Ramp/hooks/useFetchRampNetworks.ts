@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { SDK } from '@sdk';
+import { SDK } from '@components/UI/Ramp/sdk';
 import {
   chainIdSelector,
   updateOnRampNetworks,

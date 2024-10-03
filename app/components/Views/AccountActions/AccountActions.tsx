@@ -9,7 +9,7 @@ import Share from 'react-native-share';
 import BottomSheet, {
   BottomSheetRef,
 } from '@component-library/components/BottomSheets/BottomSheet';
-import AccountAction from '@AccountAction/AccountAction';
+import AccountAction from '@components/Views/AccountAction/AccountAction';
 import { IconName } from '@component-library/components/Icons/Icon';
 import {
   findBlockExplorerForRpc,

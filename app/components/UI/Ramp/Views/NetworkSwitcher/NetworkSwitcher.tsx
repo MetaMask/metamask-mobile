@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
 import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
-import ErrorView from '@components/ErrorView';
+import ErrorView from '@components/UI/Ramp/components/ErrorView';
 import Row from '@components/UI/Ramp/components/Row';
 
 import Avatar, {
@@ -25,13 +25,13 @@ import CustomNetwork from '@components/Views/Settings/NetworksSettings/NetworkSe
 import customNetworkStyles from '@components/Views/Settings/NetworksSettings/NetworkSettings/styles';
 import { Network } from '@components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 
-import useFetchRampNetworks from '@components/hooks/useFetchRampNetworks';
-import useRampNetwork from '@components/hooks/useRampNetwork';
-import useRampNetworksDetail from '@components/hooks/useRampNetworksDetail';
+import useFetchRampNetworks from '@components/UI/Ramp/hooks/useFetchRampNetworks';
+import useRampNetwork from '@components/UI/Ramp/hooks/useRampNetwork';
+import useRampNetworksDetail from '@components/UI/Ramp/hooks/useRampNetworksDetail';
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import { getRampNetworks } from '@reducers/fiatOrders';
-import { useRampSDK } from '@sdk';
-import { isNetworkRampSupported } from '@utils';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
+import { isNetworkRampSupported } from '@components/UI/Ramp/utils';
 
 import Engine from '@core/Engine';
 import { useTheme } from '@util/theme';

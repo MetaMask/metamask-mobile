@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
-import ApprovalModal from '@ApprovalModal';
+import ApprovalModal from '@components/Approvals/ApprovalModal';
 import useApprovalFlow from '@components/Views/confirmations/hooks/useApprovalFlow';
 import ApprovalFlowLoader from '@components/Views/confirmations/components/Approval/ApprovalFlowLoader';
 

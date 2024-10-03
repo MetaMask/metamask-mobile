@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
-import ApprovalModal from '@ApprovalModal';
+import ApprovalModal from '@components/Approvals/ApprovalModal';
 import SwitchCustomNetwork from '@components/UI/SwitchCustomNetwork';
 import { networkSwitched } from '@actions/onboardNetwork';
 import { useDispatch } from 'react-redux';

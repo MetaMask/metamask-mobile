@@ -1,4 +1,4 @@
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
@@ -8,7 +8,7 @@ import parseDeeplink from './parseDeeplink';
 
 jest.mock('@constants/deeplinks');
 jest.mock('@util/Logger');
-jest.mock('@DeeplinkManager');
+jest.mock('@core/DeeplinkManager/DeeplinkManager');
 jest.mock('@core/SDKConnect/utils/DevLogger');
 jest.mock('./handleDappUrl');
 jest.mock('./handleMetaMaskDeeplink');

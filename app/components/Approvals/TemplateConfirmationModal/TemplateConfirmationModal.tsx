@@ -1,7 +1,7 @@
 import React from 'react';
 import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
-import ApprovalModal from '@ApprovalModal';
+import ApprovalModal from '@components/Approvals/ApprovalModal';
 import TemplateConfirmation from '@components/Views/confirmations/components/Approval/TemplateConfirmation/TemplateConfirmation';
 import { TEMPLATED_CONFIRMATION_APPROVAL_TYPES } from '@components/Views/confirmations/components/Approval/TemplateConfirmation/Templates';
 

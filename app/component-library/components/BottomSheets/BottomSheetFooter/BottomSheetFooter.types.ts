@@ -2,7 +2,7 @@
 import { ViewProps } from 'react-native';
 
 // External Dependencies.
-import { ButtonProps } from '@Buttons/Button/Button.types';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 
 /**
  * Buttons Alignment options.

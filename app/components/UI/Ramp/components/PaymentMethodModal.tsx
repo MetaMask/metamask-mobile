@@ -11,7 +11,7 @@ import PaymentMethod from './PaymentMethod';
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';
-import { RampType, Region, ScreenLocation } from '@types';
+import { RampType, Region, ScreenLocation } from '@components/UI/Ramp/types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

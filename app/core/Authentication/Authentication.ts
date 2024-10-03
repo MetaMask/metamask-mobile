@@ -1,4 +1,4 @@
-import SecureKeychain from '@SecureKeychain';
+import SecureKeychain from '@core/SecureKeychain';
 import Engine from '@core/Engine';
 import {
   EXISTING_USER,
@@ -29,7 +29,7 @@ import {
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '@constants/error';
 import StorageWrapper from '@store/storage-wrapper';
-import NavigationService from '@NavigationService';
+import NavigationService from '@core/NavigationService';
 import Routes from '@constants/navigation/Routes';
 
 /**

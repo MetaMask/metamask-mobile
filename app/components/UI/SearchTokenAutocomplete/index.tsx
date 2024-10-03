@@ -7,7 +7,7 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { strings } from '@locales/i18n';
-import AssetSearch from '@AssetSearch';
+import AssetSearch from '@components/UI/AssetSearch';
 import Engine from '@core/Engine';
 import { MetaMetricsEvents } from '@core/Analytics';
 
@@ -26,7 +26,7 @@ import { selectUseTokenDetection } from '@selectors/preferencesController';
 import { getDecimalChainId } from '@util/networks';
 import { useMetrics } from '@components/hooks/useMetrics';
 import Routes from '@constants/navigation/Routes';
-import MultiAssetListItems from '@MultiAssetListItems/MultiAssetListItems';
+import MultiAssetListItems from '@components/UI/MultiAssetListItems/MultiAssetListItems';
 import { ScrollView } from 'react-native-gesture-handler';
 import Button, {
   ButtonSize,

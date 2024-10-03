@@ -6,7 +6,7 @@ import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import ListItem from '@List/ListItem/ListItem';
+import ListItem from '@component-library/components/List/ListItem/ListItem';
 
 // Internal dependencies.
 import styleSheet from './ListItemSelect.styles';

@@ -5,9 +5,9 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Checkbox from '@Checkbox';
+import Checkbox from '@component-library/components/Checkbox';
 import { useStyles } from '@components/hooks/useStyles';
-import ListItem from '@List/ListItem/ListItem';
+import ListItem from '@component-library/components/List/ListItem';
 
 // Internal dependencies.
 import styleSheet from './ListItemMultiSelect.styles';

@@ -9,12 +9,12 @@ import BaseListItem from '@components/Base/ListItem';
 import useModalHandler from '@components/Base/hooks/useModalHandler';
 
 import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
-import Box from '@components/Box';
-import RegionModal from '@components/RegionModal';
-import RegionAlert from '@components/RegionAlert';
-import SkeletonText from '@components/SkeletonText';
-import ErrorView from '@components/ErrorView';
-import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
+import Box from '@components/UI/Ramp/components/Box';
+import RegionModal from '@components/UI/Ramp/components/RegionModal';
+import RegionAlert from '@components/UI/Ramp/components/RegionAlert';
+import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
+import ErrorView from '@components/UI/Ramp/components/ErrorView';
+import ErrorViewWithReporting from '@components/UI/Ramp/components/ErrorViewWithReporting';
 
 import StyledButton from '@components/UI/StyledButton';
 import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
@@ -22,12 +22,12 @@ import { useTheme } from '@util/theme';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 import { createNavigationDetails } from '@util/navigation/navUtils';
-import { createPaymentMethodsNavDetails } from '@PaymentMethods/PaymentMethods';
+import { createPaymentMethodsNavDetails } from '@components/UI/Ramp/Views/PaymentMethods/PaymentMethods';
 
-import { useRampSDK } from '@sdk';
-import { Region } from '@types';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
+import { Region } from '@components/UI/Ramp/types';
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
-import useRegions from '@components/hooks/useRegions';
+import useRegions from '@components/UI/Ramp/hooks/useRegions';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

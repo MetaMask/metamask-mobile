@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import styleSheet from '@InstallSnapApproval.styles';
+import styleSheet from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.styles';
 import { strings } from '@locales/i18n';
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -21,7 +21,7 @@ import BottomSheetFooter, {
 } from '@component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '@components/hooks/useStyles';
-import { InstallSnapFlowProps } from '@InstallSnapApproval.types';
+import { InstallSnapFlowProps } from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.types';
 import { SnapPermissions } from '@components/Views/Snaps/components/SnapPermissions';
 import {
   SNAP_INSTALL_CANCEL,

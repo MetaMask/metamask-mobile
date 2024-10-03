@@ -23,7 +23,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '@component-library/components/Buttons/Button';
-import AddAccountActions from '@AddAccountActions';
+import AddAccountActions from '@components/Views/AddAccountActions';
 import { AccountListViewSelectorsIDs } from '@e2e/selectors/AccountListView.selectors';
 // Internal dependencies.
 import {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import useSDKMethod from './useSDKMethod';
 import { NATIVE_ADDRESS } from '@constants/on-ramp';
 

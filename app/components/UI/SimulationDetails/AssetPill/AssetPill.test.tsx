@@ -6,7 +6,7 @@ import {
   selectChainId,
   selectTicker,
 } from '@selectors/networkController';
-import { AssetType, AssetIdentifier } from '@types';
+import { AssetType, AssetIdentifier } from '@components/UI/SimulationDetails/types';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

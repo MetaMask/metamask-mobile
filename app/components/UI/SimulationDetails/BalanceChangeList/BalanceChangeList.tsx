@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { View, ViewProps } from 'react-native';
 
 import { useStyles } from '@components/hooks/useStyles';
-import { sortBalanceChanges } from '@components/helpers/sortBalanceChanges';
+import { sortBalanceChanges } from '@components/UI/SimulationDetails/sortBalanceChanges';
 import BalanceChangeRow from '@components/UI/SimulationDetails/BalanceChangeRow/BalanceChangeRow';
 import { BalanceChange } from '@components/UI/SimulationDetails/types';
 import { TotalFiatDisplay } from '@components/UI/SimulationDetails/FiatDisplay/FiatDisplay';

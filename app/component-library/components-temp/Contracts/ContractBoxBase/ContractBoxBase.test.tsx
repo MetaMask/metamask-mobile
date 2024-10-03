@@ -7,7 +7,7 @@ import {
   CONTRACT_LOCAL_IMAGE,
   CONTRACT_COPY_ADDRESS,
   CONTRACT_ON_PRESS,
-} from '@ContractBox/ContractBox.constants';
+} from '@component-library/components-temp/Contracts/ContractBox/ContractBox.constants';
 import { CONTRACT_BOX_NO_PET_NAME_TEST_ID } from './ContractBoxBase.constants';
 import { ContractBoxBaseProps } from './ContractBoxBase.types';
 

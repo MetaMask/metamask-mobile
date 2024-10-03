@@ -5,8 +5,8 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import CellBase from '@foundation/CellBase';
-import Card from '@Cards/Card';
+import CellBase from '@component-library/components/Cells/Cell/foundation/CellBase';
+import Card from '@component-library/components/Cards/Card';
 import { CellModalSelectorsIDs } from '@e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.

@@ -3,7 +3,7 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
-import { NotificationListStyles } from '@List/styles';
+import { NotificationListStyles } from '@components/UI/Notification/List/styles';
 
 interface NotificationRootProps
   extends Pick<PanGestureHandlerProps, 'simultaneousHandlers'> {

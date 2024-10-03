@@ -45,13 +45,13 @@ import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher';
 import Routes from '@constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '@reducers/index';
-import useGoToBridge from '@Bridge/utils/useGoToBridge';
+import useGoToBridge from '@components/UI/Bridge/utils/useGoToBridge';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '@core/Analytics';
 import { getDecimalChainId } from '@util/networks';
 import { useMetrics } from '@components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '@components/UI/Ramp/routes/utils';
-import { TokenI } from '@Tokens/types';
+import { TokenI } from '@components/UI/Tokens/types';
 import AssetDetailsActions from '@components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {

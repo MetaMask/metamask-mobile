@@ -1,6 +1,6 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import type { JsonRpcMiddleware } from 'json-rpc-engine';
-import { UNSUPPORTED_RPC_METHODS } from '@utils';
+import { UNSUPPORTED_RPC_METHODS } from '@core/RPCMethods/utils';
 
 /**
  * Creates a middleware that rejects explicitly unsupported RPC methods with the

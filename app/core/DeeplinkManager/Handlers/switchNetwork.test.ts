@@ -1,5 +1,5 @@
 import switchNetwork from './switchNetwork';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import { showAlert } from '@actions/alert';
 import { strings } from '@locales/i18n';
 import { handleNetworkSwitch } from '@util/networks';

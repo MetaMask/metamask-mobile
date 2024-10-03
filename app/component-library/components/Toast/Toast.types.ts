@@ -3,7 +3,7 @@ import { ImageSourcePropType } from 'react-native';
 
 // External Dependencies.
 import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { ButtonProps } from '@Buttons/Button/Button.types';
+import { ButtonProps } from '@component-library/components/Buttons/Button/Button.types';
 import { IconName } from '@component-library/components/Icons/Icon';
 
 /**

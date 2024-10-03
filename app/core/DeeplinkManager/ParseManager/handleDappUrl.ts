@@ -1,4 +1,4 @@
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 
 export function handleDappUrl({

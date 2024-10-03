@@ -2,7 +2,7 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { ListItemProps } from '@ListItem/ListItem.types';
+import { ListItemProps } from '@component-library/components/List/ListItem/ListItem.types';
 
 /**
  * ListItemSelect component props.

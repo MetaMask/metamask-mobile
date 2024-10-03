@@ -1,16 +1,16 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies
-import { AvatarSize, AvatarProps, AvatarVariant } from '@Avatar/Avatar.types';
+import { AvatarSize, AvatarProps, AvatarVariant } from '@component-library/components/Avatars/Avatar/Avatar.types';
 import {
   TextVariant,
   TextColor,
 } from '@component-library/components/Texts/Text';
-import { SAMPLE_AVATARACCOUNT_PROPS } from '@Avatar/variants/AvatarAccount/AvatarAccount.constants';
-import { SAMPLE_AVATARNETWORK_PROPS } from '@Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
-import { SAMPLE_AVATARICON_PROPS } from '@Avatar/variants/AvatarIcon/AvatarIcon.constants';
-import { SAMPLE_AVATARFAVICON_PROPS } from '@Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
-import { SAMPLE_AVATARTOKEN_PROPS } from '@Avatar/variants/AvatarToken/AvatarToken.constants';
+import { SAMPLE_AVATARACCOUNT_PROPS } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.constants';
+import { SAMPLE_AVATARNETWORK_PROPS } from '@component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { SAMPLE_AVATARICON_PROPS } from '@component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.constants';
+import { SAMPLE_AVATARFAVICON_PROPS } from '@component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
+import { SAMPLE_AVATARTOKEN_PROPS } from '@component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.constants';
 
 // Internal dependencies
 import {

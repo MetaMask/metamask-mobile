@@ -10,7 +10,7 @@ import useBlockExplorer from '@components/hooks/useBlockExplorer';
 import { useAccountsBalance } from './hooks';
 import { useTheme } from '@util/theme';
 import { createStyle } from './styles';
-import AccountDetails from '@AccountDetails';
+import AccountDetails from '@components/UI/HardwareWallet/AccountDetails';
 import StyledButton from '@components/UI/StyledButton';
 import { selectProviderConfig } from '@selectors/networkController';
 import generateTestId from '@wdio/utils/generateTestId';

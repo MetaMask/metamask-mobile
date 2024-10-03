@@ -15,7 +15,7 @@ import {
   isMultichainVersion1Enabled,
 } from '@util/networks';
 import AccountSelectorList from '@components/UI/AccountSelectorList';
-import { AccountPermissionsScreens } from '@AccountPermissions.types';
+import { AccountPermissionsScreens } from '@components/Views/AccountPermissions/AccountPermissions.types';
 import { switchActiveAccounts } from '@core/Permissions';
 import {
   ToastContext,

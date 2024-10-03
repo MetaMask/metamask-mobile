@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import BannerBase from '@foundation/BannerBase';
+import BannerBase from '@component-library/components/Banners/Banner/foundation/BannerBase';
 import Icon from '@component-library/components/Icons/Icon';
 
 // Internal dependencies.

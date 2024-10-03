@@ -1,4 +1,4 @@
-import { RampIntent, RampType } from '@types';
+import { RampIntent, RampType } from '@components/UI/Ramp/types';
 import Routes from '@constants/navigation/Routes';
 
 function createRampNavigationDetails(rampType: RampType, intent?: RampIntent) {

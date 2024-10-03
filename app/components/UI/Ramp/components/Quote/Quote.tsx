@@ -16,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { QuoteResponse, SellQuoteResponse } from '@consensys/on-ramp-sdk';
 import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import Box from '@Box';
+import Box from '@components/UI/Ramp/components/Box';
 import Text from '@components/Base/Text';
 import Title from '@components/Base/Title';
 import BaseListItem from '@components/Base/ListItem';
@@ -27,14 +27,14 @@ import {
   toTokenMinimalUnit,
 } from '@util/number';
 import { strings } from '@locales/i18n';
-import ApplePayButton from '@containers/ApplePayButton';
+import ApplePayButton from '@components/UI/Ramp/components/ApplePayButton';
 import RemoteImage from '@components/Base/RemoteImage';
 
 import TagColored from '@component-library/components-temp/TagColored';
-import Row from '@Row';
+import Row from '@components/UI/Ramp/components/Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '@component-library/hooks';
-import { isBuyQuote } from '@utils';
+import { isBuyQuote } from '@components/UI/Ramp/utils';
 import { RampType } from '@components/UI/Ramp/types';
 // TODO: Convert into typescript and correctly type optionals
 // TODO: Replace "any" with type

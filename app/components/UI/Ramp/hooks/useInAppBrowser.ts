@@ -6,9 +6,9 @@ import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from './useAnalytics';
-import { callbackBaseDeeplink, SDK, useRampSDK } from '@sdk';
-import { createCustomOrderIdData } from '@orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from '@orderProcessor/aggregator';
+import { callbackBaseDeeplink, SDK, useRampSDK } from '@components/UI/Ramp/sdk';
+import { createCustomOrderIdData } from '@components/UI/Ramp/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from '@components/UI/Ramp/orderProcessor/aggregator';
 import {
   addFiatCustomIdData,
   FiatOrder,

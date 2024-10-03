@@ -6,7 +6,7 @@ import {
   removeActivationKey,
   updateActivationKey,
 } from '@reducers/fiatOrders';
-import { SDK } from '@sdk';
+import { SDK } from '@components/UI/Ramp/sdk';
 
 interface Options {
   provider?: boolean;

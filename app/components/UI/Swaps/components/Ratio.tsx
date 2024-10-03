@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { useRatio } from '@utils';
+import { useRatio } from '@components/UI/Swaps/utils';
 import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 import BigNumber from 'bignumber.js';

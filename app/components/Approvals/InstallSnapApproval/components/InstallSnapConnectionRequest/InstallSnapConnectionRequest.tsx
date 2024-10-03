@@ -1,8 +1,8 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { InstallSnapFlowProps } from '@InstallSnapApproval.types';
-import styleSheet from '@InstallSnapApproval.styles';
+import { InstallSnapFlowProps } from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.types';
+import styleSheet from '@components/Approvals/InstallSnapApproval/InstallSnapApproval.styles';
 import { strings } from '@locales/i18n';
 import SheetHeader from '@component-library/components/Sheet/SheetHeader';
 import Text, {

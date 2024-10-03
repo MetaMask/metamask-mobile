@@ -10,7 +10,7 @@ import PickerAccount from '@component-library/components/Pickers/PickerAccount';
 import { AvatarAccountType } from '@component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { createAccountSelectorNavDetails } from '@components/Views/AccountSelector';
 import { useStyles } from '@component-library/hooks';
-import AddressCopy from '@AddressCopy';
+import AddressCopy from '@components/UI/AddressCopy';
 import { isDefaultAccountName } from '@util/ENSUtils';
 import ButtonIcon from '@component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { ButtonIconSizes } from '@component-library/components/Buttons/ButtonIcon';

@@ -13,7 +13,7 @@ import { AddressBookEntry } from '@metamask/address-book-controller';
 // External dependencies
 import { isSmartContractAddress } from '@util/transactions';
 import { strings } from '@locales/i18n';
-import AddressElement from '@AddressElement';
+import AddressElement from '@components/Views/confirmations/SendFlow/AddressElement';
 import { useTheme } from '@util/theme';
 import Text from '@component-library/components/Texts/Text/Text';
 import { TextVariant } from '@component-library/components/Texts/Text';

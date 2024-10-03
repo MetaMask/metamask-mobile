@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { useEffect, useState } from 'react';
-import ApprovalModal from '@ApprovalModal';
+import ApprovalModal from '@components/Approvals/ApprovalModal';
 import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { SnapInstallState } from './InstallSnapApproval.types';

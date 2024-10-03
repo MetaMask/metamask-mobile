@@ -22,7 +22,7 @@ import {
 } from 'react-native-gesture-handler';
 
 import { useNavigation } from '@react-navigation/native';
-import DrawerView from '@DrawerView';
+import DrawerView from '@components/UI/DrawerView';
 import styles from './styles';
 import { useTheme } from '@util/theme';
 import { useDispatch, useSelector } from 'react-redux';

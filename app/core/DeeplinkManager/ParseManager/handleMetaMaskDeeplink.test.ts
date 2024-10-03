@@ -3,7 +3,7 @@ import AppConstants from '@core/AppConstants';
 import { Minimizer } from '@core/NativeModules';
 import SDKConnect from '@core/SDKConnect/SDKConnect';
 import WC2Manager from '@WalletConnect/WalletConnectV2';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleDeeplink from '@core/SDKConnect/handlers/handleDeeplink';

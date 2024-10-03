@@ -17,7 +17,7 @@ import {
   setHDPath,
   unlockLedgerWalletAccount,
 } from '@core/Ledger/Ledger';
-import LedgerConnect from '@LedgerConnect';
+import LedgerConnect from '@components/Views/LedgerConnect/LedgerConnectionError';
 import { setReloadAccounts } from '@actions/accounts';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';

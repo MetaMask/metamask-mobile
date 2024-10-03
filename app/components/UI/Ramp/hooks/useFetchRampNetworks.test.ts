@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react-native';
 import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import useFetchRampNetworks from './useFetchRampNetworks';
-import { SDK } from '@sdk';
+import { SDK } from '@components/UI/Ramp/sdk';
 import { updateOnRampNetworks } from '@reducers/fiatOrders';
 import initialRootState from '@util/test/initial-root-state';
 import { renderHookWithProvider } from '@util/test/renderWithProvider';

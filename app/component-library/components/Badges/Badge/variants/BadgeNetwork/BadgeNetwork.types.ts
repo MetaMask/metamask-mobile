@@ -1,5 +1,5 @@
 // External dependencies.
-import { BadgeBaseProps } from '@foundation/BadgeBase/BadgeBase.types';
+import { BadgeBaseProps } from '@component-library/components/Badges/Badge/foundation/BadgeBase/BadgeBase.types';
 import { AvatarNetworkProps } from '@component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.types';
 
 /**

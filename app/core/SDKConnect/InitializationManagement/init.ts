@@ -1,6 +1,6 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
-import AndroidService from '@AndroidSDK/AndroidService';
+import AndroidService from '@core/SDKConnect/AndroidSDK/AndroidService';
 import SDKConnect from '@core/SDKConnect/SDKConnect';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import asyncInit from './asyncInit';

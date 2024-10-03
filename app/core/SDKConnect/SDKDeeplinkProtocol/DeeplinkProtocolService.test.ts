@@ -9,7 +9,7 @@ import handleCustomRpcCalls from '@core/SDKConnect/handlers/handleCustomRpcCalls
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import DeeplinkProtocolService from './DeeplinkProtocolService';
 import AppConstants from '@core/AppConstants';
-import { DappClient } from '@AndroidSDK/dapp-sdk-types';
+import { DappClient } from '@core/SDKConnect/AndroidSDK/dapp-sdk-types';
 import { createMockInternalAccount } from '@util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

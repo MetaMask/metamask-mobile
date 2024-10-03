@@ -2,7 +2,7 @@ import { parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { ETH_ACTIONS } from '@constants/deeplinks';
 import { NetworkSwitchErrorType } from '@constants/error';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import handleEthereumUrl from './handleEthereumUrl';
 import { getDecimalChainId } from '@util/networks';
 

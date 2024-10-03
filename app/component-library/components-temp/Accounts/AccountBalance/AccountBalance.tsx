@@ -1,7 +1,7 @@
 import React from 'react';
 
-import Card from '@components/Cards/Card';
-import AccountBase from '@AccountBase/AccountBase';
+import Card from '@component-library/components/Cards/Card';
+import AccountBase from '@component-library/components-temp/Accounts/AccountBase/AccountBase';
 import { ACCOUNT_BALANCE_TEST_ID } from './AccountBalance.constants';
 import styles from './AccountBalance.styles';
 import { AccountBalanceProps } from './AccountBalance.types';

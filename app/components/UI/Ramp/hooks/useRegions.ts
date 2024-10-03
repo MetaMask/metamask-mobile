@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { isEqual } from 'lodash';
 import Routes from '@constants/navigation/Routes';
-import { useRampSDK } from '@sdk';
-import { Region } from '@types';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
+import { Region } from '@components/UI/Ramp/types';
 import useSDKMethod from './useSDKMethod';
 
 export default function useRegions() {

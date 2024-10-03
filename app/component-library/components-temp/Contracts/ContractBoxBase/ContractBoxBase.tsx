@@ -6,12 +6,12 @@ import { View, Pressable } from 'react-native';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
-} from '@components/Avatars/Avatar';
+} from '@component-library/components/Avatars/Avatar';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 import { formatAddress } from '@util/address';
-import Icon, { IconName, IconSize } from '@components/Icons/Icon';
+import Icon, { IconName, IconSize } from '@component-library/components/Icons/Icon';
 import { useStyles } from '@components/hooks/useStyles';
-import Button, { ButtonVariants } from '@components/Buttons/Button';
+import Button, { ButtonVariants } from '@component-library/components/Buttons/Button';
 import Identicon from '@components/UI/Identicon';
 
 // Internal dependencies.

@@ -35,7 +35,7 @@ import {
 import {
   NUMBER_OF_REJECTIONS_THRESHOLD,
   OriginThrottlingState,
-} from '@redux/slices/originThrottling';
+} from '@core/redux/slices/originThrottling';
 import { ProviderConfig } from '@selectors/networkController';
 
 jest.mock('./spam');

@@ -3,7 +3,7 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import SecureKeychain from '@SecureKeychain';
+import SecureKeychain from '@core/SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from '@core/Engine';
 import Logger from '@util/Logger';

@@ -6,7 +6,7 @@ import { Minimizer } from '@core/NativeModules';
 import { RPC_METHODS } from '@core/SDKConnect/SDKConnectConstants';
 import handleBatchRpcResponse from '@core/SDKConnect/handlers/handleBatchRpcResponse';
 import { wait } from '@core/SDKConnect/utils/wait.util';
-import AndroidService from '@AndroidService';
+import AndroidService from '@core/SDKConnect/AndroidSDK/AndroidService';
 import sendMessage from './sendMessage';
 
 jest.mock('@core');
@@ -19,7 +19,7 @@ jest.mock('@util/Logger');
 jest.mock('@core/SDKConnect/utils/wait.util', () => ({
   wait: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('@AndroidService');
+jest.mock('@core/SDKConnect/AndroidSDK/AndroidService');
 jest.mock('@core/SDKConnect/handlers/handleBatchRpcResponse', () => jest.fn());
 jest.mock('@core/SDKConnect/utils/DevLogger');
 

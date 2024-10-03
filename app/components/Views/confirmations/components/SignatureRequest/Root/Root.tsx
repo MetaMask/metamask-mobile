@@ -5,10 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import setSignatureRequestSecurityAlertResponse from '@actions/signatureRequest';
 import { store } from '@store/index';
 import { useTheme } from '@util/theme';
-import useConfirmationRedesignEnabled from '@components/hooks/useConfirmationRedesignEnabled';
-import PersonalSign from '@PersonalSign';
-import TypedSign from '@TypedSign';
-import { MessageParams } from '@types';
+import useConfirmationRedesignEnabled from '@components/Views/confirmations/hooks/useConfirmationRedesignEnabled';
+import PersonalSign from '@components/Views/confirmations/components/PersonalSign';
+import TypedSign from '@components/Views/confirmations/components/TypedSign';
+import { MessageParams } from '@components/Views/confirmations/components/SignatureRequest/types';
 import { ApprovalTypes } from '@core/RPCMethods/RPCMethodMiddleware';
 import { useSelector } from 'react-redux';
 

@@ -8,7 +8,7 @@ import { RPC_METHODS } from '@core/SDKConnect/SDKConnectConstants';
 import {
   selectIsOriginBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
-} from '@redux/slices/originThrottling';
+} from '@core/redux/slices/originThrottling';
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.ETH_SENDTRANSACTION,

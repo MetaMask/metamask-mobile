@@ -2,7 +2,7 @@ import { PROTOCOLS } from '@constants/deeplinks';
 import SDKConnect from '@core/SDKConnect/SDKConnect';
 import Logger from '@util/Logger';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';

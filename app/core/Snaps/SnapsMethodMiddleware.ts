@@ -6,9 +6,9 @@ import {
 } from '@metamask/permission-controller';
 import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '@core/Permissions/constants';
-import { keyringSnapPermissionsBuilder } from '@SnapKeyring/keyringSnapsPermissions';
+import { keyringSnapPermissionsBuilder } from '@core/SnapKeyring/keyringSnapsPermissions';
 import { SnapId } from '@metamask/snaps-sdk';
-import { EngineContext } from '@core';
+import { EngineContext } from '@core/Engine';
 import { handleSnapRequest } from './utils';
 
 export function getSnapIdFromRequest(

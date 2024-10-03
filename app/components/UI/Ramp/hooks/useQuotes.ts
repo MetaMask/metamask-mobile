@@ -1,4 +1,4 @@
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import useSDKMethod from './useSDKMethod';
 
 function useQuotes(amount: number | string) {

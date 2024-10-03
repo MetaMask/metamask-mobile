@@ -5,28 +5,28 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '@components/Base/Text';
 import Row from '@components/UI/Ramp/components/Row';
 import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
-import PaymentMethod from '@components/PaymentMethod';
-import SkeletonPaymentMethod from '@components/SkeletonPaymentMethod';
-import ErrorView from '@components/ErrorView';
-import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
+import PaymentMethod from '@components/UI/Ramp/components/PaymentMethod';
+import SkeletonPaymentMethod from '@components/UI/Ramp/components/SkeletonPaymentMethod';
+import ErrorView from '@components/UI/Ramp/components/ErrorView';
+import ErrorViewWithReporting from '@components/UI/Ramp/components/ErrorViewWithReporting';
 import StyledButton from '@components/UI/StyledButton';
 
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import { useTheme } from '@util/theme';
 import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import Routes from '@constants/navigation/Routes';
 
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
-import usePaymentMethods from '@components/hooks/usePaymentMethods';
-import useRegions from '@components/hooks/useRegions';
+import usePaymentMethods from '@components/UI/Ramp/hooks/usePaymentMethods';
+import useRegions from '@components/UI/Ramp/hooks/useRegions';
 
 import {
   createNavigationDetails,
   useParams,
 } from '@util/navigation/navUtils';
 
-import { createBuildQuoteNavDetails } from '@BuildQuote/BuildQuote';
+import { createBuildQuoteNavDetails } from '@components/UI/Ramp/Views/BuildQuote/BuildQuote';
 
 interface PaymentMethodsParams {
   showBack?: boolean;

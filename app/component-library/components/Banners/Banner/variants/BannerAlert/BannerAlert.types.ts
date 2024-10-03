@@ -1,7 +1,7 @@
 // External dependencies.
-import { BannerBaseProps } from '@foundation/BannerBase/BannerBase.types';
+import { BannerBaseProps } from '@component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.types';
 import { IconName } from '@component-library/components/Icons/Icon';
-import { BannerVariant } from '@Banner.types';
+import { BannerVariant } from '@component-library/components/Banners/Banner/Banner.types';
 
 /**
  * Severity of the BannerAlert.

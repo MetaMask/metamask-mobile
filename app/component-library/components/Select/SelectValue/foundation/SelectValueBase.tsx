@@ -5,8 +5,8 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '@components/hooks/useStyles';
-import ListItem from '@List/ListItem';
-import ListItemColumn, { WidthType } from '@List/ListItemColumn';
+import ListItem from '@component-library/components/List/ListItem';
+import ListItemColumn, { WidthType } from '@component-library/components/List/ListItemColumn';
 
 // Internal dependencies.
 import styleSheet from './SelectValueBase.styles';

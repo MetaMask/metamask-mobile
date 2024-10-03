@@ -6,7 +6,7 @@ import React from 'react';
 import { TextVariant } from '@component-library/components/Texts/Text';
 import { SAMPLE_ICON_PROPS } from '@component-library/components/Icons/Icon/Icon.constants';
 import Icon from '@component-library/components/Icons/Icon';
-import HelpText from '@HelpText';
+import HelpText from '@component-library/components/Form/HelpText';
 
 // Internal dependencies.
 import { TextFieldSize, TextFieldProps } from './TextField.types';

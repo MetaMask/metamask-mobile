@@ -8,7 +8,7 @@ import Icon, {
 import Text from '@components/Base/Text';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';
-import { QuickAmount } from '@types';
+import { QuickAmount } from '@components/UI/Ramp/types';
 
 const INSET = 25;
 const createStyles = (colors: Colors) =>

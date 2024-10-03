@@ -5,7 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Text from '@components/Base/Text';
 import BaseListItem from '@components/Base/ListItem';
 import { strings } from '@locales/i18n';
-import { TimeDescriptions, timeToDescription } from '@utils';
+import { TimeDescriptions, timeToDescription } from '@components/UI/Ramp/utils';
 import { useTheme } from '@util/theme';
 import { Colors } from '@util/theme/models';
 import PaymentMethodBadges from './PaymentMethodBadges';

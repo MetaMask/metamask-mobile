@@ -1,6 +1,6 @@
 import { act, waitFor } from '@testing-library/react-native';
 import useActivationKeys from './useActivationKeys';
-import { SDK } from '@sdk';
+import { SDK } from '@components/UI/Ramp/sdk';
 import { renderHookWithProvider } from '@util/test/renderWithProvider';
 import initialRootState from '@util/test/initial-root-state';
 import { ActivationKey } from '@reducers/fiatOrders/types';

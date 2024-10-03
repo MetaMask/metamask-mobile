@@ -7,15 +7,15 @@ import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
 import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
-import { useRampSDK } from '@sdk';
-import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
+import ErrorViewWithReporting from '@components/UI/Ramp/components/ErrorViewWithReporting';
 import Routes from '@constants/navigation/Routes';
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
-import useRampNetwork from '@components/hooks/useRampNetwork';
+import useRampNetwork from '@components/UI/Ramp/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
-import useRegions from '@components/hooks/useRegions';
+import useRegions from '@components/UI/Ramp/hooks/useRegions';
 import { useParams } from '@util/navigation/navUtils';
-import { RampIntent } from '@types';
+import { RampIntent } from '@components/UI/Ramp/types';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('@components/images/WalletInfo.png');

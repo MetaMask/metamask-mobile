@@ -1,6 +1,6 @@
 import React from 'react';
-import Card from '@components/Cards/Card';
-import ContractBoxBase from '@ContractBoxBase';
+import Card from '@component-library/components/Cards/Card/Card';
+import ContractBoxBase from '@component-library/components-temp/Contracts/ContractBoxBase/ContractBoxBase';
 import styles from './ContractBox.styles';
 import { View } from 'react-native';
 import { ContractBoxProps } from './ContractBox.types';

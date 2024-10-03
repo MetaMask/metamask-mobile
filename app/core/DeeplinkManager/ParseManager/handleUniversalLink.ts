@@ -6,7 +6,7 @@ import handleDeeplink from '@core/SDKConnect/handlers/handleDeeplink';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import WC2Manager from '@WalletConnect/WalletConnectV2';
 import Logger from '@util/Logger';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import parseOriginatorInfo from '@parseOriginatorInfo';

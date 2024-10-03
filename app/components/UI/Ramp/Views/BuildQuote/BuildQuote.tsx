@@ -14,14 +14,14 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 
-import { useRampSDK } from '@sdk';
-import usePaymentMethods from '@components/hooks/usePaymentMethods';
-import useRegions from '@components/hooks/useRegions';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
+import usePaymentMethods from '@components/UI/Ramp/hooks/usePaymentMethods';
+import useRegions from '@components/UI/Ramp/hooks/useRegions';
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
-import useFiatCurrencies from '@components/hooks/useFiatCurrencies';
-import useCryptoCurrencies from '@components/hooks/useCryptoCurrencies';
-import useLimits from '@components/hooks/useLimits';
-import useBalance from '@components/hooks/useBalance';
+import useFiatCurrencies from '@components/UI/Ramp/hooks/useFiatCurrencies';
+import useCryptoCurrencies from '@components/UI/Ramp/hooks/useCryptoCurrencies';
+import useLimits from '@components/UI/Ramp/hooks/useLimits';
+import useBalance from '@components/UI/Ramp/hooks/useBalance';
 
 import useAddressBalance from '@components/hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '@components/hooks/useAddressBalance/useAddressBalance.types';
@@ -33,24 +33,24 @@ import BaseSelectorButton from '@components/Base/SelectorButton';
 import StyledButton from '@components/UI/StyledButton';
 
 import ScreenLayout from '@components/UI/Ramp/components/ScreenLayout';
-import Box from '@components/Box';
+import Box from '@components/UI/Ramp/components/Box';
 import Row from '@components/UI/Ramp/components/Row';
-import AssetSelectorButton from '@components/AssetSelectorButton';
-import PaymentMethodSelector from '@components/PaymentMethodSelector';
-import AmountInput from '@components/AmountInput';
-import Keypad from '@components/Keypad';
-import QuickAmounts from '@components/QuickAmounts';
-import AccountSelector from '@components/AccountSelector';
+import AssetSelectorButton from '@components/UI/Ramp/components/AssetSelectorButton';
+import PaymentMethodSelector from '@components/UI/Ramp/components/PaymentMethodSelector';
+import AmountInput from '@components/UI/Ramp/components/AmountInput';
+import Keypad from '@components/UI/Ramp/components/Keypad';
+import QuickAmounts from '@components/UI/Ramp/components/QuickAmounts';
+import AccountSelector from '@components/UI/Ramp/components/AccountSelector';
 import TokenIcon from '@components/UI/Swaps/components/TokenIcon';
-import CustomActionButton from '@containers/CustomActionButton';
-import TokenSelectModal from '@components/TokenSelectModal';
-import PaymentMethodModal from '@components/PaymentMethodModal';
-import PaymentMethodIcon from '@components/PaymentMethodIcon';
-import FiatSelectModal from '@components/modals/FiatSelectModal';
-import ErrorViewWithReporting from '@components/ErrorViewWithReporting';
-import RegionModal from '@components/RegionModal';
-import SkeletonText from '@components/SkeletonText';
-import ErrorView from '@components/ErrorView';
+import CustomActionButton from '@components/UI/Ramp/containers/CustomActionButton';
+import TokenSelectModal from '@components/UI/Ramp/components/TokenSelectModal';
+import PaymentMethodModal from '@components/UI/Ramp/components/PaymentMethodModal';
+import PaymentMethodIcon from '@components/UI/Ramp/components/PaymentMethodIcon';
+import FiatSelectModal from '@components/UI/Ramp/components/modals/FiatSelectModal';
+import ErrorViewWithReporting from '@components/UI/Ramp/components/ErrorViewWithReporting';
+import RegionModal from '@components/UI/Ramp/components/RegionModal';
+import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
+import ErrorView from '@components/UI/Ramp/components/ErrorView';
 
 import { NATIVE_ADDRESS } from '@constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '@components/UI/Navbar';
@@ -60,9 +60,9 @@ import {
   useParams,
 } from '@util/navigation/navUtils';
 import Routes from '@constants/navigation/Routes';
-import { formatAmount } from '@utils';
-import { createQuotesNavDetails } from '@Quotes/Quotes';
-import { QuickAmount, Region, ScreenLocation } from '@types';
+import { formatAmount } from '@components/UI/Ramp/utils';
+import { createQuotesNavDetails } from '@components/UI/Ramp/Views/Quotes/Quotes';
+import { QuickAmount, Region, ScreenLocation } from '@components/UI/Ramp/types';
 import { useStyles } from '@component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
@@ -70,8 +70,8 @@ import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
 } from '@util/number';
-import useGasPriceEstimation from '@components/hooks/useGasPriceEstimation';
-import useIntentAmount from '@components/hooks/useIntentAmount';
+import useGasPriceEstimation from '@components/UI/Ramp/hooks/useGasPriceEstimation';
+import useIntentAmount from '@components/UI/Ramp/hooks/useIntentAmount';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

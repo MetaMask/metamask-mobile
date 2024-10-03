@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 // External dependencies.
-import { TICKER } from '@CustomSpendCap.constants';
+import { TICKER } from '@component-library/components-temp/CustomSpendCap/CustomSpendCap.constants';
 // Internal dependencies.
 import CustomInput from './CustomInput';
 import {

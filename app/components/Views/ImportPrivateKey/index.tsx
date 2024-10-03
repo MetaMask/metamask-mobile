@@ -20,7 +20,7 @@ import { importAccountFromPrivateKey } from '@util/address';
 import { useAppTheme } from '@util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeySelectorsIDs } from '@e2e/selectors/ImportAccountFromPrivateKey.selectors';
-import { QRTabSwitcherScreens } from '@QRTabSwitcher';
+import { QRTabSwitcherScreens } from '@components/Views/QRTabSwitcher/QRTabSwitcher';
 import Routes from '@constants/navigation/Routes';
 
 /**

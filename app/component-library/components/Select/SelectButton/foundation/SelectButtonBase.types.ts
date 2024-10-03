@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { SelectValueProps } from '@SelectValue/SelectValue.types';
+import { SelectValueProps } from '@component-library/components/Select/SelectValue/SelectValue.types';
 import { TouchableOpacityProps } from 'react-native';
 
 /**

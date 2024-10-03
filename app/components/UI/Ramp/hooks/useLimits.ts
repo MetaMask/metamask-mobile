@@ -1,5 +1,5 @@
 import useSDKMethod from './useSDKMethod';
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 
 const useLimits = () => {
   const {

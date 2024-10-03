@@ -26,7 +26,7 @@ import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
 import useActivationKeys from '@components/hooks/useActivationKeys';
 
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 
 // Internal dependencies
 import { createActivationKeyFormNavDetails } from './ActivationKeyForm';

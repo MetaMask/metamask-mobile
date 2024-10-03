@@ -8,8 +8,8 @@ import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '@components/Buttons/Button';
-import Loader from '@Loader';
+} from '@component-library/components/Buttons/Button';
+import Loader from '@component-library/components-temp/Loader/Loader';
 import generateTestId from '@wdio/utils/generateTestId';
 
 // Internal dependencies.

@@ -2,7 +2,7 @@
 import React from 'react';
 
 // External dependencies.
-import ListItemColumn, { WidthType } from '@List/ListItemColumn';
+import ListItemColumn, { WidthType } from '@component-library/components/List/ListItemColumn';
 import Icon, { IconName } from '@component-library/components/Icons/Icon';
 import Text, { TextVariant } from '@component-library/components/Texts/Text';
 

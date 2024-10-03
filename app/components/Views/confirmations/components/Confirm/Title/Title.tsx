@@ -4,7 +4,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 import { strings } from '@locales/i18n';
 import { useTheme } from '@util/theme';
-import useApprovalRequest from '@components/hooks/useApprovalRequest';
+import useApprovalRequest from '@components/Views/confirmations/hooks/useApprovalRequest';
 import createStyles from './style';
 
 const getTitle = (confirmationType?: string) => {

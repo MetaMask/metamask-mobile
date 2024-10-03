@@ -12,7 +12,7 @@ import { strings } from '@locales/i18n';
 import { setLockTime } from '@actions/settings';
 import { aggregatorOrderToFiatOrder } from '@orderProcessor/aggregator';
 import NotificationManager from '@core/NotificationManager';
-import { useRampSDK } from '@sdk';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import useHandleSuccessfulOrder from '@components/hooks/useHandleSuccessfulOrder';
 
 function buildAuthenticationUrl(url: string, redirectUrl: string) {

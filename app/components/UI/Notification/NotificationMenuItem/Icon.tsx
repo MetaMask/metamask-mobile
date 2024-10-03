@@ -1,6 +1,6 @@
 import { NotificationMenuItem } from '@util/notifications/notification-states/types/NotificationMenuItem';
 import React, { useMemo } from 'react';
-import useStyles from '@List/useStyles';
+import useStyles from '@components/UI/Notification/List/useStyles';
 import BadgeWrapper from '@component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,

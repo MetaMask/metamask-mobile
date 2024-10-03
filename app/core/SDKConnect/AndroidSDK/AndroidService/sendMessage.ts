@@ -3,7 +3,7 @@ import Engine from '@core/Engine';
 import { Minimizer } from '@core/NativeModules';
 import Logger from '@util/Logger';
 import { wait } from '@core/SDKConnect/utils/wait.util';
-import AndroidService from '@AndroidService';
+import AndroidService from '@core/SDKConnect/AndroidSDK/AndroidService';
 import {
   METHODS_TO_DELAY,
   RPC_METHODS,

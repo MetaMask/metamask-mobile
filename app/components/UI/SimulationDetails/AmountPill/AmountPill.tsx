@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
-import { AssetIdentifier, AssetType } from '@types';
-import { formatAmount, formatAmountMaxPrecision } from '@formatAmount';
+import { AssetIdentifier, AssetType } from '@components/UI/SimulationDetails/types';
+import { formatAmount, formatAmountMaxPrecision } from '@components/UI/SimulationDetails/formatAmount';
 import I18n from '@locales/i18n';
 import styleSheet from './AmountPill.styles';
 import { View, ViewProps } from 'react-native';

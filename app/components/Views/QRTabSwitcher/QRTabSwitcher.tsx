@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
-import QRScanner from '@QRScanner';
+import QRScanner from '@components/Views/QRScanner';
 import { strings } from '@locales/i18n';
 import ReceiveRequest from '@components/UI/ReceiveRequest';
 import { useTheme } from '@util/theme';

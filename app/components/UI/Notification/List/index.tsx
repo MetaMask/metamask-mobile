@@ -22,8 +22,8 @@ import {
   useMarkNotificationAsRead,
 } from '@util/notifications/hooks/useNotifications';
 import { useMetrics } from '@components/hooks/useMetrics';
-import Empty from '@Empty';
-import { NotificationMenuItem } from '@NotificationMenuItem';
+import Empty from '@components/UI/Notification/Empty';
+import { NotificationMenuItem } from '@components/UI/Notification/NotificationMenuItem';
 import useStyles from './useStyles';
 
 interface NotificationsListProps {

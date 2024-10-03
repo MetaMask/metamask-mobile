@@ -4,12 +4,12 @@ import {
   PaymentCustomAction,
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
-import CustomActionButtonComponent from '@components/CustomActionButton';
-import { useRampSDK } from '@sdk';
+import CustomActionButtonComponent from '@components/UI/Ramp/components/CustomActionButton';
+import { useRampSDK } from '@components/UI/Ramp/sdk';
 import useAnalytics from '@components/UI/Ramp/hooks/useAnalytics';
-import useInAppBrowser from '@components/hooks/useInAppBrowser';
+import useInAppBrowser from '@components/UI/Ramp/hooks/useInAppBrowser';
 import Logger from '@util/Logger';
-import { createCheckoutNavDetails } from '@components/Views/Checkout';
+import { createCheckoutNavDetails } from '@components/UI/Ramp/Views/Checkout';
 
 interface Props {
   customAction: PaymentCustomAction;

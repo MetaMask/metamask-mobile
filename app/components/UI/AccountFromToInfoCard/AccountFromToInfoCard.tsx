@@ -15,7 +15,7 @@ import { safeToChecksumAddress } from '@util/address';
 import { useTheme } from '@util/theme';
 import InfoModal from '@components/UI/Swaps/components/InfoModal';
 import useExistingAddress from '@components/hooks/useExistingAddress';
-import { AddressTo } from '@AddressInputs';
+import { AddressTo } from '@components/UI/AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 import { selectInternalAccounts } from '@selectors/accountsController';

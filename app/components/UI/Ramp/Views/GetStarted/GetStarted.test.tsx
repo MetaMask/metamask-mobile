@@ -3,9 +3,9 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '@util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
-import { RampType, Region } from '@types';
-import { RampSDK } from '@sdk';
-import useRampNetwork from '@components/hooks/useRampNetwork';
+import { RampType, Region } from '@components/UI/Ramp/types';
+import { RampSDK } from '@components/UI/Ramp/sdk';
+import useRampNetwork from '@components/UI/Ramp/hooks/useRampNetwork';
 import Routes from '@constants/navigation/Routes';
 import { backgroundState } from '@util/test/initial-root-state';
 
@@ -31,7 +31,7 @@ const mockUseRampNetworkInitialValue: Partial<
 
 let mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
 
-jest.mock('@components/hooks/useRampNetwork', () =>
+jest.mock('@components/UI/Ramp/hooks/useRampNetwork', () =>
   jest.fn(() => mockUseRampNetworkValue),
 );
 
@@ -80,7 +80,7 @@ jest.mock('@sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('@components/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('@components/UI/Ramp/hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('GetStarted', () => {
   afterEach(() => {

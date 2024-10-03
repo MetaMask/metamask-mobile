@@ -1,6 +1,6 @@
 // External dependencies.
-import { CellBaseProps } from '@foundation/CellBase/CellBase.types';
-import { ListItemSelectProps } from '@List/ListItemSelect/ListItemSelect.types';
+import { CellBaseProps } from '@component-library/components/Cells/Cell/foundation/CellBase/CellBase.types';
+import { ListItemSelectProps } from '@component-library/components/List/ListItemSelect/ListItemSelect.types';
 
 /**
  * Cell Account Select  component props.

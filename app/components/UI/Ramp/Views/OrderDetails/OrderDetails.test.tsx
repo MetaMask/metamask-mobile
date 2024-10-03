@@ -1,5 +1,5 @@
 import React from 'react';
-import { processFiatOrder } from '@index';
+import { processFiatOrder } from '@components/UI/Ramp';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
   DeepPartial,
@@ -15,8 +15,8 @@ import {
 
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Routes from '@constants/navigation/Routes';
-import { RampSDK } from '@sdk';
-import { PROVIDER_LINKS } from '@types';
+import { RampSDK } from '@components/UI/Ramp/sdk';
+import { PROVIDER_LINKS } from '@components/UI/Ramp/types';
 import AppConstants from '@core/AppConstants';
 import {
   MOCK_ADDRESS_1,

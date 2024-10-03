@@ -1,10 +1,10 @@
 import React from 'react';
 import BaseListItem from '@components/Base/ListItem';
 import BaseText from '@components/Base/Text';
-import Box from '@Box';
-import Row from '@Row';
-import SkeletonBox from '@SkeletonBox';
-import SkeletonText from '@SkeletonText';
+import Box from '@components/UI/Ramp/components/Box';
+import Row from '@components/UI/Ramp/components/Row';
+import SkeletonBox from '@components/UI/Ramp/components/SkeletonBox';
+import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

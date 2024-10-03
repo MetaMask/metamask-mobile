@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import BaseListItem from '@components/Base/ListItem';
-import Box from '@Box';
-import SkeletonText from '@SkeletonText';
+import Box from  '@components/UI/Ramp/components/Box';
+import SkeletonText from '@components/UI/Ramp/components/SkeletonText';
 
 // TODO: Convert into typescript and correctly type
 // TODO: Replace "any" with type

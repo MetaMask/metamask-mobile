@@ -8,7 +8,7 @@ import { FiatOrder, getProviderName } from '@reducers/fiatOrders';
 import { strings } from '@locales/i18n';
 import { toDateFormat } from '@util/date';
 import { addCurrencySymbol, renderFiat } from '@util/number';
-import { getOrderAmount } from '@utils';
+import { getOrderAmount } from '@components/UI/Ramp/utils';
 import Text, {
   TextColor,
   TextVariant,

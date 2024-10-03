@@ -5,7 +5,7 @@ import SDKConnect from '@core/SDKConnect/SDKConnect';
 import handleDeeplink from '@core/SDKConnect/handlers/handleDeeplink';
 import DevLogger from '@core/SDKConnect/utils/DevLogger';
 import WC2Manager from '@WalletConnect/WalletConnectV2';
-import DeeplinkManager from '@DeeplinkManager';
+import DeeplinkManager from '@core/DeeplinkManager/DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 

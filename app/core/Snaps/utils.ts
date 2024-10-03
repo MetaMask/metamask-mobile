@@ -1,4 +1,4 @@
-import { ControllerMessenger } from '@core';
+import { ControllerMessenger } from '@core/Engine';
 import { HandleSnapRequestArgs } from './types';
 
 /**

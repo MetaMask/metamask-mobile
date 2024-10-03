@@ -50,7 +50,7 @@ export interface ConnectionProps {
 }
 
 // eslint-disable-next-line
-const { version } = require('@package.json');
+const { version } = require('../../../../package.json');
 
 export class Connection extends EventEmitter2 {
   channelId;
