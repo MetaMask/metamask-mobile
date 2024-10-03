@@ -1,9 +1,6 @@
-// Third party dependencies
 import React from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
@@ -13,8 +10,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
-
-// Internal dependencies
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,

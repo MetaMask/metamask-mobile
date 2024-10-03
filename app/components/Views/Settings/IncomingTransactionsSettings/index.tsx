@@ -1,9 +1,6 @@
-// Third party dependencies
 import React from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
@@ -27,8 +24,6 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import images from 'images/image-icons';
-
-// Internal dependencies
 import styleSheet from './index.styles';
 import {
   INCOMING_TRANSACTIONS,
