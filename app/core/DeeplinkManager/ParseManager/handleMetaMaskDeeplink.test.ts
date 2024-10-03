@@ -7,6 +7,9 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
+import Device from '../../../util/device';
+import { Platform } from 'react-native';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
@@ -30,6 +33,7 @@ describe('handleMetaMaskProtocol', () => {
   const mockWC2ManagerConnect = jest.fn();
   const mockGetApprovedHosts = jest.fn();
   const mockBindAndroidSDK = jest.fn();
+  const mockNavigate = jest.fn();
 
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
@@ -43,6 +47,7 @@ describe('handleMetaMaskProtocol', () => {
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
+
 
   let url = '';
 
@@ -70,6 +75,11 @@ describe('handleMetaMaskProtocol', () => {
       reconnect: mockReconnect,
       getApprovedHosts: mockGetApprovedHosts,
       bindAndroidSDK: mockBindAndroidSDK,
+      state: {
+        navigation: {
+          navigate: mockNavigate,
+        },
+      }
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
@@ -259,20 +269,72 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should call Minimizer.goBack when params.redirect is truthy', () => {
-      params.redirect = 'ABC';
+    it('should call Minimizer.goBack if params.redirect is truthy on android', () => {
+      params.redirect = 'true';
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(false);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '16' });
 
       handleMetaMaskDeeplink({
         instance,
         handled,
         params,
-        url,
-        origin,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         wcURL,
+        url,
       });
 
+      expect(handled).toHaveBeenCalled();
       expect(Minimizer.goBack).toHaveBeenCalled();
     });
+
+    it('should call Minimizer.goBack if params.redirect is truthy on ios <17', () => {
+      params.redirect = 'true';
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '16' });
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(Minimizer.goBack).toHaveBeenCalled();
+    });
+
+    it('should displays RETURN_TO_DAPP_MODAL if params.redirect is truthy on ios >17', () => {
+      params.redirect = 'true';
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '17' });
+
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+      });
+      expect(Minimizer.goBack).not.toHaveBeenCalled();
+    });
+
 
     it('should call handleDeeplink when channel exists and params.redirect is falsy', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
@@ -296,6 +358,8 @@ describe('handleMetaMaskProtocol', () => {
         context: 'deeplink_scheme',
         otherPublicKey: params.pubkey,
         protocolVersion: 1,
+        originatorInfo: undefined,
+        rpc: undefined,
         sdkConnect: {
           getConnections: mockGetConnections,
           connectToChannel: mockConnectToChannel,
@@ -303,6 +367,11 @@ describe('handleMetaMaskProtocol', () => {
           reconnect: mockReconnect,
           getApprovedHosts: mockGetApprovedHosts,
           bindAndroidSDK: mockBindAndroidSDK,
+          state: {
+            navigation: {
+              navigate: mockNavigate,
+            },
+          },
         },
       });
     });
