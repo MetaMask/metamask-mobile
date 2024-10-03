@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const ASSETS_FOLDER = 'assets';
 const GENERATED_ASSETS_FILE = 'Icon.assets.ts';
@@ -9,7 +9,7 @@ const TYPES_FILE = 'Icon.types.ts';
 const ASSET_EXT = '.svg';
 const TYPES_CONTENT_TO_DETECT = '// DO NOT EDIT - Use generate-assets.js';
 
-const getIconNameInTitleCase = (fileName) =>
+const getIconNameInTitleCase = (fileName: string) =>
   path
     .basename(fileName, ASSET_EXT)
     .split('-')
