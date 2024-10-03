@@ -241,10 +241,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(true);
       let newActiveAddress;
       let connectedAccountLength = 0;
+      let addedAccountCount = 0;
+      let removedAccountCount = 0;
 
       if (!isMultichainVersion1Enabled) {
         newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
         connectedAccountLength = selectedAddresses.length;
+        addedAccountCount = selectedAddresses.length;
       } else {
         // Function to normalize Ethereum addresses using checksum
         const normalizeAddresses = (addresses: string[]) =>
@@ -269,6 +272,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accountsToAdd = normalizedSelectedAddresses.filter(
           (account) => !normalizedPermittedAccounts.includes(account),
         );
+        addedAccountCount = accountsToAdd.length;
 
         // Add newly selected accounts
         if (accountsToAdd.length > 0) {
@@ -283,6 +287,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           accountsToRemove = normalizedPermittedAccounts.filter(
             (account) => !normalizedSelectedAddresses.includes(account),
           );
+          removedAccountCount = accountsToRemove.length;
 
           // Remove accounts that are no longer selected
           if (accountsToRemove.length > 0) {
@@ -304,16 +309,39 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       });
 
       let labelOptions: ToastOptions['labelOptions'] = [];
-      if (connectedAccountLength > 1) {
-        labelOptions = [
-          { label: `${connectedAccountLength} `, isBold: true },
-          {
-            label: `${strings('toast.accounts_connected')}\n`,
-          },
+      // Start of Selection
+      if (connectedAccountLength >= 1) {
+        if (addedAccountCount > 0) {
+          labelOptions = [
+            { label: `${addedAccountCount} `, isBold: true },
+            {
+              label: `${strings(
+                addedAccountCount > 1
+                  ? 'toast.accounts_connected'
+                  : 'toast.account_connected',
+              )}\n`,
+            },
+          ];
+        }
+        if (removedAccountCount > 0) {
+          labelOptions.push(
+            { label: `${removedAccountCount} `, isBold: true },
+            {
+              label: `${strings(
+                removedAccountCount > 1
+                  ? 'toast.accounts_disconnected'
+                  : 'toast.account_disconnected',
+              )}\n`,
+            },
+          );
+        }
+        labelOptions.push(
           { label: `${activeAccountName} `, isBold: true },
           { label: strings('toast.now_active') },
-        ];
-      } else {
+        );
+      }
+
+      if (connectedAccountLength === 1 && removedAccountCount === 0) {
         labelOptions = [
           { label: `${activeAccountName} `, isBold: true },
           { label: strings('toast.connected_and_active') },
