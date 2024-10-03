@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -7,10 +7,7 @@ import Title from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
-type ThemeColors = Theme['colors'];
-type ThemeShadows = Theme['shadows'];
-
-const createStyles = (colors: ThemeColors, shadows: ThemeShadows) =>
+const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
@@ -55,18 +52,18 @@ const createStyles = (colors: ThemeColors, shadows: ThemeShadows) =>
   });
 
 interface InfoModalProps {
-  title?: React.ReactNode;
-  body?: React.ReactNode;
-  isVisible?: boolean;
+  isVisible: boolean;
+  title?: ReactNode;
+  body?: ReactNode;
   toggleModal: () => void;
-  message?: string;
   propagateSwipe?: boolean;
+  message?: string;
   urlText?: string;
   url?: () => void;
   testID?: string;
 }
 
-function InfoModal({
+const InfoModal: React.FC<InfoModalProps> = ({
   title,
   body,
   isVisible,
@@ -76,11 +73,11 @@ function InfoModal({
   urlText,
   url,
   testID,
-}: InfoModalProps) {
+}) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
 
-  const CloseButton = () => (
+  const CloseButton: React.FC = () => (
     <TouchableOpacity
       onPress={toggleModal}
       hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
@@ -89,7 +86,7 @@ function InfoModal({
     </TouchableOpacity>
   );
 
-  const InfoView = () => {
+  const InfoView: React.FC = () => {
     if (!message) {
       return <CloseButton />;
     }
@@ -131,6 +128,6 @@ function InfoModal({
       </SafeAreaView>
     </Modal>
   );
-}
+};
 
 export default InfoModal;
