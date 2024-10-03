@@ -6,8 +6,87 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors, shadows) =>
+type ThemeColors = {
+  background: {
+    default: string;
+    alternative: string;
+    defaultHover: string;
+    defaultPressed: string;
+    alternativeHover: string;
+    alternativePressed: string;
+    hover: string;
+    pressed: string;
+  };
+  text: {
+    default: string;
+    alternative: string;
+    muted: string;
+  };
+  icon: {
+    default: string;
+    alternative: string;
+    muted: string;
+  };
+  border: {
+    default: string;
+    muted: string;
+  };
+  overlay: {
+    default: string;
+    alternative: string;
+    inverse: string;
+  };
+  shadow: {
+    default: string;
+    primary: string;
+    error: string;
+  };
+};
+
+type ThemeShadows = {
+  size: {
+    xs: {
+      shadowColor: string;
+      shadowOffset: {
+        width: number;
+        height: number;
+      };
+      shadowOpacity: number;
+      shadowRadius: number;
+    };
+    sm: {
+      shadowColor: string;
+      shadowOffset: {
+        width: number;
+        height: number;
+      };
+      shadowOpacity: number;
+      shadowRadius: number;
+    };
+    md: {
+      shadowColor: string;
+      shadowOffset: {
+        width: number;
+        height: number;
+      };
+      shadowOpacity: number;
+      shadowRadius: number;
+    };
+    lg: {
+      shadowColor: string;
+      shadowOffset: {
+        width: number;
+        height: number;
+      };
+      shadowOpacity: number;
+      shadowRadius: number;
+    };
+  };
+};
+
+const createStyles = (colors: ThemeColors, shadows: ThemeShadows) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
