@@ -18,7 +18,6 @@ export const version = 54;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function addBuiltInInfuraNetworks(networkConfigurations: any[]) {
-  console.log('Adding built-in Infura networks...');
   return [
     {
       type: 'infura',
@@ -69,14 +68,9 @@ function isValidUrl(url: string) {
 }
 
 export default function migrate(state: unknown) {
-  console.log('Starting migration for version:', version);
-
   if (!ensureValidState(state, 54)) {
-    console.log('State is not valid for migration, returning original state.');
     return state;
   }
-
-  console.log('Valid state for migration found.');
 
   const networkControllerState =
     state.engine?.backgroundState?.NetworkController;
@@ -86,7 +80,6 @@ export default function migrate(state: unknown) {
     ?.SelectedNetworkController as SelectedNetworkControllerState;
 
   if (!isObject(networkControllerState)) {
-    console.log('Invalid NetworkController state:', networkControllerState);
     captureException(
       new Error(
         `FATAL ERROR: Migration ${version}: Invalid NetworkController state error: '${typeof networkControllerState}'`,
@@ -96,10 +89,6 @@ export default function migrate(state: unknown) {
   }
 
   if (!isObject(transactionControllerState)) {
-    console.log(
-      'Invalid TransactionController state:',
-      transactionControllerState,
-    );
     captureException(
       new Error(
         `FATAL ERROR: Migration ${version}: Invalid TransactionController state error: '${typeof transactionControllerState}'`,
@@ -115,15 +104,8 @@ export default function migrate(state: unknown) {
     ? Object.values(networkState.networkConfigurations)
     : [];
 
-  console.log('Existing network configurations:', networkConfigurations);
-
   // Add built-in Infura networks
   networkConfigurations = addBuiltInInfuraNetworks(networkConfigurations);
-
-  console.log(
-    'Network configurations after adding Infura networks:',
-    networkConfigurations,
-  );
 
   // Group the network configurations by chain id
   const networkConfigurationArraysByChainId = networkConfigurations.reduce(
@@ -137,11 +119,6 @@ export default function migrate(state: unknown) {
       return acc;
     },
     {},
-  );
-
-  console.log(
-    'Grouped network configurations by chain id:',
-    networkConfigurationArraysByChainId,
   );
 
   // Get transaction history in reverse chronological order to help with tie breaks
@@ -158,14 +135,10 @@ export default function migrate(state: unknown) {
         .sort((a, b) => b.time - a.time)
     : [];
 
-  console.log('Sorted transaction history:', transactions);
-
   // For each chain id, merge the array of network configurations
   const networkConfigurationsByChainId = Object.entries(
     networkConfigurationArraysByChainId,
   ).reduce((acc: Record<string, unknown>, [chainId, networks]) => {
-    console.log(`Processing network configurations for chainId: ${chainId}`);
-
     // Calculate the tie breaker network, whose values will be preferred
     let tieBreaker: RuntimeObject | undefined;
 
@@ -191,8 +164,6 @@ export default function migrate(state: unknown) {
     if (!tieBreaker) {
       tieBreaker = networks.find((network) => network.type !== 'infura');
     }
-
-    console.log('Tie breaker network for chainId', chainId, tieBreaker);
 
     // Calculate the unique set of valid rpc endpoints for this chain id
     const rpcEndpoints = networks.reduce(
@@ -247,8 +218,6 @@ export default function migrate(state: unknown) {
       [],
     );
 
-    console.log(`RPC endpoints for chainId ${chainId}:`, rpcEndpoints);
-
     // If there were no valid unique endpoints, omit the network configuration
     if (rpcEndpoints.length === 0) {
       return acc;
@@ -276,11 +245,6 @@ export default function migrate(state: unknown) {
         return urls;
       }, new Set()),
     ];
-
-    console.log(
-      `Block explorer URLs for chainId ${chainId}:`,
-      blockExplorerUrls,
-    );
 
     // Use the tie breaker network as the default block explorer, if it has one
     const defaultBlockExplorerUrlIndex =
@@ -311,21 +275,128 @@ export default function migrate(state: unknown) {
       name,
       nativeCurrency,
     };
-
-    console.log(
-      `Final network configuration for chainId ${chainId}:`,
-      acc[chainId],
-    );
-
     return acc;
   }, {});
 
-  console.log(
-    'Final network configurations by chainId:',
-    networkConfigurationsByChainId,
-  );
+  // Given a network client id, returns the chain id it used to point to
+  const networkClientIdToChainId = (networkClientId: unknown) => {
+    const networkConfiguration = networkConfigurations.find(
+      (n) => isObject(n) && n.id === networkClientId,
+    );
+    return isObject(networkConfiguration) &&
+      typeof networkConfiguration?.chainId === 'string'
+      ? networkConfiguration?.chainId
+      : undefined;
+  };
 
-  // Continue migration logic for remaining parts
+  // Ensure that selectedNetworkClientId points to
+  // some endpoint of some network configuration.
+  let selectedNetworkClientId = Object.values(networkConfigurationsByChainId)
+    .flatMap((n) =>
+      isObject(n) && Array.isArray(n.rpcEndpoints) ? n.rpcEndpoints : [],
+    )
+    .find(
+      (e) => e.networkClientId === networkState.selectedNetworkClientId,
+    )?.networkClientId;
+
+  // If not valid, try to fallback to the default endpoint for the same chain
+  if (!selectedNetworkClientId) {
+    const chainId = networkClientIdToChainId(
+      networkState.selectedNetworkClientId,
+    );
+
+    // Or fallback to mainnet if the chain was omitted
+    const networkConfiguration =
+      networkConfigurationsByChainId[chainId ?? '0x1'];
+
+    selectedNetworkClientId =
+      isObject(networkConfiguration) &&
+      Array.isArray(networkConfiguration.rpcEndpoints) &&
+      typeof networkConfiguration.defaultRpcEndpointIndex === 'number'
+        ? networkConfiguration.rpcEndpoints[
+            networkConfiguration.defaultRpcEndpointIndex
+          ].networkClientId
+        : 'mainnet';
+  }
+
+  // Redirect domains in the selected network controller
+  if (
+    hasProperty(state.engine.backgroundState, 'SelectedNetworkController') &&
+    isObject(state.engine.backgroundState.SelectedNetworkController) &&
+    hasProperty(
+      state.engine.backgroundState.SelectedNetworkController,
+      'domains',
+    ) &&
+    isObject(state.engine.backgroundState.SelectedNetworkController.domains)
+  ) {
+    for (const [domain, networkClientId] of Object.entries(
+      selectedNetworkController.domains,
+    )) {
+      let newNetworkClientId;
+
+      // Fetch the chain id associated with the domain's network client
+      const chainId = networkClientIdToChainId(networkClientId);
+
+      if (chainId) {
+        // Fetch the default rpc endpoint associated with that chain id
+        const networkConfiguration = networkConfigurationsByChainId[chainId];
+        if (
+          isObject(networkConfiguration) &&
+          Array.isArray(networkConfiguration.rpcEndpoints) &&
+          typeof networkConfiguration.defaultRpcEndpointIndex === 'number'
+        ) {
+          newNetworkClientId =
+            networkConfiguration.rpcEndpoints[
+              networkConfiguration.defaultRpcEndpointIndex
+            ].networkClientId;
+        }
+      }
+
+      // Point the domain to the chain's default rpc endpoint
+      if (newNetworkClientId) {
+        selectedNetworkController.domains[domain] = newNetworkClientId;
+      } else {
+        delete selectedNetworkController.domains[domain];
+      }
+    }
+  }
+
+  state.engine.backgroundState.NetworkController = {
+    selectedNetworkClientId,
+    networkConfigurationsByChainId,
+    networksMetadata: networkState.networksMetadata ?? {},
+  };
+
+  // Set `showMultiRpcModal` based on whether there are any networks with multiple rpc endpoints
+  if (
+    hasProperty(state.engine.backgroundState, 'PreferencesController') &&
+    isObject(state.engine.backgroundState.PreferencesController)
+  ) {
+    state.engine.backgroundState.PreferencesController.showMultiRpcModal =
+      Object.values(networkConfigurationsByChainId).some(
+        (networkConfiguration) =>
+          isObject(networkConfiguration) &&
+          Array.isArray(networkConfiguration.rpcEndpoints) &&
+          networkConfiguration.rpcEndpoints.length > 1,
+      );
+  }
+
+  // Migrate the user's drag + drop preference order for the network menu
+  if (
+    hasProperty(state.engine.backgroundState, 'NetworkOrderController') &&
+    isObject(state.engine.backgroundState.NetworkOrderController) &&
+    Array.isArray(
+      state.engine.backgroundState.NetworkOrderController.orderedNetworkList,
+    )
+  ) {
+    state.engine.backgroundState.NetworkOrderController.orderedNetworkList = [
+      ...new Set(
+        state.engine.backgroundState.NetworkOrderController.orderedNetworkList.map(
+          (network) => network.networkId,
+        ),
+      ),
+    ].map((networkId) => ({ networkId }));
+  }
 
   // Return the modified state
   return state;

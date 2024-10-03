@@ -168,6 +168,7 @@
     "disabledRpcMethodPreferences": {
       "eth_sign": false
     },
+    "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
       "0x1": true,
