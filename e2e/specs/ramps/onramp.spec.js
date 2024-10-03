@@ -16,6 +16,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
@@ -50,8 +51,9 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await SelectRegionView.tapRegionOption('California');
     await SelectRegionView.tapContinueButton();
     await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-    await SelectPaymentMethodView.tapContinueButton();
-    await BuildQuoteView.verifyBuildQuoteViewVisible();
+    await SelectPaymentMethodView.tapContinueButton();    
+    await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
+    await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });
 
 });
