@@ -152,8 +152,12 @@ const StakeInputView = () => {
   const handleStakePress = useCallback(() => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_REVIEW,
+      params: {
+        wei: amountBN.toString(),
+        fiat: fiatAmount,
+      },
     });
-  }, [navigation]);
+  }, [amountBN, fiatAmount, navigation]);
 
   const percentageOptions = [
     { value: 0.25, label: '25%' },

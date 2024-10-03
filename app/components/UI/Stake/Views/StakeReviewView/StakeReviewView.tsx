@@ -10,13 +10,13 @@ import EstimatedGasCard from '../../components/StakingReview/EstimatedGasCard/Es
 import RewardsCard from '../../components/StakingReview/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingReview/ConfirmationFooter/ConfirmationFooter';
 import {
-  MOCK_AMOUNT_CONFIRMATION_PROPS,
   MOCK_REWARD_DATA,
   MOCK_STAKING_CONTRACT,
   MOCK_STAKING_REVIEW_DATA,
 } from './StakeReviewMockData';
+import { StakeReviewViewProps } from './StakeReviewView.types';
 
-const StakeReviewView = () => {
+const StakeReviewView = ({ route }: StakeReviewViewProps) => {
   const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
@@ -29,8 +29,9 @@ const StakeReviewView = () => {
     <View style={styles.mainContainer}>
       <View>
         <AmountHeader
-          balanceEth={MOCK_AMOUNT_CONFIRMATION_PROPS.balanceEth}
-          balanceFiat={MOCK_AMOUNT_CONFIRMATION_PROPS.balanceFiat}
+          wei={route.params.wei}
+          fiat={`$${route.params.fiat}`}
+          tokenSymbol="wETH"
         />
         <View style={styles.cardsContainer}>
           <AccountHeaderCard recipient={MOCK_STAKING_CONTRACT} />

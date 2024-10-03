@@ -15,12 +15,9 @@ import NetworkMainAssetLogo from '../../../../NetworkMainAssetLogo';
 import styleSheet from './AmountHeader.styles';
 import images from '../../../../../../images/image-icons';
 import { AmountHeaderProps } from './AmountHeader.types';
+import { renderFromWei } from '../../../../../../util/number';
 
-const AmountHeader = ({
-  balanceEth,
-  balanceFiat,
-  style,
-}: AmountHeaderProps) => {
+const AmountHeader = ({ wei, fiat, tokenSymbol, style }: AmountHeaderProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const networkName = useSelector(selectNetworkName);
@@ -40,8 +37,10 @@ const AmountHeader = ({
         <NetworkMainAssetLogo style={styles.ethLogo} />
       </BadgeWrapper>
       <View style={styles.balancesContainer}>
-        <Text variant={TextVariant.HeadingLG}>{balanceEth}</Text>
-        <Text color={TextColor.Alternative}>{balanceFiat}</Text>
+        <Text variant={TextVariant.HeadingLG}>
+          {renderFromWei(wei)} {tokenSymbol}
+        </Text>
+        <Text color={TextColor.Alternative}>{fiat}</Text>
       </View>
     </View>
   );

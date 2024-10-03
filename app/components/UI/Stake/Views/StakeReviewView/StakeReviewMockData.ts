@@ -14,11 +14,6 @@ export const MOCK_REWARD_DATA = {
   },
 };
 
-export const MOCK_AMOUNT_CONFIRMATION_PROPS = {
-  balanceEth: '0.002 wETH',
-  balanceFiat: '$66.26',
-};
-
 export const MOCK_STAKING_CONTRACT = {
   address: '0x1',
   name: 'MM Pooled Staking',
