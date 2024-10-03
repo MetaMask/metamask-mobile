@@ -36,10 +36,10 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
         <Text style={styles.rightPad}>
           {strings('stake.stake_your_eth_cta.base')}
         </Text>
-        <Text color={TextColor.Success}>{estimatedRewardRate}</Text>
-        <Text style={styles.rightPad}>
-          {strings('stake.stake_your_eth_cta.annually')}
+        <Text style={styles.rightPad} color={TextColor.Success}>
+          {estimatedRewardRate}
         </Text>
+        <Text>{strings('stake.stake_your_eth_cta.annually')}</Text>
         <Button
           label={strings('stake.stake_your_eth_cta.learn_more_with_period')}
           variant={ButtonVariants.Link}
