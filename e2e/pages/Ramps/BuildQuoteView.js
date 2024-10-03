@@ -5,6 +5,11 @@ class BuildQuoteView {
   get amountToBuyLabel() {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_BUY_LABEL);
   }
+
+  get amountToSellLabel() {
+    return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_SELL_LABEL);
+  }
+
   get getQuotesButton() {
     return Matchers.getElementByText(BuildQuoteSelectors.GET_QUOTES_BUTTON);
   }

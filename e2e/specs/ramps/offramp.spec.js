@@ -12,13 +12,16 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeRamps } from '../../tags';
+import { SmokeAssets } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
+import SelectRegionView from '../../pages/Ramps/SelectRegionView';
+import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
+import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeRamps('OffRamp'), () => {
+describe(SmokeAssets('OffRamp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -41,11 +44,19 @@ describe(SmokeRamps('OffRamp'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should tap the Sell button', async () => {
+  it('should select Region and Payment Method to see the Build Sell Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
+    await SelectRegionView.tapSelectRegionDropdown();
+    await SelectRegionView.tapRegionOption('United States of America');
+    await SelectRegionView.tapRegionOption('California');
+    await SelectRegionView.tapContinueButton();
+    await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
+    await SelectPaymentMethodView.tapContinueButton();    
+    await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
+    await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });
 
 });

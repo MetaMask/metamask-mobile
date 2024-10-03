@@ -41,7 +41,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should select Region and Payment Method to see the Build Quote screen', async () => {
+  it('should select Region and Payment Method to see the Build Buy Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
