@@ -2,8 +2,6 @@ const axios = require('axios');
 
 const TESTRAIL_MM_API_URL = 'https://mmig.testrail.io/index.php?/api/v2';
 const TESTRAIL_PROJECT_ID = 4;
-const AUTH_TOKEN =
-  'Y2hyaXMud2lsY294QGNvbnNlbnN5cy5uZXQ6T2o1TFkudkpkaHhzMm5oMHQvRkstVml3dWRXZW81bUVvM2tMWGxxOXI=';
 const automatedTestCasesEndpoint = `${TESTRAIL_MM_API_URL}/get_cases/${TESTRAIL_PROJECT_ID}&refs=@automated`;
 const addTestRun = `${TESTRAIL_MM_API_URL}/add_run/${TESTRAIL_PROJECT_ID}`;
 const getAutomatedTestRun = `${TESTRAIL_MM_API_URL}/get_tests/`;
