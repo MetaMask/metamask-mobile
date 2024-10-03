@@ -53,6 +53,8 @@ describe('AccountHeaderCard', () => {
   it('render matches snapshot', () => {
     const props: AccountHeaderCardProps = {
       contractName: MOCK_STAKING_CONTRACT_NAME,
+      primaryLabel: strings('stake.staking_from'),
+      secondaryLabel: strings('stake.interacting_with'),
     };
 
     const { getByText, toJSON } = renderWithProvider(

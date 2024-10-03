@@ -3289,7 +3289,8 @@
     "estimated_annual_earnings": "Estimated annual earnings",
     "estimated_annual_reward": "Est. annual Rewards",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "Annual rate tooltip",
+      "unstake_estimated_changes": "unstake estimated changes tooltip"
     },
     "estimated_annual_rewards": "Estimated annual rewards",
     "metamask_pool": "MetaMask Pool",
@@ -3345,7 +3346,11 @@
     "terms_of_service": "Terms of service",
     "risk_disclosure": "Risk disclosure",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3413,6 +3418,10 @@
     "reward_frequency": {
       "title": "Reward frequency",
       "tooltip": "Your staked balance updates every 12 hours to account for new rewards."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {
