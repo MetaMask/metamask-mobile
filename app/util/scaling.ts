@@ -43,7 +43,7 @@ interface ScaleOptions {
   scaleVertical?: boolean;
   scaleUp?: boolean;
   baseSize?: number;
-  baseModel: number;
+  baseModel?: number;
 }
 
 const scale = (
@@ -53,8 +53,8 @@ const scale = (
     scaleVertical = false,
     scaleUp = false,
     baseSize,
-    baseModel,
-  }: ScaleOptions,
+    baseModel = 0,
+  }: ScaleOptions = {},
 ) => {
   const { currSize, baseScreenSize } = _getSizes(scaleVertical, baseModel);
   const sizeScaled = ((baseSize || currSize) / baseScreenSize) * size;
