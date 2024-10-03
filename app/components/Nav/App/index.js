@@ -127,6 +127,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -395,7 +396,6 @@ const App = (props) => {
         }
       });
   }, [handleDeeplink]);
-
 
   useEffect(() => {
     if (navigator) {
@@ -688,10 +688,13 @@ const App = (props) => {
         component={NFTAutoDetectionModal}
       />
       <Stack.Screen
+        name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
+        component={MultiRpcModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.SHOW_TOKEN_ID}
         component={ShowTokenIdSheet}
       />
-
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}

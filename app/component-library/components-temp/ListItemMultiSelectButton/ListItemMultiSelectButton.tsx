@@ -20,6 +20,12 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   style,
@@ -27,7 +33,9 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   isDisabled = false,
   children,
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
+  showButtonIcon = true,
   buttonIcon = IconName.MoreVertical,
+  textButton = null,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
@@ -55,15 +63,29 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
           </View>
         )}
       </TouchableOpacity>
-      <View>
-        <ButtonIcon
-          iconName={buttonIcon}
-          iconColor={IconColor.Default}
-          testID={BUTTON_TEST_ID}
-          onPress={props.onButtonClick}
-          accessibilityRole="button"
-        />
-      </View>
+      {showButtonIcon ? (
+        <View style={styles.buttonIcon}>
+          <ButtonIcon
+            iconName={buttonIcon}
+            iconColor={IconColor.Default}
+            testID={BUTTON_TEST_ID}
+            onPress={props.onButtonClick}
+            accessibilityRole="button"
+          />
+        </View>
+      ) : null}
+      {textButton ? (
+        <View>
+          <Button
+            variant={ButtonVariants.Link}
+            onPress={props.onButtonClick as () => void}
+            labelTextVariant={TextVariant.BodyMD}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Auto}
+            label={textButton}
+          />
+        </View>
+      ) : null}
     </View>
   );
 };
