@@ -2,85 +2,52 @@
 
 exports[`OrderListItem should render correctly 1`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -100,56 +67,33 @@ exports[`OrderListItem should render correctly 1`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -174,57 +118,34 @@ exports[`OrderListItem should render correctly 1`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -232,47 +153,16 @@ exports[`OrderListItem should render correctly 1`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -284,85 +174,52 @@ exports[`OrderListItem should render correctly 1`] = `
 
 exports[`OrderListItem should render correctly 2`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -382,56 +239,33 @@ exports[`OrderListItem should render correctly 2`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -456,57 +290,34 @@ exports[`OrderListItem should render correctly 2`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -514,47 +325,16 @@ exports[`OrderListItem should render correctly 2`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -566,85 +346,52 @@ exports[`OrderListItem should render correctly 2`] = `
 
 exports[`OrderListItem should render correctly 3`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -664,56 +411,33 @@ exports[`OrderListItem should render correctly 3`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -738,57 +462,34 @@ exports[`OrderListItem should render correctly 3`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -796,47 +497,16 @@ exports[`OrderListItem should render correctly 3`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -848,85 +518,52 @@ exports[`OrderListItem should render correctly 3`] = `
 
 exports[`OrderListItem should render correctly 4`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -946,56 +583,33 @@ exports[`OrderListItem should render correctly 4`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -1020,57 +634,34 @@ exports[`OrderListItem should render correctly 4`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -1078,47 +669,16 @@ exports[`OrderListItem should render correctly 4`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -1130,85 +690,52 @@ exports[`OrderListItem should render correctly 4`] = `
 
 exports[`OrderListItem should render correctly 5`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -1228,56 +755,33 @@ exports[`OrderListItem should render correctly 5`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -1302,57 +806,34 @@ exports[`OrderListItem should render correctly 5`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -1360,47 +841,16 @@ exports[`OrderListItem should render correctly 5`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -1412,85 +862,52 @@ exports[`OrderListItem should render correctly 5`] = `
 
 exports[`OrderListItem should render correctly 6`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -1510,56 +927,33 @@ exports[`OrderListItem should render correctly 6`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -1584,57 +978,34 @@ exports[`OrderListItem should render correctly 6`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -1642,47 +1013,16 @@ exports[`OrderListItem should render correctly 6`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -1694,85 +1034,52 @@ exports[`OrderListItem should render correctly 6`] = `
 
 exports[`OrderListItem should render correctly 7`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
-  <Text
+  <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
           "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 30,
+          "fontSize": 12,
           "fontWeight": "400",
-          "marginVertical": 2,
-        },
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginBottom": 10,
-          },
-          undefined,
-        ],
-      ]
-    }
-  >
-    Oct 13 at 7:50 pm
-  </Text>
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -1792,56 +1099,33 @@ exports[`OrderListItem should render correctly 7`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -1866,57 +1150,34 @@ exports[`OrderListItem should render correctly 7`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         12.34568
@@ -1924,47 +1185,16 @@ exports[`OrderListItem should render correctly 7`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         $123345 
@@ -1976,37 +1206,52 @@ exports[`OrderListItem should render correctly 7`] = `
 
 exports[`OrderListItem should render correctly 8`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
-    [
-      {
-        "padding": 15,
-      },
-      undefined,
-    ]
+    {
+      "padding": 16,
+    }
   }
 >
   <View
     style={
-      [
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
         {
-          "alignItems": "center",
-          "flexDirection": "row",
-        },
-        undefined,
-      ]
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
     }
   >
     <View
       style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "marginRight": 15,
-          },
-          undefined,
-        ]
+        {
+          "flex": -1,
+        }
       }
+      testID="listitemcolumn"
     >
       <Image
         resizeMode="stretch"
@@ -2026,56 +1271,33 @@ exports[`OrderListItem should render correctly 8`] = `
       />
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         Test Provider
@@ -2100,57 +1322,34 @@ exports[`OrderListItem should render correctly 8`] = `
       </Text>
     </View>
     <View
+      accessible={false}
       style={
-        [
-          {
-            "alignItems": "flex-end",
-            "flex": 0.6,
-          },
-          undefined,
-        ]
+        {
+          "width": 16,
+        }
       }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
     >
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#141618",
-                "fontSize": 15,
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         ...
@@ -2158,47 +1357,16 @@ exports[`OrderListItem should render correctly 8`] = `
         ETH
       </Text>
       <Text
+        accessibilityRole="text"
         style={
-          [
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
-            },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            [
-              {
-                "color": "#6a737d",
-                "fontSize": 12,
-                "textTransform": "uppercase",
-              },
-              undefined,
-            ],
-          ]
+          {
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
         }
       >
         ...

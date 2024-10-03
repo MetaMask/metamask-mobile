@@ -2,7 +2,6 @@ import React from 'react';
 import { Image } from 'react-native';
 
 import createStyles from './OrderListItem.styles';
-import BaseListItem from '../../../../Base/ListItem';
 
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../locales/i18n';
@@ -13,11 +12,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const transactionIconReceived = require('../../../../../images/transaction-icons/receive.png');
@@ -80,49 +78,52 @@ function OrderListItem({ order }: Props) {
   const [statusColor, statusText] = getStatusColorAndText(order);
 
   return (
-    <ListItem>
-      {Boolean(order.createdAt) && (
-        <ListItem.Date>{toDateFormat(order.createdAt)}</ListItem.Date>
-      )}
-      <ListItem.Content>
-        <ListItem.Icon>
-          <Image
-            source={isBuy ? transactionIconReceived : transactionIconSent}
-            style={styles.icon}
-            resizeMode="stretch"
-          />
-        </ListItem.Icon>
+    <ListItem
+      topAccessory={
+        <Text variant={TextVariant.BodySM}>
+          {toDateFormat(order.createdAt)}
+        </Text>
+      }
+      topAccessoryGap={10}
+    >
+      <ListItemColumn>
+        <Image
+          source={isBuy ? transactionIconReceived : transactionIconSent}
+          style={styles.icon}
+          resizeMode="stretch"
+        />
+      </ListItemColumn>
 
-        <ListItem.Body>
-          <ListItem.Title>
-            {getProviderName(order.provider, order.data)}:{' '}
-            {strings(
-              isBuy
-                ? 'fiat_on_ramp_aggregator.purchased_currency'
-                : 'fiat_on_ramp_aggregator.sold_currency',
-              {
-                currency: order.cryptocurrency,
-              },
-            )}
-          </ListItem.Title>
-          <Text variant={TextVariant.BodySMBold} color={statusColor}>
-            {statusText}
-          </Text>
-        </ListItem.Body>
-        <ListItem.Amounts>
-          <ListItem.Amount>
-            {amount} {order.cryptocurrency}
-          </ListItem.Amount>
-          <ListItem.FiatAmount>
-            {order.amount == null
-              ? '...'
-              : addCurrencySymbol(
-                  renderFiat(Number(order.amount), ''),
-                  order.currency,
-                )}
-          </ListItem.FiatAmount>
-        </ListItem.Amounts>
-      </ListItem.Content>
+      <ListItemColumn widthType={WidthType.Fill}>
+        <Text variant={TextVariant.BodyMD}>
+          {getProviderName(order.provider, order.data)}:{' '}
+          {strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.purchased_currency'
+              : 'fiat_on_ramp_aggregator.sold_currency',
+            {
+              currency: order.cryptocurrency,
+            },
+          )}
+        </Text>
+        <Text variant={TextVariant.BodySMBold} color={statusColor}>
+          {statusText}
+        </Text>
+      </ListItemColumn>
+
+      <ListItemColumn style={{ alignItems: 'flex-end' }}>
+        <Text variant={TextVariant.BodyMD}>
+          {amount} {order.cryptocurrency}
+        </Text>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {order.amount == null
+            ? '...'
+            : addCurrencySymbol(
+                renderFiat(Number(order.amount), ''),
+                order.currency,
+              )}
+        </Text>
+      </ListItemColumn>
     </ListItem>
   );
 }
