@@ -39,7 +39,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const [fromAccountName, setFromAccountName] = useState<string>();
   const [toAccountName, setToAccountName] = useState<string>();
   const [confusableCollection, setConfusableCollection] = useState([]);
-  const [showWarningModal, setShowWarningModal] = useState<boolean>();
+  const [showWarningModal, setShowWarningModal] = useState<boolean>(false);
 
   const existingToAddress = useExistingAddress(toAddress);
   const { colors } = useTheme();
