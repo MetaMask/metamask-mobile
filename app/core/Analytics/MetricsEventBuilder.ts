@@ -6,7 +6,7 @@ import {
 } from './MetaMetrics.types';
 
 /**
- * represents the event tracking object produced by the event builder
+ * the event tracking object to be produced by MetricsEventBuilder
  */
 class TrackingEvent implements ITrackingEvent {
   readonly #name: string;
@@ -14,18 +14,11 @@ class TrackingEvent implements ITrackingEvent {
   #sensitiveProperties: JsonMap;
   #saveDataRecording: boolean;
 
-  constructor(event: IMetaMetricsEvent | ITrackingEvent) {
-    if (isTrackingEvent(event)) {
-      this.#name = event.name;
-      this.#properties = event.properties || {};
-      this.#sensitiveProperties = event.sensitiveProperties || {};
-      this.#saveDataRecording = event.saveDataRecording ?? true;
-    } else {
-      this.#name = event.category;
-      this.#properties = {};
-      this.#sensitiveProperties = {};
-      this.#saveDataRecording = true;
-    }
+  constructor(event: IMetaMetricsEvent) {
+    this.#name = event.category;
+    this.#properties = {};
+    this.#sensitiveProperties = {};
+    this.#saveDataRecording = true;
   }
 
   get name(): string {
@@ -91,6 +84,11 @@ class MetricsEventBuilder {
   readonly #trackingEvent: ITrackingEvent;
 
   constructor(event: IMetaMetricsEvent | ITrackingEvent) {
+    if (isTrackingEvent(event)) {
+      this.#trackingEvent = event;
+      return;
+    }
+
     this.#trackingEvent = new TrackingEvent(event);
   }
 
