@@ -94,10 +94,25 @@ app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
 
 # UX Team
-app/components                       @MetaMask/wallet-ux
-app/reducers/experimentalSettings    @MetaMask/wallet-ux
-app/reducers/modals                  @MetaMask/wallet-ux
-app/reducers/navigation              @MetaMask/wallet-ux
-app/reducers/onboarding              @MetaMask/wallet-ux
-app/reducers/privacy                 @MetaMask/wallet-ux
-app/reducers/settings                @MetaMask/wallet-ux
+app/components/Views/AccountActions @MetaMask/wallet-ux
+app/components/Views/AccountSelector @MetaMask/wallet-ux
+app/components/Views/AddressQRCode @MetaMask/wallet-ux
+app/components/Views/EditAccountName @MetaMask/wallet-ux
+app/components/Views/LockScreen @MetaMask/wallet-ux
+app/components/Views/Login @MetaMask/wallet-ux
+app/components/Views/NetworkConnect @MetaMask/wallet-ux
+app/components/Views/NetworkSelector @MetaMask/wallet-ux
+app/components/Views/Onboarding @MetaMask/wallet-ux
+app/components/Views/OnboardingCarousel @MetaMask/wallet-ux
+app/components/Views/OnboardingSuccess @MetaMask/wallet-ux
+app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
+app/components/Views/QRScanner @MetaMask/wallet-ux
+app/components/Views/Settings @MetaMask/wallet-ux
+app/components/Views/TermsAndConditions @MetaMask/wallet-ux
+
+app/reducers/experimentalSettings @MetaMask/wallet-ux
+app/reducers/modals @MetaMask/wallet-ux
+app/reducers/navigation @MetaMask/wallet-ux
+app/reducers/onboarding @MetaMask/wallet-ux
+app/reducers/privacy @MetaMask/wallet-ux
+app/reducers/settings@MetaMask/wallet-ux
