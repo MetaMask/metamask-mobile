@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Logger from './Logger';
 import trackErrorAsAnalytics from './metrics/TrackError/trackErrorAsAnalytics';
 
@@ -51,7 +50,7 @@ export function createOriginMiddleware(opts: MiddlewareOptions) {
  */
 export function containsUserRejectedError(
   errorMessage: string,
-  errorCode: number,
+  errorCode?: number,
 ) {
   try {
     if (!errorMessage || !(typeof errorMessage === 'string')) return false;
