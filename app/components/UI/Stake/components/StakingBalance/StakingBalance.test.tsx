@@ -4,6 +4,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import StakingBalance from './StakingBalance';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -50,7 +51,7 @@ describe('StakingBalance', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-      screen: 'Stake',
+      screen: Routes.STAKING.STAKE,
     });
   });
 
@@ -61,7 +62,7 @@ describe('StakingBalance', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
-      screen: 'Unstake',
+      screen: Routes.STAKING.UNSTAKE,
     });
   });
 });
