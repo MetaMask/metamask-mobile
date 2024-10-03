@@ -66,9 +66,7 @@ const scale = (
   return size;
 };
 
-const scaleVertical = (
-  size: number,
-  options: Omit<ScaleOptions, 'scaleVertical'>,
-) => scale(size, { scaleVertical: true, ...options });
+const scaleVertical = (size: number, options: ScaleOptions) =>
+  scale(size, { scaleVertical: true, ...options });
 
 export default { scale, scaleVertical, IPHONE_6_WIDTH, IPHONE_6_HEIGHT };
