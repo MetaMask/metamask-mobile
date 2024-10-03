@@ -1,4 +1,4 @@
-import { Dimensions, PixelRatio, ScaledSize } from 'react-native';
+import { Dimensions, PixelRatio } from 'react-native';
 
 //baseModel 0
 const IPHONE_6_WIDTH = 375;
@@ -12,12 +12,7 @@ const IPHONE_11_PRO_HEIGHT = 812;
 const IPHONE_11_PRO_MAX_WIDTH = 414;
 const IPHONE_11_PRO_MAX_HEIGHT = 896;
 
-interface BaseModelDimensions {
-  width: number;
-  height: number;
-}
-
-const getBaseModel = (baseModel: number): BaseModelDimensions => {
+const getBaseModel = (baseModel: number) => {
   if (baseModel === 1) {
     return { width: IPHONE_11_PRO_WIDTH, height: IPHONE_11_PRO_HEIGHT };
   } else if (baseModel === 2) {
@@ -27,13 +22,8 @@ const getBaseModel = (baseModel: number): BaseModelDimensions => {
   return { width: IPHONE_6_WIDTH, height: IPHONE_6_HEIGHT };
 };
 
-interface Sizes {
-  currSize: number;
-  baseScreenSize: number;
-}
-
-const _getSizes = (scaleVertical: boolean, baseModel: number): Sizes => {
-  const { width, height }: ScaledSize = Dimensions.get('window');
+const _getSizes = (scaleVertical: boolean, baseModel: number) => {
+  const { width, height } = Dimensions.get('window');
   const CURR_WIDTH = width < height ? width : height;
   const CURR_HEIGHT = height > width ? height : width;
 
@@ -64,9 +54,9 @@ const scale = (
     scaleUp = false,
     baseSize,
     baseModel,
-  }: ScaleOptions = {} as ScaleOptions,
-): number => {
-  const { currSize, baseScreenSize } = _getSizes(scaleVertical, baseModel ?? 0);
+  }: ScaleOptions,
+) => {
+  const { currSize, baseScreenSize } = _getSizes(scaleVertical, baseModel);
   const sizeScaled = ((baseSize || currSize) / baseScreenSize) * size;
 
   if (sizeScaled <= size || scaleUp) {
@@ -76,7 +66,9 @@ const scale = (
   return size;
 };
 
-const scaleVertical = (size: number, options: Partial<ScaleOptions> = {}): number =>
-  scale(size, { scaleVertical: true, baseModel: options.baseModel ?? 0, ...options });
+const scaleVertical = (
+  size: number,
+  options: Omit<ScaleOptions, 'scaleVertical'>,
+) => scale(size, { scaleVertical: true, ...options });
 
 export default { scale, scaleVertical, IPHONE_6_WIDTH, IPHONE_6_HEIGHT };
