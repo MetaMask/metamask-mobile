@@ -1,13 +1,8 @@
-// Third party dependencies
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-
-// External dependencies
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-
-// Internal dependencies
 import BatchAccountBalanceSettings from './';
 import { SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID } from './index.constants';
 
