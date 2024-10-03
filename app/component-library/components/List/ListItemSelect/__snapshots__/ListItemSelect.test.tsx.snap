@@ -8,7 +8,6 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
       "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
-      "padding": 16,
       "position": "relative",
     }
   }
@@ -18,13 +17,20 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
     accessible={true}
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "padding": 0,
+        "padding": 16,
       }
     }
   >
-    <View />
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View />
+    </View>
   </View>
 </TouchableOpacity>
 `;
