@@ -3429,99 +3429,67 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 6,
-                                              "padding": 18,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
                                           {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
                                             [
                                               {
-                                                "color": "#141618",
-                                                "fontSize": 15,
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 6,
+                                                "padding": 18,
                                               },
                                               undefined,
-                                            ],
-                                          ]
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -3552,43 +3520,125 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             ]
                                           }
                                         />
-                                      </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </Text>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "marginTop": 16,
+                                        }
                                       }
                                     >
-                                      <Text
+                                      <View
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "width": "50%",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -3601,117 +3651,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             undefined,
                                           ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                         
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </Text>
+                                      />
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "50%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    />
                                   </View>
                                 </View>
                               </TouchableOpacity>
@@ -3743,99 +3684,67 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 6,
-                                              "padding": 18,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
                                           {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
                                             [
                                               {
-                                                "color": "#141618",
-                                                "fontSize": 15,
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 6,
+                                                "padding": 18,
                                               },
                                               undefined,
-                                            ],
-                                          ]
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -3866,43 +3775,125 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             ]
                                           }
                                         />
-                                      </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </Text>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "marginTop": 16,
+                                        }
                                       }
                                     >
-                                      <Text
+                                      <View
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "width": "50%",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -3915,117 +3906,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             undefined,
                                           ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                         
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </Text>
+                                      />
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "50%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    />
                                   </View>
                                 </View>
                               </TouchableOpacity>
@@ -4059,99 +3941,67 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 6,
-                                              "padding": 18,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
                                           {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
                                             [
                                               {
-                                                "color": "#141618",
-                                                "fontSize": 15,
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 6,
+                                                "padding": 18,
                                               },
                                               undefined,
-                                            ],
-                                          ]
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -4182,43 +4032,125 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             ]
                                           }
                                         />
-                                      </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </Text>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "marginTop": 16,
+                                        }
                                       }
                                     >
-                                      <Text
+                                      <View
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "width": "50%",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -4231,117 +4163,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             undefined,
                                           ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                         
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </Text>
+                                      />
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "50%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    />
                                   </View>
                                 </View>
                               </TouchableOpacity>
@@ -6915,99 +6738,67 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 6,
-                                              "padding": 18,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
                                           {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
                                             [
                                               {
-                                                "color": "#141618",
-                                                "fontSize": 15,
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 6,
+                                                "padding": 18,
                                               },
                                               undefined,
-                                            ],
-                                          ]
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -7038,43 +6829,125 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             ]
                                           }
                                         />
-                                      </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </Text>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "marginTop": 16,
+                                        }
                                       }
                                     >
-                                      <Text
+                                      <View
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "width": "50%",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -7087,117 +6960,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             undefined,
                                           ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                         
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </Text>
+                                      />
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "50%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    />
                                   </View>
                                 </View>
                               </TouchableOpacity>
@@ -7229,99 +6993,67 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 6,
-                                              "padding": 18,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
                                           {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
                                             [
                                               {
-                                                "color": "#141618",
-                                                "fontSize": 15,
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 6,
+                                                "padding": 18,
                                               },
                                               undefined,
-                                            ],
-                                          ]
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -7352,43 +7084,125 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             ]
                                           }
                                         />
-                                      </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </Text>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "marginTop": 16,
+                                        }
                                       }
                                     >
-                                      <Text
+                                      <View
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "width": "50%",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -7401,117 +7215,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             undefined,
                                           ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                         
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </Text>
+                                      />
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "50%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    />
                                   </View>
                                 </View>
                               </TouchableOpacity>
@@ -7545,99 +7250,67 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       },
                                       undefined,
                                       undefined,
-                                      undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "marginRight": 15,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 6,
-                                              "padding": 18,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
                                           {
-                                            "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
                                             [
                                               {
-                                                "color": "#141618",
-                                                "fontSize": 15,
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 6,
+                                                "padding": 18,
                                               },
                                               undefined,
-                                            ],
-                                          ]
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <View
                                           style={
@@ -7668,43 +7341,125 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             ]
                                           }
                                         />
-                                      </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
+                                          {
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": 1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                            <View
+                                              style={
+                                                [
+                                                  {
+                                                    "backgroundColor": "#f2f4f6",
+                                                    "borderRadius": 30,
+                                                    "padding": 14,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  {
+                                                    "width": "50%",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            />
+                                          </Text>
+                                        </View>
+                                      </View>
                                     </View>
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "marginTop": 16,
+                                        }
                                       }
                                     >
-                                      <Text
+                                      <View
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
                                             },
                                             undefined,
                                             undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
+                                            {
+                                              "width": "50%",
+                                            },
                                             undefined,
                                             undefined,
                                             undefined,
@@ -7717,117 +7472,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             undefined,
                                           ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                         
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "50%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </Text>
+                                      />
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "marginVertical": 8,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                  <View
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 30,
-                                            "padding": 14,
-                                          },
-                                          {
-                                            "padding": 8,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          {
-                                            "width": "50%",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
-                                      }
-                                    />
                                   </View>
                                 </View>
                               </TouchableOpacity>
