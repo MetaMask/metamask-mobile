@@ -327,10 +327,6 @@ const Wallet = ({
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
 
-  console.log(
-    'networkConfigurations ....',
-    JSON.stringify(networkConfigurations),
-  );
   const isNetworkDuplicated = Object.values(networkConfigurations).some(
     (networkConfiguration) =>
       isObject(networkConfiguration) &&
@@ -355,8 +351,6 @@ const Wallet = ({
   ]);
 
   const checkMultiRpcModal = useCallback(() => {
-    console.log('isNetworkDuplicated =======>', isNetworkDuplicated);
-    console.log('isNetworkDuplicated =======>', showMultiRpcModal);
     if (showMultiRpcModal && isNetworkDuplicated) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
