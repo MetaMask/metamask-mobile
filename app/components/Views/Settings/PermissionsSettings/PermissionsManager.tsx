@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -61,28 +63,35 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   const [inAppBrowserPermissions, setInAppBrowserPermissions] = useState<
     PermissionListItemViewModel[]
   >([]);
-  const subjects = useSelector((state: RootState) => {
-    return state.engine.backgroundState.PermissionController.subjects;
-  });
+  const subjects = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PermissionController.subjects,
+  );
 
   useEffect(() => {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const walletConnectRegex = /^https?:\/\//;
     const uuidSubjects: any[] = [];
-    const otherSubjects: any[] = [];
+    const inAppBrowserSubjects: any[] = [];
+    const walletConnectSubjects: any[] = [];
 
     Object.entries(subjects || {}).forEach(([key, value]) => {
       if (key === 'npm:@metamask/message-signing-snap') return;
 
       if (uuidRegex.test(key)) {
         uuidSubjects.push(value);
+      } else if (
+        walletConnectRegex.test((value as { origin: string }).origin)
+      ) {
+        walletConnectSubjects.push(value);
       } else {
-        otherSubjects.push(value);
+        inAppBrowserSubjects.push(value);
       }
     });
 
-    const mappedOtherPermissions: PermissionListItemViewModel[] =
-      otherSubjects.map((subject) => ({
+    const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
+      inAppBrowserSubjects.map((subject) => ({
         dappLogoUrl: '',
         dappHostName: subject.origin,
         numberOfAccountPermissions:
@@ -101,9 +110,20 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
         permissionSource: PermissionSource.SDK,
       }));
 
+    const mappedWalletConnectPermissions: PermissionListItemViewModel[] =
+      walletConnectSubjects.map((subject) => ({
+        dappLogoUrl: '',
+        dappHostName: subject.origin,
+        numberOfAccountPermissions:
+          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
+        numberOfNetworkPermissions: 0,
+        permissionSource: PermissionSource.WalletConnect,
+      }));
+
     const mappedPermissions: PermissionListItemViewModel[] = [
-      ...mappedOtherPermissions,
+      ...mappedInAppBrowserPermissions,
       ...mappedUuidPermissions,
+      ...mappedWalletConnectPermissions,
     ];
 
     setInAppBrowserPermissions(mappedPermissions);
@@ -148,11 +168,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
         </ScrollView>
       </>
     ),
-    [
-      goToPermissionsDetails,
-      inAppBrowserPermissions,
-      isMultichainVersion1Enabled,
-    ],
+    [goToPermissionsDetails, inAppBrowserPermissions],
   );
 
   const renderEmptyResult = () => (
