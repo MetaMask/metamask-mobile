@@ -7,6 +7,7 @@ import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { Provider } from 'react-redux';
 import { AccountHeaderCardProps } from './AccountHeaderCard.types';
+import { MOCK_STAKING_CONTRACT_NAME } from '../../../Views/StakeConfirmationView/StakeConfirmationMockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -51,10 +52,7 @@ jest.mock('@react-navigation/native', () => {
 describe('AccountHeaderCard', () => {
   it('render matches snapshot', () => {
     const props: AccountHeaderCardProps = {
-      recipient: {
-        address: '0x1',
-        name: 'MM Pooled Staking',
-      },
+      contractName: MOCK_STAKING_CONTRACT_NAME,
     };
 
     const { getByText, toJSON } = renderWithProvider(
@@ -66,7 +64,7 @@ describe('AccountHeaderCard', () => {
     expect(getByText(strings('stake.staking_from'))).toBeDefined();
     expect(getByText(strings('stake.interacting_with'))).toBeDefined();
     expect(getByText(strings('asset_details.network'))).toBeDefined();
-    expect(getByText(props.recipient.name as string)).toBeDefined();
+    expect(getByText(props.contractName)).toBeDefined();
 
     expect(toJSON()).toMatchSnapshot();
   });

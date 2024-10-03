@@ -618,11 +618,11 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     style={
                       {
                         "alignSelf": "flex-start",
-                        "backgroundColor": "#0376c91a",
-                        "borderColor": "#0376c9",
+                        "backgroundColor": "#f2f4f6",
+                        "borderColor": "#bbc0c5",
                         "borderRadius": 999,
                         "borderWidth": 0,
-                        "color": "#0376c9",
+                        "color": "#6a737d",
                         "padding": 16,
                         "paddingHorizontal": 8,
                         "paddingVertical": 2,
@@ -638,146 +638,18 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <View
+                      <SvgMock
+                        color="#141618"
+                        height={16}
+                        name="Question"
                         style={
                           {
-                            "backgroundColor": "#ffffff",
-                            "borderRadius": 8,
                             "height": 16,
-                            "overflow": "hidden",
                             "width": 16,
                           }
                         }
-                      >
-                        <View
-                          style={
-                            [
-                              {
-                                "overflow": "hidden",
-                              },
-                              {
-                                "backgroundColor": "#15A1F2",
-                                "borderRadius": 8,
-                                "height": 16,
-                                "width": 16,
-                              },
-                              undefined,
-                            ]
-                          }
-                        >
-                          <RNSVGSvgView
-                            bbHeight={16}
-                            bbWidth={16}
-                            focusable={false}
-                            height={16}
-                            style={
-                              [
-                                {
-                                  "backgroundColor": "transparent",
-                                  "borderWidth": 0,
-                                },
-                                {
-                                  "flex": 0,
-                                  "height": 16,
-                                  "width": 16,
-                                },
-                              ]
-                            }
-                            width={16}
-                          >
-                            <RNSVGGroup
-                              fill={
-                                {
-                                  "payload": 4278190080,
-                                  "type": 0,
-                                }
-                              }
-                            >
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4294022146,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    0.9997806834748455,
-                                    -0.02094241988335679,
-                                    0.02094241988335679,
-                                    0.9997806834748455,
-                                    -0.16522875087026775,
-                                    0.16904305456385807,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4294732544,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    0.35020738125946743,
-                                    0.9366721892483976,
-                                    -0.9366721892483976,
-                                    0.35020738125946743,
-                                    16.674578221396217,
-                                    2.9583003481997023,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                              <RNSVGRect
-                                fill={
-                                  {
-                                    "payload": 4280577505,
-                                    "type": 0,
-                                  }
-                                }
-                                height={16}
-                                matrix={
-                                  [
-                                    -0.17020949916603276,
-                                    -0.9854078984834901,
-                                    0.9854078984834901,
-                                    -0.17020949916603276,
-                                    -8.054940486540705,
-                                    25.3447353688826,
-                                  ]
-                                }
-                                propList={
-                                  [
-                                    "fill",
-                                  ]
-                                }
-                                width={16}
-                                x={0}
-                                y={0}
-                              />
-                            </RNSVGGroup>
-                          </RNSVGSvgView>
-                        </View>
-                      </View>
+                        width={16}
+                      />
                       <View
                         accessible={false}
                         style={
@@ -791,7 +663,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#0376c9",
+                            "color": "#141618",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -799,7 +671,6 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                             "lineHeight": 22,
                           }
                         }
-                        testID="tagbase-text"
                       >
                         MM Pooled Staking
                       </Text>

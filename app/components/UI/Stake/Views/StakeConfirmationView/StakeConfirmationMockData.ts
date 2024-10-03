@@ -14,7 +14,4 @@ export const MOCK_REWARD_DATA = {
   },
 };
 
-export const MOCK_STAKING_CONTRACT = {
-  address: '0x1',
-  name: 'MM Pooled Staking',
-};
+export const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
