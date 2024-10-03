@@ -1,3 +1,105 @@
+diff --git a/node_modules/@metamask/preferences-controller/.idea/.gitignore b/node_modules/@metamask/preferences-controller/.idea/.gitignore
+new file mode 100644
+index 0000000..b58b603
+--- /dev/null
++++ b/node_modules/@metamask/preferences-controller/.idea/.gitignore
+@@ -0,0 +1,5 @@
++# Default ignored files
++/shelf/
++/workspace.xml
++# Editor-based HTTP Client requests
++/httpRequests/
+diff --git a/node_modules/@metamask/preferences-controller/.idea/modules.xml b/node_modules/@metamask/preferences-controller/.idea/modules.xml
+new file mode 100644
+index 0000000..ecac035
+--- /dev/null
++++ b/node_modules/@metamask/preferences-controller/.idea/modules.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/preferences-controller.iml" filepath="$PROJECT_DIR$/.idea/preferences-controller.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/node_modules/@metamask/preferences-controller/.idea/preferences-controller.iml b/node_modules/@metamask/preferences-controller/.idea/preferences-controller.iml
+new file mode 100644
+index 0000000..24643cc
+--- /dev/null
++++ b/node_modules/@metamask/preferences-controller/.idea/preferences-controller.iml
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="WEB_MODULE" version="4">
++  <component name="NewModuleRootManager">
++    <content url="file://$MODULE_DIR$">
++      <excludeFolder url="file://$MODULE_DIR$/.tmp" />
++      <excludeFolder url="file://$MODULE_DIR$/temp" />
++      <excludeFolder url="file://$MODULE_DIR$/tmp" />
++    </content>
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++</module>
+\ No newline at end of file
+diff --git a/node_modules/@metamask/preferences-controller/.idea/workspace.xml b/node_modules/@metamask/preferences-controller/.idea/workspace.xml
+new file mode 100644
+index 0000000..dbf94fd
+--- /dev/null
++++ b/node_modules/@metamask/preferences-controller/.idea/workspace.xml
+@@ -0,0 +1,50 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ChangeListManager">
++    <list default="true" id="605ad92a-3a3b-409b-aace-8d3cf5420af6" name="Changes" comment="" />
++    <option name="SHOW_DIALOG" value="false" />
++    <option name="HIGHLIGHT_CONFLICTS" value="true" />
++    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
++    <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="ProjectColorInfo"><![CDATA[{
++  "customColor": "",
++  "associatedIndex": 6
++}]]></component>
++  <component name="ProjectId" id="2mZDhfDgVzYvTMobnnTEx2OWDXx" />
++  <component name="ProjectViewState">
++    <option name="autoscrollToSource" value="true" />
++    <option name="hideEmptyMiddlePackages" value="true" />
++    <option name="showLibraryContents" value="true" />
++  </component>
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "nodejs_package_manager_path": "npm",
++    "ts.external.directory.path": "/Users/salim/Applications/JetBrains Toolbox/IntelliJ IDEA Ultimate.app/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
++    "vue.rearranger.settings.migration": "true"
++  }
++}]]></component>
++  <component name="SharedIndexes">
++    <attachedChunks>
++      <set>
++        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-WS-241.17011.90" />
++      </set>
++    </attachedChunks>
++  </component>
++  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
++  <component name="TaskManager">
++    <task active="true" id="Default" summary="Default task">
++      <changelist id="605ad92a-3a3b-409b-aace-8d3cf5420af6" name="Changes" comment="" />
++      <created>1727275325414</created>
++      <option name="number" value="Default" />
++      <option name="presentableId" value="Default" />
++      <updated>1727275325414</updated>
++      <workItem from="1727275327335" duration="201000" />
++    </task>
++    <servers />
++  </component>
++  <component name="TypeScriptGeneratedFilesManager">
++    <option name="version" value="3" />
++  </component>
++</project>
+\ No newline at end of file
 diff --git a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
 index 30e985c..d03fa2f 100644
 --- a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
@@ -20,7 +122,8 @@ index 30e985c..d03fa2f 100644
 +  useTransactionSimulations: { persist: true, anonymous: true },
 +  showMultiRpcModal: { persist: false, anonymous: false },
  };
- var name = "PreferencesController";
+-var name = "PreferencesController";
++var name = 'PreferencesController';
  function getDefaultPreferencesState() {
 @@ -37,7 +41,7 @@ function getDefaultPreferencesState() {
      isIpfsGatewayEnabled: true,
@@ -29,7 +132,8 @@ index 30e985c..d03fa2f 100644
 -    openSeaEnabled: false,
 +    displayNftMedia: false,
      securityAlertsEnabled: false,
-     selectedAddress: "",
+-    selectedAddress: "",
++    selectedAddress: '',
      showIncomingTransactions: {
 @@ -64,7 +68,11 @@ function getDefaultPreferencesState() {
      },
@@ -52,7 +156,7 @@ index 30e985c..d03fa2f 100644
 +    if (useNftDetection && !this.state.displayNftMedia) {
        throw new Error(
 -        "useNftDetection cannot be enabled if openSeaEnabled is false"
-+        "useNftDetection cannot be enabled if displayNftMedia is false"
++        'useNftDetection cannot be enabled if displayNftMedia is false',
        );
      }
      this.update((state) => {
@@ -120,25 +224,82 @@ index 30e985c..d03fa2f 100644
 +   * @param smartTransactionsOptInStatus - true to opt into smart transactions
 +   */
 +  setSmartTransactionsOptInStatus(smartTransactionsOptInStatus) {
-+      this.update((state) => {
-+          state.smartTransactionsOptInStatus = smartTransactionsOptInStatus;
-+      });
++    this.update((state) => {
++      state.smartTransactionsOptInStatus = smartTransactionsOptInStatus;
++    });
 +  }
 +
 +  /**
-+  * A setter for the user to opt into transaction simulations
-+  *
-+  * @param useTransactionSimulations - true to opt into transaction simulations
-+  */
++   * A setter for the user to opt into transaction simulations
++   *
++   * @param useTransactionSimulations - true to opt into transaction simulations
++   */
 +  setUseTransactionSimulations(useTransactionSimulations) {
-+      this.update((state) => {
-+          state.useTransactionSimulations = useTransactionSimulations;
-+      });
++    this.update((state) => {
++      state.useTransactionSimulations = useTransactionSimulations;
++    });
 +  }
 +
    /**
     * A setter for the user preferences to enable/disable rpc methods.
     *
+@@ -255,7 +312,7 @@ var PreferencesController = class extends _basecontroller.BaseController {
+     const { disabledRpcMethodPreferences } = this.state;
+     const newDisabledRpcMethods = {
+       ...disabledRpcMethodPreferences,
+-      [methodName]: isEnabled
++      [methodName]: isEnabled,
+     };
+     this.update((state) => {
+       state.disabledRpcMethodPreferences = newDisabledRpcMethods;
+@@ -297,21 +354,28 @@ var PreferencesController = class extends _basecontroller.BaseController {
+    * @param chainId - On hexadecimal format to enable the incoming transaction network
+    * @param isIncomingTransactionNetworkEnable - true to enable incoming transactions
+    */
+-  setEnableNetworkIncomingTransactions(chainId, isIncomingTransactionNetworkEnable) {
+-    if (Object.values(_chunkPOA2PUW4js.ETHERSCAN_SUPPORTED_CHAIN_IDS).includes(chainId)) {
++  setEnableNetworkIncomingTransactions(
++    chainId,
++    isIncomingTransactionNetworkEnable,
++  ) {
++    if (
++      Object.values(_chunkPOA2PUW4js.ETHERSCAN_SUPPORTED_CHAIN_IDS).includes(
++        chainId,
++      )
++    ) {
+       this.update((state) => {
+         state.showIncomingTransactions = {
+           ...this.state.showIncomingTransactions,
+-          [chainId]: isIncomingTransactionNetworkEnable
++          [chainId]: isIncomingTransactionNetworkEnable,
+         };
+       });
+     }
+   }
+ };
+ _syncIdentities = new WeakSet();
+-syncIdentities_fn = function(addresses) {
+-  addresses = addresses.map(
+-    (address) => _controllerutils.toChecksumHexAddress.call(void 0, address)
++syncIdentities_fn = function (addresses) {
++  addresses = addresses.map((address) =>
++    _controllerutils.toChecksumHexAddress.call(void 0, address),
+   );
+   this.update((state) => {
+     const { identities } = state;
+@@ -335,9 +399,7 @@ syncIdentities_fn = function(addresses) {
+ };
+ var PreferencesController_default = PreferencesController;
+
+-
+-
+-
+-
+-exports.getDefaultPreferencesState = getDefaultPreferencesState; exports.PreferencesController = PreferencesController; exports.PreferencesController_default = PreferencesController_default;
++exports.getDefaultPreferencesState = getDefaultPreferencesState;
++exports.PreferencesController = PreferencesController;
++exports.PreferencesController_default = PreferencesController_default;
+ //# sourceMappingURL=chunk-FSWGV6H6.js.map
 diff --git a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 index 7e3ba15..c3c7ec6 100644
 --- a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
@@ -199,11 +360,9 @@ index 7e3ba15..c3c7ec6 100644
      setUseNftDetection(useNftDetection: boolean): void;
      /**
 -     * Toggle the opensea enabled setting.
-+     * Toggle the display nft media enabled setting.
-      *
+-     *
 -     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
-+     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
-      */
+-     */
 -    setOpenSeaEnabled(openSeaEnabled: boolean): void;
 +    setDisplayNftMedia(displayNftMedia: boolean): void;
 +    /**
