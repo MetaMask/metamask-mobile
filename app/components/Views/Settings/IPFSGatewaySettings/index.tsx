@@ -1,9 +1,6 @@
-// Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Switch, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import Engine from '../../../../core/Engine';
 import { useStyles } from '../../../../component-library/hooks';
 import {
@@ -19,8 +16,6 @@ import Text, {
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import { timeoutFetch } from '../../../../util/general';
 import SelectComponent from '../../../UI/SelectComponent';
-
-// Internal dependencies
 import styleSheet from './index.styles';
 import {
   IPFS_GATEWAY_SECTION,

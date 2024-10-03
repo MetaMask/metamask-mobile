@@ -1,9 +1,6 @@
-// Third party dependencies
 import React from 'react';
 import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import { useStyles } from '../../../../component-library/hooks';
 import Engine from '../../../../core/Engine';
 import { selectDisplayNftMedia } from '../../../../selectors/preferencesController';
@@ -13,8 +10,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-
-// Internal dependencies
 import styleSheet from './index.styles';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 
