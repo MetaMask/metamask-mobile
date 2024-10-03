@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Logger from './Logger';
 import trackErrorAsAnalytics from './metrics/TrackError/trackErrorAsAnalytics';
 
@@ -15,16 +16,21 @@ const USER_REJECTED_ERRORS = ['user rejected', 'user denied', 'user cancelled'];
 
 const USER_REJECTED_ERROR_CODE = 4001;
 
+interface MiddlewareOptions {
+  origin: string;
+}
+
 /**
  * Returns a middleware that appends the DApp origin to request
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createOriginMiddleware(opts: { origin: string }): (req: { origin?: string; params?: unknown[] }, _: unknown, next: () => void) => void {
+export function createOriginMiddleware(opts: MiddlewareOptions) {
   return function originMiddleware(
-    req: { origin?: string; params?: unknown[] },
-    /** @type {any} */ _,
-    /** @type {Function} */ next,
+    /** @type {any} */ req: any,
+    /** @type {any} */ _: any,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    /** @type {Function} */ next: Function,
   ) {
     req.origin = opts.origin;
 
@@ -43,7 +49,10 @@ export function createOriginMiddleware(opts: { origin: string }): (req: { origin
  * @param {String} errorMessage
  * @returns {boolean}
  */
-export function containsUserRejectedError(errorMessage: string, errorCode?: number): boolean {
+export function containsUserRejectedError(
+  errorMessage: string,
+  errorCode: number,
+) {
   try {
     if (!errorMessage || !(typeof errorMessage === 'string')) return false;
 
@@ -57,6 +66,7 @@ export function containsUserRejectedError(errorMessage: string, errorCode?: numb
     if (errorCode === USER_REJECTED_ERROR_CODE) return true;
 
     return false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return false;
   }
@@ -67,62 +77,55 @@ export function containsUserRejectedError(errorMessage: string, errorCode?: numb
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createLoggerMiddleware(opts: { origin: string }): (req: unknown, res: unknown, next: () => void) => void {
+export function createLoggerMiddleware(opts: MiddlewareOptions) {
   return function loggerMiddleware(
-    req: unknown,
-    res: unknown,
-    next: () => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /** @type {any} */ req: any,
+    /** @type {any} */ res: any,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    /** @type {Function} */ next: Function,
   ) {
-    next();
-    const typedReq = req as { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown };
-    const typedRes = res as { error?: unknown; [key: string]: unknown };
-
-    if (typeof typedRes === 'object' && typedRes !== null && 'error' in typedRes) {
-      const { error, ...resWithoutError } = typedRes;
-      if (error) {
-        if (typeof error === 'object' && error !== null && 'message' in error && 'code' in error) {
-          const errorMessage = typeof error.message === 'string' ? error.message : '';
-          const errorCode = typeof error.code === 'number' ? error.code : undefined;
-          if (containsUserRejectedError(errorMessage, errorCode)) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    next((/** @type {Function} */ cb: Function) => {
+      if (res.error) {
+        const { error, ...resWithoutError } = res;
+        if (error) {
+          if (containsUserRejectedError(error.message, error.code)) {
             trackErrorAsAnalytics(
               `Error in RPC response: User rejected`,
-              errorMessage,
+              error.message,
             );
           } else {
             /**
              * Example of a rpc error:
              * { "code":-32603,
-             *   "message":"Internal JSON-RPC error.",
-             *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
+             * "message":"Internal JSON-RPC error.",
+             * "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
              * }
              * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
              * making it easier to differentiate each error.
              */
-            const errorParams: {
-              message: string;
-              orginalError: unknown;
-              res: unknown;
-              req: unknown;
-              data?: unknown;
-            } = {
+            const errorParams = {
               message: 'Error in RPC response',
               orginalError: error,
               res: resWithoutError,
-              req: typedReq,
+              req,
+              data: undefined,
             };
 
-            if (typeof error === 'object' && error !== null && 'data' in error) {
+            if (error.data) {
               errorParams.data = error.data;
             }
 
-            Logger.error(error as unknown as Error, errorParams);
+            Logger.error(error, errorParams);
           }
         }
       }
-    }
-    if (typedReq.isMetamaskInternal) {
-      return;
-    }
-    Logger.log(`RPC (${opts.origin}):`, typedReq, '->', typedRes);
+      if (req.isMetamaskInternal) {
+        return;
+      }
+      Logger.log(`RPC (${opts.origin}):`, req, '->', res);
+      cb();
+    });
   };
 }
