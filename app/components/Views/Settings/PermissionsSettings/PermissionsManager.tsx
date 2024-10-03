@@ -81,16 +81,30 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       }
     });
 
-    const mappedPermissions: PermissionListItemViewModel[] = otherSubjects.map(
-      (subject) => ({
+    const mappedOtherPermissions: PermissionListItemViewModel[] =
+      otherSubjects.map((subject) => ({
         dappLogoUrl: '',
         dappHostName: subject.origin,
         numberOfAccountPermissions:
           subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
         numberOfNetworkPermissions: 0,
         permissionSource: PermissionSource.MetaMaskBrowser,
-      }),
-    );
+      }));
+
+    const mappedUuidPermissions: PermissionListItemViewModel[] =
+      uuidSubjects.map((subject) => ({
+        dappLogoUrl: '',
+        dappHostName: subject.origin,
+        numberOfAccountPermissions:
+          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
+        numberOfNetworkPermissions: 0,
+        permissionSource: PermissionSource.SDK,
+      }));
+
+    const mappedPermissions: PermissionListItemViewModel[] = [
+      ...mappedOtherPermissions,
+      ...mappedUuidPermissions,
+    ];
 
     setInAppBrowserPermissions(mappedPermissions);
     // console.log('>>> uuidSubjects: ', JSON.stringify(uuidSubjects));
