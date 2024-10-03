@@ -26,11 +26,11 @@ const main = async () => {
 
   const fileList = fs.readdirSync(assetsFolderPath);
   const assetFileList = fileList.filter(
-    (fileName): fileName is string => path.extname(fileName) === ASSET_EXT,
+    (fileName: string): fileName is string => path.extname(fileName) === ASSET_EXT,
   );
 
   // Replace the color black with currentColor
-  assetFileList.forEach((fileName) => {
+  assetFileList.forEach((fileName: string) => {
     const filePath = path.join(__dirname, `../${ASSETS_FOLDER}/${fileName}`);
     const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
     const formattedFileContent = fileContent.replace(/black/g, 'currentColor');
@@ -53,7 +53,7 @@ const main = async () => {
     `\nimport { AssetByIconName, IconName } from './Icon.types';`,
   );
 
-  assetFileList.forEach((fileName) => {
+  assetFileList.forEach((fileName: string) => {
     const iconName = getIconNameInTitleCase(fileName).toLowerCase();
     fs.appendFileSync(
       assetsModulePath,
@@ -71,7 +71,7 @@ const main = async () => {
     `\nexport const assetByIconName: AssetByIconName = {`,
   );
 
-  assetFileList.forEach(async (fileName) => {
+  assetFileList.forEach(async (fileName: string) => {
     const iconName = getIconNameInTitleCase(fileName);
     fs.appendFileSync(
       assetsModulePath,
@@ -95,12 +95,12 @@ const main = async () => {
 
   typesContentToWrite += '\n\n/**\n * Icon names\n */\nexport enum IconName {';
 
-  assetFileList.forEach((fileName) => {
+  assetFileList.forEach((fileName: string) => {
     const iconName = path
       .basename(fileName, ASSET_EXT)
       .split('-')
       .map(
-        (section) =>
+        (section: string) =>
           `${section[0].toUpperCase()}${section.substring(1, section.length)}`,
       )
       .join('');
