@@ -738,7 +738,7 @@ exports[`AccountHeaderCard render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Ethereum mainnet
+                  Ethereum Main Network
                 </Text>
               </View>
             </View>

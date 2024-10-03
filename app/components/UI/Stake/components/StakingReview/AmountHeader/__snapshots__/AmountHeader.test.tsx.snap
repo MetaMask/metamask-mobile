@@ -188,7 +188,9 @@ exports[`AmountHeader render matches snapshot 1`] = `
         }
       }
     >
-      0.002 wETH
+      0.00321
+       
+      wETH
     </Text>
     <Text
       accessibilityRole="text"
@@ -203,7 +205,7 @@ exports[`AmountHeader render matches snapshot 1`] = `
         }
       }
     >
-      $66.26
+      7.46
     </Text>
   </View>
 </View>

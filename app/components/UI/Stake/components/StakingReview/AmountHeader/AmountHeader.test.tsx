@@ -2,6 +2,8 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import AmountHeader from './AmountHeader';
 import { Image } from 'react-native';
+import { AmountHeaderProps } from './AmountHeader.types';
+import { renderFromWei } from '../../../../../../util/number';
 
 jest.mock('../../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -11,17 +13,20 @@ Image.getSize = jest.fn((_uri, success) => {
 
 describe('AmountHeader', () => {
   it('render matches snapshot', () => {
-    const props = {
-      balanceEth: '0.002 wETH',
-      balanceFiat: '$66.26',
+    const props: AmountHeaderProps = {
+      wei: '3210000000000000',
+      fiat: '7.46',
+      tokenSymbol: 'wETH',
     };
 
     const { getByText, toJSON } = renderWithProvider(
       <AmountHeader {...props} />,
     );
 
-    expect(getByText(props.balanceEth)).toBeDefined();
-    expect(getByText(props.balanceFiat)).toBeDefined();
+    expect(
+      getByText(`${renderFromWei(props.wei)} ${props.tokenSymbol}`),
+    ).toBeDefined(); // 0.00321 wETH
+    expect(getByText(props.fiat)).toBeDefined();
 
     expect(toJSON()).toMatchSnapshot();
   });

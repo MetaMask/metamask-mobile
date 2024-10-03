@@ -6,6 +6,7 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { StakeReviewViewProps } from './StakeReviewView.types';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -54,9 +55,17 @@ jest.mock('@react-navigation/native', () => {
 
 describe('StakeReviewView', () => {
   it('render matches snapshot', () => {
+    const props: StakeReviewViewProps = {
+      route: {
+        key: '1',
+        params: { wei: '3210000000000000', fiat: '7.46' },
+        name: 'params',
+      },
+    };
+
     const { toJSON } = renderWithProvider(
       <Provider store={store}>
-        <StakeReviewView />
+        <StakeReviewView {...props} />
       </Provider>,
     );
 
