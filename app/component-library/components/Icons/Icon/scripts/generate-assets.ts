@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const ASSETS_FOLDER = 'assets';
 const GENERATED_ASSETS_FILE = 'Icon.assets.ts';
@@ -9,12 +9,12 @@ const TYPES_FILE = 'Icon.types.ts';
 const ASSET_EXT = '.svg';
 const TYPES_CONTENT_TO_DETECT = '// DO NOT EDIT - Use generate-assets.js';
 
-const getIconNameInTitleCase = (fileName: string): string =>
+const getIconNameInTitleCase = (fileName: string) =>
   path
     .basename(fileName, ASSET_EXT)
     .split('-')
     .map(
-      (section: string) =>
+      (section) =>
         `${section[0].toUpperCase()}${section.substring(1, section.length)}`,
     )
     .join('');
@@ -26,11 +26,11 @@ const main = async () => {
 
   const fileList = fs.readdirSync(assetsFolderPath);
   const assetFileList = fileList.filter(
-    (fileName: string): fileName is string => path.extname(fileName) === ASSET_EXT,
+    (fileName) => path.extname(fileName) === ASSET_EXT,
   );
 
   // Replace the color black with currentColor
-  assetFileList.forEach((fileName: string) => {
+  assetFileList.forEach((fileName) => {
     const filePath = path.join(__dirname, `../${ASSETS_FOLDER}/${fileName}`);
     const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
     const formattedFileContent = fileContent.replace(/black/g, 'currentColor');
@@ -53,7 +53,7 @@ const main = async () => {
     `\nimport { AssetByIconName, IconName } from './Icon.types';`,
   );
 
-  assetFileList.forEach((fileName: string) => {
+  assetFileList.forEach((fileName) => {
     const iconName = getIconNameInTitleCase(fileName).toLowerCase();
     fs.appendFileSync(
       assetsModulePath,
@@ -71,7 +71,7 @@ const main = async () => {
     `\nexport const assetByIconName: AssetByIconName = {`,
   );
 
-  assetFileList.forEach(async (fileName: string) => {
+  assetFileList.forEach(async (fileName) => {
     const iconName = getIconNameInTitleCase(fileName);
     fs.appendFileSync(
       assetsModulePath,
@@ -95,12 +95,12 @@ const main = async () => {
 
   typesContentToWrite += '\n\n/**\n * Icon names\n */\nexport enum IconName {';
 
-  assetFileList.forEach((fileName: string) => {
+  assetFileList.forEach((fileName) => {
     const iconName = path
       .basename(fileName, ASSET_EXT)
       .split('-')
       .map(
-        (section: string) =>
+        (section) =>
           `${section[0].toUpperCase()}${section.substring(1, section.length)}`,
       )
       .join('');
