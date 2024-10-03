@@ -1712,6 +1712,7 @@ class Engine {
           'NetworkController:stateChange',
           'NotificationServicesController:stateChange',
           'PermissionController:stateChange',
+          'PhishingController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
           'SmartTransactionsController:stateChange',
@@ -1731,9 +1732,6 @@ class Engine {
           // TODO: Remove `ts-expect-error` directive once `NftController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
           'NftController:stateChange',
-          // TODO: Remove `ts-expect-error` directive once `PhishingController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'PhishingController:stateChange',
           // TODO: Remove `ts-expect-error` directive once `PPOMController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'PPOMController:stateChange',
