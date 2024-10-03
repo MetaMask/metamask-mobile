@@ -73,57 +73,56 @@ export function createLoggerMiddleware(opts: { origin: string }): (req: unknown,
     res: unknown,
     next: () => void,
   ) {
-    next(() => {
-      const typedReq = req as { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown };
-      const typedRes = res as { error?: unknown; [key: string]: unknown };
+    next();
+    const typedReq = req as { isMetamaskInternal?: boolean; origin?: string; params?: unknown[]; [key: string]: unknown };
+    const typedRes = res as { error?: unknown; [key: string]: unknown };
 
-      if (typeof typedRes === 'object' && typedRes !== null && 'error' in typedRes) {
-        const { error, ...resWithoutError } = typedRes;
-        if (error) {
-          if (typeof error === 'object' && error !== null && 'message' in error && 'code' in error) {
-            const errorMessage = typeof error.message === 'string' ? error.message : '';
-            const errorCode = typeof error.code === 'number' ? error.code : undefined;
-            if (containsUserRejectedError(errorMessage, errorCode)) {
-              trackErrorAsAnalytics(
-                `Error in RPC response: User rejected`,
-                errorMessage,
-              );
-            } else {
-              /**
-               * Example of a rpc error:
-               * { "code":-32603,
-               *   "message":"Internal JSON-RPC error.",
-               *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
-               * }
-               * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
-               * making it easier to differentiate each error.
-               */
-              const errorParams: {
-                message: string;
-                orginalError: unknown;
-                res: unknown;
-                req: unknown;
-                data?: unknown;
-              } = {
-                message: 'Error in RPC response',
-                orginalError: error,
-                res: resWithoutError,
-                req: typedReq,
-              };
+    if (typeof typedRes === 'object' && typedRes !== null && 'error' in typedRes) {
+      const { error, ...resWithoutError } = typedRes;
+      if (error) {
+        if (typeof error === 'object' && error !== null && 'message' in error && 'code' in error) {
+          const errorMessage = typeof error.message === 'string' ? error.message : '';
+          const errorCode = typeof error.code === 'number' ? error.code : undefined;
+          if (containsUserRejectedError(errorMessage, errorCode)) {
+            trackErrorAsAnalytics(
+              `Error in RPC response: User rejected`,
+              errorMessage,
+            );
+          } else {
+            /**
+             * Example of a rpc error:
+             * { "code":-32603,
+             *   "message":"Internal JSON-RPC error.",
+             *   "data":{"code":-32000,"message":"gas required exceeds allowance (59956966) or always failing transaction"}
+             * }
+             * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
+             * making it easier to differentiate each error.
+             */
+            const errorParams: {
+              message: string;
+              orginalError: unknown;
+              res: unknown;
+              req: unknown;
+              data?: unknown;
+            } = {
+              message: 'Error in RPC response',
+              orginalError: error,
+              res: resWithoutError,
+              req: typedReq,
+            };
 
-              if (typeof error === 'object' && error !== null && 'data' in error) {
-                errorParams.data = error.data;
-              }
-
-              Logger.error(error as unknown as Error, errorParams);
+            if (typeof error === 'object' && error !== null && 'data' in error) {
+              errorParams.data = error.data;
             }
+
+            Logger.error(error as unknown as Error, errorParams);
           }
         }
       }
-      if (typedReq.isMetamaskInternal) {
-        return;
-      }
-      Logger.log(`RPC (${opts.origin}):`, typedReq, '->', typedRes);
-    });
+    }
+    if (typedReq.isMetamaskInternal) {
+      return;
+    }
+    Logger.log(`RPC (${opts.origin}):`, typedReq, '->', typedRes);
   };
 }
