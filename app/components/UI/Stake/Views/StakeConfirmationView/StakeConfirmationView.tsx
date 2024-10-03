@@ -37,7 +37,11 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
-          <AccountHeaderCard contractName={MOCK_STAKING_CONTRACT_NAME} />
+          <AccountHeaderCard
+            contractName={MOCK_STAKING_CONTRACT_NAME}
+            primaryLabel={strings('stake.staking_from')}
+            secondaryLabel={strings('stake.interacting_with')}
+          />
           <RewardsCard
             rewardRate={route.params.annualRewardRate}
             rewardsEth={route.params.annualRewardsETH}
