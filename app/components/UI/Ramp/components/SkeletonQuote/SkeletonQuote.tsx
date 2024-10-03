@@ -1,13 +1,11 @@
 import React from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
-import BaseListItem from '../../../../Base/ListItem';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import Box from '../Box';
 import SkeletonText from '../SkeletonText';
-
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
 
 const SkeletonQuote = ({
   collapsed,
@@ -16,27 +14,29 @@ const SkeletonQuote = ({
   collapsed?: boolean;
   style?: StyleProp<ViewStyle>;
 }) => (
-  <Box style={style}>
-    <ListItem.Content>
-      <ListItem.Body>
-        <ListItem.Title>
-          <SkeletonText title />
-        </ListItem.Title>
-      </ListItem.Body>
-      <ListItem.Amounts>
-        <SkeletonText medium />
-      </ListItem.Amounts>
-    </ListItem.Content>
+  <Box style={style} compact>
+    <ListItem>
+      <ListItemColumn>
+        <SkeletonText title />
+      </ListItemColumn>
+      <ListItemColumn widthType={WidthType.Fill}>
+        <View style={{ alignItems: 'flex-end' }}>
+          <SkeletonText small />
+        </View>
+      </ListItemColumn>
+    </ListItem>
     {!collapsed && (
       <>
-        <ListItem.Content>
-          <ListItem.Body>
+        <ListItem>
+          <ListItemColumn widthType={WidthType.Fill}>
             <SkeletonText thin />
-          </ListItem.Body>
-          <ListItem.Amounts>
-            <SkeletonText thin spacingVertical small />
-          </ListItem.Amounts>
-        </ListItem.Content>
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <View style={{ alignItems: 'flex-end' }}>
+              <SkeletonText thin small />
+            </View>
+          </ListItemColumn>
+        </ListItem>
       </>
     )}
   </Box>

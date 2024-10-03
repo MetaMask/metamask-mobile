@@ -31,74 +31,37 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             },
             undefined,
             undefined,
-            undefined,
+            {
+              "padding": 0,
+            },
             undefined,
           ]
         }
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
-            <Text
+            <View
               style={
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 30,
-                    "fontWeight": "400",
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  [
-                    {
-                      "color": "#141618",
-                      "fontSize": 15,
-                    },
-                    undefined,
-                  ],
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <View
                 style={
@@ -127,139 +90,170 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                   ]
                 }
               />
-            </Text>
-          </View>
-          <View
-            style={
-              [
+            </View>
+            <View
+              accessible={false}
+              style={
                 {
-                  "alignItems": "flex-end",
-                  "flex": 0.6,
-                },
-                undefined,
-              ]
-            }
-          >
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
             <View
               style={
-                [
-                  {
-                    "backgroundColor": "#f2f4f6",
-                    "borderRadius": 30,
-                    "padding": 14,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "width": "50%",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
-            />
+              testID="listitemcolumn"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 30,
+                        "padding": 14,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "width": "30%",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </View>
           </View>
         </View>
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
                 {
                   "flex": 1,
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "backgroundColor": "#f2f4f6",
-                    "borderRadius": 30,
-                    "padding": 14,
-                  },
-                  {
-                    "padding": 8,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                }
               }
-            />
-          </View>
-          <View
-            style={
-              [
+              testID="listitemcolumn"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#f2f4f6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    {
+                      "padding": 8,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
                 {
-                  "alignItems": "flex-end",
-                  "flex": 0.6,
-                },
-                undefined,
-              ]
-            }
-          >
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
             <View
               style={
-                [
-                  {
-                    "backgroundColor": "#f2f4f6",
-                    "borderRadius": 30,
-                    "padding": 14,
-                  },
-                  {
-                    "padding": 8,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "width": "30%",
-                  },
-                  undefined,
-                  undefined,
-                  {
-                    "marginVertical": 10,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
-            />
+              testID="listitemcolumn"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 30,
+                        "padding": 14,
+                      },
+                      {
+                        "padding": 8,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "width": "30%",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -292,74 +286,37 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             },
             undefined,
             undefined,
-            undefined,
+            {
+              "padding": 0,
+            },
             undefined,
           ]
         }
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
-            <Text
+            <View
               style={
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 30,
-                    "fontWeight": "400",
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  [
-                    {
-                      "color": "#141618",
-                      "fontSize": 15,
-                    },
-                    undefined,
-                  ],
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <View
                 style={
@@ -388,46 +345,60 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                   ]
                 }
               />
-            </Text>
-          </View>
-          <View
-            style={
-              [
+            </View>
+            <View
+              accessible={false}
+              style={
                 {
-                  "alignItems": "flex-end",
-                  "flex": 0.6,
-                },
-                undefined,
-              ]
-            }
-          >
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
             <View
               style={
-                [
-                  {
-                    "backgroundColor": "#f2f4f6",
-                    "borderRadius": 30,
-                    "padding": 14,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "width": "50%",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
-            />
+              testID="listitemcolumn"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 30,
+                        "padding": 14,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "width": "30%",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -460,74 +431,37 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             },
             undefined,
             undefined,
-            undefined,
+            {
+              "padding": 0,
+            },
             undefined,
           ]
         }
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
-                {
-                  "flex": 1,
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
-            <Text
+            <View
               style={
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 30,
-                    "fontWeight": "400",
-                    "marginVertical": 2,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  [
-                    {
-                      "color": "#141618",
-                      "fontSize": 15,
-                    },
-                    undefined,
-                  ],
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <View
                 style={
@@ -556,46 +490,60 @@ exports[`LoadingQuotes component renders correctly 1`] = `
                   ]
                 }
               />
-            </Text>
-          </View>
-          <View
-            style={
-              [
+            </View>
+            <View
+              accessible={false}
+              style={
                 {
-                  "alignItems": "flex-end",
-                  "flex": 0.6,
-                },
-                undefined,
-              ]
-            }
-          >
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
             <View
               style={
-                [
-                  {
-                    "backgroundColor": "#f2f4f6",
-                    "borderRadius": 30,
-                    "padding": 14,
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  {
-                    "width": "50%",
-                  },
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
-            />
+              testID="listitemcolumn"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#f2f4f6",
+                        "borderRadius": 30,
+                        "padding": 14,
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      {
+                        "width": "30%",
+                      },
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </View>
           </View>
         </View>
       </View>
