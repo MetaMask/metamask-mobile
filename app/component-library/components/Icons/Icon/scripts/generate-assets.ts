@@ -9,12 +9,12 @@ const TYPES_FILE = 'Icon.types.ts';
 const ASSET_EXT = '.svg';
 const TYPES_CONTENT_TO_DETECT = '// DO NOT EDIT - Use generate-assets.js';
 
-const getIconNameInTitleCase = (fileName) =>
+const getIconNameInTitleCase = (fileName: string): string =>
   path
     .basename(fileName, ASSET_EXT)
     .split('-')
     .map(
-      (section) =>
+      (section: string) =>
         `${section[0].toUpperCase()}${section.substring(1, section.length)}`,
     )
     .join('');
