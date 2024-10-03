@@ -32,7 +32,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import CurrencyToggle from '../../components/CurrencySwitch';
 import QuickAmounts from '../../components/QuickAmounts';
-import styleSheet from '../InputView/StakeInputView.styles';
+import styleSheet from '../StakeInputView/StakeInputView.styles';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
