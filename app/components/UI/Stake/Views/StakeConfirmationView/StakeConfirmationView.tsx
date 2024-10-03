@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakeReviewNavbar } from '../../../Navbar';
-import styleSheet from './StakeReviewView.styles';
+import { getStakeConfirmationNavbar } from '../../../Navbar';
+import styleSheet from './StakeConfirmationView.styles';
 import AmountHeader from '../../components/StakingReview/AmountHeader/AmountHeader';
 import AccountHeaderCard from '../../components/StakingReview/AccountHeaderCard/AccountHeaderCard';
 import EstimatedGasCard from '../../components/StakingReview/EstimatedGasCard/EstimatedGasCard';
@@ -13,16 +13,16 @@ import {
   MOCK_REWARD_DATA,
   MOCK_STAKING_CONTRACT,
   MOCK_STAKING_REVIEW_DATA,
-} from './StakeReviewMockData';
-import { StakeReviewViewProps } from './StakeReviewView.types';
+} from './StakeConfirmationMockData';
+import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 
-const StakeReviewView = ({ route }: StakeReviewViewProps) => {
+const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
-    navigation.setOptions(getStakeReviewNavbar(navigation, theme.colors));
+    navigation.setOptions(getStakeConfirmationNavbar(navigation, theme.colors));
   }, [navigation, theme.colors]);
 
   return (
@@ -51,4 +51,4 @@ const StakeReviewView = ({ route }: StakeReviewViewProps) => {
   );
 };
 
-export default StakeReviewView;
+export default StakeConfirmationView;

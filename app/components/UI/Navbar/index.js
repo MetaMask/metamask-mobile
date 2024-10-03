@@ -1857,7 +1857,7 @@ export function getStakeInputNavbar(navigation, themeColors) {
   };
 }
 
-export function getStakeReviewNavbar(navigation, themeColors) {
+export function getStakeConfirmationNavbar(navigation, themeColors) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.alternative,

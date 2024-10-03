@@ -151,7 +151,7 @@ const StakeInputView = () => {
 
   const handleStakePress = useCallback(() => {
     navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE_REVIEW,
+      screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
         wei: amountBN.toString(),
         fiat: fiatAmount,

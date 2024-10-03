@@ -1,12 +1,12 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import StakeReviewView from './StakeReviewView';
+import StakeConfirmationView from './StakeConfirmationView';
 import { Image } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { StakeReviewViewProps } from './StakeReviewView.types';
+import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -53,9 +53,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('StakeReviewView', () => {
+describe('StakeConfirmationView', () => {
   it('render matches snapshot', () => {
-    const props: StakeReviewViewProps = {
+    const props: StakeConfirmationViewProps = {
       route: {
         key: '1',
         params: { wei: '3210000000000000', fiat: '7.46' },
@@ -65,7 +65,7 @@ describe('StakeReviewView', () => {
 
     const { toJSON } = renderWithProvider(
       <Provider store={store}>
-        <StakeReviewView {...props} />
+        <StakeConfirmationView {...props} />
       </Provider>,
     );
 

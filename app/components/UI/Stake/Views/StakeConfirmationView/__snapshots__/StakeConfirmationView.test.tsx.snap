@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StakeReviewView render matches snapshot 1`] = `
+exports[`StakeConfirmationView render matches snapshot 1`] = `
 <View
   style={
     {
