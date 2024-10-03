@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import StakeInputView from '../Views/InputView/StakeInputView';
 import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
+import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -18,6 +19,7 @@ const clearStackNavigatorOptions = {
 const StakeScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+    <Stack.Screen name={Routes.STAKING.UNSTAKE} component={UnstakeInputView} />
   </Stack.Navigator>
 );
 

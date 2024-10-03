@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,21 +10,21 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextColor,
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import {
-  selectConversionRate,
   selectCurrentCurrency,
+  selectConversionRate,
 } from '../../../../../selectors/currencyRateController';
 import {
-  fiatNumberToWei,
-  fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
-  renderFiat,
-  renderFromTokenMinimalUnit,
   toWei,
   weiToFiatNumber,
+  renderFromTokenMinimalUnit,
+  fiatNumberToWei,
+  fromTokenMinimalUnitString,
+  renderFromWei,
 } from '../../../../../util/number';
 import Keypad from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -32,87 +32,45 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import CurrencyToggle from '../../components/CurrencySwitch';
 import QuickAmounts from '../../components/QuickAmounts';
-import useBalance from '../../hooks/useBalance';
-import styleSheet from './StakeInputView.styles';
-import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
-import Routes from '../../../../../constants/navigation/Routes';
+import styleSheet from '../InputView/StakeInputView.styles';
 
-const StakeInputView = () => {
-  const title = strings('stake.stake_eth');
+const UnstakeInputView = () => {
+  const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const [amount, setAmount] = useState('0');
-  const [amountBN, setAmountBN] = useState<BN>(new BN(0));
-  const { balance, balanceBN, balanceFiatNumber } = useBalance();
-  const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
-
-  const isNonZeroAmount = useMemo(() => amountBN.gt(new BN(0)), [amountBN]);
-  const isOverMaximum = useMemo(() => {
-    const additionalFundsRequired = amountBN.sub(balanceBN || new BN(0));
-    return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
-  }, [amountBN, balanceBN, isNonZeroAmount]);
+  const [unstakeAmount, setUnstakeAmount] = useState('0');
+  const [unstakeAmountBN, setUnstakeAmountBN] = useState<BN>(new BN(0));
 
   const [fiatAmount, setFiatAmount] = useState('0');
   const [isEth, setIsEth] = useState<boolean>(true);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
-  const navigateToLearnMoreModal = () => {
-    navigation.navigate('StakeModals', {
-      screen: Routes.STAKING.MODALS.LEARN_MORE,
-    });
-  };
+  const stakeBalance = '4599964000000000000'; //TODO: Replace with actual balance - STAKE-806
+  const stakeBalanceInEth = renderFromWei(stakeBalance, 5);
+  const stakeBalanceFiatNumber = weiToFiatNumber(stakeBalance, conversionRate);
 
-  const balanceText = isEth
-    ? `${balance} ETH`
-    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
+  const isNonZeroAmount: boolean = unstakeAmountBN.gt(new BN(0));
+  const isOverMaximum: boolean =
+    isNonZeroAmount && unstakeAmountBN.sub(new BN(stakeBalance)).gt(new BN(0));
+
+  const stakedBalanceText = isEth
+    ? `${stakeBalanceInEth} ETH`
+    : `${stakeBalanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
-    : `${amount} ETH`;
-
-  const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
-  const calculateEstimatedAnnualRewards = useCallback(() => {
-    if (isNonZeroAmount) {
-      // Limiting the decimal places to keep it consistent with other eth values in the input screen
-      const ethRewards = limitToMaximumDecimalPlaces(
-        parseFloat(amount) * parseFloat(annualRewardRate),
-        5,
-      );
-      if (isEth) {
-        setEstimatedAnnualRewards(`${ethRewards} ETH`);
-      } else {
-        const fiatRewards = renderFiat(
-          parseFloat(fiatAmount) * parseFloat(annualRewardRate),
-          currentCurrency,
-          2,
-        );
-        setEstimatedAnnualRewards(`${fiatRewards}`);
-      }
-    } else {
-      setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
-    }
-  }, [isNonZeroAmount, amount, isEth, fiatAmount, currentCurrency]);
+    : `${unstakeAmount} ETH`;
 
   useEffect(() => {
     navigation.setOptions(getStakingNavbar(title, navigation, theme.colors));
   }, [navigation, theme.colors, title]);
 
-  useEffect(() => {
-    calculateEstimatedAnnualRewards();
-  }, [
-    amount,
-    amountBN,
-    isEth,
-    conversionRate,
-    calculateEstimatedAnnualRewards,
-  ]);
-
   const handleEthInput = useCallback(
     (value: string) => {
-      setAmount(value);
-      setAmountBN(toWei(value, 'ether'));
+      setUnstakeAmount(value);
+      setUnstakeAmountBN(toWei(value, 'ether'));
       const fiatValue = weiToFiatNumber(
         toWei(value, 'ether'),
         conversionRate,
@@ -132,8 +90,8 @@ const StakeInputView = () => {
         5,
       );
 
-      setAmount(ethValue);
-      setAmountBN(toWei(ethValue, 'ether'));
+      setUnstakeAmount(ethValue);
+      setUnstakeAmountBN(toWei(ethValue, 'ether'));
     },
     [conversionRate],
   );
@@ -151,7 +109,7 @@ const StakeInputView = () => {
   }, [isEth]);
 
   const handleStakePress = useCallback(() => {
-    // TODO: Display the Review bottom sheet: STAKE-824
+    // TODO: Display the Review bottom sheet: STAKE-841
   }, []);
 
   const percentageOptions = [
@@ -163,9 +121,10 @@ const StakeInputView = () => {
 
   const handleAmountPress = useCallback(
     ({ value }: { value: number }) => {
-      if (!balanceBN) return;
+      const stakeBalanceBN = new BN(stakeBalance);
+      if (!stakeBalanceBN) return;
       const percentage = value * 100;
-      const amountPercentage = balanceBN
+      const amountPercentage = stakeBalanceBN
         ?.mul(new BN(percentage))
         .div(new BN(100));
 
@@ -177,8 +136,8 @@ const StakeInputView = () => {
         Number(newAmountString),
         5,
       );
-      setAmount(newEthAmount);
-      setAmountBN(amountPercentage);
+      setUnstakeAmount(newEthAmount);
+      setUnstakeAmountBN(amountPercentage);
 
       const newFiatAmount = weiToFiatNumber(
         toWei(newEthAmount.toString(), 'ether'),
@@ -187,7 +146,7 @@ const StakeInputView = () => {
       ).toString();
       setFiatAmount(newFiatAmount);
     },
-    [balanceBN, conversionRate],
+    [conversionRate, stakeBalance],
   );
 
   return (
@@ -200,9 +159,9 @@ const StakeInputView = () => {
             </Text>
           ) : (
             <Text variant={TextVariant.BodySM}>
-              {strings('stake.balance')}
+              {strings('stake.staked_balance')}
               {': '}
-              {balanceText}
+              {stakedBalanceText}
             </Text>
           )}
         </View>
@@ -211,7 +170,7 @@ const StakeInputView = () => {
             color={isNonZeroAmount ? TextColor.Default : TextColor.Muted}
             variant={TextVariant.DisplayMD}
           >
-            {isEth ? amount : fiatAmount}
+            {isEth ? unstakeAmount : fiatAmount}
           </Text>
           <Text color={TextColor.Muted} variant={TextVariant.DisplayMD}>
             {isEth ? 'ETH' : currentCurrency.toUpperCase()}
@@ -224,18 +183,13 @@ const StakeInputView = () => {
           />
         </View>
       </View>
-      <View style={styles.rewardsRateContainer}>
-        <EstimatedAnnualRewardsCard
-          estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={navigateToLearnMoreModal}
-        />
-      </View>
+
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleAmountPress}
       />
       <Keypad
-        value={isEth ? amount : fiatAmount}
+        value={isEth ? unstakeAmount : fiatAmount}
         onChange={handleKeypadChange}
         style={styles.keypad}
         currency={'ETH'}
@@ -262,4 +216,4 @@ const StakeInputView = () => {
   );
 };
 
-export default StakeInputView;
+export default UnstakeInputView;

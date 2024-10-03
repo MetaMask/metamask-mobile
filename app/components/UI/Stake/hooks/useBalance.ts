@@ -1,4 +1,3 @@
-import { hexToBN } from '@metamask/controller-utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
@@ -14,6 +13,7 @@ import {
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
+import { BN } from 'ethereumjs-util';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -34,7 +34,7 @@ const useBalance = () => {
   );
 
   const balanceBN = useMemo(
-    () => hexToBN(rawAccountBalance),
+    () => new BN(rawAccountBalance),
     [rawAccountBalance],
   );
 

@@ -3276,6 +3276,8 @@
   "stake": {
     "stake": "Stake",
     "stake_eth": "Stake ETH",
+    "unstake_eth": "Unstake ETH",
+    "staked_balance": "Staked balance",
     "staked_ethereum": "Staked Ethereum",
     "unstake": "Unstake",
     "stake_more": "Stake more",
