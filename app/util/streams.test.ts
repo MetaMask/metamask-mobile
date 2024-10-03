@@ -27,6 +27,21 @@ describe('streams', () => {
       expect(mockThrough.push).toHaveBeenCalledWith({ key: 'value' });
       done();
     });
+
+    it('should handle JSON parse errors', (done) => {
+      const mockThrough = {
+        push: jest.fn(),
+      };
+      const mockCallback = jest.fn();
+      (Through.obj as jest.Mock).mockImplementation((callback) => {
+        callback.call(mockThrough, 'invalid json', null, mockCallback);
+        return mockThrough;
+      });
+
+      jsonParseStream();
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(Error));
+      done();
+    });
   });
 
   describe('jsonStringifyStream', () => {
@@ -42,6 +57,23 @@ describe('streams', () => {
       const stream = jsonStringifyStream();
       expect(Through.obj).toHaveBeenCalled();
       expect(mockThrough.push).toHaveBeenCalledWith('{"key":"value"}');
+      done();
+    });
+
+    it('should handle stringify errors', (done) => {
+      const mockThrough = {
+        push: jest.fn(),
+      };
+      const mockCallback = jest.fn();
+      const circularObj: any = {};
+      circularObj.circular = circularObj;
+      (Through.obj as jest.Mock).mockImplementation((callback) => {
+        callback.call(mockThrough, circularObj, null, mockCallback);
+        return mockThrough;
+      });
+
+      jsonStringifyStream();
+      expect(mockCallback).toHaveBeenCalledWith(expect.any(Error));
       done();
     });
   });
@@ -82,7 +114,7 @@ describe('streams', () => {
 
       setupMultiplex(mockConnectionStream);
 
-      expect(console.warn).toHaveBeenCalledWith(mockError);
+      expect(console.warn).toHaveBeenCalledWith('Multiplexing error:', mockError);
     });
   });
 });

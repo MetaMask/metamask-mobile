@@ -19,8 +19,12 @@ function jsonParseStream(): NodeJS.ReadWriteStream {
     _: string,
     cb: TransformCallback
   ) {
-    this.push(JSON.parse(serialized));
-    cb();
+    try {
+      this.push(JSON.parse(serialized));
+      cb();
+    } catch (error) {
+      cb(error as Error);
+    }
   });
 }
 
@@ -36,8 +40,12 @@ function jsonStringifyStream(): NodeJS.ReadWriteStream {
     _: string,
     cb: TransformCallback
   ) {
-    this.push(JSON.stringify(obj));
-    cb();
+    try {
+      this.push(JSON.stringify(obj));
+      cb();
+    } catch (error) {
+      cb(error as Error);
+    }
   });
 }
 
@@ -50,10 +58,10 @@ function setupMultiplex(connectionStream: NodeJS.ReadWriteStream): NodeJS.ReadWr
   const mux = new ObjectMultiplex();
   pump(connectionStream, mux, connectionStream, (err: Error | null) => {
     if (err) {
-      console.warn(err);
+      console.warn('Multiplexing error:', err);
     }
   });
-  return mux as unknown as NodeJS.ReadWriteStream;
+  return mux;
 }
 
 export { jsonParseStream, jsonStringifyStream, setupMultiplex };
