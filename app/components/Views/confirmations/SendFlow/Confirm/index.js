@@ -130,8 +130,6 @@ import {
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
 const REVIEW = 'review';

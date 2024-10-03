@@ -251,7 +251,7 @@ import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 
-// const NON_EMPTY = 'NON_EMPTY';
+const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -539,7 +539,7 @@ class Engine {
     });
 
     const networkControllerOpts = {
-      infuraProjectId: '92007f99166a4fb39b46afd091bb43c2', //process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
       state: initialState.NetworkController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NetworkController',

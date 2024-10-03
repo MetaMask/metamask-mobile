@@ -271,14 +271,17 @@ class Approval extends PureComponent {
       const wc2Manager = await WC2Manager.getInstance();
       const sessions = wc2Manager.getSessions();
       this.originIsWalletConnect = sessions.some((session) => {
-        DevLogger.log(
-          `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
-        );
         // Otherwise, compare the origin with the metadata URL
-        return (
+        if (
           session.peer.metadata.url === origin ||
           origin.startsWith(WALLET_CONNECT_ORIGIN)
-        );
+        ) {
+          DevLogger.log(
+            `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
+          );
+          return true;
+        }
+        return false;
       });
     }
     DevLogger.log(

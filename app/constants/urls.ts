@@ -1,7 +1,7 @@
 import AppConstants from '../core/AppConstants';
 
-const InfuraKey = '92007f99166a4fb39b46afd091bb43c2'; // process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey; // === 'null' ? '' : InfuraKey;
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 // Support
 export const SRP_GUIDE_URL =
