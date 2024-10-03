@@ -18,10 +18,10 @@ function useBlockExplorer(providerConfig, networkConfigurations) {
   });
 
   useEffect(() => {
-    if (providerConfig.type === RPC) {
+    if (providerConfig?.type === RPC) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
-          providerConfig.rpcUrl,
+          providerConfig?.rpcUrl,
           networkConfigurations,
         );
         if (!blockExplorer) {
@@ -54,10 +54,10 @@ function useBlockExplorer(providerConfig, networkConfigurations) {
     } else {
       setExplorer({
         name: 'Etherscan',
-        value: providerConfig.chainId,
+        value: providerConfig?.chainId,
         isValid: true,
         isRPC: false,
-        baseUrl: getEtherscanBaseUrl(providerConfig.type),
+        baseUrl: getEtherscanBaseUrl(providerConfig?.type),
       });
     }
   }, [networkConfigurations, providerConfig]);

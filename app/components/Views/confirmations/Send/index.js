@@ -600,8 +600,7 @@ class Send extends PureComponent {
           Logger.log('Error decoding transfer data', transactionMeta.data);
         }
       }
-      const existingContact =
-        addressBook[chainId] && addressBook[chainId][checksummedAddress];
+      const existingContact = addressBook?.[chainId]?.[checksummedAddress];
       if (!existingContact) {
         AddressBookController.set(checksummedAddress, '', chainId);
       }

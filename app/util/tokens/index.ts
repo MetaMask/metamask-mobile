@@ -4,7 +4,7 @@ import { TokenListMap } from '@metamask/assets-controllers';
  * Convert token list object to token list array
  */
 export const tokenListToArray = (tokenList: TokenListMap) =>
-  Object.values(tokenList).map((tokenData) => tokenData);
+  Object.values(tokenList ?? {}).map((tokenData) => tokenData);
 
 /**
  * Compare two collectible token ids from.

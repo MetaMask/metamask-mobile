@@ -56,19 +56,19 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.tapAddNetworkButton();
     await NetworkView.switchToCustomNetworks();
     await NetworkView.typeInNetworkName(
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
-    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig.rpcUrl);
+    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig?.rpcUrl);
     await NetworkView.typeInChainId(
-      CustomNetworks.Gnosis.providerConfig.chainId,
+      CustomNetworks.Gnosis.providerConfig?.chainId,
     );
     await NetworkView.tapChainIDLabel(); // Focus outside of text input field
 
     await NetworkView.typeInNetworkSymbol(
-      `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
+      `${CustomNetworks.Gnosis.providerConfig?.ticker}\n`,
     );
     if (device.getPlatform() === 'ios') {
       await NetworkView.tapChainIDLabel(); // Focus outside of text input field
@@ -85,14 +85,14 @@ describe(Regression('Custom RPC Tests'), () => {
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementToHaveText(
       WalletView.navbarNetworkText,
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
   });
 
@@ -102,7 +102,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await Assertions.checkIfVisible(
       NetworkListModal.getCustomNetwork(
-        CustomNetworks.Gnosis.providerConfig.nickname,
+        CustomNetworks.Gnosis.providerConfig?.nickname,
         true,
       ),
     );
@@ -111,12 +111,12 @@ describe(Regression('Custom RPC Tests'), () => {
   it('should switch to Sepolia then dismiss the network education modal', async () => {
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
@@ -126,20 +126,20 @@ describe(Regression('Custom RPC Tests'), () => {
   it('should switch back to Gnosis', async () => {
     await Assertions.checkIfElementToHaveText(
       WalletView.navbarNetworkText,
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.scrollToBottomOfNetworkList();
     // Change to back to Gnosis Network
     await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
       true,
     );
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementToHaveText(
       WalletView.navbarNetworkText,
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 
@@ -158,7 +158,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await Assertions.checkIfVisible(NetworkView.networkContainer);
 
     await NetworkView.longPressToRemoveNetwork(
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
     if (device.getPlatform() === 'android') {
       await device.disableSynchronization();

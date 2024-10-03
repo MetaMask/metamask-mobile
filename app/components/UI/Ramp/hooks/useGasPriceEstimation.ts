@@ -59,23 +59,23 @@ function useGasPriceEstimation({
 
   if (
     gasLimit === 0 ||
-    gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.NONE
+    gasFeeControllerState?.gasEstimateType === GAS_ESTIMATE_TYPES.NONE
   ) {
     return null;
   }
 
   let gasPrice;
 
-  if (gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+  if (gasFeeControllerState?.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
     gasPrice =
-      gasFeeControllerState.gasFeeEstimates[estimateRange]
-        .suggestedMaxFeePerGas;
+      gasFeeControllerState?.gasFeeEstimates?.[estimateRange]
+        ?.suggestedMaxFeePerGas;
   } else if (
-    gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+    gasFeeControllerState?.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
   ) {
-    gasPrice = gasFeeControllerState.gasFeeEstimates[estimateRange];
+    gasPrice = gasFeeControllerState?.gasFeeEstimates?.[estimateRange];
   } else {
-    gasPrice = gasFeeControllerState.gasFeeEstimates.gasPrice;
+    gasPrice = gasFeeControllerState?.gasFeeEstimates?.gasPrice;
   }
 
   const weiGasPrice = new BN(decGWEIToHexWEI(gasPrice) as string, 'hex');

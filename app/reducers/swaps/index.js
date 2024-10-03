@@ -41,7 +41,7 @@ function addMetadata(chainId, tokens) {
   }
   return tokens.map((token) => {
     const tokenMetadata =
-      Engine.context.TokenListController.state.tokenList[
+      Engine.context.TokenListController?.state?.tokenList[
         safeToChecksumAddress(token.address)
       ];
     if (tokenMetadata) {
@@ -124,7 +124,7 @@ export const selectSwapsQuotes = createSelector(
 );
 export const selectSwapsAggregatorMetadata = createSelector(
   selectSwapsControllerState,
-  (swapsControllerState) => swapsControllerState.aggregatorMetadata,
+  (swapsControllerState) => swapsControllerState?.aggregatorMetadata ?? {},
 );
 export const selectSwapsError = createSelector(
   selectSwapsControllerState,

@@ -122,9 +122,9 @@ const AccountPermissionsConnected = ({
     });
 
     trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: getDecimalChainId(providerConfig?.chainId),
     });
-  }, [providerConfig.chainId, navigate, trackEvent]);
+  }, [providerConfig?.chainId, navigate, trackEvent]);
 
   const renderSheetAction = useCallback(
     () => (

@@ -28,7 +28,7 @@ const selectNotificationServicesControllerState = (state: RootState) =>
 export const selectIsProfileSyncingEnabled = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingEnabled,
+    userStorageControllerState?.isProfileSyncingEnabled,
 );
 export const selectIsProfileSyncingUpdateLoading = createSelector(
   selectUserStorageControllerState,
@@ -51,68 +51,68 @@ export const selectSessionData = createSelector(
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isNotificationServicesEnabled,
+    notificationServicesControllerState?.isNotificationServicesEnabled,
 );
 export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isMetamaskNotificationsFeatureSeen,
+    notificationServicesControllerState?.isMetamaskNotificationsFeatureSeen,
 );
 export const selectIsUpdatingMetamaskNotifications = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isUpdatingMetamaskNotifications,
+    notificationServicesControllerState?.isUpdatingMetamaskNotifications,
 );
 export const selectIsFetchingMetamaskNotifications = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isFetchingMetamaskNotifications,
+    notificationServicesControllerState?.isFetchingMetamaskNotifications,
 );
 export const selectIsFeatureAnnouncementsEnabled = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isFeatureAnnouncementsEnabled,
+    notificationServicesControllerState?.isFeatureAnnouncementsEnabled,
 );
 export const selectIsUpdatingMetamaskNotificationsAccount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isUpdatingMetamaskNotificationsAccount,
+    notificationServicesControllerState?.isUpdatingMetamaskNotificationsAccount,
 );
 export const selectIsCheckingAccountsPresence = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.isCheckingAccountsPresence,
+    notificationServicesControllerState?.isCheckingAccountsPresence,
 );
 export const getmetamaskNotificationsReadList = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.metamaskNotificationsReadList,
+    notificationServicesControllerState?.metamaskNotificationsReadList,
 );
 export const getNotificationsList = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.metamaskNotificationsList,
+    notificationServicesControllerState?.metamaskNotificationsList,
 );
 
 export const getMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      notificationServicesControllerState?.metamaskNotificationsList ?? []
     ).filter((notification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      notificationServicesControllerState?.metamaskNotificationsList ?? []
     ).filter((notification) => notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      notificationServicesControllerState?.metamaskNotificationsList ?? []
     ).filter(
       (notification) =>
         !notification.isRead &&

@@ -45,17 +45,17 @@ const selectProviderNetworkName = createSelector(
     networkConfigurations,
     selectedNetworkClientId,
   ) => {
-    if (providerConfig.type === 'rpc') {
+    if (providerConfig?.type === 'rpc') {
       return (
         networkConfigurations[selectedNetworkClientId]?.nickname ||
-        providerConfig.nickname
+        providerConfig?.nickname
       );
     }
     let name;
-    if (providerConfig.nickname) {
-      name = providerConfig.nickname;
+    if (providerConfig?.nickname) {
+      name = providerConfig?.nickname;
     } else {
-      const networkType = providerConfig.type;
+      const networkType = providerConfig?.type;
       name =
         // @ts-expect-error The utils/network file is still JS
         NetworkList?.[networkType]?.name ||
@@ -70,8 +70,8 @@ const selectProviderNetworkImageSource = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) =>
     getNetworkImageSource({
-      networkType: providerConfig.type,
-      chainId: providerConfig.chainId,
+      networkType: providerConfig?.type,
+      chainId: providerConfig?.chainId,
     }),
 );
 

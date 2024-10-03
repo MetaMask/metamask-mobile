@@ -80,8 +80,8 @@ class Contacts extends PureComponent {
     if (
       prevProps.addressBook &&
       this.props.addressBook &&
-      JSON.stringify(prevProps.addressBook[chainId]) !==
-        JSON.stringify(this.props.addressBook[chainId])
+      JSON.stringify(prevProps.addressBook?.[chainId] ?? {}) !==
+        JSON.stringify(this.props.addressBook?.[chainId] ?? {})
     )
       this.updateAddressList();
   };

@@ -155,8 +155,8 @@ const AddAsset = () => {
           <AddCustomToken
             chainId={chainId}
             networkName={networkName}
-            ticker={providerConfig.ticker}
-            type={providerConfig.type}
+            ticker={providerConfig?.ticker}
+            type={providerConfig?.type}
             navigation={navigation}
             tabLabel={strings('add_asset.custom_token')}
             isTokenDetectionSupported={isTokenDetectionSupported}

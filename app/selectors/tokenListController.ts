@@ -4,7 +4,7 @@ import { RootState } from '../reducers';
 import { tokenListToArray } from '../util/tokens';
 import { createDeepEqualSelector } from '../selectors/util';
 
-const selectTokenLIstConstrollerState = (state: RootState) =>
+const selectTokenListControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenListController;
 
 /**
@@ -12,7 +12,7 @@ const selectTokenLIstConstrollerState = (state: RootState) =>
  * Can pass directly into useSelector.
  */
 export const selectTokenList = createSelector(
-  selectTokenLIstConstrollerState,
+  selectTokenListControllerState,
   (tokenListControllerState: TokenListState) =>
     tokenListControllerState?.tokenList,
 );

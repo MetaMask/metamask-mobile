@@ -80,7 +80,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
             style={styles.listItem}
           />
         )}
-        {tokenDetails.tokenList && (
+        {tokenDetails?.tokenList && (
           <TokenDetailsListItem
             label={strings('token.token_list')}
             value={tokenDetails.tokenList}

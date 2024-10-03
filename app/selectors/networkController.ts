@@ -74,7 +74,7 @@ export const selectNickname = createSelector(
 );
 export const selectRpcUrl = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.rpcUrl,
+  (providerConfig: ProviderConfig) => providerConfig?.rpcUrl,
 );
 
 export const selectNetworkStatus = createSelector(

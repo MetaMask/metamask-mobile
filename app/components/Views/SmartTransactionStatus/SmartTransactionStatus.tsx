@@ -313,7 +313,7 @@ const SmartTransactionStatus = ({
   });
 
   // Set block explorer link and show explorer on click
-  const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
+  const txUrl = getPortfolioStxLink(providerConfig?.chainId, uuid);
 
   const onViewTransaction = () => {
     navigation.navigate('Webview', {

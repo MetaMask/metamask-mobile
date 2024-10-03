@@ -119,7 +119,7 @@ const AccountRightButton = ({
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
       trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-        chain_id: getDecimalChainId(providerConfig.chainId),
+        chain_id: getDecimalChainId(providerConfig?.chainId),
       });
     } else {
       onPress?.();
@@ -130,7 +130,7 @@ const AccountRightButton = ({
     isNetworkVisible,
     onPress,
     navigate,
-    providerConfig.chainId,
+    providerConfig?.chainId,
     trackEvent,
   ]);
 

@@ -38,7 +38,7 @@ export default function ManageNetworksComponent() {
     });
 
     trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: getDecimalChainId(providerConfig?.chainId),
     });
   }, [navigation, trackEvent, providerConfig]);
 

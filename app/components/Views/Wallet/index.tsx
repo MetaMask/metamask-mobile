@@ -204,7 +204,7 @@ const Wallet = ({
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-  const prevChainId = usePrevious(providerConfig.chainId);
+  const prevChainId = usePrevious(providerConfig?.chainId);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -312,12 +312,12 @@ const Wallet = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
     trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: getDecimalChainId(providerConfig?.chainId),
     });
-  }, [navigate, providerConfig.chainId, trackEvent]);
+  }, [navigate, providerConfig?.chainId, trackEvent]);
 
   const checkNftAutoDetectionModal = useCallback(() => {
-    const isOnMainnet = isMainNet(providerConfig.chainId);
+    const isOnMainnet = isMainNet(providerConfig?.chainId);
     if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
@@ -328,7 +328,7 @@ const Wallet = ({
     dispatch,
     isNFTAutoDetectionModalViewed,
     navigation,
-    providerConfig.chainId,
+    providerConfig?.chainId,
     useNftDetection,
   ]);
 
@@ -351,13 +351,13 @@ const Wallet = ({
    */
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
-      providerConfig.chainId,
+      providerConfig?.chainId,
       networkOnboardingState,
     );
 
     if (
       wizardStep > 0 ||
-      (!networkOnboarded && prevChainId !== providerConfig.chainId)
+      (!networkOnboarded && prevChainId !== providerConfig?.chainId)
     ) {
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
@@ -372,8 +372,8 @@ const Wallet = ({
         ).isZero();
         const shouldShowStxOptInModal =
           await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
-            providerConfig.rpcUrl,
+            providerConfig?.chainId,
+            providerConfig?.rpcUrl,
             accountHasZeroBalance,
           );
         if (shouldShowStxOptInModal) {
@@ -395,8 +395,8 @@ const Wallet = ({
   }, [
     wizardStep,
     navigation,
-    providerConfig.chainId,
-    providerConfig.rpcUrl,
+    providerConfig?.chainId,
+    providerConfig?.rpcUrl,
     networkOnboardingState,
     prevChainId,
     checkNftAutoDetectionModal,
@@ -412,7 +412,7 @@ const Wallet = ({
       });
     },
     /* eslint-disable-next-line */
-    [navigation, providerConfig.chainId],
+    [navigation, providerConfig?.chainId],
   );
 
   useLayoutEffect(() => {

@@ -181,7 +181,7 @@ class ContactForm extends PureComponent {
       }, 100);
     if (mode === EDIT) {
       const { addressBook, chainId, internalAccounts } = this.props;
-      const networkAddressBook = addressBook[chainId] || {};
+      const networkAddressBook = addressBook?.[chainId] ?? {};
       const address = this.props.route.params?.address ?? '';
       const contact =
         networkAddressBook[address] ||

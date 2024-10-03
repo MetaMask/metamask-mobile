@@ -72,11 +72,11 @@ const InstallSnapApproval = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (c: any) => c.type === 'snapIds',
       );
-    return Object.keys(snapIdsCaveat.value)[0];
+    return Object.keys(snapIdsCaveat?.value)[0];
   };
 
   const getSnapMetadata = (snapId: string) =>
-    snapsMetadata[snapId] ?? { name: stripSnapPrefix(snapId) };
+    snapsMetadata?.[snapId] ?? { name: stripSnapPrefix(snapId) };
 
   if (!approvalRequest) return null;
 

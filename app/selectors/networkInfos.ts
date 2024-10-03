@@ -16,6 +16,6 @@ export const selectNetworkImageSource = createSelector(
   (providerConfig: ProviderConfig) =>
     getNetworkImageSource({
       networkType: providerConfig?.type,
-      chainId: providerConfig.chainId,
+      chainId: providerConfig?.chainId,
     }),
 );

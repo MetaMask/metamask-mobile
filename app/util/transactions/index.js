@@ -349,7 +349,7 @@ export async function isSmartContractAddress(address, chainId) {
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokenList[address]
+    Engine.context.TokenListController?.state?.tokenList?.[address]
   ) {
     return Promise.resolve(true);
   }
@@ -534,7 +534,7 @@ export function getTransactionToName({
     return ensRecipient;
   }
 
-  const networkAddressBook = addressBook[chainId];
+  const networkAddressBook = addressBook?.[chainId] ?? {};
   const checksummedToAddress = toChecksumAddress(toAddress);
 
   // Convert internalAccounts array to a map for quick lookup

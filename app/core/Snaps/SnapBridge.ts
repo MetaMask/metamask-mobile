@@ -197,7 +197,7 @@ export default class SnapBridge {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NetworkController } = Engine.context as any;
-    const networkType = NetworkController.state.providerConfig.type;
+    const networkType = NetworkController.state.providerConfig?.type;
     const networkProvider = NetworkController.state.providerConfig;
 
     const isInitialNetwork =
@@ -249,7 +249,7 @@ export default class SnapBridge {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NetworkController } = Engine.context as any;
-    const networkType = NetworkController.state.providerConfig.type;
+    const networkType = NetworkController.state.providerConfig?.type;
     const networkProvider = NetworkController.state.providerConfig;
 
     const isInitialNetwork =

@@ -19,7 +19,7 @@ describe(Regression('Networks Search'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it(`Remove ${PopularNetworksList.Avalanche.providerConfig.nickname} network from the list, ensuring its absent in search results`, async () => {
+  it(`Remove ${PopularNetworksList.Avalanche.providerConfig?.nickname} network from the list, ensuring its absent in search results`, async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
@@ -35,20 +35,20 @@ describe(Regression('Networks Search'), () => {
         await NetworkView.tapClearSearch();
         await NetworkView.SearchNetworkName(SHORT_HAND_NETWORK_TEXT);
         await NetworkView.tapNetworkByName(
-          PopularNetworksList.Avalanche.providerConfig.nickname,
+          PopularNetworksList.Avalanche.providerConfig?.nickname,
         );
         await NetworkView.tapDeleteButton();
         await Assertions.checkIfVisible(NetworkView.noMatchingText);
         await NetworkView.tapClearSearch();
         await Assertions.checkIfNotVisible(
           NetworkView.getnetworkName(
-            PopularNetworksList.Avalanche.providerConfig.nickname,
+            PopularNetworksList.Avalanche.providerConfig?.nickname,
           ),
         );
         await NetworkView.tapAddNetworkButton();
         await Assertions.checkIfVisible(
           NetworkView.getnetworkName(
-            PopularNetworksList.Avalanche.providerConfig.nickname,
+            PopularNetworksList.Avalanche.providerConfig?.nickname,
           ),
         );
       },

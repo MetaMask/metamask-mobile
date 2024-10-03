@@ -98,13 +98,13 @@ describe(Regression('Deep linking Tests'), () => {
 
     await Assertions.checkIfVisible(NetworkView.networkContainer);
     await NetworkView.tapNetworkByName(
-      PopularNetworksList.BNB.providerConfig.nickname,
+      PopularNetworksList.BNB.providerConfig?.nickname,
     );
 
     await Assertions.checkIfVisible(NetworkApprovalModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkApprovalModal.displayName,
-      PopularNetworksList.BNB.providerConfig.nickname,
+      PopularNetworksList.BNB.providerConfig?.nickname,
     );
     await NetworkApprovalModal.tapApproveButton();
 
@@ -115,13 +115,13 @@ describe(Regression('Deep linking Tests'), () => {
 
   it('should add polygon network', async () => {
     await NetworkView.tapNetworkByName(
-      PopularNetworksList.Polygon.providerConfig.nickname,
+      PopularNetworksList.Polygon.providerConfig?.nickname,
     );
 
     await Assertions.checkIfVisible(NetworkApprovalModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkApprovalModal.displayName,
-      PopularNetworksList.Polygon.providerConfig.nickname,
+      PopularNetworksList.Polygon.providerConfig?.nickname,
     );
 
     await NetworkApprovalModal.tapApproveButton();
@@ -133,7 +133,7 @@ describe(Regression('Deep linking Tests'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementToHaveText(
       WalletView.navbarNetworkText,
-      PopularNetworksList.Polygon.providerConfig.nickname,
+      PopularNetworksList.Polygon.providerConfig?.nickname,
     );
   });
 

@@ -635,11 +635,11 @@ class FixtureBuilder {
 
     // Add the extracted providerConfig data to the networkConfigurations object
     networkController.networkConfigurations[newNetworkId] = {
-      rpcUrl: providerConfig.rpcUrl,
-      chainId: providerConfig.chainId,
-      ticker: providerConfig.ticker,
-      nickname: providerConfig.nickname,
-      type: providerConfig.type,
+      rpcUrl: providerConfig?.rpcUrl,
+      chainId: providerConfig?.chainId,
+      ticker: providerConfig?.ticker,
+      nickname: providerConfig?.nickname,
+      type: providerConfig?.type,
     };
 
     // Update selectedNetworkClientId to the new network configuration ID
@@ -648,9 +648,9 @@ class FixtureBuilder {
     // Merge the rest of the data
     merge(networkController, data);
 
-    if (data.providerConfig.ticker !== 'ETH') {
+    if (data.providerConfig?.ticker !== 'ETH') {
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.providerConfig.ticker;
+        data.providerConfig?.ticker;
     }
 
     return this;

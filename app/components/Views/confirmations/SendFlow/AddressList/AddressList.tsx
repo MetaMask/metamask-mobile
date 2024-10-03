@@ -61,7 +61,7 @@ const AddressList: React.FC<AddressListProps> = ({
   );
 
   const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
-    () => addressBook[chainId] || {},
+    () => addressBook?.[chainId] ?? {},
     [addressBook, chainId],
   );
   const parseAddressBook = useCallback(

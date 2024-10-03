@@ -244,8 +244,8 @@ const Main = (props) => {
   useEffect(() => {
     if (
       previousProviderConfig.current &&
-      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
-        providerConfig.type !== previousProviderConfig.current.type)
+      (providerConfig?.chainId !== previousProviderConfig.current.chainId ||
+        providerConfig?.type !== previousProviderConfig.current.type)
     ) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
