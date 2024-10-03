@@ -26,7 +26,7 @@ const main = async () => {
 
   const fileList = fs.readdirSync(assetsFolderPath);
   const assetFileList = fileList.filter(
-    (fileName) => path.extname(fileName) === ASSET_EXT,
+    (fileName): fileName is string => path.extname(fileName) === ASSET_EXT,
   );
 
   // Replace the color black with currentColor
