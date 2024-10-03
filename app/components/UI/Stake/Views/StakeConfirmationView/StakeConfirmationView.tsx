@@ -15,6 +15,7 @@ import {
   MOCK_STAKING_REVIEW_DATA,
 } from './StakeConfirmationMockData';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { strings } from '../../../../../../locales/i18n';
 
 const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   const navigation = useNavigation();
@@ -22,7 +23,13 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
-    navigation.setOptions(getStakeConfirmationNavbar(navigation, theme.colors));
+    navigation.setOptions(
+      getStakeConfirmationNavbar(
+        navigation,
+        theme.colors,
+        strings('stake.stake'),
+      ),
+    );
   }, [navigation, theme.colors]);
 
   return (
@@ -34,7 +41,11 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           tokenSymbol="wETH"
         />
         <View style={styles.cardsContainer}>
-          <AccountHeaderCard contractName={MOCK_STAKING_CONTRACT_NAME} />
+          <AccountHeaderCard
+            contractName={MOCK_STAKING_CONTRACT_NAME}
+            primaryLabel={strings('stake.staking_from')}
+            secondaryLabel={strings('stake.interacting_with')}
+          />
           <EstimatedGasCard
             gasCostEth={MOCK_STAKING_REVIEW_DATA.GAS_COST.ETH}
             gasCostFiat={MOCK_STAKING_REVIEW_DATA.GAS_COST.FIAT}

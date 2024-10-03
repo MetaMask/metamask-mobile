@@ -53,6 +53,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import Title from '../../Base/Title';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -1857,7 +1858,7 @@ export function getStakeInputNavbar(navigation, themeColors) {
   };
 }
 
-export function getStakeConfirmationNavbar(navigation, themeColors) {
+export function getStakeConfirmationNavbar(navigation, themeColors, title) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.alternative,
@@ -1872,11 +1873,11 @@ export function getStakeConfirmationNavbar(navigation, themeColors) {
     navigation.goBack();
   }
 
-  const title = strings('stake.stake');
-
   return {
-    headerTitle: title,
     headerStyle: innerStyles.headerStyle,
+    headerTitle: () => (
+      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+    ),
     headerLeft: () => (
       <ButtonIcon
         size={ButtonIconSizes.Lg}

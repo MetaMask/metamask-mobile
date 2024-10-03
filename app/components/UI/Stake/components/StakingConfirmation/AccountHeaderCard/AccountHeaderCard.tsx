@@ -18,7 +18,11 @@ import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { AccountHeaderCardProps } from './AccountHeaderCard.types';
 import ContractTag from '../ContractTag/ContractTag';
 
-const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
+const AccountHeaderCard = ({
+  contractName,
+  primaryLabel,
+  secondaryLabel,
+}: AccountHeaderCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const account = useSelector(selectSelectedInternalAccount);
@@ -30,7 +34,7 @@ const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
       <Card style={styles.cardGroupTop} disabled>
         {account && (
           <KeyValueRow
-            field={{ label: { text: strings('stake.staking_from') } }}
+            field={{ label: { text: primaryLabel } }}
             value={{
               label: (
                 <AccountTag
@@ -43,7 +47,7 @@ const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
         )}
         <KeyValueRow
           field={{
-            label: { text: strings('stake.interacting_with') },
+            label: { text: secondaryLabel },
           }}
           value={{
             label: <ContractTag name={contractName} />,
