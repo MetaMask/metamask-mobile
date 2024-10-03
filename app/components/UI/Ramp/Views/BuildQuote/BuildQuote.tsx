@@ -678,9 +678,36 @@ const BuildQuote = () => {
     );
   }
 
-  const displayAmount = isBuy
-    ? formatAmount(amountNumber)
-    : `${amount} ${selectedAsset?.symbol}`;
+  // If the current view is for Sell the amount (crypto) is displayed as is
+  let displayAmount = `${amount} ${selectedAsset?.symbol}`;
+
+  // If the current ivew is for Buy we will format the amount
+  if (isBuy) {
+    // Split the amount to detect if it has decimals
+    const splitAmount = amount.split(/(\.)|(,)/);
+    // If the splitAmount array has more than 1 element it means that the amount has decimals
+    // For example:
+    //    100.50 -> splitAmount = ['100', '.', undefined, '50']
+    //    100,50 -> splitAmount = ['100', undefined, ',', '50']
+    // Note: this help us capture the input separator (dot or comma)
+    const hasDecimalsSplit = splitAmount.length > 1;
+
+    displayAmount =
+      isBuy && amountFocused
+        ? // If the amount is focused (being edited) the amount integer part will be shown in groups separated by spaces
+          `${formatAmount(Math.trunc(amountNumber), true)}${
+            // If the amount has decimals the decimal part will be shown
+            // using the separator and the decimal part
+            // Note, the decimal part will be displayed even if it is being typed (ends with a separator or 0)
+            hasDecimalsSplit
+              ? `${splitAmount[1] ?? splitAmount[2] ?? ''}${
+                  splitAmount[3] ?? ''
+                }`
+              : ''
+          }`
+        : // If the amount is not focused it will be fully formatted
+          formatAmount(amountNumber);
+  }
 
   let quickAmounts: QuickAmount[] = [];
 
