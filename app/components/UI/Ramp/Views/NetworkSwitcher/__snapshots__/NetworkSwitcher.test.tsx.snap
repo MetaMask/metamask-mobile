@@ -5771,92 +5771,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -5873,92 +5892,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -5975,92 +6013,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -6077,92 +6134,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -6179,92 +6255,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -6281,92 +6376,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -6383,92 +6497,111 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7030,92 +7163,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7132,92 +7284,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7234,92 +7405,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7336,92 +7526,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7438,92 +7647,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7540,92 +7768,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7642,92 +7889,111 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 0,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "75%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          }
                                         }
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            [
+                                              {
+                                                "backgroundColor": "#f2f4f6",
+                                                "borderRadius": 30,
+                                                "padding": 14,
+                                              },
+                                              undefined,
+                                              undefined,
+                                              {
+                                                "width": "75%",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "backgroundColor": "#f2f4f6",
-                                              "borderRadius": 30,
-                                              "padding": 14,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            {
-                                              "width": "50%",
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": 1,
+                                          }
                                         }
-                                      />
+                                        testID="listitemcolumn"
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-end",
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              [
+                                                {
+                                                  "backgroundColor": "#f2f4f6",
+                                                  "borderRadius": 30,
+                                                  "padding": 14,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                {
+                                                  "width": "30%",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>

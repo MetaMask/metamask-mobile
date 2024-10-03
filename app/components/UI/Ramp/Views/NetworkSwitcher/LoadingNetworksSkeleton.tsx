@@ -1,22 +1,36 @@
 import React from 'react';
-import BaseListItem from '../../../../Base/ListItem';
+import { StyleSheet, View } from 'react-native';
 import Row from '../../components/Row';
 import SkeletonText from '../../components/SkeletonText';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+const createStyles = () =>
+  StyleSheet.create({
+    listItem: {
+      padding: 0,
+    },
+    alignEnd: {
+      alignItems: 'flex-end',
+    },
+  });
 
 function LoadingNetworkSkeleton() {
+  const styles = createStyles();
+
   return (
-    <ListItem.Content>
-      <ListItem.Body>
+    <ListItem style={styles.listItem}>
+      <ListItemColumn widthType={WidthType.Fill}>
         <SkeletonText large />
-      </ListItem.Body>
-      <ListItem.Amounts>
-        <SkeletonText medium />
-      </ListItem.Amounts>
-    </ListItem.Content>
+      </ListItemColumn>
+      <ListItemColumn widthType={WidthType.Fill}>
+        <View style={styles.alignEnd}>
+          <SkeletonText small />
+        </View>
+      </ListItemColumn>
+    </ListItem>
   );
 }
 
