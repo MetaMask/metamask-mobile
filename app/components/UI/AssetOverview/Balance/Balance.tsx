@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import Title from '../../../Base/Title';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
@@ -25,6 +24,10 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
+import { useNavigation } from '@react-navigation/native';
+import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+
 interface BalanceProps {
   asset: TokenI;
   mainBalance: string;
@@ -46,18 +49,20 @@ const NetworkBadgeSource = (chainId: string, ticker: string) => {
 
 const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
   const chainId = useSelector(selectChainId);
 
   return (
     <View style={styles.wrapper}>
-      <Title style={styles.title}>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('asset_overview.your_balance')}
-      </Title>
+      </Text>
       <AssetElement
         asset={asset}
         mainBalance={mainBalance}
         balance={secondaryBalance}
+        onPress={() => !asset.isETH && navigation.navigate('AssetDetails')}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
@@ -83,6 +88,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
+      {isPooledStakingFeatureEnabled() && asset?.isETH && <StakingBalance />}
     </View>
   );
 };
