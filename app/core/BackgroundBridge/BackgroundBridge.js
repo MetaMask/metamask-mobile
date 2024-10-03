@@ -457,7 +457,7 @@ export class BackgroundBridge extends EventEmitter {
       snapMethodMiddlewareBuilder(
         Engine.context,
         Engine.controllerMessenger,
-        origin,
+        this.url,
         // We assume that origins connecting through the BackgroundBridge are websites
         SubjectType.Website,
       ),
