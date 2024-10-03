@@ -115,4 +115,4 @@ app/reducers/modals @MetaMask/wallet-ux
 app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
-app/reducers/settings@MetaMask/wallet-ux
+app/reducers/settings @MetaMask/wallet-ux
