@@ -122,11 +122,12 @@ import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import TooltipModal from '../../../components/Views/TooltipModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
+import SnapsExecutionWebViewWrapper from '../../../lib/snaps/SnapsExecutionWebViewWrapper';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -778,11 +779,11 @@ const App = (props) => {
 
   return supressRender ? null : (
     <>
-      {
+     {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <View>
-        <SnapsExecutionWebView />
+        <SnapsExecutionWebViewWrapper />
       </View>
       {
         ///: END:ONLY_INCLUDE_IF

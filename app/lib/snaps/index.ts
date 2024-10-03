@@ -1,3 +1,3 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-export * from './SnapsExecutionWebView';
+export * from './SnapsExecutionWebViewWrapper';
 ///: END:ONLY_INCLUDE_IF
