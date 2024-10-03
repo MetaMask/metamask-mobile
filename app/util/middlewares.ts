@@ -26,9 +26,11 @@ interface MiddlewareOptions {
  */
 export function createOriginMiddleware(opts: MiddlewareOptions) {
   return function originMiddleware(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     /** @type {any} */ req: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     /** @type {any} */ _: any,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    // eslint-disable-next-line @typescript-eslint/ban-types
     /** @type {Function} */ next: Function,
   ) {
     req.origin = opts.origin;
@@ -80,11 +82,12 @@ export function createLoggerMiddleware(opts: MiddlewareOptions) {
   return function loggerMiddleware(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     /** @type {any} */ req: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     /** @type {any} */ res: any,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    // eslint-disable-next-line @typescript-eslint/ban-types
     /** @type {Function} */ next: Function,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    // eslint-disable-next-line @typescript-eslint/ban-types
     next((/** @type {Function} */ cb: Function) => {
       if (res.error) {
         const { error, ...resWithoutError } = res;
