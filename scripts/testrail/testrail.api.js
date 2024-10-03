@@ -7,7 +7,7 @@ const addTestRun = `${TESTRAIL_MM_API_URL}/add_run/${TESTRAIL_PROJECT_ID}`;
 const getAutomatedTestRun = `${TESTRAIL_MM_API_URL}/get_tests/`;
 const addResults = `${TESTRAIL_MM_API_URL}/add_results/`;
 
-axios.defaults.headers.common['Authorization'] = `Basic ${AUTH_TOKEN}`;
+axios.defaults.headers.common['Authorization'] = `Basic ${process.env.TESTRAIL_AUTH_TOKEN}`;
 let runID;
 
 axios
