@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -53,8 +54,8 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
 
 interface InfoModalProps {
   isVisible: boolean;
-  title?: ReactNode;
-  body?: ReactNode;
+  title?: React.ReactNode;
+  body?: React.ReactNode;
   toggleModal: () => void;
   propagateSwipe?: boolean;
   message?: string;
@@ -63,7 +64,7 @@ interface InfoModalProps {
   testID?: string;
 }
 
-const InfoModal: React.FC<InfoModalProps> = ({
+function InfoModal({
   title,
   body,
   isVisible,
@@ -73,11 +74,11 @@ const InfoModal: React.FC<InfoModalProps> = ({
   urlText,
   url,
   testID,
-}) => {
+}: InfoModalProps) {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
 
-  const CloseButton: React.FC = () => (
+  const CloseButton = () => (
     <TouchableOpacity
       onPress={toggleModal}
       hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
@@ -86,7 +87,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
     </TouchableOpacity>
   );
 
-  const InfoView: React.FC = () => {
+  const InfoView = () => {
     if (!message) {
       return <CloseButton />;
     }
@@ -128,6 +129,17 @@ const InfoModal: React.FC<InfoModalProps> = ({
       </SafeAreaView>
     </Modal>
   );
+}
+InfoModal.propTypes = {
+  isVisible: PropTypes.bool,
+  title: PropTypes.node,
+  body: PropTypes.node,
+  toggleModal: PropTypes.func,
+  propagateSwipe: PropTypes.bool,
+  message: PropTypes.string,
+  urlText: PropTypes.string,
+  url: PropTypes.func,
+  testID: PropTypes.string,
 };
 
 export default InfoModal;
