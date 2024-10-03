@@ -2,18 +2,21 @@ import Engine from '../core/Engine';
 import { BNToHex } from '../util/number';
 import Logger from '../util/Logger';
 import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
+import type EthQuery from '@metamask/eth-query';
+import type { BN } from 'ethereumjs-util';
+import { Hex } from '@metamask/utils';
 
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
 
 /**
  * Get an account balance from the network.
- * @param {string} address - The account address
- * @param {EthQuery} ethQuery - The EthQuery instance to use when asking the network
+ * @param address - The account address
+ * @param ethQuery - The EthQuery instance to use when asking the network
  */
-const getBalance = async (address, ethQuery) =>
+const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
   new Promise((resolve, reject) => {
-    ethQuery.getBalance(address, (error, balance) => {
+    ethQuery.getBalance(address, (error: Error, balance: BN) => {
       if (error) {
         reject(error);
         Logger.error(error);
@@ -44,12 +47,11 @@ export default async () => {
           // Errors are gracefully handled so that `withKeyring`
           // will not rollback the primary keyring, and accounts
           // created in previous loop iterations will remain in place.
-          Logger.error(error);
         }
 
         if (newAccountBalance === ZERO_BALANCE) {
           // remove extra zero balance account we just added and break the loop
-          primaryKeyring.removeAccount(newAccount);
+          primaryKeyring.removeAccount?.(newAccount);
           break;
         }
       }
