@@ -53,7 +53,7 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   });
 
 interface InfoModalProps {
-  isVisible?: boolean;
+  isVisible: boolean | undefined;
   title?: React.ReactNode;
   body?: React.ReactNode;
   toggleModal: () => void;
@@ -130,16 +130,5 @@ function InfoModal({
     </Modal>
   );
 }
-InfoModal.propTypes = {
-  isVisible: PropTypes.bool,
-  title: PropTypes.node,
-  body: PropTypes.node,
-  toggleModal: PropTypes.func,
-  propagateSwipe: PropTypes.bool,
-  message: PropTypes.string,
-  urlText: PropTypes.string,
-  url: PropTypes.func,
-  testID: PropTypes.string,
-};
 
 export default InfoModal;
