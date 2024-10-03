@@ -56,7 +56,7 @@ function jsonStringifyStream(): NodeJS.ReadWriteStream {
  */
 function setupMultiplex(connectionStream: NodeJS.ReadWriteStream): NodeJS.ReadWriteStream {
   const mux = new ObjectMultiplex();
-  pump(connectionStream, mux, connectionStream, (err: Error | null) => {
+  pump(connectionStream, mux, connectionStream, (err: Error | undefined) => {
     if (err) {
       console.warn('Multiplexing error:', err);
     }
