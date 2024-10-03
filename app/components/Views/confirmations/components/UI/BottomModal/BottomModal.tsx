@@ -1,12 +1,14 @@
-import React, { ReactNode } from 'react';
+import React, { ReactChild } from 'react';
 import Modal from 'react-native-modal';
 import { StyleSheet } from 'react-native';
 
 import { useTheme } from '../../../../../../util/theme';
 
+const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
-  children: ReactNode;
+  children: ReactChild;
   onClose?: () => void;
+  hideBackground?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -16,7 +18,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const BottomModal = ({ children, onClose }: BottomModalProps) => {
+const BottomModal = ({ children, hideBackground, onClose }: BottomModalProps) => {
   const { colors } = useTheme();
 
   return (
@@ -25,7 +27,7 @@ const BottomModal = ({ children, onClose }: BottomModalProps) => {
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
+      backdropColor={hideBackground ? OPAQUE_GRAY : colors.overlay.default}
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}

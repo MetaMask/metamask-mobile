@@ -13,19 +13,24 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 8,
       paddingHorizontal: 8,
     },
+    labelContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 8,
+    },
     label: {
       color: colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
       fontWeight: '500',
-      marginTop: 8,
     },
     value: {
       color: colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
       marginTop: 8,
-    }
+    },
   });
 
 export default createStyles;

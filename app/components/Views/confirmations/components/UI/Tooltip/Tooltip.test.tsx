@@ -28,7 +28,7 @@ describe('Tooltip', () => {
             <Text>Tooltip content to be displayed here!</Text>
           </View>
         }
-        testID="tooltipTestId"
+        tooltipTestId="tooltipTestId"
       />,
     );
     fireEvent.press(getByTestId('tooltipTestId'));

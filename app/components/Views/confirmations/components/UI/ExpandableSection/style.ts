@@ -16,11 +16,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       padding: 16,
     },
-    // eslint-disable-next-line react-native/no-color-literals
-    modalContainer: {
-      backgroundColor: '#414141',
-      minHeight: '100%',
-    },
     modalContent: {
       backgroundColor: colors.background.alternative,
       paddingTop: 24,

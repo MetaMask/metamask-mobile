@@ -10,6 +10,8 @@ const createStyles = (colors: Colors) =>
       borderRadius: 8,
       borderWidth: 1,
       padding: 8,
+      minWidth: '100%',
+      marginVertical: 4,
     },
   });
 

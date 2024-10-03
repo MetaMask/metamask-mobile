@@ -7,12 +7,14 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       backgroundColor: colors.background.alternative,
-      paddingTop: 24,
-      minHeight: '90%',
+      paddingHorizontal: 16,
+      paddingVertical: 24,
+      minHeight: '60%',
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       alignItems: 'center',
+      justifyContent: 'space-between'
     },
   });
 

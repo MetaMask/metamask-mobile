@@ -13,19 +13,29 @@ exports[`InfoRow should match snapshot for simple text value 1`] = `
     }
   }
 >
-  <Text
+  <View
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
-        "fontSize": 14,
-        "fontWeight": "500",
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "row",
         "marginTop": 8,
       }
     }
   >
-    label-Key
-  </Text>
+    <Text
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 14,
+          "fontWeight": "500",
+        }
+      }
+    >
+      label-Key
+    </Text>
+  </View>
   <Text
     style={
       {

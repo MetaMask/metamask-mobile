@@ -3409,6 +3409,8 @@
     "confirm": "Confirm",
     "title": {
       "signature": "Signature request"
-      }
+    },
+    "request_from": "Request from",
+    "Message": "message"
   }
 }

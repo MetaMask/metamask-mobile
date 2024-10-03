@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 
 import { useTheme } from '../../../../../../util/theme';
 import createStyles from './style';
+import Tooltip from '../Tooltip';
 
 interface InfoRowProps {
   label: string;
@@ -10,14 +11,17 @@ interface InfoRowProps {
   tooltip?: string;
 }
 
-const InfoRow = ({ label, children }: InfoRowProps) => {
+const InfoRow = ({ label, children, tooltip }: InfoRowProps) => {
   const { colors } = useTheme();
 
   const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>{label}</Text>
+        {tooltip && <Tooltip content={tooltip} />}
+      </View>
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>
       ) : (

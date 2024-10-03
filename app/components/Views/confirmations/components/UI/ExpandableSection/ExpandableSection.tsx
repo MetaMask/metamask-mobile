@@ -44,8 +44,7 @@ const ExpandableSection = ({
         />
       </View>
       {expanded && (
-        <BottomModal>
-          <View style={styles.modalContainer}></View>
+        <BottomModal hideBackground>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <ButtonIcon

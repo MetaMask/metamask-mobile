@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import BottomModal from '../components/UI/BottomModal';
 import Footer from '../components/Confirm/Footer';
+import Info from '../components/Confirm/Info';
 import Title from '../components/Confirm/Title';
 import useConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 import createStyles from './style';
@@ -21,7 +22,10 @@ const Confirm = () => {
   return (
     <BottomModal>
       <View style={styles.container}>
-        <Title />
+        <View>
+          <Title />
+        <Info />
+        </View>
         <Footer />
       </View>
     </BottomModal>
