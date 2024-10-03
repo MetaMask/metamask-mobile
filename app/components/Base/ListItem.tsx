@@ -1,11 +1,19 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
-import { fontStyles } from '../../styles/common';
+import {
+  StyleSheet,
+  View,
+  ViewProps,
+  TextProps,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import Text from './Text';
 import { useTheme } from '../../util/theme';
+import { Theme } from '@metamask/design-tokens';
+import { fontStyles } from '../../styles/common';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     wrapper: {
       padding: 15,
@@ -54,53 +62,81 @@ const createStyles = (colors) =>
     },
   });
 
-const ListItem = ({ style, ...props }) => {
+interface ListItemProps extends ViewProps {
+  style?: StyleProp<ViewStyle>;
+}
+
+interface ListItemTextProps extends TextProps {
+  style?: StyleProp<TextStyle>;
+}
+
+type ListItemComponent = React.FC<ListItemProps> & {
+  Date: React.FC<ListItemTextProps>;
+  Content: React.FC<ListItemProps>;
+  Actions: React.FC<ListItemProps>;
+  Icon: React.FC<ListItemProps>;
+  Body: React.FC<ListItemProps>;
+  Title: React.FC<ListItemTextProps>;
+  Amounts: React.FC<ListItemProps>;
+  Amount: React.FC<ListItemTextProps>;
+  FiatAmount: React.FC<ListItemTextProps>;
+};
+
+const ListItem: ListItemComponent = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.wrapper, style]} {...props} />;
 };
 
-const ListItemDate = ({ style, ...props }) => {
+const ListItemDate: React.FC<ListItemTextProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.date, style]} {...props} />;
 };
-const ListItemContent = ({ style, ...props }) => {
+
+const ListItemContent: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.content, style]} {...props} />;
 };
-const ListItemActions = ({ style, ...props }) => {
+
+const ListItemActions: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.actions, style]} {...props} />;
 };
-const ListItemIcon = ({ style, ...props }) => {
+
+const ListItemIcon: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.icon, style]} {...props} />;
 };
-const ListItemBody = ({ style, ...props }) => {
+
+const ListItemBody: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.body, style]} {...props} />;
 };
-const ListItemTitle = ({ style, ...props }) => {
+
+const ListItemTitle: React.FC<ListItemTextProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.title, style]} {...props} />;
 };
-const ListItemAmounts = ({ style, ...props }) => {
+
+const ListItemAmounts: React.FC<ListItemProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={[styles.amounts, style]} {...props} />;
 };
-const ListItemAmount = ({ style, ...props }) => {
+
+const ListItemAmount: React.FC<ListItemTextProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.amount, style]} {...props} />;
 };
-const ListItemFiatAmount = ({ style, ...props }) => {
+
+const ListItemFiatAmount: React.FC<ListItemTextProps> = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.fiatAmount, style]} {...props} />;
@@ -117,39 +153,3 @@ ListItem.Amount = ListItemAmount;
 ListItem.FiatAmount = ListItemFiatAmount;
 
 export default ListItem;
-
-/**
- * Any other external style defined in props will be applied
- */
-const stylePropType = PropTypes.oneOfType([PropTypes.object, PropTypes.array]);
-
-ListItem.propTypes = {
-  style: stylePropType,
-};
-ListItemDate.propTypes = {
-  style: stylePropType,
-};
-ListItemContent.propTypes = {
-  style: stylePropType,
-};
-ListItemActions.propTypes = {
-  style: stylePropType,
-};
-ListItemIcon.propTypes = {
-  style: stylePropType,
-};
-ListItemBody.propTypes = {
-  style: stylePropType,
-};
-ListItemTitle.propTypes = {
-  style: stylePropType,
-};
-ListItemAmounts.propTypes = {
-  style: stylePropType,
-};
-ListItemAmount.propTypes = {
-  style: stylePropType,
-};
-ListItemFiatAmount.propTypes = {
-  style: stylePropType,
-};
