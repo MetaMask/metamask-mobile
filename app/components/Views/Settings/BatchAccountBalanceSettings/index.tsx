@@ -1,5 +1,5 @@
 // Third party dependencies
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Switch, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -23,6 +23,7 @@ import {
 } from './index.constants';
 
 const BatchAccountBalanceSettings = () => {
+  const { PreferencesController } = Engine.context;
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
@@ -31,14 +32,14 @@ const BatchAccountBalanceSettings = () => {
     selectIsMultiAccountBalancesEnabled,
   );
 
-  const toggleIsMultiAccountBalancesEnabled = (
-    multiAccountBalancesEnabled: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsMultiAccountBalancesEnabled(
-      multiAccountBalancesEnabled,
-    );
-  };
+  const toggleIsMultiAccountBalancesEnabled = useCallback(
+    (multiAccountBalancesEnabled: boolean) => {
+      PreferencesController.setIsMultiAccountBalancesEnabled(
+        multiAccountBalancesEnabled,
+      );
+    },
+    [PreferencesController],
+  );
 
   return (
     <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
