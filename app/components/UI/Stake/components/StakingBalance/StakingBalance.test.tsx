@@ -4,7 +4,6 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import StakingBalance from './StakingBalance';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -33,6 +32,11 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('StakingBalance', () => {
   it('render matches snapshot', () => {
     render(StakingBalance);
@@ -45,6 +49,19 @@ describe('StakingBalance', () => {
     fireEvent.press(screen.getByText(strings('stake.stake_more')));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.STAKING.STAKE);
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      screen: 'Stake',
+    });
+  });
+
+  it('redirects to UnstakeInputView on unstake button click', () => {
+    render(StakingBalance);
+
+    fireEvent.press(screen.getByText(strings('stake.unstake')));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      screen: 'Unstake',
+    });
   });
 });
