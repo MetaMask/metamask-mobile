@@ -475,9 +475,9 @@ export function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
-  if (isE2E || !dsn) {
-    return;
-  }
+  // if (isE2E || !dsn) {
+  //   return;
+  // }
 
   const init = async () => {
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
@@ -490,10 +490,10 @@ export function setupSentry() {
     );
 
     Sentry.init({
-      dsn,
+      dsn: 'https://cb74c22fd913425a859dc4b4514efbfb@o379908.ingest.us.sentry.io/5205240',
       debug: __DEV__,
       environment,
-      integrations: true
+      integrations: metricsOptIn === AGREED
         ? [
             ...integrations,
             new Sentry.ReactNativeTracing({
