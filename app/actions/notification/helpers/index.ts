@@ -113,6 +113,27 @@ export const updateOnChainTriggersByAccount = async (accounts: string[]) => {
   }
 };
 
+export const createOnChainTriggersByAccount = async (
+  resetNotifications: boolean,
+) => {
+  try {
+    const { userStorage } =
+      await Engine.context.NotificationServicesController.createOnChainTriggers(
+        {
+          resetNotifications,
+        },
+      );
+
+    if (!userStorage) {
+      return getErrorMessage(
+        notificationsErrors.CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
+      );
+    }
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
 export const setFeatureAnnouncementsEnabled = async (
   featureAnnouncementsEnabled: boolean,
 ) => {
