@@ -47,6 +47,12 @@ export interface DisableNotificationsReturn {
   error?: string;
 }
 
+export interface ResetNotificationsStorageKeyReturn {
+  resetNotificationsStorageKey: () => Promise<string | undefined>;
+  loading: boolean;
+  error?: string;
+}
+
 export interface MarkNotificationAsReadReturn {
   markNotificationAsRead: (
     notifications: MarkAsReadNotificationsParam,
