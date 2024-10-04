@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`] = `
+<View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c566",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "display": "flex",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 16,
+      }
+    }
+  >
+    <View>
+      <Text>
+        Open
+      </Text>
+    </View>
+    <TouchableOpacity
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+      testID="openButtonTestId"
+    >
+      <SvgMock
+        color="#9fa6ae"
+        height={16}
+        name="ArrowRight"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;
