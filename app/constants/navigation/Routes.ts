@@ -144,6 +144,7 @@ const Routes = {
     UNSTAKE: 'Unstake',
     UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
     CLAIM: 'Claim',
+    CLAIM_CONFIRMATION: 'ClaimConfirmation',
     MODALS: {
       LEARN_MORE: 'LearnMore',
     },

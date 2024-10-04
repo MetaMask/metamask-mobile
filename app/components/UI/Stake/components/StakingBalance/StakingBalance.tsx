@@ -77,7 +77,7 @@ const StakingBalance = () => {
   const { navigate } = useNavigation();
 
   const handleNavigateToUnstakeConfirmationScreen = () =>
-    navigate('StakeScreens', { screen: Routes.STAKING.UNSTAKE_CONFIRMATION });
+    navigate('StakeScreens', { screen: Routes.STAKING.CLAIM_CONFIRMATION });
 
   return (
     <View>

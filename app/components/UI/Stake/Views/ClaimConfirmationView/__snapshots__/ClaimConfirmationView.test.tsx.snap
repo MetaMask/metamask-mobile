@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`UnstakeConfirmationView render matches snapshot 1`] = `
+exports[`ClaimConfirmationView render matches snapshot 1`] = `
 <View
   style={
     {
@@ -524,7 +524,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                     }
                     testID="label"
                   >
-                    Unstaking to
+                    Claiming to
                   </Text>
                 </View>
               </View>

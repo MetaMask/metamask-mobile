@@ -3349,7 +3349,8 @@
     "estimated_changes": "Estimated changes",
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
-    "unstaking_to": "Unstaking to"
+    "unstaking_to": "Unstaking to",
+    "claiming_to": "Claiming to"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
