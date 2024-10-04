@@ -15,8 +15,20 @@ class BuildQuoteView {
     return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON);
   }
 
+  get currencySelector() {
+    return Matchers.getElementByID(BuildQuoteSelectors.CURRENCY_SELECTOR);
+  }
+
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async openCurrencySelector() {
+    await Gestures.waitAndTap(this.currencySelector);
+  }
+
+  async selectCurrency(currency) {
+    await Gestures.waitAndTap(Matchers.getElementByText(currency))
   }
 }
 
