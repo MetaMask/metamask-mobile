@@ -15,7 +15,7 @@ interface InputDisplayProps {
   balanceValue: string;
   isNonZeroAmount: boolean;
   isEth: boolean;
-  amount: string;
+  amountEth: string;
   fiatAmount: string;
   currentCurrency: string;
   handleCurrencySwitch: () => void;
@@ -45,7 +45,7 @@ const InputDisplay = ({
   balanceValue,
   isNonZeroAmount,
   isEth,
-  amount,
+  amountEth,
   fiatAmount,
   currentCurrency,
   handleCurrencySwitch,
@@ -74,7 +74,7 @@ const InputDisplay = ({
           color={isNonZeroAmount ? TextColor.Default : TextColor.Muted}
           variant={TextVariant.DisplayMD}
         >
-          {isEth ? amount : fiatAmount}
+          {isEth ? amountEth : fiatAmount}
         </Text>
         <Text color={TextColor.Muted} variant={TextVariant.DisplayMD}>
           {isEth ? 'ETH' : currentCurrency.toUpperCase()}

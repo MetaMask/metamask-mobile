@@ -14,17 +14,18 @@ import {
   limitToMaximumDecimalPlaces,
   renderFiat,
 } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
 
 const useStakingInputHandlers = (balance: BN) => {
-  const [amount, setAmount] = useState('0');
-  const [amountBN, setAmountBN] = useState<BN>(new BN(0));
+  const [amountEth, setAmountEth] = useState('0');
+  const [amountWei, setAmountWei] = useState<BN>(new BN(0));
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
-  const isNonZeroAmount = useMemo(() => amountBN.gt(new BN(0)), [amountBN]);
+  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN(0)), [amountWei]);
   const isOverMaximum = useMemo(() => {
-    const additionalFundsRequired = amountBN.sub(balance || new BN(0));
+    const additionalFundsRequired = amountWei.sub(balance || new BN(0));
     return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
-  }, [amountBN, balance, isNonZeroAmount]);
+  }, [amountWei, balance, isNonZeroAmount]);
 
   const [fiatAmount, setFiatAmount] = useState('0');
   const [isEth, setIsEth] = useState<boolean>(true);
@@ -35,12 +36,12 @@ const useStakingInputHandlers = (balance: BN) => {
 
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
-    : `${amount} ETH`;
+    : `${amountEth} ETH`;
 
   const handleEthInput = useCallback(
     (value: string) => {
-      setAmount(value);
-      setAmountBN(toWei(value, 'ether'));
+      setAmountEth(value);
+      setAmountWei(toWei(value, 'ether'));
       const fiatValue = weiToFiatNumber(
         toWei(value, 'ether'),
         conversionRate,
@@ -60,8 +61,8 @@ const useStakingInputHandlers = (balance: BN) => {
         5,
       );
 
-      setAmount(ethValue);
-      setAmountBN(toWei(ethValue, 'ether'));
+      setAmountEth(ethValue);
+      setAmountWei(toWei(ethValue, 'ether'));
     },
     [conversionRate],
   );
@@ -89,9 +90,7 @@ const useStakingInputHandlers = (balance: BN) => {
     ({ value }: { value: number }) => {
       if (!balance) return;
       const percentage = value * 100;
-      const amountPercentage = balance
-        ?.mul(new BN(percentage))
-        .div(new BN(100));
+      const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
 
       const newAmountString = fromTokenMinimalUnitString(
         amountPercentage.toString(10),
@@ -101,8 +100,8 @@ const useStakingInputHandlers = (balance: BN) => {
         Number(newAmountString),
         5,
       );
-      setAmount(newEthAmount);
-      setAmountBN(amountPercentage);
+      setAmountEth(newEthAmount);
+      setAmountWei(amountPercentage);
 
       const newFiatAmount = weiToFiatNumber(
         toWei(newEthAmount.toString(), 'ether'),
@@ -118,7 +117,7 @@ const useStakingInputHandlers = (balance: BN) => {
     if (isNonZeroAmount) {
       // Limiting the decimal places to keep it consistent with other eth values in the input screen
       const ethRewards = limitToMaximumDecimalPlaces(
-        parseFloat(amount) * parseFloat(annualRewardRate),
+        parseFloat(amountEth) * parseFloat(annualRewardRate),
         5,
       );
       if (isEth) {
@@ -134,11 +133,11 @@ const useStakingInputHandlers = (balance: BN) => {
     } else {
       setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
     }
-  }, [isNonZeroAmount, amount, isEth, fiatAmount, currentCurrency]);
+  }, [isNonZeroAmount, amountEth, isEth, fiatAmount, currentCurrency]);
 
   return {
-    amount,
-    amountBN,
+    amountEth,
+    amountWei,
     fiatAmount,
     isEth,
     currencyToggleValue,

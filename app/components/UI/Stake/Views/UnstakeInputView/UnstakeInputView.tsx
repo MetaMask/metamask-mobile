@@ -31,7 +31,7 @@ const UnstakeInputView = () => {
     isEth,
     currentCurrency,
     isNonZeroAmount,
-    amount,
+    amountEth,
     fiatAmount,
     isOverMaximum,
     handleCurrencySwitch,
@@ -71,7 +71,7 @@ const UnstakeInputView = () => {
         balanceText={stakedBalanceText}
         balanceValue={stakedBalanceValue}
         isNonZeroAmount={isNonZeroAmount}
-        amount={amount}
+        amountEth={amountEth}
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
@@ -84,7 +84,7 @@ const UnstakeInputView = () => {
         onAmountPress={handleAmountPress}
       />
       <Keypad
-        value={isEth ? amount : fiatAmount}
+        value={isEth ? amountEth : fiatAmount}
         onChange={handleKeypadChange}
         style={styles.keypad}
         currency={'ETH'}

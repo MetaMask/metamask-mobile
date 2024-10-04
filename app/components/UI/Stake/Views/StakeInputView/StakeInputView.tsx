@@ -24,14 +24,14 @@ const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { balance, balanceFiatNumber, balanceBN } = useBalance();
+  const { balance, balanceFiatNumber, balanceWei } = useBalance();
 
   const {
     isEth,
     currentCurrency,
     isNonZeroAmount,
-    amount,
-    amountBN,
+    amountEth,
+    amountWei,
     fiatAmount,
     isOverMaximum,
     handleCurrencySwitch,
@@ -41,7 +41,7 @@ const StakeInputView = () => {
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
-  } = useStakingInputHandlers(balanceBN);
+  } = useStakingInputHandlers(balanceWei);
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
@@ -71,7 +71,7 @@ const StakeInputView = () => {
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();
-  }, [amount, amountBN, isEth, calculateEstimatedAnnualRewards]);
+  }, [amountEth, amountWei, isEth, calculateEstimatedAnnualRewards]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -80,7 +80,7 @@ const StakeInputView = () => {
         balanceText={balanceText}
         balanceValue={balanceValue}
         isNonZeroAmount={isNonZeroAmount}
-        amount={amount}
+        amountEth={amountEth}
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
@@ -98,7 +98,7 @@ const StakeInputView = () => {
         onAmountPress={handleAmountPress}
       />
       <Keypad
-        value={isEth ? amount : fiatAmount}
+        value={isEth ? amountEth : fiatAmount}
         onChange={handleKeypadChange}
         style={styles.keypad}
         currency={'ETH'}

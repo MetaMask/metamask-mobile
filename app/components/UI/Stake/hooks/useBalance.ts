@@ -33,22 +33,22 @@ const useBalance = () => {
     [rawAccountBalance],
   );
 
-  const balanceBN = useMemo(
+  const balanceWei = useMemo(
     () => hexToBN(rawAccountBalance),
     [rawAccountBalance],
   );
 
   const balanceFiat = useMemo(
-    () => weiToFiat(balanceBN, conversionRate, currentCurrency),
-    [balanceBN, conversionRate, currentCurrency],
+    () => weiToFiat(balanceWei, conversionRate, currentCurrency),
+    [balanceWei, conversionRate, currentCurrency],
   );
 
   const balanceFiatNumber = useMemo(
-    () => weiToFiatNumber(balanceBN, conversionRate, 2),
-    [balanceBN, conversionRate],
+    () => weiToFiatNumber(balanceWei, conversionRate, 2),
+    [balanceWei, conversionRate],
   );
 
-  return { balance, balanceFiat, balanceBN, balanceFiatNumber };
+  return { balance, balanceFiat, balanceWei, balanceFiatNumber };
 };
 
 export default useBalance;
