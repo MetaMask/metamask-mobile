@@ -421,7 +421,9 @@ const Wallet = ({
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        listNotifications();
+        InteractionManager.runAfterInteractions(() => {
+          listNotifications();
+        });
       }
 
       appState.current = nextAppState;
@@ -431,7 +433,12 @@ const Wallet = ({
       'change',
       handleAppStateChange,
     );
-    listNotifications();
+
+    // Defer initial listNotifications call
+    InteractionManager.runAfterInteractions(() => {
+      listNotifications();
+    });
+
     return () => {
       subscription.remove();
     };
