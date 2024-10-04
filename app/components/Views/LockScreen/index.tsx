@@ -13,10 +13,7 @@ import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { Authentication } from '../../../core';
-import {
-  getAssetFromTheme,
-  mockTheme
-} from '../../../util/theme';
+import { getAssetFromTheme, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import {
   CommonActions,
@@ -27,6 +24,8 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { Theme } from '@metamask/design-tokens';
 import wordmarkLight from '../../../animations/wordmark-light.json';
 import wordmarkDark from '../../../animations/wordmark-dark.json';
+import bounceAnimation from '../../../animations/bounce.json';
+import foxInAnimation from '../../../animations/fox-in.json';
 import { AppThemeKey } from 'app/util/theme/models';
 import { RootState } from 'app/reducers';
 
@@ -94,7 +93,6 @@ interface LockScreenState {
  * Main view component for the Lock screen
  */
 class LockScreen extends PureComponent<LockScreenProps, LockScreenState> {
-
   state: LockScreenState = {
     ready: false,
   };
@@ -137,7 +135,7 @@ class LockScreen extends PureComponent<LockScreenProps, LockScreenState> {
     });
     this.props.navigation.dispatch(resetAction);
     // Do not need to await since it's the last action.
-    Authentication.lockApp(false);
+    Authentication.lockApp();
   };
 
   async unlockKeychain() {
@@ -152,11 +150,11 @@ class LockScreen extends PureComponent<LockScreenProps, LockScreenState> {
       });
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.lock();
       trackErrorAsAnalytics(
         'Lockscreen: Authentication failed',
-        error?.message,
+        error instanceof Error ? error.message : 'Unknown error',
       );
     }
   }
@@ -197,7 +195,7 @@ class LockScreen extends PureComponent<LockScreenProps, LockScreenState> {
         <LottieView
           ref={this.firstAnimation}
           style={styles.animation}
-          source={require('../../../animations/bounce.json')}
+          source={bounceAnimation}
         />
       );
     }
@@ -208,7 +206,7 @@ class LockScreen extends PureComponent<LockScreenProps, LockScreenState> {
           ref={this.secondAnimation}
           style={styles.animation}
           loop={false}
-          source={require('../../../animations/fox-in.json')}
+          source={foxInAnimation}
           onAnimationFinish={this.onAnimationFinished}
         />
         <LottieView
