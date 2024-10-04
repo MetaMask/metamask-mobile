@@ -3,14 +3,13 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
 
   return StyleSheet.create({
     stakingEarningsContainer: {
       paddingTop: 16,
     },
     title: {
-      ...typography.sHeadingSM,
       paddingBottom: 8,
     } as TextStyle,
     keyValueRow: {
