@@ -156,7 +156,7 @@
   "PreferencesController": {
     "featureFlags": {},
     "identities": {},
-    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
+    "ipfsGateway": "https://gateway.pinata.cloud/ipfs/",
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
