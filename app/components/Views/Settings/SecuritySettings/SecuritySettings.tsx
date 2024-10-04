@@ -7,7 +7,6 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
-  Platform,
   Linking,
 } from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -54,17 +53,12 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import {
-  selectIsMultiAccountBalancesEnabled,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
   selectUseTransactionSimulations,
 } from '../../../../selectors/preferencesController';
-import {
-  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-  SECURITY_PRIVACY_VIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
 import {
   HeadingProps,
@@ -74,7 +68,6 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
-  BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
@@ -120,6 +113,7 @@ import { useDisableNotifications } from '../../../../util/notifications/hooks/us
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
+import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -195,9 +189,6 @@ const Settings: React.FC = () => {
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
-  const isMultiAccountBalancesEnabled = useSelector(
-    selectIsMultiAccountBalancesEnabled,
-  );
   const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
@@ -453,48 +444,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleIsMultiAccountBalancesEnabled = (
-    multiAccountBalancesEnabled: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsMultiAccountBalancesEnabled(
-      multiAccountBalancesEnabled,
-    );
-  };
-
-  const renderMultiAccountBalancesSection = () => (
-    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.batch_balance_requests_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isMultiAccountBalancesEnabled}
-            onValueChange={toggleIsMultiAccountBalancesEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            {...generateTestId(
-              Platform,
-              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-            )}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.batch_balance_requests_description')}
-      </Text>
-    </View>
-  );
   const toggleEnableIncomingTransactions = (
     hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
@@ -929,7 +878,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.transactions_subheading')}
         </Text>
-        {renderMultiAccountBalancesSection()}
+        <BatchAccountBalanceSettings />
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
