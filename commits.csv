@@ -1,0 +1,123 @@
+Commit Message,Author,PR Link,Team,Change Type
+fix: replace decomissioned cloudflare-ipfs.com with gateway.pinata.cloud (#11401),legobeat,https://github.com/MetaMask/metamask-mobile/pull/11401,"team-security,team-lavamoat,team-wallet-ux",Fixed
+feat: 7.32.0 (#11333),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/11333,team-mobile-platform,Added
+chore: exclude temporarily sentry SDK advisory (#11615),tommasini,https://github.com/MetaMask/metamask-mobile/pull/11615,team-mobile-platform,Changed
+chore: bump to 1444 (#11604),Frank von Hoven,https://github.com/MetaMask/metamask-mobile/pull/11604,team-mobile-platform,Ops
+chore: bump to 1443 (#11584),Frank von Hoven,https://github.com/MetaMask/metamask-mobile/pull/11584,team-mobile-platform,Ops
+fix: Fix invalid browser url crash (#11581),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/11581,team-mobile-platform,Fixed
+ci: disable swaps e2e workflow (#11577),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/11577,team-mobile-platform,Changed
+chore: replace Segment patch by plugin (#11350),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/11350,team-mobile-platform,Changed
+chore: remove unused events (#11287),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/11287,team-mobile-platform,Changed
+chore: Chore/7.32.0 bump to 1442 (#11560),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/11560,team-mobile-platform,Ops
+chore: bump build to 1441 (#11541),Frank von Hoven,https://github.com/MetaMask/metamask-mobile/pull/11541,team-mobile-platform,Ops
+fix: android firebase docs template (#11512),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11512,team-mobile-platform,Changed
+Cherry pick e5de779 to 7.32.0 (#11516),Frank von Hoven,https://github.com/MetaMask/metamask-mobile/pull/11516,team-mobile-platform,Unknown
+chore: delete swaps token charts test (#11517),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/11517,team-mobile-platform,Changed
+test: disable swaps token charts regression tests (#11515),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/11515,team-mobile-platform,Changed
+feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/11507,team-mobile-platform,Added
+chore: revert measuring with react native performance (#11504),tommasini,https://github.com/MetaMask/metamask-mobile/pull/11504,team-mobile-platform,Changed
+test: Merge Import Token flow methods and ids in just one folder and files (#11458),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/11458,team-mobile-platform,Changed
+chore(revert): Prevent redundant Sentry sourcemap uploads (#11492),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/11492,team-mobile-platform,Changed
+test: Remove E2E Tests for Features No Longer Present in the App (#11469),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/11469,team-mobile-platform,Changed
+fix: Reorder prep_environment (#11467),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/11467,team-mobile-platform,Fixed
+chore: bump to 1439 (#11463),Frank von Hoven,https://github.com/MetaMask/metamask-mobile/pull/11463,team-mobile-platform,Ops
+chore: Add skip label to bypass sonarcloud (#11425),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/11425,team-mobile-platform,Changed
+chore(js-ts): Convert app/util/bytes.js to TypeScript (#11275),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11275,team-mobile-platform,Changed
+fix: Update steps of the methods that are no longer valid (#11367),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/11367,team-mobile-platform,Fixed
+chore: revert chore(js-ts): Migrate 37 0-error js files (#11418),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/11418,team-mobile-platform,Changed
+chore: Enable linting Pods and re-organize setup.mjs file (#10880),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/10880,team-mobile-platform,Changed
+chore(js-ts): Convert app/components/UI/Swaps/components/Ratio.js to TypeScript (#11311),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11311,team-mobile-platform,Changed
+fix: Stop crowdin action from creating branches (#11400),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/11400,team-mobile-platform,Fixed
+chore(js-ts): Convert app/components/Views/PickComponent/index.js to TypeScript (#11357),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11357,team-mobile-platform,Changed
+fix: splash screen image on android  (#11348),tommasini,https://github.com/MetaMask/metamask-mobile/pull/11348,team-mobile-platform,Fixed
+"chore: revert ""feat: react native fast crypto for notifications"" (#11347)",Curtis David,https://github.com/MetaMask/metamask-mobile/pull/11347,team-mobile-platform,Added
+fix: splash screen image on android (#11346),tommasini,https://github.com/MetaMask/metamask-mobile/pull/11346,team-mobile-platform,Fixed
+New Crowdin translations by Github Action (#11092),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/11092,team-mobile-platform,Unknown
+chore(js-ts): Convert app/components/Views/MediaPlayer/Loader.js to TypeScript (#11446),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11446,team-ai,Changed
+chore(js-ts): Convert app/components/Base/ModalHandler.js to TypeScript (#11473),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11473,team-ai,Changed
+chore(js-ts): Convert app/components/Base/ListItem.js to TypeScript (#11601),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11601,team-ai,Changed
+chore(js-ts): Convert app/util/jsonRpcRequest.js to TypeScript (#11407),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11407,team-ai,Changed
+chore(js-ts): Convert app/component-library/components/Icons/Icon/scripts/generate-assets.js to TypeScript (#11594),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11594,team-ai,Changed
+chore(js-ts): Convert app/components/UI/GenericButton/index.ios.js to TypeScript (#11523),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11523,team-ai,Changed
+chore(js-ts): Convert app/components/UI/FadeView/index.js to TypeScript (#11472),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11472,team-ai,Changed
+chore(js-ts): Convert app/components/UI/OnboardingProgress/index.js to TypeScript (#11476),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11476,team-ai,Changed
+chore(js-ts): Convert app/util/browserScripts.js to TypeScript (#11405),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11405,team-ai,Changed
+chore(js-ts): Migrate 37 0-error js files (#11214),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11214,team-ai,Changed
+chore(js-ts): Convert app/components/UI/ComponentErrorBoundary/index.js to TypeScript (#11271),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11271,team-ai,Changed
+chore(js-ts): Convert app/util/validators/index.js to TypeScript (#11299),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11299,team-ai,Changed
+chore(js-ts): Convert app/components/Base/SelectorButton.js to TypeScript (#11303),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11303,team-ai,Changed
+chore(js-ts): Convert app/components/UI/GenericButton/index.android.js to TypeScript (#11280),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11280,team-ai,Changed
+chore(js-ts): Convert app/components/UI/OnboardingScreenWithBg/index.js to TypeScript (#11273),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11273,team-ai,Changed
+chore(js-ts): Convert app/components/Base/ModalDragger.js to TypeScript (#11272),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11272,team-ai,Changed
+chore(js-ts): Convert app/components/UI/BlockingActionModal/index.js to TypeScript (#11308),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11308,team-ai,Changed
+chore(js-ts): Convert app/components/Base/Summary.js to TypeScript (#11305),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11305,team-ai,Changed
+chore(js-ts): Convert app/components/UI/ConnectHeader/index.js to TypeScript (#11274),devin-ai-integration[bot],https://github.com/MetaMask/metamask-mobile/pull/11274,team-ai,Changed
+chore: cherry-pick #11325 (#11593),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/11593,,Ops
+fix: Fix/use portfolio home page (#11554),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/11554,,Fixed
+chore: chore/7.32.0-Changelog (#11334),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/11334,,Changed
+chore: bump version (#11599),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11599,team-snaps-platform,Ops
+chore: refactor e2e (#11483),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11483,team-snaps-platform,Changed
+fix: react native quick crypto ios build bug (#11443),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11443,team-snaps-platform,Fixed
+fix: loader can display on top of login screen (#11325),abretonc7s,https://github.com/MetaMask/metamask-mobile/pull/11325,team-sdk,Fixed
+fix: origin spoofing vulnerability in signature prompts on iOS (#11372),Omri Dan,https://github.com/MetaMask/metamask-mobile/pull/11372,team-sdk,Fixed
+feat: app event manager and attribution id parameters (#11318),abretonc7s,https://github.com/MetaMask/metamask-mobile/pull/11318,team-sdk,Added
+chore: Add UX CodeOwners responsibilities (#11491),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/11491,team-wallet-ux,Changed
+feat: add the abilty to hide the disconnect all button as well as showing and hiding the accounts row when necessary (#11445),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/11445,team-wallet-ux,Added
+feat(3299): add tracking to network switching and confirmation (#11386),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/11386,team-wallet-ux,Added
+refactor(1702-2): auto detect nft component (#11364),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/11364,team-wallet-ux,Changed
+refactor(1702-1): auto detect tokens component (#11363),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/11363,team-wallet-ux,Changed
+fix(2453): adjust UI details for account cell on wallet screen (#11076),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/11076,team-wallet-ux,Fixed
+refactor: rename the feature flag since it had a typo (#11379),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/11379,team-wallet-ux,Added
+feat(2739): permission summary view gets the ability to disconnect all (#11239),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/11239,team-wallet-ux,Added
+chore(runway): cherry-pick fix: Fix invalid browser url crash (#11583),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11583,team-runway-bot,Ops
+chore(runway): cherry-pick fix: Fix/use portfolio home page (#11561),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11561,team-runway-bot,Ops
+chore(runway): cherry-pick fix(11481): android system alert respects dark mode themes (#11555),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11555,team-runway-bot,Ops
+chore(runway): cherry-pick fix(11482): incorrect QR code error (#11531),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11531,team-runway-bot,Ops
+chore(runway): cherry-pick fix: Update steps of the methods that are no longer valid (#11423),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11423,team-runway-bot,Ops
+chore(runway): cherry-pick fix: fix fixture builder network state (#11422),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11422,team-runway-bot,Ops
+chore(runway): cherry-pick fix: fix detect tokens performance (#11420),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11420,team-runway-bot,Ops
+chore(runway): cherry-pick fix: push notifications (#11417),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11417,team-runway-bot,Ops
+chore(runway): cherry-pick fix: Unreadable Asset options (#11416),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11416,team-runway-bot,Ops
+chore(runway): cherry-pick feat: app event manager and attribution id parameters (#11382),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11382,team-runway-bot,Added
+chore(runway): cherry-pick New Crowdin translations by Github Action (#11358),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/11358,team-runway-bot,Ops
+chore: cherry pick #11524 (#11571),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/11571,team-assets,Ops
+fix: fix duplicated network select (#11524),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/11524,team-assets,Fixed
+chore: Add `@MetaMask/metamask-assets` to `CODEOWNERS` (#11329),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/11329,team-assets,Changed
+fix: fix fixture builder network state (#11411),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/11411,team-assets,Fixed
+fix: Unreadable Asset options (#11380),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/11380,team-assets,Fixed
+fix: fix detect tokens performance (#11321),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/11321,team-assets,Fixed
+feat: bootstrap a reset notifications feat (#11455),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11455,"team-notifications,team-snaps-platform",Added
+feat: add support for external links (#11466),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11466,"team-notifications,team-snaps-platform",Added
+feat: add timeout handler (#11429),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11429,"team-notifications,team-snaps-platform",Added
+feat: add feature announcements channel for android (#11427),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11427,"team-notifications,team-snaps-platform",Added
+fix: refactor Logger usage (#11430),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11430,"team-notifications,team-snaps-platform",Changed
+fix: push notifications (#11250),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11250,"team-notifications,team-snaps-platform",Fixed
+feat: react native fast crypto for notifications (#11069),Jonathan Ferreira,https://github.com/MetaMask/metamask-mobile/pull/11069,"team-notifications,team-snaps-platform",Added
+feat: simple key-> value component for text value type (#11497),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/11497,team-confirmations,Added
+feat: adding title to confirmation page (#11478),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/11478,team-confirmations,Added
+feat: adding footer section to confirmation page (#11477),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/11477,team-confirmations,Added
+feat: adding very basic confirmation page hidden behind env var (#11454),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/11454,team-confirmations,Added
+feat: bundle size check (#11083),João,https://github.com/MetaMask/metamask-mobile/pull/11083,team-dev-ops,Added
+fix(11481): android system alert respects dark mode themes (#11552),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/11552,"team-design-system,team-wallet-ux",Fixed
+feat(ds): add ListItem top and bottom accessories (#11452),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/11452,team-design-system,Added
+fix(11482): incorrect QR code error (#11518),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/11518,"team-sdk,team-wallet-ux",Fixed
+chore: remove installation of redundant detox-cli in bitrise (#10449),legobeat,https://github.com/MetaMask/metamask-mobile/pull/10449,team-security,Changed
+chore: [Design quality] Update token details (#11470),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/11470,"team-ramp,team-assets,team-wallet-ux",Changed
+feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11387),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/11387,team-tiger,Added
+chore(deps): Bump `@metamask/phishing-controller` from `^9.0.0` to `^12.0.1` (#11111),Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11111,team-wallet-framework,Changed
+"chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)",Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11439,team-wallet-framework,Ops
+"chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`, `@metamask/logging-controller` from `^3.0.0` to `^6.0.1` (#11169)",Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11169,team-wallet-framework,Changed
+chore(deps): Bump `@metamask/controller-utils` from `^10.0.0` to `^11.3.0` (#11375),Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11375,team-wallet-framework,Changed
+chore(deps): Bump `@metamask/smart-transactions-controller` from `11.0.0` to `^13.0.0` (#11140),Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11140,team-wallet-framework,Changed
+"chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`, `@metamask/snaps-{controllers,execution-environments,sdk,utils}` to latest, `@metamask/utils` to `^9.2.1` (#11352)",Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11352,team-wallet-framework,Changed
+chore(deps): Bump `@metamask/keyring-controller` from `^16.1.0` to `^17.2.1` (#11351),Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11351,team-wallet-framework,Changed
+chore(deps): Bump `@metamask/address-book-controller` from `^4.0.1` to `^6.0.1` (#11104),Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/11104,team-wallet-framework,Changed
+feat: STAKE-804: build pooled staking empty state component (#11464),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/11464,team-stake,Added
+feat: add learn more modal component for staking (#11399),Amitabh Aggarwal,https://github.com/MetaMask/metamask-mobile/pull/11399,team-stake,Added
+feat: STAKE-822 build your balance component (#11261),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/11261,team-stake,Added
+feat: added KeyValueRow to component-library/components-temp (#11294),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/11294,team-stake,Added
+chore(ci): split out ci scripts and devDeps into separate project (#10917),legobeat,https://github.com/MetaMask/metamask-mobile/pull/10917,team-lavamoat,Changed
+chore: Prevent redundant Sentry sourcemap uploads (#11081),Daniel Cross,https://github.com/MetaMask/metamask-mobile/pull/11081,team-mobile-delivery,Changed
+"feat: display ""Snaps (Beta)"" decorator tag in accounts list (#11185)",Kate Johnson,https://github.com/MetaMask/metamask-mobile/pull/11185,team-accounts,Added
+feat: Eth snap keyring (#10829),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/10829,team-accounts,Added
+fix: bump notification controllers (#11349),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/11349,team-notifications,Ops
