@@ -1,4 +1,4 @@
-function getDefinedProperties(object) {
+function getDefinedProperties(object: Record<string, unknown>): Record<string, unknown> {
   return Object.entries(object).reduce(
     (obj, [key, val]) => (val !== undefined ? { ...obj, [key]: val } : obj),
     {},
@@ -11,7 +11,7 @@ function getDefinedProperties(object) {
  * @param {object} txMeta - An object containing data about a transaction
  * @returns {object} - An object containing the standard properties of a transaction
  */
-export function getTxData(txMeta = {}) {
+export function getTxData(txMeta: Record<string, unknown> = {}): Record<string, unknown> {
   const {
     data,
     from,
@@ -22,7 +22,17 @@ export function getTxData(txMeta = {}) {
     maxFeePerGas,
     maxPriorityFeePerGas,
     securityAlertResponse,
-  } = txMeta; // eslint-disable-line no-unused-vars
+  } = txMeta as {
+    data?: unknown;
+    from?: unknown;
+    gas?: unknown;
+    gasPrice?: unknown;
+    to?: unknown;
+    value?: unknown;
+    maxFeePerGas?: unknown;
+    maxPriorityFeePerGas?: unknown;
+    securityAlertResponse?: unknown;
+  }; // eslint-disable-line no-unused-vars
   const txData = {
     data,
     from,
@@ -43,7 +53,7 @@ export function getTxData(txMeta = {}) {
  * @param {object} txMeta - An object containing data about a transaction
  * @returns {object} - An object containing the standard properties of a transaction
  */
-export function getTxMeta(txMeta = {}) {
+export function getTxMeta(txMeta: Record<string, unknown> = {}): Record<string, unknown> {
   const {
     data,
     from,
@@ -54,6 +64,16 @@ export function getTxMeta(txMeta = {}) {
     maxFeePerGas,
     maxPriorityFeePerGas,
     ...rest
-  } = txMeta; // eslint-disable-line no-unused-vars
+  } = txMeta as {
+    data?: unknown;
+    from?: unknown;
+    gas?: unknown;
+    gasPrice?: unknown;
+    to?: unknown;
+    value?: unknown;
+    maxFeePerGas?: unknown;
+    maxPriorityFeePerGas?: unknown;
+    [key: string]: unknown;
+  }; // eslint-disable-line no-unused-vars
   return getDefinedProperties(rest);
 }
