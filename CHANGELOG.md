@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.31.1 - Oct 4, 2024
+### Fixed
+- [#11631](https://github.com/MetaMask/metamask-mobile/pull/11631): fix: Fixes UI issue in token details (#11631)
+
 ## 7.31.0 - Sep 6, 2024
 ### Added
 - [#10747](https://github.com/MetaMask/metamask-mobile/pull/10747): feat: 2805 grant permission to network with missmatching rpc url (#10747)
