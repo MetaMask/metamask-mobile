@@ -2,10 +2,9 @@
 
 ## Current Main Branch
 
-## release/7.33.0 - <Date>
+## 7.33.0 - Oct 3, 2024
 
 ### Added
-- [#11333](https://github.com/MetaMask/metamask-mobile/pull/11333): feat: 7.32.0 (#11333)
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
 - [#11347](https://github.com/MetaMask/metamask-mobile/pull/11347): "chore: revert ""feat: react native fast crypto for notifications"" (#11347)"
 - [#11318](https://github.com/MetaMask/metamask-mobile/pull/11318): feat: app event manager and attribution id parameters (#11318)
@@ -27,6 +26,12 @@
 - [#11294](https://github.com/MetaMask/metamask-mobile/pull/11294): feat: added KeyValueRow to component-library/components-temp (#11294)
 - [#11185](https://github.com/MetaMask/metamask-mobile/pull/11185): "feat: display ""Snaps (Beta)"" decorator tag in accounts list (#11185)"
 - [#10829](https://github.com/MetaMask/metamask-mobile/pull/10829): feat: Eth snap keyring (#10829)
+- [#11455](https://github.com/MetaMask/metamask-mobile/pull/11455): feat: bootstrap a reset notifications feat (#11455)
+- [#11466](https://github.com/MetaMask/metamask-mobile/pull/11466): feat: add support for external links (#11466)
+- [#11429](https://github.com/MetaMask/metamask-mobile/pull/11429): feat: add timeout handler (#11429)
+- [#11427](https://github.com/MetaMask/metamask-mobile/pull/11427): feat: add feature announcements channel for android (#11427)
+- [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
+- [#11069](https://github.com/MetaMask/metamask-mobile/pull/11069): feat: react native fast crypto for notifications (#11069)
 
 ### Changed
 - [#11615](https://github.com/MetaMask/metamask-mobile/pull/11615): chore: exclude temporarily sentry SDK advisory (#11615)
@@ -79,6 +84,11 @@
 - [#11104](https://github.com/MetaMask/metamask-mobile/pull/11104): chore(deps): Bump `@metamask/address-book-controller` from `^4.0.1` to `^6.0.1` (#11104)
 - [#10917](https://github.com/MetaMask/metamask-mobile/pull/10917): chore(ci): split out ci scripts and devDeps into separate project (#10917)
 - [#11081](https://github.com/MetaMask/metamask-mobile/pull/11081): chore: Prevent redundant Sentry sourcemap uploads (#11081)
+- [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
+- [#11470](https://github.com/MetaMask/metamask-mobile/pull/11470): chore: [Design quality] Update token details (#11470)
+- [#11439](https://github.com/MetaMask/metamask-mobile/pull/11439): "chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)"
+- [#11169](https://github.com/MetaMask/metamask-mobile/pull/11169): "chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`
+- [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): "chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
 ### Fixed
 - [#11581](https://github.com/MetaMask/metamask-mobile/pull/11581): fix: Fix invalid browser url crash (#11581)
@@ -96,42 +106,9 @@
 - [#11411](https://github.com/MetaMask/metamask-mobile/pull/11411): fix: fix fixture builder network state (#11411)
 - [#11380](https://github.com/MetaMask/metamask-mobile/pull/11380): fix: Unreadable Asset options (#11380)
 - [#11321](https://github.com/MetaMask/metamask-mobile/pull/11321): fix: fix detect tokens performance (#11321)
-
-### Other
 - [#11401](https://github.com/MetaMask/metamask-mobile/pull/11401): fix: replace decomissioned cloudflare-ipfs.com with gateway.pinata.cloud (#11401)
-- [#11604](https://github.com/MetaMask/metamask-mobile/pull/11604): chore: bump to 1444 (#11604)
-- [#11584](https://github.com/MetaMask/metamask-mobile/pull/11584): chore: bump to 1443 (#11584)
-- [#11560](https://github.com/MetaMask/metamask-mobile/pull/11560): chore: Chore/7.32.0 bump to 1442 (#11560)
-- [#11541](https://github.com/MetaMask/metamask-mobile/pull/11541): chore: bump build to 1441 (#11541)
-- [#11516](https://github.com/MetaMask/metamask-mobile/pull/11516): Cherry pick e5de779 to 7.32.0 (#11516)
-- [#11463](https://github.com/MetaMask/metamask-mobile/pull/11463): chore: bump to 1439 (#11463)
-- [#11092](https://github.com/MetaMask/metamask-mobile/pull/11092): New Crowdin translations by Github Action (#11092)
-- [#11593](https://github.com/MetaMask/metamask-mobile/pull/11593): chore: cherry-pick #11325 (#11593)
-- [#11599](https://github.com/MetaMask/metamask-mobile/pull/11599): chore: bump version (#11599)
-- [#11583](https://github.com/MetaMask/metamask-mobile/pull/11583): chore(runway): cherry-pick fix: Fix invalid browser url crash (#11583)
-- [#11561](https://github.com/MetaMask/metamask-mobile/pull/11561): chore(runway): cherry-pick fix: Fix/use portfolio home page (#11561)
-- [#11555](https://github.com/MetaMask/metamask-mobile/pull/11555): chore(runway): cherry-pick fix(11481): android system alert respects dark mode themes (#11555)
-- [#11531](https://github.com/MetaMask/metamask-mobile/pull/11531): chore(runway): cherry-pick fix(11482): incorrect QR code error (#11531)
-- [#11423](https://github.com/MetaMask/metamask-mobile/pull/11423): chore(runway): cherry-pick fix: Update steps of the methods that are no longer valid (#11423)
-- [#11422](https://github.com/MetaMask/metamask-mobile/pull/11422): chore(runway): cherry-pick fix: fix fixture builder network state (#11422)
-- [#11420](https://github.com/MetaMask/metamask-mobile/pull/11420): chore(runway): cherry-pick fix: fix detect tokens performance (#11420)
-- [#11417](https://github.com/MetaMask/metamask-mobile/pull/11417): chore(runway): cherry-pick fix: push notifications (#11417)
-- [#11416](https://github.com/MetaMask/metamask-mobile/pull/11416): chore(runway): cherry-pick fix: Unreadable Asset options (#11416)
-- [#11358](https://github.com/MetaMask/metamask-mobile/pull/11358): chore(runway): cherry-pick New Crowdin translations by Github Action (#11358)
-- [#11571](https://github.com/MetaMask/metamask-mobile/pull/11571): chore: cherry pick #11524 (#11571)
-- [#11455](https://github.com/MetaMask/metamask-mobile/pull/11455): feat: bootstrap a reset notifications feat (#11455)
-- [#11466](https://github.com/MetaMask/metamask-mobile/pull/11466): feat: add support for external links (#11466)
-- [#11429](https://github.com/MetaMask/metamask-mobile/pull/11429): feat: add timeout handler (#11429)
-- [#11427](https://github.com/MetaMask/metamask-mobile/pull/11427): feat: add feature announcements channel for android (#11427)
-- [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
-- [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
-- [#11069](https://github.com/MetaMask/metamask-mobile/pull/11069): feat: react native fast crypto for notifications (#11069)
 - [#11552](https://github.com/MetaMask/metamask-mobile/pull/11552): fix(11481): android system alert respects dark mode themes (#11552)
 - [#11518](https://github.com/MetaMask/metamask-mobile/pull/11518): fix(11482): incorrect QR code error (#11518)
-- [#11470](https://github.com/MetaMask/metamask-mobile/pull/11470): chore: [Design quality] Update token details (#11470)
-- [#11439](https://github.com/MetaMask/metamask-mobile/pull/11439): "chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)"
-- [#Jongsun Suh](Jongsun Suh): "chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`
-- [#execution-environments](execution-environments): "chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
 
 ## 7.32.0 - Sep 19, 2024
