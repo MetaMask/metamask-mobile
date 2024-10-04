@@ -8,4 +8,3 @@ export const BuildQuoteSelectors = {
   CURRENCY_SELECTOR: 'currency-selector',
   AMOUNT_INPUT: 'amount-input',
 };
-};
