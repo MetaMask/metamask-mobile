@@ -25,7 +25,6 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
           .withPreferencesController({
             useNftDetection: false,
           })
@@ -35,12 +34,6 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
       },
       async () => {
         await loginToApp();
-
-        // Switch to Mainnet
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo(ETHEREUM);
-        await NetworkEducationModal.tapGotItButton();
-
         await Assertions.checkIfVisible(NftDetectionModal.container);
 
         // fix flaky test: toast should desapear to get access to cancel button
@@ -65,7 +58,6 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
           .withPreferencesController({
             useNftDetection: false,
           })
@@ -75,11 +67,6 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
       },
       async () => {
         await loginToApp();
-
-        // Switch to Mainnet
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo(ETHEREUM);
-        await NetworkEducationModal.tapGotItButton();
 
         await Assertions.checkIfVisible(NftDetectionModal.container);
         await NftDetectionModal.tapAllowButton();
