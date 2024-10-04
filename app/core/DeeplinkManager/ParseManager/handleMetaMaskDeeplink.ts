@@ -9,7 +9,10 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import parseOriginatorInfo from '../parseOriginatorInfo';
-
+import { Platform } from 'react-native';
+import Device from '../../../util/device';
+import Routes from '../../../constants/navigation/Routes';
+import AppConstants from '../../AppConstants';
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -39,8 +42,14 @@ export function handleMetaMaskDeeplink({
   }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-    if (params.redirect) {
-      Minimizer.goBack();
+    if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+      if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
+      }  else {
+        Minimizer.goBack();
+      }
     } else if (params.channelId) {
       // differentiate between  deeplink callback and socket connection
       if (params.comm === 'deeplinking') {

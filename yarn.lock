@@ -5239,10 +5239,10 @@
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
 
-"@metamask/profile-sync-controller@^0.9.4":
-  version "0.9.4"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.9.4.tgz#8cb74c1b97b8d6b93320263e56c39129076611e9"
-  integrity sha512-VKGXFTSnLuBC1/JMrR2/fGrP1LzgAkvlrfRrz1RKRqAPLAIbToph9MV9X06TuczDjrDkUv9fPpXa1j8tKvlCqg==
+"@metamask/profile-sync-controller@^0.9.5":
+  version "0.9.5"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.9.5.tgz#b236153a59e43c0656f4fb2b76cb495dab38814b"
+  integrity sha512-3eMUe8rf1fFlrOzHiL4Vt6QQMpZVFsfPuFssJ6eIfMqUFoRVxbHSq1Ar8T9v2uKteYO7oTHm4JtnsuOGQxGvEg==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
     "@metamask/keyring-api" "^8.1.3"
