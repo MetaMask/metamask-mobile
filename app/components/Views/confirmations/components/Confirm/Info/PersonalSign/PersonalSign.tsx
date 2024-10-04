@@ -24,12 +24,15 @@ const PersonalSign = () => {
   return (
     <View style={styles.titleContainer}>
       <InfoSection>
-        <InfoRow label={strings('confirm.request_from')} tooltip="This site is asking for your signature">
+        <InfoRow
+          label={strings('confirm.request_from')}
+          tooltip={strings('confirm.personal_sign_tooltip')}
+        >
           <InfoURL url={approvalRequest.origin} />
         </InfoRow>
       </InfoSection>
       <InfoSection>
-        <InfoRow label="Message">
+        <InfoRow label={strings('confirm.message')}>
           <InfoURL
             url={sanitizeString(hexToText(approvalRequest.requestData?.data))}
           />

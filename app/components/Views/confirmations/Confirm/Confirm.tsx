@@ -22,7 +22,7 @@ const Confirm = () => {
       <View style={styles.container}>
         <View>
           <Title />
-        <Info />
+          <Info />
         </View>
         <Footer />
       </View>

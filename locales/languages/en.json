@@ -3404,6 +3404,7 @@
       "signature": "Signature request"
     },
     "request_from": "Request from",
-    "Message": "message"
+    "message": "Message",
+    "personal_sign_tooltip": "This site is asking for your signature"
   }
 }
