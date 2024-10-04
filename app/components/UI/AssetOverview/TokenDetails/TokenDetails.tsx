@@ -47,7 +47,7 @@ interface TokenDetailsProps {
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const tokenList = useSelector(selectTokenList);
-  const tokenExchangeRates = undefined;
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
