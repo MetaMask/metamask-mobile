@@ -1,8 +1,8 @@
 import React, { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
-import { useTheme } from '../../../../../../util/theme';
-import createStyles from './style';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './InfoRow.styles';
 
 interface InfoRowProps {
   label: string;
@@ -10,9 +10,7 @@ interface InfoRowProps {
 }
 
 const InfoRow = ({ label, children }: InfoRowProps) => {
-  const { colors } = useTheme();
-
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container}>
