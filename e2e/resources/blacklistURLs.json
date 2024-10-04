@@ -8,7 +8,7 @@
     ".*static.cx.metamask.io/.*",
     ".*rpc.tenderly.co/.*",
     ".*api-goerli.etherscan.io/.*",
-    ".*cloudflare-ipfs.com/.*",
+    ".*gateway.pinata.cloud/.*",
     ".*stale.*",
     ".*phishing-detection.metafi.codefi.network/.*",
     ".*phishing-detection.cx.metamask.io/.*",
