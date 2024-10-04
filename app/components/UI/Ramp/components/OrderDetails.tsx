@@ -389,7 +389,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
               </ListItemColumn>
               <ListItemColumn>
                 <Text variant={TextVariant.BodySMBold}>
-                  {orderData?.paymentMethod?.name}
+                  {orderData.paymentMethod.name}
                 </Text>
               </ListItemColumn>
             </ListItem>
