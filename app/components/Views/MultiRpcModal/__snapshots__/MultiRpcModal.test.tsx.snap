@@ -502,7 +502,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    [missing "en.multi_rpc_migration_modal.description" translation]
+                                    We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information
                                   </Text>
                                 </View>
                                 <View
@@ -793,7 +793,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  [missing "en.multi_rpc_migration_modal.accept" translation]
+                                  Accept
                                 </Text>
                               </TouchableOpacity>
                             </View>
