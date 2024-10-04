@@ -62,7 +62,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await WalletActionsModal.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
-    await BuildQuoteView.tapCancelButton()
   });
 
 });
