@@ -21,7 +21,11 @@ async function updateSDKLoadingState({
   }
 
   const currentRouteName = instance.state.navigation?.getCurrentRoute?.()?.name;
-  if (currentRouteName === Routes.LOCK_SCREEN) {
+  DevLogger.log(
+    `updateSDKLoadingState:: currentRouteName=${currentRouteName} loading=${loading}`,
+  );
+  const skipRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN, Routes.SHEET.ACCOUNT_CONNECT];
+  if (currentRouteName && skipRoutes.includes(currentRouteName)) {
     // Skip on lock screen
     return;
   }

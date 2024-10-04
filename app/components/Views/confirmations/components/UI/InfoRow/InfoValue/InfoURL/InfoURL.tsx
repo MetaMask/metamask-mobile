@@ -6,8 +6,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../../../../util/theme';
-import createStyles from './style';
+import Logger from '../../../../../../../../util/Logger';
+import { useStyles } from '../../../../../../../../component-library/hooks';
+import styleSheet from './InfoURL.styles';
 
 interface InfoURLProps {
   url: string;
@@ -20,15 +21,14 @@ const InfoURL = ({ url }: InfoURLProps) => {
     urlObject = new URL(url);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log(`InfoURL: new URL(url) cannot parse ${url}`);
+    Logger.error(e as Error, `InfoURL: new URL(url) cannot parse ${url}`);
   }
 
   const isHTTP = urlObject?.protocol === 'http:';
 
   const urlWithoutProtocol = url?.replace(/https?:\/\//u, '');
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container}>

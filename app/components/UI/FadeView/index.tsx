@@ -1,30 +1,39 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
-import { Animated, ViewPropTypes } from 'react-native';
+import React, { PureComponent, ReactNode } from 'react';
+import { Animated, StyleProp, ViewStyle } from 'react-native';
+
+interface FadeViewPropTypes {
+  /**
+   * Determines to show / hide the children components
+   */
+  visible: boolean;
+  /**
+   * Children components of the FadeView
+   * it can be a text node, an image, or an icon
+   * or an Array with a combination of them
+   */
+  children?: ReactNode;
+  /**
+   * Styles to be applied to the FadeView
+   */
+  style?: StyleProp<ViewStyle>;
+}
+
+interface FadeViewState {
+  visible: boolean;
+}
 
 /**
  * View that has the ability to fade in / out
  * his children by using the visible prop
  */
-export default class FadeView extends PureComponent {
-  static propTypes = {
-    /**
-     * Determines to show / hide the children components
-     */
-    visible: PropTypes.bool,
-    /**
-     * Children components of the FadeView
-     * it can be a text node, an image, or an icon
-     * or an Array with a combination of them
-     */
-    children: PropTypes.any,
-    /**
-     * Styles to be applied to the FadeView
-     */
-    style: ViewPropTypes.style,
-  };
+export default class FadeView extends PureComponent<
+  FadeViewPropTypes,
+  FadeViewState
+> {
+  visibility: Animated.Value;
+  mounted: boolean = false;
 
-  constructor(props) {
+  constructor(props: FadeViewPropTypes) {
     super(props);
     this.state = {
       visible: props.visible,
