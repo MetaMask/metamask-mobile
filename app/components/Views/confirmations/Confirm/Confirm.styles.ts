@@ -1,12 +1,14 @@
 import { StyleSheet } from 'react-native';
 
 import Device from '../../../../util/device';
-import { Colors } from '../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     container: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: theme.colors.background.alternative,
       paddingTop: 24,
       minHeight: '90%',
       borderTopLeftRadius: 20,
@@ -15,5 +17,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;
