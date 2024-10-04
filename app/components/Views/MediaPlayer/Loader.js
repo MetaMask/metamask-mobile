@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   View,
   StyleSheet,
@@ -10,9 +11,8 @@ import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: Theme['colors']) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -40,21 +40,9 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-interface LoaderProps {
-  error?: boolean;
-  onClose?: () => void;
-  onError?: () => void;
-}
-
-function Loader({ error = false, onClose = () => null, onError = () => null }: LoaderProps) {
+function Loader({ error, onClose }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
-  React.useEffect(() => {
-    if (error) {
-      onError();
-    }
-  }, [error, onError]);
 
   return (
     <View style={styles.container}>
@@ -78,5 +66,14 @@ function Loader({ error = false, onClose = () => null, onError = () => null }: L
     </View>
   );
 }
+
+Loader.propTypes = {
+  error: PropTypes.bool,
+  onClose: PropTypes.func,
+};
+
+Loader.defaultProps = {
+  onError: () => null,
+};
 
 export default Loader;

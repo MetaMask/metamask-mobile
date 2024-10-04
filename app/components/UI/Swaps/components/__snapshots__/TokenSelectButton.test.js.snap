@@ -71,7 +71,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     }
   >
     <TokenIcon
-      icon="https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       symbol="DAI"
     />
   </View>
@@ -95,7 +95,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     }
   >
     <TokenIcon
-      icon="https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       symbol="DAI"
     />
   </View>

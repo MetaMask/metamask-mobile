@@ -57,7 +57,7 @@ exports[`TokenIcon component should Render correctly 4`] = `
   onError={[Function]}
   source={
     {
-      "uri": "https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
     }
   }
   style={
@@ -146,7 +146,7 @@ exports[`TokenIcon component should Render correctly 8`] = `
   onError={[Function]}
   source={
     {
-      "uri": "https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
     }
   }
   style={

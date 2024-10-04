@@ -14,7 +14,7 @@ const blockedURLs = [
 ];
 const notBlockedURLs = [
   'https://proxy.metafi.codefi.network/opensea/api/v2',
-  'https://gateway.pinata.cloud/',
+  'https://cloudflare-ipfs.com/',
   'https://api.etherscan.io/',
   'https://api2.branch.io/',
   'https://cdn.branch.io/',

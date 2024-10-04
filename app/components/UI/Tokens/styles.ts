@@ -94,7 +94,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
-    portfolioBalance: {
+    networth: {
       flexDirection: 'row',
       alignItems: 'center',
       marginHorizontal: 16,
@@ -130,6 +130,7 @@ const createStyles = (colors: Colors) =>
       color: colors.text.default,
       alignItems: 'center',
     },
+
     textMoadlHeader: {
       ...typography.lBodyMDBold,
       fontSize: 18,
