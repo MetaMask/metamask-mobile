@@ -1,16 +1,15 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
 
-import { useTheme } from '../../../../../../../util/theme';
-import createStyles from './style';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import styleSheet from './InfoSection.styles';
 
 interface InfoSectionProps {
   children: ReactNode;
 }
 
 const InfoSection = ({ children }: InfoSectionProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   return <View style={styles.container}>{children}</View>;
 };

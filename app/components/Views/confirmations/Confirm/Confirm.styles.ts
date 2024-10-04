@@ -1,12 +1,14 @@
 import { StyleSheet } from 'react-native';
 
 import Device from '../../../../util/device';
-import { Colors } from '../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     container: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: theme.colors.background.alternative,
       paddingHorizontal: 16,
       paddingVertical: 24,
       minHeight: '60%',
@@ -17,5 +19,6 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'space-between'
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;

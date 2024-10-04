@@ -1,13 +1,15 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors } from '../../../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     container: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
+      backgroundColor: theme.colors.background.default,
+      borderColor: theme.colors.border.muted,
       borderRadius: 8,
       borderWidth: 1,
       display: 'flex',
@@ -17,7 +19,7 @@ const createStyles = (colors: Colors) =>
       padding: 16,
     },
     modalContent: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: theme.colors.background.alternative,
       paddingTop: 24,
       paddingBottom: 34,
       paddingHorizontal: 16,
@@ -31,7 +33,7 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 16,
     },
     modalTitle: {
-      color: colors.text.default,
+      color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
       fontWeight: '700',
@@ -39,5 +41,6 @@ const createStyles = (colors: Colors) =>
       textAlign: 'center',
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;
