@@ -8,9 +8,9 @@ import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../../util/theme';
-import createStyles from './style';
+import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../BottomModal';
+import styleSheet from './ExpandableSection.styles';
 
 interface ExpandableSectionProps {
   content: ReactNode;
@@ -27,8 +27,7 @@ const ExpandableSection = ({
   openButtonTestId,
   closeButtonTestId,
 }: ExpandableSectionProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const [expanded, setExpanded] = useState(false);
 
   return (
