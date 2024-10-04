@@ -7,14 +7,12 @@ exports[`TagBase should render TagBase 1`] = `
   onLayout={[Function]}
   style={
     {
-      "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#ffffff",
       "borderColor": "#bbc0c5",
       "borderRadius": 999,
       "borderWidth": 0,
       "color": "#141618",
-      "flexDirection": "row",
       "padding": 16,
       "paddingHorizontal": 8,
       "paddingVertical": 2,
@@ -22,63 +20,72 @@ exports[`TagBase should render TagBase 1`] = `
   }
   testID="tagbase"
 >
-  <SvgMock
-    color="#141618"
-    height={20}
-    name="Add"
-    style={
-      {
-        "height": 20,
-        "width": 20,
-      }
-    }
-    width={20}
-  />
   <View
-    accessible={false}
     style={
       {
-        "width": 4,
+        "alignItems": "center",
+        "flexDirection": "row",
       }
     }
-    testID="listitem-gap"
-  />
-  <Text
-    accessibilityRole="text"
-    style={
-      {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
-        "fontWeight": "400",
-        "letterSpacing": 0,
-        "lineHeight": 22,
-      }
-    }
-    testID="tagbase-text"
   >
-    Sample TagBase Children
-  </Text>
-  <View
-    accessible={false}
-    style={
-      {
-        "width": 4,
+    <SvgMock
+      color="#141618"
+      height={20}
+      name="Add"
+      style={
+        {
+          "height": 20,
+          "width": 20,
+        }
       }
-    }
-    testID="listitem-gap"
-  />
-  <SvgMock
-    color="#141618"
-    height={20}
-    name="Add"
-    style={
-      {
-        "height": 20,
-        "width": 20,
+      width={20}
+    />
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 4,
+        }
       }
-    }
-    width={20}
-  />
+      testID="listitem-gap"
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      testID="tagbase-text"
+    >
+      Sample TagBase Children
+    </Text>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 4,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <SvgMock
+      color="#141618"
+      height={20}
+      name="Add"
+      style={
+        {
+          "height": 20,
+          "width": 20,
+        }
+      }
+      width={20}
+    />
+  </View>
 </View>
 `;

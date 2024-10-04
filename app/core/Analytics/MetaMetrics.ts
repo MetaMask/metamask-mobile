@@ -32,13 +32,13 @@ import {
   IMetaMetricsEvent,
   ISegmentClient,
 } from './MetaMetrics.types';
-import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import convertLegacyProperties from '../../util/events/convertLegacyProperties';
+import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -504,7 +504,6 @@ class MetaMetrics implements IMetaMetrics {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
-        anonymousId: METAMETRICS_ANONYMOUS_ID,
         // allow custom flush interval and event limit for dev and testing
         // each is optional and can be set in the .js.env file
         // if not set, the default values from the Segment SDK will be used
@@ -522,6 +521,7 @@ class MetaMetrics implements IMetaMetrics {
         );
 
       const segmentClient = isE2E ? undefined : createClient(config);
+      segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 
       this.instance = new MetaMetrics(segmentClient as SegmentClient);
     }

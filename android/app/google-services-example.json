@@ -7,15 +7,20 @@
   },
   "client": [
     {
+      "api_key": [
+        {
+          "current_key": ""
+        }
+      ],
       "client_info": {
         "mobilesdk_app_id": "1:123456789000:android:f1bf012572b04063",
-        "client_id": "android:com.google.samples.quickstart.admobexample",
+        "client_id": "android:io.metamask",
         "client_type": 1,
         "android_client_info": {
-          "package_name": "com.google.samples.quickstart.admobexample",
+          "package_name": "io.metamask",
           "certificate_hash": []
         }
-      },
+      }
     }
   ],
   "configuration_version": "1"

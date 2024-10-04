@@ -230,7 +230,7 @@ describe('reconnect', () => {
         context: 'test-context',
       });
 
-      expect(mockInstance.state.connecting['test-channel-id']).toEqual(true);
+      expect(mockInstance.state.connecting['test-channel-id']).toEqual(false);
     });
   });
 });

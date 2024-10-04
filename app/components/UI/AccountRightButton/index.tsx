@@ -29,6 +29,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import UrlParser from 'url-parse';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -138,7 +139,7 @@ const AccountRightButton = ({
   const currentUrl = route.params?.url;
   let hostname;
   if (currentUrl) {
-    hostname = new URL(currentUrl).hostname;
+    hostname = new UrlParser(currentUrl)?.hostname;
   }
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);

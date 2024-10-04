@@ -1,7 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PermissionsSummary should render correctly 1`] = `
-<RCTSafeAreaView>
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+    }
+  }
+>
   <View
     style={
       {

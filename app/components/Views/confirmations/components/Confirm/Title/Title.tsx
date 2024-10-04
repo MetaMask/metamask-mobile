@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Text, View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -20,11 +20,8 @@ const Title = () => {
   const { approvalRequest } = useApprovalRequest();
   const { colors } = useTheme();
 
+  const title = getTitle(approvalRequest?.type);
   const styles = createStyles(colors);
-  const title = useMemo(
-    () => getTitle(approvalRequest?.type),
-    [approvalRequest?.type],
-  );
 
   return (
     <View style={styles.titleContainer}>

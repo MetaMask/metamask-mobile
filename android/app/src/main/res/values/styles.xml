@@ -21,4 +21,16 @@
 		<item name="android:textColor">@color/themeInverse</item>
 	</style>
 
+	<!-- Custom Alert Dialog Theme -->
+	<style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+		<item name="android:background">@color/alertBackground</item>
+		<item name="android:textColor">@color/alertTextColor</item>
+		<item name="android:textColorPrimary">@color/alertTextColor</item>
+		<item name="android:buttonBarButtonStyle">@style/AlertButtonStyle</item>
+	</style>
+
+    <style name="AlertButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/alertTextColor</item>
+    </style>
+
 </resources>

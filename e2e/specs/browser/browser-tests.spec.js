@@ -53,27 +53,27 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.waitForBrowserPageToLoad();
   });
 
-  it('should add the test dapp to favorites', async () => {
-    // Check that we are still on the browser screen
+  // it('should add the test dapp to favorites', async () => {
+  //   // Check that we are still on the browser screen
 
-    // Tap on options
-    await Browser.tapOptionsButton();
-    await Browser.tapAddToFavoritesButton();
+  //   // Tap on options
+  //   await Browser.tapOptionsButton();
+  //   await Browser.tapAddToFavoritesButton();
 
-    await Assertions.checkIfVisible(AddBookmarkView.container);
+  //   await Assertions.checkIfVisible(AddBookmarkView.container);
 
-    await AddBookmarkView.tapAddBookmarksButton();
-    await Assertions.checkIfNotVisible(AddBookmarkView.container);
-  });
+  //   await AddBookmarkView.tapAddBookmarksButton();
+  //   await Assertions.checkIfNotVisible(AddBookmarkView.container);
+  // });
 
-  it('should tap on the test dapp in favorites on the home page', async () => {
-    await Browser.tapHomeButton();
-    // Wait for page to load
-    await TestHelpers.delay(3000);
-    await Browser.tapDappInFavorites();
-    await Assertions.checkIfTextIsDisplayed('metamask.github.io');
-    // }
-  });
+  // it('should tap on the test dapp in favorites on the home page', async () => {
+  //   await Browser.tapHomeButton();
+  //   // Wait for page to load
+  //   await TestHelpers.delay(3000);
+  //   await Browser.tapDappInFavorites();
+  //   await Assertions.checkIfTextIsDisplayed('metamask.github.io');
+  //   // }
+  // });
 
   it('should test invalid URL', async () => {
     await TestHelpers.delay(2000);

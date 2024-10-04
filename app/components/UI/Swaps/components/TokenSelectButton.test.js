@@ -19,7 +19,7 @@ describe('TokenSelectButton component', () => {
       <TokenSelectButton
         label="Select a token"
         symbol="DAI"
-        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+        icon="https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       />,
     );
     expect(icon).toMatchSnapshot();
@@ -27,7 +27,7 @@ describe('TokenSelectButton component', () => {
       <TokenSelectButton
         label="Select a token"
         symbol="DAI"
-        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+        icon="https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
         onPress={dummyHandler}
       />,
     );

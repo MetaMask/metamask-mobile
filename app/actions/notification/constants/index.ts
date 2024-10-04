@@ -8,6 +8,7 @@ export enum notificationsErrors {
   CHECK_ACCOUNTS_PRESENCE = 'Error while trying to check accounts presence',
   DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT = 'Error while trying to delete on chain triggers by account',
   UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT = 'Error while trying to update on chain triggers by account',
+  CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT = 'Error while trying to create on chain triggers by account',
   SET_FEATURE_ANNOUNCEMENTS_ENABLED = 'Error while trying to set feature announcements enabled',
   SET_SNAP_NOTIFICATIONS_ENABLED = 'Error while trying to set snap notifications enabled',
   SET_METAMASK_NOTIFICATIONS_FEATURE_SEEN = 'Error while trying to set metamask notifications feature seen',

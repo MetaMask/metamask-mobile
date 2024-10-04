@@ -65,7 +65,7 @@ const initialState: DeepPartial<RootState> = {
       },
       PreferencesController: {
         featureFlags: {},
-        ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+        ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
         lostIdentities: {},
         selectedAddress: MOCK_ADDRESS_2,
         useTokenDetection: true,

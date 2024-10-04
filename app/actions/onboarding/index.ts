@@ -5,7 +5,7 @@ export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
-  event: IMetaMetricsEvent;
+  event: [IMetaMetricsEvent];
 }
 
 interface ClearEventsAction {
@@ -14,10 +14,10 @@ interface ClearEventsAction {
 
 export type OnboardingActionTypes = SaveEventAction | ClearEventsAction;
 
-export function saveOnboardingEvent(event: IMetaMetricsEvent): SaveEventAction {
+export function saveOnboardingEvent(eventArgs: [IMetaMetricsEvent]): SaveEventAction {
   return {
     type: SAVE_EVENT,
-    event,
+    event: eventArgs,
   };
 }
 

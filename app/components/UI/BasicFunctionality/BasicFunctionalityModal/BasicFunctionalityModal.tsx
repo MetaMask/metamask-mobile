@@ -18,7 +18,7 @@ import Button, {
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
-import createStyles from './BasicFunctionalityModal.styles';
+import createStyles from '../../Notification/Modal/styles';
 import { RootState } from 'app/reducers';
 import Icon, {
   IconColor,
