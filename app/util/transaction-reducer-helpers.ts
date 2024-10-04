@@ -1,7 +1,22 @@
-function getDefinedProperties(object: Record<string, unknown>): Record<string, unknown> {
+import { SecurityAlertResponse } from '@metamask/transaction-controller';
+import { BN } from 'ethereumjs-util';
+
+interface TxMeta {
+  data?: string;
+  from?: string;
+  gas?: BN;
+  gasPrice?: BN;
+  to?: string;
+  value?: BN;
+  maxFeePerGas?: BN;
+  maxPriorityFeePerGas?: BN;
+  securityAlertResponse?: SecurityAlertResponse;
+}
+
+function getDefinedProperties<T extends object>(object: T): Partial<T> {
   return Object.entries(object).reduce(
     (obj, [key, val]) => (val !== undefined ? { ...obj, [key]: val } : obj),
-    {},
+    {} as Partial<T>,
   );
 }
 
@@ -11,7 +26,7 @@ function getDefinedProperties(object: Record<string, unknown>): Record<string, u
  * @param {object} txMeta - An object containing data about a transaction
  * @returns {object} - An object containing the standard properties of a transaction
  */
-export function getTxData(txMeta: Record<string, unknown> = {}): Record<string, unknown> {
+export function getTxData(txMeta: TxMeta = {}): Partial<TxMeta> {
   const {
     data,
     from,
@@ -22,18 +37,8 @@ export function getTxData(txMeta: Record<string, unknown> = {}): Record<string, 
     maxFeePerGas,
     maxPriorityFeePerGas,
     securityAlertResponse,
-  } = txMeta as {
-    data?: string;
-    from?: string;
-    gas?: string;
-    gasPrice?: string;
-    to?: string;
-    value?: string;
-    maxFeePerGas?: string;
-    maxPriorityFeePerGas?: string;
-    securityAlertResponse?: unknown;
-  }; // eslint-disable-line no-unused-vars
-  const txData = {
+  } = txMeta;
+  const txData: Partial<TxMeta> = {
     data,
     from,
     gas,
@@ -53,7 +58,7 @@ export function getTxData(txMeta: Record<string, unknown> = {}): Record<string, 
  * @param {object} txMeta - An object containing data about a transaction
  * @returns {object} - An object containing the standard properties of a transaction
  */
-export function getTxMeta(txMeta: Record<string, unknown> = {}): Record<string, unknown> {
+export function getTxMeta(txMeta: TxMeta = {}): Partial<TxMeta> {
   const {
     data,
     from,
@@ -64,16 +69,6 @@ export function getTxMeta(txMeta: Record<string, unknown> = {}): Record<string, 
     maxFeePerGas,
     maxPriorityFeePerGas,
     ...rest
-  } = txMeta as {
-    data?: string;
-    from?: string;
-    gas?: string;
-    gasPrice?: string;
-    to?: string;
-    value?: string;
-    maxFeePerGas?: string;
-    maxPriorityFeePerGas?: string;
-    [key: string]: unknown;
-  }; // eslint-disable-line no-unused-vars
+  } = txMeta;
   return getDefinedProperties(rest);
 }
