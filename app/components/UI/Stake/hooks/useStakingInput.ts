@@ -82,7 +82,7 @@ const useStakingInputHandlers = (balance: BN) => {
     { value: 0.25, label: '25%' },
     { value: 0.5, label: '50%' },
     { value: 0.75, label: '75%' },
-    { value: 1, label: 'Max' },
+    { value: 1, label: strings('stake.max') },
   ];
 
   const handleAmountPress = useCallback(
