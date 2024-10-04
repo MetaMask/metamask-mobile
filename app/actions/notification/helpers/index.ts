@@ -1,4 +1,4 @@
-import { getErrorMessage } from '@metamask/utils';
+import { getErrorMessage } from '../../../util/errorHandling';
 
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';

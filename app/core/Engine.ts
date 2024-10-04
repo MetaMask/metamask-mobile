@@ -168,6 +168,7 @@ import {
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
+import { nativeAesGcmEncrypt, nativeAesGcmDecrypt } from '../util/notifications/methods/encryption';
 import { MetaMetricsEvents, MetaMetrics } from './Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1261,6 +1262,8 @@ class Engine {
         ],
       }),
       nativeScryptCrypto: scrypt,
+      nativeAesGcmEncrypt,
+      nativeAesGcmDecrypt,
     });
 
     const notificationServicesController =
