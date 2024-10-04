@@ -123,6 +123,7 @@ const getStories = () => {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
+    "./app/components/UI/InfoRow/InfoRow.stories.tsx": require("../app/components/UI/InfoRow/InfoRow.stories.tsx"),
   };
 };
 
