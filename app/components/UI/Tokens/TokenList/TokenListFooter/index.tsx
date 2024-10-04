@@ -29,16 +29,16 @@ import { TokenI } from '../../types';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
-  isAddTokenEnabled: boolean;
   goToAddToken: () => void;
   showDetectedTokens: () => void;
+  isAddTokenEnabled: boolean;
 }
 
 export const TokenListFooter = ({
   tokens,
-  isAddTokenEnabled,
   goToAddToken,
   showDetectedTokens,
+  isAddTokenEnabled,
 }: TokenListFooterProps) => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

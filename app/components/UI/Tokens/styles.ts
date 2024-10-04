@@ -139,6 +139,21 @@ const createStyles = (colors: Colors) =>
       alignSelf: 'center',
       marginTop: 4,
     },
+    actionBarWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingTop: 8,
+    },
+    sortButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      text: colors.text.default,
+    },
   });
 
 export default createStyles;

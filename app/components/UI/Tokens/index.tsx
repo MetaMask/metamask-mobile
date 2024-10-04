@@ -1,4 +1,4 @@
-import React, { useRef, useState, LegacyRef } from 'react';
+import React, { useRef, useState, LegacyRef, useMemo } from 'react';
 import { View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
@@ -20,6 +20,15 @@ import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { selectTokenSortConfig } from '../../../selectors/preferencesController';
+import { sortAssets } from './util';
+import StyledButton from '../StyledButton';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -48,10 +57,13 @@ export interface MarketDataDetails {
 }
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
-  const { colors } = useTheme();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const { colors, borderStyle } = useTheme();
   const { trackEvent } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
-
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const hideZeroBalanceTokens = useSelector(
@@ -61,15 +73,33 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
+  const sortControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
+  const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   const styles = createStyles(colors);
+
+  const tokensList = useMemo(() => {
+    const tokensToDisplay = hideZeroBalanceTokens
+      ? tokens.filter((token) => {
+          const { address, isETH } = token;
+          return !isZero(tokenBalances[address]) || isETH;
+        })
+      : tokens;
+    return sortAssets(tokensToDisplay, tokenSortConfig);
+  }, [hideZeroBalanceTokens, tokenBalances, tokenSortConfig, tokens]);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
       setTokenToRemove(token);
       actionSheet.current.show();
+    }
+  };
+
+  const showSortControls = () => {
+    if (sortControlsActionSheet.current) {
+      sortControlsActionSheet.current.show();
     }
   };
 
@@ -124,27 +154,74 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
+  const goToAddToken = () => {
+    setIsAddTokenEnabled(false);
+    navigation.push('AddAsset', { assetType: 'token' });
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      source: 'manual',
+      chain_id: getDecimalChainId(chainId),
+    });
+    setIsAddTokenEnabled(true);
+  };
+
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const tokensToDisplay = hideZeroBalanceTokens
-    ? tokens.filter((token) => {
-        const { address, isETH } = token;
-        return !isZero(tokenBalances[address]) || isETH;
-      })
-    : tokens;
+  const onSortControlsActionSheetPress = (index: number) => {
+    const { PreferencesController } = Engine.context;
+    switch (index) {
+      case 0:
+        PreferencesController.setTokenSortConfig({
+          key: 'token-sort-key',
+          order: 'dsc',
+          sortCallback: 'stringNumeric',
+        });
+        return 'foo';
+      case 1:
+        PreferencesController.setTokenSortConfig({
+          key: 'symbol',
+          sortCallback: 'alphaNumeric',
+          order: 'asc',
+        });
+        return 'bar';
+      default:
+        break;
+    }
+  };
 
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
-      <TokenList
-        tokens={tokensToDisplay}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        showRemoveMenu={showRemoveMenu}
-      />
+      <View style={styles.actionBarWrapper}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label="Sort by"
+          onPress={showSortControls}
+          endIconName={IconName.ArrowDown}
+          style={styles.sortButton}
+        />
+        <Button
+          variant={ButtonVariants.Primary}
+          label="Import"
+          onPress={goToAddToken}
+          startIconName={IconName.Add}
+          style={styles.sortButton}
+        />
+      </View>
+
+      {tokensList && (
+        <TokenList
+          tokens={tokensList}
+          refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
+          setIsAddTokenEnabled={setIsAddTokenEnabled}
+        />
+      )}
       <ActionSheet
         ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}
@@ -152,6 +229,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
+      />
+      <ActionSheet
+        ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
+        title={'Sort by'}
+        options={[
+          'Declining balance ($ high-low)',
+          'Alphabetically (A-Z)',
+          'Cancel',
+        ]}
+        cancelButtonIndex={2}
+        destructiveButtonIndex={0}
+        onPress={onSortControlsActionSheetPress}
       />
     </View>
   );
