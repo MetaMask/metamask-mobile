@@ -4,8 +4,9 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
-import type { Theme } from '../../util/theme/models';
+
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     labelContainer: {
