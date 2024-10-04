@@ -23,14 +23,14 @@ export function getTxData(txMeta: Record<string, unknown> = {}): Record<string, 
     maxPriorityFeePerGas,
     securityAlertResponse,
   } = txMeta as {
-    data?: unknown;
-    from?: unknown;
-    gas?: unknown;
-    gasPrice?: unknown;
-    to?: unknown;
-    value?: unknown;
-    maxFeePerGas?: unknown;
-    maxPriorityFeePerGas?: unknown;
+    data?: string;
+    from?: string;
+    gas?: string;
+    gasPrice?: string;
+    to?: string;
+    value?: string;
+    maxFeePerGas?: string;
+    maxPriorityFeePerGas?: string;
     securityAlertResponse?: unknown;
   }; // eslint-disable-line no-unused-vars
   const txData = {
@@ -65,14 +65,14 @@ export function getTxMeta(txMeta: Record<string, unknown> = {}): Record<string, 
     maxPriorityFeePerGas,
     ...rest
   } = txMeta as {
-    data?: unknown;
-    from?: unknown;
-    gas?: unknown;
-    gasPrice?: unknown;
-    to?: unknown;
-    value?: unknown;
-    maxFeePerGas?: unknown;
-    maxPriorityFeePerGas?: unknown;
+    data?: string;
+    from?: string;
+    gas?: string;
+    gasPrice?: string;
+    to?: string;
+    value?: string;
+    maxFeePerGas?: string;
+    maxPriorityFeePerGas?: string;
     [key: string]: unknown;
   }; // eslint-disable-line no-unused-vars
   return getDefinedProperties(rest);
