@@ -16,6 +16,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import QuoteView from '../../pages/Ramps/QuoteView';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
@@ -67,6 +68,9 @@ describe(SmokeAssets('Buy Crypto'), () => {
   it('should select a new currency', async () => {
     await BuildQuoteView.openCurrencySelector()
     await BuildQuoteView.selectCurrency('Euro')
+    await BuildQuoteView.enterFiatAmount("100")
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel);
   });
 
 });
