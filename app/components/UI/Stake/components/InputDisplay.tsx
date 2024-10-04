@@ -28,7 +28,6 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.background.default,
       justifyContent: 'center',
-      flexDirection: 'column',
       alignItems: 'center',
       gap: 16,
     },

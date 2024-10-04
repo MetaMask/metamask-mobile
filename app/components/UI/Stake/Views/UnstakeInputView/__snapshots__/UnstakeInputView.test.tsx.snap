@@ -439,7 +439,6 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "flex": 1,
-                              "flexDirection": "column",
                               "gap": 16,
                               "justifyContent": "center",
                             }
