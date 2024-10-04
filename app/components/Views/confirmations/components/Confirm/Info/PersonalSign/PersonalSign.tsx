@@ -9,7 +9,7 @@ import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
-import createStyles from './style';
+import createStyles from './PersonalSign.styles';
 
 const PersonalSign = () => {
   const { approvalRequest } = useApprovalRequest();
