@@ -17,6 +17,11 @@ exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`
       }
     }
   >
+    <View>
+      <Text>
+        Open
+      </Text>
+    </View>
     <TouchableOpacity
       accessible={true}
       activeOpacity={1}
