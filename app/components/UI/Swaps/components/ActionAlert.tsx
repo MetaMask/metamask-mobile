@@ -80,7 +80,7 @@ const getInfoIconStyle = (type: AlertType, styles: ReturnType<typeof createStyle
 interface ButtonProps {
   type: AlertType;
   onPress?: (event: GestureResponderEvent) => void;
-  children: string;
+  children: ReactNode;
 }
 
 const Button: FC<ButtonProps> = ({ type, onPress, children }) => {
@@ -96,7 +96,7 @@ const Button: FC<ButtonProps> = ({ type, onPress, children }) => {
         small
         bold
         primary
-        style={[type === AlertType.Error && styles.errorButtonText]}
+        style={type === AlertType.Error ? styles.errorButtonText : undefined}
       >
         {children}
       </Text>
