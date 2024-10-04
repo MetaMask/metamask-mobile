@@ -27,8 +27,7 @@ const useMinimumVersions = () => {
         navigation.navigate(...createUpdateNeededNavDetails());
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation]);
+  }, [navigation, shouldTriggerUpdateFlow]);
 };
 
 export default useMinimumVersions;
