@@ -405,7 +405,8 @@ describe(`migration #${version}`, () => {
     const newState = (await migrate(oldState)) as EngineState;
     expect(newState.engine.backgroundState.PreferencesController).toStrictEqual(
       {
-        preferences: { showMultiRpcModal: true },
+        preferences: {},
+        showMultiRpcModal: true
       },
     );
   });
