@@ -406,8 +406,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } =
-          Engine.context;
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },
@@ -421,9 +420,7 @@ const Wallet = ({
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        InteractionManager.runAfterInteractions(() => {
-          listNotifications();
-        });
+        listNotifications();
       }
 
       appState.current = nextAppState;
@@ -433,11 +430,7 @@ const Wallet = ({
       'change',
       handleAppStateChange,
     );
-
-    // Defer initial listNotifications call
-    InteractionManager.runAfterInteractions(() => {
-      listNotifications();
-    });
+    listNotifications();
 
     return () => {
       subscription.remove();
