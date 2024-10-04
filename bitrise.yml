@@ -486,6 +486,8 @@ workflows:
       - wdio_android_e2e_test
   ### Report automated test results to TestRail
   run_testrail_update_automated_test_results:
+    before_run:
+      - code_setup
     steps:
       - script@1:
           title: 'Report Automated Test Results to TestRail'
