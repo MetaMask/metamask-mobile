@@ -25,11 +25,6 @@ const mockInitialState: DeepPartial<RootState> = {
 
 const mockNavigation = {
   navigate: jest.fn(),
-  dispatch: jest.fn(),
-  goBack: jest.fn(),
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  setParams: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
 describe('LockScreen', () => {
@@ -43,10 +38,9 @@ describe('LockScreen', () => {
         />
       ),
       { name: Routes.LOCK_SCREEN },
-      { state: mockInitialState }
+      { state: mockInitialState },
     );
 
     expect(toJSON()).toMatchSnapshot();
   });
 });
-

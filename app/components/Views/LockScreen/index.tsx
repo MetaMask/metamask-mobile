@@ -135,7 +135,7 @@ class LockScreen extends PureComponent<LockScreenProps, LockScreenState> {
     });
     this.props.navigation.dispatch(resetAction);
     // Do not need to await since it's the last action.
-    Authentication.lockApp();
+    Authentication.lockApp({ reset: false });
   };
 
   async unlockKeychain() {
