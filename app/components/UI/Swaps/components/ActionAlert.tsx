@@ -96,7 +96,7 @@ const Button: FC<ButtonProps> = ({ type, onPress, children }) => {
         small
         bold
         primary
-        style={type === AlertType.Error ? styles.errorButtonText : undefined}
+        style={[type === AlertType.Error && styles.errorButtonText]}
       >
         {children}
       </Text>
