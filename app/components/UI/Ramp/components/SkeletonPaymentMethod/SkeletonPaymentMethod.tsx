@@ -26,8 +26,7 @@ const SkeletonPaymentMethod = () => (
       <ListItemColumn widthType={WidthType.Fill}>
         <View style={{ alignItems: 'flex-end' }}>
           <Text>
-            <SkeletonText medium />
-            <SkeletonText medium />
+            <SkeletonText medium /> <SkeletonText medium />
           </Text>
         </View>
       </ListItemColumn>
