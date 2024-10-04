@@ -96,7 +96,7 @@ const Button: FC<ButtonProps> = ({ type, onPress, children }) => {
         small
         bold
         primary
-        style={type === AlertType.Error ? styles.errorButtonText : undefined}
+        style={[type === AlertType.Error && styles.errorButtonText]}
       >
         {children}
       </Text>
@@ -137,7 +137,7 @@ const ActionAlert: FC<ActionAlertProps> = ({
             {Boolean(action) && (
               <View style={[styles.action]}>
                 <Button onPress={onPress} type={type}>
-                  &quot;Action&quot;
+                  {action}
                 </Button>
               </View>
             )}
