@@ -690,14 +690,6 @@ class MetaMetrics implements IMetaMetrics {
     // if event has properties, convert then to the new EventProperties format,
     const convertedProperties = convertLegacyProperties(properties);
 
-    // Log all non-anonymous properties, or an empty event if there's no non-anon props.
-    // In any case, there's a non-anon event tracked, see MetaMetrics.test.ts Tracking table.
-    this.#trackEvent(
-      event?.category,
-      { anonymous: false, ...convertedProperties.properties },
-      saveDataRecording,
-    );
-
     // Track all anonymous properties in an anonymous event
     if (
       convertedProperties.sensitiveProperties &&
@@ -708,6 +700,17 @@ class MetaMetrics implements IMetaMetrics {
         {
           anonymous: true,
           ...convertedProperties.sensitiveProperties,
+          ...convertedProperties.properties,
+        },
+        saveDataRecording,
+      );
+    } else {
+      // Log all non-anonymous properties, or an empty event if there's no non-anon props.
+      // In any case, there's a non-anon event tracked, see MetaMetrics.test.ts Tracking table.
+      this.#trackEvent(
+        event?.category,
+        {
+          anonymous: false,
           ...convertedProperties.properties,
         },
         saveDataRecording,
