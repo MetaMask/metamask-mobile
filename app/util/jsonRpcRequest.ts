@@ -1,6 +1,7 @@
-import URL from 'url-parse';
+import ParsedURL from 'url-parse';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
+import { JsonRpcParams } from '@metamask/utils';
 
 /**
  * Makes a JSON RPC request to the given URL, with the given RPC method and params.
@@ -11,14 +12,16 @@ import { Buffer } from 'buffer';
  * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call,
  * or throws an error in case of failure.
  */
-export async function jsonRpcRequest(rpcUrl, rpcMethod, rpcParams = []) {
+export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: JsonRpcParams = []) {
   let fetchUrl = rpcUrl;
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
   // Convert basic auth URL component to Authorization header
-  const { origin, pathname, username, password, search } = new URL(rpcUrl);
+  const parsedUrl = new ParsedURL(rpcUrl);
+  // @ts-expect-error Property 'search' does not exist on type 'URLParse<string>'.
+  const { origin, pathname, username, password, search } = parsedUrl;
   // URLs containing username and password needs special processing
   if (username && password) {
     const encodedAuth = Buffer.from(`${username}:${password}`).toString(
