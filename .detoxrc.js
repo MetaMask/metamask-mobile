@@ -45,11 +45,6 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.qa',
     },
-    // because e2e run on debug mode in bitrise
-    'android.emu.bitrise.debug': {
-      device: 'android.bitrise.emulator',
-      app: 'android.bitrise.debug',
-    },
 
     'android.emu.debug': {
       device: 'android.emulator',
@@ -90,33 +85,16 @@ module.exports = {
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
       build: 'yarn start:ios:e2e',
     },
-    'ios.release': {
-      type: 'ios.app',
-      binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
-      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
-    },
     'ios.qa': {
       type: 'ios.app',
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
       build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:qa",
     },
-    'android.bitrise.debug': {
-      type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      build: 'yarn start:android:e2e',
-    },
     'android.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
       build: 'yarn start:android:e2e',
-    },
-    'android.release': {
-      type: 'android.apk',
-      binaryPath:
-        'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
     },
     'android.qa': {
       type: 'android.apk',
