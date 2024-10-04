@@ -3289,8 +3289,7 @@
     "estimated_annual_earnings": "Estimated annual earnings",
     "estimated_annual_reward": "Est. annual Rewards",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip",
-      "unstake_estimated_changes": "unstake estimated changes tooltip"
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
     "estimated_annual_rewards": "Estimated annual rewards",
     "metamask_pool": "MetaMask Pool",
