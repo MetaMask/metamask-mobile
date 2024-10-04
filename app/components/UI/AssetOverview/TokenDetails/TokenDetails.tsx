@@ -47,7 +47,7 @@ interface TokenDetailsProps {
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
   const tokenList = useSelector(selectTokenList);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = undefined;
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
@@ -60,7 +60,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   if (asset.isETH) {
     marketData = tokenExchangeRates?.[zeroAddress() as `0x${string}`];
-  } else if (!asset.isETH && tokenContractAddress && tokenExchangeRates) {
+  } else if (!asset.isETH && tokenContractAddress) {
     tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
     marketData = tokenExchangeRates?.[tokenContractAddress];
   } else {
