@@ -35,12 +35,6 @@ export const selectUseSafeChainsListValidation = createSelector(
     preferencesControllerState.useSafeChainsListValidation,
 );
 
-export const selectDisabledRpcMethodPreferences = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.disabledRpcMethodPreferences,
-);
-
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(
   selectPreferencesControllerState,

@@ -101,6 +101,13 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter((notification) => !notification.isRead).length,
 );
+export const getMetamaskNotificationsReadCount = createSelector(
+  selectNotificationServicesControllerState,
+  (notificationServicesControllerState: NotificationServicesState) =>
+    (
+      notificationServicesControllerState.metamaskNotificationsList ?? []
+    ).filter((notification) => notification.isRead).length,
+);
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>

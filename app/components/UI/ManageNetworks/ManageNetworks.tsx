@@ -7,8 +7,10 @@ import Text, {
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { ProviderConfig } from '@metamask/network-controller';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  ProviderConfig,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,

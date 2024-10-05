@@ -19,6 +19,14 @@ import {
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
 
+import {
+  getFeatureFlagsSuccess,
+  getFeatureFlagsError,
+  FeatureFlagsState,
+} from '../../../app/core/redux/slices/featureFlags';
+
+import launchDarklyURL from '../../../app/util/featureFlags';
+
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
   while (true) {
@@ -124,8 +132,42 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+function arrayToObject(data: []): FeatureFlagsState['featureFlags'] {
+  return data.reduce((obj, current) => {
+    Object.assign(obj, current);
+    return obj;
+  }, {} as FeatureFlagsState['featureFlags']);
+}
+
+function* fetchFeatureFlags(): Generator {
+  try {
+    const response: Response = (yield fetch(
+      launchDarklyURL(
+        process.env.METAMASK_BUILD_TYPE,
+        process.env.METAMASK_ENVIRONMENT,
+      ),
+    )) as Response;
+    const jsonData = (yield response.json()) as { message: string } | [];
+
+    if (!response.ok) {
+      if (jsonData && typeof jsonData === 'object' && 'message' in jsonData) {
+        yield put(getFeatureFlagsError(jsonData.message));
+      } else {
+        yield put(getFeatureFlagsError('Unknown error'));
+      }
+      return;
+    }
+
+    yield put(getFeatureFlagsSuccess(arrayToObject(jsonData as [])));
+  } catch (error) {
+    Logger.log(error);
+    yield put(getFeatureFlagsError(error as string));
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(fetchFeatureFlags);
 }

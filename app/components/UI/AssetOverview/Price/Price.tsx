@@ -11,17 +11,17 @@ import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
-import { Asset } from '../AssetOverview.types';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TOKEN_PRICE } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenI } from '../../Tokens/types';
 
 interface PriceProps {
-  asset: Asset;
+  asset: TokenI;
   prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
@@ -79,14 +79,18 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
-        <Text variant={TextVariant.BodySM}>{asset.symbol}</Text>
-        {asset.name && (
-          <Text variant={TextVariant.HeadingMD} style={styles.name}>
-            {asset.name}
+        {asset.name ? (
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+          >
+            {asset.name} ({asset.symbol})
           </Text>
+        ) : (
+          <Text variant={TextVariant.BodyMDMedium}>{asset.symbol}</Text>
         )}
         {!isNaN(price) && (
-          <Title style={styles.price} testID={TOKEN_PRICE}>
+          <Text testID={TOKEN_PRICE} variant={TextVariant.HeadingLG}>
             {isLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder>
@@ -100,7 +104,7 @@ const Price = ({
             ) : (
               addCurrencySymbol(price, currentCurrency, true)
             )}
-          </Title>
+          </Text>
         )}
         <Text>
           {isLoading ? (
@@ -114,7 +118,7 @@ const Price = ({
               </SkeletonPlaceholder>
             </View>
           ) : distributedPriceData.length > 0 ? (
-            <Text style={styles.priceDiff}>
+            <Text style={styles.priceDiff} variant={TextVariant.BodyMDMedium}>
               {
                 <Icon
                   name={
@@ -131,7 +135,13 @@ const Price = ({
               {addCurrencySymbol(diff, currentCurrency, true)} (
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
-              %) <Text>{date}</Text>
+              %){' '}
+              <Text
+                color={TextColor.Alternative}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {date}
+              </Text>
             </Text>
           ) : null}
         </Text>

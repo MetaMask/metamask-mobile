@@ -10,7 +10,7 @@ const mockInitialState = {
       ...backgroundState,
       PreferencesController: {
         featureFlags: {},
-        ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+        ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
         lostIdentities: {},
         selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
         useTokenDetection: true,
@@ -18,16 +18,13 @@ const mockInitialState = {
         displayNftMedia: true,
         useSafeChainsListValidation: false,
         isMultiAccountBalancesEnabled: true,
-        disabledRpcMethodPreferences: {
-          eth_sign: false,
-        },
         showTestNetworks: true,
         _U: 0,
         _V: 1,
         _W: {
           featureFlags: {},
           frequentRpcList: [],
-          ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+          ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
           lostIdentities: {},
           selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
           useTokenDetection: true,
@@ -35,9 +32,6 @@ const mockInitialState = {
           displayNftMedia: true,
           useSafeChainsListValidation: false,
           isMultiAccountBalancesEnabled: true,
-          disabledRpcMethodPreferences: {
-            eth_sign: false,
-          },
           showTestNetworks: true,
           showIncomingTransactions: {
             '0x1': true,

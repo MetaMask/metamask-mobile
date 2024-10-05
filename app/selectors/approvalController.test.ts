@@ -8,7 +8,7 @@ const PENDING_APPROVALS_MOCK: ApprovalControllerState['pendingApprovals'] = {
   testId1: {
     id: 'testId1',
     origin: 'testOrigin1',
-    type: 'eth_sign',
+    type: 'eth_signTypedData',
     time: 123456789,
     expectsResult: false,
     requestData: {

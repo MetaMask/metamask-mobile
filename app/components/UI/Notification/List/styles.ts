@@ -18,13 +18,13 @@ export const createStyles = ({ colors, typography }: Theme) =>
     unreadItemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
       backgroundColor: colors.info.muted,
     },
     readItemContainer: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
     unreadDot: {
@@ -34,7 +34,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.info.default,
       position: 'absolute',
       marginTop: 16,
-      marginLeft: -6,
+      marginLeft: 8,
     },
     readDot: {
       width: 4,
@@ -42,7 +42,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderRadius: 2,
       position: 'absolute',
       marginTop: 16,
-      marginLeft: -6,
+      marginLeft: 8,
     },
     wrapper: {
       flex: 1,
@@ -97,7 +97,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
     itemLogoSize: {
       width: 32,
       height: 32,
-      marginLeft: 4,
     },
     containerFill: { flex: 1 },
     badgeWrapper: {

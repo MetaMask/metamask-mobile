@@ -363,8 +363,7 @@ const BuildQuote = () => {
 
         if (
           selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount &&
-          maxSellAmount.lt(amountPercentage)
+          maxSellAmount?.lt(amountPercentage)
         ) {
           amountToSet = maxSellAmount;
         }

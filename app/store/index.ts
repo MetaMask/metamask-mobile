@@ -12,6 +12,7 @@ import { isE2E } from '../util/test/utils';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
+import { AppStateEventProcessor } from '../core/AppStateEventListener';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -77,8 +78,14 @@ const createStoreAndPersistor = async () => {
       basicFunctionalityEnabled:
         store.getState().settings.basicFunctionalityEnabled,
     });
+    // Fetch feature flags only if basic functionality is enabled
+    store.getState().settings.basicFunctionalityEnabled &&
+      store.dispatch({
+        type: 'FETCH_FEATURE_FLAGS',
+      });
     EngineService.initalizeEngine(store);
     Authentication.init(store);
+    AppStateEventProcessor.init(store);
     LockManagerService.init(store);
   };
 

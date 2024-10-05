@@ -6,12 +6,10 @@ import {
   isPrefixedFormattedHexString,
 } from '../../util/networks';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../selectors/networkController';
 import { store } from '../../store';
 import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
+import { RestrictedMethods } from '../Permissions/constants';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -19,8 +17,14 @@ const wallet_switchEthereumChain = async ({
   requestUserApproval,
   analytics,
 }) => {
-  const { CurrencyRateController, NetworkController } = Engine.context;
+  const {
+    CurrencyRateController,
+    NetworkController,
+    PermissionController,
+    SelectedNetworkController,
+  } = Engine.context;
   const params = req.params?.[0];
+  const { origin } = req;
 
   if (!params || typeof params !== 'object') {
     throw rpcErrors.invalidParams({
@@ -58,13 +62,25 @@ const wallet_switchEthereumChain = async ({
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
+
   const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
+
   if (existingEntry || existingNetworkDefault) {
-    const currentChainId = selectChainId(store.getState());
-    if (currentChainId === _chainId) {
+    const currentDomainSelectedNetworkClientId =
+      Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
+        origin,
+      );
+
+    const {
+      configuration: { chainId: currentDomainSelectedChainId },
+    } = Engine.context.NetworkController.getNetworkClientById(
+      currentDomainSelectedNetworkClientId,
+    ) || { configuration: {} };
+
+    if (currentDomainSelectedChainId === _chainId) {
       res.result = null;
       return;
     }
@@ -108,12 +124,24 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
-    if (networkConfiguration) {
+    const originHasAccountsPermission = PermissionController.hasPermission(
+      origin,
+      RestrictedMethods.eth_accounts,
+    );
+
+    if (process.env.MULTICHAIN_V1 && originHasAccountsPermission) {
+      SelectedNetworkController.setNetworkClientIdForDomain(
+        origin,
+        networkConfigurationId || existingNetworkDefault.networkType,
+      );
+    } else if (networkConfiguration) {
       CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
       NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
+      // TODO we will need to update this so that each network in the NetworksList has its own ticker
+      // if we ever add networks that don't have ETH as their base currency
       CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
-      NetworkController.setProviderType(existingNetworkDefault.networkType);
+      NetworkController.setActiveNetwork(existingNetworkDefault.networkType);
     }
 
     MetaMetrics.getInstance().trackEvent(

@@ -4,6 +4,8 @@ ignores:
   - 'webpack-cli'
   - '@react-native-community/datetimepicker'
   - '@react-native-community/slider'
+  - 'patch-package'
+  - '@lavamoat/allow-scripts'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
   - cockatiel
 

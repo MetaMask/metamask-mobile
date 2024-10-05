@@ -9,7 +9,7 @@ import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
   AddressBookEntry,
-  AddressBookState,
+  AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import {
   Nft,
@@ -211,7 +211,7 @@ export default async function migrate(stateAsync: unknown) {
     state?.engine?.backgroundState?.AddressBookController;
 
   const newAddressBookControllerState = state?.engine?.backgroundState
-    ?.AddressBookController as AddressBookState;
+    ?.AddressBookController as AddressBookControllerState;
 
   if (!isObject(addressBookControllerState)) {
     captureException(

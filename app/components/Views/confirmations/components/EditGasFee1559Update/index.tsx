@@ -737,9 +737,7 @@ const EditGasFee1559Update = ({
                       )}
                     {modalInfo.value === 'max_fee' &&
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
-                    {modalInfo.value === 'new_gas_fee' &&
-                    updateOption &&
-                    updateOption.isCancel
+                    {modalInfo.value === 'new_gas_fee' && updateOption?.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
                         )

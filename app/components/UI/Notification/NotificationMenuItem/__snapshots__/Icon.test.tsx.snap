@@ -6,7 +6,6 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
     style={
       {
         "height": 32,
-        "marginLeft": 4,
         "width": 32,
       }
     }
@@ -115,7 +114,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
         "backgroundColor": "#0376c9",
         "borderRadius": 2,
         "height": 4,
-        "marginLeft": -6,
+        "marginLeft": 8,
         "marginTop": 16,
         "position": "absolute",
         "width": 4,

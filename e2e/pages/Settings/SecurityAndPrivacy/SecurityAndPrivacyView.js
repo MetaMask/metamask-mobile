@@ -42,6 +42,18 @@ class SecurityAndPrivacy {
     );
   }
 
+  get autoLockSection() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
+    );
+  }
+
+  get autoLockDefault30Seconds() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
+    );
+  }
+
   get rememberMeToggle() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
@@ -137,6 +149,17 @@ class SecurityAndPrivacy {
       this.metaMetricsToggle,
       this.scrollViewIdentifier,
     );
+  }
+
+  async scrollToAutoLockSection() {
+    await Gestures.scrollToElement(
+      this.autoLockSection,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapAutoLock30Seconds() {
+    await Gestures.waitAndTap(this.autoLockDefault30Seconds);
   }
 
   async tapMetaMetricsToggle() {

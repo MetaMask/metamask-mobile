@@ -9,6 +9,7 @@ export enum UserProfileProperty {
   MULTI_ACCOUNT_BALANCE = 'Batch account balance requests',
   SECURITY_PROVIDERS = 'security_providers',
   PRIMARY_CURRENCY = 'primary_currency',
+  CURRENT_CURRENCY = 'current_currency',
 }
 
 export interface UserProfileMetaData {
@@ -20,4 +21,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
+  [UserProfileProperty.CURRENT_CURRENCY]?: string;
 }

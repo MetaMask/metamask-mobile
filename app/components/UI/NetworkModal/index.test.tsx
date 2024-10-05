@@ -15,6 +15,7 @@ interface NetworkProps {
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
+  showPopularNetworkModal: boolean;
 }
 
 jest.mock('react-redux', () => ({
@@ -36,6 +37,7 @@ describe('NetworkDetails', () => {
     },
     navigation: 'navigation',
     shouldNetworkSwitchPopToWallet: true,
+    showPopularNetworkModal: true,
   };
   it('renders correctly', () => {
     (useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(

@@ -40,14 +40,12 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await Assertions.checkIfVisible(SigningModal.typedRequest);
         await SigningModal.tapCancelButton();
         await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
         await Assertions.checkIfNotVisible(SigningModal.personalRequest);
 
         await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(SigningModal.typedRequest);
         await SigningModal.tapSignButton();
         await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
         await Assertions.checkIfNotVisible(SigningModal.personalRequest);
       },
     );

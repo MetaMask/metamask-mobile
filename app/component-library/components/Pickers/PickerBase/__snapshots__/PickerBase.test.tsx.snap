@@ -17,7 +17,7 @@ exports[`PickerBase should render correctly 1`] = `
 >
   <View />
   <SvgMock
-    color="#6a737d"
+    color="#141618"
     height={20}
     name="ArrowDown"
     style={

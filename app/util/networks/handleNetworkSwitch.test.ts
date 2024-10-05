@@ -12,6 +12,14 @@ jest.mock('../../core/Engine', () => ({
       updateExchangeRate: jest.fn(),
     },
     NetworkController: {
+      getNetworkClientById: jest.fn().mockReturnValue({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
     },
@@ -31,7 +39,7 @@ function setupGetStateMock() {
         engine: {
           backgroundState: {
             NetworkController: {
-              isCustomNetwork: false,
+              selectedNetworkClientId: 'networkId1',
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: 'custom-testnet-rpc-url',
@@ -40,12 +48,10 @@ function setupGetStateMock() {
                   nickname: 'Testnet',
                 },
               },
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-              },
-              networkDetails: {
-                EIPS: { 1559: false },
+              networksMetadata: {
+                networkId1: {
+                  EIPS: { 1559: false },
+                },
               },
             },
           },
@@ -81,6 +87,17 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('does nothing if the chain ID matches the current global chain ID', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     const result = handleNetworkSwitch('1');
@@ -106,6 +123,17 @@ describe('useHandleNetworkSwitch', () => {
   });
 
   it('switches to a custom network', () => {
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x1',
+        rpcUrl: 'https://mainnet.infura.io/v3',
+        ticker: 'ETH',
+        type: 'custom',
+      },
+    });
+
     setupGetStateMock();
 
     const nickname = handleNetworkSwitch('1338');

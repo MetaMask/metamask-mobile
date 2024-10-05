@@ -173,9 +173,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -1923,9 +1921,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -3086,9 +3082,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -4249,9 +4243,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -5412,9 +5404,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -6673,9 +6663,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -7934,9 +7922,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -8620,9 +8606,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }
@@ -9306,9 +9290,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
+                          "backgroundColor": "#f2f3f4",
                         },
                       ]
                     }

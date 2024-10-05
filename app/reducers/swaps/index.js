@@ -53,7 +53,6 @@ function addMetadata(chainId, tokens) {
 }
 
 // * Selectors
-
 const chainIdSelector = selectChainId;
 const swapsStateSelector = (state) => state.swaps;
 /**

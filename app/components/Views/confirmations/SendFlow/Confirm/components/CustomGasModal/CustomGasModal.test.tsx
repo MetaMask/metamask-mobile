@@ -2,12 +2,10 @@ import React from 'react';
 
 import { fireEvent } from '@testing-library/react-native';
 
-import Engine from '../../../../../../../core/Engine';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import CustomGasModal from '.';
 
-Engine.init({});
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigation: {},
