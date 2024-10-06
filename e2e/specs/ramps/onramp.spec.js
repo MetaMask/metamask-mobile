@@ -44,7 +44,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
 
   it('should select Region and Payment Method to see the Build Quote screen', async () => {
     await TabBarComponent.tapWallet();
-    console.log("TEST COMMENT")
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
