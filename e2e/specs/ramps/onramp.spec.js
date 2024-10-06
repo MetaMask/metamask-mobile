@@ -44,6 +44,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
 
   it('should select Region and Payment Method to see the Build Quote screen', async () => {
     await TabBarComponent.tapWallet();
+    console.log("TEST COMMENT")
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
@@ -71,6 +72,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.enterFiatAmount('100')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel);
+    await Assertions.checkIfTextIsDisplayed('Select a Quote');
+    // TODO: check for EUR
   });
-
 });
