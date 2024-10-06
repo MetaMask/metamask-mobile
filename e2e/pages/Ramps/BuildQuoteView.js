@@ -2,6 +2,7 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
+import TestHelpers from '../../helpers';
 
 class BuildQuoteView {
   get amountToBuyLabel() {
@@ -23,7 +24,15 @@ class BuildQuoteView {
   get currencySelector() {
     return Matchers.getElementByID(BuildQuoteSelectors.CURRENCY_SELECTOR);
   }
-  
+
+  get minLimitErrorMessage() {
+    return Matchers.getElementByText(BuildQuoteSelectors.MIN_LIMIT_ERROR);
+  }
+
+  get maxLimitErrorMessage() {
+    return Matchers.getElementByText(BuildQuoteSelectors.MAX_LIMIT_ERROR);
+  }
+
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }

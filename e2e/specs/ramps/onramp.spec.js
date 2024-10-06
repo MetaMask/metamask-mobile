@@ -63,15 +63,18 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await WalletActionsModal.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton()
   });
 
-  it('should select a new currency', async () => {
-    await BuildQuoteView.openCurrencySelector()
-    await BuildQuoteView.selectCurrency('Euro')
-    await BuildQuoteView.enterFiatAmount('100')
-    await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel);
-    await Assertions.checkIfTextIsDisplayed('Select a Quote');
-    // TODO: check for EUR
+  it('should enter the min and max order limites and verify the error messages', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.enterFiatAmount('1');
+    await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
+    await BuildQuoteView.tapCancelButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.enterFiatAmount('55555');
+    await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
   });
 });
