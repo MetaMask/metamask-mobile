@@ -1,6 +1,7 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable react/display-name */
-import React, { useCallback, useState, useMemo } from 'react';
+/* eslint-disable react/no-unstable-nested-components */
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -203,7 +204,7 @@ const EditGasFee1559 = ({
 
   const styles = createStyles(colors);
 
-  const getAnalyticsParams = useCallback(() => {
+  const getAnalyticsParams = () => {
     try {
       return {
         ...analyticsParams,
@@ -215,9 +216,9 @@ const EditGasFee1559 = ({
     } catch (error) {
       return {};
     }
-  }, [analyticsParams, chainId, selectedOption, view]);
+  };
 
-  const toggleAdvancedOptions = useCallback(() => {
+  const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
       trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
@@ -225,158 +226,136 @@ const EditGasFee1559 = ({
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
+  };
 
-  const toggleLearnMoreModal = useCallback(() => {
+  const toggleLearnMoreModal = () => {
     setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
-  }, []);
+  };
 
-  const save = useCallback(() => {
+  const save = () => {
     trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     onSave(selectedOption);
-  }, [getAnalyticsParams, onSave, selectedOption, trackEvent]);
+  };
 
-  const changeGas = useCallback(
-    (gas, selectedOption) => {
-      setSelectedOption(selectedOption);
-      onChange(gas, selectedOption);
-    },
-    [onChange],
-  );
+  const changeGas = (gas, selectedOption) => {
+    setSelectedOption(selectedOption);
+    onChange(gas, selectedOption);
+  };
 
-  const changedMaxPriorityFee = useCallback(
-    (value) => {
-      const lowerValue = new BigNumber(
-        gasOptions?.[
-          warningMinimumEstimateOption
-        ]?.suggestedMaxPriorityFeePerGas,
+  const changedMaxPriorityFee = (value) => {
+    const lowerValue = new BigNumber(
+      gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxPriorityFeePerGas,
+    );
+    const higherValue = new BigNumber(
+      gasOptions?.high?.suggestedMaxPriorityFeePerGas,
+    ).multipliedBy(new BigNumber(1.5));
+    const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
+
+    const valueBN = new BigNumber(value);
+
+    if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+      setMaxPriorityFeeError(
+        updateOption?.isCancel
+          ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
+              cancel_value: updateFloor,
+            })
+          : strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
+              speed_up_floor_value: updateFloor,
+            }),
       );
-      const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxPriorityFeePerGas,
-      ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxPriortyFeeThreshold);
-
-      const valueBN = new BigNumber(value);
-
-      if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
-        setMaxPriorityFeeError(
-          updateOption?.isCancel
-            ? strings('edit_gas_fee_eip1559.max_priority_fee_cancel_low', {
-                cancel_value: updateFloor,
-              })
-            : strings('edit_gas_fee_eip1559.max_priority_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
-        );
-      } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
-        setMaxPriorityFeeError(
-          strings('edit_gas_fee_eip1559.max_priority_fee_low'),
-        );
-      } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
-        setMaxPriorityFeeError(
-          strings('edit_gas_fee_eip1559.max_priority_fee_high'),
-        );
-      } else {
-        setMaxPriorityFeeError('');
-      }
-
-      const newGas = { ...gasFee, suggestedMaxPriorityFeePerGas: value };
-
-      changeGas(newGas, null);
-    },
-    [changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption],
-  );
-
-  const changedMaxFeePerGas = useCallback(
-    (value) => {
-      const lowerValue = new BigNumber(
-        gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+    } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      setMaxPriorityFeeError(
+        strings('edit_gas_fee_eip1559.max_priority_fee_low'),
       );
-      const higherValue = new BigNumber(
-        gasOptions?.high?.suggestedMaxFeePerGas,
-      ).multipliedBy(new BigNumber(1.5));
-      const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
-
-      const valueBN = new BigNumber(value);
-
-      if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
-        setMaxFeeError(
-          updateOption?.isCancel
-            ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
-                cancel_value: updateFloor,
-              })
-            : strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
-                speed_up_floor_value: updateFloor,
-              }),
-        );
-      } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
-        setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
-      } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
-        setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
-      } else {
-        setMaxFeeError('');
-      }
-
-      const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
-      changeGas(newGas, null);
-    },
-    [changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption],
-  );
-
-  const changedGasLimit = useCallback(
-    (value) => {
-      const newGas = { ...gasFee, suggestedGasLimit: value };
-      changeGas(newGas, null);
-    },
-    [changeGas, gasFee],
-  );
-
-  const selectOption = useCallback(
-    (option) => {
-      setSelectedOption(option);
-      setMaxFeeError('');
+    } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
+      setMaxPriorityFeeError(
+        strings('edit_gas_fee_eip1559.max_priority_fee_high'),
+      );
+    } else {
       setMaxPriorityFeeError('');
-      changeGas({ ...gasOptions[option] }, option);
-    },
-    [changeGas, gasOptions],
-  );
+    }
 
-  const shouldIgnore = useCallback(
-    (option) => ignoreOptions.find((item) => item === option),
-    [ignoreOptions],
-  );
+    const newGas = { ...gasFee, suggestedMaxPriorityFeePerGas: value };
 
-  const renderOptions = useMemo(
-    () =>
-      [
-        {
-          name: AppConstants.GAS_OPTIONS.LOW,
-          label: strings('edit_gas_fee_eip1559.low'),
-        },
-        {
-          name: AppConstants.GAS_OPTIONS.MEDIUM,
-          label: strings('edit_gas_fee_eip1559.market'),
-        },
-        {
-          name: AppConstants.GAS_OPTIONS.HIGH,
-          label: strings('edit_gas_fee_eip1559.aggressive'),
-        },
-      ]
-        .filter(({ name }) => !shouldIgnore(name))
-        .map(({ name, label, ...option }) => ({
-          name,
-          label: (selected, disabled) => (
-            <Text bold primary={selected && !disabled}>
-              {label}
-            </Text>
-          ),
-          topLabel: recommended?.name === name && recommended.render,
-          ...option,
-          ...extendOptions[name],
-        })),
-    [recommended, extendOptions, shouldIgnore],
-  );
+    changeGas(newGas, null);
+  };
+
+  const changedMaxFeePerGas = (value) => {
+    const lowerValue = new BigNumber(
+      gasOptions?.[warningMinimumEstimateOption]?.suggestedMaxFeePerGas,
+    );
+    const higherValue = new BigNumber(
+      gasOptions?.high?.suggestedMaxFeePerGas,
+    ).multipliedBy(new BigNumber(1.5));
+    const updateFloor = new BigNumber(updateOption?.maxFeeThreshold);
+
+    const valueBN = new BigNumber(value);
+
+    if (updateFloor && !updateFloor.isNaN() && valueBN.lt(updateFloor)) {
+      setMaxFeeError(
+        updateOption?.isCancel
+          ? strings('edit_gas_fee_eip1559.max_fee_cancel_low', {
+              cancel_value: updateFloor,
+            })
+          : strings('edit_gas_fee_eip1559.max_fee_speed_up_low', {
+              speed_up_floor_value: updateFloor,
+            }),
+      );
+    } else if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_low'));
+    } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
+      setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
+    } else {
+      setMaxFeeError('');
+    }
+
+    const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
+    changeGas(newGas, null);
+  };
+
+  const changedGasLimit = (value) => {
+    const newGas = { ...gasFee, suggestedGasLimit: value };
+    changeGas(newGas, null);
+  };
+
+  const selectOption = (option) => {
+    setSelectedOption(option);
+    setMaxFeeError('');
+    setMaxPriorityFeeError('');
+    changeGas({ ...gasOptions[option] }, option);
+  };
+
+  const shouldIgnore = (option) =>
+    ignoreOptions.find((item) => item === option);
+
+  const renderOptions = () =>
+    [
+      {
+        name: AppConstants.GAS_OPTIONS.LOW,
+        label: strings('edit_gas_fee_eip1559.low'),
+      },
+      {
+        name: AppConstants.GAS_OPTIONS.MEDIUM,
+        label: strings('edit_gas_fee_eip1559.market'),
+      },
+      {
+        name: AppConstants.GAS_OPTIONS.HIGH,
+        label: strings('edit_gas_fee_eip1559.aggressive'),
+      },
+    ]
+      .filter(({ name }) => !shouldIgnore(name))
+      .map(({ name, label, ...option }) => ({
+        name,
+        label: (selected, disabled) => (
+          <Text bold primary={selected && !disabled}>
+            {label}
+          </Text>
+        ),
+        topLabel: recommended?.name === name && recommended.render,
+        ...option,
+        ...extendOptions[name],
+      }));
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -579,7 +558,7 @@ const EditGasFee1559 = ({
     </View>
   );
 
-  const renderWarning = useMemo(() => {
+  const renderWarning = () => {
     if (!warning) return null;
     if (typeof warning === 'string')
       return (
@@ -606,9 +585,9 @@ const EditGasFee1559 = ({
       );
 
     return warning;
-  }, [warning, styles, colors]);
+  };
 
-  const renderError = useMemo(() => {
+  const renderError = () => {
     if (!error) return null;
     if (typeof error === 'string')
       return (
@@ -635,15 +614,15 @@ const EditGasFee1559 = ({
       );
 
     return error;
-  }, [error, styles, colors]);
+  };
 
-  const renderDisplayTitle = useMemo(() => {
+  const renderDisplayTitle = () => {
     if (updateOption)
       return updateOption.isCancel
         ? strings('edit_gas_fee_eip1559.cancel_transaction')
         : strings('edit_gas_fee_eip1559.speed_up_transaction');
     return strings('edit_gas_fee_eip1559.edit_priority');
-  }, [updateOption]);
+  };
 
   return (
     <View style={styles.root}>

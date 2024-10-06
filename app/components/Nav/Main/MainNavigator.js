@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -504,13 +505,13 @@ const HomeTabs = () => {
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
           tabBar={({ state, descriptors, navigation }) =>
-            isKeyboardHidden ? (
+            isKeyboardHidden && (
               <TabBar
                 state={state}
                 descriptors={descriptors}
                 navigation={navigation}
               />
-            ) : null
+            )
           }
         >
           <Tab.Screen
@@ -792,10 +793,10 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
-      {() => <RampRoutes rampType={RampType.BUY} />}
+      {<RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
     <Stack.Screen name={Routes.RAMP.SELL}>
-      {() => <RampRoutes rampType={RampType.SELL} />}
+      {<RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
@@ -807,13 +808,13 @@ const MainNavigator = () => (
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
-      headerTitle={() => (
+      headerTitle={
         <Image
           style={styles.headerLogo}
           source={require('../../../images/metamask-name.png')}
           resizeMode={'contain'}
         />
-      )}
+      }
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
     />

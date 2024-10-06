@@ -341,7 +341,7 @@ class ResetPassword extends PureComponent {
     }, 100);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(_, prevState) {
     this.updateNavBar();
     const prevLoading = prevState.loading;
     const { loading } = this.state;
@@ -349,7 +349,7 @@ class ResetPassword extends PureComponent {
     if (!prevLoading && loading) {
       // update navigationOptions
       navigation.setParams({
-        headerLeft: () => <View />,
+        headerLeft: <View />,
       });
     }
   }
@@ -460,7 +460,6 @@ class ResetPassword extends PureComponent {
   };
 
   tryExportSeedPhrase = async (password) => {
-    // const { originalPassword } = this.state;
     const { KeyringController } = Engine.context;
     await KeyringController.exportSeedPhrase(password);
   };
