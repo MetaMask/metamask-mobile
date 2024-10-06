@@ -66,7 +66,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton()
   });
 
-  it('should enter the min and max order limites and verify the error messages', async () => {
+  it('should enter the min and max order limits and verify the error messages', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
     await BuildQuoteView.enterFiatAmount('1');
