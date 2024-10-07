@@ -1,17 +1,24 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import Engine from '../../../core/Engine';
 import { AppState } from 'react-native';
+import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import {
-  wait,
   waitForCondition,
-  waitForKeychainUnlocked,
+  waitForKeychainUnlocked
 } from '../utils/wait.util';
+import { isE2E } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
+  }
+
+  if(isE2E) {
+    DevLogger.log(`SDKConnect::postInit() - SKIP -- E2E`);
+    instance.state._postInitialized = true;
+    return;
   }
 
   if (instance.state._postInitializing) {
@@ -42,13 +49,28 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
   );
 
   await waitForKeychainUnlocked({ keyringController, context: 'init' });
+
+  let currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;
+  DevLogger.log(`SDKConnect::postInit() - currentRouteName=${currentRouteName}`);
+
+  const waitRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
+  await waitForCondition({
+    fn: () => {
+      currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;
+      return !waitRoutes.includes(currentRouteName ?? '');
+    },
+    context: 'post_init',
+    waitTime: 1000,
+  });
+  DevLogger.log(`SDKConnect::postInit() - currentRouteName=${currentRouteName} - start reconnectAll`);
+
+  // Also wait for user to be logged in (outside of login screen)
   instance.state.appStateListener = AppState.addEventListener(
     'change',
     instance._handleAppState.bind(instance),
   );
 
-  // Add delay to pioritize reconnecting from deeplink because it contains the updated connection info (channel dapp public key)
-  await wait(3000);
+  DevLogger.log(`SDKConnect::postInit() - keychain unlocked -- wait for reconnectAll`);
   await instance.reconnectAll();
 
   instance.state._postInitialized = true;

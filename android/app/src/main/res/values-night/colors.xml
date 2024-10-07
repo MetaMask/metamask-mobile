@@ -4,4 +4,6 @@
 	<color name="themeInverse">#FFFFFF</color>
 	<color name="navBar">#000000</color>
 	<color name="lightgray">#EBEBED</color>
+	<color name="alertTextColor">#000000</color>
+    <color name="alertBackground">#FFFFFF</color>
 </resources>

@@ -28,10 +28,7 @@ class NetworkListModal {
       return Matchers.getElementByText(network);
     }
 
-    // Covers the scenario when selecting a custom network on iOS.
-    // Network icon would also be part of the network name
-    const regex = new RegExp('[A-Z0-9]\\s' + network, 'is');
-    return Matchers.getElementByIDAndLabel(CellModalSelectorsIDs.SELECT, regex);
+    return Matchers.getElementByID(NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(network));
   }
 
   async changeNetworkTo(networkName, custom) {

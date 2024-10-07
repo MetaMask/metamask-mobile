@@ -224,7 +224,7 @@ class FixtureBuilder {
                   importTime: 1684232000456,
                 },
               },
-              ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+              ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
               lostIdentities: {},
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
@@ -245,7 +245,7 @@ class FixtureBuilder {
                     importTime: 1684232000456,
                   },
                 },
-                ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+                ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
                 lostIdentities: {},
                 selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
                 useTokenDetection: true,
@@ -380,7 +380,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://home.metamask.io/',
+              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
               id: 1692550481062,
             },
           ],

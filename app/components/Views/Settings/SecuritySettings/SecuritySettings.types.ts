@@ -1,10 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
 
-export interface Gateway {
-  key: number;
-  value: string;
-  label: string;
-}
 export interface GatewayWithAvailability {
   key: string;
   value: string;

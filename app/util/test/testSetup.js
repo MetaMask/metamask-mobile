@@ -283,13 +283,34 @@ const initializeMockClient = () => {
     group: jest.fn(),
     alias: jest.fn(),
     reset: jest.fn(),
+    add: jest.fn(),
   };
   return global.segmentMockClient;
 };
 
-jest.mock('@segment/analytics-react-native', () => ({
-  createClient: jest.fn(() => initializeMockClient()),
-}));
+jest.mock('@segment/analytics-react-native', () => {
+  class Plugin {
+    type = 'utility';
+    analytics = undefined;
+
+    configure(analytics) {
+      this.analytics = analytics;
+    }
+  }
+
+  return {
+    createClient: jest.fn(() => initializeMockClient()),
+    PluginType: {
+      enrichment: 'enrichment',
+      utility: 'utility',
+    },
+    EventType: {
+      TrackEvent: 'track',
+      IdentifyEvent: 'identify',
+    },
+    Plugin,
+  };
+});
 
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),

@@ -58,6 +58,9 @@ const styleSheet = (params: { theme: Theme }) =>
       backgroundColor: params.theme.colors.background.default,
       flex: 1,
     },
+    button: {
+      alignSelf: 'stretch',
+    },
   });
 
 export default styleSheet;

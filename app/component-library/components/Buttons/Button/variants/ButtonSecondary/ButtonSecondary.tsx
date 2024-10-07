@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { GestureResponderEvent } from 'react-native';
+import { ActivityIndicator, GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
@@ -72,10 +72,14 @@ const ButtonSecondary = ({
       label
     );
 
+    const renderLoading = () => (
+      <ActivityIndicator size="small" color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT} />
+    );
+
   return (
     <Button
       style={styles.base}
-      label={renderLabel()}
+      label={!props.loading ? renderLabel() : renderLoading()}
       labelColor={getLabelColor()}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}

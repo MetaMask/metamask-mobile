@@ -272,7 +272,7 @@ export class BackgroundBridge extends EventEmitter {
     try {
       let approvedAccounts = [];
       DevLogger.log(
-        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
+        `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
       if (this.isWalletConnect) {
         approvedAccounts = await getPermittedAccounts(this.url);
@@ -294,15 +294,21 @@ export class BackgroundBridge extends EventEmitter {
             (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
           ),
         ];
+
+        DevLogger.log(
+          `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
+          approvedAccounts,
+        );
+        this.sendNotification({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: approvedAccounts,
+        });
+      } else {
+        DevLogger.log(
+          `notifySelectedAddressChanged: selectedAddress ${selectedAddress} not found in approvedAccounts`,
+          approvedAccounts,
+        );
       }
-      DevLogger.log(
-        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
-        approvedAccounts,
-      );
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: approvedAccounts,
-      });
     } catch (err) {
       console.error(`notifySelectedAddressChanged: ${err}`);
     }

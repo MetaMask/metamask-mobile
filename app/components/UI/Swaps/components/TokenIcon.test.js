@@ -13,7 +13,7 @@ describe('TokenIcon component', () => {
     const icon = shallow(
       <TokenIcon
         symbol="DAI"
-        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+        icon="https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       />,
     );
     expect(icon).toMatchSnapshot();
@@ -27,7 +27,7 @@ describe('TokenIcon component', () => {
       <TokenIcon
         medium
         symbol="DAI"
-        icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+        icon="https://gateway.pinata.cloud/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       />,
     );
     expect(iconMedium).toMatchSnapshot();

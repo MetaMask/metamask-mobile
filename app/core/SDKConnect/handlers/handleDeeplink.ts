@@ -1,15 +1,16 @@
+import { KeyringController } from '@metamask/keyring-controller';
 import {
   CommunicationLayerMessage,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
+import { Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import { waitForCondition } from '../utils/wait.util';
+import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import handleConnectionMessage from './handleConnectionMessage';
-import { Platform } from 'react-native';
 
 const QRCODE_PARAM_PATTERN = '&t=q';
 
@@ -49,6 +50,17 @@ const handleDeeplink = async ({
   }
 
   DevLogger.log(`handleDeeplink:: origin=${origin} url=${url}`);
+
+  // Wait for keychain to be unlocked before handling rpc calls.
+  const keyringController = (
+    Engine.context as { KeyringController: KeyringController }
+  ).KeyringController;
+
+  await waitForKeychainUnlocked({
+    keyringController,
+    context: 'connection::on_message',
+  });
+
   // Detect if origin matches qrcode param
   // SDKs should all add the type of intended use in the qrcode so it can be used correctly when scaning with the camera
   // does url contains t=d (deelink) or t=q (qrcode)
@@ -72,24 +84,40 @@ const handleDeeplink = async ({
 
   try {
     if (channelExists) {
-      if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-        // Automatically re-approve hosts.
-        sdkConnect.revalidateChannel({
-          channelId,
-        });
+      // is it already connected?
+      let connected = sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
+      if(!connected) {
+        if(sdkConnect.state.connecting[channelId] === true) {
+          // skip reconnect if connecting
+          DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- SKIP reconnect`, sdkConnect.state.connecting);
+          // wait for connection to be established
+          await waitForCondition({
+            fn: () => {
+              DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- wait for connection to be established`, sdkConnect.state.connecting);
+              return sdkConnect.state.connecting[channelId] === false;
+            },
+            context: 'handleDeeplink',
+            waitTime: 1000,
+          });
+        } else {
+          DevLogger.log(`handleDeeplink:: channel=${channelId} reconnecting`);
+          await sdkConnect.reconnect({
+            channelId,
+            otherPublicKey,
+            context,
+            protocolVersion,
+            initialConnection: false,
+            trigger: 'deeplink',
+            updateKey: true,
+          });
+        }
+      } else {
+        DevLogger.log(`handleDeeplink:: channel=${channelId} is already connected`);
       }
-      await sdkConnect.reconnect({
-        channelId,
-        otherPublicKey,
-        context,
-        protocolVersion,
-        initialConnection: false,
-        trigger: 'deeplink',
-        updateKey: true,
-      });
 
+      connected = sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
       DevLogger.log(
-        `handleDeeplink:: channel=${channelId} reconnected -- handle rcp`,
+        `handleDeeplink:: channel=${channelId} reconnected=${connected} -- handle rcp`,
       );
       // If msg contains rpc calls, handle them
       if (rpc) {
@@ -110,14 +138,19 @@ const handleDeeplink = async ({
         const message = JSON.parse(clearRPC) as CommunicationLayerMessage;
         DevLogger.log(`handleDeeplink:: message`, message);
 
+        // Check if already received via websocket
+        const rpcMethodTracker = connection.remote.getRPCMethodTracker();
+        if (rpcMethodTracker?.[message.id ?? '']) {
+          // Already received via websocket
+          DevLogger.log(`handleDeeplink:: rpcId=${message.id} already received via websocket`);
+          return;
+        }
+
         await handleConnectionMessage({
           message,
           connection,
           engine: Engine,
         });
-      } else {
-        // network call to connect to channel
-        sdkConnect.updateSDKLoadingState({ channelId, loading: true });
       }
     } else {
       const trigger =
