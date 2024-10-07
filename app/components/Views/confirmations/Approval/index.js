@@ -247,9 +247,12 @@ class Approval extends PureComponent {
     );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+    this.initialise();
+  };
 
+  initialise = async () => {
     // Detect origin: WalletConnect / SDK / InAppBrowser
-    this.detectOrigin();
+    await this.detectOrigin(); // Ensure detectOrigin finishes before proceeding
 
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
