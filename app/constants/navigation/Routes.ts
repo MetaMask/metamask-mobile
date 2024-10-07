@@ -140,8 +140,11 @@ const Routes = {
   },
   STAKING: {
     STAKE: 'Stake',
+    STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
+    UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
     CLAIM: 'Claim',
+    CLAIM_CONFIRMATION: 'ClaimConfirmation',
     MODALS: {
       LEARN_MORE: 'LearnMore',
     },

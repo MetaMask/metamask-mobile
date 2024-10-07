@@ -23,7 +23,7 @@ const TooltipModal = ({ route }: TooltipModalProps) => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <View style={styles.container}>
+      <View>
         <BottomSheetHeader onClose={onCloseModal}>
           <Text variant={TextVariant.HeadingMD}>{title}</Text>
         </BottomSheetHeader>
