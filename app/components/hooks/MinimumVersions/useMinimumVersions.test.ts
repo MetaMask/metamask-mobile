@@ -51,7 +51,7 @@ describe('useMinimumVersions', () => {
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('should not navigate if currentBuildNumber is greater than appMinimumBuild', () => {
+  it('requires update only if currentBuildNumber is lower than appMinimumBuild', () => {
     (useSelector as jest.Mock).mockImplementation(() => ({
       security: { automaticSecurityChecksEnabled: true },
       featureFlags: {
