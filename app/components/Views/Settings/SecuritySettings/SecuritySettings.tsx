@@ -709,7 +709,7 @@ const Settings: React.FC = () => {
         if (!chainId) return null;
         return (
           <Cell
-            key={chainId}
+            key={`${name}-${chainId}`}
             variant={CellVariant.Display}
             title={name}
             secondaryText={
