@@ -392,7 +392,7 @@ const EditGasFee1559 = ({
           <HorizontalSelector
             selected={selectedOption}
             onPress={selectOption}
-            options={renderOptions()}
+            options={renderOptions}
           />
         </View>
         <View style={styles.advancedOptionsContainer}>
