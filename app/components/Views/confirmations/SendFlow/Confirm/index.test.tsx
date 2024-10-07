@@ -221,22 +221,6 @@ describe('Confirm', () => {
           },
         },
       },
-      transaction: {
-        securityAlertResponses: {
-          1: {
-            result_type: 'Malicious',
-            reason: 'blur_farming',
-            providerRequestsCount: {},
-            chainId: '0x1',
-          },
-        },
-        selectedAsset: {},
-        transaction: {
-          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
-          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-          value: '0x2',
-        },
-      },
     });
 
     const { getByTestId } = render(Confirm, zeroBalanceState);
