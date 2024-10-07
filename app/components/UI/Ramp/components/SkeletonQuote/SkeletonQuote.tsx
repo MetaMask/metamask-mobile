@@ -14,31 +14,29 @@ const SkeletonQuote = ({
 }: {
   collapsed?: boolean;
   style?: StyleProp<ViewStyle>;
-}) => {
-  return (
-    <Box style={style} compact>
-      <ListItem>
-        <ListItemColumn>
-          <SkeletonText title />
-        </ListItemColumn>
-        <ListItemColumnEnd widthType={WidthType.Fill}>
-          <SkeletonText small />
-        </ListItemColumnEnd>
-      </ListItem>
-      {!collapsed && (
-        <>
-          <ListItem>
-            <ListItemColumn widthType={WidthType.Fill}>
-              <SkeletonText thin />
-            </ListItemColumn>
-            <ListItemColumnEnd widthType={WidthType.Fill}>
-              <SkeletonText thin small />
-            </ListItemColumnEnd>
-          </ListItem>
-        </>
-      )}
-    </Box>
-  );
-};
+}) => (
+  <Box style={style} compact>
+    <ListItem>
+      <ListItemColumn>
+        <SkeletonText title />
+      </ListItemColumn>
+      <ListItemColumnEnd widthType={WidthType.Fill}>
+        <SkeletonText small />
+      </ListItemColumnEnd>
+    </ListItem>
+    {!collapsed && (
+      <>
+        <ListItem>
+          <ListItemColumn widthType={WidthType.Fill}>
+            <SkeletonText thin />
+          </ListItemColumn>
+          <ListItemColumnEnd widthType={WidthType.Fill}>
+            <SkeletonText thin small />
+          </ListItemColumnEnd>
+        </ListItem>
+      </>
+    )}
+  </Box>
+);
 
 export default SkeletonQuote;

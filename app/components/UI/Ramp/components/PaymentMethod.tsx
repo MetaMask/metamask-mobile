@@ -61,6 +61,9 @@ const createStyles = (colors: Colors) =>
       height: 0,
       marginVertical: 6,
     },
+    methodName: {
+      marginBottom: 4,
+    },
   });
 
 const renderDescription = (description: TimeDescriptions | string) => {
@@ -167,7 +170,7 @@ const PaymentMethod: React.FC<Props> = ({
         </ListItemColumn>
 
         <ListItemColumn widthType={WidthType.Fill}>
-          <Text variant={TextVariant.BodyLGMedium} style={{ marginBottom: 4 }}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.methodName}>
             {name}
           </Text>
           {detail ? <Text color={TextColor.Primary}>{detail}</Text> : null}

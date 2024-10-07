@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Row from '../../components/Row';
 import SkeletonText from '../../components/SkeletonText';
 import ListItem from '../../../../../component-library/components/List/ListItem';

@@ -41,10 +41,6 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       flexDirection: 'row',
     },
-    networkLabelText: {
-      fontSize: 12,
-      color: colors.text.alternative,
-    },
     listItem: {
       paddingHorizontal: 24,
     },
@@ -146,12 +142,7 @@ function TokenSelectModal({
         </ListItem>
       </TouchableOpacity>
     ),
-    [
-      onItemPress,
-      styles.listItem,
-      styles.networkLabel,
-      styles.networkLabelText,
-    ],
+    [onItemPress, styles.listItem, styles.networkLabel],
   );
 
   const handleSearchPress = () => searchInput?.current?.focus();

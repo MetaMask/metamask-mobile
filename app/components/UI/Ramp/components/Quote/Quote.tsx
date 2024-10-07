@@ -28,7 +28,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
 import TagColored from '../../../../../component-library/components-temp/TagColored';
-import Row from '../Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';

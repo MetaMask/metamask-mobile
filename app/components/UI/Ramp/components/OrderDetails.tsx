@@ -39,6 +39,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import ListItemColumnEnd from './ListItemColumnEnd';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -395,32 +396,30 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
             </ListItem>
           )}
           {Boolean(order.provider) && (
-            <Text
-              variant={TextVariant.BodySM}
-              style={{
-                ...styles.textRight,
-                marginHorizontal: 16,
-              }}
-            >
-              {providerName}
-              {supportLinkUrl ? (
-                <>
-                  {' '}
-                  •{' '}
-                  <Text
-                    variant={TextVariant.BodySM}
-                    style={styles.underline}
-                    onPress={() =>
-                      handleExplorerLinkPress(supportLinkUrl as string)
-                    }
-                  >
-                    {strings(
-                      'fiat_on_ramp_aggregator.order_details.contact_support',
-                    )}
-                  </Text>
-                </>
-              ) : null}
-            </Text>
+            <ListItem style={styles.listItem}>
+              <ListItemColumnEnd widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
+                  {providerName}
+                  {supportLinkUrl ? (
+                    <>
+                      {' '}
+                      •{' '}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles.underline}
+                        onPress={() =>
+                          handleExplorerLinkPress(supportLinkUrl as string)
+                        }
+                      >
+                        {strings(
+                          'fiat_on_ramp_aggregator.order_details.contact_support',
+                        )}
+                      </Text>
+                    </>
+                  ) : null}
+                </Text>
+              </ListItemColumnEnd>
+            </ListItem>
           )}
           <Row>
             <ListItem style={styles.listItem}>
