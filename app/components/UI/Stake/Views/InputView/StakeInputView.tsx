@@ -30,11 +30,12 @@ import styleSheet from './StakeInputView.styles';
 import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStakeContext } from '../../sdk';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const StakeInputView = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-
+  const { trackEvent } = useMetrics();
   const {
     balance,
     balanceBN,
@@ -132,8 +133,11 @@ const StakeInputView = () => {
   const handleKeypadChange = useCallback(
     ({ value }) => {
       isEth ? handleEthInput(value) : handleFiatInput(value);
+      trackEvent(MetaMetricsEvents.STAKE_INPUT_CLICKED, {
+        selected_provider: 'consensys',
+      });
     },
-    [handleEthInput, handleFiatInput, isEth],
+    [handleEthInput, handleFiatInput, isEth, trackEvent],
   );
 
   const handleCurrencySwitch = useCallback(() => {
@@ -171,8 +175,11 @@ const StakeInputView = () => {
         5,
       );
       setAmount(newEthAmount);
+      trackEvent(MetaMetricsEvents.STAKE_INPUT_TEXT_ENTERED, {
+        selected_provider: 'consensys',
+      });
     },
-    [balanceBN, setAmount],
+    [balanceBN, setAmount, trackEvent],
   );
 
   return (
