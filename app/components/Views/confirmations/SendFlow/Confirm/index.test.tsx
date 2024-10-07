@@ -160,16 +160,14 @@ jest.mock('../../../../../util/transactions', () => ({
 }));
 
 jest.mock('../../../../../core/redux/slices/transactionMetrics', () => ({
-  ...(jest.requireActual(
-    '../../../../../core/redux/slices/transactionMetrics',
-  ) as any),
+  ...jest.requireActual('../../../../../core/redux/slices/transactionMetrics'),
   updateTransactionMetrics: jest.fn(),
   selectTransactionMetrics: jest.fn().mockReturnValue({}),
 }));
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function render(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Component: React.ComponentType | ConnectedComponent<any, any>,
   modifiedState?: DeepPartial<RootState>,
 ) {
