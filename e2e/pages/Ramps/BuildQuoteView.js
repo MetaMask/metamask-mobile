@@ -33,6 +33,10 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.REGION_SELECTOR);
   }
 
+  get paymentMethodSelector() {
+    return Matchers.getElementByID(BuildQuoteSelectors.PAYMENT_METHOD_SELECTOR);
+  }
+
   get minLimitErrorMessage() {
     return Matchers.getElementByText(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
@@ -63,6 +67,14 @@ class BuildQuoteView {
 
   async selectRegion(region) {
     await Gestures.waitAndTap(Matchers.getElementByText(region))
+  }
+
+  async openPaymentMethodSelector() {
+    await Gestures.waitAndTap(this.paymentMethodSelector);
+  }
+
+  async selectPaymentMethod(paymentMethod) {
+    await Gestures.waitAndTap(Matchers.getElementByText(paymentMethod))
   }
 
   async enterFiatAmount(amount) {

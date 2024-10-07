@@ -10,5 +10,6 @@ export const BuildQuoteSelectors = {
   CURRENCY_SELECTOR: 'currency-selector',
   TOKEN_SELECTOR: 'token-selector',
   REGION_SELECTOR: 'region-selector',
+  PAYMENT_METHOD_SELECTOR: 'payment-method-selector',
   AMOUNT_INPUT: 'amount-input',
 };
