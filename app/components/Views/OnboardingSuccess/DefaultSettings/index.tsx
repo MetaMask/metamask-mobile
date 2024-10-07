@@ -1,55 +1,22 @@
-// Third party dependencies
-import React, { useCallback, useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-// External dependencies
+import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
+import { useStyles } from '../../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
-import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
-
-// Internal dependencies
-import styles from './index.styles';
 import SettingsDrawer from '../../../UI/SettingsDrawer';
+import styleSheet from './index.styles';
 
 const DefaultSettings = () => {
+  useOnboardingHeader(strings('default_settings.default_settings'));
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const renderBackButton = useCallback(
-    () => (
-      <ButtonIcon
-        size={ButtonIconSizes.Lg}
-        iconName={IconName.ArrowLeft}
-        accessibilityRole="button"
-        accessibilityLabel="back"
-        onPress={() => navigation.goBack()}
-        style={styles.backButtonContainer}
-      />
-    ),
-    [navigation],
-  );
-
-  const renderTitle = useCallback(
-    () => (
-      <Text variant={TextVariant.HeadingMD}>
-        {strings('onboarding_success.default_settings')}
-      </Text>
-    ),
-    [],
-  );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: renderBackButton,
-      headerTitle: renderTitle,
-    });
-  }, [navigation, renderBackButton, renderTitle]);
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);

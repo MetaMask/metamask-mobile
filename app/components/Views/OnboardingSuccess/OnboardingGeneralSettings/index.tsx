@@ -1,14 +1,8 @@
-// Third party dependencies
-import React, { useCallback, useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
@@ -20,13 +14,10 @@ import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { enableProfileSyncing } from '../../../../actions/notification/helpers';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
-import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
-
-// Internal dependencies
-import styleSheet from './index.styles';
+import styleSheet from '../DefaultSettings/index.styles';
 
 const GeneralSettings = () => {
+  useOnboardingHeader(strings('default_settings.drawer_general_title'));
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
@@ -34,35 +25,6 @@ const GeneralSettings = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
-  const renderBackButton = useCallback(
-    () => (
-      <ButtonIcon
-        size={ButtonIconSizes.Lg}
-        iconName={IconName.ArrowLeft}
-        accessibilityRole="button"
-        accessibilityLabel="back"
-        onPress={() => navigation.goBack()}
-        style={styles.backButtonContainer}
-      />
-    ),
-    [navigation, styles.backButtonContainer],
-  );
-
-  const renderTitle = useCallback(
-    () => (
-      <Text variant={TextVariant.HeadingMD}>
-        {strings('default_settings.drawer_general_title')}
-      </Text>
-    ),
-    [],
-  );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: renderBackButton,
-      headerTitle: renderTitle,
-    });
-  }, [navigation, renderBackButton, renderTitle]);
 
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

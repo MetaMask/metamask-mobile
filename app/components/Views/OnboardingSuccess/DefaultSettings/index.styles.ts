@@ -1,14 +1,12 @@
 import { StyleSheet } from 'react-native';
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  backButtonContainer: {
-    marginLeft: 6,
-  },
-});
+const styleSheet = () =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+  });
 
-export default styles;
+export default styleSheet;
