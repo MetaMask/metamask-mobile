@@ -9,6 +9,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import Assertions from '../../utils/Assertions';
 
 const Arbitrum = 'Arbitrum One';
 
@@ -31,6 +32,7 @@ describe(Regression('Add all popular networks'), () => {
         await SettingsView.tapNetworks();
         await NetworkView.tapAddNetworkButton();
         await NetworkView.tapNetworkByName(Arbitrum);
+        await Assertions.checkIfVisible(NetworkApprovalModal.container);
         await NetworkApprovalModal.tapApproveButton();
         await NetworkAddedModal.tapCloseButton();
       },

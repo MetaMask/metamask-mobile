@@ -1,4 +1,6 @@
+import { Platform } from 'react-native';
 import { ACTIONS } from '../../../constants/deeplinks';
+import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
 import { Minimizer } from '../../NativeModules';
 import SDKConnect from '../../SDKConnect/SDKConnect';
@@ -8,6 +10,7 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
@@ -105,7 +108,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         params,
         browserCallBack: mockBrowserCallBack,
-        origin,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         wcURL,
         url,
       });
@@ -119,8 +122,13 @@ describe('handleUniversalLinks', () => {
   });
 
   describe('ACTIONS.CONNECT', () => {
-    it('should call Minimizer.goBack if params.redirect is truthy', () => {
-      params.redirect = 'ABC';
+    it('should call Minimizer.goBack if params.redirect is truthy on android', () => {
+      params.redirect = 'true';
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(false);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '16' });
 
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
@@ -133,13 +141,81 @@ describe('handleUniversalLinks', () => {
         urlObj,
         params,
         browserCallBack: mockBrowserCallBack,
-        origin,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         wcURL,
         url,
       });
 
       expect(handled).toHaveBeenCalled();
       expect(Minimizer.goBack).toHaveBeenCalled();
+    });
+
+    it('should call Minimizer.goBack if params.redirect is truthy on ios <17', () => {
+      params.redirect = 'true';
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(false);
+
+      // Set Platform.Version to '16' to ensure it's less than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '16' });
+
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.CONNECT}/additional/path`,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        params,
+        browserCallBack: mockBrowserCallBack,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(Minimizer.goBack).toHaveBeenCalled();
+    });
+
+    it('should displays RETURN_TO_DAPP_MODAL if params.redirect is truthy on ios >17', () => {
+      params.redirect = 'true';
+      // Mock Device.isIos() to return true
+      jest.spyOn(Device, 'isIos').mockReturnValue(true);
+
+      // Set Platform.Version to '17' to ensure it's greater than 17
+      Object.defineProperty(Platform, 'Version', { get: () => '17' });
+
+      const mockNavigate = jest.fn();
+      mockSDKConnectGetInstance.mockImplementation(() => ({
+        state: {
+          navigation: {
+            navigate: mockNavigate,
+          },
+        },
+      }));
+
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.CONNECT}/additional/path`,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        params,
+        browserCallBack: mockBrowserCallBack,
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        wcURL,
+        url,
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+      });
+      expect(Minimizer.goBack).not.toHaveBeenCalled();
     });
 
     it('should NOT call Minimizer.goBack if params.redirect is falsy', () => {
