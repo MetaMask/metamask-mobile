@@ -13,16 +13,16 @@ import BottomModal from '../BottomModal';
 import styleSheet from './ExpandableSection.styles';
 
 interface ExpandableSectionProps {
-  content: ReactNode;
-  modalContent: ReactNode;
+  collapsedContent: ReactNode;
+  expandedContent: ReactNode;
   modalTitle: string;
   openButtonTestId?: string;
   closeButtonTestId?: string;
 }
 
 const ExpandableSection = ({
-  content,
-  modalContent,
+  collapsedContent,
+  expandedContent,
   modalTitle,
   openButtonTestId,
   closeButtonTestId,
@@ -33,7 +33,7 @@ const ExpandableSection = ({
   return (
     <View>
       <View style={styles.container}>
-        {content}
+        {collapsedContent}
         <ButtonIcon
           iconColor={IconColor.Muted}
           size={ButtonIconSizes.Sm}
@@ -56,7 +56,7 @@ const ExpandableSection = ({
               />
               <Text style={styles.modalTitle}>{modalTitle}</Text>
             </View>
-            {modalContent}
+            {expandedContent}
           </View>
         </BottomModal>
       )}
