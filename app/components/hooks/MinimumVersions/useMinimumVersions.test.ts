@@ -36,7 +36,7 @@ describe('useMinimumVersions', () => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
 
-  it('should not navigate if automaticSecurityChecksEnabled is false', () => {
+  it('requires update only if automaticSecurityChecksEnabled', () => {
     (useSelector as jest.Mock).mockImplementation(() => ({
       security: { automaticSecurityChecksEnabled: false },
       featureFlags: {
