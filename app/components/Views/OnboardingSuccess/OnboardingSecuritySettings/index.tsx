@@ -1,4 +1,3 @@
-import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { useStyles } from '../../../../component-library/hooks';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
