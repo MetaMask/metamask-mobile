@@ -74,7 +74,7 @@ export const getCaveatSpecifications = ({
       async (args: unknown): Promise<string[]> => {
         const permittedAccounts: string[] = [];
         const allAccounts: string[] = await method(args);
-        caveat.value.forEach((address: string) => {
+        caveat.value.forEach((address) => {
           const addressToCompare = address.toLowerCase();
           const isPermittedAccount = allAccounts.includes(addressToCompare);
           if (isPermittedAccount) {
