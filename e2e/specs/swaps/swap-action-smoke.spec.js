@@ -38,7 +38,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Arbitrum)
+      .withNetworkController(CustomNetworks.Tenderly.Optimism)
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
@@ -61,7 +61,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   it('should be able to import account', async () => {
     const wallet = ethers.Wallet.createRandom();
     await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Arbitrum.providerConfig.rpcUrl, wallet.address);
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Optimism.providerConfig.rpcUrl, wallet.address);
 
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
@@ -84,13 +84,13 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   });
 
   it.each`
-    type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.5'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Arbitrum}
-    ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}        | ${CustomNetworks.Tenderly.Mainnet}
+    type             | quantity   | sourceTokenSymbol | destTokenSymbol | network
+    ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'100'}  | ${'POL'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Polygon}
+    ${'wrapped'}$    |${'.4'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
-    async ({ quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
+    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
       await TabBarComponent.tapWallet();
       if (network.providerConfig.nickname !== currentNetwork)
       {
@@ -112,7 +112,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(QuoteView.getQuotes);
 
       //Select source token, if ETH then can skip because already selected
-      if (sourceTokenSymbol !== 'ETH') {
+      if (type !== 'native') {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
@@ -161,6 +161,18 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
       );
+
+      if (type === 'unapproved') {
+        await Assertions.checkIfVisible(
+          ActivitiesView.approveTokenActivity(sourceTokenSymbol),
+        );
+        await ActivitiesView.tapOnApprovedActivity(sourceTokenSymbol);
+        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+        await DetailsModal.tapOnCloseIcon();
+        await Assertions.checkIfNotVisible(DetailsModal.title);
+      }
+
       await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
         destTokenSymbol,
