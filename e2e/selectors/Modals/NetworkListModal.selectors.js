@@ -10,4 +10,5 @@ export const NetworkListModalSelectorsIDs = {
   OTHER_LIST: 'other-network-name',
   ADD_BUTTON: 'add-network-button',
   TOOLTIP: 'popular-networks-information-tooltip',
+  CUSTOM_NETWORK_CELL: (customNetwork) => `network-cell-${customNetwork}`,
 };
