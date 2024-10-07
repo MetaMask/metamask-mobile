@@ -66,7 +66,6 @@ describe('OptinMetrics', () => {
             location: 'onboarding_metametrics',
             updated_after_onboarding: false,
           },
-          true,
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
@@ -94,7 +93,6 @@ describe('OptinMetrics', () => {
             location: 'onboarding_metametrics',
             updated_after_onboarding: false,
           },
-          true,
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
