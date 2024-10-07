@@ -451,6 +451,9 @@ const NetworkSelector = () => {
               networkName: mainnetName,
             })
           }
+          onLongPress={() => {
+            openModal(chainId, false, MAINNET, true);
+          }}
         />
       );
     }
@@ -458,7 +461,7 @@ const NetworkSelector = () => {
     return (
       <Cell
         variant={CellVariant.Select}
-        title={mainnetName}
+        title={name}
         avatarProps={{
           variant: AvatarVariant.Network,
           name: mainnetName,
@@ -474,6 +477,7 @@ const NetworkSelector = () => {
 
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
+    const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
@@ -483,7 +487,7 @@ const NetworkSelector = () => {
         <Cell
           key={chainId}
           variant={CellVariant.SelectWithMenu}
-          title={lineaMainnetName}
+          title={name}
           avatarProps={{
             variant: AvatarVariant.Network,
             name: lineaMainnetName,
@@ -506,6 +510,9 @@ const NetworkSelector = () => {
               networkName: lineaMainnetName,
             })
           }
+          onLongPress={() => {
+            openModal(chainId, false, LINEA_MAINNET, true);
+          }}
         />
       );
     }
@@ -513,7 +520,7 @@ const NetworkSelector = () => {
     return (
       <Cell
         variant={CellVariant.Select}
-        title={lineaMainnetName}
+        title={name}
         avatarProps={{
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
@@ -1011,6 +1018,7 @@ const NetworkSelector = () => {
                 actionTitle={strings('app_settings.delete')}
                 iconName={IconName.Trash}
                 onPress={() => removeRpcUrl(showNetworkMenuModal.chainId)}
+                testID={`delete-network-button-${showNetworkMenuModal.chainId}`}
               />
             ) : null}
           </View>

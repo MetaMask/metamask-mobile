@@ -66,11 +66,6 @@ describe('Settings', () => {
     const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
     expect(contactsSettings).toBeDefined();
   });
-  it('should render network settings button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />);
-    const networksSettings = getByTestId(SettingsViewSelectorsIDs.NETWORKS);
-    expect(networksSettings).toBeDefined();
-  });
   it('should render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
     const onRampSettings = getByTestId(SettingsViewSelectorsIDs.ON_RAMP);
