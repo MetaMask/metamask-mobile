@@ -1969,8 +1969,8 @@ class Engine {
     // get rid of the old data from state
     const {
       TransactionController,
-      //  TokensController,
-      //NftController,
+      TokensController,
+      NftController,
       TokenBalancesController,
       TokenRatesController,
       PermissionController,
@@ -1990,6 +1990,10 @@ class Engine {
     // Clear selected network
     // TODO implement this method on SelectedNetworkController
     // SelectedNetworkController.unsetAllDomains()
+
+    //Clear assets info
+    TokensController.reset();
+    NftController.reset();
 
     TokenBalancesController.reset();
     TokenRatesController.update({ marketData: {} });

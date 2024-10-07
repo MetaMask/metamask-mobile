@@ -1,8 +1,27 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-4AC3X2U5.js b/node_modules/@metamask/assets-controllers/dist/chunk-4AC3X2U5.js
-index bb55790..5905cea 100644
+index bb55790..b235cbf 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-4AC3X2U5.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-4AC3X2U5.js
-@@ -605,9 +605,14 @@ _selectedAddress = new WeakMap();
+@@ -292,6 +292,18 @@ var TokensController = class extends _basecontroller.BaseController {
+       releaseLock();
+     }
+   }
++  /**
++  * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++  * Resets to the default state
++  */
++  reset() {
++    this.update((state) => {
++      state.allTokens = {};
++      state.allIgnoredTokens = {};
++      state.ignoredTokens = [];
++      state.tokens = [];
++    });
++  }
+   /**
+    * Add a batch of tokens.
+    *
+@@ -605,9 +617,14 @@ _selectedAddress = new WeakMap();
  _provider = new WeakMap();
  _abortController = new WeakMap();
  _onNetworkDidChange = new WeakSet();
@@ -20,7 +39,7 @@ index bb55790..5905cea 100644
    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _abortController, new AbortController());
    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _chainId, chainId);
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-CGLUTXI7.js b/node_modules/@metamask/assets-controllers/dist/chunk-CGLUTXI7.js
-index 7cc44fa..eaa14b7 100644
+index 7cc44fa..a7663b4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-CGLUTXI7.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-CGLUTXI7.js
 @@ -17,7 +17,10 @@ var _basecontroller = require('@metamask/base-controller');
@@ -89,7 +108,25 @@ index 7cc44fa..eaa14b7 100644
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _useIpfsSubdomains, useIpfsSubdomains);
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isIpfsGatewayEnabled, isIpfsGatewayEnabled);
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _getERC721AssetName, getERC721AssetName);
-@@ -430,43 +433,48 @@ var NftController = class extends _basecontroller.BaseController {
+@@ -268,6 +271,17 @@ var NftController = class extends _basecontroller.BaseController {
+   getNftApi() {
+     return `${_controllerutils.NFT_API_BASE_URL}/tokens`;
+   }
++  /**
++  * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++  * Resets to the default state
++  */
++  reset() {
++    this.update((state) => {
++      state.allNftContracts = {};
++      state.allNfts = {};
++      state.ignoredNfts = [];
++    });
++  }
+   /**
+    * Adds a new suggestedAsset to state. Parameters will be validated according to
+    * asset type being watched. A `<suggestedNftMeta.id>:pending` hub event will be emitted once added.
+@@ -430,43 +444,48 @@ var NftController = class extends _basecontroller.BaseController {
      userAddress = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress),
      networkClientId
    }) {
@@ -169,7 +206,7 @@ index 7cc44fa..eaa14b7 100644
      }
    }
    /**
-@@ -771,7 +779,7 @@ _mutex = new WeakMap();
+@@ -771,7 +790,7 @@ _mutex = new WeakMap();
  _selectedAddress = new WeakMap();
  _chainId = new WeakMap();
  _ipfsGateway = new WeakMap();
@@ -178,7 +215,7 @@ index 7cc44fa..eaa14b7 100644
  _useIpfsSubdomains = new WeakMap();
  _isIpfsGatewayEnabled = new WeakMap();
  _getERC721AssetName = new WeakMap();
-@@ -797,14 +805,14 @@ _onPreferencesControllerStateChange = new WeakSet();
+@@ -797,14 +816,14 @@ _onPreferencesControllerStateChange = new WeakSet();
  onPreferencesControllerStateChange_fn = async function({
    selectedAddress,
    ipfsGateway,
@@ -196,7 +233,7 @@ index 7cc44fa..eaa14b7 100644
    if (needsUpdateNftMetadata) {
      const nfts = this.state.allNfts[selectedAddress]?.[_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _chainId)] ?? [];
      const nftsToUpdate = nfts.filter(
-@@ -850,12 +858,25 @@ getNftInformationFromApi_fn = async function(contractAddress, tokenId) {
+@@ -850,12 +869,25 @@ getNftInformationFromApi_fn = async function(contractAddress, tokenId) {
        }
      }
    });
@@ -223,7 +260,7 @@ index 7cc44fa..eaa14b7 100644
      };
    }
    const {
-@@ -887,7 +908,16 @@ getNftInformationFromApi_fn = async function(contractAddress, tokenId) {
+@@ -887,7 +919,16 @@ getNftInformationFromApi_fn = async function(contractAddress, tokenId) {
      },
      rarityRank && { rarityRank },
      rarity && { rarity },
@@ -241,7 +278,7 @@ index 7cc44fa..eaa14b7 100644
    );
    return nftMetadata;
  };
-@@ -896,6 +926,17 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -896,6 +937,17 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
    const result = await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getNftURIAndStandard, getNftURIAndStandard_fn).call(this, contractAddress, tokenId, networkClientId);
    let tokenURI = result[0];
    const standard = result[1];
@@ -259,7 +296,7 @@ index 7cc44fa..eaa14b7 100644
    const hasIpfsTokenURI = tokenURI.startsWith("ipfs://");
    if (hasIpfsTokenURI && !_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _isIpfsGatewayEnabled)) {
      return {
-@@ -907,7 +948,7 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -907,7 +959,7 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        tokenURI: tokenURI ?? null
      };
    }
@@ -268,7 +305,7 @@ index 7cc44fa..eaa14b7 100644
    if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
      return {
        image: null,
-@@ -915,7 +956,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -915,7 +967,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        description: null,
        standard: standard || null,
        favorite: false,
@@ -278,7 +315,7 @@ index 7cc44fa..eaa14b7 100644
      };
    }
    if (hasIpfsTokenURI) {
-@@ -925,6 +967,16 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -925,6 +978,16 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _useIpfsSubdomains)
      );
    }
@@ -295,7 +332,7 @@ index 7cc44fa..eaa14b7 100644
    try {
      const object = await _controllerutils.handleFetch.call(void 0, tokenURI);
      const image = Object.prototype.hasOwnProperty.call(object, "image") ? "image" : (
-@@ -946,7 +998,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -946,7 +1009,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        description: null,
        standard: standard || null,
        favorite: false,
@@ -305,7 +342,7 @@ index 7cc44fa..eaa14b7 100644
      };
    }
  };
-@@ -977,15 +1030,26 @@ getNftInformation_fn = async function(contractAddress, tokenId, networkClientId)
+@@ -977,15 +1041,26 @@ getNftInformation_fn = async function(contractAddress, tokenId, networkClientId)
      _controllerutils.safelyExecute.call(void 0, 
        () => _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getNftInformationFromTokenURI, getNftInformationFromTokenURI_fn).call(this, contractAddress, tokenId, networkClientId)
      ),
@@ -334,7 +371,7 @@ index 7cc44fa..eaa14b7 100644
      standard: blockchainMetadata?.standard ?? nftApiMetadata?.standard ?? null,
      tokenURI: blockchainMetadata?.tokenURI ?? null
    };
-@@ -1048,7 +1112,8 @@ addIndividualNft_fn = async function(tokenAddress, tokenId, nftMetadata, nftCont
+@@ -1048,7 +1123,8 @@ addIndividualNft_fn = async function(tokenAddress, tokenId, nftMetadata, nftCont
          nftMetadata,
          existingEntry
        );
@@ -344,7 +381,7 @@ index 7cc44fa..eaa14b7 100644
          return;
        }
        const indexToUpdate = nfts.findIndex(
-@@ -1080,7 +1145,8 @@ addIndividualNft_fn = async function(tokenAddress, tokenId, nftMetadata, nftCont
+@@ -1080,7 +1156,8 @@ addIndividualNft_fn = async function(tokenAddress, tokenId, nftMetadata, nftCont
          symbol: nftContract.symbol,
          tokenId: tokenId.toString(),
          standard: nftMetadata.standard,
@@ -934,7 +971,7 @@ index 2f1b66f..8436bd9 100644
            ...marketData
          };
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-index bbf4f12..1da217a 100644
+index bbf4f12..38b1276 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 @@ -6,7 +6,7 @@ import type { PreferencesControllerStateChangeEvent } from '@metamask/preference
@@ -961,6 +998,19 @@ index bbf4f12..1da217a 100644
  };
  /**
   * @type NftControllerState
+@@ -420,6 +422,11 @@ export declare class NftController extends BaseController<typeof controllerName,
+      */
+     resetNftTransactionStatusByTransactionId(transactionId: string, selectedAddress: string, chainId: Hex): boolean;
+     _requestApproval(suggestedNftMeta: SuggestedNftMeta): Promise<unknown>;
++    /**
++     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++     * Resets to the default state
++    */
++    reset(): void;
+ }
+ export default NftController;
+ //# sourceMappingURL=NftController.d.ts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
 index 758a85e..a4a4b72 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftDetectionController.d.ts
@@ -1032,6 +1082,23 @@ index 52bb3ac..b291078 100644
  }
  export default TokenBalancesController;
  //# sourceMappingURL=TokenBalancesController.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokensController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokensController.d.ts
+index bc4126d..024fd01 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/TokensController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/TokensController.d.ts
+@@ -162,6 +162,11 @@ export declare class TokensController extends BaseController<typeof controllerNa
+      * Removes all tokens from the ignored list.
+      */
+     clearIgnoredTokens(): void;
++    /**
++     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++     * Resets to the default state
++     */
++    reset(): void;
+ }
+ export default TokensController;
+ //# sourceMappingURL=TokensController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
 index bf96db8..f6eb1ea 100644
