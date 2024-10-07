@@ -18,8 +18,6 @@ import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuoteView from '../../pages/Ramps/QuoteView';
 import Assertions from '../../utils/Assertions';
-import Matchers from '../../utils/Matchers';
-import { QuoteSelectors } from '../../selectors/Ramps/Quote.selectors';
 
 const fixtureServer = new FixtureServer();
 
