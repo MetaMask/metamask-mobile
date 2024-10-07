@@ -21,7 +21,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
  * The "keys" of all of permissions recognized by the PermissionController.
  * Permission keys and names have distinct meanings in the permission system.
  */
-const PermissionKeys = Object.freeze({
+const PermissionKeys: Readonly<typeof RestrictedMethods> = Object.freeze({
   ...RestrictedMethods,
 });
 
@@ -30,7 +30,7 @@ const PermissionKeys = Object.freeze({
  * PermissionController.
  */
 const CaveatFactories = Object.freeze({
-  [CaveatTypes.restrictReturnedAccounts]: (accounts) => ({
+  [CaveatTypes.restrictReturnedAccounts]: (accounts: string[]) => ({
     type: CaveatTypes.restrictReturnedAccounts,
     value: accounts,
   }),
@@ -54,12 +54,14 @@ const CaveatFactories = Object.freeze({
  * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
  * }} options - Options bag.
  */
-export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
+export const getCaveatSpecifications = ({ getInternalAccounts }: {
+  getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[]
+}) => ({
   [CaveatTypes.restrictReturnedAccounts]: {
     type: CaveatTypes.restrictReturnedAccounts,
 
-    decorator: (method, caveat) => async (args) => {
-      const permittedAccounts = [];
+    decorator: (method: (args: unknown) => Promise<string[]>, caveat: { value: string[] }) => async (args: unknown) => {
+      const permittedAccounts: string[] = [];
       const allAccounts = await method(args);
       caveat.value.forEach((address) => {
         const addressToCompare = address.toLowerCase();
@@ -71,7 +73,7 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
       return permittedAccounts;
     },
 
-    validator: (caveat, _origin, _target) =>
+    validator: (caveat: { value: string[] }, _origin: unknown, _target: unknown) =>
       validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -102,13 +104,17 @@ export const getPermissionSpecifications = ({
   getAllAccounts,
   getInternalAccounts,
   captureKeyringTypesWithMissingIdentities,
+}: {
+  getAllAccounts: () => Promise<string[]>,
+  getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
+  captureKeyringTypesWithMissingIdentities: (internalAccounts?: import('@metamask/keyring-api').InternalAccount[], accounts?: string[]) => void,
 }) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,
     targetName: PermissionKeys.eth_accounts,
     allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
 
-    factory: (permissionOptions, requestData) => {
+    factory: (permissionOptions: { caveats?: unknown }, requestData: { approvedAccounts?: string[] }) => {
       if (Array.isArray(permissionOptions.caveats)) {
         throw new Error(
           `${PermissionKeys.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
@@ -133,7 +139,7 @@ export const getPermissionSpecifications = ({
       });
     },
 
-    methodImplementation: async (_args) => {
+    methodImplementation: async (_args: unknown) => {
       const accounts = await getAllAccounts();
       const internalAccounts = getInternalAccounts();
 
@@ -174,7 +180,7 @@ export const getPermissionSpecifications = ({
       });
     },
 
-    validator: (permission, _origin, _target) => {
+    validator: (permission: { caveats?: { type: string }[] }, _origin: unknown, _target: unknown) => {
       const { caveats } = permission;
       if (
         !caveats ||
@@ -198,7 +204,7 @@ export const getPermissionSpecifications = ({
  * @param {() => import('@metamask/keyring-api').InternalAccount[]} getInternalAccounts -
  * Gets all AccountsController InternalAccounts.
  */
-function validateCaveatAccounts(accounts, getInternalAccounts) {
+function validateCaveatAccounts(accounts: string[], getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[]) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
       `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
