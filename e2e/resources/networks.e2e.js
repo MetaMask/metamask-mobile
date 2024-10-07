@@ -102,13 +102,13 @@ const CustomNetworks = {
         ticker: 'ETH',
      },
     },
-    Arbitrum: {
+    Polygon: {
       providerConfig: {
         type: 'rpc',
-        chainId: toHex('42161'),
-        rpcUrl: 'https://virtual.arbitrum.rpc.tenderly.co/7d364996-41a7-4da6-a552-a19ab1ef9173',
-        nickname: 'Arbitrum',
-        ticker: 'ETH',
+        chainId: toHex('137'),
+        rpcUrl: 'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
+        nickname: 'Polygon',
+        ticker: 'POL',
       },
     },
     Optimism: {

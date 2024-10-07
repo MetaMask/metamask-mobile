@@ -18,14 +18,32 @@ class ActivitiesView {
     return title;
   }
 
+  generateApprovedTokenActivityLabel(sourceToken) {
+    let title = ActivitiesViewSelectorsText.APPROVE;
+    title = title.replace('{{sourceToken}}', sourceToken);
+    title = title.replace('{{upTo}}', '.*');
+    return new RegExp(`^${title}`);
+  }
+
   swapActivity(sourceToken, destinationToken) {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
+  approveTokenActivity(sourceToken) {
+    return Matchers.getElementByText(
+      this.generateApprovedTokenActivityLabel(sourceToken),
+    );
+  }
+
   async tapOnSwapActivity(sourceToken, destinationToken) {
     const element = this.swapActivity(sourceToken, destinationToken);
+    await Gestures.waitAndTap(element);
+  }
+
+  async tapOnApprovedActivity(sourceToken) {
+    const element = this.approveTokenActivity(sourceToken);
     await Gestures.waitAndTap(element);
   }
 }
