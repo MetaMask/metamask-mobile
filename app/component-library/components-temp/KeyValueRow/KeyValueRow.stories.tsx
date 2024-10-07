@@ -61,7 +61,8 @@ export const KeyValueRow = {
             },
             tooltip: {
               title: 'Sample Title',
-              text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
+              content:
+                'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
               size: TooltipSizes.Sm,
             },
           }}
@@ -73,7 +74,8 @@ export const KeyValueRow = {
             },
             tooltip: {
               title: 'Sample Tooltip',
-              text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
+              content:
+                'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
@@ -113,7 +115,8 @@ export const KeyValueRow = {
             icon: { name: IconName.UserCircleAdd, color: IconColor.Primary },
             tooltip: {
               title: 'Sample Tooltip',
-              text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
+              content:
+                'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
