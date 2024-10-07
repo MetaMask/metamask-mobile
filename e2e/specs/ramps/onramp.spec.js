@@ -77,4 +77,14 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.enterFiatAmount('55555');
     await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
   });
+
+  it('should select a new currency and check the quotes', async () => {
+    await BuildQuoteView.openCurrencySelector()
+    await BuildQuoteView.selectCurrency('Euro')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
+    await Assertions.checkIfTextIsNotDisplayed(/^≈ $.*USD$/);
+  });
 });
