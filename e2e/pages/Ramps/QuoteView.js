@@ -13,9 +13,6 @@ class QuoteView {
   get quotes() {
     return Matchers.getElementByID(QuoteSelectors.QUOTES);
   }
-  get quote() {
-    return Matchers.getElementByID(QuoteSelectors.QUOTE);
-  }
 }
 
 export default new QuoteView();
