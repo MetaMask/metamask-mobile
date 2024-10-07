@@ -2,12 +2,10 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    content: {
-      paddingBottom: 16,
-      paddingHorizontal: 32,
-      flexDirection: 'row',
-      justifyContent: 'center',
+    switch: {
+      alignSelf: 'flex-start',
     },
+    cellBorder: { borderWidth: 0 },
   });
 
 export default styleSheet;
