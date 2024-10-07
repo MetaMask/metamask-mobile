@@ -13,10 +13,6 @@ const styleSheet = () =>
       marginLeft: -16,
       marginRight: -16,
     },
-    switch: {
-      alignSelf: 'flex-start',
-    },
-    cellBorder: { borderWidth: 0 },
   });
 
 export default styleSheet;
