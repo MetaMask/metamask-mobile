@@ -55,7 +55,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await SelectPaymentMethodView.tapContinueButton();    
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
-    await BuildQuoteView.tapCancelButton()
+    await BuildQuoteView.tapCancelButton();
   });
 
   it('should skip to the Build Quote screen for returning user', async () => {
@@ -63,7 +63,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await WalletActionsModal.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
-    await BuildQuoteView.tapCancelButton()
+    await BuildQuoteView.tapCancelButton();
   });
 
   it('should enter the min and max order limits and verify the error messages', async () => {

@@ -58,7 +58,7 @@ class BuildQuoteView {
   }
 
   async selectCurrency(currency) {
-    await Gestures.waitAndTap(Matchers.getElementByText(currency))
+    await Gestures.waitAndTap(Matchers.getElementByText(currency));
   }
 
   async openRegionSelector() {
@@ -66,7 +66,7 @@ class BuildQuoteView {
   }
 
   async selectRegion(region) {
-    await Gestures.waitAndTap(Matchers.getElementByText(region))
+    await Gestures.waitAndTap(Matchers.getElementByText(region));
   }
 
   async openPaymentMethodSelector() {
@@ -74,16 +74,16 @@ class BuildQuoteView {
   }
 
   async selectPaymentMethod(paymentMethod) {
-    await Gestures.waitAndTap(Matchers.getElementByText(paymentMethod))
+    await Gestures.waitAndTap(Matchers.getElementByText(paymentMethod));
   }
 
   async enterFiatAmount(amount) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT))
+    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
       await Gestures.waitAndTap(numberButton);
     }
-    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON))
+    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON));
   }
 
   async openTokenSelector() {
@@ -91,7 +91,7 @@ class BuildQuoteView {
   }
 
   async selectToken(token) {
-    await Gestures.waitAndTap(Matchers.getElementByText(token))
+    await Gestures.waitAndTap(Matchers.getElementByText(token));
   }
 }
 
