@@ -1,13 +1,8 @@
-// Third party dependencies
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
-
-// Internal dependencies
 import OnboardingSecuritySettings from './';
 
 jest.mock('@react-navigation/native', () => ({
