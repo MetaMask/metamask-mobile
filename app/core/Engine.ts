@@ -1012,7 +1012,6 @@ class Engine {
         getInternalAccounts:
           accountsController.listAccounts.bind(accountsController),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => this.keyringController.getAccounts(),
@@ -1024,8 +1023,8 @@ class Engine {
           ) => {
             const accountsMissingIdentities = accounts.filter((address) => {
               const lowerCaseAddress = lowerCase(address);
-              return !internalAccounts.some(
-                (account) => account.address.toLowerCase() === lowerCaseAddress,
+              return !Object.values(accountsController.state.internalAccounts.accounts).some(
+                (account) => account.address.toLowerCase() === lowerCaseAddress
               );
             });
             const keyringTypesWithMissingIdentities =

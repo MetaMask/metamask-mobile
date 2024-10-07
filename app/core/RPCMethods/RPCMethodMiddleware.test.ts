@@ -394,7 +394,6 @@ describe('getRpcMethodMiddleware', () => {
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts: mockGetInternalAccounts,
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
