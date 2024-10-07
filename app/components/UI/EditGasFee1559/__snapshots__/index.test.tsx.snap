@@ -135,7 +135,25 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <View>
               <HorizontalSelector
                 onPress={[Function]}
-                options={[Function]}
+                options={
+                  [
+                    {
+                      "label": [Function],
+                      "name": "low",
+                      "topLabel": false,
+                    },
+                    {
+                      "label": [Function],
+                      "name": "medium",
+                      "topLabel": false,
+                    },
+                    {
+                      "label": [Function],
+                      "name": "high",
+                      "topLabel": false,
+                    },
+                  ]
+                }
               />
             </View>
             <View
