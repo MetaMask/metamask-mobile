@@ -87,7 +87,7 @@ const SnapSettings = () => {
   }, [navigation, snap.id]);
 
   const isKeyringSnap = Boolean(permissionsFromController?.snap_manageAccounts);
-  
+
   useEffect(() => {
     if (isKeyringSnap) {
       (async () => {
@@ -112,7 +112,6 @@ const SnapSettings = () => {
       removeSnap();
     }
   }, [isKeyringSnap, keyringAccounts.length, removeSnap]);
-
 
   const handleRemoveSnapKeyring = useCallback(() => {
     try {
