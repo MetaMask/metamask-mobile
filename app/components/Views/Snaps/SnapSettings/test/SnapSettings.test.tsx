@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Snap, SnapStatus, Status } from '@metamask/snaps-utils';
 import SnapSettings from '../SnapSettings';
 import Engine from '../../../../../core/Engine';
@@ -408,9 +408,12 @@ describe('SnapSettings with keyring snap', () => {
       state: initialStateWithKeyringSnap as any,
     });
 
-    const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
-    fireEvent(removeButton, 'onPress');
+    // eslint-disable-next-line no-empty-function
+    await act(async () => {});
 
+    const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
+    // console.log('removeButton', removeButton);
+    fireEvent.press(removeButton);
     await waitFor(() => {
       expect(getByTestId(KEYRING_SNAP_REMOVAL_WARNING)).toBeTruthy();
     });
