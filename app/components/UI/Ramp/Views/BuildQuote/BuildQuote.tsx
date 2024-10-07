@@ -79,6 +79,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -612,11 +613,9 @@ const BuildQuote = () => {
                 <ListItemColumn>
                   <SkeletonText />
                 </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <View style={styles.alignEnd}>
-                    <SkeletonText thin smaller />
-                  </View>
-                </ListItemColumn>
+                <ListItemColumnEnd widthType={WidthType.Fill}>
+                  <SkeletonText thin smaller />
+                </ListItemColumnEnd>
               </ListItem>
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
@@ -628,11 +627,9 @@ const BuildQuote = () => {
                     <SkeletonText medium />
                   </View>
                 </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <View style={styles.alignEnd}>
-                    <SkeletonText thin small />
-                  </View>
-                </ListItemColumn>
+                <ListItemColumnEnd widthType={WidthType.Fill}>
+                  <SkeletonText thin small />
+                </ListItemColumnEnd>
               </ListItem>
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />

@@ -1,18 +1,12 @@
 import React from 'react';
-import { StyleProp, View, ViewStyle, StyleSheet } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
 import Box from '../Box';
 import SkeletonText from '../SkeletonText';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-
-const createStyles = () =>
-  StyleSheet.create({
-    alignEnd: {
-      alignItems: 'flex-end',
-    },
-  });
+import ListItemColumnEnd from '../ListItemColumnEnd';
 
 const SkeletonQuote = ({
   collapsed,
@@ -21,19 +15,15 @@ const SkeletonQuote = ({
   collapsed?: boolean;
   style?: StyleProp<ViewStyle>;
 }) => {
-  const styles = createStyles();
-
   return (
     <Box style={style} compact>
       <ListItem>
         <ListItemColumn>
           <SkeletonText title />
         </ListItemColumn>
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.alignEnd}>
-            <SkeletonText small />
-          </View>
-        </ListItemColumn>
+        <ListItemColumnEnd widthType={WidthType.Fill}>
+          <SkeletonText small />
+        </ListItemColumnEnd>
       </ListItem>
       {!collapsed && (
         <>
@@ -41,11 +31,9 @@ const SkeletonQuote = ({
             <ListItemColumn widthType={WidthType.Fill}>
               <SkeletonText thin />
             </ListItemColumn>
-            <ListItemColumn widthType={WidthType.Fill}>
-              <View style={styles.alignEnd}>
-                <SkeletonText thin small />
-              </View>
-            </ListItemColumn>
+            <ListItemColumnEnd widthType={WidthType.Fill}>
+              <SkeletonText thin small />
+            </ListItemColumnEnd>
           </ListItem>
         </>
       )}

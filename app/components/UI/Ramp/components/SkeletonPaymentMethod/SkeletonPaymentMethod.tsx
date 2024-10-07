@@ -7,7 +7,7 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
 import Text from '../../../../../component-library/components/Texts/Text';
-import { View } from 'react-native';
+import ListItemColumnEnd from '../ListItemColumnEnd';
 
 const SkeletonPaymentMethod = () => (
   <Box compact>
@@ -23,13 +23,11 @@ const SkeletonPaymentMethod = () => (
         <SkeletonText thin title />
       </ListItemColumn>
 
-      <ListItemColumn widthType={WidthType.Fill}>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text>
-            <SkeletonText medium /> <SkeletonText medium />
-          </Text>
-        </View>
-      </ListItemColumn>
+      <ListItemColumnEnd widthType={WidthType.Fill}>
+        <Text>
+          <SkeletonText medium /> <SkeletonText medium />
+        </Text>
+      </ListItemColumnEnd>
     </ListItem>
   </Box>
 );

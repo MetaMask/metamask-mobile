@@ -35,9 +35,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 3,
       marginHorizontal: 0,
     },
-    alignEnd: {
-      alignItems: 'flex-end',
-    },
   });
 };
 

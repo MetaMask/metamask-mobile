@@ -16,6 +16,7 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
+import ListItemColumnEnd from '../ListItemColumnEnd';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const transactionIconReceived = require('../../../../../images/transaction-icons/receive.png');
@@ -111,7 +112,7 @@ function OrderListItem({ order }: Props) {
         </Text>
       </ListItemColumn>
 
-      <ListItemColumn style={{ alignItems: 'flex-end' }}>
+      <ListItemColumnEnd>
         <Text variant={TextVariant.BodyMD}>
           {amount} {order.cryptocurrency}
         </Text>
@@ -123,7 +124,7 @@ function OrderListItem({ order }: Props) {
                 order.currency,
               )}
         </Text>
-      </ListItemColumn>
+      </ListItemColumnEnd>
     </ListItem>
   );
 }

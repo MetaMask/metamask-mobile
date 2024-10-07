@@ -6,14 +6,12 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
+import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 
 const createStyles = () =>
   StyleSheet.create({
     listItem: {
       padding: 0,
-    },
-    alignEnd: {
-      alignItems: 'flex-end',
     },
   });
 
@@ -25,11 +23,9 @@ function LoadingNetworkSkeleton() {
       <ListItemColumn widthType={WidthType.Fill}>
         <SkeletonText large />
       </ListItemColumn>
-      <ListItemColumn widthType={WidthType.Fill}>
-        <View style={styles.alignEnd}>
-          <SkeletonText small />
-        </View>
-      </ListItemColumn>
+      <ListItemColumnEnd widthType={WidthType.Fill}>
+        <SkeletonText small />
+      </ListItemColumnEnd>
     </ListItem>
   );
 }
