@@ -39,8 +39,8 @@ const wallet_addEthereumChain = async ({
   } = Engine.context;
 
   const { origin } = req;
-  const params = validateAddEthereumChainParams(req.params[0]);
 
+  const params = validateAddEthereumChainParams(req.params);
   const {
     chainId,
     chainName,
@@ -81,9 +81,7 @@ const wallet_addEthereumChain = async ({
     res.result = null;
     return;
   }
-
   await validateRpcEndpoint(firstValidRPCUrl, chainId);
-
   const requestData = {
     chainId,
     blockExplorerUrl: firstValidBlockExplorerUrl,
@@ -98,7 +96,6 @@ const wallet_addEthereumChain = async ({
     requestData.chainName,
     requestData.ticker,
   );
-
   requestData.alerts = alerts;
 
   MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.NETWORK_REQUESTED, {
@@ -107,22 +104,32 @@ const wallet_addEthereumChain = async ({
     symbol: ticker,
     ...analytics,
   });
-
   // Remove all existing approvals, including other add network requests.
   ApprovalController.clear(providerErrors.userRejectedRequest());
 
   // If existing approval request was an add network request, wait for
   // it to be rejected and for the corresponding approval flow to be ended.
   await waitForInteraction();
-
   const { id: approvalFlowId } = startApprovalFlow();
 
   try {
-    await requestUserApproval({
-      type: 'ADD_ETHEREUM_CHAIN',
-      requestData,
-    });
-
+    try {
+      await requestUserApproval({
+        type: 'ADD_ETHEREUM_CHAIN',
+        requestData,
+      });
+    } catch (error) {
+      MetaMetrics.getInstance().trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        {
+          chain_id: getDecimalChainId(chainId),
+          source: 'Custom Network API',
+          symbol: ticker,
+          ...analytics,
+        },
+      );
+      throw providerErrors.userRejectedRequest();
+    }
     const networkConfigurationId =
       await NetworkController.upsertNetworkConfiguration(
         {
@@ -168,17 +175,6 @@ const wallet_addEthereumChain = async ({
       MetaMetricsEvents.NETWORK_SWITCHED,
       analyticsParams,
     );
-  } catch (error) {
-    MetaMetrics.getInstance().trackEvent(
-      MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-      {
-        chain_id: getDecimalChainId(chainId),
-        source: 'Custom Network API',
-        symbol: ticker,
-        ...analytics,
-      },
-    );
-    throw error;
   } finally {
     endApprovalFlow({ id: approvalFlowId });
   }
