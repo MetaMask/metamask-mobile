@@ -214,6 +214,21 @@ class SignatureRequest extends PureComponent {
     return createStyles(colors);
   };
 
+  componentDidMount = () => {
+    const { currentPageInformation, type, fromAddress } = this.props;
+
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
+      getAnalyticsParams(
+        {
+          currentPageInformation,
+          from: fromAddress,
+        },
+        type,
+      ),
+    );
+  };
+
   renderActionViewChildren = () => {
     const {
       children,
