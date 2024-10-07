@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -70,14 +70,11 @@ const CustomGasModal = ({
     onGasCanceled(selectedGas);
   };
 
-  const updatedTransactionFrom = useMemo(
-    () => ({
-      ...transaction,
-      data: transaction?.transaction?.data,
-      from: transaction?.transaction?.from,
-    }),
-    [transaction],
-  );
+  const updatedTransactionFrom = () => ({
+    ...transaction,
+    data: transaction?.transaction?.data,
+    from: transaction?.transaction?.from,
+  });
 
   const onSaveLegacyGasOption = useCallback(
     (gasTxn, gasObj) => {
@@ -125,13 +122,13 @@ const CustomGasModal = ({
 
   const eip1559GasObject = {
     suggestedMaxFeePerGas:
-      eip1559GasObj?.suggestedMaxFeePerGas ||
+      eip1559GasObj?.suggestedMaxFeePerGas ??
       eip1559GasObj?.[selectedGas]?.suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas:
-      eip1559GasObj?.suggestedMaxPriorityFeePerGas ||
+      eip1559GasObj?.suggestedMaxPriorityFeePerGas ??
       gasFeeEstimate[selectedGas]?.suggestedMaxPriorityFeePerGas,
     suggestedGasLimit:
-      eip1559GasObj?.suggestedGasLimit || eip1559Txn?.suggestedGasLimit,
+      eip1559GasObj?.suggestedGasLimit ?? eip1559Txn?.suggestedGasLimit,
   };
 
   return (
