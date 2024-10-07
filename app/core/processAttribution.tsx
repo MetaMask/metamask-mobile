@@ -8,14 +8,15 @@ interface ProcessAttributionParams {
     store: Store<RootState, any>;
 }
 
-export function processAttribution({ currentDeeplink, store }: ProcessAttributionParams): string | undefined {
+export function processAttribution({ currentDeeplink, store }: ProcessAttributionParams): { attributionId?: string, utm?: string } {
     const state = store.getState();
     const isMarketingEnabled = state.security.dataCollectionForMarketing;
 
     if (isMarketingEnabled && currentDeeplink) {
         const { params } = extractURLParams(currentDeeplink);
-        return params.attributionId || undefined; // Force undefined to be returned as extractUrlParams default to empty string on error.
+        // Force undefined to be returned as extractUrlParams default to empty string on error.
+        return { attributionId: params.attributionId || undefined, utm: params.utm || undefined };
     }
 
-    return undefined;
+    return { attributionId: undefined, utm: undefined };
 }

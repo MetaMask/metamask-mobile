@@ -51,11 +51,11 @@ export class AppStateEventListener {
     }
 
     try {
-      const attributionId = processAttribution({ currentDeeplink: this.currentDeeplink, store: this.store });
-        DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId}`);
+      const { attributionId, utm } = processAttribution({ currentDeeplink: this.currentDeeplink, store: this.store });
+      DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId} utm=${utm}`);
       MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.APP_OPENED,
-        { attributionId },
+        { attributionId, utm },
         true
       );
     } catch (error) {
