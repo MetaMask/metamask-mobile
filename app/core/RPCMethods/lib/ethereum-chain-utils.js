@@ -240,8 +240,9 @@ export async function switchToNetwork({
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-
-  if (process.env.MULTICHAIN_V1) {
+  const chainPermissionsEnabled = process.env.CHAIN_PERMISSIONS;
+  console.log('chainPermissionsEnabled:', chainPermissionsEnabled);
+  if (chainPermissionsEnabled) {
     const { value: permissionedChainIds } =
       getCaveat({
         target: PermissionKeys.permittedChains,

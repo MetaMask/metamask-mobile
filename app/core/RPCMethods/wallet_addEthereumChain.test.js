@@ -2,6 +2,8 @@ import { InteractionManager } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
+import { CaveatFactories, PermissionKeys } from '../Permissions/specifications';
+import { CaveatTypes } from '../Permissions/constants';
 
 const mockEngine = Engine;
 
@@ -28,6 +30,11 @@ jest.mock('../Engine', () => ({
     },
     PermissionController: {
       hasPermission: jest.fn().mockReturnValue(true),
+      grantPermissionsIncremental: jest.fn(),
+      requestPermissionsIncremental: jest.fn(),
+    },
+    SelectedNetworkController: {
+      setNetworkClientIdForDomain: jest.fn(),
     },
   },
 }));
@@ -308,6 +315,39 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       });
 
       expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
+    });
+  });
+
+  describe('CHAIN_PERMISSIONS is enabled', () => {
+    // afterAll(() => {
+    //   process.env.CHAIN_PERMISSIONS = undefined;
+    // });
+    it.only('should grant permissions when chain is not already permitted', async () => {
+      process.env.CHAIN_PERMISSIONS = '1';
+      const spyOnGrantPermissionsIncremental = jest.spyOn(
+        Engine.context.PermissionController,
+        'grantPermissionsIncremental',
+      );
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+        },
+        ...otherOptions,
+      });
+
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
+        subject: { origin: 'https://example.com' },
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
+                'chainId',
+              ]),
+            ],
+          },
+        },
+      });
     });
   });
 });
