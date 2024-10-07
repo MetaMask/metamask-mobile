@@ -134,13 +134,13 @@ export const getPermissionSpecifications = ({
     factory: (
       permissionOptions: PermissionConstraint,
       requestData: { approvedAccounts: string[] },
-    ): PermissionConstraint => {
+    ) => {
       if (Array.isArray(permissionOptions.caveats)) {
         throw new Error(
           `${PermissionKeys.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
         );
       }
-
+      // This value will be further validated as part of the caveat.
       if (!requestData.approvedAccounts) {
         throw new Error(
           `${PermissionKeys.eth_accounts} error: No approved accounts specified.`,
@@ -158,7 +158,7 @@ export const getPermissionSpecifications = ({
       });
     },
 
-    methodImplementation: async (_args: unknown[]): Promise<string[]> => {
+    methodImplementation: async (_args: unknown[]) => {
       const accounts = await getAllAccounts();
       const internalAccounts = getInternalAccounts();
 
@@ -203,7 +203,7 @@ export const getPermissionSpecifications = ({
       permission: { caveats?: Caveat<string, string[]>[] },
       _origin: unknown,
       _target: unknown,
-    ): void => {
+    ) => {
       const { caveats } = permission;
       if (
         !caveats ||
@@ -230,10 +230,10 @@ export const getPermissionSpecifications = ({
 function validateCaveatAccounts(
   accounts: string[],
   getInternalAccounts: () => InternalAccount[],
-): void {
+) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
-      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
+      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Etherapp/core/Vault.eum addresses.`,
     );
   }
 
@@ -265,7 +265,7 @@ function validateCaveatAccounts(
  * restricted or unrestricted method, or the request will be rejected with a
  * "method not found" error.
  */
-export const unrestrictedMethods: readonly string[] = Object.freeze([
+export const unrestrictedMethods = Object.freeze([
   'eth_blockNumber',
   'eth_call',
   'eth_decrypt',
@@ -319,6 +319,7 @@ export const unrestrictedMethods: readonly string[] = Object.freeze([
   'eth_coinbase',
   'parity_defaultAccount',
   'eth_sendTransaction',
+  'eth_sign',
   'personal_sign',
   'personal_ecRecover',
   'parity_checkRequest',
