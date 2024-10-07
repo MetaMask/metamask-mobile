@@ -87,9 +87,10 @@ export const getCaveatSpecifications = ({
       },
 
     validator: (
-      caveat: Caveat<string, string[]>,
-      _origin: OriginString,
-      _target: string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      caveat: Caveat<any, any>,
+      _origin?: OriginString,
+      _target?: string,
     ): void => validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -142,7 +143,6 @@ export const getPermissionSpecifications = ({
           `${PermissionKeys.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
         );
       }
-
       // This value will be further validated as part of the caveat.
       if (!requestData.approvedAccounts) {
         throw new Error(
@@ -202,7 +202,8 @@ export const getPermissionSpecifications = ({
     },
 
     validator: (
-      permission: { caveats?: Caveat<string, string[]>[] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      permission: { caveats?: Caveat<any, any>[] },
       _origin: OriginString,
       _target: string,
     ) => {
