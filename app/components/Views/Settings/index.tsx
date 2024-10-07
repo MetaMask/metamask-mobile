@@ -73,10 +73,6 @@ const Settings = () => {
     navigation.navigate('SecuritySettings');
   };
 
-  const onPressNetworks = () => {
-    navigation.navigate('NetworksSettings');
-  };
-
   const onPressOnRamp = () => {
     trackEvent(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED);
     navigation.navigate(Routes.RAMP.SETTINGS);
@@ -215,12 +211,6 @@ const Settings = () => {
         onPress={onPressContacts}
         title={strings('app_settings.contacts_title')}
         testID={SettingsViewSelectorsIDs.CONTACTS}
-      />
-      <SettingsDrawer
-        title={strings('app_settings.networks_title')}
-        description={strings('app_settings.networks_desc')}
-        onPress={onPressNetworks}
-        testID={SettingsViewSelectorsIDs.NETWORKS}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
