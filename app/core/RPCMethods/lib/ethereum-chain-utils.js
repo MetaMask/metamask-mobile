@@ -206,7 +206,6 @@ export async function switchToNetwork({
     PermissionController,
     SelectedNetworkController,
   } = controllers;
-
   const getCaveat = ({ target, caveatType }) => {
     try {
       return PermissionController.getCaveat(origin, target, caveatType);
@@ -240,9 +239,8 @@ export async function switchToNetwork({
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-  const chainPermissionsEnabled = ({ ...process.env })?.CHAIN_PERMISSIONS;
-  console.log('chainPermissionsEnabled:', chainPermissionsEnabled);
-  if (chainPermissionsEnabled) {
+  const chainPermissionsFeatureEnabled = ({ ...process.env })?.MM_CHAIN_PERMISSIONS;
+  if (chainPermissionsFeatureEnabled) {
     const { value: permissionedChainIds } =
       getCaveat({
         target: PermissionKeys.permittedChains,
@@ -293,7 +291,7 @@ export async function switchToNetwork({
     'eth_accounts',
   );
 
-  if (process.env.MULTICHAIN_V1 && originHasAccountsPermission) {
+  if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
     SelectedNetworkController.setNetworkClientIdForDomain(
       origin,
       networkConfigurationId || networkConfiguration.networkType,

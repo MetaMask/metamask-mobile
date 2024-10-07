@@ -319,12 +319,17 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
   });
 
-  describe('CHAIN_PERMISSIONS is enabled', () => {
-    // afterAll(() => {
-    //   process.env.CHAIN_PERMISSIONS = undefined;
-    // });
-    it.only('should grant permissions when chain is not already permitted', async () => {
-      process.env.CHAIN_PERMISSIONS = '1';
+  describe('MM_CHAIN_PERMISSIONS is enabled', () => {
+    beforeAll(() => {
+      process.env.MM_CHAIN_PERMISSIONS = 1;
+    });
+    afterAll(() => {
+      process.env.MM_CHAIN_PERMISSIONS = undefined;
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+    it('should grant permissions when chain is not already permitted', async () => {
       const spyOnGrantPermissionsIncremental = jest.spyOn(
         Engine.context.PermissionController,
         'grantPermissionsIncremental',
@@ -332,6 +337,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       await wallet_addEthereumChain({
         req: {
           params: [correctParams],
+          origin: 'https://example.com',
         },
         ...otherOptions,
       });
@@ -342,13 +348,30 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         approvedPermissions: {
           [PermissionKeys.permittedChains]: {
             caveats: [
-              CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
-                'chainId',
-              ]),
+              CaveatFactories[CaveatTypes.restrictNetworkSwitching](['0x64']),
             ],
           },
         },
       });
+    });
+
+    it('should not grant permissions when chain is already permitted', async () => {
+      const spyOnGrantPermissionsIncremental = jest.spyOn(
+        Engine.context.PermissionController,
+        'grantPermissionsIncremental',
+      );
+      jest
+        .spyOn(Engine.context.PermissionController, 'getCaveat')
+        .mockReturnValue({ value: ['0x64'] });
+      await wallet_addEthereumChain({
+        req: {
+          params: [correctParams],
+          origin: 'https://example.com',
+        },
+        ...otherOptions,
+      });
+
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(0);
     });
   });
 });
