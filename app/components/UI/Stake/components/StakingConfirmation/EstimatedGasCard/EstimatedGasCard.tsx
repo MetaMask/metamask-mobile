@@ -34,7 +34,7 @@ const EstimatedGasCard = ({
           label: { text: strings('tooltip_modal.estimated_gas_fee.title') },
           tooltip: {
             title: strings('tooltip_modal.estimated_gas_fee.title'),
-            text: <EstimatedGasFeeTooltipContent />,
+            content: <EstimatedGasFeeTooltipContent />,
             size: TooltipSizes.Sm,
           },
         }}

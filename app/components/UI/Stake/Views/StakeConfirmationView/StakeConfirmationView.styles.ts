@@ -14,7 +14,7 @@ const stylesSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
     },
     cardsContainer: {
-      paddingTop: 8,
+      paddingTop: 16,
       gap: 8,
     },
   });

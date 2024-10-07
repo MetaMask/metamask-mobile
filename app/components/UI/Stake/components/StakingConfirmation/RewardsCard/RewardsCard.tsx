@@ -27,7 +27,7 @@ const RewardsCard = ({
           label: { text: strings('tooltip_modal.reward_rate.title') },
           tooltip: {
             title: strings('tooltip_modal.reward_rate.title'),
-            text: strings('tooltip_modal.reward_rate.tooltip'),
+            content: strings('tooltip_modal.reward_rate.tooltip'),
             size: TooltipSizes.Sm,
           },
         }}
@@ -55,7 +55,7 @@ const RewardsCard = ({
           label: { text: strings('tooltip_modal.reward_frequency.title') },
           tooltip: {
             title: strings('tooltip_modal.reward_frequency.title'),
-            text: strings('tooltip_modal.reward_frequency.tooltip'),
+            content: strings('tooltip_modal.reward_frequency.tooltip'),
             size: TooltipSizes.Sm,
           },
         }}
