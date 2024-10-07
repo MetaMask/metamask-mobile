@@ -7,8 +7,10 @@ import {
 import {
   Caveat,
   constructPermission,
-  PermissionConstraint,
+  OriginString,
+  PermissionOptions,
   PermissionType,
+  ValidPermission,
 } from '@metamask/permission-controller';
 import { CaveatTypes, RestrictedMethods } from './constants';
 import { InternalAccount } from '@metamask/keyring-api';
@@ -86,8 +88,8 @@ export const getCaveatSpecifications = ({
 
     validator: (
       caveat: Caveat<string, string[]>,
-      _origin: unknown,
-      _target: unknown,
+      _origin: OriginString,
+      _target: string,
     ): void => validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -132,7 +134,7 @@ export const getPermissionSpecifications = ({
     allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
 
     factory: (
-      permissionOptions: PermissionConstraint,
+      permissionOptions: PermissionOptions<ValidPermission<'eth_accounts', Caveat<string, string[]>>>,
       requestData: { approvedAccounts: string[] },
     ) => {
       if (Array.isArray(permissionOptions.caveats)) {
@@ -148,7 +150,6 @@ export const getPermissionSpecifications = ({
       }
 
       return constructPermission({
-        target: PermissionKeys.eth_accounts,
         ...permissionOptions,
         caveats: [
           CaveatFactories[CaveatTypes.restrictReturnedAccounts](
@@ -201,8 +202,8 @@ export const getPermissionSpecifications = ({
 
     validator: (
       permission: { caveats?: Caveat<string, string[]>[] },
-      _origin: unknown,
-      _target: unknown,
+      _origin: OriginString,
+      _target: string,
     ) => {
       const { caveats } = permission;
       if (
@@ -233,7 +234,7 @@ function validateCaveatAccounts(
 ) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
-      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Etherapp/core/Vault.eum addresses.`,
+      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
     );
   }
 
@@ -319,7 +320,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_coinbase',
   'parity_defaultAccount',
   'eth_sendTransaction',
-  'eth_sign',
   'personal_sign',
   'personal_ecRecover',
   'parity_checkRequest',
