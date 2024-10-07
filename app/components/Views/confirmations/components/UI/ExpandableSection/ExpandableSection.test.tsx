@@ -10,12 +10,12 @@ describe('ExpandableSection', () => {
   it('should match snapshot for simple ExpandableSection', async () => {
     const container = render(
       <ExpandableSection
-        content={
+        collapsedContent={
           <View>
             <Text>Open</Text>
           </View>
         }
-        modalContent={
+        expandedContent={
           <InfoSection>
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
@@ -29,12 +29,12 @@ describe('ExpandableSection', () => {
   it('should display default content', async () => {
     const { getByText } = render(
       <ExpandableSection
-        content={
+        collapsedContent={
           <View>
             <Text>Open</Text>
           </View>
         }
-        modalContent={
+        expandedContent={
           <InfoSection>
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
@@ -48,12 +48,12 @@ describe('ExpandableSection', () => {
   it('should open modal when right icon is pressed', async () => {
     const { getByTestId, getByText } = render(
       <ExpandableSection
-        content={
+        collapsedContent={
           <View>
             <Text>Open</Text>
           </View>
         }
-        modalContent={
+        expandedContent={
           <InfoSection>
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>

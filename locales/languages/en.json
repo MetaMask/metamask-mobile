@@ -3406,6 +3406,9 @@
     "confirm": "Confirm",
     "title": {
       "signature": "Signature request"
-      }
+    },
+    "request_from": "Request from",
+    "message": "Message",
+    "personal_sign_tooltip": "This site is asking for your signature"
   }
 }
