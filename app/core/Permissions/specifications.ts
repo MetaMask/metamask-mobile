@@ -69,7 +69,7 @@ export const getCaveatSpecifications = ({
     decorator:
       (
         method: (args: unknown) => Promise<string[]>,
-        caveat: { value: string[] },
+        caveat: Caveat<string, string[]>,
       ) =>
       async (args: unknown): Promise<string[]> => {
         const permittedAccounts: string[] = [];
