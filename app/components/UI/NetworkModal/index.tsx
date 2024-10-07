@@ -7,7 +7,7 @@ import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
 import {
-  isprivateConnection,
+  isPrivateConnection,
   toggleUseSafeChainsListValidation,
 } from '../../../util/networks';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
@@ -186,7 +186,7 @@ const NetworkModals = (props: NetworkProps) => {
   const closeModal = () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
@@ -209,7 +209,7 @@ const NetworkModals = (props: NetworkProps) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     CurrencyRateController.updateExchangeRate(ticker);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
