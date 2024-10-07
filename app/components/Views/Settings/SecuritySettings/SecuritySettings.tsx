@@ -7,6 +7,7 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
+  Platform,
   Linking,
 } from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -53,14 +54,26 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import {
+  selectIpfsGateway,
+  selectIsIpfsGatewayEnabled,
+  selectIsMultiAccountBalancesEnabled,
+  selectDisplayNftMedia,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
   selectUseTransactionSimulations,
 } from '../../../../selectors/preferencesController';
-import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import {
+  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+  SECURITY_PRIVACY_VIEW_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import ipfsGateways from '../../../../util/ipfs-gateways.json';
+import SelectComponent from '../../../UI/SelectComponent';
+import { timeoutFetch } from '../../../../util/general';
 import createStyles from './SecuritySettings.styles';
 import {
+  Gateway,
   HeadingProps,
   NetworksI,
   SecuritySettingsParams,
@@ -68,9 +81,14 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
+  BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
+  HASH_STRING,
+  HASH_TO_TEST,
+  IPFS_GATEWAY_SECTION,
+  NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
   USE_SAFE_CHAINS_LIST_VALIDATION,
@@ -111,9 +129,6 @@ import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
-import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
-import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
-import BatchAccountBalanceSettings from '../BatchAccountBalanceSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -142,6 +157,8 @@ const Settings: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
+  const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
+  const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
@@ -172,6 +189,7 @@ const Settings: React.FC = () => {
     selectShowIncomingTransactionNetworks,
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
   );
@@ -189,6 +207,11 @@ const Settings: React.FC = () => {
     (state: any) => state.user.seedphraseBackedUp,
   );
   const type = useSelector(selectProviderType);
+  const isMultiAccountBalancesEnabled = useSelector(
+    selectIsMultiAccountBalancesEnabled,
+  );
+  const ipfsGateway = useSelector(selectIpfsGateway);
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
   const isMainnet = type === MAINNET;
 
@@ -203,6 +226,34 @@ const Settings: React.FC = () => {
       ),
     );
   }, [colors, navigation]);
+
+  const handleAvailableIpfsGateways = useCallback(async () => {
+    if (!isIpfsGatewayEnabled) return;
+    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
+      const testUrl =
+        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+      try {
+        const res = await timeoutFetch(testUrl, 1200);
+        const text = await res.text();
+        const available = text.trim() === HASH_STRING.trim();
+        return { ...gateway, available };
+      } catch (e) {
+        const available = false;
+        return { ...gateway, available };
+      }
+    });
+    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+    const onlineGateways = ipfsGatewaysAvailability.filter(
+      (gateway) => gateway.available,
+    );
+
+    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
+      (a, b) => a.key - b.key,
+    );
+
+    setGotAvailableGateways(true);
+    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
+  }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
     const currentSeedphraseHints = await StorageWrapper.getItem(
@@ -276,6 +327,10 @@ const Settings: React.FC = () => {
       waitForRenderDetectNftComponentRef();
     }, [waitForRenderDetectNftComponentRef]),
   );
+
+  useEffect(() => {
+    handleAvailableIpfsGateways();
+  }, [handleAvailableIpfsGateways]);
 
   const toggleHint = () => {
     setShowHint(!showHint);
@@ -444,6 +499,48 @@ const Settings: React.FC = () => {
     </View>
   );
 
+  const toggleIsMultiAccountBalancesEnabled = (
+    multiAccountBalancesEnabled: boolean,
+  ) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIsMultiAccountBalancesEnabled(
+      multiAccountBalancesEnabled,
+    );
+  };
+
+  const renderMultiAccountBalancesSection = () => (
+    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.batch_balance_requests_title')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isMultiAccountBalancesEnabled}
+            onValueChange={toggleIsMultiAccountBalancesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
+          />
+        </View>
+      </View>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {strings('app_settings.batch_balance_requests_description')}
+      </Text>
+    </View>
+  );
   const toggleEnableIncomingTransactions = (
     hexChainId: EtherscanSupportedHexChainId,
     value: boolean,
@@ -478,6 +575,46 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     </ActionModal>
+  );
+
+  const toggleDisplayNftMedia = (value: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController?.setDisplayNftMedia(value);
+    if (!value) PreferencesController?.setUseNftDetection(value);
+  };
+
+  const renderDisplayNftMedia = useCallback(
+    () => (
+      <View style={styles.halfSetting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('app_settings.display_nft_media')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={displayNftMedia}
+              onValueChange={toggleDisplayNftMedia}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={theme.brandColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+              testID="display-nft-toggle"
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
+          {strings('app_settings.display_nft_media_desc_new')}
+        </Text>
+      </View>
+    ),
+    [colors, styles, displayNftMedia, theme],
   );
 
   const renderUseSafeChainsListValidation = useCallback(
@@ -569,6 +706,72 @@ const Settings: React.FC = () => {
       </View>
     ),
     [colors, styles, useTransactionSimulations, theme.brandColors.white],
+  );
+
+  const setIpfsGateway = (gateway: string) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIpfsGateway(gateway);
+  };
+
+  const setIsIpfsGatewayEnabled = (isIpfsGatewatEnabled: boolean) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIsIpfsGatewayEnabled(isIpfsGatewatEnabled);
+  };
+
+  const renderIpfsGateway = () => (
+    <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
+      <View style={styles.titleContainer}>
+        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+          {strings('app_settings.ipfs_gateway')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isIpfsGatewayEnabled}
+            onValueChange={setIsIpfsGatewayEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {strings('app_settings.ipfs_gateway_content')}
+      </Text>
+      {isIpfsGatewayEnabled && (
+        <View style={styles.accessory}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.desc}
+          >
+            {strings('app_settings.ipfs_gateway_desc')}
+          </Text>
+          <View style={styles.picker}>
+            {gotAvailableGateways ? (
+              <SelectComponent
+                selectedValue={ipfsGateway}
+                defaultValue={strings('app_settings.ipfs_gateway_down')}
+                onValueChange={setIpfsGateway}
+                label={strings('app_settings.ipfs_gateway')}
+                options={onlineIpfsGateways}
+              />
+            ) : (
+              <View>
+                <ActivityIndicator size="small" />
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+    </View>
   );
 
   const handleChangeText = (text: string) => setHintText(text);
@@ -667,7 +870,7 @@ const Settings: React.FC = () => {
 
           return (
             <Cell
-              key={chainId}
+              key={`${nickname}-${chainId}`}
               variant={CellVariant.Display}
               title={name}
               secondaryText={
@@ -878,7 +1081,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.transactions_subheading')}
         </Text>
-        <BatchAccountBalanceSettings />
+        {renderMultiAccountBalancesSection()}
         {renderShowIncomingTransactions()}
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
@@ -889,13 +1092,13 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.token_nft_ens_subheading')}
         </Text>
-        <DisplayNFTMediaSettings />
+        {renderDisplayNftMedia()}
         {isMainnet && (
           <View ref={detectNftComponentRef}>
             <AutoDetectNFTSettings />
           </View>
         )}
-        <IPFSGatewaySettings />
+        {renderIpfsGateway()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
