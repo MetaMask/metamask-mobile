@@ -8,6 +8,7 @@ import KeyValueRowComponent, {
 import Text, { TextColor, TextVariant } from '../../components/Texts/Text';
 import Title from '../../../components/Base/Title';
 import { IconColor, IconName, IconSize } from '../../components/Icons/Icon';
+import Button, { ButtonVariants } from '../../components/Buttons/Button';
 
 const KeyValueRowMeta = {
   title: 'Components Temp / KeyValueRow',
@@ -38,42 +39,54 @@ export const KeyValueRow = {
       <View style={styles.listItem}>
         <KeyValueRowComponent
           field={{
-            text: 'Sample Key Text',
+            label: {
+              text: 'Sample Key Text',
+            },
           }}
-          value={{ text: 'Sample Key Text' }}
+          value={{ label: { text: 'Sample Value Text' } }}
         />
         <KeyValueRowComponent
           field={{
-            text: 'Sample Key Text',
-            variant: TextVariant.BodySM,
-            color: TextColor.Alternative,
+            label: {
+              text: 'Sample Key Text',
+              variant: TextVariant.BodySM,
+              color: TextColor.Alternative,
+            },
           }}
           value={{
-            text: 'Sample Value Text',
-            variant: TextVariant.BodySMBold,
-            color: TextColor.Success,
+            label: {
+              text: 'Sample Value Text',
+              variant: TextVariant.BodySMBold,
+              color: TextColor.Success,
+            },
             tooltip: {
               title: 'Sample Title',
-              text: 'Sample Tooltip',
+              text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
               size: TooltipSizes.Sm,
             },
           }}
         />
         <KeyValueRowComponent
           field={{
-            text: 'Sample Key Text',
+            label: {
+              text: 'Sample Key Text',
+            },
             tooltip: {
               title: 'Sample Tooltip',
               text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
-            text: 'Sample Value Text',
+            label: {
+              text: 'Sample Value Text',
+            },
           }}
         />
         <KeyValueRowComponent
           field={{
-            text: 'Sample Key Text',
+            label: {
+              text: 'Sample Key Text',
+            },
             icon: {
               name: IconName.Wifi,
               color: IconColor.Primary,
@@ -82,13 +95,36 @@ export const KeyValueRow = {
             },
           }}
           value={{
-            text: 'Sample Value Text',
+            label: {
+              text: 'Sample Value Text',
+            },
             icon: {
               name: IconName.Wifi,
               color: IconColor.Primary,
               size: IconSize.Sm,
               side: KeyValueRowFieldIconSides.BOTH,
             },
+          }}
+        />
+        {/* Using Custom ReactNode */}
+        <KeyValueRowComponent
+          field={{
+            label: { text: 'Sample Key' },
+            icon: { name: IconName.UserCircleAdd, color: IconColor.Primary },
+            tooltip: {
+              title: 'Sample Tooltip',
+              text: 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
+            },
+          }}
+          value={{
+            label: (
+              <Button
+                variant={ButtonVariants.Link}
+                label="Sample button"
+                // eslint-disable-next-line no-alert
+                onPress={() => alert('test')}
+              />
+            ),
           }}
         />
       </View>
