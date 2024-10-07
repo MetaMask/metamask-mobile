@@ -441,43 +441,43 @@ describe('network-utils', () => {
   });
 
   describe('isPrivateConnection', () => {
-    test('returns true for localhost', () => {
+    it('returns true for localhost', () => {
       expect(isPrivateConnection('localhost')).toBe(true);
     });
 
-    test('returns true for 127.0.0.1', () => {
+    it('returns true for 127.0.0.1', () => {
       expect(isPrivateConnection('127.0.0.1')).toBe(true);
     });
 
-    test('returns true for 192.168.x.x', () => {
+    it('returns true for 192.168.x.x', () => {
       expect(isPrivateConnection('192.168.1.1')).toBe(true);
     });
 
-    test('returns true for 10.x.x.x', () => {
+    it('returns true for 10.x.x.x', () => {
       expect(isPrivateConnection('10.0.0.1')).toBe(true);
     });
 
-    test('returns true for 172.16.x.x', () => {
+    it('returns true for 172.16.x.x', () => {
       expect(isPrivateConnection('172.16.0.1')).toBe(true);
     });
 
-    test('returns true for for 172.31.x.x', () => {
+    it('returns true for for 172.31.x.x', () => {
       expect(isPrivateConnection('172.31.255.255')).toBe(true);
     });
 
-    test('returns false for a public IP', () => {
+    it('returns false for a public IP', () => {
       expect(isPrivateConnection('8.8.8.8')).toBe(false);
     });
 
-    test('returns false for a non-IP hostname', () => {
+    it('returns false for a non-IP hostname', () => {
       expect(isPrivateConnection('example.com')).toBe(false);
     });
 
-    test('returns true for edge case within 172 range', () => {
+    it('returns true for edge case within 172 range', () => {
       expect(isPrivateConnection('172.20.0.1')).toBe(true);
     });
 
-    test('returns false for an IP not in private ranges', () => {
+    it('returns false for an IP not in private ranges', () => {
       expect(isPrivateConnection('192.169.0.1')).toBe(false);
     });
   });
