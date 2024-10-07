@@ -762,7 +762,7 @@ function Quotes() {
           />
         )}
         <ScreenLayout.Content style={styles.withoutTopPadding}>
-          <ScrollView>
+          <ScrollView testID={"quotes"}>
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={2} />
             ) : (

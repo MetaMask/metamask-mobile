@@ -217,6 +217,7 @@ export default class TestHelpers {
   static checkIfToggleIsOn(elementID) {
     return expect(element(by.id(elementID))).toHaveToggleValue(true);
   }
+
   static checkIfToggleIsOff(elementID) {
     return expect(element(by.id(elementID))).toHaveToggleValue(false);
   }

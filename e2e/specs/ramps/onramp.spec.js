@@ -18,6 +18,8 @@ import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuoteView from '../../pages/Ramps/QuoteView';
 import Assertions from '../../utils/Assertions';
+import Matchers from '../../utils/Matchers';
+import { QuoteSelectors } from '../../selectors/Ramps/Quote.selectors';
 
 const fixtureServer = new FixtureServer();
 
@@ -65,13 +67,13 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });
 
-  it('should select a new currency', async () => {
+  it('should select a new currency and check the quotes', async () => {
     await BuildQuoteView.openCurrencySelector()
     await BuildQuoteView.selectCurrency('Euro')
-    await BuildQuoteView.enterFiatAmount('100')
+    await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel);
-    await Assertions.checkIfTextIsDisplayed('Select a Quote');
-    // TODO: check for EUR
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
+    await Assertions.checkIfTextIsNotDisplayed(/^≈ $.*USD$/);
   });
 });
