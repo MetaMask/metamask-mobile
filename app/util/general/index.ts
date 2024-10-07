@@ -20,7 +20,11 @@ export function timeoutFetch(url: string, options: RequestInit, timeout: number 
   ]);
 }
 
-export function findRouteNameFromNavigatorState(routes: unknown[]): string | undefined {
+export function findRouteNameFromNavigatorState(
+  // The exact structure of the routes array is difficult to determine without more context.
+  // It's part of the React Navigation state, typically an array of route objects.
+  routes: unknown[]
+): string | undefined {
   let route: any = routes?.[routes.length - 1];
   if (route.state) {
     route = route.state;
@@ -125,68 +129,96 @@ export const isIPFSUri = (uri: string | null | undefined): boolean => {
  * @param skipNumbers - Boolean to skip numbers
  * @returns - Parsed JSON object
  */
-export const deepJSONParse = ({ jsonString, skipNumbers = true }: { jsonString: string; skipNumbers?: boolean }): unknown => {
+interface DeepJSONParseOptions {
+  jsonString: string;
+  skipNumbers?: boolean;
+}
+
+type JSONValue = string | number | boolean | null | JSONObject | JSONArray;
+interface JSONObject { [key: string]: JSONValue }
+interface JSONArray extends Array<JSONValue> {}
+
+export const deepJSONParse = ({ jsonString, skipNumbers = true }: DeepJSONParseOptions): JSONValue => {
   // Parse the initial JSON string
-  const parsedObject = JSON.parse(jsonString);
+  const parsedObject: JSONValue = JSON.parse(jsonString);
 
   // Function to recursively parse stringified properties
-  function parseProperties(obj: Record<string, unknown>): void {
-    Object.keys(obj).forEach((key) => {
-      if (typeof obj[key] === 'string') {
-        const isNumber = !isNaN(Number(obj[key]));
-        // Only parse if value is not a number OR value is a number AND numbers are not skipped
-        if (!isNumber || (isNumber && !skipNumbers)) {
-          try {
-            // Attempt to parse the string as JSON
-            const parsed = JSON.parse(obj[key] as string);
-            obj[key] = parsed;
-            // If the parsed value is an object, parse its properties too
-            if (typeof parsed === 'object') {
-              parseProperties(parsed as Record<string, unknown>);
-            }
-          } catch (e) {
-            // If parsing throws, it's not a JSON string, so do nothing
+  function parseProperties(obj: JSONObject | JSONArray): void {
+    if (Array.isArray(obj)) {
+      obj.forEach((item, index) => {
+        if (typeof item === 'string') {
+          const parsedItem = tryParse(item);
+          if (parsedItem !== undefined) {
+            obj[index] = parsedItem;
           }
+        } else if (typeof item === 'object' && item !== null) {
+          parseProperties(item);
         }
-      } else if (typeof obj[key] === 'object') {
-        // If it's an object, parse its properties
-        parseProperties(obj[key] as Record<string, unknown>);
-      }
-    });
+      });
+    } else {
+      Object.keys(obj).forEach((key) => {
+        const value = obj[key];
+        if (typeof value === 'string') {
+          const parsedValue = tryParse(value);
+          if (parsedValue !== undefined) {
+            obj[key] = parsedValue;
+          }
+        } else if (typeof value === 'object' && value !== null) {
+          parseProperties(value);
+        }
+      });
+    }
   }
 
-  // Start parsing from the root object
-  parseProperties(parsedObject);
+  function tryParse(value: string): JSONValue | undefined {
+    const isNumber = !isNaN(Number(value));
+    // Only parse if value is not a number OR value is a number AND numbers are not skipped
+    if (!isNumber || (isNumber && !skipNumbers)) {
+      try {
+        // Attempt to parse the string as JSON
+        const parsed: JSONValue = JSON.parse(value);
+        // If the parsed value is an object or array, parse its properties too
+        if (typeof parsed === 'object' && parsed !== null) {
+          parseProperties(parsed);
+        }
+        return parsed;
+      } catch (e) {
+        // If parsing throws, it's not a JSON string, so return undefined
+        return undefined;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof parsedObject === 'object' && parsedObject !== null) {
+    parseProperties(parsedObject);
+  }
 
   return parsedObject;
 };
 
 /**
- * Generates an array of referentially unique items from a list of arrays.
+ * Returns a new array with all duplicates removed.
+ * The order of result values is determined by the order they occur in the arrays.
  *
- * @param  {...Array} arrays - A list of arrays
- * @returns {Array} - Returns a flattened array with unique items
+ * @param {...T[][]} arrays - Arrays to merge and remove duplicates from
+ * @returns {T[]} - New array with unique items
  * @throws {Error} - Throws if arrays is not defined
  * @throws {TypeError} - Throws if any of the arguments is not an array
  */
-export const getUniqueList = (...arrays: unknown[][]): unknown[] => {
+export const getUniqueList = <T>(...arrays: T[][]): T[] => {
   if (arrays.length === 0) {
     throw new Error('At least one array must be defined.');
   }
-  // Check if every argument is an array
-  arrays.forEach((array, index) => {
-    if (!Array.isArray(array)) {
+
+  arrays.forEach((arr, index) => {
+    if (!Array.isArray(arr)) {
       throw new TypeError(
-        `Argument at position ${index} is not an array. Found ${typeof array}.`,
+        `Argument at position ${index} is not an array. Found ${typeof arr}.`,
       );
     }
   });
 
-  // Flatten the arrays
-  const flattenedArray = arrays.flat();
-
-  // Create array with unique items
-  const uniqueArray = Array.from(new Set(flattenedArray));
-
-  return uniqueArray;
+  // Flatten the arrays and create a Set to remove duplicates
+  return [...new Set(arrays.flat())];
 };
