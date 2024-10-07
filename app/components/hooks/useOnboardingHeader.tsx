@@ -27,7 +27,7 @@ export const useOnboardingHeader = (title: string) => {
         style={styles.backButtonContainer}
       />
     ),
-    [navigation, styles.backButtonContainer],
+    [navigation],
   );
 
   const renderTitle = useCallback(

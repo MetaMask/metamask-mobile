@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     root: {
       flex: 1,
       paddingHorizontal: 16,
@@ -12,6 +12,5 @@ const styleSheet = () => {
       paddingBottom: 75,
     },
   });
-};
 
 export default styleSheet;
