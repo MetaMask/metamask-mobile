@@ -85,7 +85,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.5'}     | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.3'}     | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Optimism}
+    ${'native'}$     |${'.3'}     | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Polygon}
     ${'unapproved'}$ |${'50'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'non-native'}$ |${'5.555'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(

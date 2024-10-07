@@ -84,9 +84,9 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   });
 
   it.each`
-    type             | quantity   | sourceTokenSymbol | destTokenSymbol | network
+    type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'100'}  | ${'POL'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Polygon}
+    ${'native'}$     |${'100'}  | ${'POL'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Optimism}
     ${'wrapped'}$    |${'.4'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
