@@ -3,6 +3,9 @@ import {
   caveatSpecifications as snapsCaveatsSpecifications,
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
 } from '@metamask/snaps-rpc-methods';
+// TODO: Determine exact types for snapsCaveatsSpecifications and snapsEndowmentCaveatSpecifications
+// These types are imported from an external package and their exact structure is unknown
+type UnknownCaveatSpecifications = Record<string, unknown>;
 ///: END:ONLY_INCLUDE_IF
 import {
   constructPermission,
@@ -77,8 +80,9 @@ export const getCaveatSpecifications = ({ getInternalAccounts }: {
       validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  ...snapsCaveatsSpecifications,
-  ...snapsEndowmentCaveatSpecifications,
+  // TODO: Replace UnknownCaveatSpecifications with actual types once determined
+  ...(snapsCaveatsSpecifications as UnknownCaveatSpecifications),
+  ...(snapsEndowmentCaveatSpecifications as UnknownCaveatSpecifications),
   ///: END:ONLY_INCLUDE_IF
 });
 
