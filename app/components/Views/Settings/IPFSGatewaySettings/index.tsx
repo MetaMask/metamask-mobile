@@ -1,9 +1,6 @@
-// Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Switch, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import Engine from '../../../../core/Engine';
 import { useStyles } from '../../../../component-library/hooks';
 import {
@@ -19,8 +16,6 @@ import Text, {
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import { timeoutFetch } from '../../../../util/general';
 import SelectComponent from '../../../UI/SelectComponent';
-
-// Internal dependencies
 import styleSheet from './index.styles';
 import {
   IPFS_GATEWAY_SECTION,
@@ -31,6 +26,7 @@ import {
 import { Gateway } from './index.types';
 
 const IPFSGatewaySettings = () => {
+  const { PreferencesController } = Engine.context;
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, colors);
@@ -52,8 +48,7 @@ const IPFSGatewaySettings = () => {
         const available = text.trim() === HASH_STRING.trim();
         return { ...gateway, available };
       } catch (e) {
-        const available = false;
-        return { ...gateway, available };
+        return { ...gateway, available: false };
       }
     });
     const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
@@ -70,12 +65,10 @@ const IPFSGatewaySettings = () => {
   }, [isIpfsGatewayEnabled]);
 
   const setIsIpfsGatewayEnabled = (isIpfsGatewatEnabled: boolean) => {
-    const { PreferencesController } = Engine.context;
     PreferencesController.setIsIpfsGatewayEnabled(isIpfsGatewatEnabled);
   };
 
   const setIpfsGateway = (gateway: string) => {
-    const { PreferencesController } = Engine.context;
     PreferencesController.setIpfsGateway(gateway);
   };
 

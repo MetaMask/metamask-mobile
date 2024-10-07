@@ -1,9 +1,6 @@
-// Third party dependencies
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Switch, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
-
-// External dependencies
 import Engine from '../../../../core/Engine';
 import { selectIsMultiAccountBalancesEnabled } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
@@ -14,8 +11,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-
-// Internal dependencies
 import styleSheet from './index.styles';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -23,6 +18,7 @@ import {
 } from './index.constants';
 
 const BatchAccountBalanceSettings = () => {
+  const { PreferencesController } = Engine.context;
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
@@ -31,14 +27,14 @@ const BatchAccountBalanceSettings = () => {
     selectIsMultiAccountBalancesEnabled,
   );
 
-  const toggleIsMultiAccountBalancesEnabled = (
-    multiAccountBalancesEnabled: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsMultiAccountBalancesEnabled(
-      multiAccountBalancesEnabled,
-    );
-  };
+  const toggleIsMultiAccountBalancesEnabled = useCallback(
+    (multiAccountBalancesEnabled: boolean) => {
+      PreferencesController.setIsMultiAccountBalancesEnabled(
+        multiAccountBalancesEnabled,
+      );
+    },
+    [PreferencesController],
+  );
 
   return (
     <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>

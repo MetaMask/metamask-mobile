@@ -1,7 +1,4 @@
-// Third party dependencies.
 import { StyleSheet } from 'react-native';
-
-// External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {

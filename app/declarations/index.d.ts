@@ -6,6 +6,8 @@ declare module '@metamask/react-native-payments/lib/js/__mocks__';
 
 declare module 'react-native-fade-in-image';
 
+declare module 'react-native-fast-crypto';
+
 declare module 'react-native-minimizer';
 
 declare module 'xhr2';

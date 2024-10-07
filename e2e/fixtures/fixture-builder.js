@@ -144,38 +144,20 @@ class FixtureBuilder {
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
               networksMetadata: {
-                goerli: {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-goerli': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-sepolia': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-mainnet': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
                 mainnet: {
-                  EIPS: {},
-                  status: 'unknown',
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
-                sepolia: {
-                  EIPS: {},
-                  status: 'unknown',
+                networkId1: {
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
               },
               networkConfigurations: {
-                mainnet: {
-                  id: 'mainnet',
-                  chainId: '0x1',
-                  ticker: 'ETH',
-                  rpcPrefs: {},
-                },
                 networkId1: {
                   rpcUrl: `http://localhost:${getGanachePort()}`,
                   chainId: '1337',
@@ -242,7 +224,7 @@ class FixtureBuilder {
                   importTime: 1684232000456,
                 },
               },
-              ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+              ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
               lostIdentities: {},
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
@@ -263,7 +245,7 @@ class FixtureBuilder {
                     importTime: 1684232000456,
                   },
                 },
-                ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+                ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
                 lostIdentities: {},
                 selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
                 useTokenDetection: true,
@@ -398,7 +380,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://home.metamask.io/',
+              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
               id: 1692550481062,
             },
           ],

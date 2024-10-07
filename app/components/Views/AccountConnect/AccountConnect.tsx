@@ -71,7 +71,7 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 
 const createStyles = () =>
@@ -174,11 +174,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
   ]);
 
-  const urlWithProtocol = hostname
+  const urlWithProtocol = (hostname && !isUUID(hostname))
     ? prefixUrlWithProtocol(hostname)
     : domainTitle;
 
-  const isAllowedUrl = useCallback((url: string) => {
+  const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -186,23 +186,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(url);
+    const phishingControllerTestResult = PhishingController.test(origin);
 
     return !phishingControllerTestResult.result;
   }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
-
-    const cleanUrl = url.replace(/^https?:\/\//, '');
-
-    const isAllowed = isAllowedUrl(cleanUrl);
+    const isAllowed = isAllowedOrigin(url);
 
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
+  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
@@ -674,7 +671,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isMutichainVersion1Enabled
+        return isMultichainVersion1Enabled
           ? renderPermissionsSummaryScreen()
           : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:

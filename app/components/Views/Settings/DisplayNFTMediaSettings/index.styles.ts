@@ -1,4 +1,3 @@
-// Third party dependencies.
 import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>

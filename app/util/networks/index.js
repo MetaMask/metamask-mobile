@@ -284,7 +284,7 @@ export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
 }
 
-export function isprivateConnection(hostname) {
+export function isPrivateConnection(hostname) {
   return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
@@ -579,5 +579,5 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isMutichainVersion1Enabled =
+export const isMultichainVersion1Enabled =
   process.env.MM_MULTICHAIN_V1_ENABLED === '1';
