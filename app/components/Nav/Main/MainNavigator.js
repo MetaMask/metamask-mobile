@@ -793,10 +793,10 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
-      {<RampRoutes rampType={RampType.BUY} />}
+      {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
     <Stack.Screen name={Routes.RAMP.SELL}>
-      {<RampRoutes rampType={RampType.SELL} />}
+      {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
