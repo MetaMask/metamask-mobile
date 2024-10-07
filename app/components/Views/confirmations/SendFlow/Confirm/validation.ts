@@ -26,7 +26,7 @@ export const generateInsufficientBalanceMessage = (
 };
 
 export const validateBalance = (weiBalance: BN, transactionValue: BN) =>
-  !weiBalance.gte(transactionValue);
+  !weiBalance.gte(transactionValue) || weiBalance.isZero();
 
 export const validateSufficientTokenBalance = (
   transaction: {

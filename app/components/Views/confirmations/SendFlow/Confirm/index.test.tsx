@@ -1,6 +1,7 @@
 import React from 'react';
 import { ConnectedComponent } from 'react-redux';
-import { waitFor } from '@testing-library/react-native';
+import { waitFor, fireEvent } from '@testing-library/react-native';
+import { merge } from 'lodash';
 import Confirm from '.';
 import {
   DeepPartial,
@@ -12,6 +13,8 @@ import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/compo
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
+import { updateTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -156,21 +159,34 @@ jest.mock('../../../../../util/transactions', () => ({
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
 
+jest.mock('../../../../../core/redux/slices/transactionMetrics', () => ({
+  ...(jest.requireActual(
+    '../../../../../core/redux/slices/transactionMetrics',
+  ) as any),
+  updateTransactionMetrics: jest.fn(),
+  selectTransactionMetrics: jest.fn().mockReturnValue({}),
+}));
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
+function render(
+  Component: React.ComponentType | ConnectedComponent<any, any>,
+  modifiedState?: DeepPartial<RootState>,
+) {
   return renderScreen(
     Component,
     {
       name: Routes.SEND_FLOW.CONFIRM,
     },
     {
-      state: mockInitialState,
+      state: modifiedState ?? mockInitialState,
     },
   );
 }
 
 describe('Confirm', () => {
+  const mockUpdateTransactionMetrics = jest.mocked(updateTransactionMetrics);
+
   it('should render correctly', async () => {
     const wrapper = render(Confirm);
     await waitFor(() => {
@@ -193,6 +209,53 @@ describe('Confirm', () => {
         await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
       ).toBeDefined();
       expect(await queryByText('Something doesn’t look right?')).toBeDefined();
+    });
+  });
+
+  it('updates transaction metrics with insufficient_funds_for_gas when there is insufficient balance', async () => {
+    const zeroBalanceState = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          AccountTrackerController: {
+            accounts: {
+              '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { balance: '0' },
+            },
+          },
+        },
+      },
+      transaction: {
+        securityAlertResponses: {
+          1: {
+            result_type: 'Malicious',
+            reason: 'blur_farming',
+            providerRequestsCount: {},
+            chainId: '0x1',
+          },
+        },
+        selectedAsset: {},
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x2',
+        },
+      },
+    });
+
+    const { getByTestId } = render(Confirm, zeroBalanceState);
+
+    const sendButton = getByTestId(ConfirmViewSelectorsIDs.SEND_BUTTON);
+    fireEvent.press(sendButton);
+
+    await waitFor(() => {
+      expect(mockUpdateTransactionMetrics).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: {
+            properties: {
+              alert_triggered: ['insufficient_funds_for_gas'],
+            },
+          },
+        }),
+      );
     });
   });
 });
