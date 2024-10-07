@@ -90,6 +90,8 @@ export const getCaveatSpecifications = ({
     merger: (leftValue, rightValue) => {
       const newValue = Array.from(new Set([...leftValue, ...rightValue]));
       const diff = newValue.filter((value) => !leftValue.includes(value));
+
+      /** @type {[any, any]} */
       return [newValue, diff];
     },
   },
