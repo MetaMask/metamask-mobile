@@ -250,13 +250,6 @@ describe('MetaMetrics', () => {
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        // check if the event was tracked
-        // non-anonymous event has no properties.
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: false,
-          ...{},
-        });
-
         // anonymous event has individual anon properties
         // the prop value must be extracted and passed directly as a value.
         // the original anonymous prop of the prop is discarded.
@@ -268,8 +261,8 @@ describe('MetaMetrics', () => {
           },
         });
 
-        // two events should be tracked, one anonymous and one non-anonymous
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        // one event should be tracked, only the anonymous one
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
       it('with only anonymous properties group (test C1)', async () => {
@@ -288,13 +281,6 @@ describe('MetaMetrics', () => {
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        // check if the event was tracked
-        // non-anonymous event has no properties.
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: false,
-          ...{},
-        });
-
         // anonymous event has group anon properties
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
@@ -302,7 +288,7 @@ describe('MetaMetrics', () => {
         });
 
         // two events should be tracked, one anonymous and one non-anonymous
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
       it('with mixed (group and individual) anonymous properties (test C2)', async () => {
@@ -325,13 +311,6 @@ describe('MetaMetrics', () => {
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        // check if the event was tracked
-        // non-anonymous event has no properties.
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: false,
-          ...{},
-        });
-
         // anonymous event has both individual and group anon properties
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
@@ -341,8 +320,8 @@ describe('MetaMetrics', () => {
           ...groupAnonProperties,
         });
 
-        // two events should be tracked, one anonymous and one non-anonymous
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        // one event should be tracked, one anonymous one
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
 
       it('with anonymous and non-anonymous properties (test D)', async () => {
@@ -371,12 +350,6 @@ describe('MetaMetrics', () => {
         const { segmentMockClient } =
           global as unknown as GlobalWithSegmentClient;
 
-        // non-anonymous event only has the non-anonymous properties.
-        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
-          anonymous: false,
-          ...nonAnonProperties,
-        });
-
         // anonymous event has all properties
         expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
           anonymous: true,
@@ -385,8 +358,8 @@ describe('MetaMetrics', () => {
           ...groupAnonProperties,
         });
 
-        // Only two events should be tracked, one anonymous and one non-anonymous
-        expect(segmentMockClient.track).toHaveBeenCalledTimes(2);
+        // Only one event should be tracked, one anonymous one
+        expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
       });
     });
 
