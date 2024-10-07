@@ -59,6 +59,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -112,9 +113,6 @@ const Main = (props) => {
   useNotificationHandler(props.navigation);
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
-
-
-
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -235,8 +233,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
+  const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
@@ -262,13 +262,42 @@ const Main = (props) => {
     previousProviderConfig.current = providerConfig;
   }, [providerConfig, networkName, networkImage, toastRef]);
 
+  // Show add network confirmation.
+  useEffect(() => {
+    if (
+      previousNetworkConfigurations.current &&
+      Object.values(networkConfigurations).length !==
+        Object.values(previousNetworkConfigurations.current).length
+    ) {
+      // Find the newly added network
+      const newNetwork = Object.values(networkConfigurations).find(
+        (network) =>
+          !Object.values(previousNetworkConfigurations.current).includes(
+            network,
+          ),
+      );
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: `${newNetwork?.name ?? strings('asset_details.network')} `,
+            isBold: true,
+          },
+          { label: strings('toast.network_added') },
+        ],
+        networkImageSource: networkImage,
+      });
+    }
+    previousNetworkConfigurations.current = networkConfigurations;
+  }, [networkConfigurations, networkName, networkImage, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
       initForceReload();
       return;
     }
-
   });
 
   // Remove all notifications that aren't visible

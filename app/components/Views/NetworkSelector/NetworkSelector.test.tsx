@@ -345,7 +345,7 @@ describe('Network Selector', () => {
             ...mockNetworkState({
               chainId: '0x1',
               id: 'Mainnet',
-              nickname: 'Mainnet',
+              nickname: 'Ethereum Main Network',
               ticker: 'ETH',
             }),
           },

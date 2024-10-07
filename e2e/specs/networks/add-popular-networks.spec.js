@@ -9,6 +9,9 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import Assertions from '../../utils/Assertions';
 
 const Arbitrum = 'Arbitrum One';
 
@@ -27,10 +30,13 @@ describe(Regression('Add all popular networks'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapNetworks();
-        await NetworkView.tapAddNetworkButton();
-        await NetworkView.tapNetworkByName(Arbitrum);
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
+
+        await Assertions.checkIfVisible(
+          NetworkListModal.addPopularNetworkButton,
+        );
+        await NetworkListModal.tapAddNetworkButton();
         await NetworkApprovalModal.tapApproveButton();
         await NetworkAddedModal.tapCloseButton();
       },

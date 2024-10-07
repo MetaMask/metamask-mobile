@@ -24,7 +24,7 @@ const createStyles = (colors: Colors) =>
     },
     rpcMenu: {
       display: 'flex',
-      flexDirection: 'row',
+      flexDirection: 'column',
       justifyContent: 'center',
     },
     cellBorder: { borderWidth: 0, paddingVertical: 4 },
@@ -59,6 +59,12 @@ const createStyles = (colors: Colors) =>
     },
     container: {
       flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
+    containerColumn: {
+      flexDirection: 'column',
       justifyContent: 'space-around',
       alignItems: 'center',
       backgroundColor: colors.background.default,
