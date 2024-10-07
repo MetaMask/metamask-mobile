@@ -12,6 +12,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './RewardsCard.styles';
 import { RewardsCardProps } from './RewardsCard.types';
+import { fixDisplayAmount } from '../../../utils/value';
 
 const RewardsCard = ({
   rewardRate,
@@ -33,14 +34,14 @@ const RewardsCard = ({
         }}
         value={{
           label: {
-            text: rewardRate,
+            text: `${fixDisplayAmount(rewardRate, 1)}%`,
             color: TextColor.Success,
             variant: TextVariant.BodyMD,
           },
         }}
       />
       <KeyValueRow
-        field={{ label: { text: strings('stake.estimated_annual_reward') } }}
+        field={{ label: { text: strings('stake.estimated_annual_rewards') } }}
         value={{
           label: (
             <View style={styles.estAnnualRewardValue}>

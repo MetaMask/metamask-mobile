@@ -10,13 +10,13 @@ import Icon, {
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { ContractTagProps } from './ContractTag.types';
 
-const ContractTag = ({ name }: ContractTagProps) => (
+const ContractTag = ({ contractName }: ContractTagProps) => (
   <TagBase
     startAccessory={<Icon name={IconName.Question} size={IconSize.Sm} />}
     shape={TagShape.Pill}
     severity={TagSeverity.Neutral}
   >
-    <Text>{name}</Text>
+    <Text>{contractName}</Text>
   </TagBase>
 );
 

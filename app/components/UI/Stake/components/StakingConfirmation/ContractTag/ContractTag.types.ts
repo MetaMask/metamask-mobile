@@ -1,3 +1,3 @@
 export interface ContractTagProps {
-  name: string;
+  contractName: string;
 }

@@ -1,5 +1,5 @@
 export interface AccountTagProps {
-  address: string;
-  name?: string;
+  accountAddress: string;
+  accountName?: string;
   useBlockieIcon?: boolean;
 }

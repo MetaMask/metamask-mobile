@@ -34,8 +34,8 @@ const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
             value={{
               label: (
                 <AccountTag
-                  address={account?.address}
-                  name={account.metadata.name}
+                  accountAddress={account?.address}
+                  accountName={account.metadata.name}
                 />
               ),
             }}
@@ -46,7 +46,7 @@ const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
             label: { text: strings('stake.interacting_with') },
           }}
           value={{
-            label: <ContractTag name={contractName} />,
+            label: <ContractTag contractName={contractName} />,
           }}
         />
       </Card>

@@ -7,7 +7,8 @@ import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { Provider } from 'react-redux';
 import { AccountHeaderCardProps } from './AccountHeaderCard.types';
-import { MOCK_STAKING_CONTRACT_NAME } from '../../../Views/StakeConfirmationView/StakeConfirmationMockData';
+
+const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
