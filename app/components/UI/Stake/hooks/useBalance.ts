@@ -48,7 +48,7 @@ const useBalance = () => {
     [balanceBN, conversionRate],
   );
 
-  return { balance, balanceFiat, balanceBN, balanceFiatNumber };
+  return { balance, balanceFiat, balanceBN, balanceFiatNumber, conversionRate, currentCurrency };
 };
 
 export default useBalance;

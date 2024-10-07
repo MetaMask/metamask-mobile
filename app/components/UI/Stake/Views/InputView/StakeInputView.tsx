@@ -14,17 +14,11 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import {
   fiatNumberToWei,
   fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
   renderFiat,
   renderFromTokenMinimalUnit,
-  toWei,
-  weiToFiatNumber,
 } from '../../../../../util/number';
 import Keypad from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -32,19 +26,30 @@ import { getStakeInputNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import CurrencyToggle from '../../components/CurrencySwitch';
 import QuickAmounts from '../../components/QuickAmounts';
-import useBalance from '../../hooks/useBalance';
 import styleSheet from './StakeInputView.styles';
 import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsCard';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useStakeContext } from '../../sdk';
 
 const StakeInputView = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const [amount, setAmount] = useState('0');
-  const [amountBN, setAmountBN] = useState<BN>(new BN(0));
-  const { balance, balanceBN, balanceFiatNumber } = useBalance();
-  const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
+  const {
+    balance,
+    balanceBN,
+    balanceFiatNumber,
+    sdkService,
+    amount,
+    setAmount,
+    amountBN,
+    setAmountBN,
+    conversionRate,
+    currentCurrency,
+    fiatAmount,
+    estimatedAnnualRewards,
+    setEstimatedAnnualRewards
+  } = useStakeContext();
 
   const isNonZeroAmount = useMemo(() => amountBN.gt(new BN(0)), [amountBN]);
   const isOverMaximum = useMemo(() => {
@@ -52,24 +57,20 @@ const StakeInputView = () => {
     return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
   }, [amountBN, balanceBN, isNonZeroAmount]);
 
-  const [fiatAmount, setFiatAmount] = useState('0');
-  const [isEth, setIsEth] = useState<boolean>(true);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate) || 1;
+  const isEth = useMemo(() => currentCurrency === 'ETH', [currentCurrency]);
+  const balanceText = useMemo(() => isEth
+  ? `${balance} ETH`
+  : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`, [isEth, balanceFiatNumber, currentCurrency]);
+
+  const currencyToggleValue = useMemo(() => isEth
+  ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
+  : `${amount} ETH`, [isEth, fiatAmount, currentCurrency, amount]);
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
   };
-
-  const balanceText = isEth
-    ? `${balance} ETH`
-    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
-
-  const currencyToggleValue = isEth
-    ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
-    : `${amount} ETH`;
 
   const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
   const calculateEstimatedAnnualRewards = useCallback(() => {
@@ -110,31 +111,21 @@ const StakeInputView = () => {
 
   const handleEthInput = useCallback(
     (value: string) => {
-      setAmount(value);
-      setAmountBN(toWei(value, 'ether'));
-      const fiatValue = weiToFiatNumber(
-        toWei(value, 'ether'),
-        conversionRate,
-        2,
-      ).toString();
-      setFiatAmount(fiatValue);
+      setAmount(value)
     },
-    [conversionRate],
+    [setAmount],
   );
 
   const handleFiatInput = useCallback(
     (value: string) => {
-      setFiatAmount(value);
       const ethValue = renderFromTokenMinimalUnit(
         fiatNumberToWei(value, conversionRate).toString(),
         18,
         5,
       );
-
-      setAmount(ethValue);
-      setAmountBN(toWei(ethValue, 'ether'));
+      setAmount(ethValue)
     },
-    [conversionRate],
+    [setAmount],
   );
 
   /* Keypad Handlers */
@@ -146,12 +137,15 @@ const StakeInputView = () => {
   );
 
   const handleCurrencySwitch = useCallback(() => {
-    setIsEth(!isEth);
   }, [isEth]);
 
   const handleStakePress = useCallback(() => {
+    if (!sdkService) {
+      return;
+    }
     // TODO: Display the Review bottom sheet: STAKE-824
-  }, []);
+    // sdkService.estimateDepositGas()
+  }, [sdkService]);
 
   const percentageOptions = [
     { value: 0.25, label: '25%' },
@@ -177,16 +171,8 @@ const StakeInputView = () => {
         5,
       );
       setAmount(newEthAmount);
-      setAmountBN(amountPercentage);
-
-      const newFiatAmount = weiToFiatNumber(
-        toWei(newEthAmount.toString(), 'ether'),
-        conversionRate,
-        2,
-      ).toString();
-      setFiatAmount(newFiatAmount);
     },
-    [balanceBN, conversionRate],
+    [balanceBN, setAmount],
   );
 
   return (

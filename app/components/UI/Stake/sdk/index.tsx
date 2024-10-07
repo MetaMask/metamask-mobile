@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
-import Device from '../../../../util/device';
+import { ProtocolType, StakeSdk } from '@metamask/stake-sdk';
+import { PooledService } from '@metamask/stake-sdk/dist/PooledService.cjs';
 import Logger from '../../../../util/Logger';
 import React, {
   useState,
@@ -19,106 +20,9 @@ import {
   updateAmountState,
   updateCurrencyState,
 } from '../../../../core/redux/slices/stake';
-
-// to do: move this to the stake-sdk repo
-export enum ProtocolType {
-  POOLED = 'pooled',
-  VALIDATOR = 'validator',
-  LIQUID = 'liquid',
-}
-
-// to do: move this to the stake-sdk repo
-export type StakeSdkParameters = StakeSdkConfig & Context;
-
-// to do: move this to the stake-sdk repo
-export interface StakeSdkConfig {
-  verbose?: boolean;
-  pool?: {
-    contractAddress: string;
-    abi: string;
-  };
-  apiUrl?: string;
-  context?: Context;
-}
-
-// to do: move this to the stake-sdk repo
-export declare enum Context {
-  Browser = 'browser',
-  Extension = 'extension',
-  /**
-   * @deprecated Prefer MobileAndroid or MobileIOS
-   */
-  Mobile = 'mobile',
-  MobileAndroid = 'mobile-android',
-  MobileIOS = 'mobile-ios',
-  Payroll = 'payroll',
-}
-
-// to do: move this to the stake-sdk repo
-export const POOLEDSERVICEABI = '[{}]';
-
-// to do: move this to the stake-sdk repo
-export class PooledService {
-  public static create(config: {
-    abi: string;
-    contractAddress: string;
-  }): PooledService {
-    // to do : check abi+contractAddress
-    const pooledService = new PooledService(config.contractAddress, config.abi);
-    return pooledService;
-  }
-  abi: string;
-  contractAddress: string;
-
-  constructor(contractAddress: string, abi: string) {
-    this.abi = POOLEDSERVICEABI;
-    this.contractAddress = contractAddress;
-  }
-}
-
-// to do: move this to the stake-sdk repo
-export class StakeSdk {
-  public static create(config: StakeSdkConfig = {}): StakeSdk {
-    const verbose = config.verbose || false;
-    const pooledContractAddress =
-      config?.pool?.contractAddress ||
-      '0x0000000000000000000000000000000000000000';
-    const pooledAbi = config?.pool?.abi || POOLEDSERVICEABI;
-    const apiUrl = config.apiUrl || 'http://localhost:3000';
-    const context = config.context || Context.Mobile; // to do : use Device.isAndroid or Device.isIos instead
-    const sdk = new StakeSdk(
-      apiUrl,
-      pooledContractAddress,
-      pooledAbi,
-      context,
-      verbose,
-    );
-    // logger.setVerbose(verbose)
-
-    return sdk;
-  }
-
-  public pooledService: PooledService;
-  public sdkConfig: StakeSdkConfig;
-
-  constructor(
-    apiUrl: string,
-    pooledContractAddress: string,
-    pooledAbi: string,
-    context: Context,
-    verbose: boolean,
-  ) {
-    this.sdkConfig = {
-      verbose,
-      context,
-      apiUrl,
-    };
-    this.pooledService = PooledService.create({
-      abi: pooledAbi,
-      contractAddress: pooledContractAddress,
-    });
-  }
-}
+import useBalance from '../hooks/useBalance';
+import BN from 'bn.js';
+import { toWei, weiToFiatNumber } from '../../../../util/number';
 
 export interface StakeProviderProps {
   protocolType?: ProtocolType;
@@ -134,33 +38,38 @@ export interface Stake {
   sdkType?: ProtocolType;
   setSdkType: (stakeType: ProtocolType) => void;
 
-  currency?: string | null;
-  setCurrency: (currency: string) => void;
+  // currency: string;
+  // setCurrency: (currency: string) => void;
 
-  amount?: string | undefined;
+  amount: string;
   setAmount: (amount: string) => void;
+
+  amountBN: BN;
+  setAmountBN: (amount: BN) => void;
+
+  fiatAmount: string;
+  setFiatAmount: (amount: string) => void;
 
   selectedAddress: string | undefined;
   selectedChainId: string | undefined;
   selectedNetworkName: string | undefined;
+
+  balance: string | undefined;
+  balanceBN: BN | undefined;
+  balanceFiatNumber: number | undefined;
+
+  conversionRate: number;
+  currentCurrency: string;
+  estimatedAnnualRewards: string;
+  setEstimatedAnnualRewards: (value: string) => void;
 }
 
-const initialStakeContext: Stake = {
-  sdkError: undefined,
-  sdkService: undefined,
-  sdkType: undefined,
-  setSdkType: undefined as any,
-  currency: undefined,
-  setCurrency: undefined as any,
-  amount: undefined,
-  setAmount: undefined as any,
-  selectedAddress: undefined,
-  selectedChainId: undefined,
-  selectedNetworkName: undefined,
-};
+const STAKEContext = createContext<Stake | undefined>(undefined);
 
-const STAKEContext = createContext<Stake>(initialStakeContext);
-export const useStakeContext = () => useContext(STAKEContext);
+export const useStakeContext = () => {
+  const context = useContext(STAKEContext);
+  return context as Stake;
+};
 
 export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
   children,
@@ -172,21 +81,41 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
   const [sdkService, setSdkService] = useState<PooledService>();
   const [sdkError, setSdkError] = useState<Error>();
   const [currency, setCurrency] = useState<string>(stakeCurrency ?? 'ETH');
-  const [amount, setAmount] = useState<string>();
+  const [amount, setAmount] = useState<string>('0');
+  const [amountBN, setAmountBN] = useState<BN>(new BN(0));
+  const [fiatAmount, setFiatAmount] = useState('0');
+  const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
+
   const [sdkType, setSdkType] = useState(protocolType ?? ProtocolType.POOLED);
 
   // from redux state
   const selectedAddress = useSelector(selectedAddressSelector);
   const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkName = useSelector(selectNickname);
+  const {
+    balance,
+    balanceBN,
+    balanceFiatNumber,
+    conversionRate,
+    currentCurrency,
+  } = useBalance();
   const dispatch = useDispatch();
 
+  // from stake sdk
+
   const setAmountCallback = useCallback(
-    (amount: string) => {
-      setAmount(amount);
+    (value: string) => {
+      setAmount(value);
+      setAmountBN(toWei(value, 'ether'));
+      const fiatValue = weiToFiatNumber(
+        toWei(value, 'ether'),
+        conversionRate,
+        2,
+      ).toString();
+      setFiatAmount(fiatValue);
       dispatch(updateAmountState(amount));
     },
-    [dispatch],
+    [dispatch, conversionRate],
   );
 
   const setCurrencyCallback = useCallback(
@@ -216,38 +145,54 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
     })();
   }, [sdkType]);
 
-  const contextValue = useMemo(
+  const stakeContextValue = useMemo(
     (): Stake => ({
       sdkError,
       sdkService,
       sdkType,
       setSdkType,
-      currency,
-      setCurrency: setCurrencyCallback,
       amount,
       setAmount: setAmountCallback,
+      amountBN,
+      setAmountBN,
+      fiatAmount,
+      setFiatAmount,
       selectedAddress,
       selectedChainId,
       selectedNetworkName,
+      balance,
+      balanceBN,
+      balanceFiatNumber,
+      conversionRate,
+      currentCurrency,
+      estimatedAnnualRewards,
+      setEstimatedAnnualRewards
     }),
-    [],
+    [
+      sdkError,
+      sdkService,
+      sdkType,
+      setSdkType,
+      amount,
+      setAmountCallback,
+      amountBN,
+      setAmountBN,
+      fiatAmount,
+      setFiatAmount,
+      selectedAddress,
+      selectedChainId,
+      selectedNetworkName,
+      balance,
+      balanceBN,
+      balanceFiatNumber,
+      conversionRate,
+      currentCurrency,
+      estimatedAnnualRewards,
+      setEstimatedAnnualRewards
+    ],
   );
   return (
-    <STAKEContext.Provider
-      value={{
-        sdkError,
-        sdkService,
-        sdkType,
-        setSdkType,
-        currency,
-        setCurrency: setCurrencyCallback,
-        amount,
-        setAmount: setAmountCallback,
-        selectedAddress,
-        selectedChainId,
-        selectedNetworkName,
-      }}
-    >
+    <STAKEContext.Provider value={stakeContextValue}>
       {children}
     </STAKEContext.Provider>
   );

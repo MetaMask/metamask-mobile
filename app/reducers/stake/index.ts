@@ -2,7 +2,6 @@ import { RootState } from "..";
 import { selectSelectedInternalAccountChecksummedAddress } from "../../selectors/accountsController";
 import { selectChainId } from "../../selectors/networkController";
 import { getDecimalChainId } from '../../util/networks';
-import type { Action as ReduxAction } from 'redux';
 
 
 /**
