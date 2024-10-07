@@ -142,6 +142,7 @@ export const getPermissionSpecifications = ({
           `${PermissionKeys.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
         );
       }
+
       // This value will be further validated as part of the caveat.
       if (!requestData.approvedAccounts) {
         throw new Error(
