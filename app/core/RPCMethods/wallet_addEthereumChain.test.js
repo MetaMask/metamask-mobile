@@ -32,6 +32,7 @@ jest.mock('../Engine', () => ({
       hasPermission: jest.fn().mockReturnValue(true),
       grantPermissionsIncremental: jest.fn(),
       requestPermissionsIncremental: jest.fn(),
+      getCaveat: jest.fn(),
     },
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),

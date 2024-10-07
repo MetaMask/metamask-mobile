@@ -240,7 +240,7 @@ export async function switchToNetwork({
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-  const chainPermissionsEnabled = process.env.CHAIN_PERMISSIONS;
+  const chainPermissionsEnabled = ({ ...process.env })?.CHAIN_PERMISSIONS;
   console.log('chainPermissionsEnabled:', chainPermissionsEnabled);
   if (chainPermissionsEnabled) {
     const { value: permissionedChainIds } =
