@@ -13,13 +13,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
-import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -567,6 +565,7 @@ class Login extends PureComponent {
                     />
                   }
                   keyboardAppearance={themeAppearance}
+                  autoFocus={false}
                 />
               </View>
 
