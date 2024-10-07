@@ -205,7 +205,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
             }
             testID="label"
           >
-            Est. annual Rewards
+            Estimated annual rewards
           </Text>
         </View>
       </View>
@@ -623,7 +623,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             }
             testID="label"
           >
-            Est. annual Rewards
+            Estimated annual rewards
           </Text>
         </View>
       </View>
@@ -1041,7 +1041,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             }
             testID="label"
           >
-            Est. annual Rewards
+            Estimated annual rewards
           </Text>
         </View>
       </View>

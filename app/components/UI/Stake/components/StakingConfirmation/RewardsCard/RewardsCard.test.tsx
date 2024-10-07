@@ -24,7 +24,7 @@ describe('RewardsCard', () => {
 
   it('render matches snapshot', () => {
     const props: RewardsCardProps = {
-      rewardRate: '2.6%',
+      rewardRate: '2.6',
       rewardsEth: '0.13 ETH',
       rewardsFiat: '$334.93',
     };
@@ -33,7 +33,7 @@ describe('RewardsCard', () => {
       <RewardsCard {...props} />,
     );
 
-    expect(getByText(props.rewardRate)).toBeDefined();
+    expect(getByText(`${props.rewardRate}%`)).toBeDefined();
     expect(getByText(props.rewardsEth)).toBeDefined();
     expect(getByText(props.rewardsFiat)).toBeDefined();
 
@@ -42,7 +42,7 @@ describe('RewardsCard', () => {
 
   it('reward rate tooltip displayed when pressed', () => {
     const props: RewardsCardProps = {
-      rewardRate: '2.6%',
+      rewardRate: '2.6',
       rewardsEth: '0.13 ETH',
       rewardsFiat: '$334.93',
     };
@@ -69,7 +69,7 @@ describe('RewardsCard', () => {
 
   it('reward frequency tooltip displayed when pressed', () => {
     const props: RewardsCardProps = {
-      rewardRate: '2.6%',
+      rewardRate: '2.6',
       rewardsEth: '0.13 ETH',
       rewardsFiat: '$334.93',
     };

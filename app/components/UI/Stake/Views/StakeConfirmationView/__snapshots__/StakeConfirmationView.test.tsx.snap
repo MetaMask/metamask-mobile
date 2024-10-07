@@ -225,7 +225,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
       style={
         {
           "gap": 8,
-          "paddingTop": 8,
+          "paddingTop": 16,
         }
       }
     >
@@ -1195,7 +1195,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  2.6%
+                  2.8%
                 </Text>
               </View>
             </View>
@@ -1255,7 +1255,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  Est. annual Rewards
+                  Estimated annual rewards
                 </Text>
               </View>
             </View>
