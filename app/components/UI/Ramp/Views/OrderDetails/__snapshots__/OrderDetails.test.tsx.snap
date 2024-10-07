@@ -923,23 +923,51 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -2408,23 +2436,51 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -3907,23 +3963,51 @@ exports[`OrderDetails renders a created order 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -5328,23 +5412,51 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -6827,23 +6939,51 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -9391,23 +9531,51 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -10917,43 +11085,71 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                           
-                                          •
-                                           
-                                          <Text
-                                            accessibilityRole="text"
-                                            onPress={[Function]}
+                                          <View
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 20,
-                                                "textDecorationLine": "underline",
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
                                               }
                                             }
                                           >
-                                            Contact Support
-                                          </Text>
-                                        </Text>
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                                 
+                                                •
+                                                 
+                                                <Text
+                                                  accessibilityRole="text"
+                                                  onPress={[Function]}
+                                                  style={
+                                                    {
+                                                      "color": "#141618",
+                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontSize": 12,
+                                                      "fontWeight": "400",
+                                                      "letterSpacing": 0,
+                                                      "lineHeight": 20,
+                                                      "textDecorationLine": "underline",
+                                                    }
+                                                  }
+                                                >
+                                                  Contact Support
+                                                </Text>
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -12436,23 +12632,51 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {
@@ -13898,23 +14122,51 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             </View>
                                           </View>
                                         </View>
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
+                                          accessibilityRole="none"
+                                          accessible={true}
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 12,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 20,
-                                              "marginHorizontal": 16,
-                                              "textAlign": "right",
+                                              "padding": 16,
+                                              "paddingVertical": 0,
                                             }
                                           }
                                         >
-                                          Test Provider
-                                        </Text>
+                                          <View
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "flexDirection": "row",
+                                              }
+                                            }
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "flex-end",
+                                                  "flex": 1,
+                                                }
+                                              }
+                                              testID="listitemcolumn"
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#141618",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 12,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 20,
+                                                  }
+                                                }
+                                              >
+                                                Test Provider
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        </View>
                                         <View
                                           style={
                                             {

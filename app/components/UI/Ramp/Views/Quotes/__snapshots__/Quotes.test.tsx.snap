@@ -103,6 +103,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             <View
               style={
                 {
+                  "alignItems": "flex-end",
                   "flex": 1,
                 }
               }
@@ -110,39 +111,31 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             >
               <View
                 style={
-                  {
-                    "alignItems": "flex-end",
-                  }
+                  [
+                    {
+                      "backgroundColor": "#f2f4f6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "width": "30%",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "backgroundColor": "#f2f4f6",
-                        "borderRadius": 30,
-                        "padding": 14,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "width": "30%",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+              />
             </View>
           </View>
         </View>
@@ -211,6 +204,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             <View
               style={
                 {
+                  "alignItems": "flex-end",
                   "flex": 1,
                 }
               }
@@ -218,41 +212,33 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             >
               <View
                 style={
-                  {
-                    "alignItems": "flex-end",
-                  }
+                  [
+                    {
+                      "backgroundColor": "#f2f4f6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    {
+                      "padding": 8,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "width": "30%",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "backgroundColor": "#f2f4f6",
-                        "borderRadius": 30,
-                        "padding": 14,
-                      },
-                      {
-                        "padding": 8,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "width": "30%",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+              />
             </View>
           </View>
         </View>
@@ -358,6 +344,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             <View
               style={
                 {
+                  "alignItems": "flex-end",
                   "flex": 1,
                 }
               }
@@ -365,39 +352,31 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             >
               <View
                 style={
-                  {
-                    "alignItems": "flex-end",
-                  }
+                  [
+                    {
+                      "backgroundColor": "#f2f4f6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "width": "30%",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "backgroundColor": "#f2f4f6",
-                        "borderRadius": 30,
-                        "padding": 14,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "width": "30%",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+              />
             </View>
           </View>
         </View>
@@ -503,6 +482,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             <View
               style={
                 {
+                  "alignItems": "flex-end",
                   "flex": 1,
                 }
               }
@@ -510,39 +490,31 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             >
               <View
                 style={
-                  {
-                    "alignItems": "flex-end",
-                  }
+                  [
+                    {
+                      "backgroundColor": "#f2f4f6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "width": "30%",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
                 }
-              >
-                <View
-                  style={
-                    [
-                      {
-                        "backgroundColor": "#f2f4f6",
-                        "borderRadius": 30,
-                        "padding": 14,
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      {
-                        "width": "30%",
-                      },
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                      undefined,
-                    ]
-                  }
-                />
-              </View>
+              />
             </View>
           </View>
         </View>

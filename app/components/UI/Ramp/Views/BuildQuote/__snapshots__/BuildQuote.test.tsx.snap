@@ -2764,6 +2764,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -2771,41 +2772,33 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "20%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "20%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -2970,6 +2963,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -2977,41 +2971,33 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "30%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "30%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -4408,6 +4394,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -4415,41 +4402,33 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "20%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "20%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -4614,6 +4593,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -4621,41 +4601,33 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "30%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "30%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -6052,6 +6024,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -6059,41 +6032,33 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "20%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "20%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -6258,6 +6223,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -6265,41 +6231,33 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "30%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "30%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -7696,6 +7654,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -7703,41 +7662,33 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "20%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "20%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
@@ -7902,6 +7853,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     <View
                                       style={
                                         {
+                                          "alignItems": "flex-end",
                                           "flex": 1,
                                         }
                                       }
@@ -7909,41 +7861,33 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     >
                                       <View
                                         style={
-                                          {
-                                            "alignItems": "flex-end",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 30,
+                                              "padding": 14,
+                                            },
+                                            {
+                                              "padding": 8,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "width": "30%",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
                                         }
-                                      >
-                                        <View
-                                          style={
-                                            [
-                                              {
-                                                "backgroundColor": "#f2f4f6",
-                                                "borderRadius": 30,
-                                                "padding": 14,
-                                              },
-                                              {
-                                                "padding": 8,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              {
-                                                "width": "30%",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
