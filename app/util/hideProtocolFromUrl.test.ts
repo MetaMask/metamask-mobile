@@ -42,4 +42,58 @@ describe('hideProtocolFromUrl', () => {
     const url = 'example.com';
     expect(hideProtocolFromUrl(url)).toBe(url);
   });
+
+  // New tests for additional coverage
+
+  it('should handle URLs with ports correctly', () => {
+    const url = 'http://example.com:8080';
+    const expected = 'example.com:8080';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
+
+  it('should handle URLs with credentials correctly', () => {
+    const url = 'https://user:password@example.com';
+    const expected = 'example.com';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
+
+  it('should handle URLs with paths without removing anything but the protocol', () => {
+    const url = 'https://example.com/path/to/resource';
+    const expected = 'example.com/path/to/resource';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
+
+  it('should handle URLs with unusual characters in the path or query', () => {
+    const url = 'https://example.com/path-with-unusual-characters/!@#$%^&*()';
+    const expected = 'example.com/path-with-unusual-characters/!@#$%^&*()';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
+
+  it('should return the original URL if it is malformed', () => {
+    const url = '://malformed-url.com';
+    expect(hideProtocolFromUrl(url)).toBe(url);
+  });
+
+  it('should return the URL as is if it contains a non-standard protocol', () => {
+    const url = 'ftp://example.com';
+    expect(hideProtocolFromUrl(url)).toBe('example.com');
+  });
+
+  it('should handle URLs with fragments only', () => {
+    const url = 'https://example.com#section';
+    const expected = 'example.com#section';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
+
+  it('should handle URLs with query parameters only', () => {
+    const url = 'https://example.com?query=value';
+    const expected = 'example.com?query=value';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
+
+  it('should handle URLs with both query parameters and fragments', () => {
+    const url = 'https://example.com/path?query=123#section';
+    const expected = 'example.com/path?query=123#section';
+    expect(hideProtocolFromUrl(url)).toBe(expected);
+  });
 });

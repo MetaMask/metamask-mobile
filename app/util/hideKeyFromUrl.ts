@@ -11,7 +11,7 @@ const hideKeyFromUrl = (url: string | undefined) => {
     const protocol = match[1];
     let restOfUrl = match[2];
 
-    // Special case: handle URLs like 'base.llamarpc.com'
+    // Special case: handle URLs like 'test.test.com'
     if (!restOfUrl.includes('/')) {
       return protocol + restOfUrl;
     }
