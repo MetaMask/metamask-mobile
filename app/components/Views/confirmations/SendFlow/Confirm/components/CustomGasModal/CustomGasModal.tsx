@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -53,8 +53,8 @@ const CustomGasModal = ({
     setIsViewAnimating(isAnimating);
   }, [isAnimating]);
 
-  const onGasAnimationStart = useCallback(() => setIsViewAnimating(true), []);
-  const onGasAnimationEnd = useCallback(() => setIsViewAnimating(false), []);
+  const onGasAnimationStart = () => setIsViewAnimating(true);
+  const onGasAnimationEnd = () => setIsViewAnimating(false);
 
   const getGasAnalyticsParams = () => ({
     active_currency: { value: selectedAsset.symbol, anonymous: true },
@@ -76,44 +76,32 @@ const CustomGasModal = ({
     from: transaction?.transaction?.from,
   });
 
-  const onSaveLegacyGasOption = useCallback(
-    (gasTxn, gasObj) => {
-      gasTxn.error = validateAmount({
-        transaction: updatedTransactionFrom,
-        total: gasTxn.totalHex,
-      });
-      setLegacyGasObj(gasObj);
-      setError(gasTxn?.error);
-      updateGasState({ gasTxn, gasObj, txnType: legacy });
-    },
-    [validateAmount, updatedTransactionFrom, legacy, updateGasState],
-  );
+  const onSaveLegacyGasOption = (gasTxn, gasObj) => {
+    gasTxn.error = validateAmount({
+      transaction: updatedTransactionFrom,
+      total: gasTxn.totalHex,
+    });
+    setLegacyGasObj(gasObj);
+    setError(gasTxn?.error);
+    updateGasState({ gasTxn, gasObj, txnType: legacy });
+  };
 
-  const onSaveEIP1559GasOption = useCallback(
-    (gasTxn, gasObj) => {
-      gasTxn.error = validateAmount({
-        transaction: updatedTransactionFrom,
-        total: gasTxn.totalMaxHex,
-      });
+  const onSaveEIP1559GasOption = (gasTxn, gasObj) => {
+    gasTxn.error = validateAmount({
+      transaction: updatedTransactionFrom,
+      total: gasTxn.totalMaxHex,
+    });
 
-      setEIP1559Txn(gasTxn);
-      setEIP1559GasObj(gasObj);
-      setError(gasTxn?.error);
-      updateGasState({
-        gasTxn,
-        gasObj,
-        gasSelect: selectedGas,
-        txnType: legacy,
-      });
-    },
-    [
-      validateAmount,
-      selectedGas,
-      updatedTransactionFrom,
-      legacy,
-      updateGasState,
-    ],
-  );
+    setEIP1559Txn(gasTxn);
+    setEIP1559GasObj(gasObj);
+    setError(gasTxn?.error);
+    updateGasState({
+      gasTxn,
+      gasObj,
+      gasSelect: selectedGas,
+      txnType: legacy,
+    });
+  };
 
   const legacyGasObject = {
     legacyGasLimit: legacyGasObj?.legacyGasLimit,

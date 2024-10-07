@@ -229,33 +229,32 @@ const EditGasFeeLegacy = ({
   const shouldIgnore = (option) =>
     ignoreOptions.find((item) => item === option);
 
-  const renderOptions = () =>
-    [
-      {
-        name: AppConstants.GAS_OPTIONS.LOW,
-        label: strings('edit_gas_fee_eip1559.low'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.MEDIUM,
-        label: strings('edit_gas_fee_eip1559.medium'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.HIGH,
-        label: strings('edit_gas_fee_eip1559.high'),
-      },
-    ]
-      .filter(({ name }) => !shouldIgnore(name))
-      .map(({ name, label, ...option }) => ({
-        name,
-        label: (selected, disabled) => (
-          <Text bold primary={selected && !disabled}>
-            {label}
-          </Text>
-        ),
-        topLabel: recommended?.name === name && recommended.render,
-        ...option,
-        ...extendOptions[name],
-      }));
+  const renderOptions = [
+    {
+      name: AppConstants.GAS_OPTIONS.LOW,
+      label: strings('edit_gas_fee_eip1559.low'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.MEDIUM,
+      label: strings('edit_gas_fee_eip1559.medium'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.HIGH,
+      label: strings('edit_gas_fee_eip1559.high'),
+    },
+  ]
+    .filter(({ name }) => !shouldIgnore(name))
+    .map(({ name, label, ...option }) => ({
+      name,
+      label: (selected, disabled) => (
+        <Text bold primary={selected && !disabled}>
+          {label}
+        </Text>
+      ),
+      topLabel: recommended?.name === name && recommended.render,
+      ...option,
+      ...extendOptions[name],
+    }));
 
   const renderWarning = () => {
     if (!warning) return null;

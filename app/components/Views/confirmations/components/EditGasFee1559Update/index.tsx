@@ -265,37 +265,36 @@ const EditGasFee1559Update = ({
   const shouldIgnore = (option) =>
     ignoreOptions?.find((item: string) => item === option);
 
-  const renderOptions = () =>
-    [
-      {
-        name: AppConstants.GAS_OPTIONS.LOW,
-        label: strings('edit_gas_fee_eip1559.low'),
+  const renderOptions = [
+    {
+      name: AppConstants.GAS_OPTIONS.LOW,
+      label: strings('edit_gas_fee_eip1559.low'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.MEDIUM,
+      label: strings('edit_gas_fee_eip1559.market'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.HIGH,
+      label: strings('edit_gas_fee_eip1559.aggressive'),
+    },
+  ]
+    .filter(({ name }) => !shouldIgnore(name))
+    .map(({ name, label, ...option }) => ({
+      name,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      label: function LabelComponent(selected: any, disabled: any) {
+        return (
+          <Text bold primary={selected && !disabled}>
+            {label}
+          </Text>
+        );
       },
-      {
-        name: AppConstants.GAS_OPTIONS.MEDIUM,
-        label: strings('edit_gas_fee_eip1559.market'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.HIGH,
-        label: strings('edit_gas_fee_eip1559.aggressive'),
-      },
-    ]
-      .filter(({ name }) => !shouldIgnore(name))
-      .map(({ name, label, ...option }) => ({
-        name,
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        label: function LabelComponent(selected: any, disabled: any) {
-          return (
-            <Text bold primary={selected && !disabled}>
-              {label}
-            </Text>
-          );
-        },
-        topLabel: recommended?.name === name && recommended.render,
-        ...option,
-        ...extendOptions[name],
-      }));
+      topLabel: recommended?.name === name && recommended.render,
+      ...option,
+      ...extendOptions[name],
+    }));
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;

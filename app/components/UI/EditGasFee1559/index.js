@@ -329,33 +329,32 @@ const EditGasFee1559 = ({
   const shouldIgnore = (option) =>
     ignoreOptions.find((item) => item === option);
 
-  const renderOptions = () =>
-    [
-      {
-        name: AppConstants.GAS_OPTIONS.LOW,
-        label: strings('edit_gas_fee_eip1559.low'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.MEDIUM,
-        label: strings('edit_gas_fee_eip1559.market'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.HIGH,
-        label: strings('edit_gas_fee_eip1559.aggressive'),
-      },
-    ]
-      .filter(({ name }) => !shouldIgnore(name))
-      .map(({ name, label, ...option }) => ({
-        name,
-        label: (selected, disabled) => (
-          <Text bold primary={selected && !disabled}>
-            {label}
-          </Text>
-        ),
-        topLabel: recommended?.name === name && recommended.render,
-        ...option,
-        ...extendOptions[name],
-      }));
+  const renderOptions = [
+    {
+      name: AppConstants.GAS_OPTIONS.LOW,
+      label: strings('edit_gas_fee_eip1559.low'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.MEDIUM,
+      label: strings('edit_gas_fee_eip1559.market'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.HIGH,
+      label: strings('edit_gas_fee_eip1559.aggressive'),
+    },
+  ]
+    .filter(({ name }) => !shouldIgnore(name))
+    .map(({ name, label, ...option }) => ({
+      name,
+      label: (selected, disabled) => (
+        <Text bold primary={selected && !disabled}>
+          {label}
+        </Text>
+      ),
+      topLabel: recommended?.name === name && recommended.render,
+      ...option,
+      ...extendOptions[name],
+    }));
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -393,7 +392,7 @@ const EditGasFee1559 = ({
           <HorizontalSelector
             selected={selectedOption}
             onPress={selectOption}
-            options={renderOptions}
+            options={renderOptions()}
           />
         </View>
         <View style={styles.advancedOptionsContainer}>
