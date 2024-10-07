@@ -15,11 +15,6 @@
     "label": "https://ipfs.infura.io/ipfs/"
   },
   {
-    "value": "https://cloudflare-ipfs.com/ipfs/",
-    "key": 17,
-    "label": "https://cloudflare-ipfs.com/ipfs/"
-  },
-  {
     "value": "https://gateway.pinata.cloud/ipfs/",
     "key": 24,
     "label": "https://gateway.pinata.cloud/ipfs/"
