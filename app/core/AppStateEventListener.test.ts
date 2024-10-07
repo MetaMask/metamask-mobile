@@ -27,8 +27,6 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => jest.fn());
-
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -70,11 +68,15 @@ describe('AppStateEventListener', () => {
     expect(Logger.error).toHaveBeenCalledWith(new Error('store is already initialized'));
   });
 
-  it('tracks event when app becomes active, data collection is enabled, and deeplink with attribution is present', () => {
-    (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
-    });
-    (processAttribution as jest.Mock).mockReturnValue({ attributionId: 'test123', utm: 'test_utm' });
+  it('tracks event when app becomes active and attribution data is available', () => {
+    const mockAttribution = {
+      attributionId: 'test123',
+      utm: 'test_utm',
+      utm_source: 'source',
+      utm_medium: 'medium',
+      utm_campaign: 'campaign',
+    };
+    (processAttribution as jest.Mock).mockReturnValue(mockAttribution);
 
     appStateManager.setCurrentDeeplink('metamask://connect?attributionId=test123');
     mockAppStateListener('active');
@@ -82,41 +84,34 @@ describe('AppStateEventListener', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
-      { attributionId: 'test123', utm: 'test_utm' },
+      { attributionId: 'test123', utm_source: 'source', utm_medium: 'medium', utm_campaign: 'campaign' },
       true
     );
   });
 
-  it('does not track event when data collection is disabled', () => {
-    (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: false },
-    });
-    (processAttribution as jest.Mock).mockReturnValue({ attributionId: undefined, utm: undefined });
+  it('does not track event when processAttribution returns undefined', () => {
+    (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents.APP_OPENED,
-      { attributionId: undefined, utm: undefined },
-      true
-    );
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('does not track event when there is no deeplink', () => {
-    (store.getState as jest.Mock).mockReturnValue({
-      security: { dataCollectionForMarketing: true },
+  it('handles errors gracefully', () => {
+    const testError = new Error('Test error');
+    (processAttribution as jest.Mock).mockImplementation(() => {
+      throw testError;
     });
-    (processAttribution as jest.Mock).mockReturnValue({ attributionId: undefined, utm: undefined });
 
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents.APP_OPENED,
-      { attributionId: undefined, utm: undefined },
-      true
+    expect(Logger.error).toHaveBeenCalledWith(
+      testError,
+      'AppStateManager: Error processing app state change'
     );
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('cleans up the AppState listener on cleanup', () => {
