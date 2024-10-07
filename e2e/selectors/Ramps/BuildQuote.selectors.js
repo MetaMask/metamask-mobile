@@ -8,5 +8,6 @@ export const BuildQuoteSelectors = {
   MIN_LIMIT_ERROR: enContent.fiat_on_ramp_aggregator.minimum + ' $5',
   MAX_LIMIT_ERROR: enContent.fiat_on_ramp_aggregator.maximum + ' $29,850',
   CURRENCY_SELECTOR: 'currency-selector',
+  TOKEN_SELECTOR: 'token-selector',
   AMOUNT_INPUT: 'amount-input',
 };

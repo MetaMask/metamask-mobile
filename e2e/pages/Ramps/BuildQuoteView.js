@@ -25,6 +25,10 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.CURRENCY_SELECTOR);
   }
 
+  get tokenSelector() {
+    return Matchers.getElementByID(BuildQuoteSelectors.TOKEN_SELECTOR);
+  }
+
   get minLimitErrorMessage() {
     return Matchers.getElementByText(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
@@ -56,6 +60,14 @@ class BuildQuoteView {
       await Gestures.waitAndTap(numberButton);
     }
     await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON))
+  }
+
+  async openTokenSelector() {
+    await Gestures.waitAndTap(this.tokenSelector);
+  }
+
+  async selectToken(token) {
+    await Gestures.waitAndTap(Matchers.getElementByText(token))
   }
 }
 
