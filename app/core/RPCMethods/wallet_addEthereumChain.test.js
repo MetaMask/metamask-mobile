@@ -26,6 +26,9 @@ jest.mock('../Engine', () => ({
     ApprovalController: {
       clear: jest.fn(),
     },
+    PermissionController: {
+      hasPermission: jest.fn().mockReturnValue(true),
+    },
   },
 }));
 

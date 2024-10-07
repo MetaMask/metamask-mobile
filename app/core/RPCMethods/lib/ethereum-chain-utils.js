@@ -35,7 +35,7 @@ export function validateChainId(chainId) {
 }
 
 export function validateAddEthereumChainParams(params) {
-  if (!params || typeof params !== 'object') {
+  if (!params || !params?.[0] || typeof params[0] !== 'object') {
     throw rpcErrors.invalidParams({
       message: `Expected single, object parameter. Received:\n${JSON.stringify(
         params,
@@ -43,13 +43,15 @@ export function validateAddEthereumChainParams(params) {
     });
   }
 
-  const {
-    chainId,
-    chainName: rawChainName = null,
-    blockExplorerUrls = null,
-    nativeCurrency = null,
-    rpcUrls,
-  } = params;
+  const [
+    {
+      chainId,
+      chainName: rawChainName = null,
+      blockExplorerUrls = null,
+      nativeCurrency = null,
+      rpcUrls,
+    },
+  ] = params;
 
   const allowedKeys = {
     chainId: true,
@@ -60,18 +62,21 @@ export function validateAddEthereumChainParams(params) {
     iconUrls: true,
   };
 
-  const extraKeys = Object.keys(params).filter((key) => !allowedKeys[key]);
+  const extraKeys = Object.keys(params[0]).filter((key) => !allowedKeys[key]);
   if (extraKeys.length) {
     throw rpcErrors.invalidParams(
       `Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`,
     );
   }
-
   const _chainId = validateChainId(chainId);
+
   const firstValidRPCUrl = validateRpcUrls(rpcUrls);
+
   const firstValidBlockExplorerUrl =
     validateBlockExplorerUrls(blockExplorerUrls);
+
   const chainName = validateChainName(rawChainName);
+
   const ticker = validateNativeCurrency(nativeCurrency);
 
   return {
@@ -160,18 +165,19 @@ function validateNativeCurrency(nativeCurrency) {
 }
 
 export async function validateRpcEndpoint(rpcUrl, chainId) {
+  let endpointChainId;
   try {
-    const endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
-    if (chainId !== endpointChainId) {
-      throw rpcErrors.invalidParams({
-        message: `Chain ID returned by RPC URL ${rpcUrl} does not match ${chainId}`,
-        data: { chainId: endpointChainId },
-      });
-    }
+    endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
   } catch (err) {
     throw rpcErrors.internal({
       message: `Request for method 'eth_chainId on ${rpcUrl} failed`,
       data: { networkErr: err },
+    });
+  }
+  if (chainId !== endpointChainId) {
+    throw rpcErrors.invalidParams({
+      message: `Chain ID returned by RPC URL ${rpcUrl} does not match ${chainId}`,
+      data: { chainId: endpointChainId },
     });
   }
 }
@@ -275,7 +281,6 @@ export async function switchToNetwork({
     }
   } else {
     const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
-
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: requestModalType },
