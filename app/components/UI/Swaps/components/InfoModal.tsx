@@ -52,7 +52,7 @@ const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   });
 
 interface InfoModalProps {
-  isVisible: boolean;
+  isVisible: boolean | undefined;
   title?: React.ReactNode;
   body?: React.ReactNode;
   toggleModal: () => void;
