@@ -207,6 +207,7 @@ describe('Network Selector', () => {
     expect(testNetworksSwitch.props.value).toBeTruthy();
     expect(testNetworksSwitch.props.disabled).toBeTruthy();
   });
+
   it('changes to non infura network when another network cell is pressed', async () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
@@ -238,6 +239,7 @@ describe('Network Selector', () => {
 
     expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
   });
+
   it('renders correctly with no network configurations', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const stateWithNoNetworkConfigurations = {
@@ -286,5 +288,71 @@ describe('Network Selector', () => {
       const rpcOption = getByText('polygon-mainnet.infura.io/v3');
       fireEvent.press(rpcOption);
     });
+  });
+
+  // Add this test for selecting between two Polygon networks
+  it('should select only one Polygon network when two networks with different RPC URLs exist', async () => {
+    jest.clearAllMocks(); // Clears mock data, ensuring that no mock has been called
+    jest.resetAllMocks(); // Resets mock implementation and mock instances
+
+    const customState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            networkConfigurations: {
+              polygonNetwork1: {
+                chainId: '0x89', // Polygon Mainnet
+                nickname: 'Polygon Mainnet 1',
+                rpcUrl: 'https://polygon-mainnet-1.rpc',
+                ticker: 'POL',
+              },
+              polygonNetwork2: {
+                chainId: '0x89', // Polygon Mainnet (same chainId, different RPC URL)
+                nickname: 'Polygon Mainnet 2',
+                rpcUrl: 'https://polygon-mainnet-2.rpc',
+                ticker: 'POL',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0x89', // Polygon Mainnet
+        nickname: 'Polygon Mainnet 1',
+        rpcUrl: 'https://polygon-mainnet-1.rpc',
+        ticker: 'POL',
+        type: 'custom',
+      },
+    });
+
+    const { getByText, queryByTestId } = renderComponent(customState);
+
+    // Ensure both networks are rendered
+    const polygonNetwork1 = getByText('Polygon Mainnet 1');
+    const polygonNetwork2 = getByText('Polygon Mainnet 2');
+    expect(polygonNetwork1).toBeTruthy();
+    expect(polygonNetwork2).toBeTruthy();
+
+    // Select the first network
+    fireEvent.press(polygonNetwork1);
+
+    // Wait for the selection to be applied
+    await waitFor(() => {
+      const polygonNetwork1Selected = queryByTestId(
+        'Polygon Mainnet 1-selected',
+      );
+      expect(polygonNetwork1Selected).toBeTruthy();
+    });
+
+    // Assert that the second network is NOT selected
+    const polygonNetwork2Selected = queryByTestId('Polygon Mainnet 2-selected');
+    expect(polygonNetwork2Selected).toBeNull(); // Not selected
   });
 });

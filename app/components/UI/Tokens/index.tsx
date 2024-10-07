@@ -20,6 +20,7 @@ import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
+import { RootState } from '../../../reducers';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -55,9 +56,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const hideZeroBalanceTokens = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.hideZeroBalanceTokens,
+    (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -97,10 +96,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const removeToken = async () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { TokensController }: any = Engine.context;
-    const tokenAddress = tokenToRemove?.address;
+    const { TokensController } = Engine.context;
+    const tokenAddress = tokenToRemove?.address || '';
     const symbol = tokenToRemove?.symbol;
     try {
       await TokensController.ignoreTokens([tokenAddress]);

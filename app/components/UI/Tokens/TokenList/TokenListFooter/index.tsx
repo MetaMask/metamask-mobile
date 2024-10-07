@@ -18,7 +18,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -40,9 +39,7 @@ export const TokenListFooter = ({
   goToAddToken,
   showDetectedTokens,
 }: TokenListFooterProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();

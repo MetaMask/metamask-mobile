@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useMetrics } from '../../../../hooks/useMetrics';
@@ -39,9 +38,7 @@ export const PortfolioBalance = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const balance = Engine.getTotalFiatAccountBalance();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { trackEvent, isEnabled } = useMetrics();
 
   const { type } = useSelector(selectProviderConfig);
@@ -51,9 +48,7 @@ export const PortfolioBalance = () => {
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,

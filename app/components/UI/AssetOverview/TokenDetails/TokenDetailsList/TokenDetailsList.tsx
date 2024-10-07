@@ -8,7 +8,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Title from '../../../../Base/Title';
 import styleSheet from '../TokenDetails.styles';
 import Icon, {
   IconColor,
@@ -49,7 +48,9 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
 
   return (
     <View>
-      <Title style={styles.title}>{strings('token.token_details')}</Title>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        {strings('token.token_details')}
+      </Text>
       <View style={styles.listWrapper}>
         {tokenDetails.contractAddress && (
           <TokenDetailsListItem
