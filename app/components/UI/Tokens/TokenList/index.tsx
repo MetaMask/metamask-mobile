@@ -77,7 +77,6 @@ export const TokenList = ({
 
   return tokens?.length ? (
     <FlatList
-      ListHeaderComponent={<PortfolioBalance />}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
