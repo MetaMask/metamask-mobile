@@ -63,6 +63,54 @@ interface InfoModalProps {
   testID?: string;
 }
 
+interface CloseButtonProps {
+  onPress: () => void;
+  style: {
+    closeIcon: object;
+  };
+}
+
+const CloseButton: React.FC<CloseButtonProps> = ({ onPress, style }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+  >
+    <IonicIcon name="ios-close" style={style.closeIcon} size={30} />
+  </TouchableOpacity>
+);
+
+interface InfoViewProps {
+  message?: string;
+  urlText?: string;
+  url?: () => void;
+  onClose: () => void;
+  style: {
+    infoContainer: object;
+    messageLimit: object;
+    closeIcon: object;
+  };
+}
+
+const InfoView: React.FC<InfoViewProps> = ({ message, urlText, url, onClose, style }) => {
+  if (!message) {
+    return <CloseButton onPress={onClose} style={style} />;
+  }
+
+  return (
+    <View style={style.infoContainer}>
+      <Text style={style.messageLimit}>
+        <Text>{message} </Text>
+        {urlText && (
+          <Text link onPress={url}>
+            {urlText}
+          </Text>
+        )}
+      </Text>
+      <CloseButton onPress={onClose} style={style} />
+    </View>
+  );
+};
+
 function InfoModal({
   title,
   body,
@@ -76,35 +124,6 @@ function InfoModal({
 }: InfoModalProps) {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
-
-  const CloseButton = () => (
-    <TouchableOpacity
-      onPress={toggleModal}
-      hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-    >
-      <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
-    </TouchableOpacity>
-  );
-
-  const InfoView = () => {
-    if (!message) {
-      return <CloseButton />;
-    }
-
-    return (
-      <View style={styles.infoContainer}>
-        <Text style={styles.messageLimit}>
-          <Text>{message} </Text>
-          {urlText && (
-            <Text link onPress={url}>
-              {urlText}
-            </Text>
-          )}
-        </Text>
-        <CloseButton />
-      </View>
-    );
-  };
 
   return (
     <Modal
@@ -122,7 +141,13 @@ function InfoModal({
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
           {title && <Title>{title}</Title>}
-          <InfoView />
+          <InfoView
+            message={message}
+            urlText={urlText}
+            url={url}
+            onClose={toggleModal}
+            style={styles}
+          />
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
