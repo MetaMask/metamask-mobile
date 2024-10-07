@@ -29,6 +29,10 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.TOKEN_SELECTOR);
   }
 
+  get regionSelector() {
+    return Matchers.getElementByID(BuildQuoteSelectors.REGION_SELECTOR);
+  }
+
   get minLimitErrorMessage() {
     return Matchers.getElementByText(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
@@ -51,6 +55,14 @@ class BuildQuoteView {
 
   async selectCurrency(currency) {
     await Gestures.waitAndTap(Matchers.getElementByText(currency))
+  }
+
+  async openRegionSelector() {
+    await Gestures.waitAndTap(this.regionSelector);
+  }
+
+  async selectRegion(region) {
+    await Gestures.waitAndTap(Matchers.getElementByText(region))
   }
 
   async enterFiatAmount(amount) {

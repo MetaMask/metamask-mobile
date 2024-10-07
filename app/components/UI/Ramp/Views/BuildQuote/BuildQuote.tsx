@@ -719,6 +719,7 @@ const BuildQuote = () => {
                 accessibilityRole="button"
                 accessible
                 onPress={handleChangeRegion}
+                testID="region-selector"
               >
                 <Text reset style={styles.flagText}>
                   {selectedRegion?.emoji}
