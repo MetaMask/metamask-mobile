@@ -233,7 +233,7 @@ function validateCaveatAccounts(
 ): void {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
-      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Etherapp/core/Vault.eum addresses.`,
+      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
     );
   }
 
@@ -319,7 +319,6 @@ export const unrestrictedMethods: readonly string[] = Object.freeze([
   'eth_coinbase',
   'parity_defaultAccount',
   'eth_sendTransaction',
-  'eth_sign',
   'personal_sign',
   'personal_ecRecover',
   'parity_checkRequest',
