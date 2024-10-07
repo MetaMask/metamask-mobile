@@ -341,7 +341,7 @@ describe('Migration #54', () => {
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('should update hasBalanceError to false if balanceError is undefined tokensController state', async () => {
+  it('should not change if balanceError is undefined in tokensController state', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -432,7 +432,6 @@ describe('Migration #54', () => {
                   'UniswapLabs',
                   'Coinmarketcap',
                 ],
-                hasBalanceError: false,
                 decimals: 18,
                 image:
                   'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
@@ -459,7 +458,6 @@ describe('Migration #54', () => {
                   'UniswapLabs',
                   'Coinmarketcap',
                 ],
-                hasBalanceError: false,
                 decimals: 6,
                 image:
                   'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',

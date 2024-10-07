@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
-import { isObject } from '@metamask/utils';
+import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { Token, TokensControllerState } from '@metamask/assets-controllers';
+import { TokensControllerState } from '@metamask/assets-controllers';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 54)) {
@@ -19,20 +19,22 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-  type TokenToMigrate = Token & { balanceError?: boolean };
-  const tokens = tokensControllerState.tokens;
 
-  const migratedTokens: Token[] = [];
-  tokens.forEach((token: TokenToMigrate) => {
-    if (token?.balanceError === null || token?.balanceError === undefined) {
-      token.hasBalanceError = false;
-    } else {
-      token.hasBalanceError = true;
-    }
-    delete token?.balanceError;
-    migratedTokens.push(token);
-  });
-  tokensControllerState.tokens = migratedTokens;
+  if ('tokens' in tokensControllerState) {
+    const migratedTokens = tokensControllerState.tokens.map((token) => {
+      if (!hasProperty(token, 'balanceError')) {
+        return token;
+      }
+      if (token?.balanceError === null || token?.balanceError === undefined) {
+        token.hasBalanceError = false;
+      } else {
+        token.hasBalanceError = true;
+      }
+      delete token?.balanceError;
+      return token;
+    });
+    tokensControllerState.tokens = migratedTokens;
+  }
 
   // Return the modified state
   return state;
