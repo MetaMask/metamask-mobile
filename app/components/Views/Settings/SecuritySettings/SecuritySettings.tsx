@@ -667,7 +667,7 @@ const Settings: React.FC = () => {
 
           return (
             <Cell
-              key={chainId}
+              key={`${nickname}-${chainId}`}
               variant={CellVariant.Display}
               title={name}
               secondaryText={
