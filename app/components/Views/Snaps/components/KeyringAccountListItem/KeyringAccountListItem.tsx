@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import React from 'react';
+import React, { useCallback } from 'react';
 import { InternalAccount } from '@metamask/keyring-api';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import ButtonIcon, {
@@ -17,7 +17,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-import { KEYRING_ACCOUNT_LIST_ITEM, KEYRING_ACCOUNT_LIST_ITEM_BUTTON } from './KeyringAccountListItem.constants';
+import {
+  KEYRING_ACCOUNT_LIST_ITEM,
+  KEYRING_ACCOUNT_LIST_ITEM_BUTTON,
+} from './KeyringAccountListItem.constants';
 interface KeyringAccountListItemProps {
   account: InternalAccount;
   snapUrl: string;
@@ -28,6 +31,10 @@ const KeyringAccountListItem = ({
   snapUrl,
 }: KeyringAccountListItemProps) => {
   const { styles } = useStyles(stylesheet, {});
+
+  const handlePress = useCallback(() => {
+    Linking.openURL(snapUrl);
+  }, [snapUrl]);
 
   return (
     <View testID={KEYRING_ACCOUNT_LIST_ITEM} style={styles.container}>
@@ -54,13 +61,13 @@ const KeyringAccountListItem = ({
             iconName={IconName.Export}
             iconColor={IconColor.Primary}
             size={ButtonIconSizes.Lg}
-            onPress={() => Linking.openURL(snapUrl)}
+            onPress={handlePress}
           />
         </View>
       </View>
     </View>
   );
-}
+};
 
 export default React.memo(KeyringAccountListItem);
 ///: END:ONLY_INCLUDE_IF
