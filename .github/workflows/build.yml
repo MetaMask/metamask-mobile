@@ -8,7 +8,12 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform: [android, ios]
 
     steps:
     - name: Checkout repository
@@ -23,13 +28,26 @@ jobs:
       run: npm install -g yarn
 
     - name: Install dependencies
-      run: yarn install  # 这一步替代手动运行的 `yarn install`
+      run: yarn install
 
-    - name: Build the project
-      run: yarn build  # 这一步替代手动运行的 `yarn build`
+    - name: Build for ${{ matrix.platform }}
+      run: |
+        if [ "${{ matrix.platform }}" == "android" ]; then
+          cd android && ./gradlew assembleRelease
+        elif [ "${{ matrix.platform }}" == "ios" ]; then
+          cd ios && pod install && cd .. && yarn ios
+        fi
 
-    - name: Upload build artifacts
+    - name: Upload Android APK
+      if: matrix.platform == 'android'
       uses: actions/upload-artifact@v2
       with:
-        name: metamask-mobile-build
-        path: ./build/
+        name: android-apk
+        path: android/app/build/outputs/apk/release/app-release.apk
+
+    - name: Upload iOS Build
+      if: matrix.platform == 'ios'
+      uses: actions/upload-artifact@v2
+      with:
+        name: ios-build
+        path: ios/build/
