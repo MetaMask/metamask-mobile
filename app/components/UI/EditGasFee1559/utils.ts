@@ -1,6 +1,4 @@
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
-import { trackEvent } from '../Ramp/hooks/useAnalytics';
 
 export const getAnalyticsParams = ({
   analyticsParams,
