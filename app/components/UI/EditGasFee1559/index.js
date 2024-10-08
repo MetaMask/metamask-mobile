@@ -4,7 +4,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
@@ -18,7 +17,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
-import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
@@ -37,7 +35,7 @@ import {
 } from '../../../util/gasUtils';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getAnalyticsParams } from './utils';
-import createStyles from '../../UI/EditGasFee1559/styles';
+import { editGasFee1559Styles } from './styles';
 
 /**
  * The EditGasFee1559 component will be deprecated in favor of EditGasFee1559Update as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFee1559Update will be renamed EditGasFee1559 and this component will be removed. The EditGasFee1559Update is currently being used in the Update Transaction(Speed Up/Cancel) flow.
@@ -95,7 +93,7 @@ const EditGasFee1559 = ({
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
-  const styles = createStyles(colors);
+  const styles = editGasFee1559Styles(colors);
 
   const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
