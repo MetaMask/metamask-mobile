@@ -76,15 +76,48 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await WalletActionsModal.tapBuyButton();
     await BuildQuoteView.enterFiatAmount('55555');
     await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
+    await BuildQuoteView.tapCancelButton();
   });
 
-  it('should select a new currency and check the quotes', async () => {
-    await BuildQuoteView.openCurrencySelector()
-    await BuildQuoteView.selectCurrency('Euro')
+  it('should select a new region and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openRegionSelector()
+    await BuildQuoteView.selectRegion('France')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.quotes);
     await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
     await Assertions.checkIfTextIsNotDisplayed(/^≈ $.*USD$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a new token and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openTokenSelector()
+    await BuildQuoteView.selectToken('Uniswap')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfTextIsDisplayed(/.*UNI$/);
+    await Assertions.checkIfTextIsNotDisplayed(/.*ETH$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a new currency and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openCurrencySelector()
+    await BuildQuoteView.selectCurrency('USD')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfTextIsDisplayed(/^≈ \$.*USD$/);
+    await Assertions.checkIfTextIsNotDisplayed(/^≈ €.*EUR$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
   });
 });

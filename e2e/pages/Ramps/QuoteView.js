@@ -1,4 +1,5 @@
 import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
 import { QuoteSelectors } from '../../selectors/Ramps/Quote.selectors';
 
 class QuoteView {
@@ -12,6 +13,10 @@ class QuoteView {
 
   get quotes() {
     return Matchers.getElementByID(QuoteSelectors.QUOTES);
+  }
+
+  async dismiss() {
+    await TestHelpers.swipeByText('Select a Quote', 'down', 'fast', 0.5);
   }
 }
 
