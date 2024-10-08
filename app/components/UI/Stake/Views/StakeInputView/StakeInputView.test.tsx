@@ -55,7 +55,7 @@ jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
     balance: '1.5',
-    balanceBN: mockBalanceBN,
+    balanceWei: mockBalanceBN,
     balanceFiatNumber: '3000',
   }),
 }));
