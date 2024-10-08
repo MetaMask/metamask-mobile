@@ -154,7 +154,10 @@ const wallet_addEthereumChain = async ({
       ...analytics,
     });
 
-    const network = [networkConfigurationId, requestData];
+    const network = {
+      networkConfigurationId,
+      networkConfiguration: requestData,
+    };
 
     const analyticsParams = await switchToNetwork({
       network,

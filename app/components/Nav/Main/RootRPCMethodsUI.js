@@ -128,6 +128,7 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
 };
 
 const RootRPCMethodsUI = (props) => {
+  console.log('ALEX LOGGING: RootRPCMethodsUI', props);
   const { trackEvent } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
@@ -470,6 +471,8 @@ const RootRPCMethodsUI = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  console.log('ALEX LOGGING: transactionModalType', transactionModalType);
 
   return (
     <React.Fragment>

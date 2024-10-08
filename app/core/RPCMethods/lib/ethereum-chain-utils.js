@@ -6,6 +6,7 @@ import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
   getDefaultNetworkByChainId,
+  isChainPermissionsFeatureEnabled,
 } from '../../../util/networks';
 import {
   CaveatFactories,
@@ -188,7 +189,12 @@ export function findExistingNetwork(chainId, networkConfigurations) {
     ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
   );
 
-  return existingEntry || existingNetworkDefault;
+  return (
+    existingEntry || [
+      existingNetworkDefault?.networkType,
+      existingNetworkDefault,
+    ]
+  );
 }
 
 export async function switchToNetwork({
@@ -220,8 +226,7 @@ export async function switchToNetwork({
 
     return undefined;
   };
-
-  const [networkConfigurationId, networkConfiguration] = network;
+  const { networkConfigurationId, networkConfiguration } = network;
 
   const requestData = {
     rpcUrl: networkConfiguration.rpcUrl,
@@ -232,15 +237,19 @@ export async function switchToNetwork({
       networkConfiguration.shortName,
     ticker: networkConfiguration.ticker || 'ETH',
   };
-
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),
     source: 'Custom Network API',
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-  const chainPermissionsFeatureEnabled = { ...process.env }
-    ?.MM_CHAIN_PERMISSIONS;
+
+  // for some reason this extra step is necessary in test environment
+  const chainPermissionsFeatureEnabled =
+    { ...process.env }?.NODE_ENV === 'test'
+      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === '1'
+      : isChainPermissionsFeatureEnabled;
+
   if (chainPermissionsFeatureEnabled) {
     const { value: permissionedChainIds } =
       getCaveat({
@@ -265,21 +274,27 @@ export async function switchToNetwork({
           },
         });
       } else {
-        await PermissionController.requestPermissionsIncremental({
-          subject: { origin },
-          requestedPermissions: {
-            [PermissionKeys.permittedChains]: {
-              caveats: [
-                CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
-                  chainId,
-                ]),
-              ],
+        console.log('ALEX LOGGING: requestPermissionsIncremental');
+        try {
+          await PermissionController.requestPermissionsIncremental(
+            { origin },
+            {
+              [PermissionKeys.permittedChains]: {
+                caveats: [
+                  CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
+                    chainId,
+                  ]),
+                ],
+              },
             },
-          },
-        });
+          );
+        } catch (e) {
+          console.log('ALEX LOGGING: requestPermissionsIncremental error', e);
+        }
       }
     }
   } else {
+    console.log('ALEX LOGGING: requestUserApproval');
     const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',

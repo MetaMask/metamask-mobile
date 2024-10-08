@@ -23,7 +23,7 @@ const wallet_switchEthereumChain = async ({
   } = Engine.context;
   const params = req.params?.[0];
   const { origin } = req;
-
+  console.log('params', params);
   if (!params || typeof params !== 'object') {
     throw rpcErrors.invalidParams({
       message: `Expected single, object parameter. Received:\n${JSON.stringify(
@@ -31,9 +31,7 @@ const wallet_switchEthereumChain = async ({
       )}`,
     });
   }
-
   const { chainId } = params;
-
   const allowedKeys = {
     chainId: true,
   };
@@ -44,7 +42,6 @@ const wallet_switchEthereumChain = async ({
       `Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`,
     );
   }
-
   const _chainId = validateChainId(chainId);
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
@@ -52,7 +49,6 @@ const wallet_switchEthereumChain = async ({
   if (existingNetwork) {
     const currentDomainSelectedNetworkClientId =
       SelectedNetworkController.getNetworkClientIdForDomain(origin);
-
     const {
       configuration: { chainId: currentDomainSelectedChainId },
     } = NetworkController.getNetworkClientById(
@@ -63,9 +59,11 @@ const wallet_switchEthereumChain = async ({
       res.result = null;
       return;
     }
-
     const analyticsParams = await switchToNetwork({
-      network: existingNetwork,
+      network: {
+        networkConfigurationId: existingNetwork?.[0],
+        networkConfiguration: existingNetwork?.[1],
+      },
       chainId: _chainId,
       controllers: {
         CurrencyRateController,

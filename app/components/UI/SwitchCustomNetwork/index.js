@@ -205,6 +205,8 @@ const SwitchCustomNetwork = ({
     />
   );
 
+  console.log('ALEX LOGGING: isMultichainVersion1Enabled', isMultichainVersion1Enabled);
+
   return isMultichainVersion1Enabled
     ? renderPermissionSummary()
     : renderNetworkSwitchingNotice();
