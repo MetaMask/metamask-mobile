@@ -4,9 +4,8 @@ import { StyleSheet } from 'react-native';
 export const editGasFee1559Styles = (colors: {
   background: { default: string; muted: string };
   text: { default: string; muted: string };
-  border: { muted: string };
-  info: { default: string };
   error: { default: string };
+  warning: { default: string };
 }) =>
   StyleSheet.create({
     root: {
@@ -92,6 +91,7 @@ export const editGasFee1559Styles = (colors: {
       lineHeight: 20,
       paddingLeft: 4,
       flex: 1,
+      textAlign: 'center',
     },
     warningText: {
       lineHeight: 20,
@@ -113,5 +113,8 @@ export const editGasFee1559Styles = (colors: {
     redInfo: {
       marginLeft: 2,
       color: colors.error.default,
+    },
+    headerTitleSide: {
+      flex: 1,
     },
   });
