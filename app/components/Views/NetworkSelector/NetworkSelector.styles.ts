@@ -63,12 +63,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       backgroundColor: colors.background.default,
     },
-    containerColumn: {
-      flexDirection: 'column',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      backgroundColor: colors.background.default,
-    },
     item: {
       paddingLeft: 8,
     },
