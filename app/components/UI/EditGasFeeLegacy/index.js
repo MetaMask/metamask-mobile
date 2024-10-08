@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
-import React, { useCallback, useState, useMemo } from 'react';
+/* eslint-disable react/no-unstable-nested-components */
+import React, { useState } from 'react';
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
@@ -19,8 +19,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
-import Device from '../../../util/device';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -33,83 +32,8 @@ import {
   GAS_PRICE_MIN,
 } from '../../../util/gasUtils';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    root: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      minHeight: 200,
-      maxHeight: '95%',
-      paddingTop: 24,
-      paddingBottom: Device.isIphoneX() ? 32 : 24,
-    },
-    wrapper: {
-      paddingHorizontal: 24,
-    },
-    customGasHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      width: '100%',
-      paddingBottom: 20,
-    },
-    headerContainer: {
-      alignItems: 'center',
-      marginBottom: 22,
-    },
-    headerText: {
-      fontSize: 48,
-    },
-    headerTitle: {
-      flexDirection: 'row',
-    },
-    headerTitleSide: {
-      flex: 1,
-    },
-    labelTextContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    hitSlop: {
-      top: 10,
-      left: 10,
-      bottom: 10,
-      right: 10,
-    },
-    labelInfo: {
-      color: colors.text.muted,
-    },
-    advancedOptionsContainer: {
-      marginTop: 25,
-      marginBottom: 30,
-    },
-    advancedOptionsInputsContainer: {
-      marginTop: 14,
-    },
-    rangeInputContainer: {
-      marginBottom: 20,
-    },
-    advancedOptionsButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    advancedOptionsIcon: {
-      paddingTop: 1,
-      marginLeft: 5,
-    },
-    warningTextContainer: {
-      paddingLeft: 4,
-      lineHeight: 20,
-      textAlign: 'center',
-    },
-    warningText: {
-      lineHeight: 20,
-      color: colors.text.default,
-    },
-  });
+import { getAnalyticsParams } from '../EditGasFee1559/utils';
+import { createStyles as editGasFee1559Styles } from '../EditGasFee1559/styles';
 
 /**
  * The EditGasFeeLegacy component will be deprecated in favor of EditGasFeeLegacyUpdate as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFeeLegacyUpdate will be renamed EditGasFeeLegacy and this component will be removed. The EditGasFeeLegacyUpdate is currently being used in the Update Transaction(Speed Up/Cancel) flow.
@@ -149,137 +73,112 @@ const EditGasFeeLegacy = ({
   const [gasPriceError, setGasPriceError] = useState();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
-  const styles = createStyles(colors);
+  const styles = editGasFee1559Styles(colors);
 
-  const getAnalyticsParams = useCallback(() => {
-    try {
-      return {
-        ...analyticsParams,
-        chain_id: getDecimalChainId(chainId),
-        function_type: view,
-        gas_mode: selectedOption ? 'Basic' : 'Advanced',
-        speed_set: selectedOption || undefined,
-      };
-    } catch (error) {
-      return {};
-    }
-  }, [analyticsParams, chainId, selectedOption, view]);
-
-  const toggleAdvancedOptions = useCallback(() => {
+  const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
       trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
-        getAnalyticsParams(),
+        getAnalyticsParams({
+          analyticsParams,
+          chainId,
+          view,
+          selectedOption,
+        }),
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
+  };
 
-  const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+  const save = () => {
+    trackEvent(
+      MetaMetricsEvents.GAS_FEE_CHANGED,
+      getAnalyticsParams({
+        analyticsParams,
+        chainId,
+        view,
+        selectedOption,
+      }),
+    );
 
     onSave(selectedOption);
-  }, [getAnalyticsParams, onSave, selectedOption, trackEvent]);
+  };
 
-  const changeGas = useCallback(
-    (gas, selectedOption) => {
-      setSelectedOption(selectedOption);
-      onChange(gas, selectedOption);
-    },
-    [onChange],
-  );
+  const changeGas = (gas, selectedOption) => {
+    setSelectedOption(selectedOption);
+    onChange(gas, selectedOption);
+  };
 
-  const changedGasPrice = useCallback(
-    (value) => {
-      const lowerValue = new BigNumber(
-        gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasOptions?.[warningMinimumEstimateOption]
-          : gasOptions?.gasPrice,
-      );
-      const higherValue = new BigNumber(
-        gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasOptions?.high
-          : gasOptions?.gasPrice,
-      ).multipliedBy(new BigNumber(1.5));
+  const changedGasPrice = (value) => {
+    const lowerValue = new BigNumber(
+      gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+        ? gasOptions?.[warningMinimumEstimateOption]
+        : gasOptions?.gasPrice,
+    );
+    const higherValue = new BigNumber(
+      gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+        ? gasOptions?.high
+        : gasOptions?.gasPrice,
+    ).multipliedBy(new BigNumber(1.5));
 
-      const valueBN = new BigNumber(value);
+    const valueBN = new BigNumber(value);
 
-      if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
-        setGasPriceError(strings('edit_gas_fee_eip1559.gas_price_low'));
-      } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
-        setGasPriceError(strings('edit_gas_fee_eip1559.gas_price_high'));
-      } else {
-        setGasPriceError('');
-      }
-
-      const newGas = { ...gasFee, suggestedGasPrice: value };
-
-      changeGas(newGas, null);
-    },
-    [
-      changeGas,
-      gasEstimateType,
-      gasFee,
-      gasOptions,
-      warningMinimumEstimateOption,
-    ],
-  );
-
-  const changedGasLimit = useCallback(
-    (value) => {
-      const newGas = { ...gasFee, suggestedGasLimit: value };
-
-      changeGas(newGas, null);
-    },
-    [changeGas, gasFee],
-  );
-
-  const selectOption = useCallback(
-    (option) => {
+    if (!lowerValue.isNaN() && valueBN.lt(lowerValue)) {
+      setGasPriceError(strings('edit_gas_fee_eip1559.gas_price_low'));
+    } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
+      setGasPriceError(strings('edit_gas_fee_eip1559.gas_price_high'));
+    } else {
       setGasPriceError('');
-      setSelectedOption(option);
-      changeGas({ ...gasFee, suggestedGasPrice: gasOptions[option] }, option);
+    }
+
+    const newGas = { ...gasFee, suggestedGasPrice: value };
+
+    changeGas(newGas, null);
+  };
+
+  const changedGasLimit = (value) => {
+    const newGas = { ...gasFee, suggestedGasLimit: value };
+
+    changeGas(newGas, null);
+  };
+
+  const selectOption = (option) => {
+    setGasPriceError('');
+    setSelectedOption(option);
+    changeGas({ ...gasFee, suggestedGasPrice: gasOptions[option] }, option);
+  };
+
+  const shouldIgnore = (option) =>
+    ignoreOptions.find((item) => item === option);
+
+  const renderOptions = [
+    {
+      name: AppConstants.GAS_OPTIONS.LOW,
+      label: strings('edit_gas_fee_eip1559.low'),
     },
-    [changeGas, gasFee, gasOptions],
-  );
+    {
+      name: AppConstants.GAS_OPTIONS.MEDIUM,
+      label: strings('edit_gas_fee_eip1559.medium'),
+    },
+    {
+      name: AppConstants.GAS_OPTIONS.HIGH,
+      label: strings('edit_gas_fee_eip1559.high'),
+    },
+  ]
+    .filter(({ name }) => !shouldIgnore(name))
+    .map(({ name, label, ...option }) => ({
+      name,
+      label: (selected, disabled) => (
+        <Text bold primary={selected && !disabled}>
+          {label}
+        </Text>
+      ),
+      topLabel: recommended?.name === name && recommended.render,
+      ...option,
+      ...extendOptions[name],
+    }));
 
-  const shouldIgnore = useCallback(
-    (option) => ignoreOptions.find((item) => item === option),
-    [ignoreOptions],
-  );
-
-  const renderOptions = useMemo(
-    () =>
-      [
-        {
-          name: AppConstants.GAS_OPTIONS.LOW,
-          label: strings('edit_gas_fee_eip1559.low'),
-        },
-        {
-          name: AppConstants.GAS_OPTIONS.MEDIUM,
-          label: strings('edit_gas_fee_eip1559.medium'),
-        },
-        {
-          name: AppConstants.GAS_OPTIONS.HIGH,
-          label: strings('edit_gas_fee_eip1559.high'),
-        },
-      ]
-        .filter(({ name }) => !shouldIgnore(name))
-        .map(({ name, label, ...option }) => ({
-          name,
-          label: (selected, disabled) => (
-            <Text bold primary={selected && !disabled}>
-              {label}
-            </Text>
-          ),
-          topLabel: recommended?.name === name && recommended.render,
-          ...option,
-          ...extendOptions[name],
-        })),
-    [recommended, extendOptions, shouldIgnore],
-  );
-
-  const renderWarning = useMemo(() => {
+  const renderWarning = () => {
     if (!warning) return null;
     if (typeof warning === 'string')
       return (
@@ -306,9 +205,9 @@ const EditGasFeeLegacy = ({
       );
 
     return warning;
-  }, [warning, styles, colors]);
+  };
 
-  const renderError = useMemo(() => {
+  const renderError = () => {
     if (!error) return null;
     if (typeof error === 'string')
       return (
@@ -335,7 +234,7 @@ const EditGasFeeLegacy = ({
       );
 
     return error;
-  }, [error, styles, colors]);
+  };
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
