@@ -565,7 +565,6 @@ class Login extends PureComponent {
                     />
                   }
                   keyboardAppearance={themeAppearance}
-                  autoFocus={false}
                 />
               </View>
 
