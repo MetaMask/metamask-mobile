@@ -35,7 +35,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   gap = DEFAULT_LISTITEMMULTISELECT_GAP,
   showButtonIcon = true,
   buttonIcon = IconName.MoreVertical,
-  textButton = null,
+  buttonProps,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
@@ -69,20 +69,20 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
             iconName={buttonIcon}
             iconColor={IconColor.Default}
             testID={BUTTON_TEST_ID}
-            onPress={props.onButtonClick}
+            onPress={buttonProps?.onButtonClick}
             accessibilityRole="button"
           />
         </View>
       ) : null}
-      {textButton ? (
+      {buttonProps?.textButton ? (
         <View>
           <Button
             variant={ButtonVariants.Link}
-            onPress={props.onButtonClick as () => void}
+            onPress={buttonProps?.onButtonClick as () => void}
             labelTextVariant={TextVariant.BodyMD}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Auto}
-            label={textButton}
+            label={buttonProps?.textButton}
           />
         </View>
       ) : null}

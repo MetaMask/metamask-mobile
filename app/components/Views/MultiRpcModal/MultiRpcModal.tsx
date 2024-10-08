@@ -104,15 +104,17 @@ const MultiRpcModal = () => {
                   isSelected={false}
                   buttonIcon={IconName.MoreVertical}
                   showButtonIcon={false}
-                  textButton={strings('transaction.edit')}
-                  onButtonClick={() => {
-                    sheetRef.current?.onCloseBottomSheet(() => {
-                      navigate(Routes.ADD_NETWORK, {
-                        shouldNetworkSwitchPopToWallet: false,
-                        shouldShowPopularNetworks: false,
-                        network: networkConfiguration.rpcUrl,
+                  buttonProps={{
+                    textButton: strings('transaction.edit'),
+                    onButtonClick: () => {
+                      sheetRef.current?.onCloseBottomSheet(() => {
+                        navigate(Routes.ADD_NETWORK, {
+                          shouldNetworkSwitchPopToWallet: false,
+                          shouldShowPopularNetworks: false,
+                          network: networkConfiguration.rpcUrl,
+                        });
                       });
-                    });
+                    },
                   }}
                 />
               ),
