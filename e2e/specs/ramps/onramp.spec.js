@@ -87,6 +87,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
     await Assertions.checkIfTextIsNotDisplayed(/^≈ $.*USD$/);
     await QuoteView.dismiss()
@@ -101,7 +102,9 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/.*UNI$/);
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
     await Assertions.checkIfTextIsNotDisplayed(/.*ETH$/);
     await QuoteView.dismiss()
     await BuildQuoteView.tapCancelButton();
@@ -115,8 +118,23 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/^≈ \$.*USD$/);
     await Assertions.checkIfTextIsNotDisplayed(/^≈ €.*EUR$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a new payment method and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openPaymentMethodSelector()
+    await BuildQuoteView.selectPaymentMethod('Apple Pay')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
     await QuoteView.dismiss()
     await BuildQuoteView.tapCancelButton();
   });
