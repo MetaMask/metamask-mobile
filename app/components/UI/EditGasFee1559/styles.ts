@@ -117,4 +117,4 @@ export const editGasFee1559Styles = (colors: {
     headerTitleSide: {
       flex: 1,
     },
-  });
+  }); // NOSONAR
