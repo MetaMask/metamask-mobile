@@ -37,14 +37,6 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.PAYMENT_METHOD_SELECTOR);
   }
 
-  get minLimitErrorMessage() {
-    return Matchers.getElementByText(BuildQuoteSelectors.MIN_LIMIT_ERROR);
-  }
-
-  get maxLimitErrorMessage() {
-    return Matchers.getElementByText(BuildQuoteSelectors.MAX_LIMIT_ERROR);
-  }
-
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }

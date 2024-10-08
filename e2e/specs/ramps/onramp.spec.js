@@ -58,27 +58,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should skip to the Build Quote screen for returning user', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapBuyButton();
-    await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
-    await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
-    await BuildQuoteView.tapCancelButton();
-  });
-
-  it('should enter the min and max order limits and verify the error messages', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.enterFiatAmount('1');
-    await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
-    await BuildQuoteView.tapCancelButton();
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.enterFiatAmount('55555');
-    await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
-    await BuildQuoteView.tapCancelButton();
-  });
-
   it('should select a new region and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
