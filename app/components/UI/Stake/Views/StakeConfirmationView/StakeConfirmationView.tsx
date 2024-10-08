@@ -42,8 +42,8 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
     <View style={styles.mainContainer}>
       <View>
         <AmountHeader
-          wei={route.params.wei}
-          fiat={`$${route.params.fiat}`}
+          amountWei={route.params.amountWei}
+          amountFiat={`$${route.params.amountFiat}`}
           tokenSymbol="wETH"
         />
         <View style={styles.cardsContainer}>

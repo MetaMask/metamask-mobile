@@ -1,8 +1,8 @@
 import { RouteProp } from '@react-navigation/native';
 
 interface StakeConfirmationViewRouteParams {
-  wei: string;
-  fiat: string;
+  amountWei: string;
+  amountFiat: string;
 }
 
 export interface StakeConfirmationViewProps {

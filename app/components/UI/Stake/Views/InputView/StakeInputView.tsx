@@ -153,8 +153,8 @@ const StakeInputView = () => {
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
-        wei: amountBN.toString(),
-        fiat: fiatAmount,
+        amountWei: amountBN.toString(),
+        amountFiat: fiatAmount,
       },
     });
   }, [amountBN, fiatAmount, navigation]);

@@ -14,8 +14,8 @@ Image.getSize = jest.fn((_uri, success) => {
 describe('AmountHeader', () => {
   it('render matches snapshot', () => {
     const props: AmountHeaderProps = {
-      wei: '3210000000000000',
-      fiat: '7.46',
+      amountWei: '3210000000000000',
+      amountFiat: '7.46',
       tokenSymbol: 'wETH',
     };
 
@@ -24,9 +24,9 @@ describe('AmountHeader', () => {
     );
 
     expect(
-      getByText(`${renderFromWei(props.wei)} ${props.tokenSymbol}`),
+      getByText(`${renderFromWei(props.amountWei)} ${props.tokenSymbol}`),
     ).toBeDefined(); // 0.00321 wETH
-    expect(getByText(props.fiat)).toBeDefined();
+    expect(getByText(props.amountFiat)).toBeDefined();
 
     expect(toJSON()).toMatchSnapshot();
   });

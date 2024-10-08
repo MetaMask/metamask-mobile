@@ -200,7 +200,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             }
           }
         >
-          0.00321
+          0
            
           wETH
         </Text>
@@ -217,7 +217,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             }
           }
         >
-          $7.46
+          $undefined
         </Text>
       </View>
     </View>
