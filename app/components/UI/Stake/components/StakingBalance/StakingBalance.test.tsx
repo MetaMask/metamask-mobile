@@ -23,6 +23,11 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+afterEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('StakingBalance', () => {
   beforeEach(() => jest.resetAllMocks());
 
@@ -40,5 +45,15 @@ describe('StakingBalance', () => {
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
     });
+     
+     it('redirects to UnstakeInputView on unstake button click', () => {
+        render(StakingBalance);
+        
+        fireEvent.press(screen.getByText(strings('stake.unstake')));
+        
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+                                                  screen: Routes.STAKING.UNSTAKE,
+                                                  });
   });
 });
