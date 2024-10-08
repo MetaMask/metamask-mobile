@@ -21,7 +21,7 @@ import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -34,6 +34,7 @@ import {
   GAS_PRICE_MIN,
 } from '../../../util/gasUtils';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { getAnalyticsParams } from '../EditGasFee1559/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -152,32 +153,31 @@ const EditGasFeeLegacy = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  const getAnalyticsParams = () => {
-    try {
-      return {
-        ...analyticsParams,
-        chain_id: getDecimalChainId(chainId),
-        function_type: view,
-        gas_mode: selectedOption ? 'Basic' : 'Advanced',
-        speed_set: selectedOption || undefined,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
-
   const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
       trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
-        getAnalyticsParams(),
+        getAnalyticsParams({
+          analyticsParams,
+          chainId,
+          view,
+          selectedOption,
+        }),
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
   };
 
   const save = () => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+    trackEvent(
+      MetaMetricsEvents.GAS_FEE_CHANGED,
+      getAnalyticsParams({
+        analyticsParams,
+        chainId,
+        view,
+        selectedOption,
+      }),
+    );
 
     onSave(selectedOption);
   };
