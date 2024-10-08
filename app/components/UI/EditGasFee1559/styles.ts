@@ -1,7 +1,12 @@
 import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 
-export const editGasFee1559Styles = (colors: any) =>
+export const editGasFee1559Styles = (colors: {
+  background: { default: string };
+  text: { default: string };
+  border: { muted: string };
+  info: { default: string };
+}) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,

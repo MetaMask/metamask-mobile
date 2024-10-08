@@ -22,7 +22,7 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { editGasFeeLegacyStyles } from '../EditGasFee1559/styles';
+import { editGasFeeStyles } from '../EditGasFee1559/styles';
 
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
@@ -73,7 +73,7 @@ const EditGasFeeLegacy = ({
   const [gasPriceError, setGasPriceError] = useState();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
-  const styles = editGasFeeLegacyStyles(colors);
+  const styles = editGasFeeStyles(colors);
 
   const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
