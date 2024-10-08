@@ -1686,6 +1686,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
+                  testID="incoming-mainnet-toggle"
                   thumbTintColor="#ffffff"
                   tintColor="#bbc0c566"
                   value={true}
@@ -1827,6 +1828,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
+                  testID="incoming-linea-mainnet-toggle"
                   thumbTintColor="#ffffff"
                   tintColor="#bbc0c566"
                   value={true}
