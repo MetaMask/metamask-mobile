@@ -51,6 +51,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Optional param to disable the button.
    */
   isDisabled?: boolean;
+  /**
+   * An optional loading state of Button.
+   */
+  loading?: boolean;
 }
 
 /**

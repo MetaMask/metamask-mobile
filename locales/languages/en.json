@@ -764,6 +764,9 @@
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
     "disabling_notifications": "Disabling notifications...",
+    "reset_notifications_title": "Reset notifications",
+    "reset_notifications_description": "Resetting notifications, means you're overwritting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
+    "reset_notifications": "Reset notifications",
     "enabling_profile_sync": "Enabling profile syncing...",
     "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
@@ -1793,17 +1796,6 @@
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask.",
     "edit_networks_title": "Edit networks"
-  },
-  "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
   },
   "permissions": {
     "title_this_site_wants_to": "This site wants to:",
@@ -3369,7 +3361,8 @@
       "buttons": {
         "cancel": "Cancel",
         "turn_on": "Turn on",
-        "turn_off": "Turn off"
+        "turn_off": "Turn off",
+        "reset": "Reset"
       }
     }
   },
@@ -3409,6 +3402,9 @@
     "confirm": "Confirm",
     "title": {
       "signature": "Signature request"
-      }
+    },
+    "request_from": "Request from",
+    "message": "Message",
+    "personal_sign_tooltip": "This site is asking for your signature"
   }
 }
