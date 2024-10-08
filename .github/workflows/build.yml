@@ -23,10 +23,10 @@ jobs:
       run: npm install -g yarn
 
     - name: Install dependencies
-      run: yarn install
+      run: yarn install  # 这一步替代手动运行的 `yarn install`
 
     - name: Build the project
-      run: yarn build
+      run: yarn build  # 这一步替代手动运行的 `yarn build`
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v2
