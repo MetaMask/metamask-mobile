@@ -198,6 +198,7 @@ import {
   SignatureController,
   SignatureControllerActions,
   SignatureControllerEvents,
+  SignatureControllerOptions,
 } from '@metamask/signature-controller';
 import { hasProperty, Hex, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
@@ -250,6 +251,7 @@ import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermiss
 import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
+import { trace } from '../util/trace';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1602,6 +1604,8 @@ class Engine {
           networkController.getNetworkClientById(
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId,
+        // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
+        trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
