@@ -49,7 +49,6 @@ const wallet_switchEthereumChain = async ({
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingNetwork = findExistingNetwork(_chainId, networkConfigurations);
-
   if (existingNetwork) {
     const currentDomainSelectedNetworkClientId =
       SelectedNetworkController.getNetworkClientIdForDomain(origin);

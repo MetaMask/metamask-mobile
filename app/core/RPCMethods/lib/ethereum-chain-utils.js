@@ -239,7 +239,8 @@ export async function switchToNetwork({
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-  const chainPermissionsFeatureEnabled = ({ ...process.env })?.MM_CHAIN_PERMISSIONS;
+  const chainPermissionsFeatureEnabled = { ...process.env }
+    ?.MM_CHAIN_PERMISSIONS;
   if (chainPermissionsFeatureEnabled) {
     const { value: permissionedChainIds } =
       getCaveat({

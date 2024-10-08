@@ -324,7 +324,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       process.env.MM_CHAIN_PERMISSIONS = 1;
     });
     afterAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = undefined;
+      process.env.MM_CHAIN_PERMISSIONS = 0;
     });
     afterEach(() => {
       jest.clearAllMocks();
