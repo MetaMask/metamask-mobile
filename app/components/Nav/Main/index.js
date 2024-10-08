@@ -265,18 +265,21 @@ const Main = (props) => {
 
   // Show add network confirmation.
   useEffect(() => {
+    if (!isNetworkUiRedesignEnabled()) return;
+
+    // Memoized values to avoid recalculations
+    const currentNetworkValues = Object.values(networkConfigurations);
+    const previousNetworkValues = Object.values(
+      previousNetworkConfigurations.current ?? {},
+    );
+
     if (
-      previousNetworkConfigurations.current &&
-      Object.values(networkConfigurations).length !==
-        Object.values(previousNetworkConfigurations.current).length &&
-      isNetworkUiRedesignEnabled()
+      previousNetworkValues.length &&
+      currentNetworkValues.length !== previousNetworkValues.length
     ) {
       // Find the newly added network
-      const newNetwork = Object.values(networkConfigurations).find(
-        (network) =>
-          !Object.values(previousNetworkConfigurations.current).includes(
-            network,
-          ),
+      const newNetwork = currentNetworkValues.find(
+        (network) => !previousNetworkValues.includes(network),
       );
 
       toastRef?.current?.showToast({
@@ -291,6 +294,7 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
+
     previousNetworkConfigurations.current = networkConfigurations;
   }, [networkConfigurations, networkName, networkImage, toastRef]);
 
