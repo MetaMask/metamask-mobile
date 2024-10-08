@@ -1231,6 +1231,8 @@ const legacyMetaMetricsEvents = {
   ),
   STAKE_INPUT_CLICKED: generateOpt(
     EVENT_NAME.STAKE_INPUT_CLICKED,
+    ACTIONS.STAKE,
+    DESCRIPTION.STAKE,
   ),
 };
 
