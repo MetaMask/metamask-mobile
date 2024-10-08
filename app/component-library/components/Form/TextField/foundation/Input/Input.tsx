@@ -21,7 +21,7 @@ const Input: React.FC<InputProps> = ({
   isReadonly = false,
   onBlur,
   onFocus,
-  autoFocus = false,
+  autoFocus = true,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
