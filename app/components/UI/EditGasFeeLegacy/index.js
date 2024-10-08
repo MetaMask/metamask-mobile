@@ -33,7 +33,7 @@ import {
 } from '../../../util/gasUtils';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getAnalyticsParams } from '../EditGasFee1559/utils';
-import createStyles from '../UI/EditGasFee1559/styles';
+import createStyles from '../../UI/EditGasFee1559/styles';
 
 /**
  * The EditGasFeeLegacy component will be deprecated in favor of EditGasFeeLegacyUpdate as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFeeLegacyUpdate will be renamed EditGasFeeLegacy and this component will be removed. The EditGasFeeLegacyUpdate is currently being used in the Update Transaction(Speed Up/Cancel) flow.
