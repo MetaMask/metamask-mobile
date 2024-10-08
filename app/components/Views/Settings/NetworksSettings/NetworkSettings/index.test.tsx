@@ -214,7 +214,8 @@ describe('NetworkSettings', () => {
       },
     };
 
-    const wrapper2 = shallow(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wrapper2: any = shallow(
       <Provider store={store}>
         <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
       </Provider>,
@@ -223,8 +224,7 @@ describe('NetworkSettings', () => {
       .dive();
 
     const getCurrentStateSpy = jest.spyOn(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      wrapper2.instance() as any,
+      wrapper2.instance(),
       'getCurrentState',
     );
 
@@ -232,8 +232,6 @@ describe('NetworkSettings', () => {
       chainId: '0x1',
     });
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     await wrapper2.instance().onRpcUrlChange('http://localhost:8545');
     expect(wrapper2.state('rpcUrl')).toBe('http://localhost:8545');
     expect(getCurrentStateSpy).toHaveBeenCalled();

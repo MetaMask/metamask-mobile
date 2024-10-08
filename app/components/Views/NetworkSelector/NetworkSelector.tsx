@@ -68,6 +68,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import {
+  BUILT_IN_NETWORKS,
   InfuraNetworkType,
   TESTNET_TICKER_SYMBOLS,
 } from '@metamask/controller-utils';
@@ -187,7 +188,7 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = (type: InfuraNetworkType, chainId: `0x${string}`) => {
+  const onNetworkChange = (type: InfuraNetworkType) => {
     const {
       NetworkController,
       CurrencyRateController,
@@ -207,7 +208,9 @@ const NetworkSelector = () => {
       }
 
       const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(chainId);
+        NetworkController.getNetworkConfigurationByChainId(
+          BUILT_IN_NETWORKS[type].chainId,
+        );
 
       const clientId =
         networkConfiguration?.rpcEndpoints[
@@ -254,9 +257,7 @@ const NetworkSelector = () => {
       } = networkConfiguration;
 
       const networkConfigurationId =
-        NetworkController.findNetworkClientIdByChainId(
-          chainId as `0x${string}`,
-        );
+        NetworkController.findNetworkClientIdByChainId(chainId);
 
       if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
         SelectedNetworkController.setNetworkClientIdForDomain(
@@ -405,7 +406,7 @@ const NetworkSelector = () => {
             size: AvatarSize.Sm,
           }}
           isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
-          onPress={() => onNetworkChange(MAINNET, chainId)}
+          onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           onButtonClick={() => {
@@ -434,7 +435,7 @@ const NetworkSelector = () => {
           size: avatarSize,
         }}
         isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
-        onPress={() => onNetworkChange(MAINNET, chainId)}
+        onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
       />
     );
@@ -459,7 +460,7 @@ const NetworkSelector = () => {
             size: AvatarSize.Sm,
           }}
           isSelected={chainId === selectedChainId}
-          onPress={() => onNetworkChange(LINEA_MAINNET, chainId)}
+          onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
@@ -489,7 +490,7 @@ const NetworkSelector = () => {
           size: avatarSize,
         }}
         isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
-        onPress={() => onNetworkChange(LINEA_MAINNET, chainId)}
+        onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
   };
@@ -613,7 +614,7 @@ const NetworkSelector = () => {
               size: AvatarSize.Sm,
             }}
             isSelected={chainId === selectedChainId}
-            onPress={() => onNetworkChange(networkType, chainId)}
+            onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             onButtonClick={() => {
@@ -642,7 +643,7 @@ const NetworkSelector = () => {
             size: avatarSize,
           }}
           isSelected={chainId === selectedChainId}
-          onPress={() => onNetworkChange(networkType, chainId)}
+          onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
       );

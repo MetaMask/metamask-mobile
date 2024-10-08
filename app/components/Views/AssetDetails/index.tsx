@@ -130,7 +130,7 @@ const AssetDetails = (props: Props) => {
 
   const getNetworkName = () => {
     let name = '';
-    if (providerConfig?.nickname) {
+    if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -139,8 +139,7 @@ const AssetDetails = (props: Props) => {
          * removes goerli from provider config types
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (Networks as any)[providerConfig?.type ?? RpcEndpointType.Custom]
-          ?.name || { ...Networks.rpc, color: null }.name;
+        (Networks as any)[providerConfig?.type ?? RpcEndpointType.Custom];
     }
     return name;
   };

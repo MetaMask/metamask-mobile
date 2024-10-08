@@ -42,7 +42,6 @@ import {
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
-import Routes from '../../../constants/navigation/Routes';
 
 export interface SafeChain {
   chainId: string;
@@ -183,18 +182,6 @@ const NetworkModals = (props: NetworkProps) => {
     alerts,
   };
 
-  /**
-   * Go to wallet page
-   */
-  const goToWalletPage = () => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-  };
-
   const checkNetwork = useCallback(async () => {
     if (useSafeChainsListValidation) {
       const alertsNetwork = await checkSafeNetwork(
@@ -261,7 +248,6 @@ const NetworkModals = (props: NetworkProps) => {
       await NetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
-    goToWalletPage();
   };
 
   const handleExistingNetwork = async (
@@ -357,10 +343,13 @@ const NetworkModals = (props: NetworkProps) => {
       NetworkController.setActiveNetwork(networkClientId);
     }
     onClose();
-    goToWalletPage();
 
     if (onNetworkSwitch) {
       handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
+    } else {
+      shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
     }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
