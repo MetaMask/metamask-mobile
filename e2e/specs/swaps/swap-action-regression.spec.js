@@ -94,8 +94,8 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await TabBarComponent.tapWallet();
       if (network.providerConfig.nickname !== currentNetwork)
       {
-        await TestHelpers.delay(500);
         await WalletView.tapNetworksButtonOnNavBar();
+        await TestHelpers.delay(1000);
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
         await TestHelpers.delay(3000);
