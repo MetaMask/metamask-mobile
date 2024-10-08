@@ -257,7 +257,7 @@ const NetworkSelector = () => {
       } = networkConfiguration;
 
       const networkConfigurationId =
-        NetworkController.findNetworkClientIdByChainId(chainId);
+        rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
       if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
         SelectedNetworkController.setNetworkClientIdForDomain(
