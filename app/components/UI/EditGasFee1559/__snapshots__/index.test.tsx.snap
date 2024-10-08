@@ -47,7 +47,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               black={true}
               bold={true}
             >
-              Edit priority
+              <Component />
             </Text>
             <Icon
               allowFontScaling={false}
@@ -57,6 +57,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             />
           </View>
         </View>
+        <Component />
+        <Component />
         <FadeAnimationView
           style={
             {
