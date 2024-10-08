@@ -199,6 +199,7 @@ import {
   SignatureController,
   SignatureControllerActions,
   SignatureControllerEvents,
+  SignatureControllerOptions,
 } from '@metamask/signature-controller';
 import { hasProperty, Hex, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
@@ -252,6 +253,8 @@ import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../util/smart-transactions';
+import { trace } from '../util/trace';
+
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
@@ -1394,7 +1397,9 @@ class Engine {
       params: {
         event: MetaMetricsEventName;
         category: MetaMetricsEventCategory;
-        properties?: ReturnType<typeof getSmartTransactionMetricsPropertiesType>;
+        properties?: ReturnType<
+          typeof getSmartTransactionMetricsPropertiesType
+        >;
         sensitiveProperties?: ReturnType<
           typeof getSmartTransactionMetricsSensitivePropertiesType
         >;
@@ -1411,7 +1416,7 @@ class Engine {
         {
           properties: params.properties,
           sensitiveProperties: params.sensitiveProperties,
-        }        
+        },
       );
     };
     this.smartTransactionsController = new SmartTransactionsController({
@@ -1607,6 +1612,8 @@ class Engine {
           networkController.getNetworkClientById(
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId,
+        // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
+        trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
       loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1756,16 +1763,21 @@ class Engine {
     Engine.instance = this;
   }
 
-
   // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
-  _handleTransactionFinalizedEvent = async ( transactionEventPayload: TransactionEventPayload, properties: object ) => {
+  _handleTransactionFinalizedEvent = async (
+    transactionEventPayload: TransactionEventPayload,
+    properties: object,
+  ) => {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       store.getState(),
     );
-    if (!shouldUseSmartTransaction || !transactionEventPayload.transactionMeta) {
+    if (
+      !shouldUseSmartTransaction ||
+      !transactionEventPayload.transactionMeta
+    ) {
       MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.TRANSACTION_FINALIZED,
-        { ...properties }
+        { ...properties },
       );
       return;
     }
@@ -1773,35 +1785,48 @@ class Engine {
     const { SmartTransactionsController } = this.context;
     const waitForSmartTransaction = true;
     const smartTransactionMetricsProperties =
-        await getSmartTransactionMetricsProperties(
-          SmartTransactionsController,
-          transactionMeta,
-          waitForSmartTransaction,
-          this.controllerMessenger
-        );
+      await getSmartTransactionMetricsProperties(
+        SmartTransactionsController,
+        transactionMeta,
+        waitForSmartTransaction,
+        this.controllerMessenger,
+      );
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.TRANSACTION_FINALIZED,
       {
         ...smartTransactionMetricsProperties,
-        ...properties
-      }
-    )
-  }
+        ...properties,
+      },
+    );
+  };
 
-  _handleTransactionDropped = async (transactionEventPayload: TransactionEventPayload) => {
+  _handleTransactionDropped = async (
+    transactionEventPayload: TransactionEventPayload,
+  ) => {
     const properties = { status: 'dropped' };
-    await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
-  }
+    await this._handleTransactionFinalizedEvent(
+      transactionEventPayload,
+      properties,
+    );
+  };
 
   _handleTransactionConfirmed = async (transactionMeta: TransactionMeta) => {
     const properties = { status: 'confirmed' };
-    await this._handleTransactionFinalizedEvent({ transactionMeta }, properties);
-  }
+    await this._handleTransactionFinalizedEvent(
+      { transactionMeta },
+      properties,
+    );
+  };
 
-  _handleTransactionFailed = async (transactionEventPayload: TransactionEventPayload) => {
+  _handleTransactionFailed = async (
+    transactionEventPayload: TransactionEventPayload,
+  ) => {
     const properties = { status: 'failed' };
-    await this._handleTransactionFinalizedEvent(transactionEventPayload, properties);
-  }
+    await this._handleTransactionFinalizedEvent(
+      transactionEventPayload,
+      properties,
+    );
+  };
 
   _addTransactionControllerListeners() {
     this.controllerMessenger.subscribe(
