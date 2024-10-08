@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakeConfirmationNavbar } from '../../../Navbar';
+import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
 import AmountHeader from '../../components/StakingConfirmation/AmountHeader/AmountHeader';
 import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
@@ -11,6 +11,7 @@ import RewardsCard from '../../components/StakingConfirmation/RewardsCard/Reward
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
+import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_STAKING_REVIEW_DATA = {
   GAS_COST: {
@@ -35,7 +36,12 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
-    navigation.setOptions(getStakeConfirmationNavbar(navigation, theme.colors));
+    navigation.setOptions(
+      getStakingNavbar(strings('stake.stake'), navigation, theme.colors, {
+        backgroundColor: theme.colors.background.alternative,
+        hasCancelButton: false,
+      }),
+    );
   }, [navigation, theme.colors]);
 
   return (

@@ -1824,46 +1824,30 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
   };
 };
 
-export function getStakingNavbar(title, navigation, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-  return {
-    headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
-    ),
-    headerLeft: () => <View />,
-    headerRight: () => (
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
-      >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
-      </TouchableOpacity>
-    ),
-    headerStyle: innerStyles.headerStyle,
-  };
-}
+/**
+ *
+ * @param {String} title - Navbar Title.
+ * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
+ * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [options] - Optional options for navbar.
+ * @returns Staking Navbar Component.
+ */
+export function getStakingNavbar(title, navigation, themeColors, options) {
+  const { hasBackButton = true, hasCancelButton = true } = options ?? {};
 
-export function getStakeConfirmationNavbar(navigation, themeColors) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.alternative,
+      backgroundColor:
+        options?.backgroundColor ?? themeColors.background.default,
       shadowOffset: null,
     },
     headerLeft: {
       marginHorizontal: 16,
+    },
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
     },
   });
 
@@ -1871,18 +1855,30 @@ export function getStakeConfirmationNavbar(navigation, themeColors) {
     navigation.goBack();
   }
 
-  const title = strings('stake.stake');
-
   return {
-    headerTitle: title,
-    headerStyle: innerStyles.headerStyle,
-    headerLeft: () => (
-      <ButtonIcon
-        size={ButtonIconSizes.Lg}
-        iconName={IconName.ArrowLeft}
-        onPress={navigationPop}
-        style={innerStyles.headerLeft}
-      />
+    headerTitle: () => (
+      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
     ),
+    headerStyle: innerStyles.headerStyle,
+    headerLeft: () =>
+      hasBackButton ? (
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.ArrowLeft}
+          onPress={navigationPop}
+          style={innerStyles.headerLeft}
+        />
+      ) : null,
+    headerRight: () =>
+      hasCancelButton ? (
+        <TouchableOpacity
+          onPress={() => navigation.dangerouslyGetParent()?.pop()}
+          style={styles.closeButton}
+        >
+          <Text style={innerStyles.headerButtonText}>
+            {strings('navigation.cancel')}
+          </Text>
+        </TouchableOpacity>
+      ) : null,
   };
 }
