@@ -314,4 +314,24 @@ describe('KeyringSnapRemovalWarning', () => {
 
     expect(onCloseMock).toHaveBeenCalled();
   });
+  it('allows removal of snaps with empty names and keeps the continue button enabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <KeyringSnapRemovalWarning
+        snap={{
+          ...mockSnap,
+          manifest: { ...mockSnap.manifest, proposedName: '' },
+        }}
+        keyringAccounts={[]}
+        onCancel={onCancelMock}
+        onClose={onCloseMock}
+        onSubmit={onSubmitMock}
+      />,
+    );
+    const textInput = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
+    fireEvent.changeText(textInput, '');
+    const continueButton = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_CONTINUE);
+    expect(continueButton.props.disabled).toBe(false);
+    expect(textInput.props.value).toBe('');
+    expect(continueButton.props.children[1].props.children).toBe('Remove Snap');
+  });
 });

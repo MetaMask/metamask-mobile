@@ -37,8 +37,9 @@ import {
   KEYRING_SNAP_REMOVAL_WARNING,
   KEYRING_SNAP_REMOVAL_WARNING_CANCEL,
   KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
-  KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT
+  KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT,
 } from './KeyringSnapRemovalWarning.constants';
+import Logger from '../../../../util/Logger';
 
 interface KeyringSnapRemovalWarningProps {
   snap: Snap;
@@ -87,6 +88,10 @@ export default function KeyringSnapRemovalWarning({
       try {
         onSubmit();
       } catch (e) {
+        Logger.error(
+          e as Error,
+          'KeyringSnapRemovalWarning: error while removing snap',
+        );
         setError(true);
       }
     }
@@ -122,6 +127,11 @@ export default function KeyringSnapRemovalWarning({
       testID: KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
     }),
     [showConfirmation, confirmedRemoval, handleContinuePress],
+  );
+
+  const buttonPropsArray = useMemo(
+    () => [cancelButtonProps, continueButtonProps],
+    [cancelButtonProps, continueButtonProps],
   );
 
   const accountListItems = useMemo(
@@ -202,7 +212,7 @@ export default function KeyringSnapRemovalWarning({
       <BottomSheetFooter
         style={styles.buttonContainer}
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={[cancelButtonProps, continueButtonProps]}
+        buttonPropsArray={buttonPropsArray}
       />
     </BottomSheet>
   );
