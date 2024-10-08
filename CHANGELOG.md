@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 7.32.0 - Sep 19, 2024
+## 7.32.0 - Oct 7, 2024
 
 ### Added
 
@@ -364,10 +364,7 @@
 - [#10383](https://github.com/MetaMask/metamask-mobile/pull/10383): fix: race condition issues when doing batch-rpc calls in the DeeplinkProtocolService (#10383)
 - [#10365](https://github.com/MetaMask/metamask-mobile/pull/10365): fix: attribution link (#10365)
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
-<<<<<<< HEAD
 
-=======
->>>>>>> main
 ## 7.28.1 - Aug 15, 2024
 ### Fixed
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)
