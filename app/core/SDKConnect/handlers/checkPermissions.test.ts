@@ -44,7 +44,6 @@ describe('checkPermissions', () => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as unknown as PermissionController<any, any>;
-  const HOUR_IN_MS = 3600000;
   const currentTime = Date.now();
 
   const mockGetPermittedAccounts = getPermittedAccounts as jest.MockedFunction<
@@ -107,56 +106,33 @@ describe('checkPermissions', () => {
     jest.useRealTimers();
   });
 
-  it('should return true if the connection is already approved and a selected address exists', async () => {
-    mockIsApproved.mockReturnValue(true);
-    preferencesController.state.selectedAddress = '0x123';
+  it('should return true if permitted accounts exist', async () => {
+    mockGetPermittedAccounts.mockResolvedValue(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(result).toBe(true);
   });
 
-  it('should handle approval if the connection is not initially approved', async () => {
-    mockIsApproved.mockReturnValue(false);
-
-    await checkPermissions({ connection, engine });
-    expect(requestPermissions).toHaveBeenCalled();
-  });
-
-  it('should return true if the connection is not initially approved and a deeplink origin exists', async () => {
-    mockIsApproved.mockReturnValue(false);
-    connection.initialConnection = false;
+  it('should return false if no permitted accounts exist and no approval promise', async () => {
+    mockGetPermittedAccounts.mockResolvedValue([]);
+    permissionController.getPermission = jest.fn().mockReturnValue(null);
 
     const result = await checkPermissions({ connection, engine });
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 
-  it('should revalidate the connection if the channel was active recently', async () => {
-    const lastAuthorized = currentTime - HOUR_IN_MS / 2;
-    mockIsApproved.mockReturnValue(false);
+  it('should request permissions if no eth_accounts permission exists', async () => {
+    mockGetPermittedAccounts.mockResolvedValue([]);
+    permissionController.getPermission = jest.fn().mockReturnValue(null);
+    requestPermissions.mockResolvedValue({});
+    mockGetPermittedAccounts.mockResolvedValueOnce([]).mockResolvedValueOnce(['0x123']);
 
-    const result = await checkPermissions({
-      connection,
-      engine,
-      lastAuthorized,
-    });
+    const result = await checkPermissions({ connection, engine });
+    expect(requestPermissions).toHaveBeenCalledWith(
+      { origin: connection.channelId },
+      { eth_accounts: {} },
+      { preserveExistingPermissions: false }
+    );
     expect(result).toBe(true);
-  });
-
-  // TODO: re-enable once we properly mock the waiting event
-  // it('should handle when approvalPromise already exists', async () => {
-  //   mockIsApproved.mockReturnValue(false);
-  //   connection.approvalPromise = Promise.resolve();
-
-  //   const result = await checkPermissions({ connection, engine });
-  //   expect(result).toBe(true);
-  // });
-
-  it('should revalidate connection if not an initial connection and a deeplink origin exists', async () => {
-    connection.initialConnection = false;
-
-    await checkPermissions({ connection, engine });
-    expect(connection.revalidate).toHaveBeenCalledWith({
-      channelId: connection.channelId,
-    });
   });
 });
