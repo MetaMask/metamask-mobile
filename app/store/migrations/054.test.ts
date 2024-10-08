@@ -473,4 +473,49 @@ describe('Migration #54', () => {
     const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
+
+  it('should not change if tokens array is not defined', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          TokensController: {},
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          TokensController: {},
+        },
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+  it('should not change if tokens array is empty', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          TokensController: {
+            tokens: [],
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          TokensController: {
+            tokens: [],
+          },
+        },
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
+  });
 });

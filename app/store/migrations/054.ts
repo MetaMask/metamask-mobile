@@ -1,7 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { TokensControllerState } from '@metamask/assets-controllers';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 54)) {
@@ -9,8 +8,7 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const tokensControllerState = state.engine.backgroundState
-    .TokensController as TokensControllerState;
+  const tokensControllerState = state.engine.backgroundState.TokensController;
   if (!isObject(tokensControllerState)) {
     captureException(
       new Error(
@@ -20,7 +18,7 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if ('tokens' in tokensControllerState) {
+  if (Array.isArray(tokensControllerState.tokens)) {
     const migratedTokens = tokensControllerState.tokens.map((token) => {
       if (!hasProperty(token, 'balanceError')) {
         return token;
