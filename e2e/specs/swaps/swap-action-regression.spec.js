@@ -31,7 +31,7 @@ import Tenderly from '../../tenderly';
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
-describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
+describe(Regression('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   beforeAll(async () => {
