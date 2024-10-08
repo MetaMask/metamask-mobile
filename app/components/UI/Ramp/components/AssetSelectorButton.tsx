@@ -37,7 +37,7 @@ const AssetSelectorButton: React.FC<Props> = ({
     compact
     {...props}
   >
-    <View>
+    <View testID={"token-selector"}>
       <ListItem>
         {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
 
