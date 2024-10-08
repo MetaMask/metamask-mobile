@@ -996,11 +996,7 @@ const NetworkSelector = () => {
         >
           <View style={styles.networkMenu}>
             <AccountAction
-              actionTitle={strings(
-                showNetworkMenuModal.isReadOnly
-                  ? 'networks.view_details'
-                  : 'transaction.edit',
-              )}
+              actionTitle={strings('transaction.edit')}
               iconName={IconName.Edit}
               onPress={() => {
                 sheetRef.current?.onCloseBottomSheet(() => {
