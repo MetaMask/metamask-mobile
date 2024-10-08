@@ -56,8 +56,8 @@ describe('Migration #54', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
-      const newState = await migrate(state);
+    it(`should capture exception if ${scenario}`, () => {
+      const newState = migrate(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -67,7 +67,7 @@ describe('Migration #54', () => {
     });
   }
 
-  it('should update hasBalanceError to false in tokensController state', async () => {
+  it('should update hasBalanceError to false in tokensController state', () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -200,11 +200,11 @@ describe('Migration #54', () => {
       },
     };
 
-    const migratedState = await migrate(oldState);
+    const migratedState = migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('should update hasBalanceError to true in tokensController state', async () => {
+  it('should update hasBalanceError to true in tokensController state', () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -337,11 +337,11 @@ describe('Migration #54', () => {
       },
     };
 
-    const migratedState = await migrate(oldState);
+    const migratedState = migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('should not change if balanceError is undefined in tokensController state', async () => {
+  it('should not change if balanceError is undefined in tokensController state', () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -470,11 +470,11 @@ describe('Migration #54', () => {
       },
     };
 
-    const migratedState = await migrate(oldState);
+    const migratedState = migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('should not change if tokens array is not defined', async () => {
+  it('should not change if tokens array is not defined', () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -491,10 +491,10 @@ describe('Migration #54', () => {
       },
     };
 
-    const migratedState = await migrate(oldState);
+    const migratedState = migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
-  it('should not change if tokens array is empty', async () => {
+  it('should not change if tokens array is empty', () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -515,7 +515,7 @@ describe('Migration #54', () => {
       },
     };
 
-    const migratedState = await migrate(oldState);
+    const migratedState = migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 });
