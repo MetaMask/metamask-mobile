@@ -85,7 +85,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.5'}     | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.3'}     | ${'ETH'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Polygon}
+    ${'native'}$     |${'30.5'}   | ${'POL'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Polygon}
     ${'unapproved'}$ |${'50'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'non-native'}$ |${'5.555'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
@@ -94,10 +94,11 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await TabBarComponent.tapWallet();
       if (network.providerConfig.nickname !== currentNetwork)
       {
+        await TestHelpers.delay(500);
         await WalletView.tapNetworksButtonOnNavBar();
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
-
+        await TestHelpers.delay(3000);
         currentNetwork = network.providerConfig.nickname;
       }
       await Assertions.checkIfVisible(WalletView.container);
@@ -111,7 +112,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       }
       await Assertions.checkIfVisible(QuoteView.getQuotes);
 
-      //Select source token, if ETH then can skip because already selected
+      //Select source token, if native tiken can skip because already selected
       if (type !== 'native') {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
@@ -144,15 +145,8 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
-      try {
-        await Assertions.checkIfVisible(
-          SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-          30000,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(`Toast message is slow to appear or did not appear: ${e}`);
-      }
+      //Wait for Swap to complete
+      await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
 

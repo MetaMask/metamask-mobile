@@ -73,7 +73,7 @@ describe(Regression('Swap from Token view'), () => {
       WalletView.accountName,
       'Account 1',
     );
-    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0');
+    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0', 60000);
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
@@ -97,17 +97,11 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.swipeToSwap();
-    try {
-      await Assertions.checkIfVisible(
-        SwapView.swapCompleteLabel('ETH', 'DAI'),
-        100000,
-      );
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Toast message is slow to appear or did not appear: ${e}`);
-    }
+    //Wait for Swap to complete
+    await SwapView.swapCompleteLabel('ETH', 'DAI');
     await device.enableSynchronization();
     await TestHelpers.delay(5000);
+    await TokenOverview.isVisible();
     await TokenOverview.tapBackButton();
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);

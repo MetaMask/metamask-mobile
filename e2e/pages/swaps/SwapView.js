@@ -5,6 +5,7 @@ import {
 
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../..//helpers';
 
 class SwapView {
   get quoteSummary() {
@@ -44,9 +45,9 @@ class SwapView {
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
-  swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
-    return Matchers.getElementByText(
-      this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
+  async swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
+    await TestHelpers.checkIfElementByTextIsVisible(
+      this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol), 60000
     );
   }
 
@@ -58,6 +59,7 @@ class SwapView {
       console.log(`Price warning not displayed: ${e}`);
     }
   }
+
 }
 
 export default new SwapView();
