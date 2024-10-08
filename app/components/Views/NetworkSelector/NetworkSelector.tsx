@@ -521,7 +521,7 @@ const NetworkSelector = () => {
         return (
           <Cell
             key={`${chainId}-${rpcUrl}`}
-            testID={`network-cell-${name}`}
+            testID={NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(name)}
             variant={CellVariant.Select}
             title={name}
             avatarProps={{
