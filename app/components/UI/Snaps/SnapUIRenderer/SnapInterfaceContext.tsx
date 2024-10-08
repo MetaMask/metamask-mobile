@@ -1,6 +1,5 @@
 import {
   FormState,
-  InterfaceState,
   UserInputEventType,
 } from '@metamask/snaps-sdk';
 import { Json } from '@metamask/utils';
@@ -72,7 +71,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
   // We keep an internal copy of the state to speed-up the state update in the UI.
   // It's kept in a ref to avoid useless re-rendering of the entire tree of components.
-  const internalState = useRef<InterfaceState>(initialState ?? {});
+  const internalState = useRef<Record<string, string | Record<string, unknown> | unknown>>(initialState ?? {});
 
   // Since the internal state is kept in a reference, it won't update when the interface is updated.
   // We have to manually update it

@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { AddressElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
+import { AddressElementProps } from '../../../../../components/Views/confirmations/SendFlow/AddressElement/AddressElement.types';
+
+type ExtendedAddressProps = AddressElementProps & Record<string, unknown>;
 
 export const address: UIComponentFactory<AddressElement> = ({ element }) => ({
-  element: 'ConfirmInfoRowAddress',
-  props: {
-    address: element.props.address,
-    isSnapUsingThis: true,
-  },
+  element: 'AddressElement',
+  props: element.props as ExtendedAddressProps,
 });

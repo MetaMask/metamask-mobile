@@ -1,14 +1,14 @@
 import React, { memo, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
-import { View } from 'react-native';
-
+import { Box } from '../../../../components/UI/Box';
 import { isEqual } from 'lodash';
 import { getMemoizedInterface } from '../../../../selectors/snaps/interfaceController';
 
 import { SnapInterfaceContextProvider } from './SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../TemplateRenderer';
+
 
 // Component that maps Snaps UI JSON format to MetaMask Template Renderer format
 const SnapUIRendererComponent = ({
@@ -37,13 +37,13 @@ const SnapUIRendererComponent = ({
   );
 
   if (isLoading || !content) {
-    return null; // TODO
+    return null; // TODO: Add a loading state
   }
 
   const { state: initialState, context } = interfaceState;
 
   return (
-      <View className="snap-ui-renderer__content">
+      <Box>
         <SnapInterfaceContextProvider
           snapId={snapId}
           interfaceId={interfaceId}
@@ -52,7 +52,7 @@ const SnapUIRendererComponent = ({
         >
           <TemplateRenderer sections={sections} />
         </SnapInterfaceContextProvider>
-      </View>
+      </Box>
   );
 };
 
@@ -64,11 +64,6 @@ export const SnapUIRenderer = memo(
 
 SnapUIRendererComponent.propTypes = {
   snapId: PropTypes.string,
-  delineatorType: PropTypes.string,
-  isCollapsable: PropTypes.bool,
-  isCollapsed: PropTypes.bool,
   isLoading: PropTypes.bool,
-  onClick: PropTypes.func,
-  boxProps: PropTypes.object,
   interfaceId: PropTypes.string,
 };

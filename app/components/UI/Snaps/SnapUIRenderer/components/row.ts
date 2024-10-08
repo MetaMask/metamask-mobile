@@ -1,21 +1,24 @@
-import { Row } from '@metamask/snaps-sdk';
+/* eslint-disable @typescript-eslint/no-shadow */
+import { JSXElement, RowElement } from '@metamask/snaps-sdk/jsx';
 
 import { mapToTemplate } from '../utils';
-import { UIComponentFactory } from './types';
+import { UIComponent, UIComponentFactory } from './types';
+import { getJsxChildren } from '@metamask/snaps-utils';
+import { NonEmptyArray } from '@metamask/utils';
+import { ViewProps } from 'react-native';
 
-export const row: UIComponentFactory<Row> = ({ element, ...params }) => ({
-  element: 'ConfirmInfoRow',
-  children: [mapToTemplate({ ...params, element: element.props.children })],
+export const row: UIComponentFactory<RowElement> = ({
+  element,
+  ...params
+}) => ({
+  element: 'Row',
+  children: getJsxChildren(element).map((children) =>
+    mapToTemplate({ ...params, element: children as JSXElement }),
+  ) as NonEmptyArray<UIComponent>,
   props: {
     label: element.props.label,
     variant: element.props.variant,
     tooltip: element.props.tooltip,
-    style: {
-      // We do this to cause an overhang with certain confirmation row variants
-      marginLeft: '-8px',
-      marginRight: '-8px',
-      marginTop: '0px',
-      marginBottom: '0px',
-    },
+    ...element.props as ViewProps,
   },
 });

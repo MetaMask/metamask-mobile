@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { BoldElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
-import { mapTextToTemplate } from '../utils';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { mapTextToTemplate, TextWrap } from '../utils';
+import { TextVariant, TextColor } from '../../../../../component-library/components/Texts/Text';
+import { TextProps } from '../../../../../component-library/components/Texts/Text/Text.types';
+
 import { UIComponentFactory } from './types';
+
+type ExtendedTextProps = TextProps & Record<string, unknown>;
 
 export const bold: UIComponentFactory<BoldElement> = ({
   element,
@@ -15,10 +20,9 @@ export const bold: UIComponentFactory<BoldElement> = ({
     params,
   ),
   props: {
-    variant: TextVariant.BodyMD,
-    color: 'inherit',
-    style: { overflowWrap: 'anywhere' },
-    className: 'snap-ui-renderer__text',
-    as: 'b',
+    variant: TextVariant.BodyMDBold,
+    ellipsizeMode: TextWrap.TailEllipsis,
+    color: TextColor.Default,
+    ...element.props as ExtendedTextProps,
   },
 });

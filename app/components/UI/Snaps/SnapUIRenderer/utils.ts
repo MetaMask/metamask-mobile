@@ -7,6 +7,9 @@ import { unescape as unescapeEntities } from 'he';
 import { COMPONENT_MAPPING } from './components';
 import { UIComponent } from './components/types';
 
+
+const colors = Theme.colors;
+
 export interface MapToTemplateParams {
   map: Record<string, number>;
   element: JSXElement;
@@ -89,9 +92,7 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
   const elementKey = key ?? generateKey(params.map, params.element);
   const mapped = COMPONENT_MAPPING[
-    type as Exclude<JSXElement['type'], 'Option'>
-    // TODO: Replace `any` with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type as keyof typeof COMPONENT_MAPPING
   ](params as any);
   return { ...mapped, key: elementKey } as UIComponent;
 };
@@ -139,3 +140,114 @@ export const mergeValue = (
   }
   return { ...state, [name]: value };
 };
+
+
+export enum TextWrap {
+  BreakWord = 'break-word',
+  Clip = 'clip',
+  TailEllipsis = 'tail',
+  MiddleEllipsis = 'middle',
+  HeadEllipsis = 'head',
+}
+
+export enum AlignItems {
+  flexStart = 'flex-start',
+  flexEnd = 'flex-end',
+  center = 'center',
+  baseline = 'baseline',
+  stretch = 'stretch',
+}
+
+export enum TextAlign {
+  left = 'left',
+  right = 'right',
+  center = 'center',
+}
+
+export enum JustifyContent {
+  flexStart = 'flex-start',
+  flexEnd = 'flex-end',
+  center = 'center',
+  spaceAround = 'space-around',
+  spaceBetween = 'space-between',
+  spaceEvenly = 'space-evenly',
+}
+
+export enum FlexDirection {
+  Row = 'row',
+  RowReverse = 'row-reverse',
+  Column = 'column',
+  ColumnReverse = 'column-reverse',
+}
+
+export enum Display {
+  Block = 'block',
+  Flex = 'flex',
+  Grid = 'grid',
+  InlineBlock = 'inline-block',
+  Inline = 'inline',
+  InlineFlex = 'inline-flex',
+  InlineGrid = 'inline-grid',
+  ListItem = 'list-item',
+  None = 'none',
+}
+
+export enum BlockSize {
+  Zero = '0',
+  Half = '1/2',
+  OneThird = '1/3',
+  TwoThirds = '2/3',
+  OneFourth = '1/4',
+  TwoFourths = '2/4',
+  ThreeFourths = '3/4',
+  OneFifth = '1/5',
+  TwoFifths = '2/5',
+  ThreeFifths = '3/5',
+  FourFifths = '4/5',
+  OneSixth = '1/6',
+  TwoSixths = '2/6',
+  ThreeSixths = '3/6',
+  FourSixths = '4/6',
+  FiveSixths = '5/6',
+  OneTwelfth = '1/12',
+  TwoTwelfths = '2/12',
+  ThreeTwelfths = '3/12',
+  FourTwelfths = '4/12',
+  FiveTwelfths = '5/12',
+  SixTwelfths = '6/12',
+  SevenTwelfths = '7/12',
+  EightTwelfths = '8/12',
+  NineTwelfths = '9/12',
+  TenTwelfths = '10/12',
+  ElevenTwelfths = '11/12',
+  Screen = 'screen',
+  Max = 'max',
+  Min = 'min',
+  Full = 'full',
+}
+
+export enum BorderColor {
+  borderDefault = colors.border.default,
+  borderMuted = colors.border.muted,
+  primaryDefault = colors.primary.default,
+  primaryAlternative = colors.primary.alternative,
+  primaryMuted = colors.primary.muted,
+  errorDefault = colors.error.default,
+  errorAlternative = colors.error.alternative,
+  errorMuted = colors.error.muted,
+  warningDefault = colors.warning.default,
+  warningMuted = colors.warning.muted,
+  successDefault = colors.success.default,
+  successMuted = colors.success.muted,
+  infoDefault = colors.info.default,
+  infoMuted = colors.info.muted,
+  mainnet = colors.network.mainnet,
+  goerli = colors.network.goerli,
+  sepolia = colors.network.sepolia,
+  lineaGoerli = colors.network.lineaGoerli,
+  lineaSepolia = colors.network.lineaSepolia,
+  lineaMainnet = colors.network.lineaMainnet,
+  transparent = 'transparent',
+  localhost = colors.network.localhost,
+  backgroundDefault = colors.background.default,
+}

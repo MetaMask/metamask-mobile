@@ -1,17 +1,9 @@
-import { Heading } from '@metamask/snaps-sdk';
+import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
-import { mapTextToTemplate } from '../utils';
-import { getJsxChildren } from '@metamask/snaps-utils';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 
-export const heading: UIComponentFactory<Heading> = ({
-  element,
-  ...params
-}) => ({
-  element: 'Text',
-  children: mapTextToTemplate(getJsxChildren(element), params),
+export const heading: UIComponentFactory<HeadingElement> = ({ element }) => ({
+  element: 'SheetHeader',
   props: {
-    variant: TextVariant.HeadingSM,
-    style: { overflowWrap: 'anywhere' },
+    title: element.props.children,
   },
 });

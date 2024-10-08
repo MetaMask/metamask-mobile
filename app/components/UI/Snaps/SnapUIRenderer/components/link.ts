@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { LinkElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
@@ -8,7 +9,7 @@ export const link: UIComponentFactory<LinkElement> = ({
   element,
   ...params
 }) => ({
-  element: 'Text', // TODO: Use proper component
+  element: 'SnapUILink',
   children: mapTextToTemplate(
     getJsxChildren(element) as NonEmptyArray<string | JSXElement>,
     params,

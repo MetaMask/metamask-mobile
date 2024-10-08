@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { ImageElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
 

@@ -1,18 +1,23 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
-import { mapTextToTemplate } from '../utils';
-import { getJsxChildren } from '@metamask/snaps-utils';
+import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 
-export const button: UIComponentFactory<ButtonElement> = ({
-  element,
-  ...params
-}) => ({
-  element: 'SnapUIButton',
-  props: {
-    type: element.props.type,
-    variant: element.props.variant,
-    name: element.props.name,
-    disabled: element.props.disabled,
-  },
-  children: mapTextToTemplate(getJsxChildren(element), params),
-});
+
+type ExtendedButtonProps = ButtonProps & Record<string, unknown>;
+
+export const Button: UIComponentFactory<ButtonElement> = ({ element }) => {
+
+  const buttonProps: ExtendedButtonProps = {
+    ...element.props as unknown as ExtendedButtonProps,
+  };
+
+  if (element.props.name) {
+    buttonProps.label = element.props.children;
+  }
+
+  return {
+    element: 'Button',
+    props: buttonProps,
+  };
+};
