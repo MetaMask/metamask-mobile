@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import Animated, {
   Extrapolate,
   interpolate,
-  useAnimatedScrollHandler,f"
+  useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
