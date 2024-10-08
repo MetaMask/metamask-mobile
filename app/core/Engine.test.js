@@ -1,5 +1,6 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
+import { ControllerMessenger } from '@metamask/base-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 
@@ -209,6 +210,45 @@ describe('Engine', () => {
         tokenFiat,
         tokenFiat1dAgo,
       });
+    });
+  });
+
+  describe('updateNFTOwnership', () => {
+    it('should not call updateNFTOwnership', async () => {
+      const engine = Engine.init(backgroundState);
+      const onFinishedTransactionSpy = jest.spyOn(
+        engine,
+        'onFinishedTransaction',
+      );
+      const updateNFTOwnershipSpy = jest.spyOn(engine, 'updateNFTOwnership');
+      jest.spyOn(ControllerMessenger.prototype, 'subscribe');
+      engine.controllerMessenger.publish(
+        'TransactionController:transactionStatusUpdated',
+        {
+          transactionMeta: { status: 'failed' },
+        },
+      );
+      expect(onFinishedTransactionSpy).toHaveBeenCalledTimes(1);
+      expect(updateNFTOwnershipSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should call updateNFTOwnership when transaction is confirmed', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const onFinishedTransactionSpy = jest.spyOn(
+        engine,
+        'onFinishedTransaction',
+      );
+      const updateNFTOwnershipSpy = jest.spyOn(engine, 'updateNFTOwnership');
+      jest.spyOn(ControllerMessenger.prototype, 'subscribe');
+      engine.controllerMessenger.publish(
+        'TransactionController:transactionStatusUpdated',
+        {
+          transactionMeta: { status: 'confirmed' },
+        },
+      );
+      expect(onFinishedTransactionSpy).toHaveBeenCalledTimes(1);
+      expect(updateNFTOwnershipSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

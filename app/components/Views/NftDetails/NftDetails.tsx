@@ -43,14 +43,19 @@ import BigNumber from 'bignumber.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { renderShortText } from '../../../util/general';
+import { renderShortText, toLowerCaseEquals } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
+import Engine from '../../../core/Engine';
+import { collectiblesSelector } from '../../../reducers/collectibles';
+import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 
 const NftDetails = () => {
   const navigation = useNavigation();
-  const { collectible } = useParams<NftDetailsParams>();
+  const { collectible: collectibleParam } = useParams<NftDetailsParams>();
+  const [collectible, setCollectible] = useState(collectibleParam);
+  const collectibles: Collectible[] = useSelector(collectiblesSelector);
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -93,6 +98,31 @@ const NftDetails = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
+
+  const updateOwnership = async () => {
+    const { NftController } = Engine.context;
+    await NftController.checkAndUpdateSingleNftOwnershipStatus(
+      collectible,
+      false,
+    );
+  };
+
+  useEffect(() => {
+    const updateOwnershipAndSetCollectible = async () => {
+      await updateOwnership();
+      const refreshedCollectible = collectibles?.find(
+        (singleCollectible) =>
+          toLowerCaseEquals(singleCollectible.address, collectible.address) &&
+          singleCollectible.tokenId.toString() === collectible.tokenId,
+      );
+      setCollectible({
+        ...collectible,
+        isCurrentlyOwned: refreshedCollectible?.isCurrentlyOwned,
+      });
+    };
+    updateOwnershipAndSetCollectible();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
@@ -160,18 +190,13 @@ const NftDetails = () => {
   };
 
   const onSend = useCallback(async () => {
-    dispatch(
-      newAssetTransaction({ contractName: collectible.name, ...collectible }),
-    );
-    navigation.navigate('SendFlowView');
+    if (collectible.isCurrentlyOwned === true) {
+      dispatch(
+        newAssetTransaction({ contractName: collectible.name, ...collectible }),
+      );
+      navigation.navigate('SendFlowView');
+    }
   }, [collectible, navigation, dispatch]);
-
-  const isTradable = useCallback(
-    () =>
-      collectible.standard === 'ERC721' &&
-      collectible.isCurrentlyOwned === true,
-    [collectible],
-  );
 
   const getCurrentHighestBidValue = () => {
     if (
@@ -637,13 +662,14 @@ const NftDetails = () => {
         </View>
       </ScrollView>
 
-      {isTradable() ? (
+      {collectible.standard === 'ERC721' ? (
         <View style={styles.buttonSendWrapper}>
           <StyledButton
+            testID="send"
             type={'confirm'}
             containerStyle={styles.buttonSend}
             onPress={onSend}
-            disabled={false} // TODO check why ERC1155 is still disabled on mobile
+            disabled={collectible.isCurrentlyOwned === false}
           >
             {strings('transaction.send')}
           </StyledButton>

@@ -238,7 +238,7 @@ describe('CollectibleContracts', () => {
       .mockReturnValueOnce(nftItemData)
       .mockReturnValueOnce(nftItemDataUpdated);
     const spyOnContracts = jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
+      .spyOn(allSelectors, 'collectibleContractsOwnedSelector')
       .mockReturnValue(collectibleData);
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
@@ -350,7 +350,7 @@ describe('CollectibleContracts', () => {
       .mockReturnValueOnce(nftItemData)
       .mockReturnValueOnce(nftItemDataUpdated);
     const spyOnContracts = jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
+      .spyOn(allSelectors, 'collectibleContractsOwnedSelector')
       .mockReturnValue(collectibleData);
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
@@ -461,7 +461,7 @@ describe('CollectibleContracts', () => {
       .mockReturnValueOnce(nftItemData)
       .mockReturnValueOnce(nftItemDataUpdated);
     jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
+      .spyOn(allSelectors, 'collectibleContractsOwnedSelector')
       .mockReturnValue(collectibleData);
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')

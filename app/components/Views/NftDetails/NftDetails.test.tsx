@@ -1,31 +1,16 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import QrScanner from './';
+import React from 'react';
+import renderWithProvider, { DeepPartial } from '../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { RootState } from 'app/reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
-
-const initialState = {
-  engine: {
-    backgroundState,
-  },
-};
-
-const mockSetOptions = jest.fn();
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualReactNavigation,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions,
-    }),
-    useFocusEffect: jest.fn(),
-  };
-});
+import NftDetails from './';
+import Routes from '../../../constants/navigation/Routes';
+import { collectiblesSelector } from '../../../../app/reducers/collectibles';
 
 const TEST_COLLECTIBLE = {
   address: '0x7c3Ea2b7B3beFA1115aB51c09F0C9f245C500B18',
-  tokenId: 23000044,
+  tokenId: '23000044',
   favorite: false,
   isCurrentlyOwned: true,
   name: 'Aura #44',
@@ -140,18 +125,121 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NftController: {
+      checkAndUpdateSingleNftOwnershipStatus: jest.fn(),
+    },
+  },
+}));
+
+const mockCollectibleSelectorData = [
+  {
+    address: '0x7c3Ea2b7B3beFA1115aB51c09F0C9f245C500B18',
+    description: null,
+    favorite: false,
+    isCurrentlyOwned: false,
+    standard: 'ERC721',
+    tokenId: 23000044,
+    tokenURI:
+      'https://cloudflare-ipfs.com/ipfs/bafybeidxfmwycgzcp4v2togflpqh2gnibuexjy4m4qqwxp7nh3jx5zlh4y/20.json',
+  },
+];
+
+jest.mock('../../../../app/reducers/collectibles/index.js', () => ({
+  collectiblesSelector: jest.fn(),
+}));
+
+const mockCollectiblesSelector = collectiblesSelector as unknown as jest.Mock;
+
+const initialState = {
+  engine: {
+    backgroundState,
+  },
+};
+
+const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
+    }),
+  };
+});
+
+const Stack = createStackNavigator();
+
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="NftDetails">{() => <NftDetails />}</Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
+
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
+
 describe('NftDetails', () => {
-  beforeEach(() => {
+  afterEach(() => {
+    jest.restoreAllMocks();
     mockUseParamsValues = {
       collectible: TEST_COLLECTIBLE,
     };
   });
+
   it('should render correctly', () => {
-    const { toJSON } = renderScreen(
-      QrScanner,
-      { name: 'NftDetails' },
-      { state: initialState },
-    );
+    const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should should show a disabled send button when NFT is no longer owned', async () => {
+    mockCollectiblesSelector.mockReturnValue(mockCollectibleSelectorData);
+
+    const { getByTestId } = renderComponent(initialState);
+    const sendButton = getByTestId('send');
+
+    fireEvent.press(sendButton);
+
+    await waitFor(() => {
+      expect(sendButton.props.disabled).toBe(true);
+    });
+  });
+
+  it('should navigate to nft options after clicking on more icon in navbar menu', () => {
+    const { getByTestId } = renderComponent(initialState);
+    const moreButton = getByTestId('more-button');
+
+    fireEvent.press(moreButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'NftOptions',
+      params: {
+        collectible: TEST_COLLECTIBLE,
+      },
+    });
+  });
+
+  it('should not show description if it does not exist', () => {
+    const testDescription = TEST_COLLECTIBLE.description;
+    mockUseParamsValues = {
+      collectible: {
+        ...TEST_COLLECTIBLE,
+        description: null as unknown as string,
+      },
+    };
+
+    const { queryByText } = renderComponent(initialState);
+    expect(queryByText(testDescription)).toBeNull();
   });
 });

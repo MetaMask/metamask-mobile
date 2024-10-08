@@ -15,6 +15,7 @@ export const CommonSelectorsIDs = {
   NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
   STATUS_CONFIRMED: 'status-confirmed-text',
   ANDROID_PROGRESS_BAR: 'android.widget.ProgressBar',
+  MORE_BUTTON: 'more-button',
 };
 
 export const CommonSelectorsText = {

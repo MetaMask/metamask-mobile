@@ -1194,6 +1194,7 @@ export function getNftDetailsNavbarOptions(
             name={IconName.MoreVertical}
             size={IconSize.Lg}
             style={innerStyles.headerBackIcon}
+            testID={CommonSelectorsIDs.MORE_BUTTON}
           />
         </TouchableOpacity>
       )
