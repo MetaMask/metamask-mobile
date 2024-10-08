@@ -87,7 +87,9 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   right={true}
                   style={
                     {
+                      "flex": 1,
                       "fontSize": 48,
+                      "textAlign": "center",
                     }
                   }
                 >
@@ -98,7 +100,9 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 black={true}
                 style={
                   {
+                    "flex": 1,
                     "fontSize": 48,
+                    "textAlign": "center",
                   }
                 }
               />
