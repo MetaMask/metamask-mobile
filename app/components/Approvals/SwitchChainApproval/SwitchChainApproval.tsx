@@ -14,6 +14,7 @@ const SwitchChainApproval = () => {
     onReject,
   } = useApprovalRequest();
 
+  console.log('ALEX LOGGING: approvalRequest', approvalRequest);
   const dispatch = useDispatch();
 
   const onConfirm = useCallback(() => {

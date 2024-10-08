@@ -394,6 +394,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
     };
+    console.log('ALEX LOGGING: renderPermissionsSummaryScreen in accountPermissions', permissionsSummaryProps);
     return <PermissionsSummary {...permissionsSummaryProps} />;
   }, [faviconSource, urlWithProtocol, isRenderedAsBottomSheet, navigation]);
 

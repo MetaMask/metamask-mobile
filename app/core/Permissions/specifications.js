@@ -23,7 +23,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
  */
 export const PermissionKeys = Object.freeze({
   ...RestrictedMethods,
-  permittedChains: 'permittedChains',
+  permittedChains: 'endowment:permitted-chains',
 });
 
 /**

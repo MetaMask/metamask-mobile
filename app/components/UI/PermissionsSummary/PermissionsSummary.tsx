@@ -30,8 +30,6 @@ import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
-import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../selectors/networkInfos';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
@@ -40,6 +38,10 @@ import ButtonIcon, {
 
 const PermissionsSummary = ({
   currentPageInformation,
+  customNetworkInformation,
+  onConfirm,
+  onCancel,
+  requestData,
   onEdit,
   onEditNetworks,
   onBack,
@@ -54,14 +56,20 @@ const PermissionsSummary = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
-  const networkName = useSelector(selectNetworkName);
-
+  console.log('ALEX LOGGING: customNetworkInformation', customNetworkInformation);
+  console.log('ALEX LOGGING: isNetworkSwitch', isNetworkSwitch);
+  // const { chainName } = customNetworkInformation;
+  // TODO get diff from requestData
+  // TODO get chainName from networkController based on chainId requested
+  const chainName = 'ALEX LOGGING: chainName';
   const confirm = () => {
     onUserAction?.(USER_INTENT.Confirm);
+    // onConfirm?.();
   };
 
   const cancel = () => {
     onUserAction?.(USER_INTENT.Cancel);
+    // onCancel?.();
   };
 
   const handleEditAccountsButtonPress = () => {
@@ -214,7 +222,7 @@ const PermissionsSummary = ({
                     {strings('permissions.requesting_for')}
                   </TextComponent>
                   <TextComponent variant={TextVariant.BodySMMedium}>
-                    {networkName}
+                    {chainName}
                   </TextComponent>
                 </TextComponent>
               </View>
