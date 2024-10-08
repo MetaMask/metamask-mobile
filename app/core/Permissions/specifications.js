@@ -87,11 +87,14 @@ export const getCaveatSpecifications = ({
     type: CaveatTypes.restrictNetworkSwitching,
     validator: (caveat, _origin, _target) =>
       validateCaveatNetworks(caveat.value, findNetworkClientIdByChainId),
+    /**
+     * @param {any[]} leftValue
+     * @param {any[]} rightValue
+     * @returns {[any[], any[]]}
+     */
     merger: (leftValue, rightValue) => {
       const newValue = Array.from(new Set([...leftValue, ...rightValue]));
       const diff = newValue.filter((value) => !leftValue.includes(value));
-
-      /** @type {[any, any]} */
       return [newValue, diff];
     },
   },
