@@ -1,8 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
-import TestHelpers from '../../helpers';
 
 class BuildQuoteView {
   get amountToBuyLabel() {

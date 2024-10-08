@@ -16,7 +16,6 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import QuoteView from '../../pages/Ramps/QuoteView';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
