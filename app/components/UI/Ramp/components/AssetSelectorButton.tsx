@@ -43,7 +43,7 @@ const AssetSelectorButton: React.FC<Props> = ({
   ...props
 }: Props) => (
   <Box label={label} onPress={onPress} highlighted={highlighted} {...props}>
-    <View testID="token-selector">
+    <View>
       <ListItem.Content>
         {Boolean(icon) && <ListItem.Icon>{icon}</ListItem.Icon>}
         <ListItem.Body>

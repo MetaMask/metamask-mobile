@@ -76,7 +76,6 @@ const AmountInput: React.FC<Props> = ({
             disabled={!onCurrencyPress}
             onPress={onCurrencyPress}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-            testID={"currency-selector"}
           >
             <CurrencyChevron currency={currencyCode} />
           </TouchableOpacity>
