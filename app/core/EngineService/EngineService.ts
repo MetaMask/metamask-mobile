@@ -124,6 +124,10 @@ class EngineService {
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
       {
+        name: 'SnapInterfaceController',
+        key: `${engine.context.SnapInterfaceController.name}:stateChange`,
+      },
+      {
         name: 'AuthenticationController',
         key: 'AuthenticationController:stateChange',
       },

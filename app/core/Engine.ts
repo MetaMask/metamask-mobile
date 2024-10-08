@@ -123,6 +123,8 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
+  SnapInterfaceControllerState,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -355,6 +357,7 @@ export interface EngineState {
   NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
+  SnapInterfaceController: SnapInterfaceControllerState;
   SnapsRegistry: SnapsRegistryState;
   SubjectMetadataController: SubjectMetadataControllerState;
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
@@ -928,6 +931,14 @@ class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -1214,6 +1225,22 @@ class Engine {
         disableSnaps:
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
+    });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+        ],
+        allowedEvents: [],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: snapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1608,6 +1635,7 @@ class Engine {
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
       loggingController,
+      snapInterfaceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       this.snapController,
       this.subjectMetadataController,
@@ -2198,6 +2226,7 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      SnapInterfaceController,
       AuthenticationController,
       UserStorageController,
       NotificationServicesController,
@@ -2243,6 +2272,7 @@ export default {
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
+      SnapInterfaceController,
       AuthenticationController,
       UserStorageController,
       NotificationServicesController,
