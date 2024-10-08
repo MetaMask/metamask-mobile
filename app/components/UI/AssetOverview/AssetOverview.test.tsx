@@ -133,7 +133,7 @@ describe('AssetOverview', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('Swaps', {
       params: {
         sourcePage: 'MainView',
-        sourceToken: '0x0000000000000000000000000000000000000000',
+        sourceToken: asset.address,
       },
       screen: 'SwapsAmountView',
     });

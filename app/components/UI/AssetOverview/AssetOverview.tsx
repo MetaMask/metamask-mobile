@@ -46,7 +46,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -97,12 +97,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
+      SwapsController: SwapsController;
+    };
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsController.fetchTokenWithCache();
+        await SwapsControllerFromEngine.fetchTokenWithCache();
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -135,7 +135,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourceToken: asset.address,
         sourcePage: 'MainView',
       },
     });

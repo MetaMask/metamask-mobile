@@ -94,10 +94,13 @@ class EngineService {
         key: `${engine.context.TransactionController.name}:stateChange`,
       },
       {
+        name: 'SwapsController',
+        key: `${engine.context.SwapsController.name}:stateChange`,
+      },
+      {
         name: 'SmartTransactionsController',
         key: `${engine.context.SmartTransactionsController.name}:stateChange`,
       },
-      { name: 'SwapsController' },
       {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,
