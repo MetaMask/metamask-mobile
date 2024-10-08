@@ -1,3 +1,0 @@
-yarn run v1.22.22
-$ /Users/alex/Documents/metamask/metamask-mobile/node_modules/.bin/jest wallet_AddEthereumChain.test.js
-info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
