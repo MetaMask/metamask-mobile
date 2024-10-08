@@ -1,7 +1,6 @@
 import React from 'react';
 import { TokenI, BrowserTab } from '../../types';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
@@ -26,6 +25,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
+import { RootState } from '../../../../../reducers';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -34,14 +34,10 @@ interface StakeButtonProps {
 export const StakeButton = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { trackEvent } = useMetrics();
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserTabs = useSelector((state: any) => state.browser.tabs);
+  const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
 
   const onStakeButtonPress = () => {

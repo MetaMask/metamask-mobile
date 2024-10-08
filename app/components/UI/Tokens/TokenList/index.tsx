@@ -29,6 +29,11 @@ interface TokenListProps {
   setIsAddTokenEnabled: (arg: boolean) => void;
 }
 
+interface TokenListNavigationParamList {
+  AddAsset: { assetType: string };
+  [key: string]: undefined | object;
+}
+
 export const TokenList = ({
   tokens,
   refreshing,
@@ -38,9 +43,10 @@ export const TokenList = ({
   goToAddToken,
   setIsAddTokenEnabled,
 }: TokenListProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
+    >();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
@@ -65,7 +71,6 @@ export const TokenList = ({
 
   return tokens?.length ? (
     <FlatList
-      ListHeaderComponent={<>{/* TODO: TokenListControlBar will go here */}</>}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem

@@ -12,8 +12,8 @@ export default {
   DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
-  IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
-  IPNS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipns/',
+  IPFS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipfs/',
+  IPNS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipns/',
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
@@ -40,7 +40,10 @@ export default {
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-  HOMEPAGE_URL: process.env.MM_HOMEPAGE || 'https://home.metamask.io/',
+  HOMEPAGE_URL:
+    process.env.MM_HOMEPAGE ||
+    'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
+  OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
   USER_AGENT: Device.isAndroid()
@@ -168,8 +171,6 @@ export default {
     WC: 'WalletConnect',
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
-    SDK_ANDROID: 'MetaMask-SDK-Android',
-    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
