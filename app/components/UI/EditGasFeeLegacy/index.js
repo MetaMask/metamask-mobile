@@ -22,7 +22,6 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { editGasFeeStyles } from '../EditGasFee1559/styles';
 
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
@@ -34,6 +33,7 @@ import {
 } from '../../../util/gasUtils';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getAnalyticsParams } from '../EditGasFee1559/utils';
+import { editGasFee1559Styles } from '../EditGasFee1559/styles';
 
 /**
  * The EditGasFeeLegacy component will be deprecated in favor of EditGasFeeLegacyUpdate as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFeeLegacyUpdate will be renamed EditGasFeeLegacy and this component will be removed. The EditGasFeeLegacyUpdate is currently being used in the Update Transaction(Speed Up/Cancel) flow.
@@ -73,7 +73,7 @@ const EditGasFeeLegacy = ({
   const [gasPriceError, setGasPriceError] = useState();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
-  const styles = editGasFeeStyles(colors);
+  const styles = editGasFee1559Styles(colors);
 
   const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
