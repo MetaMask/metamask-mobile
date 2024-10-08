@@ -2,10 +2,11 @@ import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 
 export const editGasFee1559Styles = (colors: {
-  background: { default: string };
-  text: { default: string };
+  background: { default: string; muted: string };
+  text: { default: string; muted: string };
   border: { muted: string };
   info: { default: string };
+  error: { default: string };
 }) =>
   StyleSheet.create({
     root: {
