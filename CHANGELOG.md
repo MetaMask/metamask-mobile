@@ -3,7 +3,6 @@
 ## Current Main Branch
 
 ## 7.33.0 - Oct 3, 2024
-
 ### Added
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
 - [#11347](https://github.com/MetaMask/metamask-mobile/pull/11347): "chore: revert ""feat: react native fast crypto for notifications"" (#11347)"
@@ -110,9 +109,7 @@
 - [#11552](https://github.com/MetaMask/metamask-mobile/pull/11552): fix(11481): android system alert respects dark mode themes (#11552)
 - [#11518](https://github.com/MetaMask/metamask-mobile/pull/11518): fix(11482): incorrect QR code error (#11518)
 
-
-## 7.32.0 - Sep 19, 2024
-
+## 7.32.0 - Oct 7, 2024
 ### Added
 
 - [#10294](https://github.com/MetaMask/metamask-mobile/pull/10294): feat: create redux slice for featureFlags (#10294)
@@ -200,6 +197,9 @@
 - [#11193](https://github.com/MetaMask/metamask-mobile/pull/11193): fix: ItemMenu crash using dayjs (#11193)
 - [#11098](https://github.com/MetaMask/metamask-mobile/pull/11098): fix: badge count and ui polishing (#11098)
 
+## 7.31.1 - Oct 4, 2024
+### Fixed
+- [#11631](https://github.com/MetaMask/metamask-mobile/pull/11631): fix: Fixes UI issue in token details (#11631)
 
 ## 7.31.0 - Sep 6, 2024
 ### Added
