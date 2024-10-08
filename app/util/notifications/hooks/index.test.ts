@@ -74,7 +74,7 @@ describe('useNotificationHandler', () => {
     jest.clearAllMocks();
   });
 
-  it('should navigate to NOTIFICATIONS.DETAILS if notification is pressed', async () => {
+  it('navigates to NOTIFICATIONS.DETAILS when notification is pressed', async () => {
     const { result } = renderHook(() => useNotificationHandler(mockNavigation));
 
     await result.current.handlePressedNotification(notification);
