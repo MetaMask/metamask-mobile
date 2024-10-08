@@ -284,7 +284,7 @@ export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
 }
 
-export function isprivateConnection(hostname) {
+export function isPrivateConnection(hostname) {
   return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
