@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../Text';
@@ -140,7 +140,7 @@ Circle.propTypes = {
 function Option({ onPress, name, ...props }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const handlePress = () => onPress(name);
+  const handlePress = useCallback(() => onPress(name), [name, onPress]);
   return (
     <TouchableOpacity onPress={handlePress} style={styles.option} {...props} />
   );
@@ -161,7 +161,10 @@ function HorizontalSelector({
 }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const hasTopLabels = () => options.some((option) => option.topLabel);
+  const hasTopLabels = useMemo(
+    () => options.some((option) => option.topLabel),
+    [options],
+  );
 
   return (
     <View {...props}>

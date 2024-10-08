@@ -1,5 +1,10 @@
-/* eslint-disable react/no-unstable-nested-components */
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {
@@ -360,7 +365,7 @@ const App = (props) => {
     });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = ({ error, params, uri }) => {
+  const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
       trackErrorAsAnalytics(error, 'Branch:');
     }
@@ -375,7 +380,7 @@ const App = (props) => {
     } catch (e) {
       Logger.error(e, `Deeplink: Error parsing deeplink`);
     }
-  };
+  }, []);
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
@@ -389,7 +394,7 @@ const App = (props) => {
           handleDeeplink({ uri: url });
         }
       });
-  }, []);
+  }, [handleDeeplink]);
 
   useEffect(() => {
     if (navigator) {
@@ -434,7 +439,7 @@ const App = (props) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, navigator, queueOfHandleDeeplinkFunctions]);
+  }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     const initMetrics = async () => {
