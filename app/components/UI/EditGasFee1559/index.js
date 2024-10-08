@@ -37,7 +37,7 @@ import {
 } from '../../../util/gasUtils';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getAnalyticsParams } from './utils';
-import { editGasFee1559Styles } from './styles';
+import createStyles from '../UI/EditGasFee1559/styles';
 
 /**
  * The EditGasFee1559 component will be deprecated in favor of EditGasFee1559Update as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFee1559Update will be renamed EditGasFee1559 and this component will be removed. The EditGasFee1559Update is currently being used in the Update Transaction(Speed Up/Cancel) flow.
@@ -95,7 +95,7 @@ const EditGasFee1559 = ({
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
-  const styles = editGasFee1559Styles(colors);
+  const styles = createStyles(colors);
 
   const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
