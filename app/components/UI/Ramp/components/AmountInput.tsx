@@ -1,18 +1,20 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Box from './Box';
-import BaseListItem from '../../../Base/ListItem';
-import Text from '../../../Base/Text';
 import CurrencyChevron from './CurrencyChevron';
-
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 
 const styles = StyleSheet.create({
   amount: {
     fontSize: 24,
+    lineHeight: 32,
   },
   chevron: {
     flex: 0,
@@ -45,9 +47,9 @@ const AmountInput: React.FC<Props> = ({
   onPress,
   onCurrencyPress,
 }: Props) => (
-  <Box label={label} highlighted={highlighted}>
-    <ListItem.Content>
-      <ListItem.Body>
+  <Box label={label} highlighted={highlighted} compact>
+    <ListItem>
+      <ListItemColumn widthType={WidthType.Fill}>
         <TouchableOpacity
           accessible
           accessibilityRole="button"
@@ -56,20 +58,20 @@ const AmountInput: React.FC<Props> = ({
           testID={"amount-input"}
         >
           <Text
-            black={!highlightedError}
-            red={highlightedError}
-            bold
-            style={styles.amount}
             numberOfLines={1}
             adjustsFontSizeToFit
+            style={styles.amount}
+            variant={TextVariant.BodyMDMedium}
+            color={highlightedError ? TextColor.Error : TextColor.Default}
           >
             {currencySymbol || ''}
             {amount}
           </Text>
         </TouchableOpacity>
-      </ListItem.Body>
+      </ListItemColumn>
+
       {onCurrencyPress ? (
-        <ListItem.Amounts style={styles.chevron}>
+        <ListItemColumn style={styles.chevron}>
           <TouchableOpacity
             accessible
             accessibilityRole="button"
@@ -80,9 +82,9 @@ const AmountInput: React.FC<Props> = ({
           >
             <CurrencyChevron currency={currencyCode} />
           </TouchableOpacity>
-        </ListItem.Amounts>
+        </ListItemColumn>
       ) : null}
-    </ListItem.Content>
+    </ListItem>
   </Box>
 );
 
