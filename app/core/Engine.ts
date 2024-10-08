@@ -569,7 +569,6 @@ class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      // @ts-expect-error TODO: Resolve bump the assets controller version.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -654,7 +653,6 @@ class Engine {
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
       selectedAddress: preferencesController.state.selectedAddress,
-      // @ts-expect-error TODO: Resolve provider type mismatch
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -953,7 +951,6 @@ class Engine {
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId,
         ),
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1530,7 +1527,6 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1782,7 +1778,6 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
