@@ -1243,7 +1243,7 @@ class Engine {
         accountSyncing: {
           onAccountAdded: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
-              MetaMetricsEvents.ACCOUNTS_SYNC_ACCOUNT_ADDED,
+              MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
               {
                 profile_id: profileId,
               },
@@ -1251,7 +1251,7 @@ class Engine {
           },
           onAccountNameUpdated: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
-              MetaMetricsEvents.ACCOUNTS_SYNC_ACCOUNT_NAME_UPDATED,
+              MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
               {
                 profile_id: profileId,
               },
