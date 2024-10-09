@@ -12,23 +12,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'column',
       justifyContent: 'center',
     },
-    inputContainer: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-      justifyContent: 'center',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 16,
-    },
-    amountRow: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 4,
-    },
-    amountContainer: {
-      alignItems: 'center',
-    },
     stakeButtonText: {
       fontSize: 18,
       color: colors.text.alternative,
