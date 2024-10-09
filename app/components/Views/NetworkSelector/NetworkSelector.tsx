@@ -95,6 +95,7 @@ import {
   MAINNET_DEFAULT_RPC_URL,
 } from '../../../constants/urls';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 interface infuraNetwork {
   name: string;
@@ -235,17 +236,12 @@ const NetworkSelector = () => {
     });
   };
 
-  const onSetRpcTarget = async (rpcTarget: string) => {
+  const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
     const {
       CurrencyRateController,
       NetworkController,
       SelectedNetworkController,
     } = Engine.context;
-
-    const networkConfiguration = Object.values(networkConfigurations).find(
-      ({ rpcEndpoints }) =>
-        rpcEndpoints.some(({ url }) => compareRpcUrls(url, rpcTarget)),
-    );
 
     if (networkConfiguration) {
       const {
@@ -267,8 +263,7 @@ const NetworkSelector = () => {
       } else {
         CurrencyRateController.updateExchangeRate(ticker);
 
-        const { networkClientId } =
-          rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+        const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
         await NetworkController.setActiveNetwork(networkClientId);
       }
@@ -489,94 +484,95 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
+        isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
   };
 
   const renderRpcNetworks = () =>
-    Object.values(networkConfigurations).map(
-      ({ name: nickname, rpcEndpoints, chainId, defaultRpcEndpointIndex }) => {
-        if (
-          !chainId ||
-          isTestNet(chainId) ||
-          isMainNet(chainId) ||
-          chainId === CHAIN_IDS.LINEA_MAINNET ||
-          chainId === CHAIN_IDS.GOERLI
-        ) {
-          return null;
-        }
+    Object.values(networkConfigurations).map((networkConfiguration) => {
+      const {
+        name: nickname,
+        rpcEndpoints,
+        chainId,
+        defaultRpcEndpointIndex,
+      } = networkConfiguration;
+      if (
+        !chainId ||
+        isTestNet(chainId) ||
+        isMainNet(chainId) ||
+        chainId === CHAIN_IDS.LINEA_MAINNET ||
+        chainId === CHAIN_IDS.GOERLI
+      ) {
+        return null;
+      }
 
-        const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? '';
-        const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
+      const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
+      const rpcName = rpcEndpoints[defaultRpcEndpointIndex].name ?? rpcUrl;
 
-        const name = nickname || rpcName;
+      const name = nickname || rpcName;
 
-        if (isNetworkUiRedesignEnabled() && isNoSearchResults(name))
-          return null;
+      if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-        const image = getNetworkImageSource({ chainId: chainId?.toString() });
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      const image = getNetworkImageSource({ chainId: chainId?.toString() });
 
-        if (isNetworkUiRedesignEnabled()) {
-          return (
-            <Cell
-              key={chainId}
-              variant={CellVariant.SelectWithMenu}
-              title={name}
-              avatarProps={{
-                variant: AvatarVariant.Network,
-                name,
-                imageSource: image,
-                size: AvatarSize.Sm,
-              }}
-              isSelected={Boolean(
-                chainId === selectedChainId && selectedRpcUrl,
-              )}
-              onPress={() => onSetRpcTarget(rpcUrl)}
-              style={styles.networkCell}
-              buttonIcon={IconName.MoreVertical}
-              secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
-              onButtonClick={() => {
-                openModal(chainId, true, rpcUrl, false);
-              }}
-              onTextClick={() =>
-                openRpcModal({
-                  rpcUrls: [hideKeyFromUrl(rpcUrl)],
-                  chainId,
-                  networkName: name,
-                })
-              }
-            />
-          );
-        }
-
+      if (isNetworkUiRedesignEnabled()) {
         return (
           <Cell
-            key={`${chainId}-${rpcUrl}`}
-            testID={NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(name)}
-            variant={CellVariant.Select}
+            key={chainId}
+            variant={CellVariant.SelectWithMenu}
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
-              size: avatarSize,
+              size: AvatarSize.Sm,
             }}
-            isSelected={Boolean(
-              chainId === selectedChainId && selectedRpcUrl === rpcUrl,
-            )}
-            onPress={() => onSetRpcTarget(rpcUrl)}
+            isSelected={Boolean(chainId === selectedChainId && selectedRpcUrl)}
+            onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
-          >
-            {Boolean(
-              chainId === selectedChainId && selectedRpcUrl === rpcUrl,
-            ) && <View testID={`${name}-selected`} />}
-          </Cell>
+            buttonIcon={IconName.MoreVertical}
+            secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
+            onButtonClick={() => {
+              openModal(chainId, true, rpcUrl, false);
+            }}
+            onTextClick={() =>
+              openRpcModal({
+                rpcUrls: [hideKeyFromUrl(rpcUrl)],
+                chainId,
+                networkName: name,
+              })
+            }
+          />
         );
-      },
-    );
+      }
+
+      return (
+        <Cell
+          key={`${chainId}-${rpcUrl}`}
+          testID={NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(name)}
+          variant={CellVariant.Select}
+          title={name}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name,
+            imageSource: image,
+            size: avatarSize,
+          }}
+          isSelected={Boolean(
+            chainId === selectedChainId && selectedRpcUrl === rpcUrl,
+          )}
+          onPress={() => onSetRpcTarget(networkConfiguration)}
+          style={styles.networkCell}
+        >
+          {Boolean(
+            chainId === selectedChainId && selectedRpcUrl === rpcUrl,
+          ) && <View testID={`${name}-selected`} />}
+        </Cell>
+      );
+    });
 
   const renderOtherNetworks = () => {
     const getAllNetworksTyped =
@@ -596,7 +592,7 @@ const NetworkSelector = () => {
       const rpcUrl =
         networkConfiguration?.rpcEndpoints?.[
           networkConfiguration?.defaultRpcEndpointIndex
-        ].url ?? '';
+        ].url;
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 

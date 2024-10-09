@@ -84,6 +84,7 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -853,26 +854,23 @@ export class NetworkSettings extends PureComponent {
       return;
     }
 
-    const isValidRpc = await this.validateRpcUrl();
-    if (isValidRpc) {
-      await this.handleNetworkUpdate({
-        rpcUrl,
-        chainId,
-        nickname,
-        ticker,
-        blockExplorerUrl,
-        blockExplorerUrls,
-        rpcUrls,
-        isNetworkExists,
-        isCustomMainnet,
-        shouldNetworkSwitchPopToWallet,
-        navigation,
-        nativeToken,
-        networkType,
-        networkUrl,
-        showNetworkOnboarding,
-      });
-    }
+    await this.handleNetworkUpdate({
+      rpcUrl,
+      chainId,
+      nickname,
+      ticker,
+      blockExplorerUrl,
+      blockExplorerUrls,
+      rpcUrls,
+      isNetworkExists,
+      isCustomMainnet,
+      shouldNetworkSwitchPopToWallet,
+      navigation,
+      nativeToken,
+      networkType,
+      networkUrl,
+      showNetworkOnboarding,
+    });
   };
 
   /**
@@ -1842,6 +1840,9 @@ export class NetworkSettings extends PureComponent {
                       ]?.url,
                     )
                   }
+                  avatarProps={{
+                    variant: AvatarVariant.Network,
+                  }}
                   isSelected={false}
                   onPress={this.openRpcModal}
                   buttonIcon={IconName.ArrowDown}
@@ -1948,6 +1949,9 @@ export class NetworkSettings extends PureComponent {
                   onPress={this.openBlockExplorerModal}
                   buttonIcon={IconName.ArrowDown}
                   onButtonClick={() => this.openBlockExplorerModal()}
+                  avatarProps={{
+                    variant: AvatarVariant.Network,
+                  }}
                 />
               </View>
             ) : (
@@ -2149,6 +2153,9 @@ export class NetworkSettings extends PureComponent {
                   onButtonClick={async () => {
                     await this.onBlockExplorerUrlDelete(url);
                   }}
+                  avatarProps={{
+                    variant: AvatarVariant.Network,
+                  }}
                 />
               ))}
               <View style={styles.addRpcButton}>
@@ -2193,6 +2200,9 @@ export class NetworkSettings extends PureComponent {
                   onTextClick={async () => {
                     await this.onRpcUrlChangeWithName(url, name, type);
                     this.closeRpcModal();
+                  }}
+                  avatarProps={{
+                    variant: AvatarVariant.Token,
                   }}
                 />
               ))}
