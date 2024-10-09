@@ -28,7 +28,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     isETH: false,
     balanceFiat: '50',
     aggregators: [],
-    balanceError: null,
+    hasBalanceError: false,
     image: '',
     name: '',
     logo: undefined,

@@ -127,7 +127,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
-import QRScanner from '../../Views/QRScanner';
+import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -563,153 +563,153 @@ const App = (props) => {
     [],
   );
 
-  const RootModalFlow = useCallback(
-    () => (
-      <Stack.Navigator
-        mode={'modal'}
-        screenOptions={clearStackNavigatorOptions}
-      >
+  const RootModalFlow = () => (
+    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+      <Stack.Screen
+        name={Routes.MODAL.WALLET_ACTIONS}
+        component={WalletActions}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.DELETE_WALLET}
+        component={DeleteWalletModal}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_CONFIRMATION}
+        component={ModalConfirmation}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_MANDATORY}
+        component={ModalMandatory}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+        component={SmartTransactionsOptInModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_SELECTOR}
+        component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_LOADING}
+        component={SDKLoadingModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_FEEDBACK}
+        component={SDKFeedbackModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+        component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.EXPERIENCE_ENHANCER}
+        component={ExperienceEnhancerModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.DATA_COLLECTION}
+        component={DataCollectionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_DISCONNECT}
+        component={SDKDisconnectModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_CONNECT}
+        component={AccountConnect}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+        component={AccountPermissions}
+        initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+        component={AccountPermissionsConfirmRevokeAll}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.NETWORK_SELECTOR}
+        component={NetworkSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.BASIC_FUNCTIONALITY}
+        component={BasicFunctionalityModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.PROFILE_SYNCING}
+        component={ProfileSyncingModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.RESET_NOTIFICATIONS}
+        component={ResetNotificationsModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+        component={ReturnToAppModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+        component={AmbiguousAddressSheet}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+        component={TurnOffRememberMeModal}
+      />
+      <Stack.Screen
+        name={'AssetHideConfirmation'}
+        component={AssetHideConfirmation}
+      />
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+      <Stack.Screen name={'NftOptions'} component={NftOptions} />
+      <Stack.Screen
+        name={Routes.MODAL.UPDATE_NEEDED}
+        component={UpdateNeeded}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+        component={EnableAutomaticSecurityChecksModal}
+      />
+      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_ACTIONS}
+        component={AccountActions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+        component={FiatOnTestnetsFriction}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_IPFS}
+        component={ShowIpfsGatewaySheet}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+        component={ShowDisplayNftMediaSheet}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
+        component={NFTAutoDetectionModal}
+      />
+      {isNetworkUiRedesignEnabled() ? (
         <Stack.Screen
-          name={Routes.MODAL.WALLET_ACTIONS}
-          component={WalletActions}
+          name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
+          component={MultiRpcModal}
         />
-        <Stack.Screen
-          name={Routes.MODAL.DELETE_WALLET}
-          component={DeleteWalletModal}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MODAL_CONFIRMATION}
-          component={ModalConfirmation}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MODAL_MANDATORY}
-          component={ModalMandatory}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
-          component={SmartTransactionsOptInModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.ACCOUNT_SELECTOR}
-          component={AccountSelector}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SDK_LOADING}
-          component={SDKLoadingModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SDK_FEEDBACK}
-          component={SDKFeedbackModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-          component={SDKSessionModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.EXPERIENCE_ENHANCER}
-          component={ExperienceEnhancerModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.DATA_COLLECTION}
-          component={DataCollectionModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SDK_DISCONNECT}
-          component={SDKDisconnectModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.ACCOUNT_CONNECT}
-          component={AccountConnect}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-          component={AccountPermissions}
-          initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-          component={AccountPermissionsConfirmRevokeAll}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.NETWORK_SELECTOR}
-          component={NetworkSelector}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.BASIC_FUNCTIONALITY}
-          component={BasicFunctionalityModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.PROFILE_SYNCING}
-          component={ProfileSyncingModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.RESET_NOTIFICATIONS}
-          component={ResetNotificationsModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-          component={ReturnToAppModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.AMBIGUOUS_ADDRESS}
-          component={AmbiguousAddressSheet}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
-          component={TurnOffRememberMeModal}
-        />
-        <Stack.Screen
-          name={'AssetHideConfirmation'}
-          component={AssetHideConfirmation}
-        />
-        <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-        <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
-        <Stack.Screen name={'NftOptions'} component={NftOptions} />
-        <Stack.Screen
-          name={Routes.MODAL.UPDATE_NEEDED}
-          component={UpdateNeeded}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-          component={EnableAutomaticSecurityChecksModal}
-        />
-        <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
-        <Stack.Screen
-          name={Routes.SHEET.ACCOUNT_ACTIONS}
-          component={AccountActions}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
-          component={FiatOnTestnetsFriction}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SHOW_IPFS}
-          component={ShowIpfsGatewaySheet}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
-          component={ShowDisplayNftMediaSheet}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
-          component={NFTAutoDetectionModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.SHOW_TOKEN_ID}
-          component={ShowTokenIdSheet}
-        />
+      ) : null}
 
-        <Stack.Screen
-          name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-          component={OriginSpamModal}
-        />
-        <Stack.Screen
-          name={Routes.SHEET.TOOLTIP_MODAL}
-          component={TooltipModal}
-        />
-      </Stack.Navigator>
-    ),
-    [DetectedTokensFlow],
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_TOKEN_ID}
+        component={ShowTokenIdSheet}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+        component={OriginSpamModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.TOOLTIP_MODAL}
+        component={TooltipModal}
+      />
+    </Stack.Navigator>
   );
 
   const ImportPrivateKeyView = useCallback(
