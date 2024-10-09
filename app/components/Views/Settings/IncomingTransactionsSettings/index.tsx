@@ -94,7 +94,7 @@ const IncomingTransactionsSettings = () => {
           supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
         return (
           <NetworkCell
-            key={chainId}
+            key={`${nickname}-${chainId}`}
             name={name}
             chainId={chainId as EtherscanSupportedHexChainId}
             imageSource={image}
@@ -116,7 +116,7 @@ const IncomingTransactionsSettings = () => {
         supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
       return (
         <NetworkCell
-          key={chainId}
+          key={`${name}-${chainId}`}
           name={name}
           chainId={chainId as keyof typeof supportedNetworks}
           imageSource={imageSource as ImageSourcePropType}
