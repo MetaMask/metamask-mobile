@@ -4295,7 +4295,7 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.0.0"
 
-"@metamask/accounts-controller@^14.0.0", "@metamask/accounts-controller@^17.2.0", "@metamask/accounts-controller@^18.1.0", "@metamask/accounts-controller@^18.2.1":
+"@metamask/accounts-controller@^15.0.0", "@metamask/accounts-controller@^17.2.0", "@metamask/accounts-controller@^18.1.0", "@metamask/accounts-controller@^18.2.1":
   version "18.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-18.2.1.tgz#8e4a842316e9b7bbd0409b36129f7123ba4a4c79"
   integrity sha512-BEvux+ZFpTOQa6HbRl7i7Tq24ztqrZIsX+H0ePh47lU+N8RWq1q0JCItV+zbsgdcYnwhtcMZTsp4jJPQwPe2og==
@@ -4341,10 +4341,10 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^30.0.0":
-  version "30.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-30.0.0.tgz#f8c4094692f184a57f2587e0e71e06c349583e74"
-  integrity sha512-tHG/1UowHznr2vU6QzvSGGoPvlDi3OLFYSUXiMO789yFr57UoFkuoq/Joq2SNShYQzKFCrlqGxlqXJ90hWrOsA==
+"@metamask/assets-controllers@^31.0.0":
+  version "31.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-31.0.0.tgz#c5db6df1903712a997a6c0b9e0a6f00a0f99def2"
+  integrity sha512-AIdCI8QJDQU8b8prOUhVNh59YOh3HQ13wpXFMbgaYnY0BKZK0gzlSVRahK9ceEJYNNvT0eNM39fIV+rtjjaU7Q==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/address" "^5.7.0"
@@ -4352,22 +4352,22 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.2"
-    "@metamask/accounts-controller" "^14.0.0"
+    "@metamask/accounts-controller" "^15.0.0"
     "@metamask/approval-controller" "^6.0.2"
     "@metamask/base-controller" "^5.0.2"
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^10.0.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-controller" "^16.0.0"
+    "@metamask/keyring-controller" "^16.1.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/network-controller" "^18.1.2"
-    "@metamask/polling-controller" "^6.0.2"
-    "@metamask/preferences-controller" "^11.0.0"
+    "@metamask/network-controller" "^18.1.3"
+    "@metamask/polling-controller" "^7.0.0"
+    "@metamask/preferences-controller" "^12.0.0"
     "@metamask/rpc-errors" "^6.2.1"
     "@metamask/utils" "^8.3.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
-    async-mutex "^0.2.6"
+    async-mutex "^0.5.0"
     bn.js "^5.2.1"
     cockatiel "^3.1.2"
     lodash "^4.17.21"
@@ -4873,7 +4873,7 @@
     bech32 "^2.0.0"
     uuid "^9.0.1"
 
-"@metamask/keyring-controller@^16.0.0":
+"@metamask/keyring-controller@^16.1.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-16.1.0.tgz#f15e9a0fd0242dc049e964d0a72d0f2ce00d3463"
   integrity sha512-R0ceCSu8QmoY5HWvXw5VyyfzBwITQuRme4KqbYRuMEVhcJ2KqAhjZEmHnEfHCNpd7fu6O2vRPkqEIz/j4H6Gfw==
@@ -4989,7 +4989,7 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^18.1.0", "@metamask/network-controller@^18.1.2":
+"@metamask/network-controller@^18.1.3":
   version "18.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-18.1.3.tgz#0aa7dbaf06c7ccf1f381a151d13850eb32d197b0"
   integrity sha512-B79qGwhdNcmGtYOQWMZXKVSt88dowyP4Nf979QEX0opYe6Z4eZMZnGBezdl74cAcezEiDE1ro6X8UahB11IOTg==
@@ -5169,14 +5169,14 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/polling-controller@^6.0.2":
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-6.0.2.tgz#dbe3c7d6610729db0749d37ce0eebf846894bd0e"
-  integrity sha512-q8LsV9JhV+heyO+6IIOUyaT6SqQKbyZOopRvhFNcZa37yATiJbv7TqVxy3qynVgyddguKdCQQtnxlL49Lc7Q2Q==
+"@metamask/polling-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-7.0.0.tgz#5f3d44bd1daf039528ced8a935250aeb6936d0df"
+  integrity sha512-Y46cDS2P+E8G8iotAULuuAGdz0pyk97ctaRwvs1MCKWxYWd/g5Vgrupl7R+nSjGAA+qhlZpte8VqGEIAo72Uxw==
   dependencies:
     "@metamask/base-controller" "^5.0.2"
-    "@metamask/controller-utils" "^9.1.0"
-    "@metamask/network-controller" "^18.1.0"
+    "@metamask/controller-utils" "^10.0.0"
+    "@metamask/network-controller" "^18.1.3"
     "@metamask/utils" "^8.3.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
@@ -5238,6 +5238,14 @@
   dependencies:
     "@metamask/base-controller" "^5.0.2"
     "@metamask/controller-utils" "^9.1.0"
+
+"@metamask/preferences-controller@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-12.0.0.tgz#45b433a4066e85364d38cb673ade64c7ed6cd041"
+  integrity sha512-jeIGuUCok+E3wL2n8G82lrxT31rHYCeQP78RbaxR1RXkzAgdIYjEnVSpxQocJgrSkuOhlHExl24g0qB/Pi3aXw==
+  dependencies:
+    "@metamask/base-controller" "^5.0.2"
+    "@metamask/controller-utils" "^10.0.0"
 
 "@metamask/profile-sync-controller@^0.9.5":
   version "0.9.5"
@@ -7113,45 +7121,45 @@
     "@sentry/types" "7.119.1"
     "@sentry/utils" "7.119.1"
 
-"@sentry/cli-darwin@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-darwin/-/cli-darwin-2.36.1.tgz#786adf6984dbe3c6fb7dac51b625c314117b807d"
-  integrity sha512-JOHQjVD8Kqxm1jUKioAP5ohLOITf+Dh6+DBz4gQjCNdotsvNW5m63TKROwq2oB811p+Jzv5304ujmN4cAqW1Ww==
+"@sentry/cli-darwin@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-darwin/-/cli-darwin-2.36.6.tgz#c023d9552e141144dfb6512389fa253611be5877"
+  integrity sha512-2yKECENqMZKrJY5weA19g4gTgQfeuadWvVu7fVQVsgqoBRIaEhSHJc64ZgiHq2ur06qOuYcQr5FO1VrwUE1pZg==
 
-"@sentry/cli-linux-arm64@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm64/-/cli-linux-arm64-2.36.1.tgz#ff449d7e7e715166257998c02cf635ca02acbadd"
-  integrity sha512-R//3ZEkbzvoStr3IA7nxBZNiBYyxOljOqAhgiTnejXHmnuwDzM3TBA2n5vKPE/kBFxboEBEw0UTzTIRb1T0bgw==
+"@sentry/cli-linux-arm64@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm64/-/cli-linux-arm64-2.36.6.tgz#6f0c604b5401441e62e89c3fe4450784dd93fda6"
+  integrity sha512-sLmmbZRE7F6UksovwcqEQ7oYXVBejpeL1CtiKVFwNoq9XB5kTiKlVColn+3yPcfwKCNj4H4HoeKc+xMtdd7wow==
 
-"@sentry/cli-linux-arm@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm/-/cli-linux-arm-2.36.1.tgz#1ae5d335a1b4cd217a34c2bd6c6f5e0670136eb3"
-  integrity sha512-gvEOKN0fWL2AVqUBKHNXPRZfJNvKTs8kQhS8cQqahZGgZHiPCI4BqW45cKMq+ZTt1UUbLmt6khx5Dz7wi+0i5A==
+"@sentry/cli-linux-arm@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-arm/-/cli-linux-arm-2.36.6.tgz#9cc4b041fc8e20e52f745128aa8acff2b3783fa9"
+  integrity sha512-6zB7w5NawmdzhPHxqkjlhbvQugCBiFrFaUGvb3u1Oo/VCehdmq/v4v8ob4PNN2cJhoDRqQj2mPTfL/ppYNMJuw==
 
-"@sentry/cli-linux-i686@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-i686/-/cli-linux-i686-2.36.1.tgz#112b9e26357e918cbbba918114ec8cdab07cdf60"
-  integrity sha512-R7sW5Vk/HacVy2YgQoQB+PwccvFYf2CZVPSFSFm2z7MEfNe77UYHWUq+sjJ4vxWG6HDWGVmaX0fjxyDkE01JRA==
+"@sentry/cli-linux-i686@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-i686/-/cli-linux-i686-2.36.6.tgz#7c7b1c0ac83f89eda844586d51809797a868827b"
+  integrity sha512-M1pdxv7eZdGoG1wDpRb28aRUs/qb0C5jAe+a7sWHIg463jRLAahM8NDkv2bRQv0Xhw3JIkEGGvr46mPkQrOuMQ==
 
-"@sentry/cli-linux-x64@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-x64/-/cli-linux-x64-2.36.1.tgz#c3e5bdb0c9a4bb44c83927c62a3cd7e006709bf7"
-  integrity sha512-UMr3ik8ksA7zQfbzsfwCb+ztenLnaeAbX94Gp+bzANZwPfi/vVHf2bLyqsBs4OyVt9SPlN1bbM/RTGfMjZ3JOw==
+"@sentry/cli-linux-x64@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-linux-x64/-/cli-linux-x64-2.36.6.tgz#eaec558b30acec0a295f737558db3a640cc02906"
+  integrity sha512-gVy/zAWY2DEERQ/i3V+oruMas/U29/tsRPcRkB67MIUWbW7W46+c3yH490O+t49qMYYhKYG2YfWoTzW6qMtSlA==
 
-"@sentry/cli-win32-i686@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-i686/-/cli-win32-i686-2.36.1.tgz#819573320e885e1dbf59b0a01d3bd370c84c1708"
-  integrity sha512-CflvhnvxPEs5GWQuuDtYSLqPrBaPbcSJFlBuUIb+8WNzRxvVfjgw1qzfZmkQqABqiy/YEsEekllOoMFZAvCcVA==
+"@sentry/cli-win32-i686@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-i686/-/cli-win32-i686-2.36.6.tgz#29f586279e354c6fad932d09da5f32e57e883caf"
+  integrity sha512-urH+i+WtPeW8Dund0xY8zObvvbMM0XxeEIUS4oFBCB3EMYHVxgNw+woQUv9Vyv7v+OBjckB/r27nxlwNBj4pbg==
 
-"@sentry/cli-win32-x64@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-x64/-/cli-win32-x64-2.36.1.tgz#80779b4bffb4e2e32944eae72c60e6f40151b4dc"
-  integrity sha512-wWqht2xghcK3TGnooHZSzA3WSjdtno/xFjZLvWmw38rblGwgKMxLZnlxV6uDyS+OJ6CbfDTlCRay/0TIqA0N8g==
+"@sentry/cli-win32-x64@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli-win32-x64/-/cli-win32-x64-2.36.6.tgz#b283460682a0cb824c4e16fc803de5f538bd1fcb"
+  integrity sha512-ZauqOqwFAqb/Njyc8Kj2l9Fhbms7T5zB2yu5zwvq1uiqhXqLmsb9mRTF8WJWl9WmO5hwq/GTOEQowvrwK8gblw==
 
-"@sentry/cli@2.36.1":
-  version "2.36.1"
-  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.36.1.tgz#a9146b798cb6d2f782a7a48d74633ddcd88dc8d3"
-  integrity sha512-gzK5uQKDWKhyH5udoB5+oaUNrS//urWyaXgKvHKz4gFfl744HuKY9dpLPP2nMnf0zLGmGM6xJnMXLqILq0mtxw==
+"@sentry/cli@2.36.6":
+  version "2.36.6"
+  resolved "https://registry.yarnpkg.com/@sentry/cli/-/cli-2.36.6.tgz#116d2441b7e3ac49d4d5b4c09ed8e00ac9c8a67e"
+  integrity sha512-1fcZVwe4H6a3Z1O+7m/z/2em1u67Tf0Zrt2oGEp82bqvCOHA904Wr2otc6GBEuFESB1/Mo8QgD/qwRd9Tv0Otw==
   dependencies:
     https-proxy-agent "^5.0.0"
     node-fetch "^2.6.7"
@@ -7159,13 +7167,13 @@
     proxy-from-env "^1.1.0"
     which "^2.0.2"
   optionalDependencies:
-    "@sentry/cli-darwin" "2.36.1"
-    "@sentry/cli-linux-arm" "2.36.1"
-    "@sentry/cli-linux-arm64" "2.36.1"
-    "@sentry/cli-linux-i686" "2.36.1"
-    "@sentry/cli-linux-x64" "2.36.1"
-    "@sentry/cli-win32-i686" "2.36.1"
-    "@sentry/cli-win32-x64" "2.36.1"
+    "@sentry/cli-darwin" "2.36.6"
+    "@sentry/cli-linux-arm" "2.36.6"
+    "@sentry/cli-linux-arm64" "2.36.6"
+    "@sentry/cli-linux-i686" "2.36.6"
+    "@sentry/cli-linux-x64" "2.36.6"
+    "@sentry/cli-win32-i686" "2.36.6"
+    "@sentry/cli-win32-x64" "2.36.6"
 
 "@sentry/core@7.119.0":
   version "7.119.0"
@@ -7223,29 +7231,29 @@
     localforage "^1.8.1"
 
 "@sentry/react-native@^5.33.0":
-  version "5.33.0"
-  resolved "https://registry.yarnpkg.com/@sentry/react-native/-/react-native-5.33.0.tgz#14c319b049bce6fe6618e5f6d01ac5840e6093d4"
-  integrity sha512-7boYb0PjrwWy3amevP1DVqhT2LdVla8WEF4HV7Nrs55ZO8jQ2Pymsj4WinxTokXQ45YvdWVOLdqMhtYGJgRDTQ==
+  version "5.33.2"
+  resolved "https://registry.yarnpkg.com/@sentry/react-native/-/react-native-5.33.2.tgz#6279a447a4286d0428610d4596b18d7626488160"
+  integrity sha512-wjNiKYqtcW3JtA6Sg7VJ0xPTaVVMvKtb9R/rtkADjYqsvXFl740YUcwD4TfMHs7UoOvMkP6E941EU1kxGlD6jA==
   dependencies:
     "@sentry/babel-plugin-component-annotate" "2.20.1"
     "@sentry/browser" "7.119.1"
-    "@sentry/cli" "2.36.1"
-    "@sentry/core" "7.119.0"
+    "@sentry/cli" "2.36.6"
+    "@sentry/core" "7.119.1"
     "@sentry/hub" "7.119.0"
     "@sentry/integrations" "7.119.0"
-    "@sentry/react" "7.119.0"
-    "@sentry/types" "7.119.0"
-    "@sentry/utils" "7.119.0"
+    "@sentry/react" "7.119.1"
+    "@sentry/types" "7.119.1"
+    "@sentry/utils" "7.119.1"
 
-"@sentry/react@7.119.0":
-  version "7.119.0"
-  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-7.119.0.tgz#79f2c9d94322a3afbfa8af9f5b872f7c2e9b0820"
-  integrity sha512-cf8Cei+qdSA26gx+IMAuc/k44PeBImNzIpXi3930SLhUe44ypT5OZ/44L6xTODHZzTIyMSJPduf59vT2+eW9yg==
+"@sentry/react@7.119.1":
+  version "7.119.1"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-7.119.1.tgz#5cd76fe42209a1cfca6d5197e25c0c8d18299d56"
+  integrity sha512-Bri314LnSVm16K3JATgn3Zsq6Uj3M/nIjdUb3nggBw0BMlFWMsyFjUCfmCio5d80KJK/lUjOIxRjzu79M6jOzQ==
   dependencies:
     "@sentry/browser" "7.119.1"
-    "@sentry/core" "7.119.0"
-    "@sentry/types" "7.119.0"
-    "@sentry/utils" "7.119.0"
+    "@sentry/core" "7.119.1"
+    "@sentry/types" "7.119.1"
+    "@sentry/utils" "7.119.1"
     hoist-non-react-statics "^3.3.2"
 
 "@sentry/replay@7.119.1":
