@@ -10,8 +10,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import NftDetectionModal from '../../pages/modals/NftDetectionModal';
 import { SmokeAssets } from '../../tags';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+
 import { NftDetectionModalSelectorsText } from '../../selectors/Modals/NftDetectionModal.selectors';
 
 describe(SmokeAssets('NFT Detection Modal'), () => {
