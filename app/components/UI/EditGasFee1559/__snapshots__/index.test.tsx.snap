@@ -136,32 +136,17 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 options={
                   [
                     {
-                      "label": <Text
-                        bold={true}
-                        primary={false}
-                      >
-                        Low
-                      </Text>,
+                      "label": [Function],
                       "name": "low",
                       "topLabel": false,
                     },
                     {
-                      "label": <Text
-                        bold={true}
-                        primary={false}
-                      >
-                        Market
-                      </Text>,
+                      "label": [Function],
                       "name": "medium",
                       "topLabel": false,
                     },
                     {
-                      "label": <Text
-                        bold={true}
-                        primary={false}
-                      >
-                        Aggressive
-                      </Text>,
+                      "label": [Function],
                       "name": "high",
                       "topLabel": false,
                     },
@@ -245,9 +230,28 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           Gas limit
                            
                         </Text>
-                        <Unknown
+                        <TouchableOpacity
+                          hitSlop={
+                            {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
                           onPress={[Function]}
-                        />
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              {
+                                "color": "#9fa6ae",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
                       </View>
                     }
                     min={"21000"}
@@ -282,9 +286,28 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           Max priority fee
                            
                         </Text>
-                        <Unknown
+                        <TouchableOpacity
+                          hitSlop={
+                            {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
                           onPress={[Function]}
-                        />
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              {
+                                "color": "#9fa6ae",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
                       </View>
                     }
                     min={"0"}
@@ -340,9 +363,28 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           Max fee
                            
                         </Text>
-                        <Unknown
+                        <TouchableOpacity
+                          hitSlop={
+                            {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
                           onPress={[Function]}
-                        />
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              {
+                                "color": "#9fa6ae",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
                       </View>
                     }
                     min={"0"}

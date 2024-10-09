@@ -309,7 +309,7 @@ class ChoosePassword extends PureComponent {
     if (!prevLoading && loading) {
       // update navigationOptions
       navigation.setParams({
-        headerLeft: () => null,
+        headerLeft: null,
       });
     }
   }
@@ -440,14 +440,15 @@ class ChoosePassword extends PureComponent {
       const simpleKeyrings = KeyringController.state.keyrings.filter(
         (keyring) => keyring.type === 'Simple Key Pair',
       );
-      const simpleKeyringAccounts = await Promise.all(
-        simpleKeyrings.flatMap((keyring) =>
-          keyring.accounts.map((account) =>
+      for (let i = 0; i < simpleKeyrings.length; i++) {
+        const simpleKeyring = simpleKeyrings[i];
+        const simpleKeyringAccounts = await Promise.all(
+          simpleKeyring.accounts.map((account) =>
             KeyringController.exportAccount(keychainPassword, account),
           ),
-        ),
-      );
-      importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
+        );
+        importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
+      }
     } catch (e) {
       Logger.error(
         e,
@@ -476,11 +477,11 @@ class ChoosePassword extends PureComponent {
 
     try {
       // Import imported accounts again
-      await Promise.all(
-        importedAccounts.map((account) =>
-          KeyringController.importAccountWithStrategy('privateKey', [account]),
-        ),
-      );
+      for (let i = 0; i < importedAccounts.length; i++) {
+        await KeyringController.importAccountWithStrategy('privateKey', [
+          importedAccounts[i],
+        ]);
+      }
     } catch (e) {
       Logger.error(
         e,
