@@ -127,6 +127,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -686,11 +687,17 @@ const App = (props) => {
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
       />
+      {isNetworkUiRedesignEnabled() ? (
+        <Stack.Screen
+          name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
+          component={MultiRpcModal}
+        />
+      ) : null}
+
       <Stack.Screen
         name={Routes.SHEET.SHOW_TOKEN_ID}
         component={ShowTokenIdSheet}
       />
-
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}

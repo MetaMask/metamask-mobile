@@ -17,6 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
+      marginBottom: 8,
     },
     modalContent: {
       backgroundColor: theme.colors.background.alternative,
