@@ -1,5 +1,4 @@
-export const tlc = (str: unknown): string | undefined =>
-  typeof str === 'string' ? str.toLowerCase() : undefined;
+export const tlc = (str: unknown) => typeof str === 'string' ? str.toLowerCase() : undefined;
 
 /**
  * Fetch that fails after timeout
