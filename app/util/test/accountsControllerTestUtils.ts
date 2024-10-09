@@ -103,6 +103,7 @@ export function createMockAccountsControllerState(
 
 export function createMockAccountsControllerStateWithSnap(
   addresses: string[],
+  snapName: string = '',
   snapAccountIndex: number = 0,
 ): AccountsControllerState {
   if (addresses.length === 0) {
@@ -121,8 +122,17 @@ export function createMockAccountsControllerStateWithSnap(
   const snapAccountUuid = createMockUuidFromAddress(
     addresses[snapAccountIndex].toLowerCase(),
   );
-  state.internalAccounts.accounts[snapAccountUuid].metadata.keyring = {
-    type: KeyringTypes.snap,
+
+  state.internalAccounts.accounts[snapAccountUuid].metadata = {
+    ...state.internalAccounts.accounts[snapAccountUuid].metadata,
+    keyring: {
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: snapName,
+      name: snapName,
+      enabled: true,
+    },
   };
 
   return state;
