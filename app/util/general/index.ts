@@ -1,4 +1,5 @@
-export const tlc = (str: unknown) => typeof str === 'string' ? str.toLowerCase() : undefined;
+export const tlc = (str: unknown) =>
+  typeof str === 'string' ? str.toLowerCase() : undefined;
 
 /**
  * Fetch that fails after timeout
@@ -183,7 +184,6 @@ export const deepJSONParse = ({
 
   return parsedObject;
 };
-
 
 /**
  * Generates an array of referentially unique items from a list of arrays.
