@@ -16,7 +16,7 @@ jest.mock('../Engine', () => ({
     },
     PermissionController: {
       hasPermission: jest.fn().mockReturnValue(true),
-      requestPermissionsIncremental: jest.fn(),
+      grantPermissionsIncremental: jest.fn(),
       getCaveat: jest.fn(),
     },
     SelectedNetworkController: {
@@ -74,6 +74,10 @@ const otherOptions = {
 };
 
 describe('RPC Method - wallet_switchEthereumChain', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should report missing params', async () => {
     try {
       await wallet_switchEthereumChain({
@@ -132,6 +136,33 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     }
   });
 
+  it('should should show a modal for user approval and not grant permissions', async () => {
+    const spyOnGrantPermissionsIncremental = jest.spyOn(
+      Engine.context.PermissionController,
+      'grantPermissionsIncremental',
+    );
+    jest
+      .spyOn(
+        Engine.context.SelectedNetworkController,
+        'getNetworkClientIdForDomain',
+      )
+      .mockReturnValue('mainnet');
+    jest
+      .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
+      .mockReturnValue({ configuration: { chainId: '0x1' } });
+    jest
+      .spyOn(Engine.context.PermissionController, 'getCaveat')
+      .mockReturnValue({ value: [] });
+    await wallet_switchEthereumChain({
+      req: {
+        params: [{ chainId: '0x64' }],
+      },
+      ...otherOptions,
+    });
+    expect(otherOptions.requestUserApproval).toHaveBeenCalled();
+    expect(spyOnGrantPermissionsIncremental).not.toHaveBeenCalled();
+  });
+
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
     beforeAll(() => {
       process.env.MM_CHAIN_PERMISSIONS = 1;
@@ -140,9 +171,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       process.env.MM_CHAIN_PERMISSIONS = 0;
     });
     it('should not change network permissions and should switch without user approval when chain is already permitted', async () => {
-      const spyOnRequestPermissionsIncremental = jest.spyOn(
+      const spyOnGrantPermissionsIncremental = jest.spyOn(
         Engine.context.PermissionController,
-        'requestPermissionsIncremental',
+        'grantPermissionsIncremental',
       );
       jest
         .spyOn(
@@ -168,18 +199,17 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         ...otherOptions,
       });
 
-      expect(spyOnRequestPermissionsIncremental).not.toHaveBeenCalled();
-
       expect(otherOptions.requestUserApproval).not.toHaveBeenCalled();
+      expect(spyOnGrantPermissionsIncremental).not.toHaveBeenCalled();
       expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
         'test-network-configuration-id',
       );
     });
 
     it('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
-      const spyOnRequestPermissionsIncremental = jest.spyOn(
+      const spyOnGrantPermissionsIncremental = jest.spyOn(
         Engine.context.PermissionController,
-        'requestPermissionsIncremental',
+        'grantPermissionsIncremental',
       );
       jest
         .spyOn(
@@ -200,13 +230,27 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       await wallet_switchEthereumChain({
         req: {
           params: [{ chainId: '0x64' }],
+          origin: 'https://test.com',
         },
         ...otherOptions,
       });
-
-      // this request shows a permissions request to the user
-      // which, if approved, adds an endowmnet:permittedChains permission
-      expect(spyOnRequestPermissionsIncremental).toHaveBeenCalledTimes(1);
+      expect(otherOptions.requestUserApproval).toHaveBeenCalled();
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
+      expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
+        approvedPermissions: {
+          'endowment:permitted-chains': {
+            caveats: [
+              {
+                type: 'restrictNetworkSwitching',
+                value: ['0x64'],
+              },
+            ],
+          },
+        },
+        subject: {
+          origin: 'https://test.com',
+        },
+      });
       expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
         'test-network-configuration-id',
       );

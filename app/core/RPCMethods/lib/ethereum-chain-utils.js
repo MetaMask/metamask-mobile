@@ -243,73 +243,45 @@ export async function switchToNetwork({
     ...analytics,
   };
 
-  // for some reason this extra step is necessary in test environment
+  // for some reason this extra step is necessary for accessing the env variable in test environment
   const chainPermissionsFeatureEnabled =
     { ...process.env }?.NODE_ENV === 'test'
       ? { ...process.env }?.MM_CHAIN_PERMISSIONS === '1'
       : isChainPermissionsFeatureEnabled;
 
-  if (chainPermissionsFeatureEnabled) {
-    const { value: permissionedChainIds } =
-      getCaveat({
-        target: PermissionKeys.permittedChains,
-        caveatType: CaveatTypes.restrictNetworkSwitching,
-      }) ?? {};
-    if (
-      permissionedChainIds === undefined ||
-      !permissionedChainIds.includes(chainId)
-    ) {
-      if (isAddNetworkFlow) {
-        await PermissionController.grantPermissionsIncremental({
-          subject: { origin },
-          approvedPermissions: {
-            [PermissionKeys.permittedChains]: {
-              caveats: [
-                CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
-                  chainId,
-                ]),
-              ],
-            },
-          },
-        });
-      } else {
-        const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
-        await requestUserApproval({
-          type: 'SWITCH_ETHEREUM_CHAIN',
-          requestData: { ...requestData, type: requestModalType },
-        });
-        await PermissionController.grantPermissionsIncremental({
-          subject: { origin },
-          approvedPermissions: {
-            [PermissionKeys.permittedChains]: {
-              caveats: [
-                CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
-                  chainId,
-                ]),
-              ],
-            },
-          },
-        });
-        // TODO: eventually switch to using requestPermissionsIncremental once permissions screens are refactored
-        //   await PermissionController.requestPermissionsIncremental(
-        //     { origin },
-        //     {
-        //       [PermissionKeys.permittedChains]: {
-        //         caveats: [
-        //           CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
-        //             chainId,
-        //           ]),
-        //         ],
-        //       },
-        //     },
-        //   );
-      }
-    }
-  } else {
-    const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
+  const { value: permissionedChainIds } =
+    getCaveat({
+      target: PermissionKeys.permittedChains,
+      caveatType: CaveatTypes.restrictNetworkSwitching,
+    }) ?? {};
+
+  const shouldGrantPermissions =
+    chainPermissionsFeatureEnabled &&
+    (!permissionedChainIds || !permissionedChainIds.includes(chainId));
+
+  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
+
+  const shouldShowRequestModal =
+    (!isAddNetworkFlow && shouldGrantPermissions) ||
+    !chainPermissionsFeatureEnabled;
+
+  if (shouldShowRequestModal) {
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: requestModalType },
+    });
+  }
+
+  if (shouldGrantPermissions) {
+    await PermissionController.grantPermissionsIncremental({
+      subject: { origin },
+      approvedPermissions: {
+        [PermissionKeys.permittedChains]: {
+          caveats: [
+            CaveatFactories[CaveatTypes.restrictNetworkSwitching]([chainId]),
+          ],
+        },
+      },
     });
   }
 
