@@ -6,6 +6,23 @@ import { MMKV } from 'react-native-mmkv';
 /**
  * Wrapper class for MMKV.
  * Provides a unified interface for storage operations, with fallback to AsyncStorage in E2E test mode.
+ *
+ * @example
+ * // Import the StorageWrapper instance
+ * import StorageWrapper from './StorageWrapper';
+ *
+ * // Set an item
+ * await StorageWrapper.setItem('user_id', '12345');
+ *
+ * // Get an item
+ * const userId = await StorageWrapper.getItem('user_id');
+ * console.log(userId); // Outputs: '12345'
+ *
+ * // Remove an item
+ * await StorageWrapper.removeItem('user_id');
+ *
+ * // Clear all items
+ * await StorageWrapper.clearAll();
  */
 class StorageWrapper {
   private static instance: StorageWrapper | null = null;
@@ -28,6 +45,14 @@ class StorageWrapper {
    * @param key - The key of the item to retrieve.
    * @returns A promise that resolves with the value of the item, or null if not found.
    * @throws Will throw an error if retrieval fails (except in E2E mode, where it falls back to AsyncStorage).
+   *
+   * @example
+   * const value = await StorageWrapper.getItem('my_key');
+   * if (value !== null) {
+   *   console.log('Retrieved value:', value);
+   * } else {
+   *   console.log('No value found for key: my_key');
+   * }
    */
   async getItem(key: string) {
     try {
@@ -51,6 +76,14 @@ class StorageWrapper {
    * @param key - The key under which to store the value.
    * @param value - The value to store. Must be a string.
    * @throws Will throw an error if the value is not a string or if setting fails (except in E2E mode, where it falls back to AsyncStorage).
+   *
+   * @example
+   * try {
+   *   await StorageWrapper.setItem('user_preferences', JSON.stringify({ theme: 'dark' }));
+   *   console.log('User preferences saved successfully');
+   * } catch (error) {
+   *   console.error('Failed to save user preferences:', error);
+   * }
    */
   async setItem(key: string, value: string) {
     try {
@@ -72,6 +105,14 @@ class StorageWrapper {
    * Removes an item from storage.
    * @param key - The key of the item to remove.
    * @throws Will throw an error if removal fails (except in E2E mode, where it falls back to AsyncStorage).
+   *
+   * @example
+   * try {
+   *   await StorageWrapper.removeItem('temporary_data');
+   *   console.log('Temporary data removed successfully');
+   * } catch (error) {
+   *   console.error('Failed to remove temporary data:', error);
+   * }
    */
   async removeItem(key: string) {
     try {
@@ -89,6 +130,14 @@ class StorageWrapper {
    * Removes an item from storage.
    * @param key - The key of the item to remove.
    * @throws Will throw an error if removal fails (except in E2E mode, where it falls back to AsyncStorage).
+   *
+   * @example
+   * try {
+   *   await StorageWrapper.clearAll();
+   *   console.log('All storage data cleared successfully');
+   * } catch (error) {
+   *   console.error('Failed to clear storage data:', error);
+   * }
    */
   async clearAll() {
     await this.storage.clearAll();
