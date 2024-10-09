@@ -5,11 +5,16 @@ import { MMKV } from 'react-native-mmkv';
 
 /**
  * Wrapper class for MMKV.
+ * Provides a unified interface for storage operations, with fallback to AsyncStorage in E2E test mode.
  */
 class StorageWrapper {
   private static instance: StorageWrapper | null = null;
   private storage: typeof ReadOnlyNetworkStore | MMKV;
 
+  /**
+   * Private constructor to enforce singleton pattern.
+   * Initializes the storage based on the environment (E2E test or production).
+   */
   private constructor() {
     /**
      * The underlying storage implementation.
@@ -18,6 +23,12 @@ class StorageWrapper {
     this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
   }
 
+  /**
+   * Retrieves an item from storage.
+   * @param key - The key of the item to retrieve.
+   * @returns A promise that resolves with the value of the item, or null if not found.
+   * @throws Will throw an error if retrieval fails (except in E2E mode, where it falls back to AsyncStorage).
+   */
   async getItem(key: string) {
     try {
       // asyncStorage returns null for no value
@@ -35,6 +46,12 @@ class StorageWrapper {
     }
   }
 
+  /**
+   * Sets an item in storage.
+   * @param key - The key under which to store the value.
+   * @param value - The value to store. Must be a string.
+   * @throws Will throw an error if the value is not a string or if setting fails (except in E2E mode, where it falls back to AsyncStorage).
+   */
   async setItem(key: string, value: string) {
     try {
       if (typeof value !== 'string')
@@ -51,6 +68,11 @@ class StorageWrapper {
     }
   }
 
+  /**
+   * Removes an item from storage.
+   * @param key - The key of the item to remove.
+   * @throws Will throw an error if removal fails (except in E2E mode, where it falls back to AsyncStorage).
+   */
   async removeItem(key: string) {
     try {
       return await this.storage.delete(key);
@@ -63,10 +85,19 @@ class StorageWrapper {
     }
   }
 
+  /**
+   * Removes an item from storage.
+   * @param key - The key of the item to remove.
+   * @throws Will throw an error if removal fails (except in E2E mode, where it falls back to AsyncStorage).
+   */
   async clearAll() {
     await this.storage.clearAll();
   }
 
+  /**
+   * Gets the singleton instance of StorageWrapper.
+   * @returns The StorageWrapper instance.
+   */
   static getInstance() {
     if (!StorageWrapper.instance) {
       StorageWrapper.instance = new StorageWrapper();
