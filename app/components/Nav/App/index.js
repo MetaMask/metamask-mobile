@@ -122,7 +122,6 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import QRScanner from '../../Views/QRScanner';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -718,13 +717,6 @@ const App = (props) => {
       <Stack.Screen
         name={Routes.QR_TAB_SWITCHER}
         component={QRTabSwitcher}
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name={Routes.QR_SCANNER}
-        component={QRScanner}
         screenOptions={{
           headerShown: false,
         }}
