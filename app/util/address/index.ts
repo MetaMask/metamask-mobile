@@ -244,7 +244,7 @@ function getInternalAccountByAddress(
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
   return Object.values(accounts).find(
-    (a: InternalAccount) => a.address === address,
+    (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
   );
 }
 
@@ -268,25 +268,13 @@ export function getLabelTextByAddress(address: string) {
         return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
-        console.log(
-          '[SNAP TAG LABEL DEBUG] getLabelTextByAddress: Snap name:',
-          internalAccount?.metadata.snap?.name,
-        );
-        const snapName =
+        return (
           internalAccount?.metadata.snap?.name ||
-          strings('accounts.snap_account_tag');
-        console.log('[SNAP TAG LABEL DEBUG] Returning label:', snapName);
-        return snapName;
-      ///: END:ONLY_INCLUDE_IF
-      default:
-        console.log(
-          '[SNAP TAG LABEL DEBUG] Unexpected keyring type:',
-          keyring.type,
+          strings('accounts.snap_account_tag')
         );
-        return null;
+      ///: END:ONLY_INCLUDE_IF
     }
   }
-  console.log('[SNAP TAG LABEL DEBUG] Returning null');
   return null;
 }
 
