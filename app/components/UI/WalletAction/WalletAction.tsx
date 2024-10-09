@@ -1,11 +1,12 @@
 // Third party dependencies.
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
+
 // External dependencies.
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
 import { WalletActionProps } from './WalletAction.types';
@@ -25,7 +26,7 @@ const WalletAction = ({
   actionID,
   ...props
 }: WalletActionProps) => {
-  const { colors } = useTheme();
+  const { colors } = lightTheme;
   const { styles } = useStyles(styleSheet, {});
   return (
     <TouchableOpacity

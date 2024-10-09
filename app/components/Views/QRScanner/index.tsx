@@ -6,17 +6,11 @@ import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import { isValidAddress } from 'ethereumjs-util';
 import React, { useCallback, useRef } from 'react';
-import {
-  Alert,
-  Image,
-  InteractionManager,
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { RNCamera } from 'react-native-camera';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -29,39 +23,30 @@ import { selectChainId } from '../../../selectors/networkController';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
 } from '../../../util/validators';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
+import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
-
-export interface QRScannerParams {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onScanSuccess: (data: any, content?: string) => void;
-  onScanError?: (error: string) => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onStartScan?: (data: any) => Promise<void>;
-  origin?: string;
-}
-
-export const createQRScannerNavDetails =
-  createNavigationDetails<QRScannerParams>(Routes.QR_SCANNER);
 
 /**
  * View that wraps the QR code scanner screen
  */
-const QRScanner = () => {
+const QRScanner = ({
+  onScanSuccess,
+  onScanError,
+  onStartScan,
+  origin,
+}: {
+  onScanSuccess: (data: ScanSuccess, content?: string) => void;
+  onStartScan?: (data: StartScan) => Promise<void>;
+  onScanError?: (error: string) => void;
+  origin?: string;
+}) => {
   const navigation = useNavigation();
-  const { onScanError, onScanSuccess, onStartScan, origin } =
-    useParams<QRScannerParams>();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
@@ -69,17 +54,6 @@ const QRScanner = () => {
   const currentChainId = useSelector(selectChainId);
   const theme = useTheme();
   const styles = createStyles(theme);
-
-  const goBack = useCallback(() => {
-    navigation.goBack();
-    try {
-      onScanError?.('USER_CANCELLED');
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.warn(`Error setting onScanError: ${error.message}`);
-    }
-  }, [onScanError, navigation]);
 
   const end = useCallback(() => {
     mountedRef.current = false;
@@ -279,7 +253,12 @@ const QRScanner = () => {
       strings('qr_scanner.not_allowed_error_desc'),
       [
         {
-          text: strings('qr_scanner.ok'),
+          text: strings('qr_scanner.open_settings'),
+          onPress: () => Linking.openSettings(),
+        },
+        {
+          text: strings('qr_scanner.cancel'),
+          style: 'cancel',
         },
       ],
     );
@@ -322,15 +301,20 @@ const QRScanner = () => {
           buttonNegative: strings('qr_scanner.cancel'),
         }}
         onStatusChange={onStatusChange}
-      >
-        <SafeAreaView style={styles.innerView}>
-          <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-            <Icon name="ios-close" size={50} color={styles.closeIcon.color} />
-          </TouchableOpacity>
+      />
+      <View style={styles.overlayContainerColumn}>
+        <View style={styles.overlay} />
+
+        <View style={styles.overlayContainerRow}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
+            {strings('qr_scanner.label')}
+          </Text>
+          <View style={styles.overlay} />
           <Image source={frameImage} style={styles.frame} />
-          <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
-        </SafeAreaView>
-      </RNCamera>
+          <View style={styles.overlay} />
+        </View>
+        <View style={styles.overlay} />
+      </View>
     </View>
   );
 };

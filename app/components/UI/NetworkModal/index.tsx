@@ -7,7 +7,7 @@ import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
 import {
-  isprivateConnection,
+  isPrivateConnection,
   toggleUseSafeChainsListValidation,
 } from '../../../util/networks';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
@@ -33,6 +33,16 @@ import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
 import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toHex } from '@metamask/controller-utils';
+import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
+import Logger from '../../../util/Logger';
+
+export interface SafeChain {
+  chainId: string;
+  name: string;
+  nativeCurrency: { symbol: string };
+  rpc: string[];
+}
 
 interface NetworkProps {
   isVisible: boolean;
@@ -45,6 +55,8 @@ interface NetworkProps {
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
+  showPopularNetworkModal: boolean;
+  safeChains?: SafeChain[];
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -60,10 +72,12 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    showPopularNetworkModal,
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
+    safeChains,
   } = props;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -90,9 +104,39 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const validUrl = validateRpcUrl(rpcUrl);
+    const isValidUrl = validateRpcUrl(rpcUrl);
+    if (showPopularNetworkModal) {
+      // track popular network
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+          .addProperties({
+            chain_id: toHex(chainId),
+            source: 'Popular network list',
+            symbol: ticker,
+          })
+          .build(),
+      );
+    } else if (safeChains) {
+      const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
+        rpcUrl,
+        safeChains,
+      );
+      // track custom network, this shouldn't be in popular networks modal
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+          .addProperties({
+            chain_id: toHex(safeChain.chainId),
+            source: { anonymous: true, value: 'Custom Network Added' },
+            symbol: safeChain.nativeCurrency.symbol,
+          })
+          .addSensitiveProperties({ rpcUrl: safeRPCUrl })
+          .build(),
+      );
+    } else {
+      Logger.log('MetaMetrics - Unable to capture custom network');
+    }
 
-    setNetworkAdded(validUrl);
+    setNetworkAdded(isValidUrl);
   };
 
   const cancelButtonProps: ButtonProps = {
@@ -148,7 +192,7 @@ const NetworkModals = (props: NetworkProps) => {
   const closeModal = () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
@@ -171,7 +215,7 @@ const NetworkModals = (props: NetworkProps) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     CurrencyRateController.updateExchangeRate(ticker);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
@@ -188,15 +232,6 @@ const NetworkModals = (props: NetworkProps) => {
         source: 'ignored',
       },
     );
-
-    const analyticsParamsAdd = {
-      chain_id: getDecimalChainId(chainId),
-      source: 'Popular network list',
-      symbol: ticker,
-    };
-
-    trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
-
     closeModal();
     if (onNetworkSwitch) {
       onNetworkSwitch();

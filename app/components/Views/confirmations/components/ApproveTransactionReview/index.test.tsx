@@ -3,7 +3,6 @@
 import ApproveTransactionModal from '.';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
 
 jest.mock('react-redux', () => ({
@@ -16,7 +15,6 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
   context: {
     KeyringController: {
       getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),

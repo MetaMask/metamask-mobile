@@ -1,7 +1,9 @@
-import React, { Fragment, useCallback } from 'react';
+import React, { Fragment, useCallback, useEffect } from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -15,16 +17,18 @@ import EnableNotificationsCardPlaceholder from '../../../../images/enableNotific
 import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import {
-  asyncAlert,
-  requestPushNotificationsPermission,
-} from '../../../../util/notifications';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
+import {
+  selectIsProfileSyncingEnabled,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../../selectors/notifications';
 
 const OptIn = () => {
+  const { trackEvent } = useMetrics();
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
@@ -32,13 +36,34 @@ const OptIn = () => {
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
+
+  const isDeviceNotificationEnabled = useSelector(
+    (state: RootState) => state.settings.deviceNotificationEnabled,
+  );
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
   const { enableNotifications } = useEnableNotifications();
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
   const [optimisticLoading, setOptimisticLoading] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  const [enableManuallyNotification, setEnableManuallyNotification] =
+    React.useState(false);
   const navigateToMainWallet = () => {
+    if (!isUpdating) {
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'dismissed',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
+    }
     navigation.navigate(Routes.WALLET_VIEW);
   };
 
   const toggleNotificationsEnabled = useCallback(async () => {
+    setEnableManuallyNotification(true);
     if (!basicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -47,11 +72,11 @@ const OptIn = () => {
         },
       });
     } else {
-      const nativeNotificationStatus = await requestPushNotificationsPermission(
-        asyncAlert,
-      );
+      const { permission } = await NotificationsService.getAllPermissions();
 
-      if (nativeNotificationStatus) {
+      if (permission !== 'authorized') {
+        return;
+      }
         /**
          * Although this is an async function, we are dispatching an action (firing & forget)
          * to emulate optimistic UI.
@@ -66,12 +91,38 @@ const OptIn = () => {
           navigation.navigate(Routes.NOTIFICATIONS.VIEW);
         }, 5000);
       }
-    }
-  }, [basicFunctionalityEnabled, enableNotifications, navigation]);
+      setIsUpdating(true);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'activated',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
+  }, [
+    basicFunctionalityEnabled,
+    enableNotifications,
+    navigation,
+    isProfileSyncingEnabled,
+    trackEvent,
+    setIsUpdating,
+  ]);
 
   const goToLearnMore = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
+
+  useEffect(() => {
+    if (
+      isDeviceNotificationEnabled &&
+      !isNotificationEnabled &&
+      enableManuallyNotification
+    ) {
+      toggleNotificationsEnabled();
+    }
+  }, [
+    enableManuallyNotification,
+    isDeviceNotificationEnabled,
+    isNotificationEnabled,
+    toggleNotificationsEnabled,
+  ]);
 
   return (
     <Fragment>

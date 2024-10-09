@@ -202,7 +202,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               }
             }
           >
-            If you disconnect your accounts from test, you’ll need to reconnect to use them again.
+            If you disconnect from test, you’ll need to reconnect your accounts and networks to use this site again.
           </Text>
         </View>
         <View

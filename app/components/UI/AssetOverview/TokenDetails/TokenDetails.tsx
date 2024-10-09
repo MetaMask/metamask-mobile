@@ -1,5 +1,5 @@
 import { zeroAddress } from 'ethereumjs-util';
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
@@ -20,7 +20,9 @@ import { formatCurrency } from '../../../../util/confirm-tx';
 import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
-import { Asset } from '../AssetOverview.types';
+import { TokenI } from '../../Tokens/types';
+import StakingEarnings from '../StakingEarnings';
+import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -39,7 +41,7 @@ export interface MarketDetails {
 }
 
 interface TokenDetailsProps {
-  asset: Asset;
+  asset: TokenI;
 }
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
@@ -50,14 +52,17 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
+  // TEMP: Remove once component has been implemented.
+  const [hasStakingPositions] = useState(true);
+
   let tokenMetadata;
   let marketData;
 
   if (asset.isETH) {
-    marketData = tokenExchangeRates[zeroAddress() as `0x${string}`];
+    marketData = tokenExchangeRates?.[zeroAddress() as `0x${string}`];
   } else if (!asset.isETH && tokenContractAddress) {
-    tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates[tokenContractAddress];
+    tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
+    marketData = tokenExchangeRates?.[tokenContractAddress];
   } else {
     Logger.log('cannot find contract address');
     return null;
@@ -121,7 +126,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.tokenDetailsContainer}>
+      {asset.isETH &&
+        hasStakingPositions &&
+        isPooledStakingFeatureEnabled() && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

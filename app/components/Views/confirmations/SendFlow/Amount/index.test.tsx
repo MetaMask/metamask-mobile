@@ -4,7 +4,6 @@ import Amount from '.';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../core/Engine';
 import TransactionTypes from '../../../../../core/TransactionTypes';
 
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
@@ -12,11 +11,9 @@ import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
-const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
 
 jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(() =>
@@ -85,10 +82,19 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'mainnet',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0x1',
+            ticker: 'ETH',
+            nickname: 'Sepolia network',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
       AccountTrackerController: {

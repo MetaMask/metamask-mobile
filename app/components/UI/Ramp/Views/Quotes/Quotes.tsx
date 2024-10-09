@@ -430,8 +430,7 @@ function Quotes() {
       !isInPolling &&
       !ErrorFetchingQuotes &&
       !isFetchingQuotes &&
-      filteredQuotes &&
-      filteredQuotes.length
+      filteredQuotes?.length
     ) {
       setFirstFetchCompleted(true);
       setIsInPolling(true);

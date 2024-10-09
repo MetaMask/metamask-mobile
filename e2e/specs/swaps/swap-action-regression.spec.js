@@ -18,12 +18,12 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { Regression } from '../../tags';
+import { SmokeSwaps } from '../../tags';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Multiple Swaps from Actions'), () => {
+describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -110,25 +110,29 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
       );
-      await TestHelpers.delay(5000);
       await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
         destTokenSymbol,
       );
 
-      if (device.getPlatform() === 'android') {
+      try {
         await Assertions.checkIfVisible(DetailsModal.title);
-        await Assertions.checkIfElementToHaveText(
-          DetailsModal.title,
-          DetailsModal.generateExpectedTitle(
-            sourceTokenSymbol,
-            destTokenSymbol,
-          ),
+      } catch (e) {
+        await ActivitiesView.tapOnSwapActivity(
+          sourceTokenSymbol,
+          destTokenSymbol,
         );
-        await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-        await DetailsModal.tapOnCloseIcon();
-        await Assertions.checkIfNotVisible(DetailsModal.title);
+        await Assertions.checkIfVisible(DetailsModal.title);
       }
+
+      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+      await DetailsModal.tapOnCloseIcon();
+      await Assertions.checkIfNotVisible(DetailsModal.title);
     },
   );
 });

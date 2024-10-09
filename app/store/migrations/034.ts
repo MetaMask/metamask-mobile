@@ -1,6 +1,17 @@
 import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
-import type { NetworkState } from '@metamask/network-controller';
+
+interface NetworkState {
+  providerConfig: {
+    chainId: string;
+    ticker: string;
+    type: string;
+    rpcPrefs: {
+      blockExplorerUrl: string;
+    };
+  };
+  selectedNetworkClientId: string;
+}
 
 /**
  * This migration addresses the ticker be required

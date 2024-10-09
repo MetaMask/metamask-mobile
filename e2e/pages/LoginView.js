@@ -2,8 +2,13 @@ import TestHelpers from '../helpers';
 import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { RevealSeedViewSelectorsIDs } from '../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../selectors/LoginView.selectors';
+import Matchers from '../utils/Matchers';
 
 export default class LoginView {
+  static async getContainer() {
+    return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
+  }
+
   static async enterPassword(password) {
     await TestHelpers.typeTextAndHideKeyboard(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT,

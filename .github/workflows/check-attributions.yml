@@ -3,13 +3,6 @@ name: Check Attributions
 on:
   push:
     branches: release/*
-  pull_request:
-    branches: release/*
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - ready_for_review
 
 jobs:
   check-attributions:

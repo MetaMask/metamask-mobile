@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const RequestPaymentModalSelectorsIDs = {
   CONTAINER: 'receive-request-screen',
   REQUEST_BUTTON: 'request-payment-button',

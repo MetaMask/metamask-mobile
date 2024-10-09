@@ -108,23 +108,10 @@ export const STAKING_PROVIDER_MAP: Record<
   [TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED]: 'Rocket Pool-staked ETH',
 };
 
-export const networkFeeDetails: Record<string, string> = {
-  'transactions.gas_limit': 'gasLimitUnits',
-  'transactions.gas_used': 'gasUsedUnits',
-  'transactions.base_fee': 'baseFee',
-  'transactions.priority_fee': 'priorityFee',
-  'transactions.max_fee': 'maxFeePerGas',
-};
-
 export interface SimpleNotification {
   title?: string;
   body?: string;
   data?: {
     [key: string]: string | object | number;
   };
-}
-
-export enum NotificationsKindTypes {
-  transaction = 'transaction',
-  announcements = 'announcements',
 }

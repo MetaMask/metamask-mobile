@@ -20,11 +20,6 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-        },
-      },
       AddressBookController: {
         addressBook: {
           [MOCK_ADDRESS_2]: {

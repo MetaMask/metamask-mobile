@@ -429,11 +429,8 @@ class WalletConnect2Session {
       return;
     }
 
-    // Android specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
-    if (
-      method.toLowerCase() === RPC_WALLET_SWITCHETHEREUMCHAIN.toLowerCase() &&
-      Device.isAndroid()
-    ) {
+    // Specific logic to prevent automatic redirect on switchChain and let the dapp call wallet_addEthereumChain on error.
+    if (method.toLowerCase() === RPC_WALLET_SWITCHETHEREUMCHAIN.toLowerCase()) {
       // extract first chainId param from request array
       const params = requestEvent.params.request.params as [
         { chainId?: string },
@@ -457,7 +454,7 @@ class WalletConnect2Session {
       );
       if (!existingEntry && !existingNetworkDefault) {
         DevLogger.log(
-          `SKIP rpcMiddleWare -- auto rejection is detected android (_chainId=${_chainId})`,
+          `SKIP rpcMiddleWare -- auto rejection is detected (_chainId=${_chainId})`,
         );
         await this.web3Wallet.rejectRequest({
           id: requestEvent.id,

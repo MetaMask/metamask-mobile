@@ -1,6 +1,7 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
+import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
@@ -30,6 +31,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AuthenticationController');
     expect(engine.context).toHaveProperty('UserStorageController');
     expect(engine.context).toHaveProperty('NotificationServicesController');
+    expect(engine.context).toHaveProperty('SelectedNetworkController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -50,39 +52,7 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
 
-    expect(initialBackgroundState).toStrictEqual({
-      ...backgroundState,
-
-      // JSON cannot store the value undefined, so we append it here
-      SmartTransactionsController: {
-        smartTransactionsState: {
-          fees: {
-            approvalTxFees: undefined,
-            tradeTxFees: undefined,
-          },
-          feesByChainId: {
-            '0x1': {
-              approvalTxFees: undefined,
-              tradeTxFees: undefined,
-            },
-            '0xaa36a7': {
-              approvalTxFees: undefined,
-              tradeTxFees: undefined,
-            },
-          },
-          liveness: true,
-          livenessByChainId: {
-            '0x1': true,
-            '0xaa36a7': true,
-          },
-          smartTransactions: {
-            '0x1': [],
-          },
-          userOptIn: undefined,
-          userOptInV2: undefined,
-        },
-      },
-    });
+    expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
@@ -104,12 +74,10 @@ describe('Engine', () => {
     const ethConversionRate = 4000; // $4,000 / ETH
 
     const state = {
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: selectedAddress,
-          accounts: { [selectedAddress]: { address: selectedAddress } },
-        },
-      },
+      AccountsController: createMockAccountsControllerState(
+        [selectedAddress],
+        selectedAddress,
+      ),
       NetworkController: {
         state: { providerConfig: { chainId, ticker } },
       },

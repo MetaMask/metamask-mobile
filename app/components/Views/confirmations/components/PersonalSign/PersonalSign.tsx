@@ -83,30 +83,36 @@ const PersonalSign = ({
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
-    try {
-      const chainId = selectChainId(store.getState());
-      const pageInfo = currentPageInformation || messageParams.meta;
-      const url = new URL(pageInfo.url);
+    const pageInfo = currentPageInformation || messageParams.meta || {};
 
-      let blockaidParams = {};
+    const chainId = selectChainId(store.getState());
+    const fallbackUrl = 'N/A';
 
-      if (securityAlertResponse) {
-        blockaidParams = getBlockaidMetricsParams(
-          securityAlertResponse as SecurityAlertResponse,
-        );
+    let urlHost = fallbackUrl;
+    if (pageInfo.url) {
+      try {
+        const url = new URL(pageInfo.url);
+        urlHost = url.host || fallbackUrl;
+      } catch (error) {
+        Logger.error(error as Error, 'Error parsing URL in signature request');
       }
-
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: url?.host,
-        chain_id: getDecimalChainId(chainId),
-        signature_type: 'personal_sign',
-        ...pageInfo?.analytics,
-        ...blockaidParams,
-      };
-    } catch (error) {
-      return {};
     }
+
+    let blockaidParams: Record<string, unknown> = {};
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(
+        securityAlertResponse as SecurityAlertResponse,
+      );
+    }
+
+    return {
+      account_type: getAddressAccountType(messageParams.from),
+      dapp_host_name: urlHost,
+      chain_id: chainId ? getDecimalChainId(chainId) : 'N/A',
+      signature_type: 'personal_sign',
+      ...pageInfo.analytics,
+      ...blockaidParams,
+    };
   }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {

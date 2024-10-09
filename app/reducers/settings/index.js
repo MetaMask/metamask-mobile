@@ -57,6 +57,12 @@ const settingsReducer = (state = initialState, action) => {
         basicFunctionalityEnabled: action.basicFunctionalityEnabled,
       };
 
+    case 'TOGGLE_DEVICE_NOTIFICATIONS':
+      return {
+        ...state,
+        deviceNotificationEnabled: action.deviceNotificationEnabled,
+      };
+
     default:
       return state;
   }

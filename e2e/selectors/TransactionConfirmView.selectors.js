@@ -10,4 +10,5 @@ export const TransactionConfirmViewSelectorsIDs = {
 
 export const TransactionConfirmViewSelectorsText = {
   CANCEL_BUTTON: enContent.transaction.cancel,
+  EDIT_PRIORITY_MODAL: enContent.edit_gas_fee_eip1559.edit_priority,
 };

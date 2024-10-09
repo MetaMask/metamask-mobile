@@ -50,6 +50,9 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
         await TestDApp.tapIncreaseAllowanceButton();
 
         //Input custom token amount
+        await Assertions.checkIfVisible(
+          ContractApprovalModal.approveTokenAmount,
+        );
         await ContractApprovalModal.clearInput();
         await ContractApprovalModal.inputCustomAmount('2');
 

@@ -11,7 +11,10 @@ import ledgerDeviceLightImage from 'images/ledger-device-light.png';
 import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
 import {
   forgetLedger,
+  getHDPath,
+  getLedgerAccounts,
   getLedgerAccountsByOperation,
+  setHDPath,
   unlockLedgerWalletAccount,
 } from '../../../core/Ledger/Ledger';
 import LedgerConnect from '../LedgerConnect';
@@ -26,10 +29,28 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import {
+  LEDGER_BIP44_PATH,
+  LEDGER_BIP44_STRING,
+  LEDGER_LEGACY_PATH,
+  LEDGER_LEGACY_STRING,
+  LEDGER_LIVE_PATH,
+  LEDGER_LIVE_STRING,
+  LEDGER_UNKNOWN_STRING,
+} from '../../../core/Ledger/constants';
+import SelectOptionSheet from '../../UI/SelectOptionSheet';
+import { AccountsController } from '@metamask/accounts-controller';
+
+interface OptionType {
+  key: string;
+  label: string;
+  value: string;
+}
 
 const LedgerSelectAccount = () => {
   const navigation = useNavigation<StackNavigationProp<never>>();
   const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
@@ -37,6 +58,27 @@ const LedgerSelectAccount = () => {
   const ledgerThemedImage = useAssetFromTheme(
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
+  );
+
+  const ledgerPathOptions: OptionType[] = useMemo(
+    () => [
+      {
+        key: LEDGER_LIVE_PATH,
+        label: strings('ledger.ledger_live_path'),
+        value: LEDGER_LIVE_PATH,
+      },
+      {
+        key: LEDGER_LEGACY_PATH,
+        label: strings('ledger.ledger_legacy_path'),
+        value: LEDGER_LEGACY_PATH,
+      },
+      {
+        key: LEDGER_BIP44_PATH,
+        label: strings('ledger.ledger_bip44_path'),
+        value: LEDGER_BIP44_PATH,
+      },
+    ],
+    [],
   );
 
   const {
@@ -49,6 +91,13 @@ const LedgerSelectAccount = () => {
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
       KeyringController: KeyringController;
+    };
+    return controller;
+  }, []);
+
+  const accountsController = useMemo(() => {
+    const { AccountsController: controller } = Engine.context as {
+      AccountsController: AccountsController;
     };
     return controller;
   }, []);
@@ -67,6 +116,10 @@ const LedgerSelectAccount = () => {
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
 
+  const [selectedOption, setSelectedOption] = useState<OptionType>(
+    ledgerPathOptions[0],
+  );
+
   useEffect(() => {
     keyringController.getAccounts().then((value: string[]) => {
       setExistingAccounts(value);
@@ -79,18 +132,43 @@ const LedgerSelectAccount = () => {
     }
   }, [ledgerError]);
 
+  const showLoadingModal = () => {
+    setErrorMsg(null);
+    setBlockingModalVisible(true);
+  };
+
   const onConnectHardware = useCallback(async () => {
+    setErrorMsg(null);
+
     trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: HardwareDeviceTypes.LEDGER,
     });
+
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_FIRST_PAGE,
     );
     setAccounts(_accounts);
   }, [trackEvent]);
 
+  useEffect(() => {
+    if (accounts.length > 0 && selectedOption) {
+      showLoadingModal();
+
+      getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE)
+        .then((_accounts) => {
+          setAccounts(_accounts);
+        })
+        .catch((e) => {
+          setErrorMsg(e.message);
+        })
+        .finally(() => {
+          setBlockingModalVisible(false);
+        });
+    }
+  }, [accounts.length, selectedOption]);
+
   const nextPage = useCallback(async () => {
-    setBlockingModalVisible(true);
+    showLoadingModal();
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_NEXT_PAGE,
     );
@@ -99,7 +177,7 @@ const LedgerSelectAccount = () => {
   }, []);
 
   const prevPage = useCallback(async () => {
-    setBlockingModalVisible(true);
+    showLoadingModal();
     const _accounts = await getLedgerAccountsByOperation(
       PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
     );
@@ -107,29 +185,70 @@ const LedgerSelectAccount = () => {
     setBlockingModalVisible(false);
   }, []);
 
+  const updateNewLegacyAccountsLabel = useCallback(async () => {
+    if (LEDGER_LEGACY_PATH === (await getHDPath())) {
+      const ledgerAccounts = await getLedgerAccounts();
+      const newAddedAccounts = ledgerAccounts.filter(
+        (account) => !existingAccounts.includes(account.toLowerCase()),
+      );
+
+      if (newAddedAccounts.length > 0) {
+        // get existing account label
+        for (const address of newAddedAccounts) {
+          const account = accountsController.getAccountByAddress(address);
+          if (account) {
+            accountsController.setAccountName(
+              account.id,
+              account.metadata.name + strings('ledger.ledger_legacy_label'),
+            );
+          }
+        }
+      }
+    }
+  }, [accountsController, existingAccounts]);
+
+  const getPathString = (value: string) => {
+    if (value === LEDGER_LIVE_PATH) {
+      return LEDGER_LIVE_STRING;
+    } else if (value === LEDGER_LEGACY_PATH) {
+      return LEDGER_LEGACY_STRING;
+    } else if (value === LEDGER_BIP44_PATH) {
+      return LEDGER_BIP44_STRING;
+    }
+    return LEDGER_UNKNOWN_STRING;
+  };
+
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
-      setBlockingModalVisible(true);
-
+      showLoadingModal();
       try {
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
         }
+
+        await updateNewLegacyAccountsLabel();
       } catch (err) {
-        // Do nothing
+        setErrorMsg((err as Error).message);
+      } finally {
+        setBlockingModalVisible(false);
       }
-      setBlockingModalVisible(false);
 
       trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: HardwareDeviceTypes.LEDGER,
+        hd_path: getPathString(selectedOption.value),
       });
       navigation.pop(2);
     },
-    [navigation, trackEvent],
+    [
+      navigation,
+      selectedOption.value,
+      trackEvent,
+      updateNewLegacyAccountsLabel,
+    ],
   );
 
   const onForget = useCallback(async () => {
-    setBlockingModalVisible(true);
+    showLoadingModal();
     await forgetLedger();
     dispatch(setReloadAccounts(true));
     trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
@@ -162,6 +281,18 @@ const LedgerSelectAccount = () => {
     unlockAccounts.trigger,
   ]);
 
+  const onSelectedPathChanged = useCallback(
+    async (path: string) => {
+      const option = ledgerPathOptions.find(
+        (pathOption) => pathOption.key === path,
+      );
+      if (!option) return;
+      setSelectedOption(option);
+      await setHDPath(path);
+    },
+    [ledgerPathOptions],
+  );
+
   return ledgerError || accounts.length <= 0 ? (
     <LedgerConnect
       onConnectLedger={onConnectHardware}
@@ -189,20 +320,41 @@ const LedgerSelectAccount = () => {
             <MaterialIcon name="close" size={15} style={styles.closeIcon} />
           </TouchableOpacity>
         </View>
+        <View style-={styles.selectorContainer}>
+          {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
+          <Text style={styles.mainTitle}>
+            {strings('ledger.select_accounts')}
+          </Text>
+          <Text style={styles.selectorTitle}>
+            {strings('ledger.select_hd_path')}
+          </Text>
+          <Text style={styles.selectorDescription}>
+            {strings('ledger.select_hd_path_description')}
+          </Text>
+          <View style={styles.pathSelector}>
+            <SelectOptionSheet
+              options={ledgerPathOptions}
+              label={strings('ledger.select_hd_path')}
+              onValueChange={async (val) => await onSelectedPathChanged(val)}
+              selectedValue={selectedOption.value}
+            />
+          </View>
+        </View>
         <AccountSelector
           accounts={accounts}
           selectedAccounts={existingAccounts}
           nextPage={nextPage}
           prevPage={prevPage}
           onUnlock={(accountIndex: number[]) => {
+            setErrorMsg(null);
             setUnlockAccounts({ trigger: true, accountIndexes: accountIndex });
             setBlockingModalVisible(true);
           }}
           onForget={() => {
+            setErrorMsg(null);
             setForgetDevice(true);
             setBlockingModalVisible(true);
           }}
-          title={strings('ledger.select_accounts')}
         />
       </View>
       <BlockingActionModal

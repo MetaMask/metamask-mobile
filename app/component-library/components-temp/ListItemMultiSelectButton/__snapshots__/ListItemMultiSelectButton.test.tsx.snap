@@ -40,7 +40,16 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
         }
       }
     >
-      <View />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View />
+      </View>
     </View>
   </TouchableOpacity>
   <View>

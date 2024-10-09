@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
@@ -8,22 +8,14 @@ import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import TextComponent, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { AVAILABLE_TOKEN_LIST } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+import {
+  isMultichainVersion1Enabled,
+  getDecimalChainId,
+} from '../../../util/networks';
+import PermissionSummary from '../PermissionsSummary';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -36,7 +28,7 @@ const createStyles = (colors) =>
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
     intro: {
-      fontSize: Device.isSmallDevice() || isMutichainVersion1Enabled ? 18 : 24,
+      fontSize: Device.isSmallDevice() ? 18 : 24,
       marginBottom: 16,
       marginTop: 16,
       marginRight: 24,
@@ -79,27 +71,6 @@ const createStyles = (colors) =>
     networkContainer: {
       alignItems: 'center',
     },
-    networkPermissionRequestInfoCard: {
-      marginHorizontal: 24,
-      marginTop: 8,
-      marginBottom: 12,
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-
-    networkPermissionRequestDetails: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    permissionRequestNetworkInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    networkText: {
-      fontSize: 12,
-      color: colors.text.default,
-    },
-    avatarGroup: { marginLeft: 2 },
     networkBadge: {
       flexDirection: 'row',
       borderColor: colors.border.default,
@@ -107,20 +78,9 @@ const createStyles = (colors) =>
       borderWidth: 1,
       padding: 10,
     },
-    accountPermissionRequestInfoCard: {
-      marginHorizontal: 24,
-      marginTop: 8,
-      marginBottom: 12,
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    accountPermissionRequestDetails: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    permissionRequestAccountInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    networkText: {
+      fontSize: 12,
+      color: colors.text.default,
     },
   });
 
@@ -136,10 +96,33 @@ const SwitchCustomNetwork = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { trackEvent } = useMetrics();
+
+  const { networkName } = useNetworkInfo(
+    new URL(currentPageInformation.url).hostname,
+  );
+
+  const trackingData = useMemo(
+    () => ({
+      chain_id: getDecimalChainId(customNetworkInformation.chainId),
+      from_network: networkName,
+      to_network: customNetworkInformation.chainName,
+    }),
+    [customNetworkInformation, networkName],
+  );
+
+  useEffect(() => {
+    trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
+      trackingData,
+    );
+  }, [trackEvent, trackingData]);
+
   /**
    * Calls onConfirm callback and analytics to track connect confirmed event
    */
   const confirm = () => {
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCH_CONFIRM_PRESSED, trackingData);
     onConfirm && onConfirm();
   };
 
@@ -149,151 +132,48 @@ const SwitchCustomNetwork = ({
   const cancel = () => {
     onCancel && onCancel();
   };
-
-  const renderSwitchWarningText = () => (
-    <Text primary noMargin style={styles.warning}>
-      {type === 'switch' ? (
-        strings('switch_custom_network.switch_warning')
-      ) : (
-        <Text>
-          <Text
-            bold
-            primary
-            noMargin
-          >{`"${customNetworkInformation.chainName}"`}</Text>
-          <Text noMargin> {strings('switch_custom_network.available')}</Text>
-        </Text>
-      )}
-    </Text>
-  );
-
-  function renderNetworkBadge() {
-    return (
-      <View style={styles.networkContainer}>
-        <View style={styles.networkBadge}>
-          <View
-            style={[
-              styles.networkIcon,
-              customNetworkInformation.chainColor
-                ? { backgroundColor: customNetworkInformation.chainColor }
-                : styles.otherNetworkIcon,
-            ]}
-          />
-          <Text primary noMargin style={styles.networkText}>
-            {customNetworkInformation.chainName}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  function renderAccountPermissionsRequestInfoCard() {
-    return (
-      <View style={styles.accountPermissionRequestInfoCard}>
-        <Avatar
-          variant={AvatarVariant.Icon}
-          name={IconName.Wallet}
-          size={AvatarSize.Md}
-          backgroundColor={colors.shadow.default}
-          iconColor={colors.icon.alternative}
-        />
-        <View style={styles.accountPermissionRequestDetails}>
-          <TextComponent variant={TextVariant.BodyMD}>
-            {strings('switch_custom_network.wants_to_see_your_accounts')}
-          </TextComponent>
-          <View style={styles.permissionRequestAccountInfo}>
-            <TextComponent>
-              <TextComponent variant={TextVariant.BodySM}>
-                {strings('switch_custom_network.requesting_for')}
-              </TextComponent>
-              <TextComponent variant={TextVariant.BodySMMedium}>
-                {customNetworkInformation.chainName}
-              </TextComponent>
-            </TextComponent>
-            <View style={styles.avatarGroup}>
-              <Avatar
-                size={AvatarSize.Xs}
-                variant={AvatarVariant.Account}
-                accountAddress={'0x4514b1904FDe6031D50d507e46816Ba8b42A8034'}
-              />
-            </View>
-          </View>
-        </View>
-        <View>
-          <Button
-            variant={ButtonVariants.Link}
-            width={ButtonWidthTypes.Full}
-            label={strings('switch_custom_network.edit')}
-            size={ButtonSize.Lg}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  function renderNetworkPermissionsRequestInfoCard() {
-    return (
-      <View style={styles.networkPermissionRequestInfoCard}>
-        <Avatar
-          variant={AvatarVariant.Icon}
-          name={IconName.Data}
-          size={AvatarSize.Md}
-          backgroundColor={colors.shadow.default}
-          iconColor={colors.icon.alternative}
-        />
-        <View style={styles.networkPermissionRequestDetails}>
-          <TextComponent variant={TextVariant.BodyMD}>
-            {strings('switch_custom_network.use_enabled_networks')}
-          </TextComponent>
-          <View style={styles.permissionRequestNetworkInfo}>
-            <TextComponent>
-              <TextComponent variant={TextVariant.BodySM}>
-                {strings('switch_custom_network.requesting_for')}
-              </TextComponent>
-              <TextComponent variant={TextVariant.BodySMMedium}>
-                {customNetworkInformation.chainName}
-              </TextComponent>
-            </TextComponent>
-            <View style={styles.avatarGroup}>
-              <AvatarGroup tokenList={AVAILABLE_TOKEN_LIST.slice(0, 6)} />
-            </View>
-          </View>
-        </View>
-        <View>
-          <Button
-            variant={ButtonVariants.Link}
-            width={ButtonWidthTypes.Full}
-            label={strings('switch_custom_network.edit')}
-            size={ButtonSize.Lg}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  const title = isMutichainVersion1Enabled
-    ? strings('switch_custom_network.title_enabled_network')
-    : strings('switch_custom_network.title_existing_network');
-
-  return (
+  const renderNetworkSwitchingNotice = () => (
     <View style={styles.root}>
       {type === 'switch' ? (
         <TransactionHeader currentPageInformation={currentPageInformation} />
       ) : null}
       <Text bold centered primary noMargin style={styles.intro}>
         {type === 'switch'
-          ? title
+          ? strings('switch_custom_network.title_existing_network')
           : strings('switch_custom_network.title_new_network')}
       </Text>
-      {!isMutichainVersion1Enabled && renderSwitchWarningText()}
-      {!isMutichainVersion1Enabled && type === 'switch' && renderNetworkBadge()}
-      {isMutichainVersion1Enabled && renderAccountPermissionsRequestInfoCard()}
-      {isMutichainVersion1Enabled && renderNetworkPermissionsRequestInfoCard()}
-      <View
-        style={styles.actionContainer(
-          type === 'new' || isMutichainVersion1Enabled,
+      <Text primary noMargin style={styles.warning}>
+        {type === 'switch' ? (
+          strings('switch_custom_network.switch_warning')
+        ) : (
+          <Text>
+            <Text
+              bold
+              primary
+              noMargin
+            >{`"${customNetworkInformation.chainName}"`}</Text>
+            <Text noMargin> {strings('switch_custom_network.available')}</Text>
+          </Text>
         )}
-      >
+      </Text>
+      {type === 'switch' ? (
+        <View style={styles.networkContainer}>
+          <View style={styles.networkBadge}>
+            <View
+              style={[
+                styles.networkIcon,
+                customNetworkInformation.chainColor
+                  ? { backgroundColor: customNetworkInformation.chainColor }
+                  : styles.otherNetworkIcon,
+              ]}
+            />
+            <Text primary noMargin style={styles.networkText}>
+              {customNetworkInformation.chainName}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+      <View style={styles.actionContainer(type === 'new')}>
         <StyledButton
           type={'cancel'}
           onPress={cancel}
@@ -308,13 +188,26 @@ const SwitchCustomNetwork = ({
           containerStyle={[styles.button, styles.confirm]}
           testID={CommonSelectorsIDs.CONNECT_BUTTON}
         >
-          {isMutichainVersion1Enabled
-            ? strings('confirmation_modal.confirm_cta')
-            : strings('switch_custom_network.switch')}
+          {strings('switch_custom_network.switch')}
         </StyledButton>
       </View>
     </View>
   );
+
+  const renderPermissionSummary = () => (
+    <PermissionSummary
+      customNetworkInformation={customNetworkInformation}
+      currentPageInformation={currentPageInformation}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+      isDisconnectAllShown={false}
+      isNetworkSwitch
+    />
+  );
+
+  return isMultichainVersion1Enabled
+    ? renderPermissionSummary()
+    : renderNetworkSwitchingNotice();
 };
 
 SwitchCustomNetwork.propTypes = {

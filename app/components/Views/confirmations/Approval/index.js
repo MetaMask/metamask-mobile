@@ -55,6 +55,9 @@ import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selec
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -144,13 +147,8 @@ class Approval extends PureComponent {
     transactionConfirmed: false,
   };
 
-  originIsWalletConnect = this.props.transaction.origin?.startsWith(
-    WALLET_CONNECT_ORIGIN,
-  );
-
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  originIsWalletConnect = false;
+  originIsMMSDKRemoteConn = false;
 
   updateNavBar = () => {
     const colors = this.context.colors || mockTheme.colors;
@@ -249,10 +247,48 @@ class Approval extends PureComponent {
     );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+    this.initialise();
+  };
+
+  initialise = async () => {
+    // Detect origin: WalletConnect / SDK / InAppBrowser
+    await this.detectOrigin(); // Ensure detectOrigin finishes before proceeding
 
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
+    );
+  };
+
+  detectOrigin = async () => {
+    const { transaction } = this.props;
+    const { origin } = transaction;
+
+    const connection = SDKConnect.getInstance().getConnection({
+      channelId: origin,
+    });
+    if (connection) {
+      this.originIsMMSDKRemoteConn = true;
+    } else {
+      // Check if origin is WalletConnect
+      const wc2Manager = await WC2Manager.getInstance();
+      const sessions = wc2Manager.getSessions();
+      this.originIsWalletConnect = sessions.some((session) => {
+        // Otherwise, compare the origin with the metadata URL
+        if (
+          session.peer.metadata.url === origin ||
+          origin.startsWith(WALLET_CONNECT_ORIGIN)
+        ) {
+          DevLogger.log(
+            `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
+          );
+          return true;
+        }
+        return false;
+      });
+    }
+    DevLogger.log(
+      `Approval::detectOrigin originIsWalletConnect=${this.originIsWalletConnect} originIsMMSDKRemoteConn=${this.originIsMMSDKRemoteConn}`,
     );
   };
 
@@ -319,13 +355,20 @@ class Approval extends PureComponent {
   };
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
+    const { chainId, transaction, selectedAddress, shouldUseSmartTransaction } =
+      this.props;
+
+    const baseParams = {
+      dapp_host_name: transaction?.origin || 'N/A',
+      asset_type: { value: transaction?.assetType, anonymous: true },
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    };
+
     try {
-      const {
-        chainId,
-        transaction,
-        selectedAddress,
-        shouldUseSmartTransaction,
-      } = this.props;
       const { selectedAsset } = transaction;
       const { TransactionController, SmartTransactionsController } =
         Engine.context;
@@ -341,24 +384,22 @@ class Approval extends PureComponent {
         );
 
       return {
+        ...baseParams,
         account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: transaction?.origin,
         chain_id: getDecimalChainId(chainId),
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
-        asset_type: { value: transaction?.assetType, anonymous: true },
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         is_smart_transaction: shouldUseSmartTransaction,
         ...smartTransactionMetricsProperties,
       };
     } catch (error) {
-      return {};
+      Logger.error(
+        error,
+        'Error while getting analytics params for approval screen',
+      );
+      return baseParams;
     }
   };
 

@@ -11,7 +11,6 @@ import android.util.Log;
 import io.branch.rnbranch.*;
 import android.content.Intent;
 import android.os.Bundle;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 

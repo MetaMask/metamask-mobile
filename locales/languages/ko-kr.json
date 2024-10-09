@@ -896,8 +896,7 @@
     "message": "메시지",
     "message_from": "메시지 출처",
     "learn_more": "자세히 알아보기",
-    "read_more": "더 읽어보기",
-    "eth_sign_warning": "주의해서 진행하세요. 이 작업은 귀하의 계정에서 자산을 인출하는 데 사용될 수 있습니다. 이 사이트를 신뢰하는지 확인하세요."
+    "read_more": "더 읽어보기"
   },
   "watch_asset_request": {
     "title": "추천 토큰 추가",
