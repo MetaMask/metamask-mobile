@@ -11,6 +11,7 @@ import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
 
+// todo: use value component for address, network, currency value
 const AccountNetworkInfoExpanded = () => {
   const { approvalRequest } = useApprovalRequest();
   const networkName = useSelector(selectNetworkName);
@@ -27,6 +28,7 @@ const AccountNetworkInfoExpanded = () => {
       <InfoSection>
         <InfoRow
           label={strings('confirm.network')}
+          // todo: add tooltip content when available
           tooltip={strings('confirm.network')}
         >
           {networkName}
