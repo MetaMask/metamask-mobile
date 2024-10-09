@@ -16,6 +16,7 @@ export interface AccountConnectParams {
     permissions: RequestedPermissions;
   };
   permissionRequestId: string;
+  diff: unknown;
 }
 
 /**

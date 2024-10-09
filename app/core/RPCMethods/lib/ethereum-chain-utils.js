@@ -274,27 +274,25 @@ export async function switchToNetwork({
           },
         });
       } else {
-        console.log('ALEX LOGGING: requestPermissionsIncremental');
-        try {
-          await PermissionController.requestPermissionsIncremental(
-            { origin },
-            {
-              [PermissionKeys.permittedChains]: {
-                caveats: [
-                  CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
-                    chainId,
-                  ]),
-                ],
-              },
+        // try {
+        await PermissionController.requestPermissionsIncremental(
+          { origin },
+          {
+            [PermissionKeys.permittedChains]: {
+              caveats: [
+                CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
+                  chainId,
+                ]),
+              ],
             },
-          );
-        } catch (e) {
-          console.log('ALEX LOGGING: requestPermissionsIncremental error', e);
-        }
+          },
+        );
+        // } catch (e) {
+        //   console.log('ALEX LOGGING: requestPermissionsIncremental error', e);
+        // }
       }
     }
   } else {
-    console.log('ALEX LOGGING: requestUserApproval');
     const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
