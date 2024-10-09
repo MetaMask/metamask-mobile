@@ -13,6 +13,7 @@ const clearStackNavigatorOptions = {
     backgroundColor: 'transparent',
   },
   animationEnabled: false,
+  presentation: 'modal',
 };
 
 // Regular Stack for Screens
@@ -25,10 +26,7 @@ const StakeScreenStack = () => (
 
 // Modal Stack for Modals
 const StakeModalStack = () => (
-  <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-  >
+  <ModalStack.Navigator screenOptions={clearStackNavigatorOptions}>
     <ModalStack.Screen
       name={Routes.STAKING.MODALS.LEARN_MORE}
       component={LearnMoreModal}

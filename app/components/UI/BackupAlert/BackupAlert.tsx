@@ -58,7 +58,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const dispatch = useDispatch();
 
   const currentRouteName = findRouteNameFromNavigatorState(
-    navigation.dangerouslyGetState().routes,
+    navigation.getState().routes,
   );
 
   useEffect(() => {

@@ -1071,7 +1071,7 @@ function SwapsQuotesView({
       );
 
       if (isHardwareAddress) {
-        navigation.dangerouslyGetParent()?.pop();
+        navigation.getParent()?.pop();
         return;
       }
     }
@@ -1083,7 +1083,7 @@ function SwapsQuotesView({
       await handleSwapTransaction(approvalTransactionMetaId);
     }
 
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   }, [
     selectedQuote,
     selectedAddress,

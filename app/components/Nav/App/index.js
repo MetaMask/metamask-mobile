@@ -140,6 +140,7 @@ const clearStackNavigatorOptions = {
     }),
   },
   animationEnabled: false,
+  presentation: 'modal',
 };
 
 const Stack = createStackNavigator();
@@ -259,7 +260,7 @@ const OnboardingNav = () => (
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator mode={'modal'}>
+  <Stack.Navigator options={{ presentation: 'modal' }}>
     <Stack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
@@ -271,8 +272,7 @@ const SimpleWebviewScreen = () => (
 const OnboardingRootNav = () => (
   <Stack.Navigator
     initialRouteName={Routes.ONBOARDING.NAV}
-    mode="modal"
-    screenOptions={{ headerShown: false }}
+    screenOptions={{ headerShown: false, presentation: 'modal' }}
   >
     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
     <Stack.Screen
@@ -548,7 +548,6 @@ const App = (props) => {
 
   const DetectedTokensFlow = () => (
     <Stack.Navigator
-      mode={'modal'}
       screenOptions={clearStackNavigatorOptions}
       initialRouteName={'DetectedTokens'}
     >
@@ -561,7 +560,7 @@ const App = (props) => {
   );
 
   const RootModalFlow = () => (
-    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
       <Stack.Screen
         name={Routes.MODAL.WALLET_ACTIONS}
         component={WalletActions}
@@ -810,11 +809,11 @@ const App = (props) => {
       >
         <Stack.Navigator
           initialRouteName={Routes.FOX_LOADER}
-          mode={'modal'}
           screenOptions={{
             headerShown: false,
             cardStyle: { backgroundColor: importedColors.transparent },
             animationEnabled: false,
+            presentation: 'modal',
           }}
         >
           <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />

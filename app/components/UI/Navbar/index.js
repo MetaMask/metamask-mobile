@@ -558,7 +558,7 @@ export function getSendFlowTitle(
       ...additionalTransactionMetricsParams,
     });
     resetTransaction();
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
   const leftAction = () => navigation.pop();
 
@@ -1436,7 +1436,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onPop?.();
         }}
         style={styles.closeButton}
@@ -1481,7 +1481,7 @@ export function getPaymentMethodApplePayNavbar(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           onExit?.();
         }}
         style={styles.closeButton}
@@ -1605,7 +1605,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -1659,7 +1659,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
         responseTime: new Date().getTime() - quoteBegin,
       });
     }
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.getParent()?.pop();
   };
 
   return {
@@ -1762,7 +1762,7 @@ export function getFiatOnRampAggNavbar(
       return (
         <TouchableOpacity
           onPress={() => {
-            navigation.dangerouslyGetParent()?.pop();
+            navigation.getParent()?.pop();
             onCancel?.();
           }}
           style={styles.closeButton}
@@ -1844,7 +1844,7 @@ export function getStakingNavbar(title, navigation, themeColors) {
     headerLeft: () => <View />,
     headerRight: () => (
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
