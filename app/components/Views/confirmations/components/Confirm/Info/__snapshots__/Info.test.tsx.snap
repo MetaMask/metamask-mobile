@@ -1,13 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Info should match snapshot for personal sign 1`] = `
-<View
-  style={
-    {
-      "marginBottom": 10,
-    }
-  }
->
+[
   <View
     style={
       {
@@ -15,6 +9,7 @@ exports[`Info should match snapshot for personal sign 1`] = `
         "borderColor": "#bbc0c566",
         "borderRadius": 8,
         "borderWidth": 1,
+        "marginBottom": 8,
         "padding": 8,
       }
     }
@@ -141,7 +136,7 @@ exports[`Info should match snapshot for personal sign 1`] = `
         </Text>
       </View>
     </View>
-  </View>
+  </View>,
   <View
     style={
       {
@@ -149,6 +144,7 @@ exports[`Info should match snapshot for personal sign 1`] = `
         "borderColor": "#bbc0c566",
         "borderRadius": 8,
         "borderWidth": 1,
+        "marginBottom": 8,
         "padding": 8,
       }
     }
@@ -212,6 +208,6 @@ exports[`Info should match snapshot for personal sign 1`] = `
         </Text>
       </View>
     </View>
-  </View>
-</View>
+  </View>,
+]
 `;
