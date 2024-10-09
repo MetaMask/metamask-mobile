@@ -69,20 +69,20 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
             iconName={buttonIcon}
             iconColor={IconColor.Default}
             testID={BUTTON_TEST_ID}
-            onPress={buttonProps?.onButtonClick}
+            onPress={buttonProps?.onPress}
             accessibilityRole="button"
           />
         </View>
       ) : null}
-      {buttonProps?.textButton ? (
+      {buttonProps?.label ? (
         <View>
           <Button
             variant={ButtonVariants.Link}
-            onPress={buttonProps?.onButtonClick as () => void}
+            onPress={buttonProps?.onPress as () => void}
             labelTextVariant={TextVariant.BodyMD}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Auto}
-            label={buttonProps?.textButton}
+            label={buttonProps?.label}
           />
         </View>
       ) : null}

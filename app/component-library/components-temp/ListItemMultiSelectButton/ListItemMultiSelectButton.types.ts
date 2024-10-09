@@ -4,7 +4,7 @@ import { TouchableOpacityProps } from 'react-native';
 // External dependencies.
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { ListItemProps } from '../../../component-library/components/List/ListItem/ListItem.types';
-import { GestureResponderEvent } from 'react-native-modal';
+import { ButtonBaseProps } from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 /**
  * ListItemMultiSelect component props.
@@ -41,16 +41,10 @@ export interface ListItemMultiSelectButtonProps
    */
   showButtonIcon?: boolean;
 
-  buttonProps?: {
-    /**
-     * Optional button onClick function
-     */
-    onButtonClick?: ((event: GestureResponderEvent) => void) | undefined;
-    /**
-     * Optional property to show text button
-     */
-    textButton?: string | null;
-  };
+  /**
+   * Optional button props
+   */
+  buttonProps?: ButtonBaseProps;
 }
 
 /**

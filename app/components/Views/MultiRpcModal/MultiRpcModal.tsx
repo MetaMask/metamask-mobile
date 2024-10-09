@@ -105,8 +105,8 @@ const MultiRpcModal = () => {
                   buttonIcon={IconName.MoreVertical}
                   showButtonIcon={false}
                   buttonProps={{
-                    textButton: strings('transaction.edit'),
-                    onButtonClick: () => {
+                    label: strings('transaction.edit'),
+                    onPress: () => {
                       sheetRef.current?.onCloseBottomSheet(() => {
                         navigate(Routes.ADD_NETWORK, {
                           shouldNetworkSwitchPopToWallet: false,
