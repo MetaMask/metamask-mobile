@@ -34,8 +34,8 @@ RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/r
     && strip out/chisel \
     && strip out/anvil;
 
-###### Final image
-FROM node:20-bookworm
+###### SPlit bas eimage for compatibly parallelizable builds
+FROM node:20-bookworm as base
 
 RUN apt-get update \
   && apt-get install -y \
@@ -92,6 +92,9 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && gem install bundler -v 2.5.8 \
     && gem install bigdecimal cocoapods \
     && bundle install'
+
+###### Final image
+FROM base
 
 COPY --from=foundry-build-environment /opt/foundry/out/forge /usr/local/bin/forge
 COPY --from=foundry-build-environment /opt/foundry/out/cast /usr/local/bin/cast
