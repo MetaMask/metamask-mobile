@@ -1,10 +1,6 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
 import Engine from '../Engine';
-import { NetworkController } from '@metamask/network-controller';
-import { CaveatFactories, PermissionKeys } from '../Permissions/specifications';
-import { CaveatTypes } from '../Permissions/constants';
 
-// jest.mock('@metamask/network-controller');s
 jest.mock('../Engine', () => ({
   context: {
     NetworkController: {
