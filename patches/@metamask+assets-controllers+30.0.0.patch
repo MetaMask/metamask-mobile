@@ -15,6 +15,28 @@ index 542e3f6..af49a85 100644
          });
        }
      });
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js b/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js
+index 6d1492c..2ac3275 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js
+@@ -247,10 +247,15 @@ var TokenListController = class extends _pollingcontroller.StaticIntervalPolling
+ };
+ _onNetworkControllerStateChange = new WeakSet();
+ onNetworkControllerStateChange_fn = async function(networkControllerState) {
+-  if (this.chainId !== networkControllerState.providerConfig.chainId) {
++  const selectedNetworkClient = this.messagingSystem.call(
++    "NetworkController:getNetworkClientById",
++    networkControllerState.selectedNetworkClientId
++  );
++  const { chainId } = selectedNetworkClient.configuration;
++  if (this.chainId !== chainId) {
+     this.abortController.abort();
+     this.abortController = new AbortController();
+-    this.chainId = networkControllerState.providerConfig.chainId;
++    this.chainId = chainId;
+     if (this.state.preventPollingOnNetworkRestart) {
+       this.clearingTokenListData();
+     } else {
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
 index 0dc70ec..461a210 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
