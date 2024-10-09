@@ -1298,6 +1298,7 @@ describe('getRpcMethodMiddleware', () => {
         from: addressMock,
         meta: expect.any(Object),
         origin: hostMock,
+        requestId: 1,
       });
     });
 
@@ -1347,6 +1348,7 @@ describe('getRpcMethodMiddleware', () => {
           from: addressMock,
           meta: expect.any(Object),
           origin: hostMock,
+          requestId: 1,
         },
         expect.any(Object),
         version,
