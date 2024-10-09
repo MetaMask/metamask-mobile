@@ -1,13 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountNetworkInfoExpanded should match snapshot for personal sign 1`] = `
-<View
-  style={
-    {
-      "display": "flex",
-    }
-  }
->
+<View>
   <View
     style={
       {
