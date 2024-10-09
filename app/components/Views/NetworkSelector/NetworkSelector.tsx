@@ -571,8 +571,10 @@ const NetworkSelector = () => {
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
-            onButtonClick={() => {
-              openModal(chainId, true, rpcUrl, false);
+            buttonProps={{
+              onButtonClick: () => {
+                openModal(chainId, true, rpcUrl, false);
+              },
             }}
             onTextClick={() =>
               openRpcModal({

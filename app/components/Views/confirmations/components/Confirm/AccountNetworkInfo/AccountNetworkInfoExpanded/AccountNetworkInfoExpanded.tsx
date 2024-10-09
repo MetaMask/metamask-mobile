@@ -15,7 +15,7 @@ import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
 const AccountNetworkInfoExpanded = () => {
   const { approvalRequest } = useApprovalRequest();
   const networkName = useSelector(selectNetworkName);
-  const networkRpcUrl = useSelector(selectRpcUrl);
+  const networkRpcUrl = useSelector(selectRpcUrl) as string;
   const fromAddress = approvalRequest?.requestData?.from;
   const { accountAddress, accountBalance } = useAccountInfo(fromAddress);
 
