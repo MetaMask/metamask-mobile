@@ -21,20 +21,21 @@ import {
   KEYRING_ACCOUNT_LIST_ITEM,
   KEYRING_ACCOUNT_LIST_ITEM_BUTTON,
 } from './KeyringAccountListItem.constants';
+
 interface KeyringAccountListItemProps {
   account: InternalAccount;
-  snapUrl: string;
+  blockExplorerUrl: string;
 }
 
 const KeyringAccountListItem = ({
   account,
-  snapUrl,
+  blockExplorerUrl,
 }: KeyringAccountListItemProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   const handlePress = useCallback(() => {
-    Linking.openURL(snapUrl);
-  }, [snapUrl]);
+    Linking.openURL(blockExplorerUrl);
+  }, [blockExplorerUrl]);
 
   return (
     <View testID={KEYRING_ACCOUNT_LIST_ITEM} style={styles.container}>
