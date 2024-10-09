@@ -375,6 +375,10 @@
     "accept": "I agree",
     "cancel": "No thanks"
   },
+  "multi_rpc_migration_modal": {
+    "description": "We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information",
+    "accept": "Accept"
+  },
   "nft_details": {
     "bought_for": "Bought for",
     "highest_floor_price": "Highest floor price",
@@ -724,6 +728,7 @@
   "toast": {
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
+    "network_added": "was successfully added",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
