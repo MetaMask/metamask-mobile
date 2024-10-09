@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import PropTypes from 'prop-types';
