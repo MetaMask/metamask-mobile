@@ -51,6 +51,7 @@ const Routes = {
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
+    MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
