@@ -86,11 +86,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const styles = createStyles();
   const { hostInfo, permissionRequestId } = props.route.params;
 
+  // TODO Fix type here
   const permissionDiffMap = hostInfo?.diff?.permissionDiffMap;
-  console.log(
-    'ALEX LOGGING: permissionDiffMap in accountConnect',
-    permissionDiffMap,
-  );
 
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
@@ -351,7 +348,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
-    console.log('ALEX LOGGING: request in handleConnect', request.diff);
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({

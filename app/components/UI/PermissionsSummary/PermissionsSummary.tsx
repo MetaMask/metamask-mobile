@@ -35,12 +35,13 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { selectNetworkNameByChainId } from '../../../selectors/networkController';
+import { useSelector } from 'react-redux';
+import { RootState } from 'app/reducers';
 
 const PermissionsSummary = ({
   currentPageInformation,
-  customNetworkInformation,
-  onConfirm,
-  onCancel,
   requestData,
   onEdit,
   onEditNetworks,
@@ -50,18 +51,31 @@ const PermissionsSummary = ({
   isAlreadyConnected = true,
   isRenderedAsBottomSheet = true,
   isDisconnectAllShown = true,
-  isNetworkSwitch = false,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
-  console.log('ALEX LOGGING: customNetworkInformation', customNetworkInformation);
-  console.log('ALEX LOGGING: isNetworkSwitch', isNetworkSwitch);
-  // const { chainName } = customNetworkInformation;
-  // TODO get diff from requestData
-  // TODO get chainName from networkController based on chainId requested
-  const chainName = 'ALEX LOGGING: chainName';
+
+  const permissionDiffMap = requestData?.diff;
+  let isNetworkSwitch = false;
+
+  //TODO: This could be true if the dapp is requesting permission for networks...
+  // need to check how we differentiate between these types of requests on extension
+  if (permissionDiffMap?.[PermissionKeys.permittedChains]) {
+    isNetworkSwitch = true;
+  }
+
+  const chainId =
+    requestData?.diff?.[PermissionKeys.permittedChains]
+      ?.restrictNetworkSwitching?.[0];
+
+  const chainName = useSelector((state: RootState) =>
+    selectNetworkNameByChainId(state, chainId),
+  );
+  // this method is not available until version 21 of the network controller
+  // const { name: chainName } =
+  //   Engine.context.NetworkController.getNetworkConfigurationByChainId(chainId);
   const confirm = () => {
     onUserAction?.(USER_INTENT.Confirm);
     // onConfirm?.();
@@ -226,6 +240,7 @@ const PermissionsSummary = ({
                   </TextComponent>
                 </TextComponent>
               </View>
+              {/* TODO: shouldn't be an avatar group here when its a network switch*/}
               <View style={styles.avatarGroup}>
                 <AvatarGroup
                   avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
