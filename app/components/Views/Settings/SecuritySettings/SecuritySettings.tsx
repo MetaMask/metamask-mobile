@@ -236,7 +236,7 @@ const handleAvailableIpfsGateways = useCallback(async () => {
     const testUrl =
       gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
     try {
-      const res = await timeoutFetch(testUrl, undefined, 1200);
+      const res = await timeoutFetch(testUrl, {}, 1200);
       if (res instanceof Error) {
         return { ...gateway, available: false };
       }
