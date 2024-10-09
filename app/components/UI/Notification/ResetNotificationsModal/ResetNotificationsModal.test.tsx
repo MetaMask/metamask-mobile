@@ -27,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: jest.fn(),
       }),
     }),
@@ -36,9 +36,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('ProfileSyncingModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <ResetNotificationsModal />,
-    );
+    const { toJSON } = renderWithProvider(<ResetNotificationsModal />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

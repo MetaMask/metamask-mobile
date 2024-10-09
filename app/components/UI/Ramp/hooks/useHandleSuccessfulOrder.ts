@@ -69,7 +69,7 @@ function useHandleSuccessfulOrder() {
       await addTokenToTokensController((order as any)?.data?.cryptoCurrency);
       handleDispatchUserWalletProtection();
       // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
+      navigation.getParent()?.pop();
 
       dispatchThunk((_dispatch, getState) => {
         const state = getState();

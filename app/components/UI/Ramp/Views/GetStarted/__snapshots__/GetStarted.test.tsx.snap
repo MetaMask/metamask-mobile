@@ -20,633 +20,599 @@ exports[`GetStarted renders correctly 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
+          style={null}
         >
           <View
             collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
             pointerEvents="box-none"
             style={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
+                  "backgroundColor": "#ffffff",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "elevation": 0,
+                  "flex": 1,
+                  "shadowColor": "transparent",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
                 }
               }
-            >
-              <View />
-            </View>
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
             <View
-              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
                     "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
+                <View />
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 590,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "alignItems": "center",
+                      "flex": 1,
+                      "justifyContent": "center",
                     }
                   }
                 >
-                  What to Expect
-                </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
                     }
                   >
-                    Ethereum Main Network
+                    What to Expect
                   </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+                  <View
+                    style={
+                      {
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 100,
+                            "height": 5,
+                            "marginRight": 5,
+                            "marginTop": 4,
+                            "width": 5,
+                          },
+                          {
+                            "backgroundColor": "#3cc29e",
+                          },
+                        ]
+                      }
+                    />
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#6a737d",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 11,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Ethereum Main Network
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
+                      "paddingHorizontal": 18,
+                      "paddingVertical": 8,
                     }
                   }
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={
+                      {
+                        "color": "#0376c9",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 23.57142857142857,
+                        "fontWeight": "400",
+                      }
+                    }
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
       </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        pointerEvents="box-none"
+      <RNSScreenContainer
+        onLayout={[Function]}
         style={
           {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
+            "flex": 1,
           }
         }
       >
-        <View
+        <RNSScreen
+          activityState={2}
           collapsable={false}
-          style={
+          gestureResponseDistance={
             {
-              "opacity": 1,
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
             }
           }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
             {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <View
             collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
             style={
               {
-                "flex": 1,
+                "opacity": 1,
+              }
+            }
+          />
+          <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
+            pointerEvents="box-none"
+            style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
+              {
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
             <View
               collapsable={false}
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "flex": 1,
+                          }
                         }
                       >
                         <View
                           style={
                             [
                               {
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
                             ]
                           }
                         >
-                          <RCTScrollView
-                            contentContainerStyle={
-                              {
-                                "flexGrow": 1,
-                                "justifyContent": "center",
-                              }
-                            }
-                          >
-                            <View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                    }
-                                  }
-                                >
-                                  <Image
-                                    source={
-                                      {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontWeight": "600",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontWeight": "600",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported
-                                </Text>
-                              </View>
-                            </View>
-                          </RCTScrollView>
-                        </View>
-                        <View>
                           <View
                             style={
                               [
                                 {
-                                  "padding": 15,
+                                  "flex": 1,
                                 },
-                                undefined,
                                 undefined,
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={0.2}
-                              onPress={[Function]}
+                            <RCTScrollView
+                              contentContainerStyle={
+                                {
+                                  "flexGrow": 1,
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      source={
+                                        {
+                                          "default": {
+                                            "uri": "MockImage",
+                                          },
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontWeight": "600",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.
+                                  </Text>
+                                </View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontWeight": "600",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported
+                                  </Text>
+                                </View>
+                              </View>
+                            </RCTScrollView>
+                          </View>
+                          <View>
+                            <View
                               style={
                                 [
-                                  [
-                                    {
-                                      "borderRadius": 100,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#0376c9",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
+                                  {
+                                    "padding": 15,
+                                  },
+                                  undefined,
+                                  undefined,
                                 ]
                               }
                             >
-                              <Text
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={0.2}
+                                onPress={[Function]}
                                 style={
                                   [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
                                     [
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
+                                        "borderRadius": 100,
+                                        "justifyContent": "center",
+                                        "padding": 15,
                                       },
                                       {
-                                        "color": "#ffffff",
+                                        "backgroundColor": "#0376c9",
+                                        "minHeight": 50,
                                       },
                                       undefined,
                                     ],
@@ -654,21 +620,48 @@ exports[`GetStarted renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                Get started
-                              </Text>
-                            </TouchableOpacity>
+                                <Text
+                                  style={
+                                    [
+                                      {
+                                        "color": "#007aff",
+                                        "fontSize": 17,
+                                        "fontWeight": "500",
+                                        "textAlign": "center",
+                                      },
+                                      null,
+                                      [
+                                        {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontSize": 14,
+                                          "fontWeight": "600",
+                                          "textAlign": "center",
+                                        },
+                                        {
+                                          "color": "#ffffff",
+                                        },
+                                        undefined,
+                                      ],
+                                      null,
+                                    ]
+                                  }
+                                >
+                                  Get started
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
-                      </View>
-                    </RCTSafeAreaView>
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -693,633 +686,599 @@ exports[`GetStarted renders correctly 2`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
+          style={null}
         >
           <View
             collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
             pointerEvents="box-none"
             style={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
+                  "backgroundColor": "#ffffff",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "elevation": 0,
+                  "flex": 1,
+                  "shadowColor": "transparent",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
                 }
               }
-            >
-              <View />
-            </View>
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
             <View
-              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
                     "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
+                <View />
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 590,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "alignItems": "center",
+                      "flex": 1,
+                      "justifyContent": "center",
                     }
                   }
                 >
-                  What to Expect
-                </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
                     }
                   >
-                    Ethereum Main Network
+                    What to Expect
                   </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+                  <View
+                    style={
+                      {
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 100,
+                            "height": 5,
+                            "marginRight": 5,
+                            "marginTop": 4,
+                            "width": 5,
+                          },
+                          {
+                            "backgroundColor": "#3cc29e",
+                          },
+                        ]
+                      }
+                    />
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#6a737d",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 11,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Ethereum Main Network
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
+                      "paddingHorizontal": 18,
+                      "paddingVertical": 8,
                     }
                   }
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={
+                      {
+                        "color": "#0376c9",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 23.57142857142857,
+                        "fontWeight": "400",
+                      }
+                    }
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
       </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        pointerEvents="box-none"
+      <RNSScreenContainer
+        onLayout={[Function]}
         style={
           {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
+            "flex": 1,
           }
         }
       >
-        <View
+        <RNSScreen
+          activityState={2}
           collapsable={false}
-          style={
+          gestureResponseDistance={
             {
-              "opacity": 1,
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
             }
           }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
             {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <View
             collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
             style={
               {
-                "flex": 1,
+                "opacity": 1,
+              }
+            }
+          />
+          <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
+            pointerEvents="box-none"
+            style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
+              {
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
             <View
               collapsable={false}
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "flex": 1,
+                          }
                         }
                       >
                         <View
                           style={
                             [
                               {
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
                             ]
                           }
                         >
-                          <RCTScrollView
-                            contentContainerStyle={
-                              {
-                                "flexGrow": 1,
-                                "justifyContent": "center",
-                              }
-                            }
-                          >
-                            <View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                    }
-                                  }
-                                >
-                                  <Image
-                                    source={
-                                      {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontWeight": "600",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  Now you can cash out directly in MetaMask! Get up-to-the-minute quotes from trusted providers while we guide you every step of the way.
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "padding": 15,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontWeight": "600",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  Off-ramping from crypto to your local currency is now easier than ever.
-                                </Text>
-                              </View>
-                            </View>
-                          </RCTScrollView>
-                        </View>
-                        <View>
                           <View
                             style={
                               [
                                 {
-                                  "padding": 15,
+                                  "flex": 1,
                                 },
-                                undefined,
                                 undefined,
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={0.2}
-                              onPress={[Function]}
+                            <RCTScrollView
+                              contentContainerStyle={
+                                {
+                                  "flexGrow": 1,
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      source={
+                                        {
+                                          "default": {
+                                            "uri": "MockImage",
+                                          },
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontWeight": "600",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    Now you can cash out directly in MetaMask! Get up-to-the-minute quotes from trusted providers while we guide you every step of the way.
+                                  </Text>
+                                </View>
+                                <View
+                                  style={
+                                    [
+                                      {
+                                        "padding": 15,
+                                      },
+                                      undefined,
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        {
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                        {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontWeight": "600",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    Off-ramping from crypto to your local currency is now easier than ever.
+                                  </Text>
+                                </View>
+                              </View>
+                            </RCTScrollView>
+                          </View>
+                          <View>
+                            <View
                               style={
                                 [
-                                  [
-                                    {
-                                      "borderRadius": 100,
-                                      "justifyContent": "center",
-                                      "padding": 15,
-                                    },
-                                    {
-                                      "backgroundColor": "#0376c9",
-                                      "minHeight": 50,
-                                    },
-                                    undefined,
-                                  ],
-                                  null,
+                                  {
+                                    "padding": 15,
+                                  },
+                                  undefined,
+                                  undefined,
                                 ]
                               }
                             >
-                              <Text
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={0.2}
+                                onPress={[Function]}
                                 style={
                                   [
-                                    {
-                                      "color": "#007aff",
-                                      "fontSize": 17,
-                                      "fontWeight": "500",
-                                      "textAlign": "center",
-                                    },
-                                    null,
                                     [
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 14,
-                                        "fontWeight": "600",
-                                        "textAlign": "center",
+                                        "borderRadius": 100,
+                                        "justifyContent": "center",
+                                        "padding": 15,
                                       },
                                       {
-                                        "color": "#ffffff",
+                                        "backgroundColor": "#0376c9",
+                                        "minHeight": 50,
                                       },
                                       undefined,
                                     ],
@@ -1327,21 +1286,48 @@ exports[`GetStarted renders correctly 2`] = `
                                   ]
                                 }
                               >
-                                Get started
-                              </Text>
-                            </TouchableOpacity>
+                                <Text
+                                  style={
+                                    [
+                                      {
+                                        "color": "#007aff",
+                                        "fontSize": 17,
+                                        "fontWeight": "500",
+                                        "textAlign": "center",
+                                      },
+                                      null,
+                                      [
+                                        {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontSize": 14,
+                                          "fontWeight": "600",
+                                          "textAlign": "center",
+                                        },
+                                        {
+                                          "color": "#ffffff",
+                                        },
+                                        undefined,
+                                      ],
+                                      null,
+                                    ]
+                                  }
+                                >
+                                  Get started
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
-                      </View>
-                    </RCTSafeAreaView>
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1366,425 +1352,418 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
+          style={null}
         >
           <View
             collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
             pointerEvents="box-none"
             style={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
+                  "backgroundColor": "#ffffff",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "elevation": 0,
+                  "flex": 1,
+                  "shadowColor": "transparent",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
                 }
               }
-            >
-              <View />
-            </View>
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
             <View
-              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
                     "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
+                <View />
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 590,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "alignItems": "center",
+                      "flex": 1,
+                      "justifyContent": "center",
                     }
                   }
                 >
-                  What to Expect
-                </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
                     }
                   >
-                    Ethereum Main Network
+                    What to Expect
                   </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+                  <View
+                    style={
+                      {
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 100,
+                            "height": 5,
+                            "marginRight": 5,
+                            "marginTop": 4,
+                            "width": 5,
+                          },
+                          {
+                            "backgroundColor": "#3cc29e",
+                          },
+                        ]
+                      }
+                    />
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#6a737d",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 11,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Ethereum Main Network
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
+                      "paddingHorizontal": 18,
+                      "paddingVertical": 8,
                     }
                   }
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={
+                      {
+                        "color": "#0376c9",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 23.57142857142857,
+                        "fontWeight": "400",
+                      }
+                    }
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
       </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        pointerEvents="box-none"
+      <RNSScreenContainer
+        onLayout={[Function]}
         style={
           {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
+            "flex": 1,
           }
         }
       >
-        <View
+        <RNSScreen
+          activityState={2}
           collapsable={false}
-          style={
+          gestureResponseDistance={
             {
-              "opacity": 1,
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
             }
           }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
             {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <View
             collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
             style={
               {
-                "flex": 1,
+                "opacity": 1,
+              }
+            }
+          />
+          <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
+            pointerEvents="box-none"
+            style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
+              {
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
             <View
               collapsable={false}
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "flex": 1,
+                          }
                         }
-                      />
-                    </RCTSafeAreaView>
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
+                              undefined,
+                            ]
+                          }
+                        />
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1809,420 +1788,402 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
     }
   >
     <View
-      collapsable={false}
-      pointerEvents="box-none"
       style={
-        {
-          "zIndex": 1,
-        }
+        [
+          {
+            "backgroundColor": "rgb(242, 242, 242)",
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
       <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
+        collapsable={false}
         pointerEvents="box-none"
-        style={null}
+        style={
+          {
+            "zIndex": 1,
+          }
+        }
       >
         <View
-          collapsable={false}
+          accessibilityElementsHidden={false}
+          importantForAccessibility="auto"
+          onLayout={[Function]}
           pointerEvents="box-none"
-          style={
-            {
-              "bottom": 0,
-              "left": 0,
-              "opacity": 1,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": 0,
-            }
-          }
+          style={null}
         >
           <View
             collapsable={false}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
-                "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
-                "shadowOpacity": 0.85,
-                "shadowRadius": 0,
-              }
-            }
-          />
-        </View>
-        <View
-          collapsable={false}
-          pointerEvents="box-none"
-          style={
-            {
-              "height": 64,
-              "maxHeight": undefined,
-              "minHeight": undefined,
-              "opacity": undefined,
-              "transform": undefined,
-            }
-          }
-        >
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "height": 20,
-              }
-            }
-          />
-          <View
             pointerEvents="box-none"
             style={
               {
-                "alignItems": "center",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "center",
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "zIndex": 0,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
+                  "backgroundColor": "#ffffff",
+                  "borderBottomColor": "rgb(216, 216, 216)",
+                  "elevation": 0,
+                  "flex": 1,
+                  "shadowColor": "transparent",
+                  "shadowOffset": {
+                    "height": 0.5,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.85,
+                  "shadowRadius": 0,
                 }
               }
-            >
-              <View />
-            </View>
+            />
+          </View>
+          <View
+            collapsable={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "height": 44,
+                "maxHeight": undefined,
+                "minHeight": undefined,
+                "opacity": undefined,
+                "transform": undefined,
+              }
+            }
+          >
             <View
-              collapsable={false}
+              pointerEvents="none"
+              style={
+                {
+                  "height": 0,
+                }
+              }
+            />
+            <View
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
+                  "alignItems": "stretch",
+                  "flex": 1,
+                  "flexDirection": "row",
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
+                    "alignItems": "flex-start",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
                     "justifyContent": "center",
+                    "marginStart": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
+                <View />
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
+                style={
+                  {
+                    "justifyContent": "center",
+                    "marginHorizontal": 16,
+                    "maxWidth": 590,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "alignItems": "center",
+                      "flex": 1,
+                      "justifyContent": "center",
                     }
                   }
                 >
-                  What to Expect
-                </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#141618",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 30,
                         "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 22,
                       }
                     }
                   >
-                    Ethereum Main Network
+                    What to Expect
                   </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "opacity": 1,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                }
-              }
-            >
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible={true}
-                onPress={[Function]}
+                  <View
+                    style={
+                      {
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "borderRadius": 100,
+                            "height": 5,
+                            "marginRight": 5,
+                            "marginTop": 4,
+                            "width": 5,
+                          },
+                          {
+                            "backgroundColor": "#3cc29e",
+                          },
+                        ]
+                      }
+                    />
+                    <Text
+                      accessibilityRole="text"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#6a737d",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 11,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Ethereum Main Network
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                collapsable={false}
+                pointerEvents="box-none"
                 style={
                   {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
+                    "alignItems": "flex-end",
+                    "flexBasis": 0,
+                    "flexGrow": 1,
+                    "justifyContent": "center",
+                    "marginEnd": 0,
+                    "opacity": 1,
                   }
                 }
               >
-                <Text
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  onPress={[Function]}
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
+                      "paddingHorizontal": 18,
+                      "paddingVertical": 8,
                     }
                   }
                 >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={
+                      {
+                        "color": "#0376c9",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 23.57142857142857,
+                        "fontWeight": "400",
+                      }
+                    }
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
       </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        pointerEvents="box-none"
+      <RNSScreenContainer
+        onLayout={[Function]}
         style={
           {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
+            "flex": 1,
           }
         }
       >
-        <View
+        <RNSScreen
+          activityState={2}
           collapsable={false}
-          style={
+          gestureResponseDistance={
             {
-              "opacity": 1,
+              "bottom": -1,
+              "end": -1,
+              "start": -1,
+              "top": -1,
             }
           }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
             {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         >
           <View
             collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
             style={
               {
-                "flex": 1,
+                "opacity": 1,
+              }
+            }
+          />
+          <View
+            accessibilityElementsHidden={false}
+            closing={false}
+            collapsable={false}
+            gestureVelocityImpact={0.3}
+            importantForAccessibility="auto"
+            onClose={[Function]}
+            onGestureBegin={[Function]}
+            onGestureCanceled={[Function]}
+            onGestureEnd={[Function]}
+            onOpen={[Function]}
+            onTransition={[Function]}
+            pointerEvents="box-none"
+            style={
+              [
+                {
+                  "display": "flex",
+                  "overflow": undefined,
+                },
+                {
+                  "bottom": 0,
+                  "left": 0,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                },
+              ]
+            }
+            transitionSpec={
+              {
+                "close": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
+                "open": {
+                  "animation": "spring",
+                  "config": {
+                    "damping": 500,
+                    "mass": 3,
+                    "overshootClamping": true,
+                    "restDisplacementThreshold": 10,
+                    "restSpeedThreshold": 10,
+                    "stiffness": 1000,
+                  },
+                },
               }
             }
           >
             <View
               collapsable={false}
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                pointerEvents="none"
+                needsOffscreenAlphaCompositing={false}
+                onGestureHandlerEvent={[Function]}
+                onGestureHandlerStateChange={[Function]}
                 style={
                   {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
+                    "flex": 1,
+                    "transform": [
                       {
-                        "backgroundColor": "rgb(242, 242, 242)",
+                        "translateX": 0,
                       },
-                      undefined,
+                      {
+                        "translateX": 0,
+                      },
                     ],
-                  ]
+                  }
                 }
               >
                 <View
+                  pointerEvents="box-none"
                   style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
+                    [
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                      [
+                        {
+                          "backgroundColor": "rgb(242, 242, 242)",
+                        },
+                        undefined,
+                      ],
+                    ]
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
+                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <View
+                      <RCTSafeAreaView
                         style={
-                          [
-                            {
-                              "backgroundColor": "#ffffff",
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
+                          {
+                            "flex": 1,
+                          }
                         }
                       >
                         <View
                           style={
                             [
                               {
+                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -2231,195 +2192,179 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                         >
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                                "justifyContent": "center",
-                              }
+                              [
+                                {
+                                  "flex": 1,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             <View
                               style={
                                 {
-                                  "marginVertical": 60,
-                                  "paddingHorizontal": 60,
-                                  "width": "100%",
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "flex": 1,
+                                  "justifyContent": "center",
                                 }
                               }
                             >
                               <View
                                 style={
                                   {
-                                    "marginVertical": 1,
+                                    "marginVertical": 60,
+                                    "paddingHorizontal": 60,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    [
-                                      {
-                                        "color": undefined,
-                                        "fontSize": 12,
-                                      },
-                                      [
-                                        {
-                                          "fontSize": 38,
-                                          "marginVertical": 4,
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "color": "#d73847",
-                                        },
-                                      ],
-                                      {
-                                        "fontFamily": "Material Design Icons",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "marginVertical": 1,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "marginVertical": 1,
                                     }
                                   }
                                 >
-                                  Oops, something went wrong
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "marginVertical": 1,
-                                  }
-                                }
-                              >
-                                <Text
-                                  style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      {
-                                        "textAlign": "center",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#6a737d",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  sdkError
-                                </Text>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "marginTop": 30,
-                                  }
-                                }
-                              >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={0.2}
-                                  onPress={[Function]}
-                                  style={
-                                    [
+                                  <Text
+                                    allowFontScaling={false}
+                                    style={
                                       [
                                         {
-                                          "borderRadius": 100,
-                                          "justifyContent": "center",
-                                          "padding": 15,
+                                          "color": undefined,
+                                          "fontSize": 12,
                                         },
+                                        [
+                                          {
+                                            "fontSize": 38,
+                                            "marginVertical": 4,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "color": "#d73847",
+                                          },
+                                        ],
                                         {
-                                          "backgroundColor": "#0376c9",
-                                          "minHeight": 50,
+                                          "fontFamily": "Material Design Icons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
                                         },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                        {},
+                                      ]
+                                    }
+                                  >
+                                    
+                                  </Text>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "marginVertical": 1,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "0": {
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontSize": 18,
+                                          "fontWeight": "600",
+                                          "marginVertical": 3,
+                                        },
+                                        "1": {
+                                          "textAlign": "center",
+                                        },
+                                        "2": undefined,
+                                        "3": undefined,
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Oops, something went wrong
+                                  </Text>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "marginVertical": 1,
+                                    }
                                   }
                                 >
                                   <Text
                                     style={
                                       [
                                         {
-                                          "color": "#007aff",
-                                          "fontSize": 17,
-                                          "fontWeight": "500",
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        {
                                           "textAlign": "center",
                                         },
-                                        null,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "color": "#6a737d",
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    sdkError
+                                  </Text>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "marginTop": 30,
+                                    }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={0.2}
+                                    onPress={[Function]}
+                                    style={
+                                      [
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
-                                            "fontSize": 14,
-                                            "fontWeight": "600",
-                                            "textAlign": "center",
+                                            "borderRadius": 100,
+                                            "justifyContent": "center",
+                                            "padding": 15,
                                           },
                                           {
-                                            "color": "#ffffff",
+                                            "backgroundColor": "#0376c9",
+                                            "minHeight": 50,
                                           },
                                           undefined,
                                         ],
@@ -2427,23 +2372,50 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       ]
                                     }
                                   >
-                                    Return to Home Screen
-                                  </Text>
-                                </TouchableOpacity>
+                                    <Text
+                                      style={
+                                        [
+                                          {
+                                            "color": "#007aff",
+                                            "fontSize": 17,
+                                            "fontWeight": "500",
+                                            "textAlign": "center",
+                                          },
+                                          null,
+                                          [
+                                            {
+                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontSize": 14,
+                                              "fontWeight": "600",
+                                              "textAlign": "center",
+                                            },
+                                            {
+                                              "color": "#ffffff",
+                                            },
+                                            undefined,
+                                          ],
+                                          null,
+                                        ]
+                                      }
+                                    >
+                                      Return to Home Screen
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                    </RCTSafeAreaView>
+                      </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
+        </RNSScreen>
+      </RNSScreenContainer>
+    </View>
   </RNCSafeAreaProvider>
 </View>
 `;

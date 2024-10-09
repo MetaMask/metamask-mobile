@@ -870,7 +870,7 @@ class Confirm extends PureComponent {
       }
     } finally {
       // Error handling derived to LedgerConfirmationModal component
-      navigation && navigation.dangerouslyGetParent()?.popToTop();
+      navigation && navigation.getParent()?.popToTop();
     }
   };
 
@@ -952,7 +952,7 @@ class Confirm extends PureComponent {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: false,
         });
-        navigation && navigation.dangerouslyGetParent()?.pop();
+        navigation && navigation.getParent()?.pop();
       } else {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: true,
@@ -984,7 +984,7 @@ class Confirm extends PureComponent {
 
         if (!shouldUseSmartTransaction) {
           // We popped it already earlier
-          navigation && navigation.dangerouslyGetParent()?.pop();
+          navigation && navigation.getParent()?.pop();
         }
       });
     } catch (error) {
@@ -1004,7 +1004,7 @@ class Confirm extends PureComponent {
         );
       }
       resetTransaction();
-      navigation?.dangerouslyGetParent()?.pop();
+      navigation?.getParent()?.pop();
     }
     this.setState({ transactionConfirmed: false });
   };

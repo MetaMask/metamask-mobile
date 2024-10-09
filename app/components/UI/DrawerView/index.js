@@ -498,7 +498,7 @@ class DrawerView extends PureComponent {
 
   async componentDidUpdate() {
     const route = findRouteNameFromNavigatorState(
-      this.props.navigation.dangerouslyGetState().routes,
+      this.props.navigation.getState().routes,
     );
     if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
       if (

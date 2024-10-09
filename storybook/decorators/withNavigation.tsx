@@ -18,13 +18,11 @@ const clearStackNavigatorOptions = {
     }),
   },
   animationEnabled: false,
+  presentation: 'modal',
 };
 
 const StorybookRootModalFlow = () => (
-  <StoryBookStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-  >
+  <StoryBookStack.Navigator screenOptions={clearStackNavigatorOptions}>
     <StoryBookStack.Screen
       name={Routes.SHEET.TOOLTIP_MODAL}
       component={TooltipModal}
@@ -39,11 +37,11 @@ const withNavigation = (story: any) => {
   return (
     <NavigationContainer independent>
       <StoryBookStack.Navigator
-        mode={'modal'}
         screenOptions={{
           headerShown: false,
           cardStyle: { backgroundColor: importedColors.transparent },
           animationEnabled: false,
+          presentation: 'modal',
         }}
       >
         <StoryBookStack.Screen
