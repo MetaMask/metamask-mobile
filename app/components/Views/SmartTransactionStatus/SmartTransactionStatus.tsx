@@ -96,8 +96,8 @@ const getDisplayValuesAndHandlers = ({
   let description;
   let primaryButtonText;
   let secondaryButtonText;
-  let handlePrimaryButtonPress;
-  let handleSecondaryButtonPress;
+  let handlePrimaryButtonPress = () => {};
+  let handleSecondaryButtonPress = () => {};
 
   if (isStxPending && isStxPastEstimatedDeadline) {
     icon = IconName.Clock;
@@ -333,7 +333,7 @@ const SmartTransactionStatus = ({
     <Button
       variant={ButtonVariants.Primary}
       label={primaryButtonText}
-      onPress={handlePrimaryButtonPress ?? (() => {})}
+      onPress={handlePrimaryButtonPress}
       style={styles.button}
     >
       {primaryButtonText}
@@ -344,7 +344,7 @@ const SmartTransactionStatus = ({
     <Button
       variant={ButtonVariants.Secondary}
       label={secondaryButtonText}
-      onPress={handleSecondaryButtonPress ?? (() => {})}
+      onPress={handleSecondaryButtonPress}
       style={styles.button}
     >
       {secondaryButtonText}
