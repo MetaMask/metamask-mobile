@@ -96,8 +96,8 @@ const getDisplayValuesAndHandlers = ({
   let description;
   let primaryButtonText;
   let secondaryButtonText;
-  let handlePrimaryButtonPress = viewActivity;
-  let handleSecondaryButtonPress = closeStatusPage;
+  let handlePrimaryButtonPress;
+  let handleSecondaryButtonPress;
 
   if (isStxPending && isStxPastEstimatedDeadline) {
     icon = IconName.Clock;
@@ -329,27 +329,29 @@ const SmartTransactionStatus = ({
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
 
-  const PrimaryButton = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={primaryButtonText}
-      onPress={handlePrimaryButtonPress}
-      style={styles.button}
-    >
-      {primaryButtonText}
-    </Button>
-  );
+  const PrimaryButton = () =>
+    handlePrimaryButtonPress ? (
+      <Button
+        variant={ButtonVariants.Primary}
+        label={primaryButtonText}
+        onPress={handlePrimaryButtonPress}
+        style={styles.button}
+      >
+        {primaryButtonText}
+      </Button>
+    ) : null;
 
-  const SecondaryButton = () => (
-    <Button
-      variant={ButtonVariants.Secondary}
-      label={secondaryButtonText}
-      onPress={handleSecondaryButtonPress}
-      style={styles.button}
-    >
-      {secondaryButtonText}
-    </Button>
-  );
+  const SecondaryButton = () =>
+    handleSecondaryButtonPress ? (
+      <Button
+        variant={ButtonVariants.Secondary}
+        label={secondaryButtonText}
+        onPress={handleSecondaryButtonPress}
+        style={styles.button}
+      >
+        {secondaryButtonText}
+      </Button>
+    ) : null;
 
   const ViewTransactionLink = () => (
     <TouchableOpacity onPress={onViewTransaction}>
@@ -384,8 +386,8 @@ const SmartTransactionStatus = ({
       </LoopingScrollAnimation>
 
       <View style={styles.buttonWrapper}>
-        {handlePrimaryButtonPress && <PrimaryButton />}
-        {handleSecondaryButtonPress && <SecondaryButton />}
+        <PrimaryButton />
+        <SecondaryButton />
       </View>
     </View>
   );
