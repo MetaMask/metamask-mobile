@@ -225,8 +225,7 @@ export async function switchToNetwork({
 
     return undefined;
   };
-  const { networkConfigurationId, networkConfiguration } = network;
-
+  const [networkConfigurationId, networkConfiguration] = network;
   const requestData = {
     rpcUrl: networkConfiguration.rpcUrl,
     chainId,
