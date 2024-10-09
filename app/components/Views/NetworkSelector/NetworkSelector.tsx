@@ -33,7 +33,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
-  compareRpcUrls,
   getAllNetworks,
   getDecimalChainId,
   isTestNet,
@@ -90,10 +89,7 @@ import { Hex } from '@metamask/utils';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  LINEA_DEFAULT_RPC_URL,
-  MAINNET_DEFAULT_RPC_URL,
-} from '../../../constants/urls';
+import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';

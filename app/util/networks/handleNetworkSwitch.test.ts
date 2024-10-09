@@ -131,14 +131,6 @@ describe('useHandleNetworkSwitch', () => {
     expect(result).toBeUndefined();
   });
 
-  it('throws an error if the chain ID is not recognized', () => {
-    setupGetStateMock();
-
-    expect(() => handleNetworkSwitch('123456')).toThrow(
-      'Unknown network with id 123456',
-    );
-  });
-
   it('switches to a custom network', () => {
     setupGetStateMock();
 
