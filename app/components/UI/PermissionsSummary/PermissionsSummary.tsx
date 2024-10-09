@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import StyledButton from '../StyledButton';
-import { SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, SafeAreaView, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -58,15 +58,15 @@ const PermissionsSummary = ({
   const selectedAccount = useSelectedAccount();
 
   // if network switch, we get the chain name from the customNetworkInformation
-  // let chainName = '';
-  // let chainImage = '';
-  // if (isNetworkSwitch && customNetworkInformation?.chainId) {
-  const chainName = customNetworkInformation?.chainName;
-  // @ts-expect-error getNetworkImageSource is not implemented in typescript
-  const chainImage = getNetworkImageSource({
-    chainId: customNetworkInformation?.chainId,
-  });
-  // }
+  let chainName = '';
+  let chainImage: ImageSourcePropType;
+  if (isNetworkSwitch && customNetworkInformation?.chainId) {
+    chainName = customNetworkInformation?.chainName;
+    // @ts-expect-error getNetworkImageSource is not implemented in typescript
+    chainImage = getNetworkImageSource({
+      chainId: customNetworkInformation?.chainId,
+    });
+  }
 
   const confirm = () => {
     onUserAction?.(USER_INTENT.Confirm);

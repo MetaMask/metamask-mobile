@@ -6,7 +6,6 @@ export interface PermissionsSummaryProps {
     icon: string | { uri: string };
     url: string;
   };
-  requestData: unknown;
   onEdit?: () => void;
   onEditNetworks?: () => void;
   onBack?: () => void;
@@ -18,7 +17,7 @@ export interface PermissionsSummaryProps {
   isRenderedAsBottomSheet?: boolean;
   isDisconnectAllShown?: boolean;
   isNetworkSwitch?: boolean;
-  customNetworkInformation: {
+  customNetworkInformation?: {
     chainName: string;
     chainId: string;
   };
