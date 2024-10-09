@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {
@@ -128,6 +122,7 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
+import QRScanner from '../../Views/QRScanner';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -366,7 +361,7 @@ const App = (props) => {
     });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
+  const handleDeeplink = ({ error, params, uri }) => {
     if (error) {
       trackErrorAsAnalytics(error, 'Branch:');
     }
@@ -381,7 +376,7 @@ const App = (props) => {
     } catch (e) {
       Logger.error(e, `Deeplink: Error parsing deeplink`);
     }
-  }, []);
+  };
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
@@ -546,21 +541,18 @@ const App = (props) => {
     }
   };
 
-  const DetectedTokensFlow = useCallback(
-    () => (
-      <Stack.Navigator
-        mode={'modal'}
-        screenOptions={clearStackNavigatorOptions}
-        initialRouteName={'DetectedTokens'}
-      >
-        <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-        <Stack.Screen
-          name={'DetectedTokensConfirmation'}
-          component={DetectedTokensConfirmation}
-        />
-      </Stack.Navigator>
-    ),
-    [],
+  const DetectedTokensFlow = () => (
+    <Stack.Navigator
+      mode={'modal'}
+      screenOptions={clearStackNavigatorOptions}
+      initialRouteName={'DetectedTokens'}
+    >
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+      <Stack.Screen
+        name={'DetectedTokensConfirmation'}
+        component={DetectedTokensConfirmation}
+      />
+    </Stack.Navigator>
   );
 
   const RootModalFlow = () => (
@@ -712,102 +704,84 @@ const App = (props) => {
     </Stack.Navigator>
   );
 
-  const ImportPrivateKeyView = useCallback(
-    () => (
-      <Stack.Navigator
+  const ImportPrivateKeyView = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+      <Stack.Screen
+        name="ImportPrivateKeySuccess"
+        component={ImportPrivateKeySuccess}
+      />
+      <Stack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
         screenOptions={{
           headerShown: false,
         }}
-      >
-        <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-        <Stack.Screen
-          name="ImportPrivateKeySuccess"
-          component={ImportPrivateKeySuccess}
-        />
-        <Stack.Screen
-          name={Routes.QR_TAB_SWITCHER}
-          component={QRTabSwitcher}
-          screenOptions={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name={Routes.QR_SCANNER}
-          component={QRScanner}
-          screenOptions={{
-            headerShown: false,
-          }}
-        />
-      </Stack.Navigator>
-    ),
-    [],
-  );
-
-  const ConnectQRHardwareFlow = useCallback(
-    () => (
-      <Stack.Navigator
+      />
+      <Stack.Screen
+        name={Routes.QR_SCANNER}
+        component={QRScanner}
         screenOptions={{
           headerShown: false,
         }}
-      >
-        <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-      </Stack.Navigator>
-    ),
-    [],
+      />
+    </Stack.Navigator>
   );
 
-  const LedgerConnectFlow = useCallback(
-    () => (
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-        initialRouteName={Routes.HW.LEDGER_CONNECT}
-      >
-        <Stack.Screen
-          name={Routes.HW.LEDGER_CONNECT}
-          component={LedgerSelectAccount}
-        />
-      </Stack.Navigator>
-    ),
-    [],
+  const ConnectQRHardwareFlow = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+    </Stack.Navigator>
   );
 
-  const ConnectHardwareWalletFlow = useCallback(
-    () => (
-      <Stack.Navigator name="ConnectHardwareWallet">
-        <Stack.Screen
-          name={Routes.HW.SELECT_DEVICE}
-          component={SelectHardwareWallet}
-          options={SelectHardwareWallet.navigationOptions}
-        />
-      </Stack.Navigator>
-    ),
-    [],
+  const LedgerConnectFlow = () => (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName={Routes.HW.LEDGER_CONNECT}
+    >
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
+    </Stack.Navigator>
   );
 
-  const EditAccountNameFlow = useCallback(
-    () => (
-      <Stack.Navigator>
-        <Stack.Screen name="EditAccountName" component={EditAccountName} />
-      </Stack.Navigator>
-    ),
-    [],
+  const ConnectHardwareWalletFlow = () => (
+    <Stack.Navigator name="ConnectHardwareWallet">
+      <Stack.Screen
+        name={Routes.HW.SELECT_DEVICE}
+        component={SelectHardwareWallet}
+        options={SelectHardwareWallet.navigationOptions}
+      />
+    </Stack.Navigator>
+  );
+
+  const EditAccountNameFlow = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="EditAccountName" component={EditAccountName} />
+    </Stack.Navigator>
   );
 
   // eslint-disable-next-line react/prop-types
-  const AddNetworkFlow = useCallback(
-    ({ route }) => (
-      <Stack.Navigator>
-        <Stack.Screen
-          name="AddNetwork"
-          component={NetworkSettings}
-          // eslint-disable-next-line react/prop-types
-          initialParams={route?.params}
-        />
-      </Stack.Navigator>
-    ),
-    [],
+  const AddNetworkFlow = ({ route }) => (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AddNetwork"
+        component={NetworkSettings}
+        // eslint-disable-next-line react/prop-types
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
   );
 
   return supressRender ? null : (
