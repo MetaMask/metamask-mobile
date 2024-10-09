@@ -24,12 +24,7 @@ export function processAttribution({ currentDeeplink, store }: ProcessAttributio
     const state = store.getState();
     const isMarketingEnabled = state.security.dataCollectionForMarketing;
 
-    if(!isMarketingEnabled) {
-      DevLogger.log('processAttribution:: isMarketingEnabled is false -- skip processing attribution', currentDeeplink);
-      return undefined;
-    }
-
-    if (currentDeeplink) {
+    if (!isMarketingEnabled && currentDeeplink) {
         const { params } = extractURLParams(currentDeeplink);
         // Parse UTM params
         const utm = params.utm || undefined;
