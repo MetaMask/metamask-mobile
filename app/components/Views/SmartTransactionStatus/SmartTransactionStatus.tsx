@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
@@ -315,7 +315,7 @@ const SmartTransactionStatus = ({
   // Set block explorer link and show explorer on click
   const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
 
-  const onViewTransaction = useCallback(() => {
+  const onViewTransaction = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -324,50 +324,39 @@ const SmartTransactionStatus = ({
     });
     // Close SmartTransactionStatus
     onConfirm();
-  }, [onConfirm, navigation, txUrl]);
+  };
 
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
 
-  const PrimaryButton = useCallback(
-    () =>
-      handlePrimaryButtonPress ? (
-        <Button
-          variant={ButtonVariants.Primary}
-          label={primaryButtonText}
-          onPress={handlePrimaryButtonPress}
-          style={styles.button}
-        >
-          {primaryButtonText}
-        </Button>
-      ) : null,
-    [handlePrimaryButtonPress, primaryButtonText, styles.button],
+  const PrimaryButton = () => (
+    <Button
+      variant={ButtonVariants.Primary}
+      label={primaryButtonText}
+      onPress={handlePrimaryButtonPress ?? (() => {})}
+      style={styles.button}
+    >
+      {primaryButtonText}
+    </Button>
   );
 
-  const SecondaryButton = useCallback(
-    () =>
-      handleSecondaryButtonPress ? (
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={secondaryButtonText}
-          onPress={handleSecondaryButtonPress}
-          style={styles.button}
-        >
-          {secondaryButtonText}
-        </Button>
-      ) : null,
-    [handleSecondaryButtonPress, secondaryButtonText, styles.button],
+  const SecondaryButton = () => (
+    <Button
+      variant={ButtonVariants.Secondary}
+      label={secondaryButtonText}
+      onPress={handleSecondaryButtonPress ?? (() => {})}
+      style={styles.button}
+    >
+      {secondaryButtonText}
+    </Button>
   );
 
-  const ViewTransactionLink = useCallback(
-    () => (
-      <TouchableOpacity onPress={onViewTransaction}>
-        <Text style={styles.link}>
-          {strings('smart_transactions.view_transaction')}
-        </Text>
-      </TouchableOpacity>
-    ),
-    [onViewTransaction, styles.link],
+  const ViewTransactionLink = () => (
+    <TouchableOpacity onPress={onViewTransaction}>
+      <Text style={styles.link}>
+        {strings('smart_transactions.view_transaction')}
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
@@ -395,8 +384,8 @@ const SmartTransactionStatus = ({
       </LoopingScrollAnimation>
 
       <View style={styles.buttonWrapper}>
-        <PrimaryButton />
-        <SecondaryButton />
+        {handlePrimaryButtonPress && <PrimaryButton />}
+        {handleSecondaryButtonPress && <SecondaryButton />}
       </View>
     </View>
   );

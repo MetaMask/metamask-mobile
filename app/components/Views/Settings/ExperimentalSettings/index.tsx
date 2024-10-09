@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Linking, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
@@ -30,10 +30,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     storage.getBoolean('is-ses-enabled'),
   );
 
-  const toggleSesEnabled = useCallback(() => {
+  const toggleSesEnabled = () => {
     storage.set('is-ses-enabled', !sesEnabled);
     setSesEnabled(!sesEnabled);
-  }, [sesEnabled]);
+  };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
@@ -57,91 +57,76 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     [colors],
   );
 
-  const goToWalletConnectSessions = useCallback(() => {
+  const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
-  }, [navigation]);
+  };
 
   const openSesLink = () => Linking.openURL(SES_URL);
 
-  const WalletConnectSettings: FC = useCallback(
-    () => (
-      <>
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('experimental_settings.wallet_connect_dapps')}
-        </Text>
+  const WalletConnectSettings: FC = () => (
+    <>
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        {strings('experimental_settings.wallet_connect_dapps')}
+      </Text>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
+        {strings('experimental_settings.wallet_connect_dapps_desc')}
+      </Text>
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
+        label={strings('experimental_settings.wallet_connect_dapps_cta')}
+        onPress={goToWalletConnectSessions}
+        width={ButtonWidthTypes.Full}
+        style={styles.accessory}
+      />
+    </>
+  );
+
+  const SesSettings: FC = () => (
+    <>
+      <Text
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
+        style={styles.heading}
+      >
+        {strings('app_settings.security_heading')}
+      </Text>
+      <View style={styles.setting}>
+        <View style={styles.switchElement}>
+          <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+            {strings('app_settings.ses_heading')}
+          </Text>
+          <Switch
+            value={sesEnabled}
+            onValueChange={toggleSesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
         <Text
           color={TextColor.Alternative}
           variant={TextVariant.BodyMD}
           style={styles.desc}
         >
-          {strings('experimental_settings.wallet_connect_dapps_desc')}
+          {strings('app_settings.ses_description')}{' '}
+          <Button
+            variant={ButtonVariants.Link}
+            size={ButtonSize.Auto}
+            onPress={openSesLink}
+            label={strings('app_settings.ses_link')}
+          />
+          .
         </Text>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          label={strings('experimental_settings.wallet_connect_dapps_cta')}
-          onPress={goToWalletConnectSessions}
-          width={ButtonWidthTypes.Full}
-          style={styles.accessory}
-        />
-      </>
-    ),
-    [styles.accessory, goToWalletConnectSessions, styles.desc],
-  );
-
-  const SesSettings: FC = useCallback(
-    () => (
-      <>
-        <Text
-          color={TextColor.Default}
-          variant={TextVariant.HeadingLG}
-          style={styles.heading}
-        >
-          {strings('app_settings.security_heading')}
-        </Text>
-        <View style={styles.setting}>
-          <View style={styles.switchElement}>
-            <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.ses_heading')}
-            </Text>
-            <Switch
-              value={sesEnabled}
-              onValueChange={toggleSesEnabled}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
-          <Text
-            color={TextColor.Alternative}
-            variant={TextVariant.BodyMD}
-            style={styles.desc}
-          >
-            {strings('app_settings.ses_description')}{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              onPress={openSesLink}
-              label={strings('app_settings.ses_link')}
-            />
-            .
-          </Text>
-        </View>
-      </>
-    ),
-    [
-      styles.heading,
-      styles.desc,
-      styles.setting,
-      styles.switchElement,
-      styles.switch,
-      sesEnabled,
-      toggleSesEnabled,
-      colors,
-    ],
+      </View>
+    </>
   );
 
   return (

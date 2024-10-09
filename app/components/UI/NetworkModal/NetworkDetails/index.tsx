@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import ConnectHeader from '../../../UI/ConnectHeader';
 import { strings } from '../../../../../locales/i18n';
@@ -63,20 +63,17 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
     [blockExplorerUrl, chainId, nickname, rpcUrl, ticker],
   );
 
-  const DetailsView = useCallback(
-    () => (
-      <>
-        {DisplayData.map((item, index) => (
-          <View key={index}>
-            <Text black>{item.title}</Text>
-            <Text black bold style={styles.bottomSpace}>
-              {item.value}
-            </Text>
-          </View>
-        ))}
-      </>
-    ),
-    [DisplayData, styles.bottomSpace],
+  const DetailsView = () => (
+    <>
+      {DisplayData.map((item, index) => (
+        <View key={index}>
+          <Text black>{item.title}</Text>
+          <Text black bold style={styles.bottomSpace}>
+            {item.value}
+          </Text>
+        </View>
+      ))}
+    </>
   );
 
   return (
