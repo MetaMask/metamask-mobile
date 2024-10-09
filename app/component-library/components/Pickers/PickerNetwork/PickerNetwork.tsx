@@ -26,8 +26,6 @@ const PickerNetwork = ({
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
 
-  console.log('hideNetworkName', hideNetworkName);
-
   return (
     <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
       <View style={hideNetworkName ? styles.networkIconContainer : null}>
