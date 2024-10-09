@@ -58,7 +58,6 @@ import {
   selectIsIpfsGatewayEnabled,
   selectIsMultiAccountBalancesEnabled,
   selectDisplayNftMedia,
-  selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
   selectUseSafeChainsListValidation,
@@ -89,7 +88,6 @@ import {
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
-  NFT_AUTO_DETECT_MODE_SECTION,
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
@@ -121,7 +119,6 @@ import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   selectIsMetamaskNotificationsEnabled,
   selectIsProfileSyncingEnabled,
@@ -132,6 +129,8 @@ import { RootState } from '../../../../reducers';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
+
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -145,7 +144,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -198,8 +197,6 @@ const Settings: React.FC = () => {
     selectUseTransactionSimulations,
   );
 
-  const useNftDetection = useSelector(selectUseNftDetection);
-
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -230,38 +227,33 @@ const Settings: React.FC = () => {
     );
   }, [colors, navigation]);
 
-const handleAvailableIpfsGateways = useCallback(async () => {
-  if (!isIpfsGatewayEnabled) return;
-  const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
-    const testUrl =
-      gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
-    try {
-      const res = await timeoutFetch(testUrl, {}, 1200);
-      if (res instanceof Error) {
-        return { ...gateway, available: false };
-      }
-      if (res instanceof Response) {
+  const handleAvailableIpfsGateways = useCallback(async () => {
+    if (!isIpfsGatewayEnabled) return;
+    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
+      const testUrl =
+        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+      try {
+        const res = await timeoutFetch(testUrl, {}, 1200);
         const text = await res.text();
         const available = text.trim() === HASH_STRING.trim();
         return { ...gateway, available };
+      } catch (e) {
+        const available = false;
+        return { ...gateway, available };
       }
-      return { ...gateway, available: false };
-    } catch (e) {
-      return { ...gateway, available: false };
-    }
-  });
-  const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
-  const onlineGateways = ipfsGatewaysAvailability.filter(
-    (gateway) => gateway.available,
-  );
+    });
+    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+    const onlineGateways = ipfsGatewaysAvailability.filter(
+      (gateway) => gateway.available,
+    );
 
-  const sortedOnlineIpfsGateways = [...onlineGateways].sort(
-    (a, b) => a.key - b.key,
-  );
+    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
+      (a, b) => a.key - b.key,
+    );
 
-  setGotAvailableGateways(true);
-  setOnlineIpfsGateways(sortedOnlineIpfsGateways);
-}, [isIpfsGatewayEnabled]);
+    setGotAvailableGateways(true);
+    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
+  }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
     const currentSeedphraseHints = await StorageWrapper.getItem(
@@ -591,27 +583,6 @@ const handleAvailableIpfsGateways = useCallback(async () => {
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
-  const toggleNftAutodetect = useCallback(
-    (value) => {
-      const { PreferencesController } = Engine.context;
-      if (value) {
-        PreferencesController.setDisplayNftMedia(value);
-      }
-      PreferencesController.setUseNftDetection(value);
-      const traits = {
-        [UserProfileProperty.NFT_AUTODETECTION]: value
-          ? UserProfileProperty.ON
-          : UserProfileProperty.OFF,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
-        ...traits,
-        location: 'app_settings',
-      });
-    },
-    [addTraitsToUser, trackEvent],
-  );
-
   const renderDisplayNftMedia = useCallback(
     () => (
       <View style={styles.halfSetting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
@@ -735,43 +706,6 @@ const handleAvailableIpfsGateways = useCallback(async () => {
       </View>
     ),
     [colors, styles, useTransactionSimulations, theme.brandColors.white],
-  );
-
-  const renderAutoDetectNft = useCallback(
-    () => (
-      <View
-        style={styles.setting}
-        testID={NFT_AUTO_DETECT_MODE_SECTION}
-        ref={detectNftComponentRef}
-      >
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.nft_autodetect_mode')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={useNftDetection}
-              onValueChange={toggleNftAutodetect}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.autodetect_nft_desc')}
-        </Text>
-      </View>
-    ),
-    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
   );
 
   const setIpfsGateway = (gateway: string) => {
@@ -1159,7 +1093,11 @@ const handleAvailableIpfsGateways = useCallback(async () => {
           {strings('app_settings.token_nft_ens_subheading')}
         </Text>
         {renderDisplayNftMedia()}
-        {isMainnet && renderAutoDetectNft()}
+        {isMainnet && (
+          <View ref={detectNftComponentRef}>
+            <AutoDetectNFTSettings />
+          </View>
+        )}
         {renderIpfsGateway()}
         <Text
           variant={TextVariant.BodyLGMedium}
