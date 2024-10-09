@@ -96,8 +96,8 @@ const getDisplayValuesAndHandlers = ({
   let description;
   let primaryButtonText;
   let secondaryButtonText;
-  let handlePrimaryButtonPress = () => {};
-  let handleSecondaryButtonPress = () => {};
+  let handlePrimaryButtonPress = viewActivity;
+  let handleSecondaryButtonPress = closeStatusPage;
 
   if (isStxPending && isStxPastEstimatedDeadline) {
     icon = IconName.Clock;
