@@ -235,13 +235,13 @@ workflows:
       - setup
       - prep_environment
     steps:
-      # - restore-cocoapods-cache@2: {}
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-      #     title: Get Yarn cache directory
+      - restore-cocoapods-cache@2: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
       - yarn@0:
           inputs:
             - command: setup
@@ -648,7 +648,7 @@ workflows:
         stack: linux-docker-android-22.04
   android_e2e_test:
     before_run:
-      - code_setup
+      - setup
       - prep_environment
     after_run:
       - notify_failure
@@ -740,7 +740,7 @@ workflows:
         stack: linux-docker-android-22.04
   ios_api_specs:
     before_run:
-      - code_setup
+      - setup
       - install_applesimutils
       - prep_environment
     after_run:
@@ -897,7 +897,7 @@ workflows:
     envs:
       - NO_FLIPPER: '1'
     before_run:
-      - code_setup
+      - setup
       - install_applesimutils
       - prep_environment
     after_run:
