@@ -1,3 +1,4 @@
+jest.unmock('./storage-wrapper');
 import StorageWrapper from './storage-wrapper';
 
 describe('StorageWrapper', () => {
@@ -29,6 +30,34 @@ describe('StorageWrapper', () => {
     }
 
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 123);
+  });
+
+  it('remove value from the store', async () => {
+    const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+    await StorageWrapper.setItem('test-key', 'test-value');
+    const resultBeforeRemove = await StorageWrapper.getItem('test-key');
+    expect(resultBeforeRemove).toBe('test-value');
+    await StorageWrapper.removeItem('test-key');
+    expect(removeItemSpy).toHaveBeenCalledWith('test-key');
+    const resultAfterRemoval = await StorageWrapper.getItem('test-key');
+    expect(resultAfterRemoval).toBeNull();
+  });
+
+  it('remove all values from the store', async () => {
+    const clearAllSpy = jest.spyOn(StorageWrapper, 'clearAll');
+    await StorageWrapper.setItem('test-key', 'test-value');
+    await StorageWrapper.setItem('test-key-2', 'test-value');
+    const resultBeforeRemove = await StorageWrapper.getItem('test-key');
+    const result2BeforeRemove = await StorageWrapper.getItem('test-key-2');
+    expect(resultBeforeRemove).toBe('test-value');
+    expect(result2BeforeRemove).toBe('test-value');
+
+    await StorageWrapper.clearAll();
+    expect(clearAllSpy).toHaveBeenCalled();
+    const result = await StorageWrapper.getItem('test-key');
+    const result2 = await StorageWrapper.getItem('test-key-2');
+    expect(result).toBeNull();
+    expect(result2).toBeNull();
   });
 
   it('StorageWrapper instance is defined', () => {
