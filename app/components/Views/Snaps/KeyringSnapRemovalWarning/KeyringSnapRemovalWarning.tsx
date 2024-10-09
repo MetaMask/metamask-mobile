@@ -140,7 +140,7 @@ export default function KeyringSnapRemovalWarning({
         <KeyringAccountListItem
           key={index}
           account={account}
-          snapUrl={getAccountLink(account.address, chainId)}
+          blockExplorerUrl={getAccountLink(account.address, chainId)}
         />
       )),
     [keyringAccounts, chainId],
@@ -171,15 +171,15 @@ export default function KeyringSnapRemovalWarning({
         {showConfirmation ? (
           <>
             <Text variant={TextVariant.BodyMD} style={styles.description}>
-              {strings(
+              {`${strings(
                 'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_1',
-              )}
+              )} `}
               <Text variant={TextVariant.BodyMDBold}>
                 {snap.manifest.proposedName}
               </Text>
-              {strings(
+              {` ${strings(
                 'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_2',
-              )}
+              )}`}
             </Text>
             <TextInput
               style={styles.input}
