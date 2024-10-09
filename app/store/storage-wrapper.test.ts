@@ -72,7 +72,7 @@ describe('StorageWrapper', () => {
     expect(StorageWrapper).toBeDefined();
     expect(StorageWrapper.getItem).toBeDefined();
     expect(StorageWrapper.setItem).toBeDefined();
-
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const storageWrapper = require('./storage-wrapper').default;
 
     expect(StorageWrapper).toBe(storageWrapper);
