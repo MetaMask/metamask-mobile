@@ -1,6 +1,11 @@
 import React, { useCallback } from 'react';
 import StyledButton from '../StyledButton';
-import { ImageSourcePropType, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import {
+  ImageSourcePropType,
+  SafeAreaView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -222,23 +227,25 @@ const PermissionsSummary = ({
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
             <View style={styles.permissionRequestNetworkInfo}>
-              <View style={styles.permissionRequestNetworkName}>
-                <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                  <TextComponent variant={TextVariant.BodySM}>
-                    {strings('permissions.requesting_for')}
-                  </TextComponent>
-                  <TextComponent variant={TextVariant.BodySMMedium}>
-                    {chainName}
-                  </TextComponent>
-                </TextComponent>
-              </View>
               {isNetworkSwitch && (
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  size={AvatarSize.Xs}
-                  name={chainName}
-                  imageSource={chainImage}
-                />
+                <>
+                  <View style={styles.permissionRequestNetworkName}>
+                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                      <TextComponent variant={TextVariant.BodySM}>
+                        {strings('permissions.requesting_for')}
+                      </TextComponent>
+                      <TextComponent variant={TextVariant.BodySMMedium}>
+                        {chainName}
+                      </TextComponent>
+                    </TextComponent>
+                  </View>
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Xs}
+                    name={chainName}
+                    imageSource={chainImage}
+                  />
+                </>
               )}
               {!isNetworkSwitch && (
                 <View style={styles.avatarGroup}>
@@ -271,6 +278,7 @@ const PermissionsSummary = ({
                   })}
             </TextComponent>
           </View>
+          {/*TODO These should be conditional upon which permissions are being requested*/}
           {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
