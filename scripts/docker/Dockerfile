@@ -24,15 +24,16 @@ RUN [[ "$TARGETARCH" = "arm64" ]] && echo "export CFLAGS=-mno-outline-atomics" >
 WORKDIR /opt/foundry
 
 RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/root/.cargo/git --mount=type=cache,target=/opt/foundry/target \
-    source $HOME/.profile && cargo build --release --features foundry-cast/aws-kms,forge/aws-kms \
+    source $HOME/.profile \
+    && cargo build --release -p anvil \
     && mkdir out \
-    && mv target/release/forge out/forge \
-    && mv target/release/cast out/cast \
+    #&& mv target/release/forge out/forge \
+    #&& mv target/release/cast out/cast \
     && mv target/release/anvil out/anvil \
-    && mv target/release/chisel out/chisel \
-    && strip out/forge \
-    && strip out/cast \
-    && strip out/chisel \
+    #&& mv target/release/chisel out/chisel \
+    #&& strip out/forge \
+    #&& strip out/cast \
+    #&& strip out/chisel \
     && strip out/anvil;
 
 ###### Split base image for compatibly parallelizable builds
@@ -99,10 +100,10 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
 ###### Final image
 FROM base
 
-COPY --from=foundry-build-environment /opt/foundry/out/forge /usr/local/bin/forge
-COPY --from=foundry-build-environment /opt/foundry/out/cast /usr/local/bin/cast
 COPY --from=foundry-build-environment /opt/foundry/out/anvil /usr/local/bin/anvil
-COPY --from=foundry-build-environment /opt/foundry/out/chisel /usr/local/bin/chisel
+#COPY --from=foundry-build-environment /opt/foundry/out/cast /usr/local/bin/cast
+#COPY --from=foundry-build-environment /opt/foundry/out/chisel /usr/local/bin/chisel
+#COPY --from=foundry-build-environment /opt/foundry/out/forge /usr/local/bin/forge
 
 # fix broken ipv6 on nodejs v20
 ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
