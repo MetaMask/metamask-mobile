@@ -21,7 +21,7 @@ import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/native-stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */

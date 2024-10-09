@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Regions from '../Views/Regions';
 import Quotes from '../Views/Quotes';
 import PaymentMethods from '../Views/PaymentMethods';
@@ -11,7 +11,7 @@ import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import { colors } from './../../../../styles/common';
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>

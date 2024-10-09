@@ -15,7 +15,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/native-stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';

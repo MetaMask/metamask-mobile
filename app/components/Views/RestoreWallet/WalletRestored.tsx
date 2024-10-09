@@ -22,7 +22,7 @@ import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/native-stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(

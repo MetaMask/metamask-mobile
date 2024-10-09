@@ -1,11 +1,11 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import StakeInputView from '../Views/StakeInputView/StakeInputView';
 import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
 import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 const clearStackNavigatorOptions = {
   headerShown: false,

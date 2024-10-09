@@ -4,7 +4,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
@@ -104,7 +104,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>

@@ -2,7 +2,7 @@ import React from 'react';
 import Amount from '.';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TransactionTypes from '../../../../../core/TransactionTypes';
 
@@ -112,7 +112,7 @@ const initialState = {
   },
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
