@@ -126,7 +126,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
+import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -901,7 +901,7 @@ class Engine {
           type,
           requestData: { content, placeholder },
         }),
-      showInAppNotification: (origin: string, args: NotificationArgs) => {
+      showInAppNotification: (origin: string, args: NotificationParameters) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
           args,
@@ -1219,12 +1219,36 @@ class Engine {
 
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      env: {
+        isAccountSyncingEnabled: true,
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              {
+                profile_id: profileId,
+              },
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              {
+                profile_id: profileId,
+              },
+            );
+          },
+        },
+      },
       state: initialState.UserStorageController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
           'KeyringController:getState',
+          'KeyringController:addNewAccount',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1232,13 +1256,12 @@ class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          'KeyringController:addNewAccount',
           'AccountsController:listAccounts',
           'AccountsController:updateAccountMetadata',
         ],
         allowedEvents: [
-          'KeyringController:lock',
           'KeyringController:unlock',
+          'KeyringController:lock',
           'AccountsController:accountAdded',
           'AccountsController:accountRenamed',
         ],

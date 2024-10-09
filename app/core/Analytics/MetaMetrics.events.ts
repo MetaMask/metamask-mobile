@@ -368,6 +368,10 @@ enum EVENT_NAME {
   NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
+
+  // Profile Syncing
+  ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
+  ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
 }
 
 enum ACTIONS {
@@ -848,6 +852,12 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
+
+  // Profile Syncing
+  ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
+  ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
+    EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+  ),
 };
 
 /**

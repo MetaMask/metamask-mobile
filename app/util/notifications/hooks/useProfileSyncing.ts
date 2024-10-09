@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../../util/errorHandling';
 import {
   disableProfileSyncing as disableProfileSyncingAction,
   enableProfileSyncing as enableProfileSyncingAction,
+  syncInternalAccountsWithUserStorage as syncInternalAccountsWithUserStorageAction,
 } from '../../../actions/notification/helpers';
 
 /**
@@ -56,3 +57,32 @@ export function useProfileSyncing(): ProfileSyncingReturn {
 
   return { enableProfileSyncing, disableProfileSyncing, loading, error };
 }
+
+/**
+ * Custom hook to dispatch account syncing.
+ *
+ * @returns An object containing the `dispatchAccountSyncing` function, and error state.
+ */
+export const useAccountSyncing = () => {
+  const [error, setError] = useState<string>();
+
+  const dispatchAccountSyncing = useCallback(async () => {
+    setError(undefined);
+    try {
+      const errorMessage = await syncInternalAccountsWithUserStorageAction();
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
+    } catch (e) {
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
+    }
+  }, []);
+
+  return {
+    dispatchAccountSyncing,
+    error,
+  };
+};
