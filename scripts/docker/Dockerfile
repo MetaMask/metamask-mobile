@@ -1,13 +1,16 @@
 # syntax=docker/dockerfile:1.4
 
 ###### Foundry builder
-FROM rust:alpine3.19 as foundry-build-environment
+ARG FOUNDRY_BUILDER_ALPINE_VERSION=3.19
+ARG FOUNDRY_BUILDER_RUST_VERSION=1.81
+ARG NODE_VERSION=20
+ARG DEBIAN_VERSION=bookworm
+FROM rust:${FOUNDRY_BUILDER_RUST_VERSION}-alpine${FOUNDRY_BUILDER_ALPINE_VERSION} as foundry-build-environment
 
-ARG TARGETARCH
 WORKDIR /opt
-ARG FOUNDRY_COMMIT=a17869a6dcce7ce3765c5ed521d40ddb572de9f0
 
-RUN apk add clang lld curl build-base linux-headers git \
+ARG FOUNDRY_COMMIT=a17869a6dcce7ce3765c5ed521d40ddb572de9f0
+RUN apk add --no-cache clang lld curl build-base linux-headers git \
   && mkdir foundry \
   && cd foundry \
   && git init \
@@ -15,12 +18,10 @@ RUN apk add clang lld curl build-base linux-headers git \
   && git fetch --depth 1 origin "${FOUNDRY_COMMIT}" \
   && git checkout FETCH_HEAD
 
+ARG TARGETARCH
 RUN [[ "$TARGETARCH" = "arm64" ]] && echo "export CFLAGS=-mno-outline-atomics" >> $HOME/.profile || touch $HOME/.profile
 
 WORKDIR /opt/foundry
-
-## see <https://github.com/foundry-rs/foundry/issues/7925>
-#RUN git update-index --force-write-index
 
 RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/root/.cargo/git --mount=type=cache,target=/opt/foundry/target \
     source $HOME/.profile && cargo build --release --features foundry-cast/aws-kms,forge/aws-kms \
@@ -34,8 +35,8 @@ RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/r
     && strip out/chisel \
     && strip out/anvil;
 
-###### SPlit bas eimage for compatibly parallelizable builds
-FROM node:20-bookworm as base
+###### Split base image for compatibly parallelizable builds
+FROM node:${NODE_VERSION}-${DEBIAN_VERSION} as base
 
 RUN apt-get update \
   && apt-get install -y \
@@ -45,7 +46,8 @@ RUN apt-get update \
   && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen \
   && locale-gen
 
-ENV YARN_VERSION 1.22.22
+ARG YARN_VERSION=1.22.22
+ENV YARN_VERSION ${YARN_VERSION}
 # replace base image yarn 1.19
 # checksums and sigs for 1.22 not available as of now...
 # https://github.com/nodejs/docker-node/blob/07bd7414c9eeb7a134951122e1105e8c849f770e/Dockerfile-debian.template
@@ -87,9 +89,10 @@ RUN (mkdir /home/node/.rbenv \
   ) \
   && echo 'eval "$(/home/node/.rbenv/bin/rbenv init -)"' >> /home/node/.bashrc
 
+ARG BUNDLER_VERSION=2.5.8
 RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && rbenv install \
-    && gem install bundler -v 2.5.8 \
+    && gem install bundler -v ${BUNDLER_VERSION} \
     && gem install bigdecimal cocoapods \
     && bundle install'
 
