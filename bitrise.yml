@@ -145,8 +145,8 @@ stages:
       - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+        - ios_e2e_build: {}
+        - android_e2e_build: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
