@@ -16,13 +16,13 @@ const AccountNetworkInfoExpanded = () => {
   const networkName = useSelector(selectNetworkName);
   const networkRpcUrl = useSelector(selectRpcUrl);
   const fromAddress = approvalRequest?.requestData?.from;
-  const { accountAddress, addressBalance } = useAccountInfo(fromAddress);
+  const { accountAddress, accountBalance } = useAccountInfo(fromAddress);
 
   return (
     <View>
       <InfoSection>
         <InfoRow label={strings('confirm.account')}>{accountAddress}</InfoRow>
-        <InfoRow label={strings('confirm.balance')}>{addressBalance}</InfoRow>
+        <InfoRow label={strings('confirm.balance')}>{accountBalance}</InfoRow>
       </InfoSection>
       <InfoSection>
         <InfoRow

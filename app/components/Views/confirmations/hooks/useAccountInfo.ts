@@ -9,7 +9,10 @@ import { renderAccountName } from '../../../../util/address';
 const useAccountInfo = (address: string) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(address);
-  const { addressBalance } = useAddressBalance(undefined, address);
+  const { addressBalance: accountBalance } = useAddressBalance(
+    undefined,
+    address,
+  );
 
   const accountName = useMemo(
     () =>
@@ -17,7 +20,7 @@ const useAccountInfo = (address: string) => {
     [internalAccounts, activeAddress],
   );
 
-  return { accountName, accountAddress: activeAddress, addressBalance };
+  return { accountName, accountAddress: activeAddress, accountBalance };
 };
 
 export default useAccountInfo;
