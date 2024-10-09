@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import PropTypes from 'prop-types';
@@ -390,7 +391,7 @@ const App = (props) => {
           handleDeeplink({ uri: url });
         }
       });
-  }, [handleDeeplink]);
+  }, []);
 
   useEffect(() => {
     if (navigator) {
@@ -435,7 +436,7 @@ const App = (props) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
+  }, [dispatch, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     const initMetrics = async () => {
