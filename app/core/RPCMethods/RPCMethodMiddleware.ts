@@ -67,7 +67,7 @@ export enum ApprovalTypes {
   ///: END:ONLY_INCLUDE_IF
 }
 
-export interface RPCMethodsMiddleParameters {
+export type RPCMethodsMiddleParameters = {
   hostname: string;
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
@@ -101,7 +101,7 @@ export interface RPCMethodsMiddleParameters {
   approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
-}
+};
 
 // Also used by WalletConnect.js.
 export const checkActiveAccountAndChainId = async ({
