@@ -235,7 +235,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           'Cancel',
         ]}
         cancelButtonIndex={2}
-        destructiveButtonIndex={0}
         onPress={onSortControlsActionSheetPress}
       />
     </View>
