@@ -440,8 +440,10 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
-          onButtonClick={() => {
-            openModal(chainId, false, MAINNET, true);
+          buttonProps={{
+            onButtonClick: () => {
+              openModal(chainId, false, MAINNET, true);
+            },
           }}
           onTextClick={() =>
             openRpcModal({
@@ -493,8 +495,10 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
-          onButtonClick={() => {
-            openModal(chainId, false, LINEA_MAINNET, true);
+          buttonProps={{
+            onButtonClick: () => {
+              openModal(chainId, false, LINEA_MAINNET, true);
+            },
           }}
           onTextClick={() =>
             openRpcModal({
@@ -644,8 +648,10 @@ const NetworkSelector = () => {
             onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
-            onButtonClick={() => {
-              openModal(chainId, false, networkType, true);
+            buttonProps={{
+              onButtonClick: () => {
+                openModal(chainId, false, networkType, true);
+              },
             }}
             onTextClick={() =>
               openRpcModal({
