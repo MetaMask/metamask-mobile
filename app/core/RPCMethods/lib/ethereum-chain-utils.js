@@ -188,13 +188,12 @@ export function findExistingNetwork(chainId, networkConfigurations) {
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
   );
-
-  return (
-    existingEntry || [
-      existingNetworkDefault?.networkType,
-      existingNetworkDefault,
-    ]
-  );
+  if (existingNetworkDefault) {
+    return [existingNetworkDefault?.networkType, existingNetworkDefault];
+  } else if (existingEntry) {
+    return existingEntry;
+  }
+  return;
 }
 
 export async function switchToNetwork({
@@ -274,10 +273,14 @@ export async function switchToNetwork({
           },
         });
       } else {
-        // try {
-        await PermissionController.requestPermissionsIncremental(
-          { origin },
-          {
+        const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
+        await requestUserApproval({
+          type: 'SWITCH_ETHEREUM_CHAIN',
+          requestData: { ...requestData, type: requestModalType },
+        });
+        await PermissionController.grantPermissionsIncremental({
+          subject: { origin },
+          approvedPermissions: {
             [PermissionKeys.permittedChains]: {
               caveats: [
                 CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
@@ -286,10 +289,20 @@ export async function switchToNetwork({
               ],
             },
           },
-        );
-        // } catch (e) {
-        //   console.log('ALEX LOGGING: requestPermissionsIncremental error', e);
-        // }
+        });
+        // TODO: eventually switch to using requestPermissionsIncremental once permissions screens are refactored
+        //   await PermissionController.requestPermissionsIncremental(
+        //     { origin },
+        //     {
+        //       [PermissionKeys.permittedChains]: {
+        //         caveats: [
+        //           CaveatFactories[CaveatTypes.restrictNetworkSwitching]([
+        //             chainId,
+        //           ]),
+        //         ],
+        //       },
+        //     },
+        //   );
       }
     }
   } else {
