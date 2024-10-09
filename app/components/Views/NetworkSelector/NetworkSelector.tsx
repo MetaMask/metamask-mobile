@@ -575,7 +575,7 @@ const NetworkSelector = () => {
               imageSource,
               size: AvatarSize.Sm,
             }}
-            isSelected={chainId === selectedChainId}
+            isSelected={chainId === selectedChainId && !selectedRpcUrl}
             onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
@@ -599,7 +599,7 @@ const NetworkSelector = () => {
             imageSource,
             size: avatarSize,
           }}
-          isSelected={chainId === selectedChainId}
+          isSelected={chainId === selectedChainId && !selectedRpcUrl}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />

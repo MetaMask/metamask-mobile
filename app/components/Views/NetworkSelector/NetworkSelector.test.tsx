@@ -355,4 +355,69 @@ describe('Network Selector', () => {
     const polygonNetwork2Selected = queryByTestId('Polygon Mainnet 2-selected');
     expect(polygonNetwork2Selected).toBeNull(); // Not selected
   });
+
+  it('should select only one Sepolia network when two networks with different RPC URLs exist', async () => {
+    jest.clearAllMocks(); // Clears mock data, ensuring that no mock has been called
+    jest.resetAllMocks(); // Resets mock implementation and mock instances
+
+    const customState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            networkConfigurations: {
+              sepoliaNetwork1: {
+                chainId: '0xaa36a7', // Sepolia Testnet
+                nickname: 'Sepolia Testnet 1',
+                rpcUrl: 'https://sepolia-testnet-1.rpc',
+                ticker: 'SEP',
+              },
+              sepoliaNetwork2: {
+                chainId: '0xaa36a7', // Sepolia Testnet (same chainId, different RPC URL)
+                nickname: 'Sepolia Testnet 2',
+                rpcUrl: 'https://sepolia-testnet-2.rpc',
+                ticker: 'SEP',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    (
+      Engine.context.NetworkController.getNetworkClientById as jest.Mock
+    ).mockReturnValue({
+      configuration: {
+        chainId: '0xaa36a7', // Sepolia Testnet
+        nickname: 'Sepolia Testnet 1',
+        rpcUrl: 'https://sepolia-testnet-1.rpc',
+        ticker: 'SEP',
+        type: 'custom',
+      },
+    });
+
+    const { getByText, queryByTestId } = renderComponent(customState);
+
+    // Ensure both networks are rendered
+    const sepoliaNetwork1 = getByText('Sepolia Testnet 1');
+    const sepoliaNetwork2 = getByText('Sepolia Testnet 2');
+    expect(sepoliaNetwork1).toBeTruthy();
+    expect(sepoliaNetwork2).toBeTruthy();
+
+    // Select the first network
+    fireEvent.press(sepoliaNetwork1);
+
+    // Wait for the selection to be applied
+    await waitFor(() => {
+      const sepoliaNetwork1Selected = queryByTestId(
+        'Sepolia Testnet 1-selected',
+      );
+      expect(sepoliaNetwork1Selected).toBeTruthy();
+    });
+
+    // Assert that the second network is NOT selected
+    const sepoliaNetwork2Selected = queryByTestId('Sepolia Testnet 2-selected');
+    expect(sepoliaNetwork2Selected).toBeNull(); // Not selected
+  });
 });
