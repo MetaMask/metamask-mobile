@@ -3,7 +3,6 @@
 The following tools are used for debugging the MetaMask mobile app:
 
 - [Flipper](https://fbflipper.com/) - For general debugging on iOS and Android
-  - [Redux Debugger](https://github.com/jk-gan/flipper-plugin-redux-debugger) - A plugin in Flipper for debugging Redux
 - [Safari Browser](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Debugging.md#debugging-webview-contents) - For debugging the in-app browser for the mobile app
 - [Google Chrome](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Debugging.md#debugging-webview-contents) - For debugging the in-app browser for the mobile app
 
@@ -26,11 +25,6 @@ Finally, check that the debugger is working:
 - With the Flipper browser tab open, open your simulator alongside the Flipper app
 - Flipper will auto-detect the device and the application to debug
 - At this point, you should now be able to access features such as `Logs`
-
-To enable Redux debugging: in Flipper, select the `More` tab -> `Plugin` and add [`redux-debugger`](https://github.com/jk-gan/flipper-plugin-redux-debugger)
-
-- If the plugin is disabled, add or enable the plugin
-- Once enabled, the plugin automatically picks up Redux actions, which can be used for debugging state changes
 
 ## Debugging the WebView (in-app browser)
 
