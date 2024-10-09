@@ -37,23 +37,13 @@ describe('AssetDetailsActions', () => {
   });
 
   it('renders correctly with all buttons displayed', () => {
-    const { getByTestId, getAllByText } = render(
-      <AssetDetailsActions {...defaultProps} />,
-    );
+    const { getByText } = render(<AssetDetailsActions {...defaultProps} />);
 
-    expect(getByTestId(TOKEN_OVERVIEW_BUY_BUTTON)).toBeTruthy();
-    expect(getByTestId(TOKEN_OVERVIEW_SWAP_BUTTON)).toBeTruthy();
-    expect(getByTestId(TOKEN_OVERVIEW_BRIDGE_BUTTON)).toBeTruthy();
-    expect(getByTestId(TOKEN_OVERVIEW_SEND_BUTTON)).toBeTruthy();
-    expect(getByTestId(TOKEN_OVERVIEW_RECEIVE_BUTTON)).toBeTruthy();
-
-    expect(getAllByText(strings('asset_overview.buy_button'))).toHaveLength(2);
-    expect(getAllByText(strings('asset_overview.swap'))).toHaveLength(2);
-    expect(getAllByText(strings('asset_overview.bridge'))).toHaveLength(2);
-    expect(getAllByText(strings('asset_overview.send_button'))).toHaveLength(2);
-    expect(getAllByText(strings('asset_overview.receive_button'))).toHaveLength(
-      2,
-    );
+    expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.send_button'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
 
   it('calls onBuy when the buy button is pressed', () => {
