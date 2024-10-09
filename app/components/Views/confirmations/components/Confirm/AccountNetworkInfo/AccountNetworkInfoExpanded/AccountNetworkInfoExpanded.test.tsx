@@ -9,6 +9,6 @@ describe('AccountNetworkInfoExpanded', () => {
     const container = renderWithProvider(<AccountNetworkInfoExpanded />, {
       state: personalSignatureConfirmationState,
     });
-    expect(container).toMatchSnapshot(); //
+    expect(container).toMatchSnapshot();
   });
 });

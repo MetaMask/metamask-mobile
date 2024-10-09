@@ -9,6 +9,6 @@ describe('AccountNetworkInfoCollapsed', () => {
     const container = renderWithProvider(<AccountNetworkInfoCollapsed />, {
       state: personalSignatureConfirmationState,
     });
-    expect(container).toMatchSnapshot(); //
+    expect(container).toMatchSnapshot();
   });
 });
