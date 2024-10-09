@@ -4,8 +4,10 @@ const styleSheet = () =>
   StyleSheet.create({
     root: {
       flex: 1,
-      paddingHorizontal: 16,
       paddingTop: 16,
+    },
+    textContainer: {
+      paddingHorizontal: 16,
     },
   });
 
