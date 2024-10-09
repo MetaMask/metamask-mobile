@@ -142,8 +142,8 @@ const wallet_addEthereumChain = async ({
           },
         },
         {
-          referrer: 'Custom Network API',
-          source: 'Custom Network API',
+          referrer: 'ignored',
+          source: 'ignored',
         },
       );
 
