@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`] = `
+exports[`Message should match snapshot 1`] = `
 <TouchableOpacity
   accessible={true}
   activeOpacity={1}
@@ -24,9 +24,38 @@ exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`
       }
     }
   >
-    <View>
-      <Text>
-        Open
+    <View
+      style={
+        {
+          "display": "flex",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "marginBottom": 4,
+          }
+        }
+      >
+        Message
+      </Text>
+      <Text
+        numberOfLines={1}
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Example \`personal_sign\` message
       </Text>
     </View>
     <SvgMock

@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingBottom: 16,
     },
-    modalTitle: {
+    expandedContentTitle: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,

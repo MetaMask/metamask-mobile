@@ -17,7 +17,7 @@ const AccountNetworkInfo = () => {
     <ExpandableSection
       collapsedContent={<AccountNetworkInfoCollapsed />}
       expandedContent={<AccountNetworkInfoExpanded />}
-      modalTitle={strings('confirm.details')}
+      expandedContentTitle={strings('confirm.details')}
     />
   );
 };
