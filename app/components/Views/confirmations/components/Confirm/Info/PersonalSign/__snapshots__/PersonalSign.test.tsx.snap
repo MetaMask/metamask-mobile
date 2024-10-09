@@ -137,74 +137,63 @@ exports[`Title should match snapshot 1`] = `
       </View>
     </View>
   </View>,
-  <View
-    style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c566",
-        "borderRadius": 8,
-        "borderWidth": 1,
-        "display": "flex",
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "marginBottom": 8,
-        "padding": 16,
-      }
-    }
+  <TouchableOpacity
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
   >
     <View
       style={
         {
-          "display": "flex",
-        }
-      }
-    >
-      <Text
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "500",
-            "marginBottom": 4,
-          }
-        }
-      >
-        Message
-      </Text>
-      <Text
-        numberOfLines={1}
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-          }
-        }
-      >
-        Example \`personal_sign\` message
-      </Text>
-    </View>
-    <TouchableOpacity
-      accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
-        {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#bbc0c566",
           "borderRadius": 8,
-          "height": 24,
-          "justifyContent": "center",
-          "opacity": 1,
-          "width": 24,
+          "borderWidth": 1,
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginBottom": 8,
+          "padding": 16,
         }
       }
     >
+      <View
+        style={
+          {
+            "display": "flex",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "marginBottom": 4,
+            }
+          }
+        >
+          Message
+        </Text>
+        <Text
+          numberOfLines={1}
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Example \`personal_sign\` message
+        </Text>
+      </View>
       <SvgMock
         color="#9fa6ae"
         height={16}
@@ -217,7 +206,7 @@ exports[`Title should match snapshot 1`] = `
         }
         width={16}
       />
-    </TouchableOpacity>
-  </View>,
+    </View>
+  </TouchableOpacity>,
 ]
 `;
