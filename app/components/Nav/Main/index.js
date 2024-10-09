@@ -133,22 +133,28 @@ const Main = (props) => {
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
-  const connectionChangeHandler = useCallback(
-    (state) => {
-      if (!state) return;
-      const { isConnected } = state;
-      // Show the modal once the status changes to offline
+  const connectionChangeHandler = (state) => {
+    if (!state) return;
+    const { isConnected } = state;
+
+    // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
+    const debounceTimeout = setTimeout(() => {
       if (connected && isConnected === false) {
         props.navigation.navigate('OfflineModeView');
       }
-      if (connected !== isConnected && isConnected !== null) {
-        setConnected(isConnected);
-      }
-    },
-    [connected, setConnected, props.navigation],
-  );
+    }, 3000);
 
-  const checkInfuraAvailability = useCallback(async () => {
+    // Clear timeout if connection stabilizes
+    if (isConnected === true) {
+      clearTimeout(debounceTimeout);
+    }
+
+    if (connected !== isConnected && isConnected !== null) {
+      setConnected(isConnected);
+    }
+  };
+
+  const checkInfuraAvailability = async () => {
     if (props.providerType !== 'rpc') {
       try {
         const ethQuery = Engine.getGlobalEthQuery();
@@ -163,13 +169,7 @@ const Main = (props) => {
     } else {
       props.setInfuraAvailabilityNotBlocked();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.navigation,
-    props.providerType,
-    props.setInfuraAvailabilityBlocked,
-    props.setInfuraAvailabilityNotBlocked,
-  ]);
+  };
 
   const handleAppStateChange = useCallback(
     (appState) => {

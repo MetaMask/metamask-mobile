@@ -35,31 +35,29 @@ const NFTAutoDetectionModal = () => {
   const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const { trackEvent } = useMetrics();
-  const enableNftDetectionAndDismissModal = useCallback(
-    (value: boolean) => {
-      if (value) {
-        const { PreferencesController } = Engine.context;
-        if (!displayNftMedia) {
-          PreferencesController.setDisplayNftMedia(true);
-        }
-        PreferencesController.setUseNftDetection(true);
-        trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE, {
-          chainId,
-        });
-      } else {
-        trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE, {
-          chainId,
-        });
-      }
 
-      if (sheetRef?.current) {
-        sheetRef.current.onCloseBottomSheet();
-      } else {
-        navigation.goBack();
+  const enableNftDetectionAndDismissModal = (value: boolean) => {
+    if (value) {
+      const { PreferencesController } = Engine.context;
+      if (!displayNftMedia) {
+        PreferencesController.setDisplayNftMedia(true);
       }
-    },
-    [displayNftMedia, trackEvent, chainId, navigation],
-  );
+      PreferencesController.setUseNftDetection(true);
+      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE, {
+        chainId,
+      });
+    } else {
+      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE, {
+        chainId,
+      });
+    }
+
+    if (sheetRef?.current) {
+      sheetRef.current.onCloseBottomSheet();
+    } else {
+      navigation.goBack();
+    }
+  };
 
   return (
     <BottomSheet ref={sheetRef}>
