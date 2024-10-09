@@ -3405,6 +3405,11 @@
     },
     "request_from": "Request from",
     "message": "Message",
-    "personal_sign_tooltip": "This site is asking for your signature"
+    "personal_sign_tooltip": "This site is asking for your signature",
+    "details": "Details",
+    "account": "Account",
+    "balance": "Balance",
+    "network": "Network",
+    "rpc_url": "RPC URL"
   }
 }

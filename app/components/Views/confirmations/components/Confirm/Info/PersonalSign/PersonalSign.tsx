@@ -22,7 +22,7 @@ const PersonalSign = () => {
   }
 
   return (
-    <View style={styles.titleContainer}>
+    <View style={styles.container}>
       <InfoSection>
         <InfoRow
           label={strings('confirm.request_from')}

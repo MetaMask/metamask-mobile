@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Title should match snapshot 1`] = `
+exports[`AccountNetworkInfoExpanded should match snapshot for personal sign 1`] = `
 <View
   style={
     {
-      "marginBottom": 10,
+      "display": "flex",
     }
   }
 >
@@ -52,7 +52,118 @@ exports[`Title should match snapshot 1`] = `
             }
           }
         >
-          Request from
+          Account
+        </Text>
+      </View>
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginTop": 8,
+          }
+        }
+      >
+        0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginTop": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "500",
+            }
+          }
+        >
+          Balance
+        </Text>
+      </View>
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginTop": 8,
+          }
+        }
+      >
+        0 ETH
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c566",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "marginBottom": 8,
+        "padding": 8,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginTop": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "500",
+            }
+          }
+        >
+          Network
         </Text>
         <View>
           <TouchableOpacity
@@ -118,43 +229,20 @@ exports[`Title should match snapshot 1`] = `
           />
         </View>
       </View>
-      <View
+      <Text
         style={
           {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginTop": 8,
           }
         }
       >
-        <Text
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "marginTop": 8,
-            }
-          }
-        >
-          metamask.github.io
-        </Text>
-      </View>
+        Ethereum Main Network
+      </Text>
     </View>
-  </View>
-  <View
-    style={
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c566",
-        "borderRadius": 8,
-        "borderWidth": 1,
-        "marginBottom": 8,
-        "padding": 8,
-      }
-    }
-  >
     <View
       style={
         {
@@ -187,7 +275,7 @@ exports[`Title should match snapshot 1`] = `
             }
           }
         >
-          Message
+          RPC URL
         </Text>
       </View>
       <View
@@ -209,9 +297,7 @@ exports[`Title should match snapshot 1`] = `
               "marginTop": 8,
             }
           }
-        >
-          Example \`personal_sign\` message
-        </Text>
+        />
       </View>
     </View>
   </View>

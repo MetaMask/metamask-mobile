@@ -1,10 +1,9 @@
 import { StyleSheet } from 'react-native';
 
-const createStyles = () =>
+const styleSheet = () =>
   StyleSheet.create({
     container: {
-      marginBottom: 10,
+      marginBottom: 24,
     },
   });
-
-export default createStyles;
+export default styleSheet;
