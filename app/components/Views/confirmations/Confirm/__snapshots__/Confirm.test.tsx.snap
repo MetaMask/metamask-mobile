@@ -340,7 +340,6 @@ exports[`Confirm should match snapshot for personal sign 1`] = `
                 "width": 24,
               }
             }
-            testID="openButtonTestId"
           >
             <SvgMock
               color="#9fa6ae"
