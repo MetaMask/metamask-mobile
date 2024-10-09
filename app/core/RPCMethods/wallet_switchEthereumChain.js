@@ -23,7 +23,6 @@ const wallet_switchEthereumChain = async ({
   } = Engine.context;
   const params = req.params?.[0];
   const { origin } = req;
-  console.log('params', params);
   if (!params || typeof params !== 'object') {
     throw rpcErrors.invalidParams({
       message: `Expected single, object parameter. Received:\n${JSON.stringify(

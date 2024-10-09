@@ -319,6 +319,21 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
   });
 
+  it('should not modify/add permissions', async () => {
+    const spyOnGrantPermissionsIncremental = jest.spyOn(
+      Engine.context.PermissionController,
+      'grantPermissionsIncremental',
+    );
+    await wallet_addEthereumChain({
+      req: {
+        params: [correctParams],
+      },
+      ...otherOptions,
+    });
+
+    expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(0);
+  });
+
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
     beforeAll(() => {
       process.env.MM_CHAIN_PERMISSIONS = 1;
