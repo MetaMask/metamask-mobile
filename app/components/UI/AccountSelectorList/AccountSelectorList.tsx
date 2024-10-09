@@ -177,12 +177,6 @@ const AccountSelectorList = ({
     }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getLabelTextByAddress(address);
-      console.log(
-        '[SNAP TAG LABEL DEBUG] tagLabel for address:',
-        address,
-        'is:',
-        tagLabel,
-      );
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;

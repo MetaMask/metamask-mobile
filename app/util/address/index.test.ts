@@ -15,7 +15,6 @@ import {
   getKeyringByAddress,
   getLabelTextByAddress,
   isSnapAccount,
-  getAccountLabelTextByKeyring,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -24,25 +23,58 @@ import {
 } from '../test/keyringControllerTestUtils';
 
 const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const namedSnapAddress = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
 
 jest.mock('../../core/Engine', () => {
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
     '../test/keyringControllerTestUtils',
   );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE, expectedUuid2 } = jest.requireActual(
+    '../test/accountsControllerTestUtils',
+  );
   return {
+    ...jest.requireActual('../../core/Engine'),
     context: {
+      ...jest.requireActual('../../core/Engine').context,
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
           keyrings: [
             ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
             {
-              accounts: [snapAddress],
+              accounts: [snapAddress, namedSnapAddress],
               index: 0,
               type: KeyringTypes.snap,
             },
           ],
+        },
+      },
+      AccountsController: {
+        ...jest.requireActual('../../core/Engine').context.AccountsController,
+        internalAccounts: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+          accounts: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+            [expectedUuid2]: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                expectedUuid2
+              ],
+              metadata: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                  expectedUuid2
+                ].metadata,
+                keyring: {
+                  type: KeyringTypes.snap,
+                },
+                snap: {
+                  id: 'metamask-snap-keyring',
+                  name: 'MetaMask Simple Snap Keyring',
+                  enabled: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -303,38 +335,42 @@ describe('isHardwareAccount,', () => {
     ).toBeFalsy();
   });
 });
-describe('getAccountLabelTextByKeyring,', () => {
+describe('getLabelTextByAddress,', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getAccountLabelTextByKeyring(mockQrKeyringAddress)).toBe(
+    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe(
       'accounts.qr_hardware',
     );
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getAccountLabelTextByKeyring(mockSimpleKeyringAddress)).toBe(
+    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
       'accounts.imported',
     );
   });
 
-  it('returns "Snaps (beta)" if account is a Snap keyring', () => {
-    expect(getAccountLabelTextByKeyring(snapAddress)).toBe(
+  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
+    expect(getLabelTextByAddress(namedSnapAddress)).toBe(
+      'MetaMask Simple Snap Keyring',
+    );
+  });
+
+  it('returns "Snaps (beta)" if account is a Snap keyring and there is no snap name', () => {
+    expect(getLabelTextByAddress(snapAddress)).toBe(
       'accounts.snap_account_tag',
     );
   });
 
   it('should return null if address is empty', () => {
-    expect(getAccountLabelTextByKeyring('')).toBe(null);
+    expect(getLabelTextByAddress('')).toBe(null);
   });
 
   it('should return null if account not found', () => {
     expect(
-      getAccountLabelTextByKeyring(
-        '0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278',
-      ),
+      getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
   });
 });
