@@ -17,11 +17,11 @@ describe('KeyringAccountListItem', () => {
     'Snap Account 1',
   );
 
-  const mockSnapUrl = `https://etherscan.io/address/${MOCK_ADDRESS_1.toLowerCase()}`;
+  const mockBlockExplorerUrl = `https://etherscan.io/address/${MOCK_ADDRESS_1.toLowerCase()}`;
 
   it('renders correctly', () => {
     const { getByTestId, getByText } = render(
-      <KeyringAccountListItem account={mockInternalAccount} snapUrl={mockSnapUrl} />,
+      <KeyringAccountListItem account={mockInternalAccount} blockExplorerUrl={mockBlockExplorerUrl} />,
     );
 
     expect(getByTestId(KEYRING_ACCOUNT_LIST_ITEM)).toBeTruthy();
@@ -31,12 +31,12 @@ describe('KeyringAccountListItem', () => {
 
   it('opens snap URL when export button is pressed', () => {
     const { getByTestId } = render(
-      <KeyringAccountListItem account={mockInternalAccount} snapUrl={mockSnapUrl} />,
+      <KeyringAccountListItem account={mockInternalAccount} blockExplorerUrl={mockBlockExplorerUrl} />,
     );
 
     const exportButton = getByTestId(KEYRING_ACCOUNT_LIST_ITEM_BUTTON);
     fireEvent.press(exportButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(mockSnapUrl);
+    expect(Linking.openURL).toHaveBeenCalledWith(mockBlockExplorerUrl);
   });
 });
