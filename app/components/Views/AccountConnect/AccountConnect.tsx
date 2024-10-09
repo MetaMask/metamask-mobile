@@ -85,10 +85,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
   const styles = createStyles();
   const { hostInfo, permissionRequestId } = props.route.params;
-
-  // TODO Fix type here
-  const permissionDiffMap = hostInfo?.diff?.permissionDiffMap;
-
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
@@ -348,7 +344,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
-    console.log('ALEX LOGGING: request in handleConnect', request);
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
@@ -568,12 +563,9 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
-      requestData: {
-        diff: permissionDiffMap,
-      },
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol, permissionDiffMap]);
+  }, [faviconSource, urlWithProtocol]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
