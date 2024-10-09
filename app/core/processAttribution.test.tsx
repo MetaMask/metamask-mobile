@@ -27,11 +27,11 @@ describe('processAttribution', () => {
       params: {
         attributionId: 'test123',
         utm: JSON.stringify({
-          utm_source: 'source',
-          utm_medium: 'medium',
-          utm_campaign: 'campaign',
-          utm_term: 'term',
-          utm_content: 'content'
+          source: 'twitter',
+          medium: 'social',
+          campaign: 'cmp-57731027-afbf09/',
+          term: null,
+          content: null
         })
       },
     });
@@ -40,11 +40,11 @@ describe('processAttribution', () => {
     expect(result).toEqual({
       attributionId: 'test123',
       utm: expect.any(String),
-      utm_source: 'source',
-      utm_medium: 'medium',
-      utm_campaign: 'campaign',
-      utm_term: 'term',
-      utm_content: 'content'
+      utm_source: 'twitter',
+      utm_medium: 'social',
+      utm_campaign: 'cmp-57731027-afbf09/',
+      utm_term: null,
+      utm_content: null
     });
   });
 
@@ -74,8 +74,8 @@ describe('processAttribution', () => {
       params: {
         attributionId: 'test123',
         utm: JSON.stringify({
-          utm_source: 'source',
-          utm_medium: 'medium'
+          source: 'twitter',
+          medium: 'social'
         })
       },
     });
@@ -84,8 +84,8 @@ describe('processAttribution', () => {
     expect(result).toEqual({
       attributionId: 'test123',
       utm: expect.any(String),
-      utm_source: 'source',
-      utm_medium: 'medium',
+      utm_source: 'twitter',
+      utm_medium: 'social',
       utm_campaign: undefined,
       utm_term: undefined,
       utm_content: undefined

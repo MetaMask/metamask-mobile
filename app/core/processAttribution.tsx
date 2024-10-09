@@ -2,6 +2,7 @@ import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import { RootState } from '../reducers';
 import { Store } from 'redux';
 import Logger from '../util/Logger';
+import DevLogger from './SDKConnect/utils/DevLogger';
 
 interface ProcessAttributionParams {
     currentDeeplink: string | null;
@@ -23,7 +24,12 @@ export function processAttribution({ currentDeeplink, store }: ProcessAttributio
     const state = store.getState();
     const isMarketingEnabled = state.security.dataCollectionForMarketing;
 
-    if (isMarketingEnabled && currentDeeplink) {
+    if(!isMarketingEnabled) {
+      DevLogger.log('processAttribution:: isMarketingEnabled is false -- skip processing attribution', currentDeeplink);
+      return undefined;
+    }
+
+    if (currentDeeplink) {
         const { params } = extractURLParams(currentDeeplink);
         // Parse UTM params
         const utm = params.utm || undefined;
@@ -31,11 +37,12 @@ export function processAttribution({ currentDeeplink, store }: ProcessAttributio
         if(utm) {
           try {
             const utmParams = JSON.parse(utm); // utm is passed through deep link as a stringified object, which is why we parse it as a JSON here
-            utm_source = utmParams.utm_source;
-            utm_medium = utmParams.utm_medium;
-            utm_campaign = utmParams.utm_campaign;
-            utm_term = utmParams.utm_term;
-            utm_content = utmParams.utm_content;
+            DevLogger.log('processAttribution:: UTM params', utmParams);
+            utm_source = utmParams.source;
+            utm_medium = utmParams.medium;
+            utm_campaign = utmParams.campaign;
+            utm_term = utmParams.term;
+            utm_content = utmParams.content;
           } catch (error) {
             Logger.error(new Error('Error parsing UTM params'), error);
           }
