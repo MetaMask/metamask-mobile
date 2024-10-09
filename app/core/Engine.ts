@@ -2287,9 +2287,10 @@ export default {
     assertEngineExists(instance);
     return instance.getGlobalEthQuery();
   },
-
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring: () => {
     assertEngineExists(instance);
     return instance.getSnapKeyring();
   },
+  ///: END:ONLY_INCLUDE_IF
 };
