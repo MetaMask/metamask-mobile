@@ -1,4 +1,40 @@
 # syntax=docker/dockerfile:1.4
+
+###### Foundry builder
+FROM rust:alpine3.19 as foundry-build-environment
+
+ARG TARGETARCH
+WORKDIR /opt
+ARG FOUNDRY_COMMIT=a17869a6dcce7ce3765c5ed521d40ddb572de9f0
+
+RUN apk add clang lld curl build-base linux-headers git \
+  && mkdir foundry \
+  && cd foundry \
+  && git init \
+  && git remote add origin https://github.com/foundry-rs/foundry.git \
+  && git fetch --depth 1 origin "${FOUNDRY_COMMIT}" \
+  && git checkout FETCH_HEAD
+
+RUN [[ "$TARGETARCH" = "arm64" ]] && echo "export CFLAGS=-mno-outline-atomics" >> $HOME/.profile || touch $HOME/.profile
+
+WORKDIR /opt/foundry
+
+## see <https://github.com/foundry-rs/foundry/issues/7925>
+#RUN git update-index --force-write-index
+
+RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/root/.cargo/git --mount=type=cache,target=/opt/foundry/target \
+    source $HOME/.profile && cargo build --release --features foundry-cast/aws-kms,forge/aws-kms \
+    && mkdir out \
+    && mv target/release/forge out/forge \
+    && mv target/release/cast out/cast \
+    && mv target/release/anvil out/anvil \
+    && mv target/release/chisel out/chisel \
+    && strip out/forge \
+    && strip out/cast \
+    && strip out/chisel \
+    && strip out/anvil;
+
+###### Final image
 FROM node:20-bookworm
 
 RUN apt-get update \
@@ -56,6 +92,11 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && gem install bundler -v 2.5.8 \
     && gem install bigdecimal cocoapods \
     && bundle install'
+
+COPY --from=foundry-build-environment /opt/foundry/out/forge /usr/local/bin/forge
+COPY --from=foundry-build-environment /opt/foundry/out/cast /usr/local/bin/cast
+COPY --from=foundry-build-environment /opt/foundry/out/anvil /usr/local/bin/anvil
+COPY --from=foundry-build-environment /opt/foundry/out/chisel /usr/local/bin/chisel
 
 # fix broken ipv6 on nodejs v20
 ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
