@@ -429,10 +429,6 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     return defaultNetwork.imageSource;
   }
 
-  if (defaultNetwork) {
-    return defaultNetwork.imageSource;
-  }
-
   const unpopularNetwork = UnpopularNetworkList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );

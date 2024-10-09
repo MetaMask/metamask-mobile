@@ -52,19 +52,10 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     ] = entry;
 
     currencyRateController.updateExchangeRate(ticker);
-    const { networkClientId } = rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+    const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
     networkController.setActiveNetwork(networkClientId);
     return nickname;
-  }
-
-  const networkType = getNetworkTypeById(switchToChainId);
-
-  if (networkType) {
-    currencyRateController.updateExchangeRate('ETH');
-    // TODO: Align mobile and core types to remove this type cast
-    networkController.setActiveNetwork(networkType as InfuraNetworkType);
-    return networkType;
   }
 };
 

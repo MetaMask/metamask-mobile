@@ -96,6 +96,7 @@ import {
 } from '../../../constants/urls';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import Logger from '../../../util/Logger';
 
 interface infuraNetwork {
   name: string;
@@ -170,14 +171,49 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
+  const onRpcSelect = useCallback(
+    async (clientId: string, chainId: `0x${string}`) => {
+      const { NetworkController } = Engine.context;
+
+      const existingNetwork = networkConfigurations[chainId];
+      if (!existingNetwork) {
+        Logger.error(
+          new Error(`No existing network found for chainId: ${chainId}`),
+        );
+        return;
+      }
+
+      const indexOfRpc = existingNetwork.rpcEndpoints.findIndex(
+        ({ networkClientId }) => clientId === networkClientId,
+      );
+
+      if (indexOfRpc === -1) {
+        Logger.error(
+          new Error(
+            `RPC endpoint with clientId: ${clientId} not found for chainId: ${chainId}`,
+          ),
+        );
+        return;
+      }
+
+      // Proceed to update the network with the correct index
+      await NetworkController.updateNetwork(existingNetwork.chainId, {
+        ...existingNetwork,
+        defaultRpcEndpointIndex: indexOfRpc,
+      });
+
+      // Set the active network
+      NetworkController.setActiveNetwork(clientId);
+    },
+    [networkConfigurations],
+  );
+
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
     isVisible: boolean;
     chainId: string;
-    rpcUrls: string[];
     networkName: string;
   }>({
     isVisible: false,
-    rpcUrls: [],
     chainId: CHAIN_IDS.MAINNET,
     networkName: '',
   });
@@ -277,10 +313,9 @@ const NetworkSelector = () => {
     }
   };
 
-  const openRpcModal = useCallback(({ rpcUrls, chainId, networkName }) => {
+  const openRpcModal = useCallback(({ chainId, networkName }) => {
     setShowMultiRpcSelectModal({
       isVisible: true,
-      rpcUrls: [...rpcUrls],
       chainId,
       networkName,
     });
@@ -290,7 +325,6 @@ const NetworkSelector = () => {
   const closeRpcModal = useCallback(() => {
     setShowMultiRpcSelectModal({
       isVisible: false,
-      rpcUrls: [],
       chainId: CHAIN_IDS.MAINNET,
       networkName: '',
     });
@@ -385,6 +419,12 @@ const NetworkSelector = () => {
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
 
+    const rpcUrl =
+      networkConfigurations?.[chainId]?.rpcEndpoints?.[
+        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      ].url;
+    const name = networkConfigurations?.[chainId]?.name ?? mainnetName;
+
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
 
     if (isNetworkUiRedesignEnabled()) {
@@ -392,8 +432,8 @@ const NetworkSelector = () => {
         <Cell
           key={chainId}
           variant={CellVariant.SelectWithMenu}
-          title={mainnetName}
-          secondaryText={hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)}
+          title={name}
+          secondaryText={hideKeyFromUrl(rpcUrl)}
           avatarProps={{
             variant: AvatarVariant.Network,
             name: mainnetName,
@@ -407,10 +447,8 @@ const NetworkSelector = () => {
           onButtonClick={() => {
             openModal(chainId, false, MAINNET, true);
           }}
-          // TODO: Substitute with the new network controller's RPC array.
           onTextClick={() =>
             openRpcModal({
-              rpcUrls: [hideKeyFromUrl(MAINNET_DEFAULT_RPC_URL)],
               chainId,
               networkName: mainnetName,
             })
@@ -462,10 +500,8 @@ const NetworkSelector = () => {
           onButtonClick={() => {
             openModal(chainId, false, LINEA_MAINNET, true);
           }}
-          // TODO: Substitute with the new network controller's RPC array.
           onTextClick={() =>
             openRpcModal({
-              rpcUrls: [LINEA_DEFAULT_RPC_URL],
               chainId,
               networkName: lineaMainnetName,
             })
@@ -540,7 +576,6 @@ const NetworkSelector = () => {
             }}
             onTextClick={() =>
               openRpcModal({
-                rpcUrls: [hideKeyFromUrl(rpcUrl)],
                 chainId,
                 networkName: name,
               })
@@ -618,7 +653,6 @@ const NetworkSelector = () => {
             }}
             onTextClick={() =>
               openRpcModal({
-                rpcUrls: [hideKeyFromUrl(rpcUrl)],
                 chainId,
                 networkName: name,
               })
@@ -758,7 +792,7 @@ const NetworkSelector = () => {
     setShowConfirmDeleteModal({
       isVisible: true,
       networkName: networkConfiguration.name ?? '',
-      chainId: networkConfiguration.chainId as `0x${string}`,
+      chainId: networkConfiguration.chainId,
     });
   };
 
@@ -805,6 +839,11 @@ const NetworkSelector = () => {
 
     if (!showMultiRpcSelectModal.isVisible) return null;
 
+    const chainId = showMultiRpcSelectModal.chainId;
+
+    const rpcEndpoints =
+      networkConfigurations[chainId as `0x${string}`]?.rpcEndpoints || [];
+
     return (
       <BottomSheet
         ref={rpcMenuSheetRef}
@@ -833,17 +872,26 @@ const NetworkSelector = () => {
           </Cell>
         </BottomSheetHeader>
         <View style={styles.rpcMenu}>
-          {showMultiRpcSelectModal.rpcUrls.map((rpcUrl) => (
+          {rpcEndpoints.map(({ url, networkClientId }, index) => (
             <ListItemSelect
-              key={rpcUrl}
-              isSelected
+              key={index}
+              isSelected={
+                networkClientId ===
+                rpcEndpoints[
+                  networkConfigurations[chainId as `0x${string}`]
+                    .defaultRpcEndpointIndex
+                ].networkClientId
+              }
               isDisabled={false}
               gap={8}
-              onPress={closeRpcModal}
+              onPress={() => {
+                onRpcSelect(networkClientId, chainId as `0x${string}`);
+                closeRpcModal();
+              }}
             >
               <View style={styles.rpcText}>
                 <Text style={styles.textCentred}>
-                  {hideProtocolFromUrl(rpcUrl)}
+                  {hideKeyFromUrl(hideProtocolFromUrl(url))}
                 </Text>
               </View>
             </ListItemSelect>
@@ -851,7 +899,14 @@ const NetworkSelector = () => {
         </View>
       </BottomSheet>
     );
-  }, [showMultiRpcSelectModal, rpcMenuSheetRef, closeRpcModal, styles]);
+  }, [
+    showMultiRpcSelectModal,
+    rpcMenuSheetRef,
+    closeRpcModal,
+    styles,
+    networkConfigurations,
+    onRpcSelect,
+  ]);
 
   const renderBottomSheetContent = () => (
     <>
