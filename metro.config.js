@@ -16,6 +16,7 @@ module.exports = function (baseConfig) {
 
   return mergeConfig(defaultConfig, {
     resolver: {
+      unstable_enablePackageExports: true,
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
