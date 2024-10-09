@@ -98,13 +98,12 @@ const fetchTokenExchangeRates = async (
   chainId: Hex,
 ) => {
   try {
-    const x = await fetchTokenContractExchangeRates({
+    return await fetchTokenContractExchangeRates({
       tokenPricesService: new CodefiTokenPricesServiceV2(),
       nativeCurrency,
       tokenAddresses,
       chainId,
     });
-    return x;
   } catch (err) {
     return {};
   }
@@ -201,7 +200,7 @@ export default function useBalanceChanges(
     [JSON.stringify(erc20TokenAddresses), chainId, fiatCurrency],
   );
 
-  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData) {
+  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData ) {
     return { pending: true, value: [] };
   }
 
