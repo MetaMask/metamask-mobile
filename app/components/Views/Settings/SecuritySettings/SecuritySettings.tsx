@@ -230,33 +230,38 @@ const Settings: React.FC = () => {
     );
   }, [colors, navigation]);
 
-  const handleAvailableIpfsGateways = useCallback(async () => {
-    if (!isIpfsGatewayEnabled) return;
-    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
-      const testUrl =
-        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
-      try {
-        const res = await timeoutFetch(testUrl, 1200);
+const handleAvailableIpfsGateways = useCallback(async () => {
+  if (!isIpfsGatewayEnabled) return;
+  const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
+    const testUrl =
+      gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+    try {
+      const res = await timeoutFetch(testUrl, undefined, 1200);
+      if (res instanceof Error) {
+        return { ...gateway, available: false };
+      }
+      if (res instanceof Response) {
         const text = await res.text();
         const available = text.trim() === HASH_STRING.trim();
         return { ...gateway, available };
-      } catch (e) {
-        const available = false;
-        return { ...gateway, available };
       }
-    });
-    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
-    const onlineGateways = ipfsGatewaysAvailability.filter(
-      (gateway) => gateway.available,
-    );
+      return { ...gateway, available: false };
+    } catch (e) {
+      return { ...gateway, available: false };
+    }
+  });
+  const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+  const onlineGateways = ipfsGatewaysAvailability.filter(
+    (gateway) => gateway.available,
+  );
 
-    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
-      (a, b) => a.key - b.key,
-    );
+  const sortedOnlineIpfsGateways = [...onlineGateways].sort(
+    (a, b) => a.key - b.key,
+  );
 
-    setGotAvailableGateways(true);
-    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
-  }, [isIpfsGatewayEnabled]);
+  setGotAvailableGateways(true);
+  setOnlineIpfsGateways(sortedOnlineIpfsGateways);
+}, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
     const currentSeedphraseHints = await StorageWrapper.getItem(
