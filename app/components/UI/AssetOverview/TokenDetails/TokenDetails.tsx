@@ -59,10 +59,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   let marketData;
 
   if (asset.isETH) {
-    marketData = tokenExchangeRates[zeroAddress() as `0x${string}`];
+    marketData = tokenExchangeRates?.[zeroAddress() as `0x${string}`];
   } else if (!asset.isETH && tokenContractAddress) {
-    tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates[tokenContractAddress];
+    tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
+    marketData = tokenExchangeRates?.[tokenContractAddress];
   } else {
     Logger.log('cannot find contract address');
     return null;
