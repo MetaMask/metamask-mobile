@@ -30,4 +30,10 @@ describe('StorageWrapper', () => {
 
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 123);
   });
+
+  it('StorageWrapper instance is defined', () => {
+    expect(StorageWrapper).toBeDefined();
+    expect(StorageWrapper.getItem).toBeDefined();
+    expect(StorageWrapper.setItem).toBeDefined();
+  });
 });

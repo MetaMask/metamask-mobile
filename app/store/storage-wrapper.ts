@@ -5,7 +5,6 @@ import { MMKV } from 'react-native-mmkv';
 
 /**
  * Wrapper class for MMKV.
- * (Will want to eventuall re-name since no longer async once migratted to mmkv)
  */
 class StorageWrapper {
   private static instance: StorageWrapper | null = null;
