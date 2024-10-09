@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, FlatList, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/native-stack';
 import {
   useMetrics,
   MetaMetricsEvents,

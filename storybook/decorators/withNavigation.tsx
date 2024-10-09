@@ -1,11 +1,11 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import TooltipModal from '../../app/components/Views/TooltipModal';
 import Routes from '../../app/constants/navigation/Routes';
 import { colors as importedColors } from '../../app/styles/common';
 
-const StoryBookStack = createStackNavigator();
+const StoryBookStack = createNativeStackNavigator();
 
 const clearStackNavigatorOptions = {
   headerShown: false,

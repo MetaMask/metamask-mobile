@@ -13,7 +13,7 @@ import {
   View,
   ///: END:ONLY_INCLUDE_IF
 } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
@@ -143,7 +143,7 @@ const clearStackNavigatorOptions = {
   presentation: 'modal',
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const OnboardingSuccessComponent = () => (
   <OnboardingSuccess

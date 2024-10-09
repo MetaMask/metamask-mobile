@@ -3,9 +3,9 @@ import { Provider } from 'react-redux';
 
 import { NavigationContainer } from '@react-navigation/native';
 import {
-  createStackNavigator,
+  createNativeStackNavigator,
   StackNavigationOptions,
-} from '@react-navigation/stack';
+} from '@react-navigation/native-stack';
 import {
   render,
   renderHook,
@@ -73,7 +73,7 @@ export function renderScreen(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialParams: Record<string, any> = {},
 ) {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
   return renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen

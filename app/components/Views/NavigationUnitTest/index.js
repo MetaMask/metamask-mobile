@@ -5,7 +5,7 @@
 
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   NavigationContainer,
   useNavigationState,
@@ -13,7 +13,7 @@ import {
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Text } from 'react-native';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const NavigationUnitTestFactory = ({ firstRoute, secondRoute }) => {
   const TestScreen = ({ route }) => {
