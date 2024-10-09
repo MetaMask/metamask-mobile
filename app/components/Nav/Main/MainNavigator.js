@@ -498,18 +498,19 @@ const HomeTabs = () => {
     }
   }, []);
 
-  const renderTabBar = (state, descriptors, navigation) =>
-    isKeyboardHidden && (
-      <TabBar state={state} descriptors={descriptors} navigation={navigation} />
-    );
-
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
           tabBar={({ state, descriptors, navigation }) =>
-            renderTabBar(state, descriptors, navigation)
+            isKeyboardHidden ? (
+              <TabBar
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+              />
+            ) : null
           }
         >
           <Tab.Screen
@@ -733,14 +734,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const renderHeaderTitle = () => (
-  <Image
-    style={styles.headerLogo}
-    source={require('../../../images/metamask-name.png')}
-    resizeMode={'contain'}
-  />
-);
-
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -814,7 +807,13 @@ const MainNavigator = () => (
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
-      headerTitle={renderHeaderTitle}
+      headerTitle={() => (
+        <Image
+          style={styles.headerLogo}
+          source={require('../../../images/metamask-name.png')}
+          resizeMode={'contain'}
+        />
+      )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
     />
