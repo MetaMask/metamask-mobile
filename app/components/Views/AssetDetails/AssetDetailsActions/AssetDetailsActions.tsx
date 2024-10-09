@@ -17,7 +17,6 @@ import {
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { WalletActionType } from '../../../UI/WalletAction/WalletAction.types';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -54,7 +53,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       {displayBuyButton && (
         <View style={styles.buttonWrapper}>
           <WalletAction
-            actionType={WalletActionType.Buy}
             iconName={IconName.Add}
             onPress={onBuy}
             {...walletActionProps}
@@ -68,7 +66,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       {displaySwapsButton && (
         <View style={styles.buttonWrapper}>
           <WalletAction
-            actionType={WalletActionType.Swap}
             iconName={IconName.SwapHorizontal}
             onPress={goToSwaps}
             {...walletActionProps}
@@ -81,7 +78,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       )}
       <View style={styles.buttonWrapper}>
         <WalletAction
-          actionType={WalletActionType.Bridge}
           iconName={IconName.Bridge}
           onPress={goToBridge}
           {...walletActionProps}
@@ -93,7 +89,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
-          actionType={WalletActionType.Send}
           iconName={IconName.Arrow2Upright}
           onPress={onSend}
           {...walletActionProps}
@@ -105,7 +100,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
-          actionType={WalletActionType.Receive}
           iconName={IconName.QrCode}
           onPress={onReceive}
           {...walletActionProps}

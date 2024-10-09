@@ -53,7 +53,7 @@ export const walletActionDetails: Record<WalletActionType, WalletActionDetail> =
   };
 
 export interface WalletActionProps {
-  actionType: WalletActionType;
+  actionType?: WalletActionType;
   iconName: IconName;
   iconSize: AvatarSize;
   onPress: () => void;
