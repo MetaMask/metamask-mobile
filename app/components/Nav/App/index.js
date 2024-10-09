@@ -711,11 +711,6 @@ const App = (props) => {
           component={MultiRpcModal}
         />
       ) : null}
-
-      <Stack.Screen
-        name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
-        component={MultiRpcModal}
-      />
       <Stack.Screen
         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
         component={MultiRpcModal}
