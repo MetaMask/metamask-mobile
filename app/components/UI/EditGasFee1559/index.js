@@ -143,9 +143,6 @@ const createStyles = (colors) =>
       marginLeft: 2,
       color: colors.error.default,
     },
-    infoIcon: {
-      marginLeft: 2,
-    },
   });
 
 /**
@@ -205,19 +202,6 @@ const EditGasFee1559 = ({
   const { trackEvent } = useMetrics();
 
   const styles = createStyles(colors);
-
-  const RenderInfoIcon = useCallback(
-    (onPress, style = {}) => (
-      <TouchableOpacity hitSlop={styles.hitSlop} onPress={onPress}>
-        <MaterialCommunityIcon
-          name="information"
-          size={14}
-          style={[styles.labelInfo, style]}
-        />
-      </TouchableOpacity>
-    ),
-    [styles],
-  );
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -363,15 +347,6 @@ const EditGasFee1559 = ({
     [ignoreOptions],
   );
 
-  const renderLabel = useCallback(
-    (selected, disabled, label) => (
-      <Text bold primary={selected && !disabled}>
-        {label}
-      </Text>
-    ),
-    [],
-  );
-
   const renderOptions = useMemo(
     () =>
       [
@@ -391,16 +366,16 @@ const EditGasFee1559 = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          label: renderLabel(
-            selectedOption === name,
-            shouldIgnore(name),
-            label,
+          label: (selected, disabled) => (
+            <Text bold primary={selected && !disabled}>
+              {label}
+            </Text>
           ),
           topLabel: recommended?.name === name && recommended.render,
           ...option,
           ...extendOptions[name],
         })),
-    [recommended, extendOptions, shouldIgnore, renderLabel, selectedOption],
+    [recommended, extendOptions, shouldIgnore],
   );
 
   const isMainnet = isMainnetByChainId(chainId);
@@ -465,9 +440,16 @@ const EditGasFee1559 = ({
                         {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
                       </Text>
 
-                      <RenderInfoIcon
+                      <TouchableOpacity
+                        hitSlop={styles.hitSlop}
                         onPress={() => setShowInfoModal('gas_limit')}
-                      />
+                      >
+                        <MaterialCommunityIcon
+                          name="information"
+                          size={14}
+                          style={styles.labelInfo}
+                        />
+                      </TouchableOpacity>
                     </View>
                   }
                   min={GAS_LIMIT_MIN}
@@ -485,9 +467,16 @@ const EditGasFee1559 = ({
                         {strings('edit_gas_fee_eip1559.max_priority_fee')}{' '}
                       </Text>
 
-                      <RenderInfoIcon
+                      <TouchableOpacity
+                        hitSlop={styles.hitSlop}
                         onPress={() => setShowInfoModal('max_priority_fee')}
-                      />
+                      >
+                        <MaterialCommunityIcon
+                          name="information"
+                          size={14}
+                          style={styles.labelInfo}
+                        />
+                      </TouchableOpacity>
                     </View>
                   }
                   rightLabelComponent={
@@ -528,9 +517,16 @@ const EditGasFee1559 = ({
                         {strings('edit_gas_fee_eip1559.max_fee')}{' '}
                       </Text>
 
-                      <RenderInfoIcon
+                      <TouchableOpacity
+                        hitSlop={styles.hitSlop}
                         onPress={() => setShowInfoModal('max_fee')}
-                      />
+                      >
+                        <MaterialCommunityIcon
+                          name="information"
+                          size={14}
+                          style={styles.labelInfo}
+                        />
+                      </TouchableOpacity>
                     </View>
                   }
                   rightLabelComponent={
@@ -678,9 +674,16 @@ const EditGasFee1559 = ({
                     {strings('edit_gas_fee_eip1559.new_gas_fee')}{' '}
                   </Text>
 
-                  <RenderInfoIcon
+                  <TouchableOpacity
+                    hitSlop={styles.hitSlop}
                     onPress={() => setShowInfoModal('new_gas_fee')}
-                  />
+                  >
+                    <MaterialCommunityIcon
+                      name="information"
+                      size={14}
+                      style={styles.labelInfo}
+                    />
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -721,7 +724,16 @@ const EditGasFee1559 = ({
                 </Text>
                 {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
                   timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                  <RenderInfoIcon onPress={showTimeEstimateInfoModal} />
+                  <TouchableOpacity
+                    hitSlop={styles.hitSlop}
+                    onPress={showTimeEstimateInfoModal}
+                  >
+                    <MaterialCommunityIcon
+                      name="information"
+                      size={14}
+                      style={styles.redInfo}
+                    />
+                  </TouchableOpacity>
                 )}
               </View>
             </FadeAnimationView>

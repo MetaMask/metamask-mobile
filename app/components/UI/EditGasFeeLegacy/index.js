@@ -248,15 +248,6 @@ const EditGasFeeLegacy = ({
     [ignoreOptions],
   );
 
-  const renderLabel = useCallback(
-    (selected, disabled, label) => (
-      <Text bold primary={selected && !disabled}>
-        {label}
-      </Text>
-    ),
-    [],
-  );
-
   const renderOptions = useMemo(
     () =>
       [
@@ -276,15 +267,16 @@ const EditGasFeeLegacy = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          label: renderLabel(
-            selectedOption === name,
-            shouldIgnore(name, label),
+          label: (selected, disabled) => (
+            <Text bold primary={selected && !disabled}>
+              {label}
+            </Text>
           ),
           topLabel: recommended?.name === name && recommended.render,
           ...option,
           ...extendOptions[name],
         })),
-    [recommended, extendOptions, shouldIgnore, selectedOption, renderLabel],
+    [recommended, extendOptions, shouldIgnore],
   );
 
   const renderWarning = useMemo(() => {

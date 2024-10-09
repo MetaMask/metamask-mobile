@@ -15,19 +15,20 @@ import { Text } from 'react-native';
 
 const Stack = createStackNavigator();
 
-const TestScreen = ({ route }) => {
-  const routes = useNavigationState((state) => state.routes);
-  const name = findRouteNameFromNavigatorState(routes);
-
-  if (name !== route.params.screenName)
-    throw new Error(
-      'Error, react navigation api changed: https://reactnavigation.org/docs/navigation-prop/#dangerouslygetstate',
-    );
-
-  return <Text>{name} THIS SHOULD NOT HAVE CHANGED, take a deeper look</Text>;
-};
-
 const NavigationUnitTestFactory = ({ firstRoute, secondRoute }) => {
+  const TestScreen = ({ route }) => {
+    const routes = useNavigationState((state) => state.routes);
+
+    const name = findRouteNameFromNavigatorState(routes);
+
+    if (name !== route.params.screenName)
+      throw new Error(
+        'Error, react navigation api changed: https://reactnavigation.org/docs/navigation-prop/#dangerouslygetstate',
+      );
+
+    return <Text>{name} THIS SHOULD NOT HAVE CHANGED, take a deeper look</Text>;
+  };
+
   const TestSubStack = () => (
     <Stack.Navigator initialRouteName="TestScreen">
       <Stack.Screen
@@ -61,6 +62,7 @@ const NavigationUnitTestFactory = ({ firstRoute, secondRoute }) => {
       </Stack.Navigator>
     </NavigationContainer>
   );
+
   return <NavigationUnitTest />;
 };
 export default NavigationUnitTestFactory;

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import ConnectHeader from '../../../UI/ConnectHeader';
 import { strings } from '../../../../../locales/i18n';
@@ -37,31 +37,28 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const DisplayData = useMemo(
-    () => [
-      {
-        title: strings('networks.network_display_name'),
-        value: nickname,
-      },
-      {
-        title: strings('networks.network_rpc_url'),
-        value: rpcUrl,
-      },
-      {
-        title: strings('networks.network_chain_id'),
-        value: getDecimalChainId(chainId),
-      },
-      {
-        title: strings('networks.network_currency_symbol'),
-        value: ticker,
-      },
-      {
-        title: strings('networks.network_block_explorer_url'),
-        value: blockExplorerUrl,
-      },
-    ],
-    [blockExplorerUrl, chainId, nickname, rpcUrl, ticker],
-  );
+  const DisplayData = [
+    {
+      title: strings('networks.network_display_name'),
+      value: nickname,
+    },
+    {
+      title: strings('networks.network_rpc_url'),
+      value: rpcUrl,
+    },
+    {
+      title: strings('networks.network_chain_id'),
+      value: getDecimalChainId(chainId),
+    },
+    {
+      title: strings('networks.network_currency_symbol'),
+      value: ticker,
+    },
+    {
+      title: strings('networks.network_block_explorer_url'),
+      value: blockExplorerUrl,
+    },
+  ];
 
   const DetailsView = () => (
     <>
