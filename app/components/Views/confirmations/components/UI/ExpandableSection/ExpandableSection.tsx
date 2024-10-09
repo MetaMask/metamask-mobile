@@ -31,7 +31,7 @@ const ExpandableSection = ({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <View>
+    <>
       <View style={styles.container}>
         {collapsedContent}
         <ButtonIcon
@@ -43,8 +43,7 @@ const ExpandableSection = ({
         />
       </View>
       {expanded && (
-        <BottomModal>
-          <View style={styles.modalContainer}></View>
+        <BottomModal hideBackground>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <ButtonIcon
@@ -60,7 +59,7 @@ const ExpandableSection = ({
           </View>
         </BottomModal>
       )}
-    </View>
+    </>
   );
 };
 

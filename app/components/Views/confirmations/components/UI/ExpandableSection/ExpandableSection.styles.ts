@@ -17,11 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
-    },
-    // eslint-disable-next-line react-native/no-color-literals
-    modalContainer: {
-      backgroundColor: '#414141',
-      minHeight: '100%',
+      marginBottom: 8,
     },
     modalContent: {
       backgroundColor: theme.colors.background.alternative,
