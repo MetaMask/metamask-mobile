@@ -31,7 +31,7 @@ const ExpandableSection = ({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <View>
+    <>
       <View style={styles.container}>
         {collapsedContent}
         <ButtonIcon
@@ -59,7 +59,7 @@ const ExpandableSection = ({
           </View>
         </BottomModal>
       )}
-    </View>
+    </>
   );
 };
 
