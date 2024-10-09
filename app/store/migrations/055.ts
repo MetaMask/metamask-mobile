@@ -8,7 +8,7 @@ import { SelectedNetworkControllerState } from '@metamask/selected-network-contr
 import { hasProperty, isObject, RuntimeObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
-export const version = 54;
+export const version = 55;
 
 /**
  * Adds built-in Infura network configurations.
@@ -68,7 +68,7 @@ function isValidUrl(url: string) {
 }
 
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 54)) {
+  if (!ensureValidState(state, 55)) {
     return state;
   }
 
