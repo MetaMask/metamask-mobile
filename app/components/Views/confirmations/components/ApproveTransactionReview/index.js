@@ -13,7 +13,6 @@ import { getApproveNavbar } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../../../util/browser';
 import {
-  safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
   shouldShowBlockExplorer,
