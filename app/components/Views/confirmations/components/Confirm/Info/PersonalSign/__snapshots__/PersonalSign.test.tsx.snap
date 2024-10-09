@@ -1,13 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Title should match snapshot 1`] = `
-<View
-  style={
-    {
-      "marginBottom": 10,
-    }
-  }
->
+[
   <View
     style={
       {
@@ -142,7 +136,7 @@ exports[`Title should match snapshot 1`] = `
         </Text>
       </View>
     </View>
-  </View>
+  </View>,
   <View
     style={
       {
@@ -214,6 +208,6 @@ exports[`Title should match snapshot 1`] = `
         </Text>
       </View>
     </View>
-  </View>
-</View>
+  </View>,
+]
 `;
