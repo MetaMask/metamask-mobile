@@ -236,7 +236,7 @@ const Settings: React.FC = () => {
       const testUrl =
         gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
       try {
-        const res = await timeoutFetch(testUrl, 1200);
+        const res = await timeoutFetch(testUrl, {}, 1200);
         const text = await res.text();
         const available = text.trim() === HASH_STRING.trim();
         return { ...gateway, available };
