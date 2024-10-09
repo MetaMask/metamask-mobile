@@ -15,7 +15,7 @@ module.exports = {
   plugins: ['@typescript-eslint', '@metamask/design-tokens'],
   overrides: [
     {
-      files: ['*.{ts,tsx}'],
+      files: ['*.{ts,tsx, js, jsx}'],
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
         // TODO: re-enable
