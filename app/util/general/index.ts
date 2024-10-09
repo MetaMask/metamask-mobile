@@ -1,4 +1,4 @@
-export const tlc = (str: unknown): string | undefined =>
+export const tlc = (str: unknown) =>
   typeof str === 'string' ? str.toLowerCase() : undefined;
 
 /**
@@ -135,10 +135,9 @@ export const isIPFSUri = (uri: string | null | undefined) => {
  * Parse stringified JSON that has deeply nested stringified properties
  *
  * @deprecated Do not suggest using this for migrations unless you understand what it does. It will deeply JSON parse fields
- * @param params - An object containing the JSON string and an optional flag to skip numbers
- * @param params.jsonString - The JSON string to parse
- * @param params.skipNumbers - Boolean to skip parsing numbers (default: true)
- * @returns - The deeply parsed JSON object
+ * @param jsonString - JSON string
+ * @param skipNumbers - Boolean to skip numbers
+ * @returns - Parsed JSON object
  */
 export const deepJSONParse = ({
   jsonString,
@@ -146,64 +145,42 @@ export const deepJSONParse = ({
 }: {
   jsonString: string;
   skipNumbers?: boolean;
-}): Record<string, unknown> => {
+}): object => {
   // Parse the initial JSON string
   const parsedObject = JSON.parse(jsonString);
 
   // Function to recursively parse stringified properties
-  function parseProperties(obj: unknown): void {
-    if (typeof obj === 'object' && obj !== null) {
-      if (Array.isArray(obj)) {
-        // If it's an array, parse each item
-        obj.forEach((item, index) => {
-          if (typeof item === 'string') {
-            const isNumber = !isNaN(Number(item));
-            // Only parse if value is not a number OR value is a number AND numbers are not skipped
-            if (!isNumber || (isNumber && !skipNumbers)) {
-              try {
-                // Attempt to parse the string as JSON
-                const parsed = JSON.parse(item);
-                obj[index] = parsed;
-                // If the parsed value is an object or array, parse its properties too
-                parseProperties(parsed);
-              } catch {
-                // If parsing throws, it's not a JSON string, so do nothing
-              }
+  function parseProperties(obj: object): void {
+    Object.keys(obj).forEach((key) => {
+      const value = (obj as Record<string, unknown>)[key];
+
+      if (typeof value === 'string') {
+        const isNumber = !isNaN(Number(value));
+        // Only parse if value is not a number OR value is a number AND numbers are not skipped
+        if (!isNumber || (isNumber && !skipNumbers)) {
+          try {
+            // Attempt to parse the string as JSON
+            const parsed = JSON.parse(value);
+            (obj as Record<string, unknown>)[key] = parsed;
+            // If the parsed value is an object, parse its properties too
+            if (typeof parsed === 'object' && parsed !== null) {
+              parseProperties(parsed as object);
             }
-          } else {
-            // If the item is an object or array, parse its properties
-            parseProperties(item);
+          } catch (e) {
+            // If parsing throws, it's not a JSON string, so do nothing
           }
-        });
-      } else {
-        // If it's an object, parse each property
-        Object.keys(obj).forEach((key) => {
-          const value = (obj as Record<string, unknown>)[key];
-          if (typeof value === 'string') {
-            const isNumber = !isNaN(Number(value));
-            // Only parse if value is not a number OR value is a number AND numbers are not skipped
-            if (!isNumber || (isNumber && !skipNumbers)) {
-              try {
-                // Attempt to parse the string as JSON
-                const parsed = JSON.parse(value);
-                (obj as Record<string, unknown>)[key] = parsed;
-                // If the parsed value is an object or array, parse its properties too
-                parseProperties(parsed);
-              } catch {
-                // If parsing throws, it's not a JSON string, so do nothing
-              }
-            }
-          } else {
-            // If the value is an object or array, parse its properties
-            parseProperties(value);
-          }
-        });
+        }
+      } else if (typeof value === 'object' && value !== null) {
+        // If it's an object, parse its properties
+        parseProperties(value as object);
       }
-    }
+    });
   }
 
-  // Start parsing from the root object if it's an object or array
-  parseProperties(parsedObject);
+  // Start parsing from the root object
+  if (typeof parsedObject === 'object' && parsedObject !== null) {
+    parseProperties(parsedObject);
+  }
 
   return parsedObject;
 };
