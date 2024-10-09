@@ -5,7 +5,11 @@ const styleSheet = () =>
     root: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingVertical: 8,
+      paddingBottom: 16,
+    },
+    contentContainerStyle: {
+      paddingBottom: 75,
     },
   });
 
