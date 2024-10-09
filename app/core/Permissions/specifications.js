@@ -216,6 +216,12 @@ export const getPermissionSpecifications = ({
     targetName: PermissionKeys.permittedChains,
     allowedCaveats: [CaveatTypes.restrictNetworkSwitching],
     factory: (permissionOptions, requestData) => {
+      if (requestData === undefined) {
+        return constructPermission({
+          ...permissionOptions,
+        });
+      }
+
       if (!requestData.approvedChainIds) {
         throw new Error(
           `${PermissionKeys.permittedChains}: No approved networks specified.`,

@@ -20,5 +20,6 @@ export interface PermissionsSummaryProps {
   isNetworkSwitch?: boolean;
   customNetworkInformation: {
     chainName: string;
+    chainId: string;
   };
 }

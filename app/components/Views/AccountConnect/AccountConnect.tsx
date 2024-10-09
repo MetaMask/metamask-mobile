@@ -346,6 +346,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
+    console.log('ALEX LOGGING: request in handleConnect', request);
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
