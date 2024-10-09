@@ -575,13 +575,13 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - script@1:
-      #     title: Generating ccache key using native folder checksum
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           ./scripts/cache/set-cache-envs.sh android
-      # - restore-gradle-cache@2: {}
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -590,24 +590,24 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      # - script@1:
-      #     title: Install CCache & symlink
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           sudo apt update
-      #           sudo apt install ccache -y
-      # - restore-cache@2:
-      #     title: Restore CCache
-      #     inputs:
-      #       - key: '{{ getenv "CCACHE_KEY" }}'
-      # - script@1:
-      #     title: Set skip ccache upload
-      #     run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script@1:
+          title: Install CCache & symlink
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                sudo apt update
+                sudo apt install ccache -y
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
           timeout: 1200
@@ -625,23 +625,23 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
-      # - save-gradle-cache@1: {}
-      # - save-cache@1:
-      #     title: Save CCache
-      #     run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-      #     inputs:
-      #       - key: '{{ getenv "CCACHE_KEY" }}'
-      #       - paths: |-
-      #           ccache
+      - save-gradle-cache@1: {}
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+            - paths: |-
+                ccache
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
           title: Save Android build
-      # - save-cache@1:
-      #     title: Save node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      #       - paths: node_modules
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+            - paths: node_modules
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -653,7 +653,7 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - restore-gradle-cache@2: {}
+      - restore-gradle-cache@2: {}
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
@@ -671,10 +671,10 @@ workflows:
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
                 cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
-      # - restore-cache@2:
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -765,24 +765,24 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      # - restore-cocoapods-cache@2: {}
-      # - restore-cache@2:
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      # - script:
-      #     inputs:
-      #       - content: |-
-      #           # Add cache directory to environment variable
-      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-      #           brew tap wix/brew
-      #     title: Set Env Path for caching deps
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
       - script@1:
           title: Run detox test
           timeout: 1200
@@ -815,48 +815,48 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - script@1:
-      #     title: Generating ccache key using native folder checksum
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           ./scripts/cache/set-cache-envs.sh ios
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      # - script:
-      #     inputs:
-      #       - content: |-
-      #           # Add cache directory to environment variable
-      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-      #           brew tap wix/brew
-      #     title: Set Env Path for caching deps
-      # - script@1:
-      #     title: Install CCache & symlink
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
-      #           ln -s $(which ccache) /usr/local/bin/gcc
-      #           ln -s $(which ccache) /usr/local/bin/g++
-      #           ln -s $(which ccache) /usr/local/bin/cc
-      #           ln -s $(which ccache) /usr/local/bin/c++
-      #           ln -s $(which ccache) /usr/local/bin/clang
-      #           ln -s $(which ccache) /usr/local/bin/clang++
-      # - restore-cache@2:
-      #     title: Restore CCache
-      #     inputs:
-      #       - key: '{{ getenv "CCACHE_KEY" }}'
-      # - script@1:
-      #     title: Set skip ccache upload
-      #     run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Install CCache & symlink
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                ln -s $(which ccache) /usr/local/bin/gcc
+                ln -s $(which ccache) /usr/local/bin/g++
+                ln -s $(which ccache) /usr/local/bin/cc
+                ln -s $(which ccache) /usr/local/bin/c++
+                ln -s $(which ccache) /usr/local/bin/clang
+                ln -s $(which ccache) /usr/local/bin/clang++
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
           timeout: 1200
@@ -874,25 +874,25 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
-      # - save-cocoapods-cache@1: {}
-      # - save-cache@1:
-      #     title: Save CCache
-      #     run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-      #     inputs:
-      #       - key: '{{ getenv "CCACHE_KEY" }}'
-      #       - paths: |-
-      #           ccache
+      - save-cocoapods-cache@1: {}
+      - save-cache@1:
+          title: Save CCache
+          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
+            - paths: |-
+                ccache
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
                 ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
-      # - save-cache@1:
-      #     title: Save node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      #       - paths: node_modules
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+            - paths: node_modules
   ios_e2e_test:
     envs:
       - NO_FLIPPER: '1'
@@ -922,24 +922,24 @@ workflows:
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      # - restore-cocoapods-cache@2: {}
-      # - restore-cache@2:
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      # - script:
-      #     inputs:
-      #       - content: |-
-      #           # Add cache directory to environment variable
-      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-      #           brew tap wix/brew
-      #     title: Set Env Path for caching deps
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
       - script@1:
           title: Run detox test
           timeout: 1200
