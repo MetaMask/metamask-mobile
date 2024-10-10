@@ -387,7 +387,8 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           buttonProps={{
-            onButtonClick: () => {
+            label: '',
+            onPress: () => {
               openModal(chainId, false, MAINNET, true);
             },
           }}
@@ -444,7 +445,8 @@ const NetworkSelector = () => {
           buttonIcon={IconName.MoreVertical}
           secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
           buttonProps={{
-            onButtonClick: () => {
+            label: '',
+            onPress: () => {
               openModal(chainId, false, LINEA_MAINNET, true);
             },
           }}
@@ -508,7 +510,8 @@ const NetworkSelector = () => {
               buttonIcon={IconName.MoreVertical}
               secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
               buttonProps={{
-                onButtonClick: () => {
+                label: '',
+                onPress: () => {
                   openModal(chainId, true, rpcUrl, false);
                 },
               }}
@@ -580,7 +583,8 @@ const NetworkSelector = () => {
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
-              onButtonClick: () => {
+              label: '',
+              onPress: () => {
                 openModal(chainId, false, networkType, true);
               },
             }}
