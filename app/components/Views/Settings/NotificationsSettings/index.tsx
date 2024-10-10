@@ -186,15 +186,14 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         },
       });
     } else if (isMetamaskNotificationsEnabled) {
-      await disableNotifications();
+      disableNotifications();
       setUiNotificationStatus(false);
     } else {
       const { permission } = await NotificationsService.getAllPermissions(false);
       if (permission !== 'authorized') {
         return;
       }
-
-        await enableNotifications();
+        enableNotifications();
         setUiNotificationStatus(true);
     }
     trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
