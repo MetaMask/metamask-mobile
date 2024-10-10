@@ -1,7 +1,8 @@
 import Engine from './Engine';
+import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
-import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
+import { LogType } from '@metamask/logging-controller';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
@@ -9,25 +10,33 @@ jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
+    expect(engine.context).toHaveProperty('AccountsController');
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
+    expect(engine.context).toHaveProperty('ApprovalController');
     expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
     expect(engine.context).toHaveProperty('CurrencyRateController');
+    expect(engine.context).toHaveProperty('GasFeeController');
     expect(engine.context).toHaveProperty('KeyringController');
     expect(engine.context).toHaveProperty('NetworkController');
+    expect(engine.context).toHaveProperty('PermissionController');
     expect(engine.context).toHaveProperty('PhishingController');
     expect(engine.context).toHaveProperty('PreferencesController');
     expect(engine.context).toHaveProperty('SignatureController');
+    expect(engine.context).toHaveProperty('PPOMController');
     expect(engine.context).toHaveProperty('TokenBalancesController');
     expect(engine.context).toHaveProperty('TokenRatesController');
     expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('LoggingController');
     expect(engine.context).toHaveProperty('TransactionController');
     expect(engine.context).toHaveProperty('SmartTransactionsController');
+    expect(engine.context).toHaveProperty('SnapController');
+    expect(engine.context).toHaveProperty('SubjectMetadataController');
+    expect(engine.context).toHaveProperty('SwapsController');
     expect(engine.context).toHaveProperty('AuthenticationController');
     expect(engine.context).toHaveProperty('UserStorageController');
     expect(engine.context).toHaveProperty('NotificationServicesController');
@@ -55,6 +64,29 @@ describe('Engine', () => {
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
+  it("updates datamodel state when a controller's state is updated", () => {
+    const engine = Engine.init({});
+
+    expect(
+      engine.controllerMessenger.call('LoggingController:add', {
+        type: LogType.GenericLog,
+        data: `Generic log`,
+      }),
+    ).toBeUndefined();
+
+    expect(engine.datamodel.state).toHaveProperty('LoggingController.logs');
+    const logs = Object.values(engine.datamodel.state.LoggingController.logs);
+    expect(logs).toHaveLength(1);
+    expect(Object.values(logs)).toContainEqual({
+      timestamp: expect.any(Number),
+      id: expect.any(String),
+      log: expect.objectContaining({
+        type: LogType.GenericLog,
+        data: 'Generic log',
+      }),
+    });
+  });
+
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
     const engine = Engine.init(backgroundState);
     const invalidAddress = '0xInvalidAddress';
@@ -62,6 +94,31 @@ describe('Engine', () => {
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
+  });
+
+  it('normalizes `null` `conversionRate` to 0', () => {
+    const chainId = '0x1';
+    const ticker = 'ETH';
+    const ethConversionRate = null;
+    const state = {
+      NetworkController: {
+        state: { providerConfig: { chainId, ticker } },
+      },
+      CurrencyRateController: {
+        currencyRates: {
+          [ticker]: { conversionRate: ethConversionRate },
+        },
+      },
+    };
+    Engine.init(state);
+    expect(Engine.state).toHaveProperty('CurrencyRateController.currencyRates');
+    expect(
+      Engine.state.CurrencyRateController.currencyRates[ticker],
+    ).toStrictEqual({
+      conversionDate: 0,
+      conversionRate: 0,
+      usdConversionRate: null,
+    });
   });
 
   describe('getTotalFiatAccountBalance', () => {
