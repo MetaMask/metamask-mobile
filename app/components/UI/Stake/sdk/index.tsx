@@ -1,6 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { ProtocolType, StakeSdk } from '@metamask/stake-sdk';
-import { PooledService } from '@metamask/stake-sdk/dist/PooledService.cjs';
+import { PooledService, ProtocolType, StakeSdk } from '@metamask/stake-sdk';
 import Logger from '../../../../util/Logger';
 import React, {
   useState,
@@ -18,7 +17,6 @@ import {
 import { selectNickname } from '../../../../selectors/networkController';
 import {
   updateAmountState,
-  updateCurrencyState,
 } from '../../../../core/redux/slices/stake';
 import useBalance from '../hooks/useBalance';
 import BN from 'bn.js';

@@ -5618,10 +5618,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/stake-sdk@^0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.2.4.tgz#d74aeb89ebf77bc502499effa9e49f44006b1b18"
-  integrity sha512-iahmgpBwDHqzxVFO525Ar9jPeJNoO6Pq+2KX0GanB+p6v4TbUQ43WuIcoGqyDONG4k4FCrVTNEA4t9+nJBm95g==
+"@metamask/stake-sdk@^0.2.6":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.2.6.tgz#5d604e4da1ac5b0a912aa9a85161ae693762cc0f"
+  integrity sha512-Y4VDWcyeIq6Qq9E6AgFmVk6s8FXvYkdNq6NpqUj7MIaFzXf4z3fWX4Bal9cL+vmFwB5U7ZB6kDtQ0WcCZGLfBg==
 
 "@metamask/superstruct@^3.1.0":
   version "3.1.0"
