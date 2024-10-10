@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ApprovalModal from './ApprovalModal';
 
 describe('ApprovalModal', () => {
@@ -8,11 +8,11 @@ describe('ApprovalModal', () => {
   });
 
   it('renders', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ApprovalModal isVisible onCancel={() => undefined}>
         <div>test</div>
       </ApprovalModal>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -4,6 +4,7 @@
  */
 
 /* eslint-disable react/prop-types */
+/* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -65,4 +66,5 @@ const NavigationUnitTestFactory = ({ firstRoute, secondRoute }) => {
 
   return <NavigationUnitTest />;
 };
+
 export default NavigationUnitTestFactory;

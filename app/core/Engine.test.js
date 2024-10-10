@@ -2,11 +2,32 @@ import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
+import { store } from '../store';
 
 jest.unmock('./Engine');
-jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
+jest.mock('../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+// jest.mock('@metamask/smart-transactions-controller', () => {
+//   return {
+//     SmartTransactionsController: jest.fn().mockImplementation(() => {
+//       return {
+//         onNetworkStateChange: jest.fn(),
+//       };
+//     }),
+//   };
+// });
 
 describe('Engine', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    store.getState.mockReturnValue({
+      settings: { showFiatOnTestnets: true },
+    });
+  });
+
   it('should expose an API', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
@@ -50,7 +71,16 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    const initialBackgroundState = engine.datamodel.state;
+    const initialBackgroundState = {
+      ...engine.datamodel.state,
+      PhishingController: {
+        phishingLists: [],
+        whitelist: [],
+        c2DomainBlocklistLastFetched: 0,
+        hotlistLastFetched: 0,
+        stalelistLastFetched: 0,
+      },
+    };
 
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
