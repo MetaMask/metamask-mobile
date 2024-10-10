@@ -15,6 +15,17 @@ const correctParams = {
   rpcUrls: ['https://rpc.gnosischain.com'],
 };
 
+const existingNetworkConfiguration = {
+  id: 'test-network-configuration-id',
+  chainId: '0x2',
+  rpcUrl: 'https://rpc.test-chain.com',
+  ticker: 'TST',
+  nickname: 'Test Chain',
+  rpcPrefs: {
+    blockExplorerUrl: 'https://explorer.test-chain.com',
+  },
+};
+
 jest.mock('../Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
@@ -58,6 +69,10 @@ jest.mock('../../store', () => ({
                 rpcPrefs: {
                   blockExplorerUrl: 'https://etherscan.com',
                 },
+              },
+              [existingNetworkConfiguration.id]: {
+                id: 'test-network-configuration',
+                ...existingNetworkConfiguration,
               },
             },
           },
@@ -332,6 +347,91 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
 
     expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(0);
+  });
+
+  it('should correctly add and switch to a new chain when chain is not already in wallet state ', async () => {
+    const spyOnUpsertNetworkConfiguration = jest.spyOn(
+      Engine.context.NetworkController,
+      'upsertNetworkConfiguration',
+    );
+    const spyOnSetActiveNetwork = jest.spyOn(
+      Engine.context.NetworkController,
+      'setActiveNetwork',
+    );
+    const spyOnUpdateExchangeRate = jest.spyOn(
+      Engine.context.CurrencyRateController,
+      'updateExchangeRate',
+    );
+
+    await wallet_addEthereumChain({
+      req: {
+        params: [correctParams],
+        origin: 'https://example.com',
+      },
+      ...otherOptions,
+    });
+
+    expect(spyOnUpsertNetworkConfiguration).toHaveBeenCalledTimes(1);
+    expect(spyOnUpsertNetworkConfiguration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainId: correctParams.chainId,
+        rpcUrl: correctParams.rpcUrls[0],
+        ticker: correctParams.nativeCurrency.symbol,
+        nickname: correctParams.chainName,
+      }),
+      expect.any(Object),
+    );
+    expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
+    expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not add a networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
+    const spyOnUpsertNetworkConfiguration = jest.spyOn(
+      Engine.context.NetworkController,
+      'upsertNetworkConfiguration',
+    );
+    const spyOnSetActiveNetwork = jest.spyOn(
+      Engine.context.NetworkController,
+      'setActiveNetwork',
+    );
+    const spyOnUpdateExchangeRate = jest.spyOn(
+      Engine.context.CurrencyRateController,
+      'updateExchangeRate',
+    );
+
+    const existingNetworkConfiguration = {
+      id: 'test-network-configuration-id',
+      chainId: '0x2',
+      rpcUrl: 'https://rpc.test-chain.com',
+      ticker: 'TST',
+      nickname: 'Test Chain',
+      rpcPrefs: {
+        blockExplorerUrl: 'https://explorer.test-chain.com',
+      },
+    };
+
+    const existingParams = {
+      chainId: existingNetworkConfiguration.chainId,
+      rpcUrls: ['https://different-rpc-url.com'],
+      chainName: existingNetworkConfiguration.nickname,
+      nativeCurrency: {
+        name: existingNetworkConfiguration.ticker,
+        symbol: existingNetworkConfiguration.ticker,
+        decimals: 18,
+      },
+    };
+
+    await wallet_addEthereumChain({
+      req: {
+        params: [existingParams],
+        origin: 'https://example.com',
+      },
+      ...otherOptions,
+    });
+
+    expect(spyOnUpsertNetworkConfiguration).not.toHaveBeenCalled();
+    expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
+    expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {

@@ -146,9 +146,10 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     jest
       .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
       .mockReturnValue({ configuration: { chainId: '0x1' } });
-    jest
-      .spyOn(Engine.context.PermissionController, 'getCaveat')
-      .mockReturnValue({ value: [] });
+    const spyOnSetActiveNetwork = jest.spyOn(
+      Engine.context.NetworkController,
+      'setActiveNetwork',
+    );
     await wallet_switchEthereumChain({
       req: {
         params: [{ chainId: '0x64' }],
@@ -157,6 +158,9 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     });
     expect(otherOptions.requestUserApproval).toHaveBeenCalled();
     expect(spyOnGrantPermissionsIncremental).not.toHaveBeenCalled();
+    expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
+      'test-network-configuration-id',
+    );
   });
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
