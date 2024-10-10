@@ -38,8 +38,7 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../UI/Ramp/routes/utils';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { EthMethod } from '@metamask/keyring-api';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 
 const WalletActions = () => {
@@ -56,11 +55,7 @@ const WalletActions = () => {
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent } = useMetrics();
 
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const canSignTransactions = useMemo(
-    () => selectedAccount?.methods?.includes(EthMethod.SignTransaction),
-    [selectedAccount],
-  );
+  const canSignTransactions = useSelector(selectCanSignTransactions);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {

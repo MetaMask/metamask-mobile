@@ -21,6 +21,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
         {
@@ -38,7 +39,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#0376c91a",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -66,7 +67,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#9fa6ae",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -82,7 +83,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "0": {
                 "color": "#6a737d",
               },
-              "1": undefined,
+              "1": {
+                "color": "#9fa6ae",
+              },
               "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -120,6 +123,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
         {
@@ -137,7 +141,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#0376c91a",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -165,7 +169,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#9fa6ae",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -181,7 +185,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "0": {
                 "color": "#6a737d",
               },
-              "1": undefined,
+              "1": {
+                "color": "#9fa6ae",
+              },
               "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -219,6 +225,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
         {
@@ -236,7 +243,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#0376c91a",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -264,7 +271,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#9fa6ae",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -280,7 +287,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "0": {
                 "color": "#6a737d",
               },
-              "1": undefined,
+              "1": {
+                "color": "#9fa6ae",
+              },
               "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -318,6 +327,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
         {
@@ -335,7 +345,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#0376c91a",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -363,7 +373,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#9fa6ae",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -379,7 +389,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "0": {
                 "color": "#6a737d",
               },
-              "1": undefined,
+              "1": {
+                "color": "#9fa6ae",
+              },
               "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -417,6 +429,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={false}
       onPress={[MockFunction]}
       style={
         {
