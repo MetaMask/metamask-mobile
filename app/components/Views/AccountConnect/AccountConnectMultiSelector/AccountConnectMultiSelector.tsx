@@ -53,6 +53,7 @@ const AccountConnectMultiSelector = ({
   onBack,
   screenTitle,
   isRenderedAsBottomSheet = true,
+  showDisconnectAllButton = true,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -227,29 +228,31 @@ const AccountConnectMultiSelector = ({
             />
           )}
         </View>
-        {isMultichainVersion1Enabled && areNoAccountsSelected && (
-          <View style={styles.disconnectAllContainer}>
-            <View style={styles.helpTextContainer}>
-              <HelpText severity={HelpTextSeverity.Error}>
-                {strings('common.disconnect_you_from', {
-                  dappUrl: hostname,
-                })}
-              </HelpText>
+        {isMultichainVersion1Enabled &&
+          areNoAccountsSelected &&
+          showDisconnectAllButton && (
+            <View style={styles.disconnectAllContainer}>
+              <View style={styles.helpTextContainer}>
+                <HelpText severity={HelpTextSeverity.Error}>
+                  {strings('common.disconnect_you_from', {
+                    dappUrl: hostname,
+                  })}
+                </HelpText>
+              </View>
+              <View style={styles.disconnectAllButtonContainer}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('accounts.disconnect')}
+                  onPress={toggleRevokeAllAccountPermissionsModal}
+                  isDanger
+                  size={ButtonSize.Lg}
+                  style={{
+                    ...styles.button,
+                  }}
+                />
+              </View>
             </View>
-            <View style={styles.disconnectAllButtonContainer}>
-              <Button
-                variant={ButtonVariants.Primary}
-                label={strings('accounts.disconnect')}
-                onPress={toggleRevokeAllAccountPermissionsModal}
-                isDanger
-                size={ButtonSize.Lg}
-                style={{
-                  ...styles.button,
-                }}
-              />
-            </View>
-          </View>
-        )}
+          )}
       </View>
     );
   }, [
@@ -261,6 +264,7 @@ const AccountConnectMultiSelector = ({
     areNoAccountsSelected,
     hostname,
     toggleRevokeAllAccountPermissionsModal,
+    showDisconnectAllButton,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
