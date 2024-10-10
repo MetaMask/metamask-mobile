@@ -1571,3 +1571,6 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
+  - pull_request_label: 'needs-qa'
+    pipeline: pr_smoke_e2e_pipeline
+    
