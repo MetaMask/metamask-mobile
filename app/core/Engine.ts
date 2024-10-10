@@ -109,6 +109,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
+  PPOMControllerActions,
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
@@ -301,6 +302,7 @@ type GlobalActions =
   | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  | PPOMControllerActions
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions
@@ -506,7 +508,6 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -1606,7 +1607,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: [`${networkController.name}:stateChange`],
+          allowedEvents: [`${networkController.name}:networkDidChange`],
         }),
         onPreferencesChange: (listener) =>
           this.controllerMessenger.subscribe(
