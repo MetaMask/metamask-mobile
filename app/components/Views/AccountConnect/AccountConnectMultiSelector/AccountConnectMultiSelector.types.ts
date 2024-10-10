@@ -32,4 +32,5 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   connection?: ConnectionProps;
   screenTitle?: string;
   isRenderedAsBottomSheet?: boolean;
+  showDisconnectAllButton?: boolean;
 }
