@@ -267,8 +267,29 @@ workflows:
                 source "${HOME}/.nvm/nvm.sh"
                 echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
 
-                nvm install ${NODE_VERSION}
+                 # Retry logic for Node installation
+                MAX_ATTEMPTS=3
+                ATTEMPT=1
+                until [ $ATTEMPT -gt $MAX_ATTEMPTS ]
+                do
+                  echo "Attempt $ATTEMPT to install Node.js"
+                  nvm install ${NODE_VERSION}
+                  INSTALL_STATUS=$? # Capture the exit status of the nvm install command
+                  if [ $INSTALL_STATUS -eq 0 ]; then
+                      echo "Node.js installation successful!"
+                      break
+                  else
+                      echo "Node.js installation failed with exit code $INSTALL_STATUS"
+                      ATTEMPT=$((ATTEMPT+1))
+                      echo "Node.js installation failed, retrying in 5 seconds..."
+                      sleep 5
+                  fi
+                done
 
+                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+                  echo "Node.js installation failed after $MAX_ATTEMPTS attempts."
+                  exit 1
+                fi
                 envman add --key PATH --value $PATH
 
                 node --version
