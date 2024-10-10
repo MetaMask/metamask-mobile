@@ -93,14 +93,33 @@ const CustomNetworks = {
   },
 
   Tenderly: {
-    isCustomNetwork: true,
-    providerConfig: {
-      type: 'rpc',
-      chainId: '0x1',
-      rpcUrl: `https://rpc.tenderly.co/fork/bbfe5a2e-2426-4512-a5f8-46ce85fe9ad6`,
-      nickname: 'Tenderly',
-      ticker: 'ETH',
+    Mainnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('1'),
+        rpcUrl: 'https://virtual.mainnet.rpc.tenderly.co/03bb8912-7505-4856-839f-52819a26d0cd',
+        nickname: 'Tenderly - Mainnet',
+        ticker: 'ETH',
+     },
     },
+    Polygon: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('137'),
+        rpcUrl: 'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
+        nickname: 'Polygon',
+        ticker: 'POL',
+      },
+    },
+    Optimism: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('10'),
+        rpcUrl: 'https://virtual.optimism.rpc.tenderly.co/3170a58e-fa67-4ccc-9697-b13aff0f5c1a',
+        nickname: 'Optimism',
+        ticker: 'ETH',
+      },
+    }
   },
   Gnosis: {
     providerConfig: {
