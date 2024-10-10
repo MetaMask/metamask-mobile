@@ -86,7 +86,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             "flexDirection": "row",
             "height": 32,
             "marginBottom": 16,
-            "paddingHorizontal": 8,
+            "paddingHorizontal": 12,
           }
         }
       >

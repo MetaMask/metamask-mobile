@@ -164,7 +164,7 @@ exports[`Wallet should render correctly 1`] = `
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
-                      "paddingHorizontal": 8,
+                      "paddingHorizontal": 12,
                     }
                   }
                   testID="open-networks-button"
@@ -226,16 +226,16 @@ exports[`Wallet should render correctly 1`] = `
                   </Text>
                   <SvgMock
                     color="#141618"
-                    height={12}
+                    height={16}
                     name="ArrowDown"
                     style={
                       {
-                        "height": 12,
-                        "width": 12,
+                        "height": 16,
+                        "width": 16,
                       }
                     }
                     testID="pickernetwork-arrow"
-                    width={12}
+                    width={16}
                   />
                 </TouchableOpacity>
               </View>

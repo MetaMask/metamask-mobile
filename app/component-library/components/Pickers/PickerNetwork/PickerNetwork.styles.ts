@@ -28,7 +28,7 @@ const styleSheet = (params: {
       {
         height: 32,
         borderRadius: 16,
-        paddingHorizontal: 8,
+        paddingHorizontal: 12,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.background.alternative,

@@ -1057,7 +1057,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       "flexDirection": "row",
                                                       "height": 32,
                                                       "marginBottom": 16,
-                                                      "paddingHorizontal": 8,
+                                                      "paddingHorizontal": 12,
                                                     }
                                                   }
                                                 >

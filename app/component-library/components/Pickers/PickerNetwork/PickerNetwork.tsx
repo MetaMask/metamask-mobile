@@ -48,7 +48,7 @@ const PickerNetwork = ({
       )}
       {onPress && (
         <Icon
-          size={IconSize.Xs}
+          size={IconSize.Sm}
           name={IconName.ArrowDown}
           testID={PICKERNETWORK_ARROW_TESTID}
         />
