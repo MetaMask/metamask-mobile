@@ -11,4 +11,22 @@ describe('Simulation', () => {
     });
     expect(container).toMatchSnapshot();
   });
+
+  it('should return null if preference useTransactionSimulations is not enabled', async () => {
+    const container = renderWithProvider(<Simulation />, {
+      state: {
+        engine: {
+          backgroundState: {
+            ...personalSignatureConfirmationState,
+            PreferencesController: {
+              ...personalSignatureConfirmationState.engine.backgroundState
+                .PreferencesController,
+              useTransactionSimulations: false,
+            },
+          },
+        },
+      },
+    });
+    expect(container).toMatchSnapshot();
+  });
 });

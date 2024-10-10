@@ -3426,6 +3426,11 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
-    "rpc_url": "RPC URL"
+    "rpc_url": "RPC URL",
+    "simulation": {
+      "title": "Estimated changes",
+      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
+      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
+    }
   }
 }

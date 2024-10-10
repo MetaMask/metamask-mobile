@@ -11,7 +11,7 @@ const Simulation = () => {
     selectUseTransactionSimulations,
   );
 
-  if (!useTransactionSimulations) {
+  if (useTransactionSimulations !== true) {
     return null;
   }
 
