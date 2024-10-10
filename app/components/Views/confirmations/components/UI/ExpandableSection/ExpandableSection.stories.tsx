@@ -20,6 +20,6 @@ storiesOf('Confirmations / ExpandableSection', module)
           <InfoRow label="label-Key">Value-Text</InfoRow>
         </InfoSection>
       }
-      modalTitle={'Title'}
+      expandedContentTitle={'Title'}
     />
   ));

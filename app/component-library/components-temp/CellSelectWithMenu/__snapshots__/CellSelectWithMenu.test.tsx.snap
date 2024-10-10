@@ -19,7 +19,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
         "opacity": 1,
         "padding": 16,
         "position": "relative",
-        "width": "95%",
+        "width": "90%",
         "zIndex": 1,
       }
     }
@@ -287,7 +287,13 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       </View>
     </View>
   </TouchableOpacity>
-  <View>
+  <View
+    style={
+      {
+        "paddingHorizontal": 20,
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}

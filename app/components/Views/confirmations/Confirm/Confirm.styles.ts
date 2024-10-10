@@ -15,8 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      alignItems: 'center',
-      justifyContent: 'space-between'
+      justifyContent: 'space-between',
     },
   });
 };

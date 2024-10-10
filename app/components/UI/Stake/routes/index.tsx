@@ -1,9 +1,10 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import StakeInputView from '../Views/InputView/StakeInputView';
+import StakeInputView from '../Views/StakeInputView/StakeInputView';
 import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { StakeSDKProvider } from '../sdk';
+import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -20,6 +21,7 @@ const StakeScreenStack = () => (
   <StakeSDKProvider>
     <Stack.Navigator>
       <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+      <Stack.Screen name={Routes.STAKING.UNSTAKE} component={UnstakeInputView} />
     </Stack.Navigator>
   </StakeSDKProvider>
 );

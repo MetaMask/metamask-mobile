@@ -1,7 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`] = `
-<View>
+<TouchableOpacity
+  accessible={true}
+  activeOpacity={1}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+>
   <View
     style={
       {
@@ -13,6 +19,7 @@ exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`
         "display": "flex",
         "flexDirection": "row",
         "justifyContent": "space-between",
+        "marginBottom": 8,
         "padding": 16,
       }
     }
@@ -22,38 +29,18 @@ exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`
         Open
       </Text>
     </View>
-    <TouchableOpacity
-      accessible={true}
-      activeOpacity={1}
-      disabled={false}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+    <SvgMock
+      color="#9fa6ae"
+      height={16}
+      name="ArrowRight"
       style={
         {
-          "alignItems": "center",
-          "borderRadius": 8,
-          "height": 24,
-          "justifyContent": "center",
-          "opacity": 1,
-          "width": 24,
+          "height": 16,
+          "width": 16,
         }
       }
-      testID="openButtonTestId"
-    >
-      <SvgMock
-        color="#9fa6ae"
-        height={16}
-        name="ArrowRight"
-        style={
-          {
-            "height": 16,
-            "width": 16,
-          }
-        }
-        width={16}
-      />
-    </TouchableOpacity>
+      width={16}
+    />
   </View>
-</View>
+</TouchableOpacity>
 `;

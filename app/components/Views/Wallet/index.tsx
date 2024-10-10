@@ -406,8 +406,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } =
-          Engine.context;
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },

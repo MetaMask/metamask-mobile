@@ -17,6 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
+      marginBottom: 8,
     },
     modalContent: {
       backgroundColor: theme.colors.background.alternative,
@@ -32,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingBottom: 16,
     },
-    modalTitle: {
+    expandedContentTitle: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
