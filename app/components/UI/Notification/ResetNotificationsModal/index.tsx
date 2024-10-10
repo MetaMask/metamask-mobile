@@ -14,7 +14,7 @@ import  {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useDeleteNotificationsStorageKey } from '../../../../util/notifications/hooks/useNotifications';
+import { useDeleteNotificationsStorageKey, useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import ModalContent from '../Modal';
 
 const ResetNotificationsModal = () => {
@@ -22,12 +22,14 @@ const ResetNotificationsModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { deleteNotificationsStorageKey, loading } = useDeleteNotificationsStorageKey();
+  const { enableNotifications, loading: enableLoading } = useEnableNotifications();
 
 
   const closeBottomSheet = () => bottomSheetRef.current?.onCloseBottomSheet();
 
   const handleCta = async () => {
     await deleteNotificationsStorageKey();
+    await enableNotifications();
       trackEvent(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED, {
         settings_type: 'delete_notifications_storage_key',
       });
@@ -57,7 +59,7 @@ const ResetNotificationsModal = () => {
         setIsChecked={setIsChecked}
         handleCta={handleCta}
         handleCancel={closeBottomSheet}
-        loading={loading}
+        loading={loading || enableLoading}
         />
     </BottomSheet>
   );
