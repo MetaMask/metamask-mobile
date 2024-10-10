@@ -5,11 +5,15 @@ import {
 } from '@metamask/snaps-rpc-methods';
 ///: END:ONLY_INCLUDE_IF
 import {
+  Caveat,
   constructPermission,
+  OriginString,
+  PermissionOptions,
   PermissionType,
+  ValidPermission,
 } from '@metamask/permission-controller';
-import { v1 as random } from 'uuid';
 import { CaveatTypes, RestrictedMethods } from './constants';
+import { InternalAccount } from '@metamask/keyring-api';
 
 /**
  * This file contains the specifications of the permissions and caveats
@@ -21,7 +25,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
  * The "keys" of all of permissions recognized by the PermissionController.
  * Permission keys and names have distinct meanings in the permission system.
  */
-const PermissionKeys = Object.freeze({
+const PermissionKeys: Readonly<Record<string, string>> = Object.freeze({
   ...RestrictedMethods,
 });
 
@@ -29,8 +33,10 @@ const PermissionKeys = Object.freeze({
  * Factory functions for all caveat types recognized by the
  * PermissionController.
  */
-const CaveatFactories = Object.freeze({
-  [CaveatTypes.restrictReturnedAccounts]: (accounts) => ({
+const CaveatFactories: Readonly<
+  Record<string, (accounts: string[]) => Caveat<string, string[]>>
+> = Object.freeze({
+  [CaveatTypes.restrictReturnedAccounts]: (accounts: string[]) => ({
     type: CaveatTypes.restrictReturnedAccounts,
     value: accounts,
   }),
@@ -54,25 +60,38 @@ const CaveatFactories = Object.freeze({
  * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
  * }} options - Options bag.
  */
-export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
+export const getCaveatSpecifications = ({
+  getInternalAccounts,
+}: {
+  getInternalAccounts: () => InternalAccount[];
+}) => ({
   [CaveatTypes.restrictReturnedAccounts]: {
     type: CaveatTypes.restrictReturnedAccounts,
 
-    decorator: (method, caveat) => async (args) => {
-      const permittedAccounts = [];
-      const allAccounts = await method(args);
-      caveat.value.forEach((address) => {
-        const addressToCompare = address.toLowerCase();
-        const isPermittedAccount = allAccounts.includes(addressToCompare);
-        if (isPermittedAccount) {
-          permittedAccounts.push(addressToCompare);
-        }
-      });
-      return permittedAccounts;
-    },
+    decorator:
+      (
+        method: (args: unknown) => Promise<string[]>,
+        caveat: Caveat<string, string[]>,
+      ) =>
+      async (args: unknown): Promise<string[]> => {
+        const permittedAccounts: string[] = [];
+        const allAccounts: string[] = await method(args);
+        caveat.value.forEach((address) => {
+          const addressToCompare = address.toLowerCase();
+          const isPermittedAccount = allAccounts.includes(addressToCompare);
+          if (isPermittedAccount) {
+            permittedAccounts.push(addressToCompare);
+          }
+        });
+        return permittedAccounts;
+      },
 
-    validator: (caveat, _origin, _target) =>
-      validateCaveatAccounts(caveat.value, getInternalAccounts),
+    validator: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      caveat: Caveat<any, any>,
+      _origin?: OriginString,
+      _target?: string,
+    ): void => validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ...snapsCaveatsSpecifications,
@@ -85,9 +104,9 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
  * PermissionController.
  *
  * @param {{
- *   getAllAccounts: () => Promise<string[]>,
- *   getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
- *   captureKeyringTypesWithMissingIdentities: (internalAccounts?: import('@metamask/keyring-api').InternalAccount[], accounts?: string[]) => void,
+ * getAllAccounts: () => Promise<string[]>,
+ * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
+ * captureKeyringTypesWithMissingIdentities: (internalAccounts?: import('@metamask/keyring-api').InternalAccount[], accounts?: string[]) => void,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
  * in the current MetaMask instance.
@@ -102,19 +121,28 @@ export const getPermissionSpecifications = ({
   getAllAccounts,
   getInternalAccounts,
   captureKeyringTypesWithMissingIdentities,
+}: {
+  getAllAccounts: () => Promise<string[]>;
+  getInternalAccounts: () => InternalAccount[];
+  captureKeyringTypesWithMissingIdentities: (
+    internalAccounts?: InternalAccount[],
+    accounts?: string[],
+  ) => void;
 }) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,
     targetName: PermissionKeys.eth_accounts,
     allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
 
-    factory: (permissionOptions, requestData) => {
+    factory: (
+      permissionOptions: PermissionOptions<ValidPermission<'eth_accounts', Caveat<string, string[]>>>,
+      requestData: { approvedAccounts: string[] },
+    ) => {
       if (Array.isArray(permissionOptions.caveats)) {
         throw new Error(
           `${PermissionKeys.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
         );
       }
-
       // This value will be further validated as part of the caveat.
       if (!requestData.approvedAccounts) {
         throw new Error(
@@ -123,7 +151,6 @@ export const getPermissionSpecifications = ({
       }
 
       return constructPermission({
-        id: random(),
         ...permissionOptions,
         caveats: [
           CaveatFactories[CaveatTypes.restrictReturnedAccounts](
@@ -133,7 +160,7 @@ export const getPermissionSpecifications = ({
       });
     },
 
-    methodImplementation: async (_args) => {
+    methodImplementation: async (_args: unknown[]) => {
       const accounts = await getAllAccounts();
       const internalAccounts = getInternalAccounts();
 
@@ -174,7 +201,12 @@ export const getPermissionSpecifications = ({
       });
     },
 
-    validator: (permission, _origin, _target) => {
+    validator: (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      permission: { caveats?: Caveat<any, any>[] },
+      _origin: OriginString,
+      _target: string,
+    ) => {
       const { caveats } = permission;
       if (
         !caveats ||
@@ -198,7 +230,10 @@ export const getPermissionSpecifications = ({
  * @param {() => import('@metamask/keyring-api').InternalAccount[]} getInternalAccounts -
  * Gets all AccountsController InternalAccounts.
  */
-function validateCaveatAccounts(accounts, getInternalAccounts) {
+function validateCaveatAccounts(
+  accounts: string[],
+  getInternalAccounts: () => InternalAccount[],
+) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
       `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
