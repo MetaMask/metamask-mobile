@@ -1,15 +1,15 @@
 import React, { forwardRef } from 'react';
-import PropTypes from 'prop-types';
-import { StyleSheet } from 'react-native';
-import { WebView } from '@metamask/react-native-webview';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { WebView, WebViewProps } from '@metamask/react-native-webview';
 import { useTheme } from '../../../util/theme';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     webView: {
       flex: 1,
@@ -17,13 +17,20 @@ const createStyles = (colors) =>
     },
   });
 
+interface FoxProps extends Omit<WebViewProps, 'ref'> {
+  style?: StyleProp<ViewStyle>;
+  customStyle?: string;
+  customContent?: string;
+  forwardedRef?: React.Ref<WebView>;
+}
+
 function Fox({
   style,
   customStyle,
   customContent = '',
   forwardedRef,
   ...props
-}) {
+}: FoxProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const opacityControl = useSharedValue(0);
@@ -1543,16 +1550,10 @@ function Fox({
   );
 }
 
-Fox.propTypes = {
-  style: PropTypes.object,
-  customStyle: PropTypes.string,
-  customContent: PropTypes.string,
-  forwardedRef: PropTypes.any,
-};
+const FoxWithRef = forwardRef<WebView, Omit<FoxProps, 'forwardedRef'>>(
+  (props, ref) => <Fox {...props} forwardedRef={ref} />,
+);
 
-const FoxWithRef = forwardRef((props, ref) => (
-  <Fox {...props} forwardedRef={ref} />
-));
 FoxWithRef.displayName = 'FoxWithRef';
 
 export default FoxWithRef;
