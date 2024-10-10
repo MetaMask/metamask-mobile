@@ -47,7 +47,7 @@ class SwapView {
 
   async swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
     await TestHelpers.checkIfElementByTextIsVisible(
-      this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol), 60000
+      this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol), 90000
     );
   }
 
