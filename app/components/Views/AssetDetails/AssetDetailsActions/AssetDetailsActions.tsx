@@ -17,6 +17,8 @@ import {
   TOKEN_OVERVIEW_SEND_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { useSelector } from 'react-redux';
+import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -39,13 +41,16 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  const canSignTransactions = useSelector(selectCanSignTransactions);
+
   const walletActionProps = useMemo(
     () => ({
       iconStyle: styles.icon,
       containerStyle: styles.containerStyle,
       iconSize: AvatarSize.Lg,
+      disabled: !canSignTransactions,
     }),
-    [styles],
+    [canSignTransactions, styles.containerStyle, styles.icon],
   );
 
   return (
@@ -103,6 +108,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           iconName={IconName.QrCode}
           onPress={onReceive}
           {...walletActionProps}
+          disabled={false}
           {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
         />
         <Text variant={TextVariant.BodyMD}>

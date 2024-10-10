@@ -390,6 +390,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
+          disabled={false}
           onPress={[Function]}
           style={
             {
@@ -489,6 +490,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
+          disabled={false}
           onPress={[Function]}
           style={
             {
@@ -588,6 +590,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
+          disabled={false}
           onPress={[Function]}
           style={
             {
@@ -687,6 +690,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
+          disabled={false}
           onPress={[Function]}
           style={
             {
@@ -786,6 +790,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
+          disabled={false}
           onPress={[Function]}
           style={
             {
