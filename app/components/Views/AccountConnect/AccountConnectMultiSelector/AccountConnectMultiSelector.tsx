@@ -218,7 +218,6 @@ const AccountConnectMultiSelector = ({
               onPress={() => {
                 if (!isMultichainVersion1Enabled) {
                   onUserAction(USER_INTENT.Confirm);
-                  return;
                 } else {
                   onPrimaryActionButtonPress
                     ? onPrimaryActionButtonPress()
