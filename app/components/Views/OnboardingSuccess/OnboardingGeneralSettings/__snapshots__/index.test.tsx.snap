@@ -176,40 +176,44 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             "flexDirection": "row",
             "height": 32,
             "marginVertical": 16,
-            "paddingHorizontal": 8,
+            "paddingHorizontal": 12,
           }
         }
         testID="accounts-connected-network-picker"
       >
         <View
-          style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#f2f4f6",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "height": 16,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "width": 16,
-            }
-          }
+          style={null}
         >
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 10,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": undefined,
+                "alignItems": "center",
+                "backgroundColor": "#f2f4f6",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "height": 16,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 16,
               }
             }
           >
-            E
-          </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 10,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": undefined,
+                }
+              }
+            >
+              E
+            </Text>
+          </View>
         </View>
         <Text
           accessibilityRole="text"
@@ -232,16 +236,16 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
         </Text>
         <SvgMock
           color="#141618"
-          height={12}
+          height={16}
           name="ArrowDown"
           style={
             {
-              "height": 12,
-              "width": 12,
+              "height": 16,
+              "width": 16,
             }
           }
           testID="pickernetwork-arrow"
-          width={12}
+          width={16}
         />
       </TouchableOpacity>
     </View>
