@@ -15,6 +15,28 @@ index 542e3f6..af49a85 100644
          });
        }
      });
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js b/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js
+index 6d1492c..2ac3275 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-5F5EQAX5.js
+@@ -247,10 +247,15 @@ var TokenListController = class extends _pollingcontroller.StaticIntervalPolling
+ };
+ _onNetworkControllerStateChange = new WeakSet();
+ onNetworkControllerStateChange_fn = async function(networkControllerState) {
+-  if (this.chainId !== networkControllerState.providerConfig.chainId) {
++  const selectedNetworkClient = this.messagingSystem.call(
++    "NetworkController:getNetworkClientById",
++    networkControllerState.selectedNetworkClientId
++  );
++  const { chainId } = selectedNetworkClient.configuration;
++  if (this.chainId !== chainId) {
+     this.abortController.abort();
+     this.abortController = new AbortController();
+-    this.chainId = networkControllerState.providerConfig.chainId;
++    this.chainId = chainId;
+     if (this.state.preventPollingOnNetworkRestart) {
+       this.clearingTokenListData();
+     } else {
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js b/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
 index 0dc70ec..461a210 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-6W5EQ3JQ.js
@@ -99,14 +121,14 @@ index ee6155c..06a3a04 100644
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-FMZML3V5.js
 @@ -1,12 +1,16 @@
  "use strict";Object.defineProperty(exports, "__esModule", {value: true});// src/NftDetectionController.ts
- 
+
 +var utils_1 = require('@metamask/utils');
- 
+
 -
 +var _chunkNEXY7SE2js = require('./chunk-NEXY7SE2.js');
 +var MAX_GET_COLLECTION_BATCH_SIZE = 20;
- 
- 
+
+
  var _controllerutils = require('@metamask/controller-utils');
  var _pollingcontroller = require('@metamask/polling-controller');
  var DEFAULT_INTERVAL = 18e4;
@@ -245,7 +267,7 @@ index ee6155c..06a3a04 100644
 +        resolve: updateSucceeded,
 +        reject: updateFailed
 +    } = utils_1.createDeferredPromise.call(void 0, { suppressUnhandledRejection: true });
-+                  
++
 +    this.inProcessNftFetchingUpdates[updateKey] = inProgressUpdate;
 +    let next;
 +    let apiNfts= [];
@@ -278,7 +300,7 @@ index ee6155c..06a3a04 100644
 +                  batch.map((s) => ["contract", s])
 +                );
 +                params.append("chainId", "1");
-+                const collectionResponseForBatch = await _controllerutils.fetchWithErrorHandling.call(void 0, 
++                const collectionResponseForBatch = await _controllerutils.fetchWithErrorHandling.call(void 0,
 +                  {
 +                    url: `${_controllerutils.NFT_API_BASE_URL}/collections?${params.toString()}`,
 +                    options: {
@@ -611,8 +633,8 @@ index d429be1..6fef22b 100644
            networkClientId
          )
        ),
--      this.config.openSeaEnabled && chainId === "0x1" ? _controllerutils.safelyExecute.call(void 0, 
-+      this.config.displayNftMedia && chainId === "0x1" ? _controllerutils.safelyExecute.call(void 0, 
+-      this.config.openSeaEnabled && chainId === "0x1" ? _controllerutils.safelyExecute.call(void 0,
++      this.config.displayNftMedia && chainId === "0x1" ? _controllerutils.safelyExecute.call(void 0,
          () => this.getNftInformationFromApi(contractAddress, tokenId)
        ) : void 0
      ]);
@@ -712,7 +734,7 @@ index d429be1..6fef22b 100644
 +        (nft) => nft.address.toLowerCase() === singleNft.nft.address.toLowerCase() && nft.tokenId === singleNft.nft.tokenId
        );
        if (existingEntry) {
-         const differentMetadata = _chunkNEXY7SE2js.compareNftMetadata.call(void 0, 
+         const differentMetadata = _chunkNEXY7SE2js.compareNftMetadata.call(void 0,
 -          singleNft.value.newMetadata,
 +          singleNft.newMetadata,
            existingEntry
@@ -812,7 +834,7 @@ index cd8f792..b20db8a 100644
          "PreferencesController:getState"
        );
 -      try {
--        newContractBalances[address] = _controllerutils.toHex.call(void 0, 
+-        newContractBalances[address] = _controllerutils.toHex.call(void 0,
 -          await _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedAddress)
 -        );
 +      return _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedAddress).then((balance) => {
@@ -849,8 +871,8 @@ index cd8f792..b20db8a 100644
  _disabled = new WeakMap();
 +_updateInProgress = new WeakMap();
  var TokenBalancesController_default = TokenBalancesController;
- 
- 
+
+
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js b/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
 index b8722af..dbff48b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-MBCN3MNX.js
@@ -904,9 +926,9 @@ index 8c506d9..bd798ec 100644
      },
      {}
 @@ -205,5 +216,5 @@ async function fetchTokenContractExchangeRates({
- 
- 
- 
+
+
+
 -exports.TOKEN_PRICES_BATCH_SIZE = TOKEN_PRICES_BATCH_SIZE; exports.compareNftMetadata = compareNftMetadata; exports.formatAggregatorNames = formatAggregatorNames; exports.formatIconUrlWithProxy = formatIconUrlWithProxy; exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks; exports.isTokenDetectionSupportedForNetwork = isTokenDetectionSupportedForNetwork; exports.isTokenListSupportedForNetwork = isTokenListSupportedForNetwork; exports.removeIpfsProtocolPrefix = removeIpfsProtocolPrefix; exports.getIpfsCIDv1AndPath = getIpfsCIDv1AndPath; exports.getFormattedIpfsUrl = getFormattedIpfsUrl; exports.addUrlProtocolPrefix = addUrlProtocolPrefix; exports.ethersBigNumberToBN = ethersBigNumberToBN; exports.divideIntoBatches = divideIntoBatches; exports.reduceInBatchesSerially = reduceInBatchesSerially; exports.fetchTokenContractExchangeRates = fetchTokenContractExchangeRates;
 +exports.TOKEN_PRICES_BATCH_SIZE = TOKEN_PRICES_BATCH_SIZE; exports.compareNftMetadata = compareNftMetadata; exports.hasNewCollectionFields = hasNewCollectionFields; exports.formatAggregatorNames = formatAggregatorNames; exports.formatIconUrlWithProxy = formatIconUrlWithProxy; exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks; exports.isTokenDetectionSupportedForNetwork = isTokenDetectionSupportedForNetwork; exports.isTokenListSupportedForNetwork = isTokenListSupportedForNetwork; exports.removeIpfsProtocolPrefix = removeIpfsProtocolPrefix; exports.getIpfsCIDv1AndPath = getIpfsCIDv1AndPath; exports.getFormattedIpfsUrl = getFormattedIpfsUrl; exports.addUrlProtocolPrefix = addUrlProtocolPrefix; exports.ethersBigNumberToBN = ethersBigNumberToBN; exports.divideIntoBatches = divideIntoBatches; exports.reduceInBatchesSerially = reduceInBatchesSerially; exports.fetchTokenContractExchangeRates = fetchTokenContractExchangeRates;
  //# sourceMappingURL=chunk-NEXY7SE2.js.map
@@ -1016,7 +1038,7 @@ index 9016c5f..a24805e 100644
 +export type GetCollectionsResponse = {
 +    collections: CollectionResponse[];
 +  };
-+  
++
 +export type CollectionResponse = {
 +    id?: string;
 +    openseaVerificationStatus?: string;
@@ -1039,7 +1061,7 @@ index 9016c5f..a24805e 100644
 +    rawData?: Metadata;
 +    isNativeOffChainCancellable?: boolean;
 +};
-+  
++
 +export type SourceCollection = {
 +    id: string;
 +    domain: string;
@@ -1059,7 +1081,7 @@ index 9016c5f..a24805e 100644
 -};
 +    floorAsk?: FloorAskCollection;
 +  };
-+  
++
 +export type Collection = TokenCollection & CollectionResponse;
 +
  export type Royalties = {
