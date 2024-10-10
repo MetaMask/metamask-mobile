@@ -1,36 +1,23 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { hexToText } from '@metamask/controller-utils';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../../../component-library/components/Buttons/ButtonIcon';
-import ClipboardManager from '../../../../../../../../core/ClipboardManager';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../../../component-library/components/Icons/Icon';
 import { sanitizeString } from '../../../../../../../../util/string';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
 import ExpandableSection from '../../../../UI/ExpandableSection';
 import styleSheet from './Message.styles';
+import CopyButton from '../../../../UI/CopyButton';
 
 const Message = () => {
   const { approvalRequest } = useApprovalRequest();
-  const [copied, setCopied] = useState(false);
   const { styles } = useStyles(styleSheet, {});
 
   const message = useMemo(
     () => sanitizeString(hexToText(approvalRequest?.requestData?.data)),
     [approvalRequest?.requestData?.data],
   );
-
-  const copyMessage = useCallback(async () => {
-    await ClipboardManager.setString(message);
-    setCopied(true);
-  }, [message, setCopied]);
 
   return (
     <ExpandableSection
@@ -44,14 +31,9 @@ const Message = () => {
       }
       expandedContent={
         <View style={styles.messageContainer}>
-          <ButtonIcon
-            iconColor={IconColor.Muted}
-            size={ButtonIconSizes.Sm}
-            onPress={copyMessage}
-            iconName={copied ? IconName.CopySuccess : IconName.Copy}
-            style={styles.copyButton}
-            testID="copyButtonTestId"
-          />
+          <View style={styles.copyButtonContainer}>
+            <CopyButton copyText={message} />
+          </View>
           <Text style={styles.messageExpanded}>{message}</Text>
         </View>
       }

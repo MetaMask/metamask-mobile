@@ -9,8 +9,9 @@ import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { useTheme } from '../../../../../../util/theme';
-import createStyles from './style';
+import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: ReactNode;
@@ -20,8 +21,8 @@ interface TooltipProps {
 
 const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
   const [open, setOpen] = useState(false);
-  const { colors, shadows } = useTheme();
-  const styles = createStyles(colors, shadows);
+  const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <View>
@@ -52,8 +53,8 @@ const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
             style={styles.closeModalBtn}
             testID={tooltipTestId ?? 'tooltipTestId'}
           />
-            {title && <Text style={styles.modalTitle}>{title}</Text>}
-            <Text>{content}</Text>
+          {title && <Text style={styles.modalTitle}>{title}</Text>}
+          <Text>{content}</Text>
         </View>
       </Modal>
     </View>
