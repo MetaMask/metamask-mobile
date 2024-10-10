@@ -85,6 +85,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           return !isZero(tokenBalances[address]) || isETH;
         })
       : tokens;
+    console.log(tokensToDisplay);
     return sortAssets(tokensToDisplay, tokenSortConfig);
   }, [hideZeroBalanceTokens, tokenBalances, tokenSortConfig, tokens]);
 
@@ -168,7 +169,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     switch (index) {
       case 0:
         PreferencesController.setTokenSortConfig({
-          key: 'token-sort-key',
+          key: 'tokenFiatAmount',
           order: 'dsc',
           sortCallback: 'stringNumeric',
         });
