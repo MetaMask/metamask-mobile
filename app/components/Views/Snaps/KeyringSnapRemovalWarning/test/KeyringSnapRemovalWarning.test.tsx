@@ -147,7 +147,7 @@ describe('KeyringSnapRemovalWarning', () => {
     expect(cancelButton.props.children[1].props.children).toBe('Cancel');
 
     const warningBannerTitle = queryByText(
-      'Be sure you can access any accounts created by the Snap via private keys before removing them',
+      'Be sure you can access any accounts created by this Snap on your own before removing it',
     );
     expect(warningBannerTitle).toBeTruthy();
   });
