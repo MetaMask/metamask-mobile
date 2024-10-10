@@ -210,7 +210,6 @@ describe('ApproveTransactionModal', () => {
     );
 
     expect(mockGetTokenDetails).toHaveBeenCalled();
-    fireEvent.press(getByTestId('Confirm'));
     await waitFor(() => {
       const isDisabled = getByTestId('Confirm').props.disabled;
       expect(isDisabled).toBe(true);
