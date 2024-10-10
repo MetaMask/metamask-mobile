@@ -494,14 +494,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     setSelectedAddresses,
   ]);
 
-  const renderEditAccountsPermissionsScreen = useCallback(() => {
-    return (
+  const renderEditAccountsPermissionsScreen = useCallback(
+    () => (
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
-        onSelectAddress={(selectedAddresses) => {
-          setSelectedAddresses(selectedAddresses);
+        onSelectAddress={(checkedAddresses) => {
+          setSelectedAddresses(checkedAddresses);
         }}
         isLoading={isLoading}
         onUserAction={setUserIntent}
@@ -516,20 +516,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
       />
-    );
-  }, [
-    ensByAccountAddress,
-    selectedAddresses,
-    isLoading,
-    accountsFilteredByPermissions,
-    setUserIntent,
-    faviconSource,
-    urlWithProtocol,
-    secureIcon,
-    hostname,
-    isRenderedAsBottomSheet,
-    accounts,
-  ]);
+    ),
+    [
+      ensByAccountAddress,
+      selectedAddresses,
+      isLoading,
+      setUserIntent,
+      faviconSource,
+      urlWithProtocol,
+      secureIcon,
+      hostname,
+      isRenderedAsBottomSheet,
+      accounts,
+    ],
+  );
 
   const renderConnectMoreAccountsScreen = useCallback(
     () => (
@@ -537,9 +537,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
-        onSelectAddress={(selectedAddresses) => {
+        onSelectAddress={(checkedAddresses) => {
           setSelectedAddresses([
-            ...selectedAddresses,
+            ...checkedAddresses,
             ...permittedAccountsByHostname,
           ]);
         }}
@@ -565,6 +565,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       urlWithProtocol,
       secureIcon,
       hostname,
+      permittedAccountsByHostname,
     ],
   );
 
