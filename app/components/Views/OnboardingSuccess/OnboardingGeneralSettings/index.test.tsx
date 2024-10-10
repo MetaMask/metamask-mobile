@@ -1,12 +1,8 @@
-// Third party dependencies.
 import React from 'react';
-
-// Internal dependencies.
-import DefaultSettings from '.';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
+import OnboardingGeneralSettings from '.';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -31,14 +27,12 @@ jest.mock('react-redux', () => ({
 
 const mockNetworkName = 'Ethereum Main Network';
 
-describe('DefaultSettings', () => {
+describe('OnboardingGeneralSettings', () => {
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const { toJSON } = renderWithProvider(
-      <DefaultSettings navigation={useNavigation()} />,
-    );
+    const { toJSON } = renderWithProvider(<OnboardingGeneralSettings />);
     expect(toJSON()).toMatchSnapshot();
   });
 });
