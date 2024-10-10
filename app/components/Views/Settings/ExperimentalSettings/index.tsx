@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Linking, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
@@ -57,9 +57,9 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     [colors],
   );
 
-  const goToWalletConnectSessions = useCallback(() => {
+  const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
-  }, [navigation]);
+  };
 
   const openSesLink = () => Linking.openURL(SES_URL);
 

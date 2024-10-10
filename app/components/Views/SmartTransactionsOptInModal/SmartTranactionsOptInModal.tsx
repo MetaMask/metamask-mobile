@@ -142,7 +142,7 @@ const SmartTransactionsOptInModal = () => {
 
   const hasOptedIn = useRef<boolean | null>(null);
 
-  const dismissModal = async () => {
+  const dismissModal = () => {
     modalRef.current?.dismissModal();
   };
 
