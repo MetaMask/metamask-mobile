@@ -13,7 +13,7 @@ import LoginView from '../../pages/LoginView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-
+import CommonView from '../../pages/CommonView';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
@@ -68,9 +68,8 @@ describe(Regression('Deep linking Tests'), () => {
   it('should relaunch the app then enable remember me', async () => {
     // Relaunch app
     await TestHelpers.relaunchApp();
-    await LoginView.isVisible();
-    await LoginView.toggleRememberMe();
-
+    await Assertions.checkIfVisible(LoginView.container);
+    await LoginView.toggleRememberMeSwitch();
     await LoginView.enterPassword(validAccount.password);
     await Assertions.checkIfVisible(WalletView.container);
   });
@@ -80,8 +79,7 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.delay(3000);
     await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
     await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
-
-    await WalletView.tapOKAlertButton();
+    await CommonView.tapOKAlertButton();
   });
 
   it('should go to settings then networks', async () => {

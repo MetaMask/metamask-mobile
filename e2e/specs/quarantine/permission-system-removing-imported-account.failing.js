@@ -2,7 +2,7 @@
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import ImportAccountView from '../../pages/ImportAccountView';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
 import Browser from '../../pages/Browser/BrowserView';
@@ -19,6 +19,7 @@ import { TestDApp } from '../../pages/Browser/TestDApp';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import Assertions from '../../utils/Assertions';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 const SEPOLIA = 'Sepolia';
 
@@ -45,7 +46,7 @@ describe(
     it('should trigger connect modal in the test dapp', async () => {
       await TestHelpers.delay(3000);
       //TODO: Create goToTestDappAndTapConnectButton method.
-      await TestDApp.goToTestDappAndTapConnectButton();
+      // await TestDApp.goToTestDappAndTapConnectButton();
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
@@ -56,10 +57,10 @@ describe(
     it('should import account', async () => {
       await ConnectModal.tapImportAccountOrHWButton();
       await AddAccountModal.tapImportAccount();
-      await ImportAccountView.isVisible();
+      await Assertions.checkIfVisible(ImportAccountView.container);
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
-      await ImportAccountView.isImportSuccessSreenVisible();
-      await ImportAccountView.tapCloseButtonOnImportSuccess();
+      await Assertions.checkIfVisible(SuccessImportAccountView.container);
+      await SuccessImportAccountView.tapCloseButton();
     });
 
     it('should connect multiple accounts to a dapp', async () => {
@@ -73,7 +74,7 @@ describe(
       await ConnectedAccountsModal.tapNetworksPicker();
       await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       await NetworkListModal.tapTestNetworkSwitch();
-      await NetworkListModal.changeNetwork(SEPOLIA);
+      await NetworkListModal.changeNetworkTo(SEPOLIA);
     });
 
     it('should dismiss the network education modal', async () => {

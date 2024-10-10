@@ -10,17 +10,17 @@ describe('ExpandableSection', () => {
   it('should match snapshot for simple ExpandableSection', async () => {
     const container = render(
       <ExpandableSection
-        content={
+        collapsedContent={
           <View>
             <Text>Open</Text>
           </View>
         }
-        modalContent={
+        expandedContent={
           <InfoSection>
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(container).toMatchSnapshot();
@@ -29,17 +29,17 @@ describe('ExpandableSection', () => {
   it('should display default content', async () => {
     const { getByText } = render(
       <ExpandableSection
-        content={
+        collapsedContent={
           <View>
             <Text>Open</Text>
           </View>
         }
-        modalContent={
+        expandedContent={
           <InfoSection>
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(getByText('Open')).toBeDefined();
@@ -48,21 +48,21 @@ describe('ExpandableSection', () => {
   it('should open modal when right icon is pressed', async () => {
     const { getByTestId, getByText } = render(
       <ExpandableSection
-        content={
+        collapsedContent={
           <View>
             <Text>Open</Text>
           </View>
         }
-        modalContent={
+        expandedContent={
           <InfoSection>
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(getByText('Open')).toBeDefined();
-    fireEvent.press(getByTestId('openButtonTestId'));
+    fireEvent.press(getByText('Open'));
     expect(getByText('Value-Text')).toBeDefined();
     fireEvent.press(getByTestId('closeButtonTestId'));
     expect(getByText('Open')).toBeDefined();

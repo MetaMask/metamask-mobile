@@ -27,14 +27,30 @@ export interface ListItemMultiSelectButtonProps
   buttonIcon?: IconName;
 
   /**
-   * Optional button onClick function
-   */
-  onButtonClick?: ((event: GestureResponderEvent) => void) | undefined;
-
-  /**
    * Optional button onClick rpc modal function
    */
   onTextClick?: (() => void) | undefined;
+
+  /**
+   * Optional property to add avatar
+   */
+  withAvatar?: boolean;
+
+  /**
+   * Optional property to show icon
+   */
+  showButtonIcon?: boolean;
+
+  buttonProps?: {
+    /**
+     * Optional button onClick function
+     */
+    onButtonClick?: ((event: GestureResponderEvent) => void) | undefined;
+    /**
+     * Optional property to show text button
+     */
+    textButton?: string | null;
+  };
 }
 
 /**

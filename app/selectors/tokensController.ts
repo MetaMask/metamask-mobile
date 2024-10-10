@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { TokensState, Token } from '@metamask/assets-controllers';
+import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 
@@ -8,7 +8,8 @@ const selectTokensControllerState = (state: RootState) =>
 
 export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
-  (tokensControllerState: TokensState) => tokensControllerState?.tokens,
+  (tokensControllerState: TokensControllerState) =>
+    tokensControllerState?.tokens,
 );
 
 export const selectTokensByAddress = createSelector(
@@ -27,10 +28,12 @@ export const selectTokensLength = createSelector(
 
 export const selectIgnoreTokens = createSelector(
   selectTokensControllerState,
-  (tokensControllerState: TokensState) => tokensControllerState?.ignoredTokens,
+  (tokensControllerState: TokensControllerState) =>
+    tokensControllerState?.ignoredTokens,
 );
 
 export const selectDetectedTokens = createSelector(
   selectTokensControllerState,
-  (tokensControllerState: TokensState) => tokensControllerState?.detectedTokens,
+  (tokensControllerState: TokensControllerState) =>
+    tokensControllerState?.detectedTokens,
 );

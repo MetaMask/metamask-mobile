@@ -10,16 +10,16 @@ storiesOf('Confirmations / ExpandableSection', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => (
     <ExpandableSection
-      content={
+      collapsedContent={
         <View>
           <Text>Open</Text>
         </View>
       }
-      modalContent={
+      expandedContent={
         <InfoSection>
           <InfoRow label="label-Key">Value-Text</InfoRow>
         </InfoSection>
       }
-      modalTitle={'Title'}
+      expandedContentTitle={'Title'}
     />
   ));

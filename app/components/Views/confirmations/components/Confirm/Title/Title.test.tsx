@@ -2,7 +2,7 @@ import React from 'react';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
-import Title from './index';
+import Title from './Title';
 
 describe('Title', () => {
   it('should match snapshot for personal sign', async () => {

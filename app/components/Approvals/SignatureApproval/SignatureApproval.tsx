@@ -1,10 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SignatureRequestRoot from '../../Views/confirmations/components/SignatureRequest/Root';
+import { endTrace, TraceName } from '../../../util/trace';
 
 const SignatureApproval = () => {
   const { approvalRequest, onReject, onConfirm } = useApprovalRequest();
+  const signatureRequestId = approvalRequest?.requestData?.requestId;
 
   const onSignConfirm = useCallback(async () => {
     await onConfirm({
@@ -13,6 +15,13 @@ const SignatureApproval = () => {
       handleErrors: false,
     });
   }, [onConfirm]);
+
+  useEffect(() => {
+    endTrace({
+      name: TraceName.NotificationDisplay,
+      id: signatureRequestId,
+    });
+  }, [signatureRequestId]);
 
   const messageParams =
     approvalRequest &&

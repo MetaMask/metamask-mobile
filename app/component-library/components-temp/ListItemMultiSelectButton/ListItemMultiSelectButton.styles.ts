@@ -28,7 +28,7 @@ const styleSheet = (params: {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
         padding: 16,
-        width: '95%',
+        width: '90%',
         zIndex: 1,
       } as ViewStyle,
       style,
@@ -85,6 +85,9 @@ const styleSheet = (params: {
     arrowStyle: {
       paddingLeft: 8,
       paddingTop: 32,
+    },
+    buttonIcon: {
+      paddingHorizontal: 20,
     },
   });
 };

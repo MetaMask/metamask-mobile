@@ -12,6 +12,7 @@ import {
   convertNetworkId,
   deprecatedGetNetworkId,
   fetchEstimatedMultiLayerL1Fee,
+  isPrivateConnection,
 } from '.';
 import {
   MAINNET,
@@ -436,6 +437,48 @@ describe('network-utils', () => {
 
       expect(layer1GasFee.startsWith('0x')).toEqual(false);
       expect(layer1GasFee).toEqual('0a25339d61');
+    });
+  });
+
+  describe('isPrivateConnection', () => {
+    it('returns true for localhost', () => {
+      expect(isPrivateConnection('localhost')).toBe(true);
+    });
+
+    it('returns true for 127.0.0.1', () => {
+      expect(isPrivateConnection('127.0.0.1')).toBe(true);
+    });
+
+    it('returns true for 192.168.x.x', () => {
+      expect(isPrivateConnection('192.168.1.1')).toBe(true);
+    });
+
+    it('returns true for 10.x.x.x', () => {
+      expect(isPrivateConnection('10.0.0.1')).toBe(true);
+    });
+
+    it('returns true for 172.16.x.x', () => {
+      expect(isPrivateConnection('172.16.0.1')).toBe(true);
+    });
+
+    it('returns true for for 172.31.x.x', () => {
+      expect(isPrivateConnection('172.31.255.255')).toBe(true);
+    });
+
+    it('returns false for a public IP', () => {
+      expect(isPrivateConnection('8.8.8.8')).toBe(false);
+    });
+
+    it('returns false for a non-IP hostname', () => {
+      expect(isPrivateConnection('example.com')).toBe(false);
+    });
+
+    it('returns true for edge case within 172 range', () => {
+      expect(isPrivateConnection('172.20.0.1')).toBe(true);
+    });
+
+    it('returns false for an IP not in private ranges', () => {
+      expect(isPrivateConnection('192.169.0.1')).toBe(false);
     });
   });
 });
