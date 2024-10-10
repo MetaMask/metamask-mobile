@@ -5,6 +5,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions';
 import { cloneDeep } from 'lodash';
+import { fireEvent } from '@testing-library/react-native';
 
 import {
   getTokenDetails,
@@ -12,8 +13,11 @@ import {
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
-  getTokenDetails: jest.fn()
+  getTokenDetails: jest.fn().mockReturnValue({
+    standard: 'ERC20'
+  })
 }));
+
 const mockGetTokenDetails = getTokenDetails as jest.Mock;
 
 jest.mock('react-redux', () => ({
@@ -25,12 +29,16 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn(),
 }));
 
-
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
     },
+    AssetsContractController: {
+        getERC20BalanceOf: jest
+        .fn()
+        .mockResolvedValue(0x0186a0),
+    }
   },
   controllerMessenger: {
     subscribe: jest.fn(),
@@ -111,6 +119,7 @@ describe('ApproveTransactionModal', () => {
         },
       }
     };
+
     state.transaction = {
       to: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
       origin: 'test-dapp',
@@ -123,16 +132,22 @@ describe('ApproveTransactionModal', () => {
       },
       data,
     };
-    const { toJSON, getAllByText } = renderScreen(
-      ApproveTransactionModal,
+    const mockOnConfirm = jest.fn();
+    const {getByTestId } = renderScreen(
+
+      () => (
+        // eslint-disable-next-line react/react-in-jsx-scope
+        <ApproveTransactionModal
+        onConfirm={mockOnConfirm}
+        />
+      ),
       { name: 'Approve' },
       { state },
     );
 
     expect(mockGetTokenDetails).toHaveBeenCalled();
-    const approveBtn = getAllByText('Approve')[1];
-    expect(approveBtn).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
+    fireEvent.press(getByTestId('Confirm'));
+    expect(mockOnConfirm).toHaveBeenCalled();
   });
 
 });

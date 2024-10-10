@@ -889,6 +889,7 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
               confirmButtonState={this.getConfirmButtonState()}
+              confirmTestID="Confirm"
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
