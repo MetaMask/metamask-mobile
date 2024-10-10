@@ -44,6 +44,9 @@ async function handleEthereumUrl({
 
     switch (ethUrl.function_name) {
       case ETH_ACTIONS.TRANSFER: {
+        // Reset navigation before starting a send flow
+        deeplinkManager.navigation.navigate('WalletView');
+
         deeplinkManager.navigation.navigate('SendView', {
           screen: 'Send',
           params: { txMeta: { ...txMeta, action: 'send-token' } },
