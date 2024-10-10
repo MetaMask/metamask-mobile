@@ -5341,10 +5341,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
   integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
 
-"@metamask/react-native-webview@^14.0.3":
+"@metamask/react-native-webview@metamask/react-native-webview-mm#5321def5e66cbe2c5dd6f060624beda6954cdd18":
   version "14.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.0.3.tgz#f8bc80af6f2d72d64c34c4f9ae382f1ea8c492a4"
-  integrity sha512-jPtvStPnhr8T3ZTdcNw8VN3kSxHYqh1VQH9UO73/EFBDG1g4da1yz7qtH4vwmBE5WYsYYJjZtOZCcvgKb5wBsg==
+  resolved "https://codeload.github.com/metamask/react-native-webview-mm/tar.gz/5321def5e66cbe2c5dd6f060624beda6954cdd18"
   dependencies:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
