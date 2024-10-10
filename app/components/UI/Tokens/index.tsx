@@ -12,8 +12,6 @@ import Logger from '../../../util/Logger';
 import {
   selectChainId,
   selectNetworkClientId,
-  selectProviderConfig,
-  selectTicker,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
@@ -31,14 +29,11 @@ import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
-import useIsOriginalNativeTokenSymbol from '../../../components/hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectNetworkName } from '../../../selectors/networkInfos';
-import { weiToFiatNumber } from '../../../util/number';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
