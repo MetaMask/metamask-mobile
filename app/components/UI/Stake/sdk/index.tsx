@@ -49,8 +49,8 @@ export interface Stake {
   selectedChainId: string | undefined;
   selectedNetworkName: string | undefined;
 
-  balance: string | undefined;
-  balanceBN: BN | undefined;
+  balanceEth: string | undefined;
+  balanceWei: BN | undefined;
   balanceFiatNumber: number | undefined;
 
   conversionRate: number;
@@ -59,10 +59,10 @@ export interface Stake {
   setEstimatedAnnualRewards: (value: string) => void;
 }
 
-const STAKEContext = createContext<Stake | undefined>(undefined);
+const StakeContext = createContext<Stake | undefined>(undefined);
 
 export const useStakeContext = () => {
-  const context = useContext(STAKEContext);
+  const context = useContext(StakeContext);
   return context as Stake;
 };
 
@@ -75,8 +75,8 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
   // from react state
   const [sdkService, setSdkService] = useState<PooledService>();
   const [sdkError, setSdkError] = useState<Error>();
-  const [amount, setAmount] = useState<string>('0');
-  const [amountBN, setAmountBN] = useState<BN>(new BN(0));
+  const [amountEth, setAmountEth] = useState<string>('0');
+  const [amountWei, setAmountWei] = useState<BN>(new BN(0));
   const [fiatAmount, setFiatAmount] = useState('0');
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
@@ -88,7 +88,7 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
   const selectedNetworkName = useSelector(selectNickname);
   const {
     balance,
-    balanceBN,
+    balanceWei,
     balanceFiatNumber,
     conversionRate,
     currentCurrency,
@@ -99,15 +99,15 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
 
   const setAmountCallback = useCallback(
     (value: string) => {
-      setAmount(value);
-      setAmountBN(toWei(value, 'ether'));
+      setAmountEth(value);
+      setAmountWei(toWei(value, 'ether'));
       const fiatValue = weiToFiatNumber(
         toWei(value, 'ether'),
         conversionRate,
         2,
       ).toString();
       setFiatAmount(fiatValue);
-      dispatch(updateAmountState(amount));
+      dispatch(updateAmountState(amountEth));
     },
     [dispatch, conversionRate],
   );
@@ -137,17 +137,17 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
       sdkService,
       sdkType,
       setSdkType,
-      amount,
+      amount: amountEth,
       setAmount: setAmountCallback,
-      amountBN,
-      setAmountBN,
+      amountBN: amountWei,
+      setAmountBN: setAmountWei,
       fiatAmount,
       setFiatAmount,
       selectedAddress,
       selectedChainId,
       selectedNetworkName,
-      balance,
-      balanceBN,
+      balanceEth: balance,
+      balanceWei,
       balanceFiatNumber,
       conversionRate,
       currentCurrency,
@@ -159,17 +159,17 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
       sdkService,
       sdkType,
       setSdkType,
-      amount,
+      amountEth,
       setAmountCallback,
-      amountBN,
-      setAmountBN,
+      amountWei,
+      setAmountWei,
       fiatAmount,
       setFiatAmount,
       selectedAddress,
       selectedChainId,
       selectedNetworkName,
       balance,
-      balanceBN,
+      balanceWei,
       balanceFiatNumber,
       conversionRate,
       currentCurrency,
@@ -178,10 +178,10 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
     ],
   );
   return (
-    <STAKEContext.Provider value={stakeContextValue}>
+    <StakeContext.Provider value={stakeContextValue}>
       {children}
-    </STAKEContext.Provider>
+    </StakeContext.Provider>
   );
 };
 
-export default STAKEContext;
+export default StakeContext;
