@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       padding: 15,
@@ -138,7 +139,7 @@ const createStyles = (colors) =>
     },
   });
 
-function getStyles(type, colors) {
+function getStyles(type: string, colors: Theme['colors']) {
   const styles = createStyles(colors);
 
   let fontStyle, containerStyle;
