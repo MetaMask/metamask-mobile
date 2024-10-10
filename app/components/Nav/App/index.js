@@ -711,7 +711,6 @@ const App = (props) => {
           component={MultiRpcModal}
         />
       ) : null}
-
       <Stack.Screen
         name={Routes.SHEET.SHOW_TOKEN_ID}
         component={ShowTokenIdSheet}

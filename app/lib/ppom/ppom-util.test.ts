@@ -8,7 +8,11 @@ import PPOMUtil from './ppom-util';
 import * as securityAlertAPI from './security-alerts-api';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { Hex } from '@metamask/utils';
-import { NetworkClientType } from '@metamask/network-controller';
+import {
+  NetworkClientType,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -31,24 +35,6 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    // NetworkController: {
-    //   state: {
-    //     selectedNetworkClientId: 'mainnet',
-    //     networksMetadata: {},
-    //     networkConfigurations: {
-    //       mainnet: {
-    //         id: 'mainnet',
-    //         rpcUrl: 'https://mainnet.infura.io/v3',
-    //         chainId: CHAIN_ID_MOCK,
-    //         ticker: 'ETH',
-    //         nickname: 'Sepolia network',
-    //         rpcPrefs: {
-    //           blockExplorerUrl: 'https://etherscan.com',
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
     AccountsController: {
       state: {
         internalAccounts: { accounts: [] },
@@ -149,20 +135,26 @@ describe('PPOM Utils', () => {
         },
       }),
       state: {
-        networkConfigurations: {
-          mainnet: {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: CHAIN_ID_MOCK,
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
+        networkConfigurationsByChainId: {
+          [NETWORKS_CHAIN_ID.MAINNET]: {
+            blockExplorerUrls: ['http://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Mainnet',
+            nativeCurrency: 'ETH',
+            defaultBlockExplorerUrlIndex: 0,
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Custom,
+                name: 'ethereum',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
           },
         },
-        selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
+        selectedNetworkClientId: 'mainnet',
       },
     };
 

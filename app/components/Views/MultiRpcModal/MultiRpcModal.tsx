@@ -28,6 +28,7 @@ import { useSelector } from 'react-redux';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
+import { NetworkConfiguration } from '@metamask/network-controller';
 import {
   AvatarSize,
   AvatarVariant,
@@ -81,43 +82,49 @@ const MultiRpcModal = () => {
 
           <View>
             {Object.values(networkConfigurations).map(
-              (networkConfiguration, index) => (
-                <Cell
-                  key={index}
-                  variant={CellVariant.SelectWithMenu}
-                  title={
-                    networkConfiguration.nickname ||
-                    networkConfiguration.chainId
-                  }
-                  secondaryText={networkConfiguration.rpcUrl}
-                  avatarProps={{
-                    variant: AvatarVariant.Network,
-                    name:
-                      networkConfiguration.nickname ||
-                      networkConfiguration.chainId,
-                    //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                    imageSource: getNetworkImageSource({
-                      chainId: networkConfiguration.chainId,
-                    }),
-                    size: AvatarSize.Sm,
-                  }}
-                  isSelected={false}
-                  buttonIcon={IconName.MoreVertical}
-                  showButtonIcon={false}
-                  buttonProps={{
-                    textButton: strings('transaction.edit'),
-                    onButtonClick: () => {
-                      sheetRef.current?.onCloseBottomSheet(() => {
-                        navigate(Routes.ADD_NETWORK, {
-                          shouldNetworkSwitchPopToWallet: false,
-                          shouldShowPopularNetworks: false,
-                          network: networkConfiguration.rpcUrl,
+              (networkConfiguration: NetworkConfiguration, index) =>
+                networkConfiguration.rpcEndpoints.length > 1 ? (
+                  <Cell
+                    key={index}
+                    variant={CellVariant.SelectWithMenu}
+                    title={networkConfiguration.name}
+                    secondaryText={
+                      networkConfiguration.rpcEndpoints[
+                        networkConfiguration.defaultRpcEndpointIndex
+                      ].name ??
+                      networkConfiguration.rpcEndpoints[
+                        networkConfiguration.defaultRpcEndpointIndex
+                      ].type
+                    }
+                    avatarProps={{
+                      variant: AvatarVariant.Network,
+                      name: networkConfiguration.name,
+                      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                      imageSource: getNetworkImageSource({
+                        chainId: networkConfiguration.chainId,
+                      }),
+                      size: AvatarSize.Sm,
+                    }}
+                    isSelected={false}
+                    buttonIcon={IconName.MoreVertical}
+                    showButtonIcon={false}
+                    buttonProps={{
+                      textButton: strings('transaction.edit'),
+                      onButtonClick: () => {
+                        sheetRef.current?.onCloseBottomSheet(() => {
+                          navigate(Routes.ADD_NETWORK, {
+                            shouldNetworkSwitchPopToWallet: false,
+                            shouldShowPopularNetworks: false,
+                            network:
+                              networkConfiguration?.rpcEndpoints?.[
+                                networkConfiguration?.defaultRpcEndpointIndex
+                              ].url,
+                          });
                         });
-                      });
-                    },
-                  }}
-                />
-              ),
+                      },
+                    }}
+                  />
+                ) : null,
             )}
           </View>
         </ScrollView>
