@@ -133,6 +133,7 @@ exports[`PermissionItem renders correctly 1`] = `
         }
       >
         5
+         
         accounts
       </Text>
       <Text
@@ -165,6 +166,7 @@ exports[`PermissionItem renders correctly 1`] = `
         }
       >
         2
+         
         networks
       </Text>
     </View>
