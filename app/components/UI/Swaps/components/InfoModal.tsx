@@ -1,14 +1,14 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors, shadows) =>
+const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
@@ -52,6 +52,66 @@ const createStyles = (colors, shadows) =>
     },
   });
 
+interface InfoModalProps {
+  isVisible: boolean | undefined;
+  title?: React.ReactNode;
+  body?: React.ReactNode;
+  toggleModal: () => void;
+  propagateSwipe?: boolean;
+  message?: string;
+  urlText?: string;
+  url?: () => void;
+  testID?: string;
+}
+
+interface CloseButtonProps {
+  onPress: () => void;
+  style: {
+    closeIcon: object;
+  };
+}
+
+const CloseButton: React.FC<CloseButtonProps> = ({ onPress, style }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+  >
+    <IonicIcon name="ios-close" style={style.closeIcon} size={30} />
+  </TouchableOpacity>
+);
+
+interface InfoViewProps {
+  message?: string;
+  urlText?: string;
+  url?: () => void;
+  onClose: () => void;
+  style: {
+    infoContainer: object;
+    messageLimit: object;
+    closeIcon: object;
+  };
+}
+
+const InfoView: React.FC<InfoViewProps> = ({ message, urlText, url, onClose, style }) => {
+  if (!message) {
+    return <CloseButton onPress={onClose} style={style} />;
+  }
+
+  return (
+    <View style={style.infoContainer}>
+      <Text style={style.messageLimit}>
+        <Text>{message} </Text>
+        {urlText && (
+          <Text link onPress={url}>
+            {urlText}
+          </Text>
+        )}
+      </Text>
+      <CloseButton onPress={onClose} style={style} />
+    </View>
+  );
+};
+
 function InfoModal({
   title,
   body,
@@ -62,38 +122,9 @@ function InfoModal({
   urlText,
   url,
   testID,
-}) {
+}: InfoModalProps) {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
-
-  const CloseButton = () => (
-    <TouchableOpacity
-      onPress={toggleModal}
-      hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-    >
-      <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
-    </TouchableOpacity>
-  );
-
-  const InfoView = () => {
-    if (!message) {
-      return <CloseButton />;
-    }
-
-    return (
-      <View style={styles.infoContainer}>
-        <Text style={styles.messageLimit}>
-          <Text>{message} </Text>
-          {urlText && (
-            <Text link onPress={url}>
-              {urlText}
-            </Text>
-          )}
-        </Text>
-        <CloseButton />
-      </View>
-    );
-  };
 
   return (
     <Modal
@@ -111,23 +142,18 @@ function InfoModal({
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
           {title && <Title>{title}</Title>}
-          <InfoView />
+          <InfoView
+            message={message}
+            urlText={urlText}
+            url={url}
+            onClose={toggleModal}
+            style={styles}
+          />
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
     </Modal>
   );
 }
-InfoModal.propTypes = {
-  isVisible: PropTypes.bool,
-  title: PropTypes.node,
-  body: PropTypes.node,
-  toggleModal: PropTypes.func,
-  propagateSwipe: PropTypes.bool,
-  message: PropTypes.string,
-  urlText: PropTypes.string,
-  url: PropTypes.func,
-  testID: PropTypes.string,
-};
 
 export default InfoModal;
