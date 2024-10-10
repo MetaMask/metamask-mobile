@@ -27,13 +27,13 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   let mockServer;
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
-
     mockServer = await startMockServer({ // Configure mock server
       mockUrl: urls.suggestedGasApiGanache,
       responseCode: 200,
       responseBody
     });
+
+    await TestHelpers.reverseServerPort();
   });
 
   afterAll(async () => {
