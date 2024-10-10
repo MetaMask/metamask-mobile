@@ -171,3 +171,11 @@ export const markMetamaskNotificationsAsRead = async (
     return getErrorMessage(error);
   }
 };
+
+export const performDeleteStorage = async () => {
+  try {
+   await Engine.context.UserStorageController.performDeleteStorage('notifications.notification_settings');
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
