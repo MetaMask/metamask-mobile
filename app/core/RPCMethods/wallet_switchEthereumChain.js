@@ -59,10 +59,7 @@ const wallet_switchEthereumChain = async ({
       return;
     }
     const analyticsParams = await switchToNetwork({
-      network: {
-        networkConfigurationId: existingNetwork?.[0],
-        networkConfiguration: existingNetwork?.[1],
-      },
+      network: existingNetwork,
       chainId: _chainId,
       controllers: {
         CurrencyRateController,
