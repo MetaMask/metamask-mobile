@@ -2154,8 +2154,8 @@ export class NetworkSettings extends PureComponent {
                   showButtonIcon={blockExplorerUrl !== url}
                   buttonIcon={IconName.Trash}
                   buttonProps={{
-                    onButtonClick: async () => {
-                      await this.onBlockExplorerUrlDelete(url);
+                    onButtonClick: () => {
+                      this.onBlockExplorerUrlDelete(url);
                     },
                   }}
                   avatarProps={{
@@ -2209,8 +2209,8 @@ export class NetworkSettings extends PureComponent {
                   }
                   buttonIcon={IconName.Trash}
                   buttonProps={{
-                    onButtonClick: async () => {
-                      await this.onRpcUrlDelete(url);
+                    onButtonClick: () => {
+                      this.onRpcUrlDelete(url);
                     },
                   }}
                   onTextClick={async () => {
