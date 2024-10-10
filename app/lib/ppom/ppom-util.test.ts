@@ -119,10 +119,6 @@ describe('PPOM Utils', () => {
     securityAlertAPI.validateWithSecurityAlertsAPI,
   );
 
-  const isSecurityAlertsEnabledMock = jest.mocked(
-    securityAlertAPI.isSecurityAlertsAPIEnabled,
-  );
-
   const mockIsBlockaidFeatureEnabled = jest.mocked(isBlockaidFeatureEnabled);
 
   const getSupportedChainIdsMock = jest.spyOn(
@@ -168,6 +164,7 @@ describe('PPOM Utils', () => {
 
     normalizeTransactionParamsMock.mockImplementation((params) => params);
     mockIsBlockaidFeatureEnabled.mockResolvedValue(true);
+    getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
   });
 
   afterEach(() => {
@@ -258,13 +255,6 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toHaveBeenCalledTimes(1);
     });
 
-    it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
-      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
-        1,
-      );
-    });
-
     it('should update transaction with validation result', async () => {
       const spy = jest.spyOn(
         TransactionActions,
@@ -286,17 +276,6 @@ describe('PPOM Utils', () => {
         data: '0xabcd',
       };
 
-      const validateMock = jest.fn();
-
-      const ppomMock = {
-        validateJsonRpc: validateMock,
-      };
-
-      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (callback: any) => callback(ppomMock),
-      );
-
       normalizeTransactionParamsMock.mockReturnValue(
         normalizedTransactionParamsMock,
       );
@@ -308,25 +287,14 @@ describe('PPOM Utils', () => {
         mockRequest.params[0],
       );
 
-      expect(validateMock).toHaveBeenCalledTimes(1);
-      expect(validateMock).toHaveBeenCalledWith({
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(CHAIN_ID_MOCK,{
         ...mockRequest,
         params: [normalizedTransactionParamsMock],
       });
     });
 
     it('normalizes transaction request origin before validation', async () => {
-      const validateMock = jest.fn();
-
-      const ppomMock = {
-        validateJsonRpc: validateMock,
-      };
-
-      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (callback: any) => callback(ppomMock),
-      );
-
       await PPOMUtil.validateRequest(
         {
           ...mockRequest,
@@ -340,16 +308,13 @@ describe('PPOM Utils', () => {
         mockRequest.params[0],
       );
 
-      expect(validateMock).toHaveBeenCalledTimes(1);
-      expect(validateMock).toHaveBeenCalledWith({
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
+      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(CHAIN_ID_MOCK, {
         ...mockRequest,
       });
     });
 
-    it('uses security alerts API if enabled', async () => {
-      isSecurityAlertsEnabledMock.mockReturnValue(true);
-      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
-
+    it('uses security alerts API', async () => {
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
       expect(MockEngine.context.PPOMController?.usePPOM).not.toHaveBeenCalled();
@@ -362,9 +327,6 @@ describe('PPOM Utils', () => {
     });
 
     it('uses controller if security alerts API throws', async () => {
-      isSecurityAlertsEnabledMock.mockReturnValue(true);
-      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
-
       validateWithSecurityAlertsAPIMock.mockRejectedValue(
         new Error('Test Error'),
       );
