@@ -291,7 +291,9 @@ exports[`AccountNetworkInfoExpanded should match snapshot for personal sign 1`] 
               "marginTop": 8,
             }
           }
-        />
+        >
+          mainnet.infura.io/v3/
+        </Text>
       </View>
     </View>
   </View>

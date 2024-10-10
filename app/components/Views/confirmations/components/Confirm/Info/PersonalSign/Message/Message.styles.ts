@@ -35,7 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 14,
       fontWeight: '400',
     },
-    copyButton: {
+    copyButtonContainer: {
       position: 'absolute',
       top: -40,
       right: 0,
