@@ -2050,7 +2050,7 @@ export class NetworkSettings extends PureComponent {
               />
               <View style={styles.addRpcNameButton}>
                 <ButtonPrimary
-                  label={strings('app_settings.add_block_explorer_url')}
+                  label={strings('app_settings.add_rpc_url')}
                   size={ButtonSize.Lg}
                   onPress={() => {
                     this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
@@ -2114,7 +2114,7 @@ export class NetworkSettings extends PureComponent {
               )}
               <View style={styles.addRpcNameButton}>
                 <ButtonPrimary
-                  label={strings('app_settings.add_rpc_url')}
+                  label={strings('app_settings.add_block_explorer_url')}
                   size={ButtonSize.Lg}
                   onPress={() => {
                     this.onBlockExplorerItemAdd(blockExplorerUrl);
