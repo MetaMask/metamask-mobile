@@ -1,46 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`] = `
-<View
-  style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c566",
-      "borderRadius": 8,
-      "borderWidth": 1,
-      "display": "flex",
-      "flexDirection": "row",
-      "justifyContent": "space-between",
-      "marginBottom": 8,
-      "padding": 16,
-    }
-  }
+<TouchableOpacity
+  accessible={true}
+  activeOpacity={1}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
 >
-  <View>
-    <Text>
-      Open
-    </Text>
-  </View>
-  <TouchableOpacity
-    accessible={true}
-    activeOpacity={1}
-    disabled={false}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+  <View
     style={
       {
         "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c566",
         "borderRadius": 8,
-        "height": 24,
-        "justifyContent": "center",
-        "opacity": 1,
-        "width": 24,
+        "borderWidth": 1,
+        "display": "flex",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 8,
+        "padding": 16,
       }
     }
-    testID="openButtonTestId"
   >
+    <View>
+      <Text>
+        Open
+      </Text>
+    </View>
     <SvgMock
       color="#9fa6ae"
       height={16}
@@ -53,6 +41,6 @@ exports[`ExpandableSection should match snapshot for simple ExpandableSection 1`
       }
       width={16}
     />
-  </TouchableOpacity>
-</View>
+  </View>
+</TouchableOpacity>
 `;
