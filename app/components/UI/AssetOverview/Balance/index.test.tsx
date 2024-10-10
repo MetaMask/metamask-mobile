@@ -25,7 +25,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockDAI = {
   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
   aggregators: ['Metamask', 'Coinmarketcap'],
-  balanceError: null,
+  hasBalanceError: false,
   balance: '6.49757',
   balanceFiat: '$6.49',
   decimals: 18,
