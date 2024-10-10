@@ -186,7 +186,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         },
       });
     } else if (isMetamaskNotificationsEnabled) {
-      disableNotifications();
+      await disableNotifications();
       setUiNotificationStatus(false);
     } else {
       const { permission } = await NotificationsService.getAllPermissions(false);
@@ -194,11 +194,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
         return;
       }
 
-        /**
-         * Although this is an async function, we are dispatching an action (firing & forget)
-         * to emulate optimistic UI.
-         */
-        enableNotifications();
+        await enableNotifications();
         setUiNotificationStatus(true);
     }
     trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {

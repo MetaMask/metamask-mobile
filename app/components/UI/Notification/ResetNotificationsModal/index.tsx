@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 
 // External dependencies.
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -14,25 +14,38 @@ import  {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useDeleteNotificationsStorageKey, useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import { useDeleteNotificationsStorageKey } from '../../../../util/notifications/hooks/useNotifications';
 import ModalContent from '../Modal';
-
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 const ResetNotificationsModal = () => {
   const { trackEvent } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { deleteNotificationsStorageKey, loading } = useDeleteNotificationsStorageKey();
-  const { enableNotifications, loading: enableLoading } = useEnableNotifications();
-
-
+  const { toastRef } = useContext(ToastContext);
   const closeBottomSheet = () => bottomSheetRef.current?.onCloseBottomSheet();
 
+  const showResultToast = () => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings('app_settings.reset_notifications_success'),
+          isBold: false,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+  };
+
   const handleCta = async () => {
-    await deleteNotificationsStorageKey();
-    await enableNotifications();
+    await deleteNotificationsStorageKey().then(() => {
+      showResultToast();
       trackEvent(MetaMetricsEvents.NOTIFICATION_STORAGE_KEY_DELETED, {
         settings_type: 'delete_notifications_storage_key',
       });
+    });
   };
 
   const prevLoading = useRef(loading);
@@ -59,7 +72,7 @@ const ResetNotificationsModal = () => {
         setIsChecked={setIsChecked}
         handleCta={handleCta}
         handleCancel={closeBottomSheet}
-        loading={loading || enableLoading}
+        loading={loading}
         />
     </BottomSheet>
   );
