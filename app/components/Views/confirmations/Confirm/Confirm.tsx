@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { useStyles } from '../../../../component-library/hooks';
 import BottomModal from '../components/UI/BottomModal';
+import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
 import Title from '../components/Confirm/Title';
@@ -22,6 +23,7 @@ const Confirm = () => {
       <View style={styles.container}>
         <View>
           <Title />
+          <AccountNetworkInfo />
           <Info />
         </View>
         <Footer />
