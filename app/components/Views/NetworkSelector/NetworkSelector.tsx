@@ -386,8 +386,10 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
-          onButtonClick={() => {
-            openModal(chainId, false, MAINNET, true);
+          buttonProps={{
+            onButtonClick: () => {
+              openModal(chainId, false, MAINNET, true);
+            },
           }}
           // TODO: Substitute with the new network controller's RPC array.
           onTextClick={() =>
@@ -441,8 +443,10 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
-          onButtonClick={() => {
-            openModal(chainId, false, LINEA_MAINNET, true);
+          buttonProps={{
+            onButtonClick: () => {
+              openModal(chainId, false, LINEA_MAINNET, true);
+            },
           }}
           // TODO: Substitute with the new network controller's RPC array.
           onTextClick={() =>
@@ -466,7 +470,7 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId}
+        isSelected={chainId === selectedChainId && !providerConfig.rpcUrl}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -503,8 +507,10 @@ const NetworkSelector = () => {
               style={styles.networkCell}
               buttonIcon={IconName.MoreVertical}
               secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
-              onButtonClick={() => {
-                openModal(chainId, true, rpcUrl, false);
+              buttonProps={{
+                onButtonClick: () => {
+                  openModal(chainId, true, rpcUrl, false);
+                },
               }}
               // TODO: Substitute with the new network controller's RPC array.
               onTextClick={() =>
@@ -520,7 +526,8 @@ const NetworkSelector = () => {
 
         return (
           <Cell
-            key={chainId}
+            key={`${chainId}-${rpcUrl}`}
+            testID={NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(name)}
             variant={CellVariant.Select}
             title={name}
             avatarProps={{
@@ -529,10 +536,16 @@ const NetworkSelector = () => {
               imageSource: image,
               size: avatarSize,
             }}
-            isSelected={Boolean(chainId === selectedChainId && selectedRpcUrl)}
+            isSelected={Boolean(
+              chainId === selectedChainId && selectedRpcUrl === rpcUrl,
+            )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
-          />
+          >
+            {Boolean(
+              chainId === selectedChainId && selectedRpcUrl === rpcUrl,
+            ) && <View testID={`${name}-selected`} />}
+          </Cell>
         );
       },
     );
@@ -566,8 +579,10 @@ const NetworkSelector = () => {
             onPress={() => onNetworkChange(networkType)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
-            onButtonClick={() => {
-              openModal(chainId, false, networkType, true);
+            buttonProps={{
+              onButtonClick: () => {
+                openModal(chainId, false, networkType, true);
+              },
             }}
           />
         );

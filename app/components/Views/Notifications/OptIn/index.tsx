@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { AuthorizationStatus } from '@notifee/react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -18,10 +17,7 @@ import EnableNotificationsCardPlaceholder from '../../../../images/enableNotific
 import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import {
-  asyncAlert,
-  requestPushNotificationsPermission,
-} from '../../../../util/notifications';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -76,14 +72,11 @@ const OptIn = () => {
         },
       });
     } else {
-      const nativeNotificationStatus = await requestPushNotificationsPermission(
-        asyncAlert,
-      );
+      const { permission } = await NotificationsService.getAllPermissions();
 
-      if (
-        nativeNotificationStatus?.authorizationStatus ===
-        AuthorizationStatus.AUTHORIZED
-      ) {
+      if (permission !== 'authorized') {
+        return;
+      }
         /**
          * Although this is an async function, we are dispatching an action (firing & forget)
          * to emulate optimistic UI.
@@ -103,7 +96,6 @@ const OptIn = () => {
         action_type: 'activated',
         is_profile_syncing_enabled: isProfileSyncingEnabled,
       });
-    }
   }, [
     basicFunctionalityEnabled,
     enableNotifications,

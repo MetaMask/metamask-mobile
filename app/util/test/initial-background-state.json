@@ -67,6 +67,7 @@
     "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {
+    "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
@@ -75,7 +76,7 @@
   "PreferencesController": {
     "featureFlags": {},
     "identities": {},
-    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
+    "ipfsGateway": "https://gateway.pinata.cloud/ipfs/",
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
@@ -87,6 +88,7 @@
     "disabledRpcMethodPreferences": {
       "eth_sign": false
     },
+    "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
       "0x1": true,

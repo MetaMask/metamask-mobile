@@ -13,4 +13,6 @@ export interface PermissionsSummaryProps {
   showActionButtons?: boolean;
   isAlreadyConnected?: boolean;
   isRenderedAsBottomSheet?: boolean;
+  isDisconnectAllShown?: boolean;
+  isNetworkSwitch?: boolean;
 }

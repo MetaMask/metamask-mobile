@@ -35,9 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import {
-  isDeviceNotificationEnabled,
-} from '../../../util/notifications';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -343,7 +341,7 @@ const Wallet = ({
     }
 
     async function checkIfNotificationsAreEnabled() {
-      await isDeviceNotificationEnabled();
+      await NotificationsService.isDeviceNotificationEnabled();
     }
     checkIfNotificationsAreEnabled();
   });
@@ -408,8 +406,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } =
-          Engine.context;
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },
