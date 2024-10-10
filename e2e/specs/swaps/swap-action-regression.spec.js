@@ -92,6 +92,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
       await TabBarComponent.tapWallet();
+      await Assertions.checkIfVisible(WalletView.container);
       if (network.providerConfig.nickname !== currentNetwork)
       {
         await WalletView.tapNetworksButtonOnNavBar();
@@ -99,9 +100,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
         await TestHelpers.delay(3000);
+        await Assertions.checkIfVisible(WalletView.container);
         currentNetwork = network.providerConfig.nickname;
       }
-      await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
       await TestHelpers.delay(1000);
       await WalletActionsModal.tapSwapButton();
@@ -149,12 +150,33 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
-
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
       );
+
+      await ActivitiesView.tapOnSwapActivity(
+        sourceTokenSymbol,
+        destTokenSymbol,
+      );
+      try {
+        await Assertions.checkIfVisible(DetailsModal.title);
+      } catch (e) {
+        await ActivitiesView.tapOnSwapActivity(
+          sourceTokenSymbol,
+          destTokenSymbol,
+        );
+        await Assertions.checkIfVisible(DetailsModal.title);
+      }
+      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
+      await DetailsModal.tapOnCloseIcon();
+      await Assertions.checkIfNotVisible(DetailsModal.title);
 
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
@@ -166,30 +188,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await DetailsModal.tapOnCloseIcon();
         await Assertions.checkIfNotVisible(DetailsModal.title);
       }
-
-      await ActivitiesView.tapOnSwapActivity(
-        sourceTokenSymbol,
-        destTokenSymbol,
-      );
-
-      try {
-        await Assertions.checkIfVisible(DetailsModal.title);
-      } catch (e) {
-        await ActivitiesView.tapOnSwapActivity(
-          sourceTokenSymbol,
-          destTokenSymbol,
-        );
-        await Assertions.checkIfVisible(DetailsModal.title);
-      }
-
-      await Assertions.checkIfVisible(DetailsModal.title);
-      await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
-      );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-      await DetailsModal.tapOnCloseIcon();
-      await Assertions.checkIfNotVisible(DetailsModal.title);
     },
   );
 });
