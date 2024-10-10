@@ -24,7 +24,7 @@ const CopyButton = ({ copyText, testID }: CopyButtonProps) => {
 
   return (
     <ButtonIcon
-      iconColor={IconColor.Muted}
+      iconColor={IconColor.Alternative}
       size={ButtonIconSizes.Sm}
       onPress={copyMessage}
       iconName={copied ? IconName.CopySuccess : IconName.Copy}
