@@ -488,6 +488,28 @@ index f7509a1..4573718 100644
  var TokenBalancesController_default = TokenBalancesController;
  
  
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-JUI3XNEF.js b/node_modules/@metamask/assets-controllers/dist/chunk-JUI3XNEF.js
+index 44804c8..911a6e6 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-JUI3XNEF.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-JUI3XNEF.js
+@@ -247,10 +247,15 @@ var TokenListController = class extends _pollingcontroller.StaticIntervalPolling
+ };
+ _onNetworkControllerStateChange = new WeakSet();
+ onNetworkControllerStateChange_fn = async function(networkControllerState) {
+-  if (this.chainId !== networkControllerState.providerConfig.chainId) {
++  const selectedNetworkClient = this.messagingSystem.call(
++    "NetworkController:getNetworkClientById",
++    networkControllerState.selectedNetworkClientId
++  );
++  const { chainId } = selectedNetworkClient.configuration;
++  if (this.chainId !== chainId) {
+     this.abortController.abort();
+     this.abortController = new AbortController();
+-    this.chainId = networkControllerState.providerConfig.chainId;
++    this.chainId = chainId;
+     if (this.state.preventPollingOnNetworkRestart) {
+       this.clearingTokenListData();
+     } else {
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-QFDTOEYR.js b/node_modules/@metamask/assets-controllers/dist/chunk-QFDTOEYR.js
 index 5335fa5..0854306 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-QFDTOEYR.js
