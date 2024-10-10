@@ -87,6 +87,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   let otherOptions;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     otherOptions = {
       res: {},
       addCustomNetworkRequest: {},
