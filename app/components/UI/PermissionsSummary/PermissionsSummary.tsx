@@ -1,6 +1,11 @@
 import React, { useCallback } from 'react';
 import StyledButton from '../StyledButton';
-import { SafeAreaView, TouchableOpacity, View } from 'react-native';
+import {
+  ImageSourcePropType,
+  SafeAreaView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -30,19 +35,21 @@ import useSelectedAccount from '../Tabs/TabThumbnail/useSelectedAccount';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
-import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../selectors/networkInfos';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { getNetworkImageSource } from '../../../util/networks';
 
 const PermissionsSummary = ({
   currentPageInformation,
+  customNetworkInformation,
   onEdit,
   onEditNetworks,
   onBack,
+  onCancel,
+  onConfirm,
   onUserAction,
   showActionButtons = true,
   isAlreadyConnected = true,
@@ -54,14 +61,26 @@ const PermissionsSummary = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
-  const networkName = useSelector(selectNetworkName);
+
+  // if network switch, we get the chain name from the customNetworkInformation
+  let chainName = '';
+  let chainImage: ImageSourcePropType;
+  if (isNetworkSwitch && customNetworkInformation?.chainId) {
+    chainName = customNetworkInformation?.chainName;
+    // @ts-expect-error getNetworkImageSource is not implemented in typescript
+    chainImage = getNetworkImageSource({
+      chainId: customNetworkInformation?.chainId,
+    });
+  }
 
   const confirm = () => {
     onUserAction?.(USER_INTENT.Confirm);
+    onConfirm?.();
   };
 
   const cancel = () => {
     onUserAction?.(USER_INTENT.Cancel);
+    onCancel?.();
   };
 
   const handleEditAccountsButtonPress = () => {
@@ -208,21 +227,33 @@ const PermissionsSummary = ({
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
             <View style={styles.permissionRequestNetworkInfo}>
-              <View style={styles.permissionRequestNetworkName}>
-                <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                  <TextComponent variant={TextVariant.BodySM}>
-                    {strings('permissions.requesting_for')}
-                  </TextComponent>
-                  <TextComponent variant={TextVariant.BodySMMedium}>
-                    {networkName}
-                  </TextComponent>
-                </TextComponent>
-              </View>
-              <View style={styles.avatarGroup}>
-                <AvatarGroup
-                  avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
-                />
-              </View>
+              {isNetworkSwitch && (
+                <>
+                  <View style={styles.permissionRequestNetworkName}>
+                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                      <TextComponent variant={TextVariant.BodySM}>
+                        {strings('permissions.requesting_for')}
+                      </TextComponent>
+                      <TextComponent variant={TextVariant.BodySMMedium}>
+                        {chainName}
+                      </TextComponent>
+                    </TextComponent>
+                  </View>
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Xs}
+                    name={chainName}
+                    imageSource={chainImage}
+                  />
+                </>
+              )}
+              {!isNetworkSwitch && (
+                <View style={styles.avatarGroup}>
+                  <AvatarGroup
+                    avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
+                  />
+                </View>
+              )}
             </View>
           </View>
           {!isNetworkSwitch && renderEndAccessory()}
@@ -247,6 +278,7 @@ const PermissionsSummary = ({
                   })}
             </TextComponent>
           </View>
+          {/*TODO These should be conditional upon which permissions are being requested*/}
           {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>

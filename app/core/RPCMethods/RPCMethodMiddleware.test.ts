@@ -393,6 +393,7 @@ describe('getRpcMethodMiddleware', () => {
       }),
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts: mockGetInternalAccounts,
+        findNetworkClientIdByChainId: jest.fn(),
       }),
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
