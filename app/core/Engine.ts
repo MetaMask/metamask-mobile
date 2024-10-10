@@ -537,7 +537,7 @@ class Engine {
         displayNftMedia: true,
         securityAlertsEnabled: true,
         tokenSortConfig: {
-          key: 'token-sort-key',
+          key: 'tokenFiatAmount',
           order: 'dsc',
           sortCallback: 'stringNumeric',
         },

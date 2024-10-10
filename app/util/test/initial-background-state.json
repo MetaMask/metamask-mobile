@@ -114,7 +114,12 @@
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": false,
-    "useTransactionSimulations": true
+    "useTransactionSimulations": true,
+    "tokenSortConfig": {
+      "key": "tokenFiatAmount",
+      "order": "dsc",
+      "sortCallback": "stringNumeric"
+    }
   },
   "TokenBalancesController": {
     "contractBalances": {}
