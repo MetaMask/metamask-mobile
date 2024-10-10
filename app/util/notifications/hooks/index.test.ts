@@ -59,14 +59,16 @@ jest.mock('../services/NotificationService', () => ({
   handleNotificationEvent: jest.fn(),
 }));
 describe('useNotificationHandler', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  it('navigates to NOTIFICATIONS.DETAILS when notification is pressed', () => {
+  it('navigates to NOTIFICATIONS.DETAILS when notification is pressed', async () => {
     const { result } = renderHook(() => useNotificationHandler(mockNavigation));
 
-    result.current.handlePressedNotification(notification);
+    await act(async () => {
+      result.current.handlePressedNotification(notification);
+    });
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.NOTIFICATIONS.DETAILS,
@@ -77,12 +79,13 @@ describe('useNotificationHandler', () => {
   });
 
   it('does not navigates when notification is null', async () => {
-
     const { result } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
 
-    result.current.handlePressedNotification();
+    await act(async () => {
+      result.current.handlePressedNotification();
+    });
 
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
@@ -92,7 +95,7 @@ describe('useNotificationHandler', () => {
 
     const { result } = renderHook(() => useNotificationHandler(mockNavigation));
 
-    act(() => {
+    await act(async () => {
       result.current.handlePressedNotification(notification);
     });
 
