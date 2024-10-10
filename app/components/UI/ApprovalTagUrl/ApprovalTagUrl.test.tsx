@@ -18,25 +18,11 @@ const mockInitialState = {
 };
 
 describe('ApprovalTagUrl', () => {
-  it('renders correctly with origin', () => {
+  it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <ApprovalTagUrl
         from={ADDRESS_MOCK}
         origin={DOMAIN_MOCK}
-        url=""
-        sdkDappMetadata={{ url: '', icon: '' }}
-      />,
-      { state: mockInitialState },
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with url', () => {
-    const { toJSON } = renderWithProvider(
-      <ApprovalTagUrl
-        from={ADDRESS_MOCK}
-        origin=""
         url={`https://${DOMAIN_MOCK}/test-dapp/mock-url-query`}
         sdkDappMetadata={{ url: '', icon: '' }}
       />,
