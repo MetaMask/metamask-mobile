@@ -1,7 +1,22 @@
-function getDefinedProperties(object) {
+import { SecurityAlertResponse } from '@metamask/transaction-controller';
+import { BN } from 'ethereumjs-util';
+
+interface TxMeta {
+  data?: string;
+  from?: string;
+  gas?: BN;
+  gasPrice?: BN;
+  to?: string;
+  value?: BN;
+  maxFeePerGas?: BN;
+  maxPriorityFeePerGas?: BN;
+  securityAlertResponse?: SecurityAlertResponse;
+}
+
+function getDefinedProperties<T extends object>(object: T): Partial<T> {
   return Object.entries(object).reduce(
     (obj, [key, val]) => (val !== undefined ? { ...obj, [key]: val } : obj),
-    {},
+    {} as Partial<T>,
   );
 }
 
@@ -11,7 +26,7 @@ function getDefinedProperties(object) {
  * @param {object} txMeta - An object containing data about a transaction
  * @returns {object} - An object containing the standard properties of a transaction
  */
-export function getTxData(txMeta = {}) {
+export function getTxData(txMeta: TxMeta = {}): Partial<TxMeta> {
   const {
     data,
     from,
@@ -22,8 +37,8 @@ export function getTxData(txMeta = {}) {
     maxFeePerGas,
     maxPriorityFeePerGas,
     securityAlertResponse,
-  } = txMeta; // eslint-disable-line no-unused-vars
-  const txData = {
+  } = txMeta;
+  const txData: Partial<TxMeta> = {
     data,
     from,
     gas,
@@ -43,7 +58,7 @@ export function getTxData(txMeta = {}) {
  * @param {object} txMeta - An object containing data about a transaction
  * @returns {object} - An object containing the standard properties of a transaction
  */
-export function getTxMeta(txMeta = {}) {
+export function getTxMeta(txMeta: TxMeta = {}): Partial<TxMeta> {
   const {
     data,
     from,
@@ -54,6 +69,6 @@ export function getTxMeta(txMeta = {}) {
     maxFeePerGas,
     maxPriorityFeePerGas,
     ...rest
-  } = txMeta; // eslint-disable-line no-unused-vars
+  } = txMeta;
   return getDefinedProperties(rest);
 }
