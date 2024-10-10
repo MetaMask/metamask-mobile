@@ -390,6 +390,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           handleCreateAccount();
           break;
         }
+        case USER_INTENT.EditMultiple: {
+          handleConnect();
+          setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
+          break;
+        }
         case USER_INTENT.Cancel: {
           hideSheet();
           break;
@@ -512,6 +517,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         isAutoScrollEnabled={false}
         onBack={() =>
           setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
+        }
+        onPrimaryActionButtonPress={() =>
+          setUserIntent(USER_INTENT.EditMultiple)
         }
         screenTitle={strings('accounts.edit_accounts_title')}
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}

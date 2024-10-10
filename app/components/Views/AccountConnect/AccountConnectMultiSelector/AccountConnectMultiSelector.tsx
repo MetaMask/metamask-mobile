@@ -54,6 +54,7 @@ const AccountConnectMultiSelector = ({
   screenTitle,
   isRenderedAsBottomSheet = true,
   showDisconnectAllButton = true,
+  onPrimaryActionButtonPress,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -206,7 +207,7 @@ const AccountConnectMultiSelector = ({
               variant={ButtonVariants.Primary}
               label={strings(
                 isMultichainVersion1Enabled
-                  ? 'app_settings.fiat_on_ramp.update'
+                  ? 'networks.update'
                   : 'accounts.connect_with_count',
                 {
                   countLabel: selectedAddresses.length
@@ -214,7 +215,16 @@ const AccountConnectMultiSelector = ({
                     : '',
                 },
               )}
-              onPress={() => onUserAction(USER_INTENT.Confirm)}
+              onPress={() => {
+                if (!isMultichainVersion1Enabled) {
+                  onUserAction(USER_INTENT.Confirm);
+                  return;
+                } else {
+                  onPrimaryActionButtonPress
+                    ? onPrimaryActionButtonPress()
+                    : onUserAction(USER_INTENT.Confirm);
+                }
+              }}
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
@@ -265,6 +275,7 @@ const AccountConnectMultiSelector = ({
     hostname,
     toggleRevokeAllAccountPermissionsModal,
     showDisconnectAllButton,
+    onPrimaryActionButtonPress,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
