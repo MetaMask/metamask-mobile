@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Pressable,
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -291,6 +292,9 @@ const createStyles = (colors) =>
     },
     fetchingText: {
       color: colors.text.default,
+    },
+    gasFeeInfoLink: {
+      marginBottom: -3
     },
   });
 
@@ -1634,11 +1638,6 @@ function SwapsQuotesView({
     getEstimatedL1ApprovalFee();
   }, [multiLayerFeeNetwork, approvalTransaction, chainId]);
 
-  const openLinkAboutGas = () =>
-    Linking.openURL(
-      'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-    );
-
   /* Rendering */
   if (isFirstLoad || (!error?.key && !selectedQuote)) {
     return (
@@ -2216,26 +2215,15 @@ function SwapsQuotesView({
         body={
           <View>
             <Text grey infoModal>
-              {strings('swaps.gas_education_1')}
-              {strings(
-                `swaps.gas_education_2${isMainnet ? '_ethereum' : ''}`,
-              )}{' '}
-              <Text bold>{strings('swaps.gas_education_3')}</Text>
+              {strings('swaps.gas_education_tooltip_1')}
+              {' '}
+              <Pressable onPress={openLinkAboutGas} style={styles.gasFeeInfoLink}>
+              <Text grey noMargin link>
+                {strings('swaps.gas_education_tooltip_2')}
+                </Text>
+            </Pressable>
+              {strings('swaps.gas_education_tooltip_3')}
             </Text>
-            <Text grey infoModal>
-              {strings('swaps.gas_education_4')}{' '}
-              <Text bold>{strings('swaps.gas_education_5')} </Text>
-              {strings('swaps.gas_education_6')}
-            </Text>
-            <Text grey infoModal>
-              <Text bold>{strings('swaps.gas_education_7')} </Text>
-              {strings('swaps.gas_education_8')}
-            </Text>
-            <TouchableOpacity onPress={openLinkAboutGas}>
-              <Text grey link infoModal>
-                {strings('swaps.gas_education_learn_more')}
-              </Text>
-            </TouchableOpacity>
           </View>
         }
       />
@@ -2374,3 +2362,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SwapsQuotesView);
+
+function openLinkAboutGas() {
+  Linking.openURL(AppConstants.URLS.GAS_FEES);
+}
