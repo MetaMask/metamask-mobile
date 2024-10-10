@@ -111,6 +111,9 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
+import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
+import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
+import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
@@ -176,6 +179,21 @@ const OnboardingSuccessFlow = () => (
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
       component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.GENERAL_SETTINGS}
+      component={OnboardingGeneralSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.ASSETS_SETTINGS}
+      component={OnboardingAssetsSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SECURITY_SETTINGS}
+      component={OnboardingSecuritySettings}
       options={DefaultSettings.navigationOptions}
     />
   </Stack.Navigator>
