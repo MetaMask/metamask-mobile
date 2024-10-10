@@ -4,14 +4,37 @@ import {
 } from '../../selectors/Settings/NetworksView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import { NetworkListModalSelectorsIDs } from '../../selectors/Modals/NetworkListModal.selectors';
 
 class NetworkView {
   get networkContainer() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
   }
 
+  get networkFormContainer() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CONTAINER);
+  }
+
   get rpcContainer() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
+  }
+
+  get addNetworkButtonForm() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON)
+      : Matchers.getElementByLabel(NetworkListModalSelectorsIDs.ADD_BUTTON);
+  }
+
+  get addRpcDropDownButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC)
+      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
+  }
+
+  get addRpcButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON)
+      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
   }
 
   get noMatchingText() {
@@ -115,6 +138,18 @@ class NetworkView {
   }
   async tapAddNetworkButton() {
     await Gestures.waitAndTap(this.addNetworkButton);
+  }
+
+  async tapAddNetworkFormButton() {
+    await Gestures.waitAndTap(this.addNetworkButtonForm);
+  }
+
+  async tapRpcDropDownButton() {
+    await Gestures.waitAndTap(this.addRpcDropDownButton);
+  }
+
+  async tapAddRpcButton() {
+    await Gestures.waitAndTap(this.addRpcButton);
   }
 
   async switchToCustomNetworks() {
