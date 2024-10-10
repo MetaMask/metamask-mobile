@@ -28,16 +28,16 @@ import { TokenI } from '../../types';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
-  isAddTokenEnabled: boolean;
   goToAddToken: () => void;
   showDetectedTokens: () => void;
+  isAddTokenEnabled: boolean;
 }
 
 export const TokenListFooter = ({
   tokens,
-  isAddTokenEnabled,
   goToAddToken,
   showDetectedTokens,
+  isAddTokenEnabled,
 }: TokenListFooterProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
