@@ -11,18 +11,21 @@ export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectChainId,
   selectTicker,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (state: any) => state.settings.showFiatOnTestnets,
+  (state: RootState) => state.settings.showFiatOnTestnets,
   (
     currencyRateControllerState: CurrencyRateState,
-    chainId,
+    chainId: string,
     ticker: string,
     showFiatOnTestnets,
-  ) =>
-    isTestNet(chainId) && !showFiatOnTestnets
-      ? undefined
-      : currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate,
+  ) => {
+    if (chainId && isTestNet(chainId) && !showFiatOnTestnets) {
+      return undefined;
+    } else if (ticker) {
+      return currencyRateControllerState?.currencyRates?.[ticker]
+        ?.conversionRate;
+    }
+    return undefined;
+  },
 );
 
 export const selectCurrentCurrency = createSelector(
