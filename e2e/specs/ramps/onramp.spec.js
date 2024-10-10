@@ -16,6 +16,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import QuoteView from '../../pages/Ramps/QuoteView';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
@@ -54,6 +55,66 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await SelectPaymentMethodView.tapContinueButton();    
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton();
   });
 
+  it('should select a new region and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openRegionSelector()
+    await BuildQuoteView.selectRegion('France')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
+    await Assertions.checkIfTextIsNotDisplayed(/^≈ $.*USD$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a new token and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openTokenSelector()
+    await BuildQuoteView.selectToken('Uniswap')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
+    await Assertions.checkIfTextIsDisplayed(/.*UNI$/);
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
+    await Assertions.checkIfTextIsNotDisplayed(/.*ETH$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a new currency and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openCurrencySelector()
+    await BuildQuoteView.selectCurrency('USD')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
+    await Assertions.checkIfTextIsDisplayed(/^≈ \$.*USD$/);
+    await Assertions.checkIfTextIsNotDisplayed(/^≈ €.*EUR$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a new payment method and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.openPaymentMethodSelector()
+    await BuildQuoteView.selectPaymentMethod('Apple Pay')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.quotes);
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
 });
