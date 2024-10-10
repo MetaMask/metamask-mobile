@@ -12,6 +12,8 @@ import Logger from '../../../util/Logger';
 import {
   selectChainId,
   selectNetworkClientId,
+  selectProviderConfig,
+  selectTicker,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
@@ -25,10 +27,18 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
-import { sortAssets } from './util';
+import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import useIsOriginalNativeTokenSymbol from '../../../components/hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import { weiToFiatNumber } from '../../../util/number';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -70,6 +80,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
 
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
+
   const actionSheet = useRef<typeof ActionSheet>();
   const sortControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
@@ -79,15 +93,48 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const styles = createStyles(colors);
 
   const tokensList = useMemo(() => {
+    // Filter tokens based on hideZeroBalanceTokens flag
     const tokensToDisplay = hideZeroBalanceTokens
-      ? tokens.filter((token) => {
-          const { address, isETH } = token;
-          return !isZero(tokenBalances[address]) || isETH;
-        })
+      ? tokens.filter(
+          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
+        )
       : tokens;
-    console.log(tokensToDisplay);
-    return sortAssets(tokensToDisplay, tokenSortConfig);
-  }, [hideZeroBalanceTokens, tokenBalances, tokenSortConfig, tokens]);
+
+    // Calculate fiat balances for tokens
+    const tokenFiatBalances = conversionRate
+      ? tokensToDisplay.map((asset) =>
+          asset.isETH
+            ? parseFloat(asset.balance) * conversionRate
+            : deriveBalanceFromAssetMarketDetails(
+                asset,
+                tokenExchangeRates,
+                tokenBalances,
+                conversionRate,
+                currentCurrency,
+              ).balanceFiatCalculation,
+        )
+      : [];
+
+    // Combine tokens with their fiat balances
+    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
+    // this key in the controller is also used by extension, so this is for consistency in syntax and config
+    // actual balance rendering for each token list item happens in TokenListItem component
+    const tokensWithBalances = tokensToDisplay.map((token, i) => ({
+      ...token,
+      tokenFiatAmount: tokenFiatBalances[i],
+    }));
+
+    // Sort the tokens based on tokenSortConfig
+    return sortAssets(tokensWithBalances, tokenSortConfig);
+  }, [
+    conversionRate,
+    currentCurrency,
+    hideZeroBalanceTokens,
+    tokenBalances,
+    tokenExchangeRates,
+    tokenSortConfig,
+    tokens,
+  ]);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
