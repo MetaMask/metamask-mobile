@@ -78,7 +78,7 @@ const asset = {
   symbol: 'ETH',
   name: 'Ethereum',
   isETH: undefined,
-  balanceError: null,
+  hasBalanceError: false,
   decimals: 18,
   address: '0x123',
   aggregators: [],

@@ -15,6 +15,37 @@ import {
   getKeyringByAddress,
   getLabelTextByAddress,
 } from '.';
+import {
+  mockHDKeyringAddress,
+  mockQrKeyringAddress,
+  mockSimpleKeyringAddress,
+} from '../test/keyringControllerTestUtils';
+
+const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+jest.mock('../../core/Engine', () => {
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+  const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
+    '../test/keyringControllerTestUtils',
+  );
+  return {
+    context: {
+      KeyringController: {
+        ...MOCK_KEYRING_CONTROLLER_STATE,
+        state: {
+          keyrings: [
+            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
+            {
+              accounts: [snapAddress],
+              index: 0,
+              type: KeyringTypes.snap,
+            },
+          ],
+        },
+      },
+    },
+  };
+});
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -232,19 +263,13 @@ describe('isQRHardwareAccount', () => {
   });
 
   it('should return false if address is from keyring type simple', () => {
-    expect(
-      isQRHardwareAccount('0xd018538C87232FF95acbCe4870629b75640a78E7'),
-    ).toBeFalsy();
+    expect(isQRHardwareAccount(mockSimpleKeyringAddress)).toBeFalsy();
   });
   it('should return false if address is from keyring type hd', () => {
-    expect(
-      isQRHardwareAccount('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
-    ).toBeFalsy();
+    expect(isQRHardwareAccount(mockHDKeyringAddress)).toBeFalsy();
   });
   it('should return true if address is from keyring type qr', () => {
-    expect(
-      isQRHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBeTruthy();
+    expect(isQRHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
   });
 });
 describe('getKeyringByAddress', () => {
@@ -257,9 +282,7 @@ describe('getKeyringByAddress', () => {
     expect(getKeyringByAddress('ens.eth')).toBeUndefined();
   });
   it('should return address if found', () => {
-    expect(
-      getKeyringByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).not.toBe(undefined);
+    expect(getKeyringByAddress(mockQrKeyringAddress)).not.toBe(undefined);
   });
   it('should return null if address not found', () => {
     expect(
@@ -269,9 +292,7 @@ describe('getKeyringByAddress', () => {
 });
 describe('isHardwareAccount,', () => {
   it('should return true if account is a QR keyring', () => {
-    expect(
-      isHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBeTruthy();
+    expect(isHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
   });
 
   it('should return false if account is not a hardware keyring', () => {
@@ -281,16 +302,26 @@ describe('isHardwareAccount,', () => {
   });
 });
 describe('getLabelTextByAddress,', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(
-      getLabelTextByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBe('accounts.qr_hardware');
+    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe(
+      'accounts.qr_hardware',
+    );
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(
-      getLabelTextByAddress('0xd018538C87232FF95acbCe4870629b75640a78E7'),
-    ).toBe('accounts.imported');
+    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
+      'accounts.imported',
+    );
+  });
+
+  it('returns "Snaps (beta)" if account is a Snap keyring', () => {
+    expect(getLabelTextByAddress(snapAddress)).toBe(
+      'accounts.snap_account_tag',
+    );
   });
 
   it('should return null if address is empty', () => {
@@ -312,19 +343,13 @@ describe('getAddressAccountType', () => {
     );
   });
   it('should return QR if address is from a keyring type qr', () => {
-    expect(
-      getAddressAccountType('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBe('QR');
+    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
   });
   it('should return imported if address is from a keyring type simple', () => {
-    expect(
-      getAddressAccountType('0xd018538C87232FF95acbCe4870629b75640a78E7'),
-    ).toBe('Imported');
+    expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');
   });
   it('should return MetaMask if address is not qr or simple', () => {
-    expect(
-      getAddressAccountType('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
-    ).toBe('MetaMask');
+    expect(getAddressAccountType(mockHDKeyringAddress)).toBe('MetaMask');
   });
 });
 describe('resemblesAddress', () => {
@@ -337,8 +362,6 @@ describe('resemblesAddress', () => {
     expect(resemblesAddress('address-stub-1')).toBeFalsy();
   });
   it('should return true if address resemble an eth address', () => {
-    expect(
-      resemblesAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
-    ).toBeTruthy();
+    expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
   });
 });

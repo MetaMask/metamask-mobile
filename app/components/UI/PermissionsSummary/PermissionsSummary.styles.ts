@@ -9,6 +9,9 @@ const createStyles = (params: {
   const { vars } = params;
 
   return StyleSheet.create({
+    safeArea: {
+      backgroundColor: theme.colors.background.default,
+    },
     mainContainer: {
       backgroundColor: theme.colors.background.default,
       paddingTop: 8,
