@@ -135,6 +135,7 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 }
 
 remapEnvVariableRelease() {
