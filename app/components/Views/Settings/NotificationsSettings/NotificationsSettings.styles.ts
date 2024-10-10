@@ -60,6 +60,7 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     button: {
       alignSelf: 'stretch',
+      marginBottom: 16,
     },
   });
 

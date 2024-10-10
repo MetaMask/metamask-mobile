@@ -90,7 +90,7 @@ export class SnapsExecutionWebView extends Component {
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}
-            originWhitelist={['https://localhost*']}
+            originWhitelist={['*']}
             javaScriptEnabled
           />
         </View>

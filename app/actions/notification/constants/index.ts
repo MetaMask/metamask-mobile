@@ -19,6 +19,7 @@ export enum notificationsErrors {
   UPDATE_TRIGGER_PUSH_NOTIFICATIONS = 'Error while trying to update trigger push notifications',
   ENABLE_NOTIFICATIONS_SERVICES = 'Error while trying to enable notifications services',
   DISABLE_NOTIFICATIONS_SERVICES = 'Error while trying to disable notifications services',
+  DELETE_STORAGE_KEY = 'Error while trying to delete storage key',
 }
 
 export default notificationsErrors;
