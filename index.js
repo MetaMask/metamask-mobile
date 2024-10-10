@@ -17,7 +17,7 @@ setupSentry();
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
-import { isTest } from './app/util/test/utils.js';
+import { isTest } from './app/util/test/utils.ts';
 
 import { Performance } from './app/core/Performance';
 Performance.setupPerformanceObservers();
