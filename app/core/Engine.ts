@@ -680,7 +680,7 @@ class Engine {
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
-        allowedActions: [],
+        allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
