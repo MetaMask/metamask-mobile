@@ -15,8 +15,10 @@ import {
   renderFiat,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 
 const useStakingInputHandlers = (balance: BN) => {
+  const { trackEvent } = useMetrics();
   const [amountEth, setAmountEth] = useState('0');
   const [amountWei, setAmountWei] = useState<BN>(new BN(0));
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
@@ -71,13 +73,19 @@ const useStakingInputHandlers = (balance: BN) => {
   const handleKeypadChange = useCallback(
     ({ value }) => {
       isEth ? handleEthInput(value) : handleFiatInput(value);
+      trackEvent(MetaMetricsEvents.STAKE_INPUT_CLICKED, {
+        selected_provider: 'consensys',
+      })
     },
-    [handleEthInput, handleFiatInput, isEth],
+    [handleEthInput, handleFiatInput, isEth, trackEvent],
   );
 
   const handleCurrencySwitch = useCallback(() => {
     setIsEth(!isEth);
-  }, [isEth]);
+    trackEvent(MetaMetricsEvents.STAKE_INPUT_TEXT_ENTERED, {
+      selected_provider: 'consensys',
+    });
+  }, [isEth, trackEvent]);
 
   const percentageOptions = [
     { value: 0.25, label: '25%' },
