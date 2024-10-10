@@ -38,9 +38,6 @@ export interface Stake {
   sdkType?: ProtocolType;
   setSdkType: (stakeType: ProtocolType) => void;
 
-  // currency: string;
-  // setCurrency: (currency: string) => void;
-
   amount: string;
   setAmount: (amount: string) => void;
 
@@ -80,7 +77,6 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
   // from react state
   const [sdkService, setSdkService] = useState<PooledService>();
   const [sdkError, setSdkError] = useState<Error>();
-  const [currency, setCurrency] = useState<string>(stakeCurrency ?? 'ETH');
   const [amount, setAmount] = useState<string>('0');
   const [amountBN, setAmountBN] = useState<BN>(new BN(0));
   const [fiatAmount, setFiatAmount] = useState('0');
@@ -116,14 +112,6 @@ export const StakeSDKProvider: FC<PropsWithChildren<StakeProviderProps>> = ({
       dispatch(updateAmountState(amount));
     },
     [dispatch, conversionRate],
-  );
-
-  const setCurrencyCallback = useCallback(
-    (currency: string) => {
-      setCurrency(currency);
-      dispatch(updateCurrencyState(currency));
-    },
-    [dispatch],
   );
 
   useEffect(() => {

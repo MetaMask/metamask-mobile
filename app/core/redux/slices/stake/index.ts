@@ -18,15 +18,15 @@ export const initialState: StakeState = {
   // chainId: undefined,
 };
 
-const name = 'stakeAccountProvider';
+const name = 'stakeAmount';
 
 const slice = createSlice({
   name,
   initialState,
   reducers: {
     /**
-     * Updates the local accounts state based on external notifications source.
-     * @param state - The current state of the stakeAccountProvider slice.
+     * Updates the local stake amount state from the stake input screen.
+     * @param state - The current state of the amount slice.
      * @param action - An action with the new staking amount as payload.
      */
     updateAmountState: (
@@ -35,17 +35,6 @@ const slice = createSlice({
     ) => {
       state.amount = action.payload;
     },
-    /**
-     * Updates the local accounts state based on external notifications source.
-     * @param state - The current state of the stakeAccountProvider slice.
-     * @param action - An action with the new staking currency as payload.
-     */
-    updateCurrencyState: (
-      state,
-      action: PayloadAction<string>,
-    ) => {
-      state.currency = action.payload;
-    },
   },
 });
 
@@ -53,4 +42,4 @@ const { actions, reducer } = slice;
 
 export default reducer;
 
-export const { updateAmountState,  updateCurrencyState} = actions;
+export const { updateAmountState } = actions;
