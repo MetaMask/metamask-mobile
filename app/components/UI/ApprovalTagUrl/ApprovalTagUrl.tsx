@@ -8,7 +8,7 @@ import { useStyles } from '../../../component-library/hooks';
 import AppConstants from '../../../core/AppConstants';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { prefixUrlWithProtocol } from '../../../util/browser';
+import { getHost, prefixUrlWithProtocol } from '../../../util/browser';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import stylesheet from './ApprovalTagUrl.styles';
 
@@ -51,8 +51,8 @@ const ApprovalTagUrl = ({
   const domainTitle = useMemo(() => {
     let title = '';
 
-    if (url || currentEnsName || origin) {
-      title = prefixUrlWithProtocol(currentEnsName || origin || url);
+    if (currentEnsName || origin || url) {
+      title = prefixUrlWithProtocol(currentEnsName || origin || getHost(url));
     } else {
       title = '';
     }
