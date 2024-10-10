@@ -87,6 +87,8 @@
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher",
     "start:flipper": "npx flipper-server",
+    "update-build-version": "./scripts/update-build-version.sh",
+    "update-release-version": "./scripts/update-release-version.sh",
     "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
     "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle"
   },
