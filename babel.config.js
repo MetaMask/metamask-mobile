@@ -19,6 +19,10 @@ module.exports = {
       test: './node_modules/@metamask/notification-services-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
+    {
+      test: './app/lib/snaps',
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
+    },
   ],
   env: {
     production: {
