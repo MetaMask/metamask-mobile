@@ -2010,6 +2010,7 @@ export class NetworkSettings extends PureComponent {
               <TextInput
                 ref={this.inputRpcURL}
                 style={inputErrorRpcStyle}
+                value={rpcUrlForm}
                 autoCapitalize={'none'}
                 autoCorrect={false}
                 onChangeText={this.onRpcUrlAdd}
@@ -2039,6 +2040,7 @@ export class NetworkSettings extends PureComponent {
                 ref={this.inputNameRpcURL}
                 style={inputErrorRpcStyle}
                 autoCapitalize={'none'}
+                value={rpcNameForm}
                 autoCorrect={false}
                 onChangeText={this.onRpcNameAdd}
                 onFocus={this.onRpcUrlFocused}
