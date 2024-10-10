@@ -193,11 +193,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       if (permission !== 'authorized') {
         return;
       }
-
-        /**
-         * Although this is an async function, we are dispatching an action (firing & forget)
-         * to emulate optimistic UI.
-         */
         enableNotifications();
         setUiNotificationStatus(true);
     }

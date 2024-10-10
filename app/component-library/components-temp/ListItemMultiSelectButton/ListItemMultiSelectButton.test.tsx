@@ -41,7 +41,9 @@ describe('ListItemMultiSelectButton', () => {
     const { getByRole } = render(
       <ListItemMultiSelectButton
         onPress={mockOnPress}
-        onButtonClick={mockOnPress}
+        buttonProps={{
+          onButtonClick: mockOnPress,
+        }}
       >
         <View />
       </ListItemMultiSelectButton>,
@@ -64,7 +66,9 @@ describe('ListItemMultiSelectButton', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectButton
         buttonIcon={IconName.Check}
-        onButtonClick={mockOnButtonClick}
+        buttonProps={{
+          onButtonClick: mockOnButtonClick,
+        }}
       >
         <View />
       </ListItemMultiSelectButton>,

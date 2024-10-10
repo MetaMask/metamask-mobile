@@ -17,6 +17,12 @@ export const selectUseNftDetection = createSelector(
     preferencesControllerState.useNftDetection,
 );
 
+export const selectShowMultiRpcModal = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.showMultiRpcModal,
+);
+
 export const selectUseTokenDetection = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
