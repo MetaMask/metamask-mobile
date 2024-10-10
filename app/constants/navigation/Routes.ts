@@ -51,12 +51,16 @@ const Routes = {
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
+    MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
     DEFAULT_SETTINGS: 'DefaultSettings',
+    GENERAL_SETTINGS: 'GeneralSettings',
+    ASSETS_SETTINGS: 'AssetsSettings',
+    SECURITY_SETTINGS: 'SecuritySettings',
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
@@ -89,6 +93,7 @@ const Routes = {
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     PROFILE_SYNCING: 'ProfileSyncing',
+    RESET_NOTIFICATIONS: 'ResetNotifications',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
@@ -137,9 +142,13 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
-  STAKE: {
+  STAKING: {
     STAKE: 'Stake',
     UNSTAKE: 'Unstake',
+    CLAIM: 'Claim',
+    MODALS: {
+      LEARN_MORE: 'LearnMore',
+    },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {

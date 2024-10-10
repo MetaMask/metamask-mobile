@@ -21,14 +21,11 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import notifee from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
-import Device from '../../../util/device';
-import Routes from '../../../constants/navigation/Routes';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -36,12 +33,12 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
+
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
-import useNotificationHandler from '../../../util/notifications/hooks';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -62,6 +59,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -70,6 +68,8 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
+
+import useNotificationHandler from '../../../util/notifications/hooks';
 import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
@@ -81,6 +81,7 @@ import {
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
+import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 
 const Stack = createStackNavigator();
 
@@ -105,13 +106,12 @@ const Main = (props) => {
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
+  useNotificationHandler(props.navigation);
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
@@ -234,8 +234,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
+  const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
@@ -261,6 +263,41 @@ const Main = (props) => {
     previousProviderConfig.current = providerConfig;
   }, [providerConfig, networkName, networkImage, toastRef]);
 
+  // Show add network confirmation.
+  useEffect(() => {
+    if (!isNetworkUiRedesignEnabled()) return;
+
+    // Memoized values to avoid recalculations
+    const currentNetworkValues = Object.values(networkConfigurations);
+    const previousNetworkValues = Object.values(
+      previousNetworkConfigurations.current ?? {},
+    );
+
+    if (
+      previousNetworkValues.length &&
+      currentNetworkValues.length !== previousNetworkValues.length
+    ) {
+      // Find the newly added network
+      const newNetwork = currentNetworkValues.find(
+        (network) => !previousNetworkValues.includes(network),
+      );
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: `${newNetwork?.name ?? strings('asset_details.network')} `,
+            isBold: true,
+          },
+          { label: strings('toast.network_added') },
+        ],
+        networkImageSource: networkImage,
+      });
+    }
+
+    previousNetworkConfigurations.current = networkConfigurations;
+  }, [networkConfigurations, networkName, networkImage, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
@@ -268,22 +305,6 @@ const Main = (props) => {
       return;
     }
   });
-
-  const bootstrapAndroidInitialNotification = useCallback(async () => {
-    if (Device.isAndroid()) {
-      const initialNotification = await notifee.getInitialNotification();
-
-      if (
-        initialNotification?.data?.action === 'tx' &&
-        initialNotification.data.id
-      ) {
-        NotificationManager.setTransactionToView(initialNotification.data.id);
-        props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
-    }
-  }, [props.navigation]);
-
-  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
 
   // Remove all notifications that aren't visible
   useEffect(() => {

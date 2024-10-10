@@ -4,12 +4,12 @@ import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import { useStyles } from '../../../component-library/hooks';
 import AppConstants from '../../../core/AppConstants';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { useStyles } from '../../../component-library/hooks';
 import stylesheet from './ApprovalTagUrl.styles';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -51,12 +51,14 @@ const ApprovalTagUrl = ({
   const domainTitle = useMemo(() => {
     let title = '';
 
-    if (url || currentEnsName) {
-      title = prefixUrlWithProtocol(currentEnsName || url || '');
+    if (url || currentEnsName || origin) {
+      title = prefixUrlWithProtocol(currentEnsName || origin || url);
+    } else {
+      title = '';
     }
 
     return title;
-  }, [currentEnsName, url]);
+  }, [currentEnsName, origin, url]);
 
   const faviconSource = useFavicon(origin as string) as
     | { uri: string }

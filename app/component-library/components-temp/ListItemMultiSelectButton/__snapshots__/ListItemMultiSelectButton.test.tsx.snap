@@ -19,7 +19,7 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
         "opacity": 1,
         "padding": 16,
         "position": "relative",
-        "width": "95%",
+        "width": "90%",
         "zIndex": 1,
       }
     }
@@ -40,10 +40,25 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
         }
       }
     >
-      <View />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View />
+      </View>
     </View>
   </TouchableOpacity>
-  <View>
+  <View
+    style={
+      {
+        "paddingHorizontal": 20,
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
