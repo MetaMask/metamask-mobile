@@ -15,7 +15,7 @@ import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { NftDetectionModalSelectorsText } from '../../selectors/Modals/NftDetectionModal.selectors';
 
 describe(SmokeAssets('NFT Detection Modal'), () => {
-  const ETHEREUM = 'Ethereum Network Mainnet';
+  const ETHEREUM = 'Ethereum Main Network';
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

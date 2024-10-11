@@ -722,24 +722,24 @@ export class NetworkSettings extends PureComponent {
     CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = this.props.networkConfigurations[chainId];
 
+    const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
+
+    const blockExplorerIndex = blockExplorerUrls.findIndex(
+      (url) => url === blockExplorerUrl,
+    );
+
+    const networkConfig = {
+      blockExplorerUrls,
+      chainId,
+      rpcEndpoints: rpcUrls,
+      nativeCurrency: ticker,
+      name: nickname,
+      defaultRpcEndpointIndex: indexRpc,
+      defaultBlockExplorerUrlIndex:
+        blockExplorerIndex !== -1 ? blockExplorerIndex : undefined,
+    };
+
     if (isNetworkExists.length === 0) {
-      const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
-
-      const blockExplorerIndex = blockExplorerUrls.findIndex(
-        (url) => url === blockExplorerUrl,
-      );
-
-      const networkConfig = {
-        blockExplorerUrls,
-        chainId,
-        rpcEndpoints: rpcUrls,
-        nativeCurrency: ticker,
-        name: nickname,
-        defaultRpcEndpointIndex: indexRpc,
-        defaultBlockExplorerUrlIndex:
-          blockExplorerIndex !== -1 ? blockExplorerIndex : undefined,
-      };
-
       await NetworkController.updateNetwork(
         existingNetwork.chainId,
         networkConfig,
@@ -750,24 +750,8 @@ export class NetworkSettings extends PureComponent {
           : undefined,
       );
     } else {
-      const blockExplorerIndex = blockExplorerUrls.findIndex(
-        (url) => url === blockExplorerUrl,
-      );
-
       await NetworkController.addNetwork({
-        chainId,
-        blockExplorerUrls,
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: blockExplorerIndex ?? undefined,
-        name: nickname,
-        nativeCurrency: ticker,
-        rpcEndpoints: [
-          {
-            url: rpcUrl,
-            name: nickname,
-            type: RpcEndpointType.Custom,
-          },
-        ],
+        ...networkConfig,
       });
     }
 
@@ -1163,10 +1147,9 @@ export class NetworkSettings extends PureComponent {
 
     await this.setState({
       rpcUrl: url,
-    });
-    await this.setState({
       rpcName: name,
     });
+
     this.closeAddRpcForm();
     this.closeRpcModal();
     this.getCurrentState();
@@ -1376,7 +1359,11 @@ export class NetworkSettings extends PureComponent {
   };
 
   closeRpcModal = () => {
-    this.setState({ showMultiRpcAddModal: { isVisible: false } });
+    this.setState({
+      showMultiRpcAddModal: { isVisible: false },
+      rpcUrlForm: '',
+      rpcNameForm: '',
+    });
     this.rpcAddMenuSheetRef.current?.onCloseBottomSheet();
   };
 

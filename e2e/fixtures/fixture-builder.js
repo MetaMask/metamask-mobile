@@ -171,7 +171,7 @@ class FixtureBuilder {
                   defaultRpcEndpointIndex: 0,
                   blockExplorerUrls: ['https://etherscan.io'],
                   defaultBlockExplorerUrlIndex: 0,
-                  name: 'Ethereum Network Mainnet',
+                  name: 'Ethereum Main Network',
                   nativeCurrency: 'ETH',
                 },
                 '0x539': {

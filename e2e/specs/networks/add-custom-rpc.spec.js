@@ -179,7 +179,7 @@ describe(Regression('Custom RPC Tests'), () => {
     const deleteButton = Matchers.getElementByID('delete-network-button-0x64');
     await Gestures.waitAndTap(deleteButton);
 
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(200);
 
     await NetworkListModal.tapDeleteButton();
 

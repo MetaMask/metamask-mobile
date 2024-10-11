@@ -589,6 +589,9 @@ const NetworkSelector = () => {
                 networkName: name,
               })
             }
+            onLongPress={() => {
+              openModal(chainId, true, rpcUrl, false);
+            }}
           />
         );
       }
@@ -668,6 +671,9 @@ const NetworkSelector = () => {
                 networkName: name,
               })
             }
+            onLongPress={() => {
+              openModal(chainId, false, networkType, true);
+            }}
           />
         );
       }
