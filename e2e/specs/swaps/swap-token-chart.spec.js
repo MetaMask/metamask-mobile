@@ -23,7 +23,7 @@ import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import ActivitiesView from '../../pages/ActivitiesView';
-import DetailsModal from '../../pages/modals/DetailsModal';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
@@ -103,25 +103,14 @@ describe(Regression('Swap from Token view'), () => {
     await TestHelpers.delay(5000);
     await TokenOverview.isVisible();
     await TokenOverview.tapBackButton();
+
+    // Check the swap activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.swapActivity('ETH', 'DAI'));
-    await ActivitiesView.tapOnSwapActivity('ETH', 'DAI');
-
-    try {
-      await Assertions.checkIfVisible(DetailsModal.title);
-    } catch (e) {
-      await ActivitiesView.tapOnSwapActivity('ETH', 'DAI');
-      await Assertions.checkIfVisible(DetailsModal.title);
-    }
-
-    await Assertions.checkIfVisible(DetailsModal.title);
-    await Assertions.checkIfElementToHaveText(
-      DetailsModal.title,
-      DetailsModal.generateExpectedTitle('ETH', 'DAI'),
+    await Assertions.checkIfVisible(
+      ActivitiesView.swapActivityTitle('ETH', 'DAI'),
     );
-    await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-    await DetailsModal.tapOnCloseIcon();
-    await Assertions.checkIfNotVisible(DetailsModal.title);
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
+
   });
 });

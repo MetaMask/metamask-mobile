@@ -6,7 +6,6 @@ import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
-import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -26,6 +25,7 @@ import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
@@ -150,43 +150,21 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
+
+      // Check the swap activity completed
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
-        ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+        ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
+      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
 
-      await ActivitiesView.tapOnSwapActivity(
-        sourceTokenSymbol,
-        destTokenSymbol,
-      );
-      try {
-        await Assertions.checkIfVisible(DetailsModal.title);
-      } catch (e) {
-        await ActivitiesView.tapOnSwapActivity(
-          sourceTokenSymbol,
-          destTokenSymbol,
-        );
-        await Assertions.checkIfVisible(DetailsModal.title);
-      }
-      await Assertions.checkIfVisible(DetailsModal.title);
-      await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
-      );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-      await DetailsModal.tapOnCloseIcon();
-      await Assertions.checkIfNotVisible(DetailsModal.title);
-
+      // Check the tokeb approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
-          ActivitiesView.approveTokenActivity(sourceTokenSymbol),
+          ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await ActivitiesView.tapOnApprovedActivity(sourceTokenSymbol);
-        await Assertions.checkIfVisible(DetailsModal.title);
-        await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-        await DetailsModal.tapOnCloseIcon();
-        await Assertions.checkIfNotVisible(DetailsModal.title);
+        await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
       }
     },
   );

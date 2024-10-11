@@ -1,8 +1,12 @@
 import { ActivitiesViewSelectorsText } from '../selectors/ActivitiesView.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
+import { CommonSelectorsIDs } from '../selectors/Common.selectors';
 
 class ActivitiesView {
+  static FIRST_ROW = 0;
+  static SECOND_ROW = 1;
+
   get title() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
@@ -11,6 +15,13 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
+  get firstTransactionStatus() {
+    return Matchers.getElementByID(CommonSelectorsIDs.TRANSACTION_STATUS, this.FIRST_ROW);
+  }
+
+  get secondTransactionStatus() {
+     return Matchers.getElementByID(CommonSelectorsIDs.TRANSACTION_STATUS, this.SECOND_ROW);
+  }
   generateSwapActivityLabel(sourceToken, destinationToken) {
     let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
@@ -25,13 +36,13 @@ class ActivitiesView {
     return new RegExp(`^${title}`);
   }
 
-  swapActivity(sourceToken, destinationToken) {
+  swapActivityTitle(sourceToken, destinationToken) {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  approveTokenActivity(sourceToken) {
+  tokenApprovalActivity(sourceToken) {
     return Matchers.getElementByText(
       this.generateApprovedTokenActivityLabel(sourceToken),
     );
