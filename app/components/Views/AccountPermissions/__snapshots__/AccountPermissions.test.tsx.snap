@@ -272,42 +272,46 @@ exports[`AccountPermissions renders correctly 1`] = `
               "flexDirection": "row",
               "height": 32,
               "marginVertical": 16,
-              "paddingHorizontal": 8,
+              "paddingHorizontal": 12,
             }
           }
           testID="accounts-connected-network-picker"
         >
           <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 8,
-                "height": 16,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "width": 16,
-              }
-            }
+            style={null}
           >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={
-                {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                }
-              }
+            <View
               style={
                 {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
                   "height": 16,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
                   "width": 16,
                 }
               }
-              testID="network-avatar-image"
-            />
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
+                  {
+                    "default": {
+                      "uri": "MockImage",
+                    },
+                  }
+                }
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -330,16 +334,16 @@ exports[`AccountPermissions renders correctly 1`] = `
           </Text>
           <SvgMock
             color="#141618"
-            height={12}
+            height={16}
             name="ArrowDown"
             style={
               {
-                "height": 12,
-                "width": 12,
+                "height": 16,
+                "width": 16,
               }
             }
             testID="pickernetwork-arrow"
-            width={12}
+            width={16}
           />
         </TouchableOpacity>
       </View>

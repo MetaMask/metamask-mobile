@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
@@ -21,29 +21,34 @@ const PickerNetwork = ({
   style,
   label,
   imageSource,
+  hideNetworkName,
   ...props
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
 
   return (
     <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
-      <Avatar
-        variant={AvatarVariant.Network}
-        size={AvatarSize.Xs}
-        name={label}
-        imageSource={imageSource}
-      />
-      <Text
-        style={styles.label}
-        numberOfLines={1}
-        variant={TextVariant.BodyMD}
-        testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT}
-      >
-        {label}
-      </Text>
+      <View style={hideNetworkName ? styles.networkIconContainer : null}>
+        <Avatar
+          variant={AvatarVariant.Network}
+          size={AvatarSize.Xs}
+          name={label}
+          imageSource={imageSource}
+        />
+      </View>
+      {hideNetworkName ? null : (
+        <Text
+          style={styles.label}
+          numberOfLines={1}
+          variant={TextVariant.BodyMD}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT}
+        >
+          {label}
+        </Text>
+      )}
       {onPress && (
         <Icon
-          size={IconSize.Xs}
+          size={IconSize.Sm}
           name={IconName.ArrowDown}
           testID={PICKERNETWORK_ARROW_TESTID}
         />
