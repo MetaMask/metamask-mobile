@@ -62,8 +62,6 @@ export interface MarketDataDetails {
 }
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();

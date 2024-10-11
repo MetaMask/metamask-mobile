@@ -8,7 +8,6 @@ export interface SortCriteria {
 }
 
 export type SortingType = number | string | Date;
-// type SortCallbackKeys = keyof SortingCallbacksT;
 
 export interface SortingCallbacksT {
   numeric: (a: number, b: number) => number;
