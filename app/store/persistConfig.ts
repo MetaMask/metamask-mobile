@@ -7,7 +7,6 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { IUserReducer } from '../reducers/user';
-import { trace, TraceName, TraceOperation } from '../util/trace';
 
 const TIMEOUT = 40000;
 

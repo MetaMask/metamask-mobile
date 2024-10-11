@@ -28,6 +28,7 @@ export enum TraceName {
 }
 
 export enum TraceOperation {
+  LoadScripts='custom.load.scripts',
   SetupStore = 'custom.setup.store',
   LoginToPasswordEntry = 'custom.login.to.password.entry',
   AuthenticateUser = 'custom.authenticate.user',
