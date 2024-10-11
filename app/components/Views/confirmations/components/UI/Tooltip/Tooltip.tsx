@@ -49,12 +49,12 @@ const Tooltip = ({ content, title, tooltipTestId }: TooltipProps) => {
             iconColor={IconColor.Default}
             iconName={IconName.Close}
             onPress={() => setOpen(false)}
-            size={ButtonIconSizes.Md}
+            size={ButtonIconSizes.Sm}
             style={styles.closeModalBtn}
             testID={tooltipTestId ?? 'tooltipTestId'}
           />
           {title && <Text style={styles.modalTitle}>{title}</Text>}
-          <Text>{content}</Text>
+          <Text style={styles.modalContent}>{content}</Text>
         </View>
       </Modal>
     </View>
