@@ -294,7 +294,6 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-
     previousNetworkConfigurations.current = networkConfigurations;
   }, [networkConfigurations, networkName, networkImage, toastRef]);
 

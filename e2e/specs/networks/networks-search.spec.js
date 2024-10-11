@@ -10,8 +10,12 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
+import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-const SHORT_HAND_NETWORK_TEXT = 'ava';
+const SHORT_HAND_NETWORK_TEXT = 'Ava';
 const INVALID_NETWORK_TEXT = 'cccM';
 describe(Regression('Networks Search'), () => {
   beforeAll(async () => {
@@ -28,28 +32,28 @@ describe(Regression('Networks Search'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapNetworks();
-        await NetworkView.SearchNetworkName(INVALID_NETWORK_TEXT);
-        await Assertions.checkIfVisible(NetworkView.noMatchingText);
-        await NetworkView.tapClearSearch();
-        await NetworkView.SearchNetworkName(SHORT_HAND_NETWORK_TEXT);
-        await NetworkView.tapNetworkByName(
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.SearchNetworkName(INVALID_NETWORK_TEXT);
+        await NetworkListModal.tapClearSearch();
+        await NetworkListModal.SearchNetworkName(SHORT_HAND_NETWORK_TEXT);
+        await NetworkListModal.longPressOnNetwork(
           PopularNetworksList.Avalanche.providerConfig.nickname,
         );
-        await NetworkView.tapDeleteButton();
-        await Assertions.checkIfVisible(NetworkView.noMatchingText);
-        await NetworkView.tapClearSearch();
-        await Assertions.checkIfNotVisible(
-          NetworkView.getnetworkName(
-            PopularNetworksList.Avalanche.providerConfig.nickname,
-          ),
+        if (device.getPlatform() === 'android') {
+          await device.disableSynchronization();
+        }
+
+        // delete avalanche network
+        const deleteButton = Matchers.getElementByID(
+          'delete-network-button-0xa86a',
         );
-        await NetworkView.tapAddNetworkButton();
+        await Gestures.waitAndTap(deleteButton);
+
+        await TestHelpers.delay(2000);
+        await NetworkListModal.tapDeleteButton();
+
         await Assertions.checkIfVisible(
-          NetworkView.getnetworkName(
-            PopularNetworksList.Avalanche.providerConfig.nickname,
-          ),
+          NetworkListModal.addPopularNetworkButton,
         );
       },
     );

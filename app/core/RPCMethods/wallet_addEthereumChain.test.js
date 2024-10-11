@@ -4,6 +4,7 @@ import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
 import { CaveatFactories, PermissionKeys } from '../Permissions/specifications';
 import { CaveatTypes } from '../Permissions/constants';
+import { mockNetworkState } from '../../util/test/network';
 
 const mockEngine = Engine;
 
@@ -32,6 +33,7 @@ jest.mock('../Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
       upsertNetworkConfiguration: jest.fn(),
+      addNetwork: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -57,24 +59,17 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'https://mainnet.infura.io/v3',
+            ...mockNetworkState([
+              {
                 chainId: '0x1',
+                id: 'Mainnet',
+                nickname: 'Mainnet',
                 ticker: 'ETH',
-                nickname: 'Sepolia network',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
               },
-              [existingNetworkConfiguration.id]: {
-                id: 'test-network-configuration',
+              {
                 ...existingNetworkConfiguration,
               },
-            },
+            ]),
           },
         },
       },

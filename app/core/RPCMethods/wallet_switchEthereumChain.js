@@ -58,6 +58,7 @@ const wallet_switchEthereumChain = async ({
       res.result = null;
       return;
     }
+
     const analyticsParams = await switchToNetwork({
       network: existingNetwork,
       chainId: _chainId,

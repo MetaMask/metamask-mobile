@@ -191,7 +191,12 @@ export function findExistingNetwork(chainId, networkConfigurations) {
   if (existingNetworkDefault) {
     return [existingNetworkDefault?.networkType, existingNetworkDefault];
   } else if (existingEntry) {
-    return existingEntry;
+    const [, networkConfiguration] = existingEntry;
+    const networkConfigurationId =
+      networkConfiguration.rpcEndpoints[
+        networkConfiguration.defaultRpcEndpointIndex
+      ].networkClientId;
+    return [networkConfigurationId, networkConfiguration];
   }
   return;
 }
@@ -227,13 +232,17 @@ export async function switchToNetwork({
   };
   const [networkConfigurationId, networkConfiguration] = network;
   const requestData = {
-    rpcUrl: networkConfiguration.rpcUrl,
+    rpcUrl:
+      networkConfiguration.rpcEndpoints[
+        networkConfiguration.defaultRpcEndpointIndex
+      ],
     chainId,
     chainName:
       networkConfiguration.chainName ||
       networkConfiguration.nickname ||
       networkConfiguration.shortName,
     ticker: networkConfiguration.ticker || 'ETH',
+    chainColor: networkConfiguration.color,
   };
   const analyticsParams = {
     chain_id: getDecimalChainId(chainId),

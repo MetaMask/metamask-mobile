@@ -1,3 +1,4 @@
+import { RpcEndpointType } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
@@ -38,9 +39,6 @@ describe('selectAccountBalanceByChainId', () => {
               },
             },
           },
-          selectedNetworkClientId: 'mainnet',
-          networkConfigurations: {},
-          networksMetadata: {},
         },
       },
     } as unknown as RootState);
@@ -51,12 +49,14 @@ describe('selectAccountBalanceByChainId', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'sepolia',
-            networksMetadata: {},
-            networkConfigurations: {},
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any,
+            ...mockNetworkState({
+              id: 'sepolia',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+              chainId: '0xaa36a7',
+              type: RpcEndpointType.Infura,
+            }),
+          },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           AccountTrackerController: {
             accountsByChainId: {
