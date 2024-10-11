@@ -29,10 +29,7 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
-import {
-  selectChainId,
-  selectProviderType,
-} from '../../../selectors/networkController';
+import { selectProviderType } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
@@ -43,6 +40,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
 import { debounce } from 'lodash';
+import { useChainId } from '../../../selectors/hooks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -100,7 +98,6 @@ const debouncedNavigation = debounce((navigation, collectible) => {
  */
 const CollectibleContracts = ({
   selectedAddress,
-  chainId,
   networkType,
   navigation,
   collectibleContracts,
@@ -130,6 +127,8 @@ const CollectibleContracts = ({
     },
     [navigation],
   );
+
+  const chainId = useChainId();
 
   /**
    *  Method that checks if the collectible is inside the collectibles array. If it is not it means the
@@ -389,10 +388,6 @@ CollectibleContracts.propTypes = {
    */
   networkType: PropTypes.string,
   /**
-   * Chain id
-   */
-  chainId: PropTypes.string,
-  /**
    * Selected address
    */
   selectedAddress: PropTypes.string,
@@ -438,7 +433,6 @@ CollectibleContracts.propTypes = {
 
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
-  chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   useNftDetection: selectUseNftDetection(state),
   collectibleContracts: collectibleContractsSelector(state),
@@ -450,8 +444,9 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
-    dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+  removeFavoriteCollectible: (selectedAddress, chainId, collectible) => {
+    dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible));
+  },
 });
 
 export default connect(

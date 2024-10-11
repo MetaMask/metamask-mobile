@@ -9,10 +9,7 @@ import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-import {
-  selectChainId,
-  selectNetworkClientId,
-} from '../../../selectors/networkController';
+import { selectNetworkClientId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
@@ -32,6 +29,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { useChainId } from '../../../selectors/hooks';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -73,7 +71,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const networkClientId = useSelector(selectNetworkClientId);
   const hideZeroBalanceTokens = useSelector(
     (state: RootState) => state.settings.hideZeroBalanceTokens,
