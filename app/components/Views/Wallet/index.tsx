@@ -65,7 +65,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -560,9 +559,6 @@ const Wallet = ({
               }
             />
           </View>
-        ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}

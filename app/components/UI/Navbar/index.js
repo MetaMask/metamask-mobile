@@ -53,6 +53,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import AddressCopy from '../AddressCopy';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -129,10 +130,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-
     position: 'absolute',
     top: 2,
     right: 10,
+  },
+  addressCopyWrapper: {
+    marginHorizontal: 4,
   },
 });
 
@@ -1024,6 +1027,9 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
+        <View style={styles.addressCopyWrapper}>
+          <AddressCopy />
+        </View>
         <View style={styles.notificationsWrapper}>
           {isNotificationsFeatureEnabled() && (
             <ButtonIcon
@@ -1050,7 +1056,7 @@ export function getWalletNavbarOptions(
         </View>
 
         <ButtonIcon
-          iconColor={IconColor.Primary}
+          iconColor={IconColor.Default}
           onPress={openQRScanner}
           iconName={IconName.Scan}
           size={IconSize.Xl}
