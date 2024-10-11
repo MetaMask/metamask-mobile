@@ -21,19 +21,26 @@ export enum TraceName {
   Middleware = 'Middleware',
   NestedTest1 = 'Nested Test 1',
   NestedTest2 = 'Nested Test 2',
+  LoadScripts = 'Load Scripts',
   SetupStore = 'Setup Store',
-  LoginPasswordEntry = 'Login Password Entry',
-  LoginUser = 'Login User',
+  LoginToPasswordEntry = 'Login to Password Entry',
+  AuthenticateUser = 'Authenticate User',
   EngineInitialization = 'Engine Initialization',
+  CreateStore = 'Create Store',
+  CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
   StorageRehydration = 'Storage Rehydration',
+  UIStartup = 'Custom UIStartup',
 }
 
 export enum TraceOperation {
-  SetupStore = 'setup.store',
-  LoginPasswordEntry = 'login.password.entry',
-  LoginUser = 'login.user',
-  EngineInitialization = 'engine.initialization',
-  StorageRehydration = 'storage.rehydration',
+  SetupStore = 'custom.setup.store',
+  LoginToPasswordEntry = 'custom.login.to.password.entry',
+  AuthenticateUser = 'custom.authenticate.user',
+  EngineInitialization = 'custom.engine.initialization',
+  CreateStore = 'custom.create.store',
+  CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
+  StorageRehydration = 'custom.storage.rehydration',
+  UIStartup = 'custom.ui.startup',
 }
 
 const ID_DEFAULT = 'default';

@@ -13,7 +13,6 @@ const TIMEOUT = 40000;
 
 const MigratedStorage = {
   async getItem(key: string) {
-    trace({ name: TraceName.StorageRehydration, op: TraceOperation.StorageRehydration });
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
