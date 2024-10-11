@@ -48,9 +48,7 @@ class WalletView {
   }
 
   get importTokensButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText(WalletViewSelectorsText.IMPORT_TOKENS)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+    return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
   get networkName() {
