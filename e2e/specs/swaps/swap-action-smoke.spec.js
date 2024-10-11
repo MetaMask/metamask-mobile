@@ -24,6 +24,7 @@ import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
@@ -146,21 +147,20 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
 
+      // Check the swap activity completed
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
-        ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+        ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
+      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
 
+      // Check the tokeb approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
-          ActivitiesView.approveTokenActivity(sourceTokenSymbol),
+          ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await ActivitiesView.tapOnApprovedActivity(sourceTokenSymbol);
-        await Assertions.checkIfVisible(DetailsModal.title);
-        await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-        await DetailsModal.tapOnCloseIcon();
-        await Assertions.checkIfNotVisible(DetailsModal.title);
+        await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
       }
 
       await ActivitiesView.tapOnSwapActivity(
