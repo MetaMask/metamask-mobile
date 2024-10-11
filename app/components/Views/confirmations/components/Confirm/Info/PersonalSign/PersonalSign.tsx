@@ -6,6 +6,7 @@ import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
 import Message from './Message';
+import Simulation from './Simulation';
 
 const PersonalSign = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -16,6 +17,7 @@ const PersonalSign = () => {
 
   return (
     <>
+      <Simulation />
       <InfoSection>
         <InfoRow
           label={strings('confirm.request_from')}
