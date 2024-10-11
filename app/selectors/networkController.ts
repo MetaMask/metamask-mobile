@@ -53,13 +53,19 @@ const createProviderConfig = (
   networkConfig: NetworkConfiguration,
   rpcEndpoint: RpcEndpoint,
 ): ProviderConfig => {
-  const blockExplorerIndex = networkConfig.defaultBlockExplorerUrlIndex ?? 0;
-  const blockExplorerUrl =
-    networkConfig.blockExplorerUrls?.[blockExplorerIndex];
+  const {
+    chainId,
+    nativeCurrency,
+    name,
+    blockExplorerUrls,
+    defaultBlockExplorerUrlIndex,
+  } = networkConfig;
+  const blockExplorerIndex = defaultBlockExplorerUrlIndex ?? 0;
+  const blockExplorerUrl = blockExplorerUrls?.[blockExplorerIndex];
 
   return {
-    chainId: networkConfig.chainId,
-    ticker: networkConfig.nativeCurrency,
+    chainId,
+    ticker: nativeCurrency,
     rpcPrefs: { ...(blockExplorerUrl && { blockExplorerUrl }) },
     type:
       rpcEndpoint.type === RpcEndpointType.Custom
@@ -67,7 +73,7 @@ const createProviderConfig = (
         : rpcEndpoint.networkClientId,
     ...(rpcEndpoint.type === RpcEndpointType.Custom && {
       id: rpcEndpoint.networkClientId,
-      nickname: networkConfig.name,
+      nickname: name,
       rpcUrl: rpcEndpoint.url,
     }),
   };

@@ -26,6 +26,18 @@ const waitForInteraction = async () =>
     });
   });
 
+// Utility function to find or add an item in an array and return the updated array and index
+const addOrUpdateIndex = (array, value, comparator) => {
+  const index = array.findIndex(comparator);
+  if (index === -1) {
+    return {
+      updatedArray: [...array, value],
+      index: array.length,
+    };
+  }
+  return { updatedArray: array, index };
+};
+
 const wallet_addEthereumChain = async ({
   req,
   res,
@@ -119,8 +131,7 @@ const wallet_addEthereumChain = async ({
     });
   }
 
-  const chainName =
-    rawChainName.length > 100 ? rawChainName.substring(0, 100) : rawChainName;
+  const chainName = rawChainName.slice(0, 100);
 
   //TODO: Remove aurora from default chains in @metamask/controller-utils
   const actualChains = { ...ChainId, aurora: undefined };
@@ -141,43 +152,29 @@ const wallet_addEthereumChain = async ({
     // Update it with any new information.
     const clonedNetwork = { ...networkConfiguration };
 
-    // Check if the rpc url already exists
-    let rpcIndex = clonedNetwork.rpcEndpoints.findIndex(
-      ({ url }) => url === firstValidRPCUrl,
+    // Use the addOrUpdateIndex utility for rpcEndpoints
+    const rpcResult = addOrUpdateIndex(
+      clonedNetwork.rpcEndpoints,
+      {
+        url: firstValidRPCUrl,
+        type: RpcEndpointType.Custom,
+        name: chainName,
+      },
+      (endpoint) => endpoint.url === firstValidRPCUrl,
     );
 
-    // If it doesn't exist, add a new one
-    if (rpcIndex === -1) {
-      clonedNetwork.rpcEndpoints = [
-        ...clonedNetwork.rpcEndpoints,
-        {
-          url: firstValidRPCUrl,
-          type: RpcEndpointType.Custom,
-          name: chainName,
-        },
-      ];
-      rpcIndex = clonedNetwork.rpcEndpoints.length - 1;
-    }
+    clonedNetwork.rpcEndpoints = rpcResult.updatedArray;
+    clonedNetwork.defaultRpcEndpointIndex = rpcResult.index;
 
-    // The provided rpc endpoint becomes the default
-    clonedNetwork.defaultRpcEndpointIndex = rpcIndex;
-
-    // Check if the block explorer already exists
-    let blockExplorerIndex = clonedNetwork.blockExplorerUrls.findIndex(
+    // Use the addOrUpdateIndex utility for blockExplorerUrls
+    const blockExplorerResult = addOrUpdateIndex(
+      clonedNetwork.blockExplorerUrls,
+      firstValidBlockExplorerUrl,
       (url) => url === firstValidBlockExplorerUrl,
     );
 
-    // If it doesn't exist, add a new one
-    if (blockExplorerIndex === -1) {
-      clonedNetwork.blockExplorerUrls = [
-        ...clonedNetwork.blockExplorerUrls,
-        firstValidBlockExplorerUrl,
-      ];
-      blockExplorerIndex = clonedNetwork.blockExplorerUrls.length - 1;
-    }
-
-    // The provided block explorer becomes the default
-    clonedNetwork.defaultBlockExplorerUrlIndex = blockExplorerIndex;
+    clonedNetwork.blockExplorerUrls = blockExplorerResult.updatedArray;
+    clonedNetwork.defaultBlockExplorerUrlIndex = blockExplorerResult.index;
 
     await NetworkController.updateNetwork(
       clonedNetwork.chainId,

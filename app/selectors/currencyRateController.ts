@@ -20,11 +20,10 @@ export const selectConversionRate = createSelector(
   ) => {
     if (chainId && isTestNet(chainId) && !showFiatOnTestnets) {
       return undefined;
-    } else if (ticker) {
-      return currencyRateControllerState?.currencyRates?.[ticker]
-        ?.conversionRate;
     }
-    return undefined;
+    return ticker
+      ? currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate
+      : undefined;
   },
 );
 
