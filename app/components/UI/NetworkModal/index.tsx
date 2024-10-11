@@ -205,6 +205,7 @@ const NetworkModals = (props: NetworkProps) => {
     !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
 
     const existingNetwork = networkConfigurationByChainId[chainId];
+    let networkClientId;
 
     if (existingNetwork) {
       const updatedNetwork = await NetworkController.updateNetwork(
@@ -218,12 +219,9 @@ const NetworkModals = (props: NetworkProps) => {
           : undefined,
       );
 
-      const { networkClientId } =
-        updatedNetwork?.rpcEndpoints?.[
-          updatedNetwork.defaultRpcEndpointIndex
-        ] ?? {};
-
-      await NetworkController.setActiveNetwork(networkClientId);
+      networkClientId =
+        updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
     } else {
       const addedNetwork = await NetworkController.addNetwork({
         chainId,
@@ -241,12 +239,15 @@ const NetworkModals = (props: NetworkProps) => {
         ],
       });
 
-      const { networkClientId } =
-        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
-        {};
+      networkClientId =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
+    }
 
+    if (networkClientId) {
       await NetworkController.setActiveNetwork(networkClientId);
     }
+
     onClose();
   };
 
