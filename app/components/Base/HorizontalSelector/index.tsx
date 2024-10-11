@@ -1,12 +1,34 @@
-import React, { Fragment, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import React, { Fragment, ReactNode, useCallback, useMemo } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../Text';
 import { useTheme } from '../../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
 const INNER_CIRCLE_SCALE = 0.445;
 const OPTION_WIDTH = 110;
-const createStyles = (colors) =>
+
+const createCircleStyle = (size: number, colors: Theme['colors']) => ({
+  width: size,
+  height: size,
+  flexShrink: 0,
+  flexGrow: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderWidth: 2,
+  borderRadius: 9999,
+  borderColor: colors.border.muted,
+});
+
+const createInnerCircleStyle = (size: number, colors: Theme['colors']) => ({
+  width: size * INNER_CIRCLE_SCALE,
+  height: size * INNER_CIRCLE_SCALE,
+  flexShrink: 0,
+  flexGrow: 0,
+  backgroundColor: colors.primary.default,
+  borderRadius: 999,
+});
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     selector: {
       display: 'flex',
@@ -27,18 +49,6 @@ const createStyles = (colors) =>
       flex: 0,
       flexDirection: 'column',
     },
-    circle: (size) => ({
-      width: size,
-      height: size,
-      flexShrink: 0,
-      flexGrow: 0,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 2,
-      borderRadius: 9999,
-      borderColor: colors.border.muted,
-    }),
     circleSelected: {
       borderColor: colors.primary.default,
     },
@@ -48,14 +58,6 @@ const createStyles = (colors) =>
     circleDisabled: {
       opacity: 0.4,
     },
-    innerCircle: (size) => ({
-      width: size * INNER_CIRCLE_SCALE,
-      height: size * INNER_CIRCLE_SCALE,
-      flexShrink: 0,
-      flexGrow: 0,
-      backgroundColor: colors.primary.default,
-      borderRadius: 999,
-    }),
     innerCircleError: {
       backgroundColor: colors.error.default,
     },
@@ -102,14 +104,14 @@ const createStyles = (colors) =>
     },
   });
 
-function Circle({ size = 22, selected, disabled, error }) {
+function Circle({ size = 22, selected, disabled, error }: CircleProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
     <View
       style={[
-        styles.circle(size),
+        createCircleStyle(size, colors),
         selected && styles.circleSelected,
         selected && error && styles.circleError,
         disabled && styles.circleDisabled,
@@ -118,7 +120,7 @@ function Circle({ size = 22, selected, disabled, error }) {
       {selected && (
         <View
           style={[
-            styles.innerCircle(size),
+            createInnerCircleStyle(size, colors),
             selected && error && styles.innerCircleError,
             {
               width: size * INNER_CIRCLE_SCALE,
@@ -130,14 +132,8 @@ function Circle({ size = 22, selected, disabled, error }) {
     </View>
   );
 }
-Circle.propTypes = {
-  size: PropTypes.number,
-  selected: PropTypes.bool,
-  disabled: PropTypes.bool,
-  error: PropTypes.bool,
-};
 
-function Option({ onPress, name, ...props }) {
+function Option({ onPress, name, ...props }: OptionProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const handlePress = useCallback(() => onPress(name), [name, onPress]);
@@ -146,11 +142,6 @@ function Option({ onPress, name, ...props }) {
   );
 }
 
-Option.propTypes = {
-  onPress: PropTypes.func,
-  name: PropTypes.string,
-};
-
 function HorizontalSelector({
   options = [],
   selected,
@@ -158,7 +149,7 @@ function HorizontalSelector({
   onPress,
   disabled,
   ...props
-}) {
+}: HorizontalSelectorProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const hasTopLabels = useMemo(
@@ -265,51 +256,70 @@ function HorizontalSelector({
   );
 }
 
-HorizontalSelector.propTypes = {
-  /**
-   * Array of options
-   */
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      /**
-       * Label of the option. It can be a string, component or a render
-       * function, which will be called with arguments (selected, disabled).
-       */
-      label: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
-      /**
-       * Top label of the option. It can be a string, component or a render function.
-       */
-      topLabel: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
-      /**
-       * Option name string, this is used as argument when calling the onPress function.
-       */
-      name: PropTypes.string,
-      /**
-       * Boolean value to determine whether if option is disabled or not.
-       */
-      disabled: PropTypes.bool,
-      /**
-       * Boolean value to determine if the option should represent an error
-       */
-      error: PropTypes.bool,
-    }),
-  ),
-  /**
-   * Boolean value to determine whether the options are disabked or not.
-   */
-  disabled: PropTypes.bool,
-  /**
-   * Function that is called when pressing an option. The function is called with option.name argument.
-   */
-  onPress: PropTypes.func,
+interface CircleProps {
   /**
    * Size of the option circle
    */
-  circleSize: PropTypes.number,
+  size?: number;
   /**
    * Current option name selected
    */
-  selected: PropTypes.string,
-};
+  selected?: boolean;
+  disabled?: boolean;
+  error?: boolean;
+}
+
+interface OptionProps {
+  onPress: (name: string) => void;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface OptionType {
+  /**
+   * Label of the option. It can be a string, component or a render
+   * function, which will be called with arguments (selected, disabled).
+   */
+  label:
+    | string
+    | ReactNode
+    | ((selected: boolean, disabled: boolean) => ReactNode);
+  /**
+   * Top label of the option. It can be a string, component or a render function.
+   */
+  topLabel?:
+    | string
+    | ReactNode
+    | ((selected: boolean, disabled: boolean) => ReactNode);
+  /**
+   * Option name string, this is used as argument when calling the onPress function.
+   */
+  name: string;
+  /**
+   * Boolean value to determine whether if option is disabled or not.
+   */
+  disabled?: boolean;
+  /**
+   * Boolean value to determine if the option should represent an error
+   */
+  error?: boolean;
+}
+
+interface HorizontalSelectorProps {
+  /**
+   * Array of options
+   */
+  options: OptionType[];
+  selected?: string;
+  circleSize?: number;
+  /**
+   * Function that is called when pressing an option. The function is called with option.name argument.
+   */
+  onPress: (name: string) => void;
+  /**
+   * Boolean value to determine whether the options are disabled or not.
+   */
+  disabled: boolean;
+}
 
 export default HorizontalSelector;
