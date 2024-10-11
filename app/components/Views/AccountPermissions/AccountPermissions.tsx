@@ -545,12 +545,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
-        onSelectAddress={(checkedAddresses) => {
-          setSelectedAddresses([
-            ...checkedAddresses,
-            ...permittedAccountsByHostname,
-          ]);
-        }}
+        onSelectAddress={
+          isMultichainVersion1Enabled
+            ? (checkedAddresses) => {
+                setSelectedAddresses([
+                  ...checkedAddresses,
+                  ...permittedAccountsByHostname,
+                ]);
+              }
+            : setSelectedAddresses
+        }
         isLoading={isLoading}
         onUserAction={setUserIntent}
         favicon={faviconSource}
