@@ -42,7 +42,8 @@ describe('ListItemMultiSelectButton', () => {
       <ListItemMultiSelectButton
         onPress={mockOnPress}
         buttonProps={{
-          onButtonClick: mockOnPress,
+          label: '',
+          onPress: mockOnPress,
         }}
       >
         <View />
@@ -67,7 +68,8 @@ describe('ListItemMultiSelectButton', () => {
       <ListItemMultiSelectButton
         buttonIcon={IconName.Check}
         buttonProps={{
-          onButtonClick: mockOnButtonClick,
+          label: '',
+          onPress: mockOnButtonClick,
         }}
       >
         <View />
