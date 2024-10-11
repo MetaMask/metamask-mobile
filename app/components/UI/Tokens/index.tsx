@@ -236,14 +236,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       <View style={styles.actionBarWrapper}>
         <Button
           variant={ButtonVariants.Primary}
-          label="Sort by"
+          label={strings('wallet.sort_by')}
           onPress={showSortControls}
           endIconName={IconName.ArrowDown}
           style={styles.sortButton}
         />
         <Button
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
           variant={ButtonVariants.Primary}
-          label="Import"
+          label={strings('wallet.import')}
           onPress={goToAddToken}
           startIconName={IconName.Add}
           style={styles.sortButton}
@@ -273,8 +274,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
         title={'Sort by'}
         options={[
-          'Declining balance ($ high-low)',
-          'Alphabetically (A-Z)',
+          strings('wallet.declining_balance', { currency: currentCurrency }),
+          strings('wallet.alphabetically'),
           'Cancel',
         ]}
         cancelButtonIndex={2}

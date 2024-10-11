@@ -437,6 +437,10 @@
       "cancel_cta": "Cancel",
       "confirm_cta": "Confirm"
     },
+    "import": "Import",
+    "sort_by": "Sort By",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",

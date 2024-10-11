@@ -106,7 +106,7 @@ export const TokenListFooter = ({
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          // testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
         >
           <Text style={styles.centered}>
             <Text style={styles.emptyText}>
