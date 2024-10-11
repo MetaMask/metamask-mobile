@@ -23,7 +23,7 @@ import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import ActivitiesView from '../../pages/ActivitiesView';
-import DetailsModal from '../../pages/modals/DetailsModal';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
@@ -103,6 +103,8 @@ describe(Regression('Swap from Token view'), () => {
     await TestHelpers.delay(5000);
     await TokenOverview.isVisible();
     await TokenOverview.tapBackButton();
+
+    // Check the swap activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
