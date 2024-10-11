@@ -61,8 +61,16 @@ export interface MarketDataDetails {
   totalVolume: number;
 }
 
+interface TokenListNavigationParamList {
+  AddAsset: { assetType: string };
+  [key: string]: undefined | object;
+}
+
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
+    >();
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
