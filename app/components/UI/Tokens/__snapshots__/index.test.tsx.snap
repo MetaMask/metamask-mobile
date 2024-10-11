@@ -360,7 +360,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               }
                             }
                           >
-                            Sort by
+                            Sort By
                           </Text>
                           <SvgMock
                             color="#ffffff"
@@ -399,6 +399,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "text": "#141618",
                             }
                           }
+                          testID="import-token-button"
                         >
                           <SvgMock
                             color="#ffffff"
@@ -1179,7 +1180,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1606,7 +1606,7 @@ exports[`Tokens should render correctly 1`] = `
                               }
                             }
                           >
-                            Sort by
+                            Sort By
                           </Text>
                           <SvgMock
                             color="#ffffff"
@@ -1645,6 +1645,7 @@ exports[`Tokens should render correctly 1`] = `
                               "text": "#141618",
                             }
                           }
+                          testID="import-token-button"
                         >
                           <SvgMock
                             color="#ffffff"
@@ -2425,7 +2426,6 @@ exports[`Tokens should render correctly 1`] = `
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2852,7 +2852,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               }
                             }
                           >
-                            Sort by
+                            Sort By
                           </Text>
                           <SvgMock
                             color="#ffffff"
@@ -2891,6 +2891,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "text": "#141618",
                             }
                           }
+                          testID="import-token-button"
                         >
                           <SvgMock
                             color="#ffffff"
@@ -3953,7 +3954,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
                               >
                                 <Text
                                   accessibilityRole="text"
