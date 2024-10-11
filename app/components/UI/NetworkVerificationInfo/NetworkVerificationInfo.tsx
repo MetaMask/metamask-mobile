@@ -431,27 +431,31 @@ const NetworkVerificationInfo = ({
         {isMultichainVersion1Enabled &&
           isCustomNetwork &&
           renderCustomNetworkBanner()}
-        <Text style={styles.textCentred}>
-          {isMultichainVersion1Enabled ? (
-            <Text>
-              {strings(
-                'switch_custom_network.add_network_and_give_dapp_permission_warning',
-                {
-                  // @ts-expect-error let's adjust the CustomNetworkInformation after multichain controllers have been updated by the api team
-                  dapp_origin: new URL(customNetworkInformation.pageMeta.url)
-                    ?.hostname,
-                },
-              )}
-            </Text>
-          ) : (
-            <>
-              {strings('add_custom_network.warning_subtext_new.1')}{' '}
-              <Text onPress={openHowToUseCustomNetworks}>
-                {strings('add_custom_network.warning_subtext_new.2')}
+        <View style={styles.textWarningContainer}>
+          <Text style={styles.textCentred}>
+            {isMultichainVersion1Enabled ? (
+              <Text>
+                {strings(
+                  'switch_custom_network.add_network_and_give_dapp_permission_warning',
+                  {
+                    // @ts-expect-error let's adjust the CustomNetworkInformation after multichain controllers have been updated by the api team
+                    dapp_origin: new URL(customNetworkInformation.pageMeta.url)
+                      ?.hostname,
+                  },
+                )}
               </Text>
-            </>
-          )}
-        </Text>
+            ) : (
+              <>
+                <Text>
+                  {strings('add_custom_network.warning_subtext_new.1')}{' '}
+                </Text>
+                <Text onPress={openHowToUseCustomNetworks}>
+                  {strings('add_custom_network.warning_subtext_new.2')}
+                </Text>
+              </>
+            )}
+          </Text>
+        </View>
         {renderNetworkInfo()}
       </ScrollView>
       <BottomSheetFooter

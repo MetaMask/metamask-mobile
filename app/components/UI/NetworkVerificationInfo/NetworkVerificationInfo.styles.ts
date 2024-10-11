@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      paddingHorizontal: 16,
+      minWidth: '100%',
     },
     accountCardWrapper: {
       borderWidth: 1,
@@ -17,10 +17,12 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 10,
       padding: 16,
       marginVertical: 16,
+      marginHorizontal: 16,
     },
 
     textSection: {
       marginBottom: 8,
+      marginHorizontal: 16,
     },
     alertBar: {
       width: '100%',
@@ -79,6 +81,7 @@ const styleSheet = (params: { theme: Theme }) => {
     headerStyle: {
       width: '100%',
     },
+    textWarningContainer: { paddingHorizontal: 16 },
   });
 };
 export default styleSheet;
