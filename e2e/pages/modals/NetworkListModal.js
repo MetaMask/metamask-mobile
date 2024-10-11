@@ -23,7 +23,7 @@ class NetworkListModal {
     );
   }
 
-  async getCustomNetwork(network, custom = false) {
+  async getCustomNetwork(network, custom) {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
@@ -31,7 +31,7 @@ class NetworkListModal {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(network));
   }
 
-  async changeNetworkTo(networkName, custom) {
+  async changeNetworkTo(networkName, custom = false) {
     const elem = this.getCustomNetwork(networkName, custom);
     await Gestures.waitAndTap(elem);
   }

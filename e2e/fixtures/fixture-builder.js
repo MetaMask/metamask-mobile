@@ -622,37 +622,27 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    const networkController =
+    const NetworkController =
       this.fixture.state.engine.backgroundState.NetworkController;
 
-    // Extract providerConfig data
-    const { providerConfig } = data;
-
-    // Generate a unique key for the new network configuration
-    const newNetworkId = `networkId${
-      Object.keys(networkController.networkConfigurations).length + 1
-    }`;
-
-    // Add the extracted providerConfig data to the networkConfigurations object
-    networkController.networkConfigurations[newNetworkId] = {
-      rpcUrl: providerConfig.rpcUrl,
-      chainId: providerConfig.chainId,
-      ticker: providerConfig.ticker,
-      nickname: providerConfig.nickname,
-      type: providerConfig.type,
+    const network = {
+      id: data.providerConfig.nickname,
+      rpcUrl: data.providerConfig.rpcUrl,
+      chainId: data.providerConfig.chainId,
+      ticker: data.providerConfig.ticker,
+      nickname: data.providerConfig.nickname,
+      rpcPrefs: {},
+      type: data.providerConfig.type,
     };
 
-    // Update selectedNetworkClientId to the new network configuration ID
-    networkController.selectedNetworkClientId = newNetworkId;
+    (NetworkController.selectedNetworkClientId = network.id),
+      (NetworkController.providerConfig = network);
 
-    // Merge the rest of the data
-    merge(networkController, data);
-
-    if (data.providerConfig.ticker !== 'ETH') {
-      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
-        data.providerConfig.ticker;
-    }
-
+    NetworkController.networksMetadata[network.id] = {
+      status: 'available',
+      EIPS: { 1559: true },
+    };
+    NetworkController.networkConfigurations[network.id] = network;
     return this;
   }
 

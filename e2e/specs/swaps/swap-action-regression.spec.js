@@ -1,11 +1,11 @@
 'use strict';
+import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/ActivitiesView';
-import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -15,20 +15,30 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeSwaps } from '../../tags';
+import { Regression } from '../../tags';
+import AccountListView from '../../pages/AccountListView';
+import ImportAccountView from '../../pages/ImportAccountView';
 import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
+const firstElement = 0;
 
-describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
+describe(Regression('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
+  let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
+      .withNetworkController(CustomNetworks.Tenderly.Polygon)
+      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -44,18 +54,57 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
   });
 
   beforeEach(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(120000);
   });
+
+  it('should be able to import account', async () => {
+    const wallet = ethers.Wallet.createRandom();
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Polygon.providerConfig.rpcUrl, wallet.address, '0x1043561A8829300000');
+
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListView.accountList);
+    await AccountListView.tapAddAccountButton();
+    await AddAccountModal.tapImportAccount();
+    await ImportAccountView.isVisible();
+    // Tap on import button to make sure alert pops up
+    await ImportAccountView.tapImportButton();
+    await ImportAccountView.tapOKAlertButton();
+    await ImportAccountView.enterPrivateKey(wallet.privateKey);
+    await ImportAccountView.isImportSuccessSreenVisible();
+    await ImportAccountView.tapCloseButtonOnImportSuccess();
+    await AccountListView.swipeToDismissAccountsModal();
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementNotToHaveText(
+      WalletView.accountName,
+      'Account 1',
+    );
+    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0', 60000);
+  });
+
   it.each`
-    quantity | sourceTokenSymbol | destTokenSymbol
-    ${'1'}   | ${'ETH'}          | ${'WETH'}
-    ${'1'}   | ${'WETH'}         | ${'ETH'}
+    type             | quantity | sourceTokenSymbol | destTokenSymbol | network
+    ${'native'}$     |${'.5'}     | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'30.5'}   | ${'POL'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Polygon}
+    ${'unapproved'}$ |${'50'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'non-native'}$ |${'5.555'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
-    "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
-    async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
+    "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
+    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
       await TabBarComponent.tapWallet();
       await Assertions.checkIfVisible(WalletView.container);
+      if (network.providerConfig.nickname !== currentNetwork)
+      {
+        await WalletView.tapNetworksButtonOnNavBar();
+        await TestHelpers.delay(1000);
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
+        await NetworkEducationModal.tapGotItButton();
+        await TestHelpers.delay(3000);
+        await Assertions.checkIfVisible(WalletView.container);
+        currentNetwork = network.providerConfig.nickname;
+      }
       await TabBarComponent.tapActions();
+      await TestHelpers.delay(1000);
       await WalletActionsModal.tapSwapButton();
 
       if (!swapOnboarded) {
@@ -64,22 +113,25 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       }
       await Assertions.checkIfVisible(QuoteView.getQuotes);
 
-      //Select source token, if ETH then can skip because already selected
-      if (sourceTokenSymbol !== 'ETH') {
+      //Select source token, if native tiken can skip because already selected
+      if (type !== 'native') {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-        await TestHelpers.delay(1000);
+
         await QuoteView.selectToken(sourceTokenSymbol);
       }
       await QuoteView.enterSwapAmount(quantity);
 
       //Select destination token
       await QuoteView.tapOnSelectDestToken();
-      await QuoteView.tapSearchToken();
-      await QuoteView.typeSearchToken(destTokenSymbol);
-      await TestHelpers.delay(1000);
-      await QuoteView.selectToken(destTokenSymbol);
+      if (destTokenSymbol !== 'ETH')
+      {
+          await QuoteView.tapSearchToken();
+          await QuoteView.typeSearchToken(destTokenSymbol);
+          await TestHelpers.delay(2000);
+          await QuoteView.selectToken(destTokenSymbol);
+      } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
       //Make sure slippage is zero for wrapped tokens
       if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
@@ -94,45 +146,26 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
-      try {
-        await Assertions.checkIfVisible(
-          SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-          30000,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(`Toast message is slow to appear or did not appear: ${e}`);
-      }
+      //Wait for Swap to complete
+      await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
       await TestHelpers.delay(5000);
+
+      // Check the swap activity completed
       await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
-        ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+        ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await ActivitiesView.tapOnSwapActivity(
-        sourceTokenSymbol,
-        destTokenSymbol,
-      );
+      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
 
-      try {
-        await Assertions.checkIfVisible(DetailsModal.title);
-      } catch (e) {
-        await ActivitiesView.tapOnSwapActivity(
-          sourceTokenSymbol,
-          destTokenSymbol,
+      // Check the tokeb approval completed
+      if (type === 'unapproved') {
+        await Assertions.checkIfVisible(
+          ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
       }
-
-      await Assertions.checkIfVisible(DetailsModal.title);
-      await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
-      );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-      await DetailsModal.tapOnCloseIcon();
-      await Assertions.checkIfNotVisible(DetailsModal.title);
     },
   );
 });

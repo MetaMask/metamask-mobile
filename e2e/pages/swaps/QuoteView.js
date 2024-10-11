@@ -49,8 +49,8 @@ class QuoteView {
     await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
-  async selectToken(symbol) {
-    const element = Matchers.getElementByText(symbol, 1);
+  async selectToken(symbol, index = 1) {
+    const element = Matchers.getElementByText(symbol, index);
     await Gestures.waitAndTap(element);
   }
 
