@@ -10,7 +10,6 @@ import { useTheme } from '../../../../../util/theme';
 import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
-  selectChainId,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -53,6 +52,7 @@ interface TokenListItemProps {
   showScamWarningModal: boolean;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
+  chainId: string;
 }
 
 export const TokenListItem = ({
@@ -60,13 +60,13 @@ export const TokenListItem = ({
   showScamWarningModal,
   showRemoveMenu,
   setShowScamWarningModal,
+  chainId,
 }: TokenListItemProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { data: tokenBalances } = useTokenBalancesController();
 
   const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
