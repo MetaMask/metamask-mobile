@@ -1,4 +1,5 @@
 name: E2E Merge Queue Check
+
 on:
   push:
     branches: main
@@ -8,18 +9,20 @@ on:
 
 jobs:
   apply-smoke-label:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Apply "Run Smoke E2E" label
-      uses: octokit/request-action@v2.x
-      with:
-        route: POST /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels
-        labels: 'Run Smoke E2E'
-      env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply "Run Smoke E2E" label
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels
+          labels: 'Run Smoke E2E'
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
   run-e2e-check:
-    uses: ./.github/workflows/bitrise-e2e-check.yml  # Reuse the bitrise check workflow
+    runs-on: ubuntu-latest
+    needs: apply-smoke-label
+    uses: ./.github/workflows/bitrise-e2e-check.yml  # Reuse the Bitrise check workflow
     with:
       pr_number: ${{ github.event.number || github.event.pull_request.number }}
       e2e_label: 'Run Smoke E2E'
@@ -28,5 +31,3 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
       BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
-
-  
