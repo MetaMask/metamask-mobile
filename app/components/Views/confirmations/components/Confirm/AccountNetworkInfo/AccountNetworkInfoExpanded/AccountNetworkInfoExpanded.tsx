@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import { selectRpcUrl } from '../../../../../../../selectors/networkController';
+import { selectProviderConfig } from '../../../../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../../../../selectors/networkInfos';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
@@ -15,7 +15,8 @@ import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
 const AccountNetworkInfoExpanded = () => {
   const { approvalRequest } = useApprovalRequest();
   const networkName = useSelector(selectNetworkName);
-  const networkRpcUrl = useSelector(selectRpcUrl);
+  const { rpcUrl: networkRpcUrl, type: networkType } =
+    useSelector(selectProviderConfig);
   const fromAddress = approvalRequest?.requestData?.from;
   const { accountAddress, accountBalance } = useAccountInfo(fromAddress);
 
@@ -34,7 +35,9 @@ const AccountNetworkInfoExpanded = () => {
           {networkName}
         </InfoRow>
         <InfoRow label={strings('confirm.rpc_url')}>
-          <InfoURL url={networkRpcUrl} />
+          <InfoURL
+            url={networkRpcUrl ?? `https://${networkType}.infura.io/v3/`}
+          />
         </InfoRow>
       </InfoSection>
     </View>
