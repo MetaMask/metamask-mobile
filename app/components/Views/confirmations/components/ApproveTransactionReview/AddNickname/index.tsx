@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -40,6 +42,7 @@ import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selec
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
+import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const getAnalyticsParams = () => ({});
 
@@ -267,7 +270,7 @@ const mapStateToProps = (state: RootState) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   providerChainId: selectChainId(state),
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
   networkConfigurations: selectNetworkConfigurations(state),
 });

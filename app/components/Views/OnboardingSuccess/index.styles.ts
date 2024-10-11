@@ -3,15 +3,15 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    alignItems: 'center',
   },
   contentWrapper: {
     flex: 1,
-    paddingTop: '10%',
+    paddingTop: 24,
+    padding: 24,
   },
   buttonWrapper: {
-    width: '85%',
-    bottom: 50,
+    paddingHorizontal: 24,
+    paddingBottom: 50,
   },
   emoji: {
     textAlign: 'center',

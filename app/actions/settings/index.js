@@ -60,3 +60,10 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
     basicFunctionalityEnabled,
   };
 }
+
+export function toggleDeviceNotification(deviceNotificationEnabled) {
+  return {
+    type: 'TOGGLE_DEVICE_NOTIFICATIONS',
+    deviceNotificationEnabled,
+  };
+}

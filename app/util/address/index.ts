@@ -32,11 +32,17 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
+import Logger from '../../../app/util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkState } from '@metamask/network-controller';
-import { AccountImportStrategy } from '@metamask/keyring-controller';
+import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import {
+  AccountImportStrategy,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
 const {
@@ -60,7 +66,7 @@ export function renderFullAddress(address: string) {
  * @param {String} type - Format  type
  * @returns {String} Formatted address
  */
-type FormatAddressType = 'short' | 'mid';
+type FormatAddressType = 'short' | 'mid' | 'full';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
 
@@ -243,6 +249,10 @@ export function getLabelTextByAddress(address: string) {
         return 'accounts.qr_hardware';
       case ExtendedKeyringTypes.simple:
         return 'accounts.imported';
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      case KeyringTypes.snap:
+        return 'accounts.snap_account_tag';
+      ///: END:ONLY_INCLUDE_IF
     }
   }
   return null;
@@ -374,7 +384,7 @@ export function isValidHexAddress(
  */
 function checkIfAddressAlreadySaved(
   address: string,
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   chainId: Hex,
   internalAccounts: InternalAccount[],
 ) {
@@ -419,7 +429,7 @@ function checkIfAddressAlreadySaved(
  */
 export async function validateAddressOrENS(
   toAccount: string,
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   internalAccounts: InternalAccount[],
   chainId: Hex,
 ) {
@@ -582,8 +592,8 @@ export async function getAddress(
 
 export const getTokenDetails = async (
   tokenAddress: string,
-  userAddress: string,
-  tokenId: string,
+  userAddress?: string,
+  tokenId?: string,
 ) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(
@@ -604,6 +614,22 @@ export const getTokenDetails = async (
     decimals,
     standard,
   };
+};
+
+export const getTokenDecimal = async (
+  address: string,
+  networkClientId?: NetworkClientId,
+) => {
+  const { AssetsContractController } = Engine.context;
+  try {
+    const tokenDecimal = await AssetsContractController.getERC20TokenDecimals(
+      address,
+      networkClientId,
+    );
+    return tokenDecimal;
+  } catch (err) {
+    await Logger.log('Error getting token decimal: ', err);
+  }
 };
 
 export const shouldShowBlockExplorer = (

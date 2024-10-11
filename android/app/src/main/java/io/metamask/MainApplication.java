@@ -24,6 +24,12 @@ import java.lang.reflect.Field;
 import io.metamask.nativesdk.NativeSDKPackage;
 import io.metamask.nativeModules.RNTar.RNTarPackage;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.os.Build;
+
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
   @Override
@@ -71,6 +77,14 @@ public class MainApplication extends Application implements ShareApplication, Re
 		return mReactNativeHost;
 	}
 
+	@Override
+	public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
+		if (Build.VERSION.SDK_INT >= 34 && getApplicationInfo().targetSdkVersion >= 34) {
+			return super.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+		} else {
+			return super.registerReceiver(receiver, filter);
+		}
+	}
 	@Override
 	public void onCreate() {
 		super.onCreate();

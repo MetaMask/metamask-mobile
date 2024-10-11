@@ -21,10 +21,6 @@ class WalletView {
     );
   }
 
-  get okAlertButton() {
-    return Matchers.getElementByText(CommonSelectorsText.OK_ALERT_BUTTON);
-  }
-
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
@@ -75,8 +71,12 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  async tapOKAlertButton() {
-    await Gestures.waitAndTap(this.okAlertButton);
+  get mainWalletAccountActions() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+  }
+
+  async tapMainWalletAccountActions() {
+    await Gestures.waitAndTap(this.mainWalletAccountActions);
   }
 
   async tapOnToken(token) {
@@ -108,6 +108,16 @@ class WalletView {
 
   async tapImportNFTButton() {
     await Gestures.waitAndTap(this.importNFTButton);
+  }
+
+  get testCollectible() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
+      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+  }
+
+  async tapOnNftName() {
+    await Gestures.waitAndTap(this.testCollectible);
   }
 
   async tapImportTokensButton() {

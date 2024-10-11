@@ -61,6 +61,13 @@ const MigratedStorage = {
  */
 const persistTransform = createTransform(
   (inboundState: RootState['engine']) => {
+    if (
+      !inboundState ||
+      Object.keys(inboundState.backgroundState).length === 0
+    ) {
+      return inboundState;
+    }
+
     const {
       TokenListController,
       SwapsController,

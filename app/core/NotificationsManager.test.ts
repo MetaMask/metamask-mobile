@@ -1,4 +1,9 @@
-import NotificationManager from './NotificationManager';
+import { NotificationTransactionTypes } from '../util/notifications';
+
+import NotificationManager, {
+  constructTitleAndMessage,
+} from './NotificationManager';
+import { strings } from '../../locales/i18n';
 
 interface NavigationMock {
   navigate: jest.Mock;
@@ -40,6 +45,26 @@ describe('NotificationManager', () => {
     expect(notificationManager._backgroundMode).toBe(true);
   });
 
+  it('calling NotificationManager in _failedCallback mode should call _showNotification', () => {
+    notificationManager._failedCallback({
+      id: 1,
+      txParams: {
+        nonce: 1,
+      },
+    });
+    expect(notificationManager._showNotification).toBeInstanceOf(Function);
+  });
+
+  it('calling NotificationManager onMessageReceived', () => {
+    notificationManager.onMessageReceived({
+      data: {
+        title: 'title',
+        shortDescription: 'shortDescription',
+      },
+    });
+    expect(notificationManager.onMessageReceived).toBeInstanceOf(Function);
+  });
+
   it('calling NotificationManager in background mode OFF should be falsy', () => {
     notificationManager._handleAppStateChange('active');
     expect(notificationManager._backgroundMode).toBe(false);
@@ -63,5 +88,26 @@ describe('NotificationManager', () => {
   it('calling NotificationManager.getTransactionToView should be truthy if setTransactionToView was called before', () => {
     NotificationManager.setTransactionToView(1);
     expect(NotificationManager.getTransactionToView()).toBeTruthy();
+  });
+
+  const selectedNotificationTypes: (keyof typeof NotificationTransactionTypes)[] =
+    [
+      'pending',
+      'pending_deposit',
+      'pending_withdrawal',
+      'success_withdrawal',
+      'success_deposit',
+      'error',
+      'cancelled',
+    ];
+  selectedNotificationTypes.forEach((type) => {
+    it(`should construct title and message for ${type}`, () => {
+      const { title, message } = constructTitleAndMessage({
+        type: NotificationTransactionTypes[type],
+      });
+
+      expect(title).toBe(strings(`notifications.${type}_title`));
+      expect(message).toBe(strings(`notifications.${type}_message`));
+    });
   });
 });

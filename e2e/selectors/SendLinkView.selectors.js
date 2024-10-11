@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const SendLinkViewSelectorsIDs = {
   CONTAINER_ID: 'send-link-screen',
   QR_CODE_BUTTON: 'request-qrcode-button',

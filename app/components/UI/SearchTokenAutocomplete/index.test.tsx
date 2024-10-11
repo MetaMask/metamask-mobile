@@ -1,6 +1,7 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { FunctionComponent } from 'react';
 
 const mockInitialState = {
   settings: {},
@@ -17,7 +18,7 @@ const mockInitialState = {
 describe('SearchTokenAutocomplete', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
-      SearchTokenAutocomplete,
+      SearchTokenAutocomplete as FunctionComponent,
       { name: 'SearchTokenAutocomplete' },
       {
         state: mockInitialState,

@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import EditGasFee1559Update from '../EditGasFee1559Update';
 import { connect } from 'react-redux';

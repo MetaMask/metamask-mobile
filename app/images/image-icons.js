@@ -1,4 +1,5 @@
 import MATIC from './matic.png';
+import POL from './pol.png';
 import PALM from './palm.png';
 import AETH from './arbitrum.png';
 import OPTIMISM from './optimism.png';
@@ -14,6 +15,7 @@ import LINEA_MAINNET from './linea-mainnet-logo.png';
 export default {
   PALM,
   MATIC,
+  POL,
   OPTIMISM,
   ONE,
   FTM,

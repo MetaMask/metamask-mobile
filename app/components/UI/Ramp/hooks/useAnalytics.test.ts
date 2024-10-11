@@ -7,7 +7,6 @@ jest.mock('../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({
       trackEvent: jest.fn(),
-      trackAnonymousEvent: jest.fn(),
     }),
   },
 }));
@@ -21,7 +20,7 @@ describe('useAnalytics', () => {
     jest.clearAllMocks();
   });
 
-  it('calls trackEvent with the correct params', () => {
+  it('calls trackEvent for non-anonymous params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'BUY_BUTTON_CLICKED';
@@ -40,7 +39,7 @@ describe('useAnalytics', () => {
     );
   });
 
-  it('calls trackAnonymousEvent with the correct params', () => {
+  it('calls trackEvent for anonymous params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'RAMP_REGION_SELECTED';
@@ -52,9 +51,11 @@ describe('useAnalytics', () => {
 
     result.current(testEvent, testPayload);
 
-    expect(MetaMetrics.getInstance().trackAnonymousEvent).toHaveBeenCalledWith(
+    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents[testEvent],
-      testPayload,
+      {
+        sensitiveProperties: testPayload,
+      },
     );
   });
 });

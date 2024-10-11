@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const RequestPaymentViewSelectors = {
   BACK_BUTTON_ID: 'request-search-asset-back-button',
   REQUEST_PAYMENT_CONTAINER_ID: 'request-screen',

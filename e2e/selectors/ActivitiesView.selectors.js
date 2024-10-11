@@ -4,7 +4,6 @@ function getSentUnitMessage(unit) {
   return enContent.transactions.sent_unit.replace('{{unit}}', unit);
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export const ActivitiesViewSelectorsText = {
   CONFIRM_TEXT: enContent.transaction.confirmed,
   INCREASE_ALLOWANCE_METHOD: enContent.transactions.increase_allowance,

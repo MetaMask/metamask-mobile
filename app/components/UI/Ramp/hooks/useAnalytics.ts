@@ -41,8 +41,8 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
   const anonymous = AnonymousEvents.includes(eventType);
   InteractionManager.runAfterInteractions(() => {
     if (anonymous) {
-      metrics.trackAnonymousEvent(event, {
-        ...params,
+      metrics.trackEvent(event, {
+        sensitiveProperties: { ...params },
       });
     } else {
       metrics.trackEvent(event, {

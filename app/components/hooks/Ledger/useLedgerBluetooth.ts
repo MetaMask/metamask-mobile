@@ -229,6 +229,12 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
       } else if (e.message.includes('nonce too low')) {
         setLedgerError(LedgerCommunicationErrors.NonceTooLow);
+      } else if (
+        e.message.includes(
+          'Please enable Blind signing or Contract data in the Ethereum app Settings',
+        )
+      ) {
+        setLedgerError(LedgerCommunicationErrors.BlindSignError);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }

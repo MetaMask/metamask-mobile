@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header should render correctly 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "flexWrap": "wrap",
+      "marginTop": 4,
+    }
+  }
+  testID="notification-details-header"
+>
+  Notification Announcement
+  This is a mock of description
+</View>
+`;

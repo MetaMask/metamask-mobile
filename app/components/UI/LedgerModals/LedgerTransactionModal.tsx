@@ -52,6 +52,7 @@ const LedgerTransactionModal = () => {
 
   const executeOnLedger = useCallback(async () => {
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
+      //@ts-expect-error Will defer this typescript issue to the hardware wallet team, confirmations or transactions team
       await speedUpTransaction(transactionId, replacementParams.eip1559GasFee);
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
       await TransactionController.stopTransaction(

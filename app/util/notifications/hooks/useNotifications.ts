@@ -7,20 +7,19 @@ import {
   EnableNotificationsReturn,
   DisableNotificationsReturn,
   MarkNotificationAsReadReturn,
+  deleteNotificationsStorageKeyReturn,
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   MarkAsReadNotificationsParam,
+  performDeleteStorage,
   disableNotificationServices,
   enableNotificationServices,
   fetchAndUpdateMetamaskNotifications,
   markMetamaskNotificationsAsRead,
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/helpers';
-import {
-  getNotificationsList,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../selectors/notifications';
+import { getNotificationsList } from '../../../selectors/notifications';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -53,7 +52,6 @@ export function useListNotifications(): ListNotificationsReturn {
 
   return {
     listNotifications,
-    // @ts-expect-error TODO: fix type mismatch
     notificationsData: notifications,
     isLoading: loading,
     error,
@@ -104,9 +102,6 @@ export function useCreateNotifications(): CreateNotificationsReturn {
  * - `error`: A string or null value representing any error that occurred during the process.
  */
 export function useEnableNotifications(): EnableNotificationsReturn {
-  const isMetamaskNotificationsEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -120,8 +115,6 @@ export function useEnableNotifications(): EnableNotificationsReturn {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
       }
-
-      return isMetamaskNotificationsEnabled;
     } catch (e) {
       const errorMessage = getErrorMessage(e);
       setError(errorMessage);
@@ -129,7 +122,7 @@ export function useEnableNotifications(): EnableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, [isMetamaskNotificationsEnabled]);
+  }, []);
 
   return {
     enableNotifications,
@@ -144,9 +137,6 @@ export function useEnableNotifications(): EnableNotificationsReturn {
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
 export function useDisableNotifications(): DisableNotificationsReturn {
-  const isMetamaskNotificationsEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
@@ -159,7 +149,6 @@ export function useDisableNotifications(): DisableNotificationsReturn {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
       }
-      return isMetamaskNotificationsEnabled;
     } catch (e) {
       const errorMessage = getErrorMessage(e);
       setError(errorMessage);
@@ -167,7 +156,7 @@ export function useDisableNotifications(): DisableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, [isMetamaskNotificationsEnabled]);
+  }, []);
 
   return {
     disableNotifications,
@@ -211,6 +200,41 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 
   return {
     markNotificationAsRead,
+    loading,
+    error,
+  };
+}
+
+/**
+ * Custom hook to delete notifications storage key.
+ * It manages loading and error states internally.
+ *
+ * @returns An object containing the `deleteNotificationsStorageKey` function, loading state, and error state.
+ */
+export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKeyReturn {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>();
+
+  const deleteNotificationsStorageKey = useCallback(async () => {
+    setLoading(true);
+    setError(undefined);
+    try {
+      const errorMessage = await performDeleteStorage();
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
+    } catch (e) {
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    deleteNotificationsStorageKey,
     loading,
     error,
   };

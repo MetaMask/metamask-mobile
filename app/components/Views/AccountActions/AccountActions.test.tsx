@@ -1,7 +1,7 @@
 import React from 'react';
 import Share from 'react-native-share';
 
-import { Alert } from 'react-native';
+import { Alert, AlertButton } from 'react-native';
 
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
@@ -193,19 +193,24 @@ describe('AccountActions', () => {
         getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
       );
 
-      expect(Alert.alert).toHaveBeenCalled();
+      const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
+
+      expect(alertFnMock).toHaveBeenCalled();
 
       //Check Alert title and description match.
-      expect(Alert.alert.mock.calls[0][0]).toBe(
+      expect(alertFnMock.mock.calls[0][0]).toBe(
         strings('accounts.remove_hardware_account'),
       );
-      expect(Alert.alert.mock.calls[0][1]).toBe(
+      expect(alertFnMock.mock.calls[0][1]).toBe(
         strings('accounts.remove_hw_account_alert_description'),
       );
 
       //Click remove button
       await act(async () => {
-        Alert.alert.mock.calls[0][2][1].onPress();
+        const alertButtons = alertFnMock.mock.calls[0][2] as AlertButton[];
+        if (alertButtons[1].onPress !== undefined) {
+          alertButtons[1].onPress();
+        }
       });
 
       await waitFor(() => {

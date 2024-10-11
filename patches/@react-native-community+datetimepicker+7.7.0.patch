@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePickerShadowView.m b/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePickerShadowView.m
+index 4ff3362..c139440 100644
+--- a/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePickerShadowView.m
++++ b/node_modules/@react-native-community/datetimepicker/ios/RNDateTimePickerShadowView.m
+@@ -41,7 +41,7 @@ - (void)setTimeZoneName:(NSString *)timeZoneName {
+   YGNodeMarkDirty(self.yogaNode);
+ }
+ 
+-static YGSize RNDateTimePickerShadowViewMeasure(YGNodeConstRef node, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
++static YGSize RNDateTimePickerShadowViewMeasure(YGNodeRef node, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
+ {
+   RNDateTimePickerShadowView *shadowPickerView = (__bridge RNDateTimePickerShadowView *)YGNodeGetContext(node);
+ 

@@ -1,42 +1,52 @@
-import TestHelpers from '../helpers';
 import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 
-export default class RequestPaymentView {
-  static async tapBackButton() {
-    await TestHelpers.tapItemAtIndex(
-      RequestPaymentViewSelectors.BACK_BUTTON_ID,
-    );
+class RequestPaymentView {
+  get backButton() {
+    return Matchers.getElementByID(RequestPaymentViewSelectors.BACK_BUTTON_ID);
   }
 
-  static async searchForToken(token) {
-    await TestHelpers.replaceTextInField(
+  get tokenSearchInput() {
+    return Matchers.getElementByID(
       RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX,
-      token,
     );
-    await TestHelpers.delay(1000);
   }
 
-  static async tapOnToken(token) {
-    await TestHelpers.tapByText(token, 1);
-  }
-
-  static async typeInTokenAmount(amount) {
-    await TestHelpers.typeTextAndHideKeyboard(
+  get requestAmountInput() {
+    return Matchers.getElementByID(
       RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID,
-      amount,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(
+  get requestPaymentContainer() {
+    return Matchers.getElementByID(
       RequestPaymentViewSelectors.REQUEST_PAYMENT_CONTAINER_ID,
     );
   }
 
-  static async isTokenVisibleInSearchResults(token) {
-    await TestHelpers.checkIfElementHasString(
+  get requestAssetList() {
+    return Matchers.getElementByID(
       RequestPaymentViewSelectors.REQUEST_ASSET_LIST_ID,
-      token,
     );
   }
+
+  async tapBackButton() {
+    await Gestures.waitAndTap(this.backButton);
+  }
+
+  async searchForToken(token) {
+    await Gestures.typeTextAndHideKeyboard(this.tokenSearchInput, token);
+  }
+
+  async tapOnToken(token) {
+    const tokenElement = await Matchers.getElementByText(token, 1);
+    await Gestures.waitAndTap(tokenElement);
+  }
+
+  async typeInTokenAmount(amount) {
+    await Gestures.typeTextAndHideKeyboard(this.requestAmountInput, amount);
+  }
 }
+
+export default new RequestPaymentView();

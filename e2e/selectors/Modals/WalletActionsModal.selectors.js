@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const WalletActionsModalSelectorsIDs = {
   SEND_BUTTON: 'wallet-send-action',
   RECEIVE_BUTTON: 'wallet-receive-action',

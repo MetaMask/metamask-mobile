@@ -178,9 +178,9 @@ export default class Coachmark extends PureComponent {
      */
     style: PropTypes.object,
     /**
-     * Content text
+     * Content object
      */
-    content: PropTypes.string,
+    content: PropTypes.object,
     /**
      * Title text
      */

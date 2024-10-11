@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { RefreshControl, TouchableOpacity, View } from 'react-native';
+import {
+  ImageSourcePropType,
+  RefreshControl,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ChainId, toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
@@ -63,7 +68,7 @@ function NetworkSwitcher() {
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
   const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
-    // TODO(ramp, chainId-string): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
+    // TODO(ramp, btc): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
       let rampSupportedNetworkChainIdAsHex: `0x${string}`;
       try {
@@ -310,7 +315,9 @@ function NetworkSwitcher() {
                           variant={AvatarVariant.Network}
                           size={AvatarSize.Sm}
                           name={'Ethereum Mainnet'}
-                          imageSource={imageIcons.ETHEREUM}
+                          imageSource={
+                            imageIcons.ETHEREUM as ImageSourcePropType
+                          }
                         />
                       </View>
 
@@ -340,7 +347,9 @@ function NetworkSwitcher() {
                           variant={AvatarVariant.Network}
                           size={AvatarSize.Sm}
                           name={'Linea Mainnet'}
-                          imageSource={imageIcons['LINEA-MAINNET']}
+                          imageSource={
+                            imageIcons['LINEA-MAINNET'] as ImageSourcePropType
+                          }
                         />
                       </View>
                       <Text bold>Linea Main Network</Text>
@@ -366,6 +375,7 @@ function NetworkSwitcher() {
                   shouldNetworkSwitchPopToWallet={false}
                   customNetworksList={rampNetworksDetails}
                   showCompletionMessage={false}
+                  showPopularNetworkModal
                   displayContinue
                 />
               </>

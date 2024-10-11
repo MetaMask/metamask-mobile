@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 import { selectChainId } from '../../../selectors/networkController';
-import selectShowFiatInTestnets from '../../../selectors/settings';
+import { selectShowFiatInTestnets } from '../../../selectors/settings';
 import { TEST_NETWORK_IDS } from '../../../constants/network';
 
 /**

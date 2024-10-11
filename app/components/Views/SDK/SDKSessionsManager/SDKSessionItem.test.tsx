@@ -61,6 +61,7 @@ describe('SDKSessionItem', () => {
         icon: 'http://icon-url.com',
         platform: 'test',
         connected: true,
+        dappId: '123',
       },
     },
     trigger: 0,

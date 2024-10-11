@@ -6,6 +6,7 @@ import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import ConnectModal from '../pages/modals/ConnectModal';
 import AssetWatchModal from '../pages/modals/AssetWatchModal';
+import SpamFilterModal from '../pages/modals/SpamFilterModal';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import fs from 'fs';
@@ -62,6 +63,16 @@ export default class ConfirmationsRejectRule {
             await ConnectModal.tapConnectButton();
             await Assertions.checkIfNotVisible(ConnectModal.container);
             await TestHelpers.delay(3000);
+
+            try {
+              await Assertions.checkIfVisible(SpamFilterModal.title);
+              await SpamFilterModal.tapCloseButton();
+              await Assertions.checkIfNotVisible(SpamFilterModal.title);
+            } catch {
+              /* eslint-disable no-console */
+
+              console.log('The spam modal is not visible');
+            }
           }
 
           // we need this because mobile doesnt support just raw json signTypedData, it requires a stringified version

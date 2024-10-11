@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const MetaMetricsOptInSelectorsIDs = {
   OPTIN_METRICS_TITLE_ID: 'optin-metrics-title-id',
   OPTIN_METRICS_NO_THANKS_BUTTON_ID: 'optin-metrics-no-thanks-button-id',

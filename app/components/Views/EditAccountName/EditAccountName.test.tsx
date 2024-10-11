@@ -7,6 +7,7 @@ import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
@@ -96,8 +97,10 @@ describe('EditAccountName', () => {
 
   it('should enable the save button when text input changes', () => {
     const { getByTestId } = renderComponent(mockInitialState);
-    const input = getByTestId('account-name-input');
-    const saveButton = getByTestId('save-button');
+    const input = getByTestId(EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT);
+    const saveButton = getByTestId(
+      EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
+    );
 
     fireEvent.changeText(input, '');
 
@@ -116,8 +119,10 @@ describe('EditAccountName', () => {
 
   it('should call navigate when save button is pressed', () => {
     const { getByTestId } = renderComponent(mockInitialState);
-    const input = getByTestId('account-name-input');
-    const saveButton = getByTestId('save-button');
+    const input = getByTestId(EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT);
+    const saveButton = getByTestId(
+      EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
+    );
     fireEvent.changeText(input, 'New Name');
     fireEvent.press(saveButton);
     expect(mockNavigate).toHaveBeenCalled();

@@ -49,8 +49,8 @@ export interface ConnectionProps {
   lastAuthorized?: number; // timestamp of last received activity
 }
 
-// eslint-disable-next-line
-const { version } = require('../../../../package.json');
+import packageJSON from '../../../../package.json';
+const { version: walletVersion } = packageJSON;
 
 export class Connection extends EventEmitter2 {
   channelId;
@@ -207,7 +207,7 @@ export class Connection extends EventEmitter2 {
       transports: ['websocket'],
       walletInfo: {
         type: 'MetaMask Mobile',
-        version,
+        version: walletVersion,
       },
       ecies: {
         debug: true,
@@ -229,15 +229,11 @@ export class Connection extends EventEmitter2 {
     });
 
     // if relayPersistence is true, automatically setup background bridge
-    if (relayPersistence) {
-      if (originatorInfo) {
-        this.backgroundBridge = setupBridge({
-          originatorInfo,
-          connection: this,
-        });
-      } else {
-        console.error('Connection::constructor() originatorInfo is undefined');
-      }
+    if (originatorInfo) {
+      this.backgroundBridge = setupBridge({
+        originatorInfo,
+        connection: this,
+      });
     }
 
     this.remote.on(EventType.CLIENTS_CONNECTED, handleClientsConnected(this));
@@ -273,8 +269,21 @@ export class Connection extends EventEmitter2 {
     );
   }
 
-  public connect({ withKeyExchange }: { withKeyExchange: boolean }) {
-    return connect({ instance: this, withKeyExchange });
+  public connect({
+    withKeyExchange,
+    authorized,
+    rejected,
+  }: {
+    authorized: boolean;
+    rejected?: boolean;
+    withKeyExchange: boolean;
+  }) {
+    return connect({
+      instance: this,
+      rejected,
+      withKeyExchange,
+      authorized,
+    });
   }
 
   sendAuthorized(force?: boolean) {
@@ -308,7 +317,7 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
+  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 

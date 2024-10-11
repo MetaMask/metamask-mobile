@@ -58,7 +58,7 @@ import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors) =>
@@ -157,7 +157,7 @@ function TokenSelectModal({
   balances,
 }) {
   const navigation = useNavigation();
-  const { trackAnonymousEvent } = useMetrics();
+  const { trackEvent } = useMetrics();
 
   const searchInput = useRef(null);
   const list = useRef();
@@ -304,15 +304,17 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      trackAnonymousEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
-        address,
-        symbol,
-        chain_id: getDecimalChainId(chainId),
+      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+        sensitiveProperties: {
+          address,
+          symbol,
+          chain_id: getDecimalChainId(chainId),
+        },
       });
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress, trackAnonymousEvent],
+    [chainId, hideTokenImportModal, onItemPress, trackEvent],
   );
 
   const handleBlockExplorerPress = useCallback(() => {
@@ -415,7 +417,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
-              testID={SWAP_SEARCH_TOKEN}
+              testID={QuoteViewSelectorIDs.SEARCH_TOKEN}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>

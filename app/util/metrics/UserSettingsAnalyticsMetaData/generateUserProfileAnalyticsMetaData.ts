@@ -29,11 +29,11 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
         : UserProfileProperty.OFF,
     [UserProfileProperty.THEME]: appThemeStyle,
     [UserProfileProperty.TOKEN_DETECTION]:
-      preferencesController.useTokenDetection
+      preferencesController?.useTokenDetection
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
     [UserProfileProperty.MULTI_ACCOUNT_BALANCE]:
-      preferencesController.isMultiAccountBalancesEnabled
+      preferencesController?.isMultiAccountBalancesEnabled
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:

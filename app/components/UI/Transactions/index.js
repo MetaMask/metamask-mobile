@@ -29,7 +29,9 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
+import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
@@ -907,10 +909,9 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
-  primaryCurrency: state.settings.primaryCurrency,
+  primaryCurrency: selectPrimaryCurrency(state),
   tokens: selectTokensByAddress(state),
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
 });
 

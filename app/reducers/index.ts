@@ -1,6 +1,9 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
 import engineReducer from '../core/redux/slices/engine';
+import featureFlagsReducer, {
+  FeatureFlagsState,
+} from '../core/redux/slices/featureFlags';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -18,7 +21,7 @@ import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
 import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
-import securityReducer from './security';
+import securityReducer, { SecurityState } from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
@@ -29,7 +32,7 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
-
+import notificationsAccountsProvider from '../core/redux/slices/notifications';
 /**
  * Infer state from a reducer
  *
@@ -55,6 +58,7 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectibles: any;
   engine: { backgroundState: EngineState };
+  featureFlags: FeatureFlagsState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   privacy: any;
@@ -102,7 +106,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   networkOnboarded: any;
-  security: StateFromReducer<typeof securityReducer>;
+  security: SecurityState;
   sdk: StateFromReducer<typeof sdkReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   // TODO: Replace "any" with type
@@ -120,6 +124,7 @@ export interface RootState {
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
+  notifications: StateFromReducer<typeof notificationsAccountsProvider>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -132,6 +137,7 @@ const rootReducer = combineReducers<RootState, any>({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   engine: engineReducer as any,
+  featureFlags: featureFlagsReducer,
   privacy: privacyReducer,
   bookmarks: bookmarksReducer,
   browser: browserReducer,
@@ -158,6 +164,7 @@ const rootReducer = combineReducers<RootState, any>({
   inpageProvider: inpageProviderReducer,
   transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
+  notifications: notificationsAccountsProvider,
 });
 
 export default rootReducer;

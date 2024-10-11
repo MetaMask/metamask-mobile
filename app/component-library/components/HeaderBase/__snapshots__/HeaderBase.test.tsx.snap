@@ -36,7 +36,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "700",
           "letterSpacing": 0,

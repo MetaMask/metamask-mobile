@@ -36,9 +36,13 @@ describe('extractURLParams', () => {
     const expectedParams = {
       uri: 'test',
       redirect: 'true',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       channelId: '123',
       comm: 'test',
       v: '2',
+      attributionId: '',
     };
 
     mockUrlParser.mockImplementation(
@@ -71,10 +75,14 @@ describe('extractURLParams', () => {
     expect(params).toEqual({
       uri: '',
       redirect: '',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       channelId: '',
       comm: '',
       pubkey: '',
       v: '',
+      attributionId: '',
     });
   });
 
@@ -100,10 +108,14 @@ describe('extractURLParams', () => {
     expect(params).toEqual({
       uri: '',
       redirect: '',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       channelId: '',
       comm: '',
       pubkey: '',
       v: '',
+      attributionId: '',
     });
 
     expect(alertSpy).toHaveBeenCalledWith(
@@ -120,7 +132,11 @@ describe('extractURLParams', () => {
       channelId: '456',
       comm: 'other',
       v: '',
+      originatorInfo: '',
+      rpc: '',
+      sdkVersion: '',
       pubkey: 'xyz',
+      attributionId: '',
     };
 
     mockUrlParser.mockImplementation(

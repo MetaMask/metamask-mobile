@@ -1,11 +1,14 @@
 import React from 'react';
 import AccountInfoCard from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -21,7 +24,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
@@ -45,11 +48,19 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          chainId: '0xaa36a7',
-          type: 'sepolia',
-          nickname: 'Sepolia',
-          ticker: 'ETH',
+        selectedNetworkClientId: 'sepolia',
+        networksMetadata: {},
+        networkConfigurations: {
+          sepolia: {
+            id: 'sepolia',
+            rpcUrl: 'http://localhost/v3/',
+            chainId: '0xaa36a7',
+            ticker: 'ETH',
+            nickname: 'sepolia',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://etherscan.com',
+            },
+          },
         },
       },
       TokenBalancesController: {

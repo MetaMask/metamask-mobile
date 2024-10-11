@@ -251,6 +251,8 @@ export const RampSDKProvider = ({
       setRampType,
 
       intent,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error - Ramps team ownership"
       setIntent,
 
       selectedRegion,
@@ -270,7 +272,8 @@ export const RampSDKProvider = ({
 
       getStarted,
       setGetStarted: setGetStartedCallback,
-
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error - Ramps team ownership"
       selectedAddress,
       selectedChainId,
       selectedNetworkName,

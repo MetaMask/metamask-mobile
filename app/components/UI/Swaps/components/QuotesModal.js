@@ -32,6 +32,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectSwapsQuoteValues } from '../../../../reducers/swaps';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({
@@ -503,7 +504,7 @@ QuotesModal.propTypes = {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
+  quoteValues: selectSwapsQuoteValues(state),
 });
 
 export default connect(mapStateToProps)(QuotesModal);

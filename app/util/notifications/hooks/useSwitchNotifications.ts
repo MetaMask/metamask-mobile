@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/prefer-default-export */
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   deleteOnChainTriggersByAccount,
@@ -9,13 +9,15 @@ import {
 } from '../../../actions/notification/helpers';
 import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '../../../core/Engine';
-import { useSelector } from 'react-redux';
-import { selectIsUpdatingMetamaskNotificationsAccount } from '../../../selectors/notifications';
-
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsUpdatingMetamaskNotificationsAccount,
+} from '../../../selectors/notifications';
+import { updateAccountState } from '../../../core/redux/slices/notifications';
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
   const resetStates = useCallback(() => {
     setLoading(false);
     setError(null);
@@ -75,10 +77,15 @@ export function useSwitchNotifications() {
   };
 }
 
-function useRefetchAccountSettings() {
+export function useRefetchAccountSettings(
+  isMetamaskNotificationsEnabled: boolean,
+) {
   const getAccountSettings = useCallback(
     async (accounts: string[]): Promise<UseSwitchAccountNotificationsData> => {
       try {
+        if (!isMetamaskNotificationsEnabled) {
+          return {};
+        }
         const result =
           await Engine.context.NotificationServicesController.checkAccountsPresence(
             accounts,
@@ -89,10 +96,10 @@ function useRefetchAccountSettings() {
         return {};
       }
     },
-    [],
+    [isMetamaskNotificationsEnabled],
   );
 
-  return getAccountSettings;
+  return { getAccountSettings };
 }
 
 /**
@@ -103,39 +110,59 @@ function useRefetchAccountSettings() {
  * @param accounts the accounts we are checking to see if notifications are enabled/disabled
  * @returns props for settings page
  */
+
 export function useAccountSettingsProps(accounts: string[]) {
   const accountsBeingUpdated = useSelector(
     selectIsUpdatingMetamaskNotificationsAccount,
   );
-  const fetchAccountSettings = useRefetchAccountSettings();
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  const { getAccountSettings } = useRefetchAccountSettings(
+    isMetamaskNotificationsEnabled,
+  );
   const [data, setData] = useState<UseSwitchAccountNotificationsData>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
   // Memoize the accounts array to avoid unnecessary re-fetching
   const memoizedAccounts = useMemo(() => accounts, [accounts]);
 
-  // Effect - async get if accounts are enabled/disabled
-  useEffect(() => {
-    const fetchData = async () => {
+  // Memoize the accounts array to avoid unnecessary re-fetching
+
+  const update = useCallback(async (addresses: string[]) => {
+    try {
       setLoading(true);
       setError(null);
-      fetchAccountSettings(memoizedAccounts)
-        .then((res: any) => setData(res))
-        .catch((e: any) => {
-          const errorMessage = getErrorMessage(e);
-          setError(errorMessage);
-        })
-        .finally(() => setLoading(false));
-    };
-    fetchData();
-  }, [memoizedAccounts, fetchAccountSettings]);
+      const res = await getAccountSettings(addresses);
+      setData(res);
+      dispatch(updateAccountState(res));
+    } catch {
+      setError('Failed to get account settings');
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Effect - async get if accounts are enabled/disabled
+  useEffect(() => {
+    try {
+      const memoAccounts: string[] = memoizedAccounts;
+      update(memoAccounts);
+    } catch {
+      setError('Failed to get account settings');
+    } finally {
+      setLoading(false);
+    }
+  }, [memoizedAccounts, update]);
 
   return {
     data,
     initialLoading: loading,
     error,
     accountsBeingUpdated,
-    update: fetchAccountSettings,
+    update,
   };
 }

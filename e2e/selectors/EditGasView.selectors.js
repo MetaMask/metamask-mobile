@@ -1,7 +1,5 @@
 import enContent from '../../locales/languages/en.json';
 
-// eslint-disable-next-line import/prefer-default-export
-
 export const EditGasViewSelectorsIDs = {
   ESTIMATED_FEE_TEST_ID: 'estimated-fee',
   EDIT_PRIORITY_SCREEN_TEST_ID: 'edit-priority-screen',

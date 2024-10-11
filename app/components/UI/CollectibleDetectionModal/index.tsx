@@ -64,6 +64,7 @@ const CollectibleDetectionModal = () => {
           variant: ButtonVariants.Link,
           label: strings('wallet.nfts_autodetect_cta'),
           onPress: showToastAndEnableNFtDetection,
+          //@ts-expect-error this prop is being added by the name of labelTextVariant by this PR https://github.com/MetaMask/metamask-mobile/pull/10307
           textVariant: TextVariant.BodyMD,
         }}
       />

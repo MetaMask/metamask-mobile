@@ -10,16 +10,29 @@ jest.mock('../../../components/hooks/DisplayName/useTokenList');
 
 describe('Identicon', () => {
   const mockStore = configureMockStore();
-  const mockUseTokenList = jest
-    .mocked(useTokenList)
-    .mockImplementation(() => ({}));
+  const mockUseTokenList = jest.mocked(useTokenList).mockImplementation(() => [
+    {
+      name: 'test',
+      symbol: 'test',
+      decimals: 123,
+      address: '0x123',
+      occurrences: 1,
+      aggregators: ['test'],
+      iconUrl: 'https://test',
+    },
+  ]);
 
   it('should render correctly when provided address found in tokenList and iconUrl is available', () => {
     const addressMock = '0x0439e60f02a8900a951603950d8d4527f400c3f1';
     mockUseTokenList.mockImplementation(() => [
       {
+        name: 'test',
+        symbol: 'test',
+        decimals: 123,
         address: addressMock,
         iconUrl: 'https://example.com/icon.png',
+        occurrences: 1,
+        aggregators: ['test'],
       },
     ]);
 

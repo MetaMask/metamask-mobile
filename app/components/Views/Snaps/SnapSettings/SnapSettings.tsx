@@ -27,6 +27,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks/useStyles';
 import { useSelector } from 'react-redux';
 import SNAP_SETTINGS_REMOVE_BUTTON from './SnapSettings.constants';
+import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -42,11 +43,7 @@ const SnapSettings = () => {
 
   const { snap } = useParams<SnapSettingsProps>();
 
-  const permissionsState = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
+  const permissionsState = useSelector(selectPermissionControllerState);
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

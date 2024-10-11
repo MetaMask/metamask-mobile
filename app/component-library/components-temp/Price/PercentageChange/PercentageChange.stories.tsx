@@ -20,7 +20,7 @@ export default {
   title: 'Component Library / PercentageChange',
   component: PercentageChange,
   decorators: [
-    (Story) => (
+    (Story: typeof React.Component) => (
       <Provider store={store}>
         <Story />
       </Provider>
@@ -28,29 +28,41 @@ export default {
   ],
 };
 
-const Template = (args) => <PercentageChange {...args} />;
+const Template = (args: { value: number | null | undefined }) => (
+  <PercentageChange {...args} />
+);
 
-export const Default = Template.bind({});
-Default.args = {
-  value: 0,
-};
+export const Default = Template.bind(
+  {},
+  {
+    value: 0,
+  },
+);
 
-export const PositiveChange = Template.bind({});
-PositiveChange.args = {
-  value: 5.5,
-};
+export const PositiveChange = Template.bind(
+  {},
+  {
+    value: 5.5,
+  },
+);
 
-export const NegativeChange = Template.bind({});
-NegativeChange.args = {
-  value: -3.75,
-};
+export const NegativeChange = Template.bind(
+  {},
+  {
+    value: -3.75,
+  },
+);
 
-export const NoChange = Template.bind({});
-NoChange.args = {
-  value: 0,
-};
+export const NoChange = Template.bind(
+  {},
+  {
+    value: 0,
+  },
+);
 
-export const InvalidValue = Template.bind({});
-InvalidValue.args = {
-  value: null,
-};
+export const InvalidValue = Template.bind(
+  {},
+  {
+    value: null,
+  },
+);

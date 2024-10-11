@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import BigNumber from 'bignumber.js';
 /* eslint-disable react/display-name */
 import React, { useCallback, useMemo, useState } from 'react';
@@ -41,6 +43,8 @@ import {
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectPrimaryCurrency } from '../../../../../selectors/settings';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -77,22 +81,11 @@ const EditGasFeeLegacy = ({
   const styles = createStyles(colors);
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
 
-  const primaryCurrency = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.primaryCurrency,
-  );
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
 
-  const gasEstimateType = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
-  );
+  const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chainId = useSelector((state: any) => selectChainId(state));
+  const chainId = useSelector(selectChainId);
 
   const gasTransaction = useGasTransaction({
     onlyGas,

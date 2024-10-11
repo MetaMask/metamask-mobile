@@ -2,10 +2,15 @@ import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
+  ModalHeaderType,
   TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
+import {
+  label_address_from,
+  label_address_to,
+  NotificationState,
+} from '../types/NotificationState';
 import {
   getNativeTokenDetailsByChainId,
   getNetworkFees,
@@ -64,24 +69,20 @@ const state: NotificationState<ERC721Notification> = {
       title: modalTitle(notification),
       createdAt: notification.createdAt.toString(),
       header: {
-        type: ModalFieldType.NFT_IMAGE,
+        type: ModalHeaderType.NFT_IMAGE,
         nftImageUrl: notification.data.nft.image,
         networkBadgeUrl: nativeTokenDetails?.image,
       },
       fields: [
         {
           type: ModalFieldType.ADDRESS,
-          label: isSent(notification)
-            ? strings('notifications.modal.label_address_to_you')
-            : strings('notifications.modal.label_address_to'),
-          address: notification.data.to,
+          label: label_address_from(notification),
+          address: notification.data.from,
         },
         {
           type: ModalFieldType.ADDRESS,
-          label: isSent(notification)
-            ? strings('notifications.modal.label_address_from')
-            : strings('notifications.modal.label_address_from_you'),
-          address: notification.data.from,
+          label: label_address_to(notification),
+          address: notification.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,

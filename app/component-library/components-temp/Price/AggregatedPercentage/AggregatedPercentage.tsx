@@ -10,6 +10,13 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import styleSheet from './AggregatedPercentage.styles';
 import { useStyles } from '../../../hooks';
 
+export interface AggregatedPercentageProps {
+  ethFiat: number;
+  tokenFiat: number;
+  tokenFiat1dAgo: number;
+  ethFiat1dAgo: number;
+}
+
 const isValidAmount = (amount: number | null | undefined): boolean =>
   amount !== null && amount !== undefined && !Number.isNaN(amount);
 

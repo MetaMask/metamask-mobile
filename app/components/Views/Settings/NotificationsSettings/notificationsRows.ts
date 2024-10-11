@@ -6,8 +6,8 @@ const notificationsRows = [
     icon: IconName.Arrow2Upright,
     title: strings(`app_settings.notifications_opts.assets_sent_title`),
     description: strings(`app_settings.notifications_opts.assets_sent_desc`),
-    disabled: false,
-    value: true,
+    disabled: true,
+    value: false,
   },
   {
     icon: IconName.Received,
@@ -15,22 +15,22 @@ const notificationsRows = [
     description: strings(
       `app_settings.notifications_opts.assets_received_desc`,
     ),
-    disabled: false,
-    value: true,
+    disabled: true,
+    value: false,
   },
   {
     icon: IconName.Plant,
     title: strings(`app_settings.notifications_opts.defi_title`),
     description: strings(`app_settings.notifications_opts.defi_desc`),
-    disabled: false,
-    value: true,
+    disabled: true,
+    value: false,
   },
   {
     icon: IconName.SwapHorizontal,
     title: strings(`app_settings.notifications_opts.snaps_title`),
     description: strings(`app_settings.notifications_opts.snaps_desc`),
-    disabled: false,
-    value: true,
+    disabled: true,
+    value: false,
   },
   {
     icon: IconName.Sparkle,
@@ -40,8 +40,8 @@ const notificationsRows = [
     description: strings(
       `app_settings.notifications_opts.products_announcements_desc`,
     ),
-    disabled: false,
-    value: true,
+    disabled: true,
+    value: false,
   },
 ];
 

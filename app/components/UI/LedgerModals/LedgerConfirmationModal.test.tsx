@@ -51,26 +51,26 @@ describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    //mock hook return value
-    useBluetoothPermissions.mockReturnValue({
+    // Mock hook return value
+    (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: true,
       bluetoothPermissionError: null,
       checkPermissions: jest.fn(),
     });
 
-    useBluetooth.mockReturnValue({
+    (useBluetooth as jest.Mock).mockReturnValue({
       bluetoothOn: true,
       bluetoothConnectionError: false,
     });
 
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
       error: null,
     });
 
-    useMetrics.mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: jest.fn(),
     });
   });
@@ -80,7 +80,7 @@ describe('LedgerConfirmationModal', () => {
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
@@ -105,7 +105,7 @@ describe('LedgerConfirmationModal', () => {
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
-    useBluetoothPermissions.mockReturnValue({
+    (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError,
       checkPermissions: jest.fn(),
@@ -146,7 +146,8 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders OpenETHAppStep when app launch confirmation is needed', () => {
-    useLedgerBluetooth.mockReturnValue({
+    jest.useFakeTimers();
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: true,
       ledgerLogicToRun: jest.fn(),
@@ -160,6 +161,11 @@ describe('LedgerConfirmationModal', () => {
         deviceId={'test'}
       />,
     );
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
     expect(getByTestId(OPEN_ETH_APP_STEP)).toBeTruthy();
   });
 
@@ -260,7 +266,7 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders ErrorStep when there is a bluetooth connection error', () => {
-    useBluetooth.mockReturnValue({
+    (useBluetooth as jest.Mock).mockReturnValue({
       bluetoothOn: false,
       bluetoothConnectionError: true,
     });
@@ -280,7 +286,7 @@ describe('LedgerConfirmationModal', () => {
   it('retries connectLedger when retry button is used', async () => {
     const ledgerLogicToRun = jest.fn();
 
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun,
@@ -295,7 +301,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(1);
@@ -309,7 +315,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('retries checkPermissions when retry button is used', async () => {
     const checkPermissions = jest.fn();
-    useBluetoothPermissions.mockReturnValue({
+    (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError:
         BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
@@ -324,7 +330,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     const retryButton = getByTestId(RETRY_BUTTON);
@@ -336,7 +342,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onConfirmation when ledger commands are being sent and confirmed have been received.', async () => {
     const onConfirmation = jest.fn();
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn().mockImplementation((callback) => callback()),
@@ -351,7 +357,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onConfirmation).toHaveBeenCalled();
@@ -361,7 +367,7 @@ describe('LedgerConfirmationModal', () => {
     const onConfirmation = jest.fn();
 
     const ledgerLogicToRun = jest.fn();
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun,
@@ -373,7 +379,7 @@ describe('LedgerConfirmationModal', () => {
     });
 
     const trackEvent = jest.fn();
-    useMetrics.mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent,
     });
 
@@ -385,7 +391,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onConfirmation).not.toHaveBeenCalled();
@@ -402,7 +408,7 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onRejection when user refuses confirmation', async () => {
     const onRejection = jest.fn();
-    useLedgerBluetooth.mockReturnValue({
+    (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
@@ -416,7 +422,7 @@ describe('LedgerConfirmationModal', () => {
         deviceId={'test'}
       />,
     );
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onRejection).toHaveBeenCalled();

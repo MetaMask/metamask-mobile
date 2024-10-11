@@ -11,7 +11,7 @@ import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellM
 // Internal dependencies.
 import { CellProps, CellVariant } from './Cell.types';
 
-const Cell = ({ variant, ...props }: CellProps) => {
+const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
   switch (variant) {
     case CellVariant.Display:
       return <CellDisplay testID={CellModalSelectorsIDs.DISPLAY} {...props} />;

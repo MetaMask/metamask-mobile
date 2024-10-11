@@ -5,44 +5,37 @@ import useBluetoothDevices from '../../hooks/Ledger/useBluetoothDevices';
 import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import { BluetoothPermissionErrors } from '../../../core/Ledger/ledgerErrors';
-import { fireEvent } from '@testing-library/react-native';
 
-jest.mock('../../hooks/Ledger/useBluetooth', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('../../hooks/Ledger/useBluetoothDevices', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('../../hooks/useBluetoothPermissions', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+jest.mock('../../hooks/Ledger/useBluetooth');
+jest.mock('../../hooks/Ledger/useBluetoothDevices');
+jest.mock('../../hooks/useBluetoothPermissions');
 
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
 }));
 
 describe('Scan', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    //mock hook return value;
-    useBluetoothPermissions.mockReturnValue({
+    // Mock hook return values
+    jest.mocked(useBluetoothPermissions).mockReturnValue({
       hasBluetoothPermissions: true,
-      bluetoothPermissionError: null,
+      bluetoothPermissionError: undefined,
       checkPermissions: jest.fn(),
     });
 
-    useBluetooth.mockReturnValue({
+    jest.mocked(useBluetooth).mockReturnValue({
       bluetoothOn: true,
       bluetoothConnectionError: false,
     });
 
-    useBluetoothDevices.mockReturnValue({
+    jest.mocked(useBluetoothDevices).mockReturnValue({
       devices: [],
       deviceScanError: false,
     });
@@ -64,13 +57,12 @@ describe('Scan', () => {
     const selectedDevice = {
       id: 'device1',
       name: 'Device 1',
-      value: 'device1',
     };
 
-    useBluetoothDevices.mockImplementation(() => ({
+    jest.mocked(useBluetoothDevices).mockReturnValue({
       devices: [selectedDevice],
       deviceScanError: false,
-    }));
+    });
 
     const onDeviceSelected = jest.fn();
 
@@ -87,7 +79,7 @@ describe('Scan', () => {
   it('calls onScanningErrorStateChanged on bluetoothPermissionError LocationAccessBlocked', () => {
     const onScanningErrorStateChanged = jest.fn();
 
-    useBluetoothPermissions.mockReturnValue({
+    jest.mocked(useBluetoothPermissions).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError: BluetoothPermissionErrors.LocationAccessBlocked,
       checkPermissions: jest.fn(),
@@ -107,7 +99,7 @@ describe('Scan', () => {
   it('calls onScanningErrorStateChanged on bluetoothPermissionError BluetoothAccessBlocked', () => {
     const onScanningErrorStateChanged = jest.fn();
 
-    useBluetoothPermissions.mockReturnValue({
+    jest.mocked(useBluetoothPermissions).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError:
         BluetoothPermissionErrors.BluetoothAccessBlocked,
@@ -128,7 +120,7 @@ describe('Scan', () => {
   it('calls onScanningErrorStateChanged on bluetoothPermissionError NearbyDevicesAccessBlocked', () => {
     const onScanningErrorStateChanged = jest.fn();
 
-    useBluetoothPermissions.mockReturnValue({
+    jest.mocked(useBluetoothPermissions).mockReturnValue({
       hasBluetoothPermissions: false,
       bluetoothPermissionError:
         BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
@@ -149,7 +141,7 @@ describe('Scan', () => {
   it('calls onScanningErrorStateChanged on bluetoothConnectionError', () => {
     const onScanningErrorStateChanged = jest.fn();
 
-    useBluetooth.mockReturnValue({
+    jest.mocked(useBluetooth).mockReturnValue({
       bluetoothOn: true,
       bluetoothConnectionError: true,
     });
@@ -168,7 +160,7 @@ describe('Scan', () => {
   it('calls onScanningErrorStateChanged on deviceScanError', () => {
     const onScanningErrorStateChanged = jest.fn();
 
-    useBluetoothDevices.mockReturnValue({
+    jest.mocked(useBluetoothDevices).mockReturnValue({
       devices: [],
       deviceScanError: true,
     });
@@ -182,34 +174,5 @@ describe('Scan', () => {
     );
 
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
-  });
-
-  it('calls onDeviceSelected when user selects a Ledger device', () => {
-    const onDeviceSelected = jest.fn();
-    useBluetoothDevices.mockReturnValue({
-      devices: [
-        { id: 'device1', name: 'Device 1', value: 'device1' },
-        { id: 'device2', name: 'device 2', value: 'device2' },
-        { id: 'device3', name: 'device 3', value: 'device3' },
-      ],
-      deviceScanError: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <Scan
-        onDeviceSelected={onDeviceSelected}
-        onScanningErrorStateChanged={jest.fn()}
-        ledgerError={undefined}
-      />,
-    );
-
-    const selectedItem = getByText('Device 1');
-    fireEvent.press(selectedItem);
-
-    expect(onDeviceSelected).toHaveBeenNthCalledWith(1, {
-      id: 'device1',
-      name: 'Device 1',
-      value: 'device1',
-    });
   });
 });

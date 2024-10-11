@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 
 export type NotificationListStyles = ReturnType<typeof createStyles>;
@@ -9,19 +9,55 @@ export const createStyles = ({ colors, typography }: Theme) =>
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
-      marginHorizontal: 8,
+    },
+    itemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 32,
+    },
+    unreadItemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.info.muted,
+    },
+    readItemContainer: {
+      flex: 1,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: colors.background.default,
+    },
+    unreadDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.info.default,
+      position: 'absolute',
+      marginTop: 16,
+      marginLeft: 8,
+    },
+    readDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      position: 'absolute',
+      marginTop: 16,
+      marginLeft: 8,
     },
     wrapper: {
       flex: 1,
       paddingVertical: 10,
       justifyContent: 'center',
       borderRadius: 10,
+      backgroundColor: colors.primary.default,
     },
     loaderContainer: {
       position: 'absolute',
       zIndex: 999,
       width: '100%',
       height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     menuItemContainer: {
       flexDirection: 'row',
@@ -40,7 +76,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       borderColor: colors.background.default,
     },
     textStyle: {
-      ...(typography.sBodyMD as TextStyle),
+      ...typography.sBodyMD,
       fontWeight: '500',
     },
     loader: {

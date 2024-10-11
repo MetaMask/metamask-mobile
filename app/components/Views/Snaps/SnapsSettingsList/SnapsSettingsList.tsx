@@ -12,6 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import stylesheet from './SnapsSettingsList.styles';
 import { Snap } from '@metamask/snaps-utils';
+import { selectSnaps } from '../../../../selectors/snaps/snapController';
 
 export const createSnapsSettingsListNavDetails = createNavigationDetails(
   Routes.SNAPS.SNAPS_SETTINGS_LIST,
@@ -21,11 +22,7 @@ const SnapsSettingsList = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
-  const snaps = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.engine.backgroundState.SnapController.snaps,
-  );
+  const snaps = useSelector(selectSnaps);
 
   useEffect(() => {
     navigation.setOptions(

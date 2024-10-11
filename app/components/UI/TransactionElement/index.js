@@ -34,6 +34,9 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import { swapsControllerTokens } from '../../../reducers/swaps';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -602,10 +605,9 @@ const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+  primaryCurrency: selectPrimaryCurrency(state),
+  swapsTransactions: selectSwapsTransactions(state),
+  swapsTokens: swapsControllerTokens(state),
 });
 
 TransactionElement.contextType = ThemeContext;

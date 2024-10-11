@@ -30,7 +30,6 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   });
@@ -49,12 +48,12 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapReceiveButton();
     await RequestPaymentModal.tapRequestPaymentButton();
-    await RequestPaymentView.isVisible();
+    await Assertions.checkIfVisible(RequestPaymentView.requestPaymentContainer);
   });
 
   it('should search for SAI by contract', async () => {
     await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-    await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
+    await Assertions.checkIfTextIsDisplayed('SAI');
   });
 
   it('should search DAI', async () => {

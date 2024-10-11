@@ -7,6 +7,7 @@ import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/Ad
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import Engine from '../../../core/Engine';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -37,6 +38,14 @@ const initialState = {
 };
 
 describe('AddToAddressBookWrapper', () => {
+  beforeAll(() => {
+    //@ts-expect-error - This is for test purposes
+    Engine.context = {
+      AddressBookController: {
+        set: jest.fn(),
+      },
+    };
+  });
   it('should match default snapshot', async () => {
     const container = renderWithProvider(
       <AddToAddressBookWrapper address="0x10e08af911f2e48948">
@@ -44,7 +53,7 @@ describe('AddToAddressBookWrapper', () => {
       </AddToAddressBookWrapper>,
       { state: initialState },
     );
-    expect(container).toMatchSnapshot();
+    expect(container.toJSON()).toMatchSnapshot();
   });
   it('should open addressbook for new address', async () => {
     const { queryByText, getByTestId, getByText } = renderWithProvider(
@@ -84,5 +93,39 @@ describe('AddToAddressBookWrapper', () => {
     expect(
       queryByText(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
     ).toBeNull();
+  });
+
+  it('should save address to address book on confirm', async () => {
+    const mockSetToAddressName = jest.fn();
+    const { getByTestId, getByText } = renderWithProvider(
+      <AddToAddressBookWrapper
+        address="0x10e08af911f2e48948"
+        setToAddressName={mockSetToAddressName}
+      >
+        <Text>DUMMY</Text>
+      </AddToAddressBookWrapper>,
+      { state: initialState },
+    );
+
+    fireEvent.press(
+      getByTestId(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON),
+    );
+    expect(getByText('Add to address book')).toBeDefined();
+
+    const aliasInput = getByTestId(
+      AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
+    );
+    fireEvent.changeText(aliasInput, 'New Alias');
+    expect(aliasInput.props.value).toBe('New Alias');
+
+    fireEvent.press(getByTestId(AddAddressModalSelectorsIDs.SAVE_BUTTON));
+
+    expect(Engine.context.AddressBookController.set).toHaveBeenCalledWith(
+      '0x10e08af911f2e48948',
+      'New Alias',
+      '0x1',
+    );
+
+    expect(mockSetToAddressName).toHaveBeenCalledWith('New Alias');
   });
 });

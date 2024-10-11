@@ -10,7 +10,10 @@ import RemoteImage from '../../../../components/Base/RemoteImage';
 import METAMASK_FOX from '../../../../images/fox.png';
 import { View } from 'react-native';
 
-type NotificationIconProps = Pick<NotificationMenuItem, 'image' | 'badgeIcon'>;
+type NotificationIconProps = Pick<
+  NotificationMenuItem,
+  'image' | 'badgeIcon' | 'isRead'
+>;
 
 function MenuIcon(props: NotificationIconProps) {
   const { styles } = useStyles();
@@ -47,20 +50,23 @@ function NotificationIcon(props: NotificationIconProps) {
   const { styles } = useStyles();
 
   return (
-    <View style={styles.itemLogoSize}>
-      <BadgeWrapper
-        badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.NotificationsKinds}
-            iconName={props.badgeIcon}
-          />
-        }
-        style={styles.badgeWrapper}
-      >
-        <MenuIcon {...props} />
-      </BadgeWrapper>
-    </View>
+    <React.Fragment>
+      <View style={styles.itemLogoSize}>
+        <BadgeWrapper
+          badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.NotificationsKinds}
+              iconName={props.badgeIcon}
+            />
+          }
+          style={styles.badgeWrapper}
+        >
+          <MenuIcon {...props} />
+        </BadgeWrapper>
+      </View>
+      <View style={props.isRead ? styles.readDot : styles.unreadDot} />
+    </React.Fragment>
   );
 }
 

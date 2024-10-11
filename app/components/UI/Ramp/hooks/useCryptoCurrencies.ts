@@ -36,8 +36,7 @@ export default function useCryptoCurrencies() {
       sdkCryptoCurrencies
     ) {
       const filteredTokens = sdkCryptoCurrencies.filter(
-        // TODO(ramp, chainId-string): remove once chainId is a string
-        (token) => `${token.network?.chainId}` === selectedChainId,
+        (token) => token.network?.chainId === selectedChainId,
       );
       return filteredTokens;
     }

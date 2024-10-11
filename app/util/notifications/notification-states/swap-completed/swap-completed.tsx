@@ -1,5 +1,9 @@
 import { strings } from '../../../../../locales/i18n';
-import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
@@ -50,8 +54,8 @@ const state: NotificationState<SwapCompletedNotification> = {
     );
     return {
       title: strings('notifications.modal.title_swapped', {
-        symbol1: notification.data.token_in.symbol,
-        symbol2: notification.data.token_out.symbol,
+        symbolIn: notification.data.token_in.symbol,
+        symbolOut: notification.data.token_out.symbol,
       }),
       createdAt: notification.createdAt.toString(),
       fields: [
@@ -98,6 +102,11 @@ const state: NotificationState<SwapCompletedNotification> = {
           getNetworkFees: () => getNetworkFees(notification),
         },
       ],
+      footer: {
+        type: ModalFooterType.BLOCK_EXPLORER,
+        chainId: notification.chain_id,
+        txHash: notification.tx_hash,
+      },
     };
   },
 };

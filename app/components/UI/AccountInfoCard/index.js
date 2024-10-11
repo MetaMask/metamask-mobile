@@ -135,7 +135,6 @@ class AccountInfoCard extends PureComponent {
      */
     ticker: PropTypes.string,
     transaction: PropTypes.object,
-    activeTabUrl: PropTypes.string,
     origin: PropTypes.string,
   };
 
@@ -150,7 +149,6 @@ class AccountInfoCard extends PureComponent {
       showFiatBalance = true,
       fromAddress: rawFromAddress,
       transaction,
-      activeTabUrl,
       origin,
     } = this.props;
 
@@ -180,16 +178,14 @@ class AccountInfoCard extends PureComponent {
       url: isOriginUrl ? origin : originatorInfo?.url ?? strings('sdk.unknown'),
       icon: originatorInfo?.icon,
     };
+    const actualOriginUrl = isOriginUrl
+      ? origin
+      : originatorInfo?.url ?? strings('sdk.unknown');
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
-        origin={
-          (isOriginUrl
-            ? origin
-            : originatorInfo?.url ?? strings('sdk.unknown')) ||
-          transaction.origin
-        }
-        url={activeTabUrl}
+        origin={actualOriginUrl}
+        url={actualOriginUrl}
         from={rawFromAddress}
         sdkDappMetadata={sdkDappMetadata}
       />
