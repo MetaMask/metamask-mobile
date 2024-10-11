@@ -9,7 +9,9 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
-import { endTrace, TraceName, trace, TraceOperation } from '../util/trace';
+import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
+import StorageWrapper from './storage-wrapper';
+
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
@@ -25,7 +27,7 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 let store: Store<RootState, any>, persistor;
-const createStoreAndPersistor = async () => {
+const createStoreAndPersistor = async (appStartTime: number) => {
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E
     ? await ReadOnlyNetworkStore.getState()
@@ -47,7 +49,22 @@ const createStoreAndPersistor = async () => {
     middlewares.push(createReduxFlipperDebugger());
   }
 
-  trace({ name: TraceName.StorageRehydration, op: TraceOperation.StorageRehydration });
+  const jsStartTime = performance.now();
+
+  trace({
+    name: TraceName.LoadScripts,
+    startTime: appStartTime,
+  });
+
+  endTrace({
+    name: TraceName.LoadScripts,
+    timestamp: appStartTime + jsStartTime,
+  });
+
+  trace({
+    name: TraceName.CreateStore,
+    op: TraceOperation.CreateStore,
+  });
 
   store = configureStore({
     reducer: pReducer,
@@ -57,10 +74,19 @@ const createStoreAndPersistor = async () => {
 
   sagaMiddleware.run(rootSaga);
 
+  endTrace({ name: TraceName.CreateStore });
+
+  trace({
+    name: TraceName.StorageRehydration,
+    op: TraceOperation.StorageRehydration,
+  });
+
   /**
    * Initialize services after persist is completed
    */
-  const onPersistComplete = () => {
+  const onPersistComplete = async () => {
+    endTrace({ name: TraceName.StorageRehydration });
+
     /**
      * EngineService.initalizeEngine(store) with SES/lockdown:
      * Requires ethjs nested patches (lib->src)
@@ -76,7 +102,6 @@ const createStoreAndPersistor = async () => {
      * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
      * - V8: SES_UNHANDLED_REJECTION
      */
-    endTrace({ name: TraceName.StorageRehydration });
 
     store.dispatch({
       type: 'TOGGLE_BASIC_FUNCTIONALITY',
@@ -88,7 +113,17 @@ const createStoreAndPersistor = async () => {
       store.dispatch({
         type: 'FETCH_FEATURE_FLAGS',
       });
-    EngineService.initalizeEngine(store);
+
+    await trace(
+      {
+        name: TraceName.EngineInitialization,
+        op: TraceOperation.EngineInitialization,
+      },
+      async () => {
+        EngineService.initalizeEngine(store);
+      },
+    );
+
     Authentication.init(store);
     AppStateEventProcessor.init(store);
     LockManagerService.init(store);
@@ -98,7 +133,16 @@ const createStoreAndPersistor = async () => {
 };
 
 (async () => {
-  await createStoreAndPersistor();
+  const appStartTime = await StorageWrapper.getItem('appStartTime');
+
+  await trace(
+    {
+      name: TraceName.UIStartup,
+      op: TraceOperation.UIStartup,
+      startTime: appStartTime,
+    },
+    async () => await createStoreAndPersistor(appStartTime),
+  );
 })();
 
 export { store, persistor };

@@ -59,7 +59,12 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import { trace, endTrace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -246,7 +251,10 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    trace({ name: TraceName.LoginPasswordEntry, op: TraceOperation.LoginPasswordEntry });
+    trace({
+      name: TraceName.LoginToPasswordEntry,
+      op: TraceOperation.LoginToPasswordEntry,
+    });
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -357,7 +365,6 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
-    endTrace({ name: TraceName.LoginPasswordEntry });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
@@ -370,8 +377,14 @@ class Login extends PureComponent {
       this.state.rememberMe,
     );
 
+    
     try {
-      await Authentication.userEntryAuth(password, authType);
+      await trace(
+        { name: TraceName.AuthenticateUser, op: TraceOperation.AuthenticateUser },
+        async () => {
+        await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       Keyboard.dismiss();
 
@@ -432,7 +445,8 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
-    trace({ name: TraceName.LoginUser, op: TraceOperation.LoginUser });
+
+    
   };
 
   tryBiometric = async (e) => {
@@ -458,7 +472,8 @@ class Login extends PureComponent {
     field?.blur();
   };
 
-  triggerLogIn = () => {
+  triggerLogIn = async () => {
+    await endTrace({ name: TraceName.LoginToPasswordEntry });
     this.onLogin();
   };
 

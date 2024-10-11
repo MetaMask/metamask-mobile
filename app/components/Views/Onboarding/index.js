@@ -49,6 +49,7 @@ import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onbo
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -275,25 +276,37 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
-    const action = async () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        this.props.navigation.navigate('ChoosePassword', {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-        });
-        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-      } else {
-        this.props.navigation.navigate('OptinMetrics', {
-          onContinue: () => {
-            this.props.navigation.replace('ChoosePassword', {
+    const action = () => {
+      trace(
+        {
+          name: TraceName.CreateNewWalletToChoosePassword,
+          op: TraceOperation.CreateNewWalletToChoosePassword,
+        },
+        async () => {
+          const { metrics } = this.props;
+          if (metrics.isEnabled()) {
+            this.props.navigation.navigate('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
             this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
-          },
-        });
-      }
+          } else {
+            this.props.navigation.navigate('OptinMetrics', {
+              onContinue: () => {
+                this.props.navigation.replace('ChoosePassword', {
+                  [PREVIOUS_SCREEN]: ONBOARDING,
+                });
+                this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
+              },
+            });
+          }
+        },
+      );
+      console.log('action finished');
     };
+
+    console.log('calling handleExistingUser');
     this.handleExistingUser(action);
+    console.log('onPressCreate finished');
   };
 
   onPressImport = () => {
