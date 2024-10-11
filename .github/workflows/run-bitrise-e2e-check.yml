@@ -7,11 +7,11 @@ on:
         required: true
         type: number
       e2e_label:
-        required: true
+        required: false
         type: string
         default: 'Run Smoke E2E'
       e2e_pipeline:
-        required: true
+        required: false
         type: string
         default: 'pr_smoke_e2e_pipeline'
     secrets:

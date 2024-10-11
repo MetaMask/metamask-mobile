@@ -20,9 +20,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   run-e2e-check:
-    runs-on: ubuntu-latest
     needs: apply-smoke-label
-    uses: ./.github/workflows/bitrise-e2e-check.yml  # Reuse the Bitrise check workflow
+    uses: ./.github/workflows/run-bitrise-e2e-check.yml  # Reuse the bitrise check workflow
     with:
       pr_number: ${{ github.event.number || github.event.pull_request.number }}
       e2e_label: 'Run Smoke E2E'
