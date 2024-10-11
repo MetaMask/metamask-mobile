@@ -79,6 +79,8 @@ describe('useNotificationHandler', () => {
   });
 
   it('does not navigates when notification is null', async () => {
+    jest.clearAllMocks();
+
     const { result } = renderHook(() =>
       useNotificationHandler(mockNavigation),
     );
