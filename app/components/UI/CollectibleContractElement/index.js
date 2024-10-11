@@ -315,7 +315,6 @@ CollectibleContractElement.propTypes = {
 
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
-  chainId: selectChainId(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
 });
 
