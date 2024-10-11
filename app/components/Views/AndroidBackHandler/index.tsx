@@ -1,22 +1,22 @@
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { BackHandler, InteractionManager } from 'react-native';
+
+interface AndroidBackHandlerProps {
+  /**
+   * react-navigation object used to switch between screens
+   */
+  navigation?: NavigationProp<ParamListBase>;
+  /**
+   * Custom callback to call on back press event
+   */
+  customBackPress: () => void;
+}
 
 /**
  * PureComponent that handles android hardware back button
  */
-export default class AndroidBackHandler extends PureComponent {
-  static propTypes = {
-    /**
-     * react-navigation object used to switch between screens
-     */
-    navigation: PropTypes.object,
-    /**
-     * Custom callback to call on back press event
-     */
-    customBackPress: PropTypes.func,
-  };
-
+export default class AndroidBackHandler extends PureComponent<AndroidBackHandlerProps> {
   pressed = false;
 
   componentDidMount() {
@@ -46,6 +46,7 @@ export default class AndroidBackHandler extends PureComponent {
       }
       setTimeout(() => (this.pressed = false), 300);
     }
+    return undefined;
   };
 
   render() {
