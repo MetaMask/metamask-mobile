@@ -248,22 +248,6 @@ exports[`WalletAccount renders correctly 1`] = `
         }
       }
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 12,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 20,
-          }
-        }
-      >
-        Address
-        :
-      </Text>
       <RNGestureHandlerButton
         collapsable={false}
         onGestureEvent={[Function]}
@@ -278,45 +262,22 @@ exports[`WalletAccount renders correctly 1`] = `
           collapsable={false}
           style={
             {
-              "alignItems": "center",
-              "backgroundColor": "#0376c91a",
-              "borderRadius": 20,
-              "flexDirection": "row",
-              "marginLeft": 12,
               "opacity": 1,
               "padding": 4,
-              "paddingHorizontal": 12,
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#0376c9",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 12,
-                "fontWeight": "500",
-                "letterSpacing": 0,
-                "lineHeight": 20,
-              }
-            }
-            testID="wallet-account-address"
-          >
-            0xC496...a756
-          </Text>
           <SvgMock
-            color="#0376c9"
-            height={16}
+            color="#141618"
+            height={24}
             name="Copy"
             style={
               {
-                "height": 16,
-                "marginLeft": 4,
-                "width": 16,
+                "height": 24,
+                "width": 24,
               }
             }
-            width={16}
+            width={24}
           />
         </View>
       </RNGestureHandlerButton>
