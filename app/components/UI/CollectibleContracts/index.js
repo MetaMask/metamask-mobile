@@ -261,10 +261,11 @@ const CollectibleContracts = ({
           key={item.address}
           contractCollectibles={contractCollectibles}
           collectiblesVisible={index === 0}
+          chainId={chainId}
         />
       );
     },
-    [collectibles, onItemPress],
+    [collectibles, onItemPress, chainId],
   );
 
   const renderFavoriteCollectibles = useCallback(() => {
