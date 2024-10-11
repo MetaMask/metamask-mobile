@@ -9,7 +9,6 @@ import {
 } from '../../../../components/hooks/useMetrics';
 import { useTheme } from '../../../../util/theme';
 import { createDetectedTokensNavDetails } from '../../../Views/DetectedTokens';
-import { selectChainId } from '../../../../selectors/networkController';
 import { selectDetectedTokens } from '../../../../selectors/tokensController';
 import { getDecimalChainId } from '../../../../util/networks';
 import createStyles from '../styles';
@@ -18,6 +17,7 @@ import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
+import { useChainId } from '../../../../selectors/hooks';
 
 interface TokenListProps {
   tokens: TokenI[];
@@ -50,7 +50,7 @@ export const TokenList = ({
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const detectedTokens = useSelector(selectDetectedTokens);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
@@ -75,6 +75,7 @@ export const TokenList = ({
       renderItem={({ item }) => (
         <TokenListItem
           asset={item}
+          chainId={chainId}
           showRemoveMenu={showRemoveMenu}
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
