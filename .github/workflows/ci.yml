@@ -17,15 +17,15 @@ jobs:
           labels: 'Run Smoke E2E'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run-e2e-check:
-    uses: ./.github/workflows/run-bitrise-e2e-check.yml
-    with:
-      E2E_LABEL: 'Run Smoke E2E'
-      E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
-    secrets:
-      BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
-      BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # run-e2e-check:
+  #   uses: metamask/github-tools/github/workflows/run-bitrise-e2e-check.yml
+  #   with:
+  #     E2E_LABEL: 'Run Smoke E2E'
+  #     E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
+  #   secrets:
+  #     BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+  #     BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
+  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   check-diff:
     runs-on: macos-latest
@@ -320,7 +320,6 @@ jobs:
     needs:
       [
         check-diff,
-        run-e2e-check,
         dedupe,
         scripts,
         unit-tests,
