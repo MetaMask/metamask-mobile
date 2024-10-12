@@ -7,16 +7,21 @@ on:
     types: [checks_requested]
 
 jobs:
-  apply-smoke-label:
+  name: apply-smoke-label
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+  add-label:
     runs-on: ubuntu-latest
     steps:
       - name: Apply "Run Smoke E2E" label
-        uses: octokit/request-action@v2.x
-        with:
-          route: POST /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels
-          labels: 'Run Smoke E2E'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
+            -d '{"labels":["Run Smoke E2E"]}'
   # run-e2e-check:
   #   uses: metamask/github-tools/github/workflows/run-bitrise-e2e-check.yml
   #   with:
