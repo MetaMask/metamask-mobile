@@ -12,7 +12,7 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-  add-label:
+  add-smoke-label:
     runs-on: ubuntu-latest
     steps:
       - name: Apply "Run Smoke E2E" label

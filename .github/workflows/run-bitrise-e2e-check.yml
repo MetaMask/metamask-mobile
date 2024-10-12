@@ -5,15 +5,6 @@ on:
     types: [edited, deleted]
   pull_request:
     types: [opened, reopened, labeled, unlabeled, synchronize]
-  workflow_call:
-  inputs:
-      E2E_LABEL:
-        required: true
-        type: string
-      E2E_PIPELINE:
-        required: true
-        type: string
-  
 env:
   E2E_LABEL: 'Run Smoke E2E'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
