@@ -1,46 +1,39 @@
 name: Run Bitrise E2E Check
 
 on:
-  workflow_call:  # Allow workflow to be called by another workflow
-    inputs:
-      pr_number:
-        required: true
-        type: number
-      e2e_label:
-        required: false
-        type: string
-        default: 'Run Smoke E2E'
-      e2e_pipeline:
-        required: false
-        type: string
-        default: 'pr_smoke_e2e_pipeline'
-    secrets:
-      GITHUB_TOKEN:
-        required: true
-      BITRISE_BUILD_TRIGGER_TOKEN:
-        required: true
-      BITRISE_APP_ID:
-        required: true
-
-  pull_request:  # Allow workflow to be triggered directly on pull requests
+  issue_comment:
+    types: [edited, deleted]
+  pull_request:
     types: [opened, reopened, labeled, unlabeled, synchronize]
-
+  workflow_call:
+  inputs:
+      E2E_LABEL:
+        required: true
+        type: string
+      E2E_PIPELINE:
+        required: true
+        type: string
+  
 env:
   E2E_LABEL: 'Run Smoke E2E'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
+  WORKFLOW_NAME: 'run-bitrise-e2e-check'
 
 jobs:
   is-fork-pull-request:
     name: Determine pull request source
+    if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
     steps:
+      - uses: actions/checkout@v3
       - name: Determine whether this PR is from a fork
         id: is-fork
-        run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${{ inputs.pr_number || github.event.number }}" )" >> "$GITHUB_OUTPUT"
+        run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number || github.event.issue.number }}
 
   run-bitrise-e2e-check:
     needs: is-fork-pull-request
@@ -68,5 +61,7 @@ jobs:
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
           BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # The status check created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
+        # For example, the status check may show as `CLA Signature Bot / Bitrise E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
         run: yarn run run-bitrise-e2e-check
         working-directory: '.github/scripts'
