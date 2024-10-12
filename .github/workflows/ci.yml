@@ -7,11 +7,6 @@ on:
     types: [checks_requested]
 
 jobs:
-  name: apply-smoke-label
-on:
-  pull_request:
-    types: [opened, synchronize]
-
   add-smoke-label:
     runs-on: ubuntu-latest
     steps:
