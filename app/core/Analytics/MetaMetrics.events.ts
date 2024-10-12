@@ -373,6 +373,9 @@ TRANSACTION_FINALIZED = 'Transaction Finalized',
   NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
+
+  // network
+  MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
 }
 
 enum ACTIONS {
@@ -847,6 +850,9 @@ const events = {
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  MULTI_RPC_MIGRATION_MODAL_ACCEPTED: generateOpt(
+    EVENT_NAME.MULTI_RPC_MIGRATION_MODAL_ACCEPTED,
   ),
   NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,

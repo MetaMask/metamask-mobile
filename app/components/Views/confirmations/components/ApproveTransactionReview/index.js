@@ -13,7 +13,6 @@ import { getApproveNavbar } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../../../util/browser';
 import {
-  safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
   shouldShowBlockExplorer,
@@ -389,7 +388,10 @@ class ApproveTransactionReview extends PureComponent {
       decodeApproveData(data);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
-    const contract = tokenList[safeToChecksumAddress(to)];
+    // The tokenList addresses we get from state are not checksum addresses
+    // also, the tokenList we get does not contain the tokenStandard, so even if the token exists in tokenList we will
+    // need to fetch it using getTokenDetails
+    const contract = tokenList[to];
     if (tokenAllowanceState) {
       const {
         tokenSymbol: symbol,
@@ -405,7 +407,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenBalance = balance;
       tokenStandard = standard;
       createdSpendCap = isReadyToApprove;
-    } else if (!contract) {
+    } else {
       try {
         const result = await getTokenDetails(to, from, encodedDecimalAmount);
 
@@ -428,12 +430,9 @@ class ApproveTransactionReview extends PureComponent {
           );
         }
       } catch (e) {
-        tokenSymbol = 'ERC20 Token';
-        tokenDecimals = 18;
+        tokenSymbol = contract?.symbol || 'ERC20 Token';
+        tokenDecimals = contract?.decimals || 18;
       }
-    } else {
-      tokenSymbol = contract.symbol;
-      tokenDecimals = contract.decimals;
     }
 
     const approveAmount = fromTokenMinimalUnit(
@@ -895,6 +894,7 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
               confirmButtonState={this.getConfirmButtonState()}
+              confirmTestID="Confirm"
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
