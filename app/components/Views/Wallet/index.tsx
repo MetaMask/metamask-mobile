@@ -420,17 +420,23 @@ const Wallet = ({
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        listNotifications();
+        requestAnimationFrame(async () => {
+          listNotifications();
+        });
       }
 
       appState.current = nextAppState;
     };
 
+    const fetchInitialData = async () => {
+      listNotifications();
+    };
+    fetchInitialData();
+
     const subscription = AppState.addEventListener(
       'change',
       handleAppStateChange,
     );
-    listNotifications();
     return () => {
       subscription.remove();
     };
