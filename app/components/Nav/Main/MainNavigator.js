@@ -498,20 +498,25 @@ const HomeTabs = () => {
     }
   }, []);
 
+  const renderTabBar = ({ state, descriptors, navigation }) => {
+    if (isKeyboardHidden) {
+      return (
+        <TabBar
+          state={state}
+          descriptors={descriptors}
+          navigation={navigation}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
-          tabBar={({ state, descriptors, navigation }) =>
-            isKeyboardHidden ? (
-              <TabBar
-                state={state}
-                descriptors={descriptors}
-                navigation={navigation}
-              />
-            ) : null
-          }
+          tabBar={renderTabBar}
         >
           <Tab.Screen
             name={Routes.WALLET.HOME}
@@ -807,6 +812,7 @@ const MainNavigator = () => (
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
+      // eslint-disable-next-line react/no-unstable-nested-components
       headerTitle={() => (
         <Image
           style={styles.headerLogo}

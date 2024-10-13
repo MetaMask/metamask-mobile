@@ -15,7 +15,7 @@ module.exports = {
   plugins: ['@typescript-eslint', '@metamask/design-tokens'],
   overrides: [
     {
-      files: ['**/*.{ts,tsx, js, jsx}'],
+      files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
         // TODO: re-enable
@@ -37,7 +37,6 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
-        'react/no-unstable-nested-components': 'off',
       },
     },
     {
@@ -205,7 +204,6 @@ module.exports = {
     'react/no-unused-prop-types': 2,
     'react/prefer-es6-class': 2,
     '@metamask/design-tokens/color-no-hex': 'warn',
-    'react/no-unstable-nested-components': 'off',
     radix: 0,
   },
 
