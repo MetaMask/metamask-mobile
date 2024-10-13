@@ -97,8 +97,7 @@ const createStyles = (colors) =>
     addRpcNameButton: {
       alignSelf: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 16,
-      width: '100%',
+      paddingTop: 160,
     },
     rpcMenu: {
       paddingHorizontal: 16,
@@ -1769,6 +1768,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={nickname}
+              editable={!this.isAnyModalVisible()}
               onChangeText={this.onNicknameChange}
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
@@ -1877,6 +1877,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={chainId}
+              editable={!this.isAnyModalVisible()}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
                 this.validateChainId();
@@ -1901,6 +1902,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={ticker}
+              editable={!this.isAnyModalVisible()}
               onChangeText={this.onTickerChange}
               onBlur={() => {
                 this.validateSymbol();
@@ -1990,7 +1992,7 @@ export class NetworkSettings extends PureComponent {
                 {strings('app_settings.add_rpc_url')}
               </Text>
             </BottomSheetHeader>
-            <View style={styles.rpcMenu}>
+            <KeyboardAwareScrollView style={styles.rpcMenu}>
               <Text style={styles.label}>
                 {strings('app_settings.network_rpc_url_label')}
               </Text>
@@ -2044,13 +2046,13 @@ export class NetworkSettings extends PureComponent {
                   onPress={() => {
                     this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
                   }}
-                  width={ButtonWidthTypes.Full}
+                  width={ButtonWidthTypes.Auto}
                   labelTextVariant={TextVariant.DisplayMD}
                   isDisabled={!!warningRpcUrl}
                   testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                 />
               </View>
-            </View>
+            </KeyboardAwareScrollView>
           </BottomSheet>
         ) : null}
         {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
