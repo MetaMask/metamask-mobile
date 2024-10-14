@@ -1,13 +1,14 @@
 import { useCallback, useEffect } from 'react';
+import { Linking } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  isNotificationsFeatureEnabled,
   TRIGGER_TYPES,
 } from '../../../util/notifications';
 import { Notification } from '../../../util/notifications/types';
-import { Linking } from 'react-native';
+
 
 const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
   const performActionBasedOnOpenedNotificationType = useCallback(
@@ -18,9 +19,7 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
       ) {
         Linking.openURL(notification.data.externalLink.externalLinkUrl);
       } else {
-        navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notificationId: notification.id,
-        });
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     },
     [navigation],
@@ -37,25 +36,25 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
   );
 
   useEffect(() => {
-    if (!isNotificationsFeatureEnabled()) return;
+    NotificationsService.onAppBootstrap();
+  }, []);
 
-    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
-      async ({ type, detail }) =>
-        await NotificationsService.handleNotificationEvent({
-          type,
-          detail,
-          callback: handlePressedNotification,
-        }),
-    );
+  useEffect(() => {
+    const unsubscribeForegroundEvent = messaging().onMessage(async (remoteMessage: any) => {
+      await NotificationsService.handleNotificationEvent({
+        type: 'foreground',
+        detail: remoteMessage,
+        callback: handlePressedNotification
+      });
+    });
 
-    NotificationsService.onBackgroundEvent(
-      async ({ type, detail }) =>
-        await NotificationsService.handleNotificationEvent({
-          type,
-          detail,
-          callback: handlePressedNotification,
-        }),
-    );
+    messaging().setBackgroundMessageHandler(async (remoteMessage: any) => {
+      await NotificationsService.handleNotificationEvent({
+        type: 'background',
+        detail: remoteMessage,
+        callback: handlePressedNotification
+      });
+    });
 
     return () => {
       unsubscribeForegroundEvent();
