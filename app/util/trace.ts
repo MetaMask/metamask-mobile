@@ -21,6 +21,9 @@ export enum TraceName {
   Middleware = 'Middleware',
   NestedTest1 = 'Nested Test 1',
   NestedTest2 = 'Nested Test 2',
+  NotificationDisplay = 'Notification Display',
+  PPOMValidation = 'PPOM Validation',
+  Signature = 'Signature',
   LoadScripts = 'Load Scripts',
   SetupStore = 'Setup Store',
   LoginToPasswordEntry = 'Login to Password Entry',
@@ -33,7 +36,7 @@ export enum TraceName {
 }
 
 export enum TraceOperation {
-  LoadScripts='custom.load.scripts',
+  LoadScripts = 'custom.load.scripts',
   SetupStore = 'custom.setup.store',
   LoginToPasswordEntry = 'custom.login.to.password.entry',
   AuthenticateUser = 'custom.authenticate.user',

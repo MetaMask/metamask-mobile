@@ -7,9 +7,6 @@ import { selectTransactions } from '../../../selectors/transactionController';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 
 export function getTraceTags(state: RootState) {
-  // if it's cold app start or warm app start
-  // Replace this to say how metamask was opened, deeplink, wallet connect, sdk, or just tap
-  //const uiType = getEnvironmentType();
   const unlocked = state.user.userLoggedIn;
   const accountCount = selectInternalAccounts(state).length;
   const nftCount = selectAllNftsFlat(state).length;
@@ -28,6 +25,5 @@ export function getTraceTags(state: RootState) {
     'wallet.token_count': tokenCount,
     'wallet.transaction_count': transactionCount,
     'wallet.unlocked': unlocked,
-    'wallet.ui_type': null, //uiType,
   };
 }

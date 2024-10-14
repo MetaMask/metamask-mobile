@@ -54,7 +54,6 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -558,7 +557,7 @@ class Login extends PureComponent {
 
               <Text
                 style={styles.title}
-                testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}
+                testID={LoginViewSelectors.TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
@@ -573,7 +572,7 @@ class Login extends PureComponent {
                   style={styles.input}
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
-                  testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT}
+                  testID={LoginViewSelectors.PASSWORD_INPUT}
                   returnKeyType={'done'}
                   autoCapitalize="none"
                   secureTextEntry

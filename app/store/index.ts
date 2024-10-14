@@ -16,6 +16,7 @@ import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
+import { getTraceTags } from '../util/sentry/tags';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -114,11 +115,13 @@ const createStoreAndPersistor = async (appStartTime: number) => {
       store.dispatch({
         type: 'FETCH_FEATURE_FLAGS',
       });
+    console.log('ENTER store.getState?.()', store.getState?.());
 
     await trace(
       {
         name: TraceName.EngineInitialization,
         op: TraceOperation.EngineInitialization,
+        tags: getTraceTags(store.getState?.()),
       },
       async () => {
         EngineService.initalizeEngine(store);
