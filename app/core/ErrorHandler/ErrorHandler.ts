@@ -1,11 +1,9 @@
-
 export const handleCustomError = (error: Error, isFatal: boolean) => {
-  console.error('Custom error handler: ', error, isFatal);
-  // try {
-
+  try {
+    // global.ExceptionsManager.handleExceptions(error, isFatal);
     console.warn('Custom error handler: ', error, isFatal);
-  // } catch (ee) {
-  //   console.error('Failed to print error: ', ee.message);
-  //   throw ee;
-  // }
+  } catch (ee) {
+    console.error('Failed to print error: ', (ee as Error).message);
+    throw ee;
+  }
 };
