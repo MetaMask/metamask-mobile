@@ -224,7 +224,7 @@ describe('captureSentryFeedback', () => {
             logs: {},
           },
           NetworkController: {
-            networkConfigurations: {},
+            networkConfigurationsByChainId: {},
             networksMetadata: {
               mainnet: {
                 EIPS: {
