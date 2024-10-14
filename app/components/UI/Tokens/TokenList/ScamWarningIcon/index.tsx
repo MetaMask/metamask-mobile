@@ -3,7 +3,6 @@ import { TokenI } from '../../types';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useSelector } from 'react-redux';
 import {
-  selectChainId,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -14,6 +13,7 @@ import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
+import { useChainId } from '../../../../../selectors/hooks';
 
 interface ScamWarningIconProps {
   asset: TokenI;
@@ -25,7 +25,7 @@ export const ScamWarningIcon = ({
   setShowScamWarningModal,
 }: ScamWarningIconProps) => {
   const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const ticker = useSelector(selectTicker);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
