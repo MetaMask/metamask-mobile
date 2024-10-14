@@ -111,6 +111,15 @@ const CustomNetworks = {
         ticker: 'POL',
       },
     },
+    Linea: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('59144'),
+        rpcUrl: 'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2',
+        nickname: 'Linea',
+        ticker: 'ETH',
+      },
+    },
     Optimism: {
       providerConfig: {
         type: 'rpc',
