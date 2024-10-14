@@ -1,6 +1,5 @@
 import { AndroidImportance } from '@notifee/react-native';
 import {
-  ChannelId,
   MetaMaskAndroidChannel,
   notificationChannels,
 } from './androidChannels';
@@ -13,7 +12,7 @@ describe('notificationChannels', () => {
   it('should have the correct properties for the first channel', () => {
     const firstChannel: MetaMaskAndroidChannel = notificationChannels[0];
     expect(firstChannel).toEqual({
-      id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+      id: 'DEFAULT_NOTIFICATION_CHANNEL_ID',
       name: 'Transaction Complete',
       lights: false,
       vibration: false,
@@ -26,7 +25,7 @@ describe('notificationChannels', () => {
   it('should have the correct properties for the second channel', () => {
     const secondChannel: MetaMaskAndroidChannel = notificationChannels[1];
     expect(secondChannel).toEqual({
-      id: ChannelId.ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID,
+      id: 'ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID',
       name: 'MetaMask Announcement',
       lights: false,
       vibration: false,

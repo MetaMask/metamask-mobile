@@ -5,12 +5,11 @@ import notifee, {
   EventDetail,
   AndroidChannel,
 } from '@notifee/react-native';
-
+import messaging from '@react-native-firebase/messaging';
 import { Notification } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
-  ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
 
@@ -27,7 +26,7 @@ interface AlertButton {
 }
 
 class NotificationsService {
-  async getBlockedNotifications(): Promise<Map<ChannelId, boolean>> {
+  async getBlockedNotifications(): Promise<Map<string, boolean>> {
     try {
       const settings = await notifee.getNotificationSettings();
       const channels = await notifee.getChannels();
@@ -36,23 +35,23 @@ class NotificationsService {
         case AuthorizationStatus.NOT_DETERMINED:
         case AuthorizationStatus.DENIED:
           return notificationChannels.reduce((map, next) => {
-            map.set(next.id as ChannelId, true);
+            map.set(next.id, true);
             return map;
-          }, new Map<ChannelId, boolean>());
+          }, new Map<string, boolean>());
       }
 
       return channels.reduce((map, next) => {
         if (next.blocked) {
-          map.set(next.id as ChannelId, true);
+          map.set(next.id, true);
         }
         return map;
-      }, new Map<ChannelId, boolean>());
+      }, new Map<string, boolean>());
     } catch (e) {
       Logger.error(
         e as Error,
         strings('notifications.error_checking_permission'),
       );
-      return new Map<ChannelId, boolean>();
+        return new Map<string, boolean>();
     }
   }
 
@@ -162,8 +161,9 @@ class NotificationsService {
     observer: (event: NotifeeEvent) => Promise<void>,
   ): (() => void) => notifee.onForegroundEvent(observer);
 
-  onBackgroundEvent = (observer: (event: NotifeeEvent) => Promise<void>) =>
+  onBackgroundEvent = (observer: (event: NotifeeEvent) => Promise<void>) => {
     notifee.onBackgroundEvent(observer);
+  }
 
   incrementBadgeCount = async (incrementBy?: number) => {
     notifee.incrementBadgeCount(incrementBy);
@@ -229,6 +229,12 @@ class NotificationsService {
 
   createChannel = async (channel: AndroidChannel): Promise<string> =>
     notifee.createChannel(channel);
+
+  onAppBootstrap = async () => {
+    await messaging().registerDeviceForRemoteMessages();
+    const token = await messaging().getToken();
+    console.log('FCM Token:', token);
+  };
 }
 
 export default new NotificationsService();

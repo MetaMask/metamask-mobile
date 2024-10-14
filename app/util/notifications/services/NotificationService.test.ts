@@ -5,10 +5,23 @@ import notifee, {
   EventType,
 } from '@notifee/react-native';
 import { Linking } from 'react-native';
-import { ChannelId } from '../../../util/notifications/androidChannels';
 import NotificationsService from './NotificationService';
 
 jest.mock('@notifee/react-native');
+jest.mock('@react-native-firebase/app', () => ({
+  utils: () => ({
+    playServicesAvailability: {
+      status: 1,
+      isAvailable: false,
+      hasResolution: true,
+      isUserResolvableError: true,
+    },
+    makePlayServicesAvailable: jest.fn(() => Promise.resolve()),
+    resolutionForPlayServices: jest.fn(() => Promise.resolve()),
+    promptForPlayServices: jest.fn(() => Promise.resolve()),
+  }),
+}));
+
 jest.mock('react-native', () => ({
   Linking: { openSettings: jest.fn() },
   Platform: { OS: 'ios' },
@@ -39,14 +52,14 @@ describe('NotificationsService', () => {
       authorizationStatus: AuthorizationStatus.AUTHORIZED,
     });
     (notifee.getChannels as jest.Mock).mockResolvedValue([
-      { id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID, blocked: true },
+      { id: 'DEFAULT_NOTIFICATION_CHANNEL_ID', blocked: true },
     ]);
 
     const blockedNotifications =
       await NotificationsService.getBlockedNotifications();
 
     expect(
-      blockedNotifications.get(ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID),
+      blockedNotifications.get('DEFAULT_NOTIFICATION_CHANNEL_ID'),
     ).toBe(true);
   });
 
@@ -73,7 +86,7 @@ describe('NotificationsService', () => {
 
   it('should create notification channels', async () => {
     const channel: AndroidChannel = {
-      id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+      id: 'ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID',
       name: 'Test Channel',
       importance: AndroidImportance.HIGH,
     };
