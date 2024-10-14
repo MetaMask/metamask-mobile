@@ -375,6 +375,10 @@
     "accept": "I agree",
     "cancel": "No thanks"
   },
+  "multi_rpc_migration_modal": {
+    "description": "We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information",
+    "accept": "Accept"
+  },
   "nft_details": {
     "bought_for": "Bought for",
     "highest_floor_price": "Highest floor price",
@@ -724,6 +728,7 @@
   "toast": {
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
+    "network_added": "was successfully added",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
@@ -765,8 +770,9 @@
     "enabling_notifications": "Enabling notifications...",
     "disabling_notifications": "Disabling notifications...",
     "reset_notifications_title": "Reset notifications",
-    "reset_notifications_description": "Resetting notifications, means you're overwritting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
+    "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
     "reset_notifications": "Reset notifications",
+    "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
     "enabling_profile_sync": "Enabling profile syncing...",
     "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
@@ -807,6 +813,7 @@
     "save_rpc_url": "SAVE",
     "invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
     "invalid_rpc_url": "Invalid RPC URL",
+    "invalid_block_explorer_url": "Invalid Block Explorer URL",
     "sync": "SYNC",
     "clear_approved_dapps": "CLEAR APPROVED DAPPS",
     "clear_browser_history": "CLEAR BROWSER HISTORY",
@@ -882,10 +889,13 @@
     "networks_default_title": "Default Network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Use this network",
+    "add_rpc_url": "Add RPC URL",
+    "add_block_explorer_url": "Add Block Explorer URL",
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
     "network_rpc_url_label": "RPC Url",
+    "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
@@ -3279,6 +3289,8 @@
   "stake": {
     "stake": "Stake",
     "stake_eth": "Stake ETH",
+    "unstake_eth": "Unstake ETH",
+    "staked_balance": "Staked balance",
     "staked_ethereum": "Staked Ethereum",
     "unstake": "Unstake",
     "stake_more": "Stake more",
@@ -3337,7 +3349,9 @@
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
-    }
+    },
+    "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "max": "Max"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3347,7 +3361,7 @@
     "default_settings": "Default Settings",
     "done": "Done",
     "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
+    "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
     "manage_networks_body2": " to learn more about how Infura handles data.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
@@ -3364,7 +3378,14 @@
         "turn_off": "Turn off",
         "reset": "Reset"
       }
-    }
+    },
+      "drawer_general_title": "General",
+      "drawer_general_title_desc": "Sync settings across devices, select network preferences, and track token data",
+      "drawer_assets_title": "Assets",
+      "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
+      "drawer_security_title": "Security",
+      "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
+      "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
@@ -3402,6 +3423,19 @@
     "confirm": "Confirm",
     "title": {
       "signature": "Signature request"
-      }
+    },
+    "request_from": "Request from",
+    "message": "Message",
+    "personal_sign_tooltip": "This site is asking for your signature",
+    "details": "Details",
+    "account": "Account",
+    "balance": "Balance",
+    "network": "Network",
+    "rpc_url": "RPC URL",
+    "simulation": {
+      "title": "Estimated changes",
+      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
+      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
+    }
   }
 }

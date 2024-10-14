@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import Text from '../../../Base/Text';
+import Label from '../../../../component-library/components/Form/Label';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -27,6 +27,9 @@ const createStyles = (colors: Colors) =>
     thin: {
       paddingVertical: 12,
     },
+    compact: {
+      padding: 0,
+    },
   });
 
 interface Props {
@@ -40,6 +43,7 @@ interface Props {
   onPress?: () => any;
   accessible?: boolean;
   accessibilityLabel?: string;
+  compact?: boolean;
 }
 
 const Box: React.FC<Props> = ({
@@ -51,17 +55,14 @@ const Box: React.FC<Props> = ({
   activeOpacity,
   accessible,
   accessibilityLabel,
+  compact,
   ...props
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <>
-      {Boolean(label) && (
-        <Text black style={styles.label}>
-          {label}
-        </Text>
-      )}
+      {Boolean(label) && <Label style={styles.label}>{label}</Label>}
       <TouchableOpacity
         disabled={!onPress}
         onPress={onPress}
@@ -75,6 +76,7 @@ const Box: React.FC<Props> = ({
             styles.wrapper,
             thin && styles.thin,
             highlighted && styles.highlighted,
+            compact && styles.compact,
             style,
           ]}
           {...props}

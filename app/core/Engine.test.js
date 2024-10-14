@@ -3,6 +3,7 @@ import { createMockAccountsControllerState } from '../util/test/accountsControll
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { LogType } from '@metamask/logging-controller';
+import { mockNetworkState } from '../util/test/network';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
@@ -136,7 +137,15 @@ describe('Engine', () => {
         selectedAddress,
       ),
       NetworkController: {
-        state: { providerConfig: { chainId, ticker } },
+        state: {
+          ...mockNetworkState({
+            chainId: '0x1',
+            id: '0x1',
+            nickname: 'mainnet',
+            ticker: 'ETH',
+            type: 'infura',
+          }),
+        },
       },
       CurrencyRateController: {
         currencyRates: {
