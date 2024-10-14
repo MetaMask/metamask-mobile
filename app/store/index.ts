@@ -53,6 +53,7 @@ const createStoreAndPersistor = async (appStartTime: number) => {
 
   trace({
     name: TraceName.LoadScripts,
+    op: TraceOperation.LoadScripts,
     startTime: appStartTime,
   });
 
