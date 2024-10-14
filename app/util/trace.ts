@@ -16,6 +16,9 @@ export enum TraceName {
   Middleware = 'Middleware',
   NestedTest1 = 'Nested Test 1',
   NestedTest2 = 'Nested Test 2',
+  NotificationDisplay = 'Notification Display',
+  PPOMValidation = 'PPOM Validation',
+  Signature = 'Signature',
   LoadScripts = 'Load Scripts',
   SetupStore = 'Setup Store',
   LoginToPasswordEntry = 'Login to Password Entry',
@@ -37,9 +40,6 @@ export enum TraceOperation {
   CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
   StorageRehydration = 'custom.storage.rehydration',
   UIStartup = 'custom.ui.startup',
-  NotificationDisplay = 'Notification Display',
-  PPOMValidation = 'PPOM Validation',
-  Signature = 'Signature',
 }
 
 const ID_DEFAULT = 'default';
