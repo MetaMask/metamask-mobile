@@ -21,18 +21,6 @@ jobs:
           bundler-cache: true
         env:
           BUNDLE_GEMFILE: ios/Gemfile
-      - name: Determine whether the current PR is a draft
-        id: set-is-draft
-        if: github.event_name == 'pull_request' && github.event.pull_request.number
-        run: echo "IS_DRAFT=$(gh pr view --json isDraft --jq '.isDraft' "${PR_NUMBER}")" >> "$GITHUB_OUTPUT"
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup registry config for using package previews on draft PRs
-        if: github.event_name == 'pull_request' && steps.set-is-draft.outputs.IS_DRAFT == 'true'
-        run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-        env:
-          PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
       - run: yarn setup
       - name: Require clean working directory
         shell: bash
@@ -173,6 +161,32 @@ jobs:
 
       - name: Check bundle size
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
+
+      - name: Upload iOS bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+
+  ship-js-bundle-size-check:
+    runs-on: ubuntu-latest
+    needs: [js-bundle-size-check]
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download iOS bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+
+
+      - name: Push bundle size to mobile_bundlesize_stats repo
+        run: ./scripts/push-bundle-size.sh
+        env:
+          GITHUB_ACTOR: metamaskbot
+          GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
     runs-on: ubuntu-20.04
