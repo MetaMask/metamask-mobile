@@ -1289,9 +1289,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#f2f4f6",
+                    "backgroundColor": "#ffffff",
                     "borderRadius": 8,
-                    "borderWidth": 1,
                     "height": 16,
                     "justifyContent": "center",
                     "overflow": "hidden",
@@ -1299,21 +1298,24 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  style={
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 10,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": undefined,
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
-                >
-                  S
-                </Text>
+                  style={
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
               </View>
             </View>
           </View>
