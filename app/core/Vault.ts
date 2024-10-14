@@ -7,6 +7,8 @@ import { withLedgerKeyring } from './Ledger/Ledger';
  * Restore the given serialized QR keyring.
  *
  * @param {unknown} serializedQrKeyring - A serialized QR keyring.
+ * The type is kept as 'unknown' due to the dynamic nature of the serialized keyring data
+ * returned by the getSerializedKeyring function, which uses keyring.serialize().
  */
 export const restoreQRKeyring = async (serializedQrKeyring: unknown): Promise<void> => {
   const { KeyringController } = Engine.context;
