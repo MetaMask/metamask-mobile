@@ -343,62 +343,6 @@ const AddNetworkFlow = ({ route }) => (
     />
   </Stack.Navigator>
 );
-
-const LedgerConnectFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    initialRouteName={Routes.HW.LEDGER_CONNECT}
-  >
-    <Stack.Screen
-      name={Routes.HW.LEDGER_CONNECT}
-      component={LedgerSelectAccount}
-    />
-  </Stack.Navigator>
-);
-
-const ConnectHardwareWalletFlow = () => (
-  <Stack.Navigator name="ConnectHardwareWallet">
-    <Stack.Screen
-      name={Routes.HW.SELECT_DEVICE}
-      component={SelectHardwareWallet}
-      options={SelectHardwareWallet.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
-const ImportPrivateKeyView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-    <Stack.Screen
-      name="ImportPrivateKeySuccess"
-      component={ImportPrivateKeySuccess}
-    />
-    <Stack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
-  </Stack.Navigator>
-);
-
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
-
 const DetectedTokensFlow = () => (
   <Stack.Navigator
     mode={'modal'}
@@ -540,7 +484,6 @@ const RootModalFlow = () => (
         component={MultiRpcModal}
       />
     ) : null}
-
     <Stack.Screen
       name={Routes.SHEET.SHOW_TOKEN_ID}
       component={ShowTokenIdSheet}
@@ -550,6 +493,61 @@ const RootModalFlow = () => (
       component={OriginSpamModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+  </Stack.Navigator>
+);
+
+const ImportPrivateKeyView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+    <Stack.Screen
+      name="ImportPrivateKeySuccess"
+      component={ImportPrivateKeySuccess}
+    />
+    <Stack.Screen
+      name={Routes.QR_TAB_SWITCHER}
+      component={QRTabSwitcher}
+      screenOptions={{
+        headerShown: false,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const ConnectQRHardwareFlow = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+  </Stack.Navigator>
+);
+
+const LedgerConnectFlow = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+    initialRouteName={Routes.HW.LEDGER_CONNECT}
+  >
+    <Stack.Screen
+      name={Routes.HW.LEDGER_CONNECT}
+      component={LedgerSelectAccount}
+    />
+  </Stack.Navigator>
+);
+
+const ConnectHardwareWalletFlow = () => (
+  <Stack.Navigator name="ConnectHardwareWallet">
+    <Stack.Screen
+      name={Routes.HW.SELECT_DEVICE}
+      component={SelectHardwareWallet}
+      options={SelectHardwareWallet.navigationOptions}
+    />
   </Stack.Navigator>
 );
 

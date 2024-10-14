@@ -47,7 +47,7 @@ exports[`NotificationContent renders correctly 1`] = `
         }
       }
     >
-      5 months ago
+      6 months ago
     </Text>
   </View>
   <View

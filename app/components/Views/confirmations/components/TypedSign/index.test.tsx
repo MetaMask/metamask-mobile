@@ -371,7 +371,7 @@ describe('TypedSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'N/A',
-        chain_id: undefined,
+        chain_id: '1',
         signature_type: undefined,
         version: 'N/A',
         security_alert_response: 'Benign',
@@ -412,7 +412,7 @@ describe('TypedSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'N/A',
-        chain_id: undefined,
+        chain_id: '1',
         version: 'N/A',
         signature_type: undefined,
         security_alert_response: 'Benign',
