@@ -47,8 +47,8 @@ export interface DisableNotificationsReturn {
   error?: string;
 }
 
-export interface ResetNotificationsStorageKeyReturn {
-  resetNotificationsStorageKey: () => Promise<string | undefined>;
+export interface deleteNotificationsStorageKeyReturn {
+  deleteNotificationsStorageKey: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }

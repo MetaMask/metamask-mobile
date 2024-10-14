@@ -413,11 +413,14 @@ exports[`NetworksSettings should render correctly 1`] = `
                           
                         </Text>
                         <TextInput
+                          onBlur={[Function]}
                           onChangeText={[Function]}
-                          placeholder="Search for previously added network"
+                          onFocus={[Function]}
+                          placeholder="Search"
                           placeholderTextColor="#141618"
                           style={
                             {
+                              "borderColor": "#bbc0c5",
                               "color": "#141618",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",
@@ -596,6 +599,23 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 
                               </Text>
                             </TouchableOpacity>
+                          </View>
+                          <View
+                            testID="custom-networks-list"
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontSize": 14,
+                                  "fontWeight": "600",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              Custom networks
+                            </Text>
                           </View>
                           <Text
                             style={
