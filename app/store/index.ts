@@ -12,6 +12,7 @@ import { isE2E } from '../util/test/utils';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
+import { AppStateEventProcessor } from '../core/AppStateEventListener';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -84,6 +85,7 @@ const createStoreAndPersistor = async () => {
       });
     EngineService.initalizeEngine(store);
     Authentication.init(store);
+    AppStateEventProcessor.init(store);
     LockManagerService.init(store);
   };
 

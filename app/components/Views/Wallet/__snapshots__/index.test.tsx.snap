@@ -769,11 +769,11 @@ exports[`Wallet should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 16,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 14,
+                                      "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                   testID="account-label"
@@ -783,7 +783,7 @@ exports[`Wallet should render correctly 1`] = `
                               </View>
                             </View>
                             <SvgMock
-                              color="#6a737d"
+                              color="#141618"
                               height={20}
                               name="ArrowDown"
                               style={
@@ -815,13 +815,14 @@ exports[`Wallet should render correctly 1`] = `
                                 "borderWidth": 0,
                                 "flexDirection": "row",
                                 "justifyContent": "space-between",
-                                "padding": 20,
+                                "padding": 16,
                               }
                             }
                           >
                             <View
                               style={
                                 {
+                                  "alignItems": "center",
                                   "flexDirection": "row",
                                 }
                               }
@@ -860,9 +861,10 @@ exports[`Wallet should render correctly 1`] = `
                                       "backgroundColor": "#0376c91a",
                                       "borderRadius": 20,
                                       "flexDirection": "row",
-                                      "marginLeft": 8,
+                                      "marginLeft": 12,
                                       "opacity": 1,
-                                      "paddingHorizontal": 8,
+                                      "padding": 4,
+                                      "paddingHorizontal": 12,
                                     }
                                   }
                                 >
@@ -871,9 +873,9 @@ exports[`Wallet should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#0376c9",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 12,
-                                        "fontWeight": "400",
+                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 20,
                                       }

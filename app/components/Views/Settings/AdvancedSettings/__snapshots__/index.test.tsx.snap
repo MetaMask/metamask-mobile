@@ -456,7 +456,6 @@ exports[`AdvancedSettings should render correctly 1`] = `
               "marginTop": 32,
             }
           }
-          testID="token-detection-toggle"
         >
           <View
             style={
@@ -480,7 +479,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Enhanced Token Detection
+              Autodetect tokens
             </Text>
             <View
               style={
@@ -514,6 +513,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
+                testID="token-detection-toggle"
                 thumbTintColor="#ffffff"
                 tintColor="#bbc0c566"
                 value={true}

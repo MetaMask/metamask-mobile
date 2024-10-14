@@ -38,7 +38,7 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
@@ -71,7 +71,7 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 
 const createStyles = () =>
@@ -138,6 +138,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
+
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
@@ -174,11 +175,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
   ]);
 
-  const urlWithProtocol = hostname
-    ? prefixUrlWithProtocol(hostname)
-    : domainTitle;
+  const urlWithProtocol =
+    hostname && !isUUID(hostname)
+      ? prefixUrlWithProtocol(getHost(hostname))
+      : domainTitle;
 
-  const isAllowedUrl = useCallback((url: string) => {
+  const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -186,23 +188,20 @@ const AccountConnect = (props: AccountConnectProps) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(url);
+    const phishingControllerTestResult = PhishingController.test(origin);
 
     return !phishingControllerTestResult.result;
   }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
-
-    const cleanUrl = url.replace(/^https?:\/\//, '');
-
-    const isAllowed = isAllowedUrl(cleanUrl);
+    const isAllowed = isAllowedOrigin(url);
 
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl, channelIdOrHostname]);
+  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),
@@ -239,15 +238,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     // walletconnect channelId format: app.name.org
     // sdk channelId format: uuid
     // inappbrowser channelId format: app.name.org but origin is set
-    if (channelIdOrHostname) {
-      if (sdkConnection) {
-        return SourceType.SDK;
-      }
+    if (isOriginWalletConnect) {
       return SourceType.WALLET_CONNECT;
     }
 
+    if (sdkConnection) {
+      return SourceType.SDK;
+    }
+
     return SourceType.IN_APP_BROWSER;
-  }, [sdkConnection, channelIdOrHostname]);
+  }, [isOriginWalletConnect, sdkConnection]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -674,7 +674,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isMutichainVersion1Enabled
+        return isMultichainVersion1Enabled
           ? renderPermissionsSummaryScreen()
           : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:

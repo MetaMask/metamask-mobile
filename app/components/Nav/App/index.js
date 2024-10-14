@@ -111,9 +111,13 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
+import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
+import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
+import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
+import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
@@ -125,6 +129,8 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -173,6 +179,21 @@ const OnboardingSuccessFlow = () => (
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
       component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.GENERAL_SETTINGS}
+      component={OnboardingGeneralSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.ASSETS_SETTINGS}
+      component={OnboardingAssetsSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SECURITY_SETTINGS}
+      component={OnboardingSecuritySettings}
       options={DefaultSettings.navigationOptions}
     />
   </Stack.Navigator>
@@ -317,6 +338,7 @@ const App = (props) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -369,6 +391,7 @@ const App = (props) => {
     const deeplink = params?.['+non_branch_link'] || uri || null;
     try {
       if (deeplink) {
+        AppStateEventProcessor.setCurrentDeeplink(deeplink);
         SharedDeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
@@ -406,6 +429,7 @@ const App = (props) => {
         },
         dispatch,
       });
+
       if (!prevNavigator.current) {
         // Setup navigator with Sentry instrumentation
         routingInstrumentation.registerNavigationContainer(navigator);
@@ -630,6 +654,10 @@ const App = (props) => {
         component={ProfileSyncingModal}
       />
       <Stack.Screen
+        name={Routes.SHEET.RESET_NOTIFICATIONS}
+        component={ResetNotificationsModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
       />
@@ -677,11 +705,16 @@ const App = (props) => {
         name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
         component={NFTAutoDetectionModal}
       />
+      {isNetworkUiRedesignEnabled() ? (
+        <Stack.Screen
+          name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
+          component={MultiRpcModal}
+        />
+      ) : null}
       <Stack.Screen
         name={Routes.SHEET.SHOW_TOKEN_ID}
         component={ShowTokenIdSheet}
       />
-
       <Stack.Screen
         name={Routes.SHEET.ORIGIN_SPAM_MODAL}
         component={OriginSpamModal}
