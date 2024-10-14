@@ -19,11 +19,18 @@ import useCopyClipboard, {
   CopyClipboardAlertMessage,
 } from '../hooks/useCopyClipboard';
 import useStyles from '../useStyles';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { TRIGGER_TYPES } from '../../../../../util/notifications';
+import type { Notification } from '../../../../../util/notifications/types';
 
-type TransactionFieldProps = ModalFieldTransaction;
+type TransactionFieldProps = ModalFieldTransaction & {
+  notification: Notification;
+};
 
 function TransactionField(props: TransactionFieldProps) {
-  const { txHash } = props;
+  const { trackEvent } = useMetrics();
+  const { txHash, notification } = props;
   const { styles, theme } = useStyles();
   const copyToClipboard = useCopyClipboard();
 
@@ -48,9 +55,17 @@ function TransactionField(props: TransactionFieldProps) {
       </View>
       <View style={styles.rightSection}>
         <Pressable
-          onPress={() =>
-            copyToClipboard(txHash, CopyClipboardAlertMessage.transaction())
-          }
+          onPress={() => {
+            trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
+              notification_id: notification.id,
+              notification_type: notification.type,
+              ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
+                ? { chain_id: notification?.chain_id }
+                : {}),
+              clicked_item: 'tx_id',
+            });
+            copyToClipboard(txHash, CopyClipboardAlertMessage.transaction());
+          }}
           hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
           style={styles.copyContainer}
         >

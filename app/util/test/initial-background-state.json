@@ -57,21 +57,97 @@
     }
   },
   "NetworkController": {
-    "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
-    },
-    "networksMetadata": {
-      "mainnet": {
-        "EIPS": {},
-        "status": "unknown"
+    "selectedNetworkClientId": "mainnet",
+    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
+    "networkConfigurationsByChainId": {
+      "0x1": {
+        "blockExplorerUrls": [],
+        "chainId": "0x1",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "mainnet",
+            "type": "infura",
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x5": {
+        "blockExplorerUrls": [],
+        "chainId": "0x5",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Goerli",
+        "nativeCurrency": "GoerliETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "goerli",
+            "type": "infura",
+            "url": "https://goerli.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xaa36a7": {
+        "blockExplorerUrls": [],
+        "chainId": "0xaa36a7",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Sepolia",
+        "nativeCurrency": "SepoliaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "sepolia",
+            "type": "infura",
+            "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe704": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe704",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Goerli",
+        "nativeCurrency": "LineaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-goerli",
+            "type": "infura",
+            "url": "https://linea-goerli.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe705": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe705",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Sepolia",
+        "nativeCurrency": "LineaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-sepolia",
+            "type": "infura",
+            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe708": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe708",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-mainnet",
+            "type": "infura",
+            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
-    },
-    "selectedNetworkClientId": "mainnet"
+    }
   },
   "PhishingController": {
+    "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
@@ -80,7 +156,7 @@
   "PreferencesController": {
     "featureFlags": {},
     "identities": {},
-    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
+    "ipfsGateway": "https://gateway.pinata.cloud/ipfs/",
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
@@ -92,6 +168,7 @@
     "disabledRpcMethodPreferences": {
       "eth_sign": false
     },
+    "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
       "0x1": true,
@@ -133,26 +210,28 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "smartTransactions": {},
-      "userOptIn": false,
-      "userOptInV2": false,
+      "smartTransactions": {
+        "0x1": []
+      },
+      "userOptIn": null,
+      "userOptInV2": null,
       "fees": {
-        "approvalTxFees": false,
-        "tradeTxFees": false
+        "approvalTxFees": null,
+        "tradeTxFees": null
       },
       "liveness": true,
       "livenessByChainId": {
-        "mainnet": true,
-        "sepolia": true
+        "0x1": true,
+        "0xaa36a7": true
       },
       "feesByChainId": {
-        "mainnet": {
-          "approvalTxFees": false,
-          "tradeTxFees": false
+        "0x1": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
         },
-        "sepolia": {
-          "approvalTxFees": false,
-          "tradeTxFees": false
+        "0xaa36a7": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
         }
       }
     }
@@ -236,10 +315,8 @@
     "domains": {}
   },
   "SignatureController": {
-    "unapprovedMsgs": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
-    "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
   },

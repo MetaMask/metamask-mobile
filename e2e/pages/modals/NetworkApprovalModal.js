@@ -1,6 +1,7 @@
 import { NetworkApprovalModalSelectorsIDs } from '../../selectors/Modals/NetworkApprovalModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../../helpers';
 
 class NetworkApprovalModal {
   get container() {
@@ -20,7 +21,7 @@ class NetworkApprovalModal {
   }
 
   async tapApproveButton() {
-    await Gestures.waitAndTap(this.approvedButton);
+    await Gestures.tap(this.approvedButton);
   }
 }
 

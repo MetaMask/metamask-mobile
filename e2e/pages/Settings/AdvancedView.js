@@ -15,20 +15,8 @@ class AdvancedSettingsView {
     );
   }
 
-  get ethSignSwitch() {
-    return Matchers.getElementByID(AdvancedViewSelectorsIDs.ETH_SIGN_SWITCH);
-  }
-
   async tapShowFiatOnTestnetsSwitch() {
     await Gestures.waitAndTap(this.showFiatOnTestnetsToggle);
-  }
-
-  async tapEthSignSwitch() {
-    await Gestures.scrollToElement(
-      this.ethSignSwitch,
-      this.scrollViewIdentifier,
-    );
-    await Gestures.waitAndTap(this.ethSignSwitch);
   }
 
   async scrollToShowFiatOnTestnetsToggle() {

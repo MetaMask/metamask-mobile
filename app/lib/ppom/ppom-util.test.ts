@@ -7,6 +7,12 @@ import PPOMUtil from './ppom-util';
 // eslint-disable-next-line import/no-namespace
 import * as securityAlertAPI from './security-alerts-api';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { Hex } from '@metamask/utils';
+import {
+  NetworkClientType,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -29,11 +35,6 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    NetworkController: {
-      state: {
-        providerConfig: { chainId: CHAIN_ID_MOCK },
-      },
-    },
     AccountsController: {
       state: {
         internalAccounts: { accounts: [] },
@@ -43,8 +44,19 @@ jest.mock('../../core/Engine', () => ({
   },
   backgroundState: {
     NetworkController: {
-      providerConfig: {
-        chainId: 0x1,
+      selectedNetworkClientId: 'mainnet',
+      networksMetadata: {},
+      networkConfigurations: {
+        mainnet: {
+          id: 'mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Sepolia network',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.com',
+          },
+        },
       },
     },
   },
@@ -110,8 +122,41 @@ describe('PPOM Utils', () => {
 
   beforeEach(() => {
     MockEngine.context.PreferencesController.state.securityAlertsEnabled = true;
-    MockEngine.context.NetworkController.state.providerConfig.chainId =
-      CHAIN_ID_MOCK;
+
+    MockEngine.context.NetworkController = {
+      getNetworkClientById: () => ({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        configuration: {
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: CHAIN_ID_MOCK as Hex,
+          ticker: 'ETH',
+          type: NetworkClientType.Custom,
+        },
+      }),
+      state: {
+        networkConfigurationsByChainId: {
+          [NETWORKS_CHAIN_ID.MAINNET]: {
+            blockExplorerUrls: ['http://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Mainnet',
+            nativeCurrency: 'ETH',
+            defaultBlockExplorerUrlIndex: 0,
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Custom,
+                name: 'ethereum',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
+          },
+        },
+        networksMetadata: {},
+        selectedNetworkClientId: 'mainnet',
+      },
+    };
 
     normalizeTransactionParamsMock.mockImplementation((params) => params);
     mockIsBlockaidFeatureEnabled.mockResolvedValue(true);

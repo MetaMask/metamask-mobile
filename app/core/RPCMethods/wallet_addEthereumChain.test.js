@@ -2,6 +2,7 @@ import { InteractionManager } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
+import { mockNetworkState } from '../../util/test/network';
 
 const mockEngine = Engine;
 
@@ -17,14 +18,9 @@ jest.mock('../Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
     NetworkController: {
-      state: {
-        networkConfigurations: {},
-        providerConfig: {
-          chainId: '0x1',
-        },
-      },
       setActiveNetwork: jest.fn(),
       upsertNetworkConfiguration: jest.fn(),
+      addNetwork: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -41,10 +37,12 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            networkConfigurations: {},
-            providerConfig: {
+            ...mockNetworkState({
               chainId: '0x1',
-            },
+              id: 'Mainnet',
+              nickname: 'Mainnet',
+              ticker: 'ETH',
+            }),
           },
         },
       },

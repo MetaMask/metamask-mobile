@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext, useLayoutEffect } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -29,6 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -45,6 +52,7 @@ import {
   isMainNet,
 } from '../../../util/networks';
 import {
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -73,8 +81,14 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectUseNftDetection } from '../../../selectors/preferencesController';
-import { setNftAutoDetectionModalOpen } from '../../../actions/security';
+import {
+  selectShowMultiRpcModal,
+  selectUseNftDetection,
+} from '../../../selectors/preferencesController';
+import {
+  setNftAutoDetectionModalOpen,
+  setMultiRpcMigrationModalOpen,
+} from '../../../actions/security';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
@@ -83,10 +97,13 @@ import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   getMetamaskNotificationsUnreadCount,
+  getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { isObject } from 'lodash';
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -158,6 +175,8 @@ const Wallet = ({
   const styles = createStyles(theme);
   const { colors } = theme;
   const dispatch = useDispatch();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
   /**
    * Object containing the balance of the current selected account
    */
@@ -279,14 +298,19 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
+
+  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
 
   const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);
+  const showMultiRpcModal = useSelector(selectShowMultiRpcModal);
   const isNFTAutoDetectionModalViewed = useSelector(
     (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
@@ -302,6 +326,13 @@ const Wallet = ({
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
+
+  const isNetworkDuplicated = Object.values(networkConfigurations).some(
+    (networkConfiguration) =>
+      isObject(networkConfiguration) &&
+      Array.isArray(networkConfiguration.rpcEndpoints) &&
+      networkConfiguration.rpcEndpoints.length > 1,
+  );
 
   const checkNftAutoDetectionModal = useCallback(() => {
     const isOnMainnet = isMainNet(providerConfig.chainId);
@@ -319,13 +350,28 @@ const Wallet = ({
     useNftDetection,
   ]);
 
+  const checkMultiRpcModal = useCallback(() => {
+    if (showMultiRpcModal && isNetworkDuplicated) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
+      });
+      dispatch(setMultiRpcMigrationModalOpen(true));
+    }
+  }, [dispatch, showMultiRpcModal, navigation, isNetworkDuplicated]);
+
   useEffect(() => {
     if (
       currentRouteName === 'Wallet' ||
       currentRouteName === 'SecuritySettings'
     ) {
       checkNftAutoDetectionModal();
+      checkMultiRpcModal();
     }
+
+    async function checkIfNotificationsAreEnabled() {
+      await NotificationsService.isDeviceNotificationEnabled();
+    }
+    checkIfNotificationsAreEnabled();
   });
 
   /**
@@ -388,9 +434,7 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { TokenDetectionController, AccountTrackerController } =
-          Engine.context;
-        TokenDetectionController.detectTokens();
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },
@@ -429,7 +473,9 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
+        isProfileSyncingEnabled,
         unreadNotificationCount,
+        readNotificationCount,
       ),
     );
     /* eslint-disable-next-line */
@@ -440,7 +486,9 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    isProfileSyncingEnabled,
     unreadNotificationCount,
+    readNotificationCount,
   ]);
 
   const renderTabBar = useCallback(

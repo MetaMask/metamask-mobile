@@ -33,6 +33,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_TAB_SWITCHER: 'QRTabSwitcher',
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
@@ -50,12 +51,16 @@ const Routes = {
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
+    MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
     DEFAULT_SETTINGS: 'DefaultSettings',
+    GENERAL_SETTINGS: 'GeneralSettings',
+    ASSETS_SETTINGS: 'AssetsSettings',
+    SECURITY_SETTINGS: 'SecuritySettings',
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
@@ -74,19 +79,21 @@ const Routes = {
     STEP_1_B: 'AccountBackupStep1B',
   },
   SETTINGS: {
-    CONTACT_FORM: 'ContactForm',
-    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
-    CHANGE_PASSWORD: 'ResetPassword',
-    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
-    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     ADVANCED_SETTINGS: 'AdvancedSettings',
+    CHANGE_PASSWORD: 'ResetPassword',
+    CONTACT_FORM: 'ContactForm',
+    DEVELOPER_OPTIONS: 'DeveloperOptions',
+    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     PROFILE_SYNCING: 'ProfileSyncing',
+    RESET_NOTIFICATIONS: 'ResetNotifications',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
@@ -99,7 +106,6 @@ const Routes = {
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
-    ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
     SHOW_NFT_DISPLAY_MEDIA: 'ShowNftDisplayMedia',
@@ -136,12 +142,21 @@ const Routes = {
     OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
+  STAKING: {
+    STAKE: 'Stake',
+    UNSTAKE: 'Unstake',
+    CLAIM: 'Claim',
+    MODALS: {
+      LEARN_MORE: 'LearnMore',
+    },
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',
   },
   ///: END:ONLY_INCLUDE_IF
+  FOX_LOADER: 'FoxLoader',
 };
 
 export default Routes;

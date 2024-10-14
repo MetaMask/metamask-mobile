@@ -7,6 +7,7 @@ async function connect({
   authorized,
 }: {
   withKeyExchange: boolean;
+  rejected?: boolean;
   instance: Connection;
   authorized: boolean;
 }) {

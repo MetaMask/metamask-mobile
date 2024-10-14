@@ -794,10 +794,7 @@ function SwapsQuotesView({
   ]);
 
   const updateSwapsTransactions = useCallback(
-    async (
-      transactionMeta,
-      approvalTransactionMetaId,
-    ) => {
+    async (transactionMeta, approvalTransactionMetaId) => {
       const ethQuery = Engine.getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
@@ -946,12 +943,13 @@ function SwapsQuotesView({
 
         await result;
 
-        Logger.log(LOG_PREFIX, 'Submitted trade transaction', transactionMeta.id);
-
-        updateSwapsTransactions(
-          transactionMeta,
-          approvalTransactionMetaId
+        Logger.log(
+          LOG_PREFIX,
+          'Submitted trade transaction',
+          transactionMeta.id,
         );
+
+        updateSwapsTransactions(transactionMeta, approvalTransactionMetaId);
 
         setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
@@ -975,9 +973,7 @@ function SwapsQuotesView({
   );
 
   const handleApprovalTransaction = useCallback(
-    async (
-      isHardwareAddress,
-    ) => {
+    async (isHardwareAddress) => {
       try {
         resetTransaction();
         const { transactionMeta, result } = await addTransaction(
@@ -994,11 +990,19 @@ function SwapsQuotesView({
           },
         );
 
-        Logger.log(LOG_PREFIX, 'Added approval transaction', transactionMeta.id);
+        Logger.log(
+          LOG_PREFIX,
+          'Added approval transaction',
+          transactionMeta.id,
+        );
 
         await result;
 
-        Logger.log(LOG_PREFIX, 'Submitted approval transaction', transactionMeta.id);
+        Logger.log(
+          LOG_PREFIX,
+          'Submitted approval transaction',
+          transactionMeta.id,
+        );
 
         setRecipient(selectedAddress);
 
@@ -1024,9 +1028,7 @@ function SwapsQuotesView({
             'TransactionController:transactionConfirmed',
             (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
-                handleSwapTransaction(
-                  approvalTransactionMetaId
-                );
+                handleSwapTransaction(approvalTransactionMetaId);
               }
             },
             (transactionMeta) => transactionMeta.id === transactionId,
@@ -1048,7 +1050,7 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
-      shouldUseSmartTransaction
+      shouldUseSmartTransaction,
     ],
   );
 
@@ -1078,9 +1080,7 @@ function SwapsQuotesView({
       !shouldUseSmartTransaction ||
       (shouldUseSmartTransaction && !approvalTransaction)
     ) {
-      await handleSwapTransaction(
-        approvalTransactionMetaId
-      );
+      await handleSwapTransaction(approvalTransactionMetaId);
     }
 
     navigation.dangerouslyGetParent()?.pop();

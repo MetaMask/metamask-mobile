@@ -2,15 +2,15 @@ import Modal from 'react-native-modal';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import setSignatureRequestSecurityAlertResponse from '../../../../../../actions/signatureRequest';
 import { store } from '../../../../../../store';
 import { useTheme } from '../../../../../../util/theme';
-import MessageSign from '../../MessageSign';
+import useConfirmationRedesignEnabled from '../../../hooks/useConfirmationRedesignEnabled';
 import PersonalSign from '../../PersonalSign';
 import TypedSign from '../../TypedSign';
 import { MessageParams } from '../types';
 import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
-import { useSelector } from 'react-redux';
 
 interface RootProps {
   messageParams?: MessageParams;
@@ -40,6 +40,7 @@ const Root = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (reduxState: any) => reduxState.modals.signMessageModalVisible,
   );
+  const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
@@ -53,7 +54,13 @@ const Root = ({
     };
   }, []);
 
-  if (!messageParams || !currentPageMeta || !approvalType || !visibility) {
+  if (
+    !messageParams ||
+    !currentPageMeta ||
+    !approvalType ||
+    !visibility ||
+    isRedesignedEnabled
+  ) {
     return null;
   }
 
@@ -87,16 +94,6 @@ const Root = ({
       {approvalType === ApprovalTypes.ETH_SIGN_TYPED_DATA && (
         <TypedSign
           navigation={navigation}
-          messageParams={messageParams}
-          onReject={onSignReject}
-          onConfirm={onSignConfirm}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-      {approvalType === ApprovalTypes.ETH_SIGN && (
-        <MessageSign
           messageParams={messageParams}
           onReject={onSignReject}
           onConfirm={onSignConfirm}

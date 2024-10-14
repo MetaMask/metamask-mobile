@@ -30,7 +30,6 @@ import Modal from 'react-native-modal';
 import {
   toggleInfoNetworkModal,
   toggleNetworkModal,
-  toggleReceiveModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -40,7 +39,6 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
-import ReceiveRequest from '../ReceiveRequest';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import URL from 'url-parse';
@@ -83,6 +81,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
+import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
@@ -361,10 +360,6 @@ class DrawerView extends PureComponent {
      */
     toggleNetworkModal: PropTypes.func,
     /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
-    /**
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
@@ -372,10 +367,6 @@ class DrawerView extends PureComponent {
      * Boolean that determines the status of the networks modal
      */
     networkModalVisible: PropTypes.bool.isRequired,
-    /**
-     * Boolean that determines the status of the receive modal
-     */
-    receiveModalVisible: PropTypes.bool.isRequired,
     /**
      * Start transaction with asset
      */
@@ -614,14 +605,6 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
   };
 
-  toggleReceiveModal = () => {
-    this.props.toggleReceiveModal();
-  };
-
-  showReceiveModal = () => {
-    this.toggleReceiveModal();
-  };
-
   trackEvent = (event) => {
     this.props.metrics.trackEvent(event);
   };
@@ -636,8 +619,10 @@ class DrawerView extends PureComponent {
   };
 
   onReceive = () => {
-    this.toggleReceiveModal();
-    this.hideDrawer();
+    this.props.navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+      disableTabber: true,
+    });
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 
@@ -1213,23 +1198,6 @@ class DrawerView extends PureComponent {
           />
         </Modal>
 
-        <Modal
-          isVisible={this.props.receiveModalVisible}
-          onBackdropPress={this.toggleReceiveModal}
-          onBackButtonPress={this.toggleReceiveModal}
-          onSwipeComplete={this.toggleReceiveModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          style={styles.bottomModal}
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <ReceiveRequest
-            navigation={this.props.navigation}
-            hideModal={this.toggleReceiveModal}
-            showReceiveModal={this.showReceiveModal}
-          />
-        </Modal>
         {this.renderProtectModal()}
       </View>
     );
@@ -1244,7 +1212,6 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
-  receiveModalVisible: state.modals.receiveModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
@@ -1259,7 +1226,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-  toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

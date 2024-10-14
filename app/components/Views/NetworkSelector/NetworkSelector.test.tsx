@@ -12,6 +12,8 @@ import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { mockNetworkState } from '../../../util/test/network';
+
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -29,12 +31,29 @@ jest.mock('../../../util/transaction-controller', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
+      getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockReturnValue({ chainId: '0x1' }),
+      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Mainnet',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: 'infura',
+            url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+          },
+        ],
+      }),
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
@@ -62,42 +81,66 @@ const initialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '0x1',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: { status: 'available', EIPS: { '1559': true } },
         },
-        networkConfigurations: {
-          networkId1: {
+        networkConfigurationsByChainId: {
+          '0xa86a': {
+            blockExplorerUrls: ['https://snowtrace.io'],
             chainId: '0xa86a',
-            nickname: 'Avalanche Mainnet C-Chain',
-            rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
-            rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-            ticker: 'AVAX',
+            defaultRpcEndpointIndex: 0,
+            name: 'Avalanche Mainnet C-Chain',
+            nativeCurrency: 'AVAX',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId1',
+                type: 'custom',
+                url: 'https://api.avax.network/ext/bc/C/rpc',
+              },
+            ],
           },
-          networkId2: {
+          '0x89': {
+            blockExplorerUrls: ['https://polygonscan.com'],
             chainId: '0x89',
-            nickname: 'Polygon Mainnet',
-            rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
-            ticker: 'MATIC',
+            defaultRpcEndpointIndex: 0,
+            name: 'Polygon Mainnet',
+            nativeCurrency: 'MATIC',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId2',
+                type: 'infura',
+                url: 'https://polygon-mainnet.infura.io/v3/12345',
+              },
+            ],
           },
-          networkId3: {
+          '0xa': {
+            blockExplorerUrls: ['https://optimistic.etherscan.io'],
             chainId: '0xa',
-            nickname: 'Optimism',
-            rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
-            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
-            ticker: 'ETH',
+            defaultRpcEndpointIndex: 0,
+            name: 'Optimism',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId3',
+                type: 'infura',
+                url: 'https://optimism-mainnet.infura.io/v3/12345',
+              },
+            ],
           },
-          networkId4: {
+          '0x64': {
+            blockExplorerUrls: ['https://blockscout.com/xdai/mainnet/'],
             chainId: '0x64',
-            nickname: 'Gnosis Chain',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://blockscout.com/xdai/mainnet/',
-            },
-            rpcUrl: 'https://rpc.gnosischain.com/',
-            ticker: 'XDAI',
+            defaultRpcEndpointIndex: 0,
+            name: 'Gnosis Chain',
+            nativeCurrency: 'XDAI',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId4',
+                type: 'custom',
+                url: 'https://rpc.gnosischain.com/',
+              },
+            ],
           },
         },
       },
@@ -175,12 +218,40 @@ describe('Network Selector', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           NetworkController: {
-            ...initialState.engine.backgroundState.NetworkController,
-            providerConfig: {
-              type: 'mainnet',
-              nickname: 'Sepolia mainnet',
-              ticket: 'eth',
-              chainId: CHAIN_IDS.SEPOLIA,
+            selectedNetworkClientId: 'sepolia',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+              sepolia: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              [CHAIN_IDS.MAINNET]: {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: CHAIN_IDS.MAINNET,
+                defaultRpcEndpointIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    type: 'infura',
+                    url: 'http://mainnet.infura.io',
+                  },
+                ],
+              },
+              [CHAIN_IDS.SEPOLIA]: {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: CHAIN_IDS.SEPOLIA,
+                defaultRpcEndpointIndex: 0,
+                name: 'Sepolia',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sepolia',
+                    type: 'infura',
+                    url: 'http://sepolia.infura.io',
+                  },
+                ],
+              },
             },
           },
         },
@@ -193,6 +264,7 @@ describe('Network Selector', () => {
     expect(testNetworksSwitch.props.value).toBeTruthy();
     expect(testNetworksSwitch.props.disabled).toBeTruthy();
   });
+
   it('changes to non infura network when another network cell is pressed', async () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
@@ -214,6 +286,43 @@ describe('Network Selector', () => {
           PreferencesController: {
             showTestNetworks: true,
           },
+          NetworkController: {
+            selectedNetworkClientId: 'sepolia',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+              sepolia: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              [CHAIN_IDS.MAINNET]: {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: CHAIN_IDS.MAINNET,
+                defaultRpcEndpointIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    type: 'infura',
+                    url: 'http://mainnet.infura.io',
+                  },
+                ],
+              },
+              [CHAIN_IDS.SEPOLIA]: {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: CHAIN_IDS.SEPOLIA,
+                defaultRpcEndpointIndex: 0,
+                name: 'Sepolia',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sepolia',
+                    type: 'infura',
+                    url: 'http://sepolia.infura.io',
+                  },
+                ],
+              },
+            },
+          },
         },
       },
     });
@@ -224,6 +333,7 @@ describe('Network Selector', () => {
 
     expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
   });
+
   it('renders correctly with no network configurations', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const stateWithNoNetworkConfigurations = {
@@ -232,8 +342,12 @@ describe('Network Selector', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           NetworkController: {
-            ...initialState.engine.backgroundState.NetworkController,
-            networkConfigurations: {},
+            ...mockNetworkState({
+              chainId: '0x1',
+              id: 'Mainnet',
+              nickname: 'Ethereum Main Network',
+              ticker: 'ETH',
+            }),
           },
         },
       },

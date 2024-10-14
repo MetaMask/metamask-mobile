@@ -14,6 +14,9 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       paddingVertical: 16,
     },
+    base: {
+      padding: 16,
+    },
     button: {
       flex: 1,
     },
@@ -41,7 +44,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
   const styles = createStyles(colors);
 
   return (
-    <View>
+    <View style={styles.base}>
       <Text centered bold black big>
         {strings('networks.new_network')}
       </Text>

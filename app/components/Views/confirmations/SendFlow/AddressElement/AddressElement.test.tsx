@@ -2,16 +2,21 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import AddressElement from '.';
-import Engine from '../../../../../core/Engine';
 import { renderShortAddress } from '../../../../../util/address';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-
-const mockEngine = Engine;
+import { mockNetworkState } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.unmock('react-redux');
 
+const mockedNetworkControllerState = mockNetworkState({
+  chainId: CHAIN_IDS.MAINNET,
+  id: 'mainnet',
+  nickname: 'Ethereum Mainnet',
+  ticker: 'ETH',
+});
+
 jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
     NetworkController: {
       getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
@@ -19,6 +24,14 @@ jest.mock('../../../../../core/Engine', () => ({
           sendAsync: () => null,
         },
       })),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      }),
+      state: {
+        ...mockedNetworkControllerState,
+      },
     },
     KeyringController: {
       state: {

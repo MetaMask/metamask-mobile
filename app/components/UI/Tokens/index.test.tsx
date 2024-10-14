@@ -5,7 +5,6 @@ import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import Engine from '../../../core/Engine';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
@@ -13,10 +12,7 @@ import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
-const mockEngine = Engine;
-
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {

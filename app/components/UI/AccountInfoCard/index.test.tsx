@@ -9,6 +9,8 @@ import {
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { mockNetworkState } from '../../../util/test/network';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -48,12 +50,13 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       NetworkController: {
-        providerConfig: {
+        ...mockNetworkState({
           chainId: '0xaa36a7',
-          type: 'sepolia',
+          id: 'mainnet',
           nickname: 'Sepolia',
-          ticker: 'ETH',
-        },
+          ticker: 'SepoliaETH',
+          type: RpcEndpointType.Infura,
+        }),
       },
       TokenBalancesController: {
         contractBalances: {},

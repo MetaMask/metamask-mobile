@@ -23,12 +23,10 @@ describe('Staking Earnings', () => {
   it('should render correctly', () => {
     const { toJSON, getByText } = renderWithProvider(<StakingEarnings />);
 
-    expect(getByText(strings('staking.your_earnings'))).toBeDefined();
-    expect(getByText(strings('staking.annual_rate'))).toBeDefined();
-    expect(getByText(strings('staking.lifetime_rewards'))).toBeDefined();
-    expect(
-      getByText(strings('staking.estimated_annual_earnings')),
-    ).toBeDefined();
+    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(getByText(strings('stake.annual_rate'))).toBeDefined();
+    expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
+    expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 });

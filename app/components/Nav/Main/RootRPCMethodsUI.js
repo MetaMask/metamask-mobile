@@ -62,6 +62,7 @@ import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import Confirm from '../../../components/Views/confirmations/Confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
@@ -87,15 +88,12 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
   const [transactionMetaIdsForListening, setTransactionMetaIdsForListening] =
     useState([]);
 
-  const addTransactionMetaIdForListening = useCallback(
-    (txMetaId) => {
-      setTransactionMetaIdsForListening((transactionMetaIdsForListening) => [
-        ...transactionMetaIdsForListening,
-        txMetaId,
-      ]);
-    },
-    [],
-  );
+  const addTransactionMetaIdForListening = useCallback((txMetaId) => {
+    setTransactionMetaIdsForListening((transactionMetaIdsForListening) => [
+      ...transactionMetaIdsForListening,
+      txMetaId,
+    ]);
+  }, []);
   const swapsTransactions = useSwapsTransactions();
 
   useEffect(() => {
@@ -475,6 +473,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
+      <Confirm />
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval

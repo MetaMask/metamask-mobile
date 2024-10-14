@@ -39,6 +39,7 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+import createTracingMiddleware from '../createTracingMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -272,7 +273,7 @@ export class BackgroundBridge extends EventEmitter {
     try {
       let approvedAccounts = [];
       DevLogger.log(
-        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
+        `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
       if (this.isWalletConnect) {
         approvedAccounts = await getPermittedAccounts(this.url);
@@ -294,15 +295,21 @@ export class BackgroundBridge extends EventEmitter {
             (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
           ),
         ];
+
+        DevLogger.log(
+          `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
+          approvedAccounts,
+        );
+        this.sendNotification({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: approvedAccounts,
+        });
+      } else {
+        DevLogger.log(
+          `notifySelectedAddressChanged: selectedAddress ${selectedAddress} not found in approvedAccounts`,
+          approvedAccounts,
+        );
       }
-      DevLogger.log(
-        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
-        approvedAccounts,
-      );
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: approvedAccounts,
-      });
     } catch (err) {
       console.error(`notifySelectedAddressChanged: ${err}`);
     }
@@ -436,6 +443,9 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
+    // Sentry tracing middleware
+    engine.push(createTracingMiddleware());
+
     // Append PermissionController middleware
     engine.push(
       Engine.context.PermissionController.createPermissionMiddleware({
@@ -451,7 +461,7 @@ export class BackgroundBridge extends EventEmitter {
       snapMethodMiddlewareBuilder(
         Engine.context,
         Engine.controllerMessenger,
-        origin,
+        this.url,
         // We assume that origins connecting through the BackgroundBridge are websites
         SubjectType.Website,
       ),

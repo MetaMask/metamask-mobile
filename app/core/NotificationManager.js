@@ -1,9 +1,9 @@
 'use strict';
 
-import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
+import notifee from '@notifee/react-native';
 import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
@@ -11,13 +11,15 @@ import { AppState } from 'react-native';
 import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
-  requestPushNotificationsPermission,
-  asyncAlert,
+
 } from '../util/notifications';
+
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId } from '../selectors/networkController';
+import { selectChainId, selectTicker } from '../selectors/networkController';
 import { store } from '../store';
+import { useSelector } from 'react-redux';
+import { getTicker } from '../../app/util/transactions';
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -152,7 +154,7 @@ class NotificationManager {
         title,
         body: message,
         android: {
-          lightUpScreen: false,
+          lightUpScreen: true,
           channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
@@ -179,7 +181,6 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData; // check if is still needed
       }
-
       isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
@@ -255,11 +256,6 @@ class NotificationManager {
             break;
         }
         Promise.all(pollPromises);
-
-        Device.isIos() &&
-          setTimeout(() => {
-            requestPushNotificationsPermission(asyncAlert);
-          }, 5000);
 
         // Prompt review
         ReviewManager.promptReview();
@@ -418,6 +414,7 @@ class NotificationManager {
     );
 
     const chainId = selectChainId(store.getState());
+    const ticker = useSelector(selectTicker);
 
     /// Find the incoming TX
     const transactions = TransactionController.getTransactions({
@@ -448,7 +445,7 @@ class NotificationManager {
             nonce: `${hexToBN(txs[0].txParams.nonce).toString()}`,
             amount: `${renderFromWei(hexToBN(txs[0].txParams.value))}`,
             id: txs[0]?.id,
-            assetType: strings('unit.eth'),
+            assetType: getTicker(ticker),
           },
           autoHide: true,
           duration: 7000,
@@ -490,9 +487,6 @@ export default {
   },
   gotIncomingTransaction(lastBlock) {
     return instance?.gotIncomingTransaction(lastBlock);
-  },
-  requestPushNotificationsPermission() {
-    return instance?.requestPushNotificationsPermission(asyncAlert);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

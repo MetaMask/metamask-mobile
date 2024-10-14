@@ -7,6 +7,7 @@ import reducer, {
   SWAPS_SET_HAS_ONBOARDED,
   swapsSmartTxFlagEnabled,
 } from './index';
+import { NetworkClientType } from '@metamask/network-controller';
 
 const emptyAction = { type: null };
 
@@ -175,7 +176,30 @@ describe('swaps reducer', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: { chainId: '0x1' },
+              getNetworkClientById: () => ({
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                configuration: {
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  type: NetworkClientType.Custom,
+                },
+              }),
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum mainnet',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
             },
           },
         },
@@ -217,7 +241,20 @@ describe('swaps reducer', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: { chainId: '0x1' },
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x36bbbe6d',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
             },
           },
         },
@@ -259,7 +296,20 @@ describe('swaps reducer', () => {
         engine: {
           backgroundState: {
             NetworkController: {
-              providerConfig: { chainId: '0x1' },
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x36bbbe6d',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
             },
           },
         },

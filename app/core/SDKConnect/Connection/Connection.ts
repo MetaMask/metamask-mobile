@@ -49,8 +49,8 @@ export interface ConnectionProps {
   lastAuthorized?: number; // timestamp of last received activity
 }
 
-// eslint-disable-next-line
-const { version } = require('../../../../package.json');
+import packageJSON from '../../../../package.json';
+const { version: walletVersion } = packageJSON;
 
 export class Connection extends EventEmitter2 {
   channelId;
@@ -207,7 +207,7 @@ export class Connection extends EventEmitter2 {
       transports: ['websocket'],
       walletInfo: {
         type: 'MetaMask Mobile',
-        version,
+        version: walletVersion,
       },
       ecies: {
         debug: true,
@@ -272,12 +272,15 @@ export class Connection extends EventEmitter2 {
   public connect({
     withKeyExchange,
     authorized,
+    rejected,
   }: {
     authorized: boolean;
+    rejected?: boolean;
     withKeyExchange: boolean;
   }) {
     return connect({
       instance: this,
+      rejected,
       withKeyExchange,
       authorized,
     });
@@ -314,7 +317,7 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
+  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 

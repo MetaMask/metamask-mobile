@@ -99,11 +99,14 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
             modalField={field}
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
+            notification={notification}
           />
         ))}
 
         {/* Modal Footers */}
-        {state.footer && <ModalFooter modalFooter={state.footer} />}
+        {state.footer && (
+          <ModalFooter modalFooter={state.footer} notification={notification} />
+        )}
       </View>
     </ScrollView>
   );

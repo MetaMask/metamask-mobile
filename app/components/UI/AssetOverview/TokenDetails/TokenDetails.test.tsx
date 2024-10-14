@@ -1,7 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import Engine from '../../../../core/Engine';
 import TokenDetails from './';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
@@ -12,10 +11,7 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
 
-const mockEngine = Engine;
-
 jest.mock('../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {},
@@ -51,7 +47,7 @@ const mockDAI = {
   name: 'Dai Stablecoin',
   symbol: 'DAI',
   isETH: false,
-  balanceError: null,
+  hasBalanceError: false,
 };
 const mockAssets = {
   '0x6b175474e89094c44da98b954eedeac495271d0f': mockDAI,

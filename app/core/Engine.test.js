@@ -2,6 +2,7 @@ import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../util/test/network';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
@@ -52,39 +53,7 @@ describe('Engine', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
 
-    expect(initialBackgroundState).toStrictEqual({
-      ...backgroundState,
-
-      // JSON cannot store the value undefined, so we append it here
-      SmartTransactionsController: {
-        smartTransactionsState: {
-          fees: {
-            approvalTxFees: undefined,
-            tradeTxFees: undefined,
-          },
-          feesByChainId: {
-            '0x1': {
-              approvalTxFees: undefined,
-              tradeTxFees: undefined,
-            },
-            '0xaa36a7': {
-              approvalTxFees: undefined,
-              tradeTxFees: undefined,
-            },
-          },
-          liveness: true,
-          livenessByChainId: {
-            '0x1': true,
-            '0xaa36a7': true,
-          },
-          smartTransactions: {
-            '0x1': [],
-          },
-          userOptIn: undefined,
-          userOptInV2: undefined,
-        },
-      },
-    });
+    expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
@@ -111,7 +80,15 @@ describe('Engine', () => {
         selectedAddress,
       ),
       NetworkController: {
-        state: { providerConfig: { chainId, ticker } },
+        state: {
+          ...mockNetworkState({
+            chainId: '0x1',
+            id: '0x1',
+            nickname: 'mainnet',
+            ticker: 'ETH',
+            type: 'infura',
+          }),
+        },
       },
       CurrencyRateController: {
         currencyRates: {

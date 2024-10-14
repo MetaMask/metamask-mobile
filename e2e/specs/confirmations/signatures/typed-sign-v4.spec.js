@@ -39,13 +39,11 @@ describe(SmokeConfirmations('Typed Sign V4'), () => {
         await Assertions.checkIfVisible(SigningModal.typedRequest);
         await SigningModal.tapCancelButton();
         await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
         await Assertions.checkIfNotVisible(SigningModal.personalRequest);
         await TestDApp.tapTypedV4SignButton();
 
         await SigningModal.tapSignButton();
         await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
         await Assertions.checkIfNotVisible(SigningModal.personalRequest);
       },
     );

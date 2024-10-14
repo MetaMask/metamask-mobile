@@ -42,6 +42,10 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
         await NetworkEducationModal.tapGotItButton();
 
         await Assertions.checkIfVisible(NftDetectionModal.container);
+
+        // fix flaky test: toast should desapear to get access to cancel button
+        await TestHelpers.delay(5000);
+
         await NftDetectionModal.tapCancelButton();
         // Check that we are on the wallet screen
         await Assertions.checkIfVisible(WalletView.container);

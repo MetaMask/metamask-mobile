@@ -4,21 +4,37 @@ import { regex } from '../../../app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
-import { NetworkState } from '@metamask/network-controller';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
   AddressBookEntry,
-  AddressBookState,
+  AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import {
   Nft,
   NftContract,
-  NftState,
+  NftControllerState,
   TokenListState,
   TokenRatesState,
-  TokensState,
+  TokensControllerState,
 } from '@metamask/assets-controllers';
+
+interface NetworkState {
+  selectedNetworkClientId: string;
+  networkConfigurations: Record<
+    string,
+    {
+      id: string;
+      rpcUrl: string;
+      chainId: string;
+      ticker: string;
+      nickname: string;
+      rpcPrefs: {
+        blockExplorerUrl: string;
+      };
+    }
+  >;
+}
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -211,7 +227,7 @@ export default async function migrate(stateAsync: unknown) {
     state?.engine?.backgroundState?.AddressBookController;
 
   const newAddressBookControllerState = state?.engine?.backgroundState
-    ?.AddressBookController as AddressBookState;
+    ?.AddressBookController as AddressBookControllerState;
 
   if (!isObject(addressBookControllerState)) {
     captureException(
@@ -313,7 +329,7 @@ export default async function migrate(stateAsync: unknown) {
 
   const nftControllerState = state?.engine?.backgroundState?.NftController;
   const newNftControllerState = state?.engine?.backgroundState
-    ?.NftController as NftState;
+    ?.NftController as NftControllerState;
 
   if (!isObject(nftControllerState)) {
     captureException(
@@ -557,7 +573,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokensControllerState =
     state?.engine?.backgroundState?.TokensController;
   const newTokensControllerState = state?.engine?.backgroundState
-    ?.TokensController as TokensState;
+    ?.TokensController as TokensControllerState;
 
   if (!isObject(tokensControllerState)) {
     captureException(

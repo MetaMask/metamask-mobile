@@ -375,6 +375,10 @@
     "accept": "I agree",
     "cancel": "No thanks"
   },
+  "multi_rpc_migration_modal": {
+    "description": "We now support multiple RPCs for a single network. Your most recent RPC has been selected as the default one to resolve conflicting information",
+    "accept": "Accept"
+  },
   "nft_details": {
     "bought_for": "Bought for",
     "highest_floor_price": "Highest floor price",
@@ -673,6 +677,7 @@
     "receive": "RECEIVE"
   },
   "accounts": {
+    "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
@@ -723,6 +728,7 @@
   "toast": {
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
+    "network_added": "was successfully added",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
@@ -763,6 +769,10 @@
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
     "disabling_notifications": "Disabling notifications...",
+    "reset_notifications_title": "Reset notifications",
+    "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
+    "reset_notifications": "Reset notifications",
+    "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
     "enabling_profile_sync": "Enabling profile syncing...",
     "disabling_profile_sync": "Disabling profile syncing...",
     "notifications_dismiss_modal": "Dismiss",
@@ -803,6 +813,7 @@
     "save_rpc_url": "SAVE",
     "invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
     "invalid_rpc_url": "Invalid RPC URL",
+    "invalid_block_explorer_url": "Invalid Block Explorer URL",
     "sync": "SYNC",
     "clear_approved_dapps": "CLEAR APPROVED DAPPS",
     "clear_browser_history": "CLEAR BROWSER HISTORY",
@@ -835,24 +846,6 @@
     "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
-    "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "enable_eth_sign": "Eth_sign requests",
-    "enable_eth_sign_desc": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
-    "enable_eth_sign_warning": "You're at risk for phishing attacks. Protect yourself by turning off eth_sign.",
-    "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
-    "toggleEthSignModalBannerBoldText": " you might be getting scammed.",
-    "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.",
-    "toggleEthSignModalDescription": "Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.",
-    "toggleEthSignModalFormError": "This text is incorrect. Try again.",
-    "toggleEthSignModalFormLabel": "Enter “I only sign what I understand” to continue",
-    "toggleEthSignModalFormValidation": "I only sign what I understand",
-    "toggleEthSignModalTitle": "Use at your own risk",
-    "toggleEthSignModalEnable": "Enable",
-    "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "(Recommended)",
-    "toggleEthSignOn": "(Not recommended)",
-    "toggleEthSignContinueButton": "Continue",
-    "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account Identicon",
@@ -896,10 +889,13 @@
     "networks_default_title": "Default Network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Use this network",
+    "add_rpc_url": "Add RPC URL",
+    "add_block_explorer_url": "Add Block Explorer URL",
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
     "network_rpc_url_label": "RPC Url",
+    "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
@@ -965,7 +961,7 @@
     "invalid_number_range": "Invalid number. Enter a number between 1 and %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
     "hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
-    "token_detection_title": "Enhanced Token Detection",
+    "token_detection_title": "Autodetect tokens",
     "token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
     "theme_button_text": "Change Theme",
     "theme_title": "Theme ({{theme}})",
@@ -1077,7 +1073,7 @@
           "snap_getBip32PublicKey": "View your public key for {{protocol}}",
           "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
           "snap_getEntropy": "Derive arbitrary keys unique to this snap",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Allow requests for adding and controlling Ethereum accounts",
           "wallet_snap": "Connect to {{otherSnapName}}",
           "endowment:webassembly": "Support for WebAssembly",
           "endowment:ethereum-provider": "Access the Ethereum provider",
@@ -1085,7 +1081,8 @@
           "snap_getLocale": "See your preferred language",
           "endowment:caveat:transaction-origin": "See the origins of websites that suggest transactions",
           "endowment:extend-runtime": "Extend runtime",
-          "snap_dialog": "Display custom dialogs"
+          "snap_dialog": "Display custom dialogs",
+          "snap_manageAccounts": "Add and control Ethereum accounts"
         }
       }
     },
@@ -1106,7 +1103,12 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES Crypto - Test Form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support."
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "developer_options": {
+      "title": "Developer Options",
+      "generate_trace_test": "Generate Trace Test",
+      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+    }
   },
   "aes_crypto_test_form": {
     "generate_random_salt": "Generate Random Salt",
@@ -1816,17 +1818,6 @@
     "edit": "Edit",
     "cancel": "Cancel"
   },
-  "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
-  },
   "select": {
     "cancel": "Cancel",
     "done": "Done"
@@ -1842,8 +1833,7 @@
     "message": "Message",
     "message_from": "Message from",
     "learn_more": "Learn more",
-    "read_more": "Read more",
-    "eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
+    "read_more": "Read more"
   },
   "watch_asset_request": {
     "title": "Add Suggested Token",
@@ -2090,6 +2080,7 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "timeout": "Timeout",
     "no_date": "Unknown",
     "yesterday": "Yesterday",
     "staked": "Staked",
@@ -2184,12 +2175,12 @@
     "cancelled_message": "Tap to view this transaction",
     "received_message": "Tap to view this transaction",
     "received_payment_message": "You received {{amount}} DAI",
-    "prompt_title": "Enable Push Notifications",
+    "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Something went wrong",
     "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
-    "prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
-    "prompt_ok": "Yes",
-    "prompt_cancel": "No, thanks",
+    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
+    "prompt_ok": "Turn on",
+    "prompt_cancel": "Maybe later",
     "wc_connected_title": "Connected to {{title}}",
     "wc_signed_title": "Signed",
     "wc_sent_tx_title": "Sent transaction",
@@ -3203,6 +3194,7 @@
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
     "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
+    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -3239,7 +3231,9 @@
     "ledger_live_path": "Ledger Live",
     "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)"
+    "ledger_legacy_label": " (legacy)",
+    "blind_sign_error": "Blind signing error",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3293,7 +3287,71 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Stake",
+    "stake_eth": "Stake ETH",
+    "unstake_eth": "Unstake ETH",
+    "staked_balance": "Staked balance",
+    "staked_ethereum": "Staked Ethereum",
+    "unstake": "Unstake",
+    "stake_more": "Stake more",
+    "claim": "Claim",
+    "your_earnings": "Your earnings",
+    "annual_rate": "Annual rate",
+    "lifetime_rewards": "Lifetime rewards",
+    "estimated_annual_earnings": "Estimated annual earnings",
+    "accessibility_labels": {
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
+    },
+    "estimated_annual_rewards": "Estimated annual rewards",
+    "metamask_pool": "MetaMask Pool",
+    "enter_amount": "Enter amount",
+    "review": "Review",
+    "not_enough_eth": "Not enough ETH",
+    "balance":"Balance",
+    "stake_eth_and_earn":"Stake ETH and earn",
+    "stake_any_amount_of_eth":"Stake any amount of ETH",
+    "no_minimum_required":"No minimum required.",
+    "earn_eth_rewards":"Earn ETH rewards",
+    "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
+    "flexible_unstaking":"Flexible unstaking",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
+    "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
+    "learn_more":"Learn more",
+    "got_it":"Got it",
+    "your_balance": "Your balance",
+    "stake_your_eth_cta": {
+      "base": "Stake your ETH with MetaMask Pool and earn",
+      "annually": "annually.",
+      "learn_more_with_period": "Learn more."
+    },
+    "day": {
+      "zero": "",
+      "one": "day",
+      "other": "days"
+    },
+    "hour": {
+      "zero": "",
+      "one": "hour",
+      "other": "hours"
+    },
+    "minute": {
+      "zero": "",
+      "one": "minute",
+      "other": "minutes"
+    },
+    "banner_text": {
+      "has_claimable_eth": "You can claim {{amountEth}} ETH. Once claimed, you'll get ETH back in your wallet.",
+      "unstaking_in_progress": {
+        "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
+        "and": "and",
+        "to_claim_it": "to claim it.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+      },
+      "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
+      "approximately": "approximately"
+    },
+    "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "max": "Max"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3303,7 +3361,7 @@
     "default_settings": "Default Settings",
     "done": "Done",
     "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
+    "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
     "manage_networks_body2": " to learn more about how Infura handles data.",
     "functionality_body": "MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our ",
@@ -3317,9 +3375,17 @@
       "buttons": {
         "cancel": "Cancel",
         "turn_on": "Turn on",
-        "turn_off": "Turn off"
+        "turn_off": "Turn off",
+        "reset": "Reset"
       }
-    }
+    },
+      "drawer_general_title": "General",
+      "drawer_general_title_desc": "Sync settings across devices, select network preferences, and track token data",
+      "drawer_assets_title": "Assets",
+      "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
+      "drawer_security_title": "Security",
+      "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
+      "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
@@ -3346,19 +3412,30 @@
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
   },
-  "staking": {
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Est. annual earnings",
-    "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
-    }
-  },
   "tooltip_modal": {
     "reward_rate": {
       "title": "Reward rate",
       "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+    }
+  },
+  "confirm": {
+    "reject": "Reject",
+    "confirm": "Confirm",
+    "title": {
+      "signature": "Signature request"
+    },
+    "request_from": "Request from",
+    "message": "Message",
+    "personal_sign_tooltip": "This site is asking for your signature",
+    "details": "Details",
+    "account": "Account",
+    "balance": "Balance",
+    "network": "Network",
+    "rpc_url": "RPC URL",
+    "simulation": {
+      "title": "Estimated changes",
+      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
+      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
     }
   }
 }

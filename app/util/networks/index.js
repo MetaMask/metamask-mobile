@@ -39,7 +39,14 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
-import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import {
+  LINEA_FAUCET,
+  LINEA_MAINNET_BLOCK_EXPLORER,
+  LINEA_SEPOLIA_BLOCK_EXPLORER,
+  MAINNET_BLOCK_EXPLORER,
+  SEPOLIA_BLOCK_EXPLORER,
+  SEPOLIA_FAUCET,
+} from '../../constants/urls';
 import { getNonceLock } from '../../util/transaction-controller';
 
 /**
@@ -55,44 +62,52 @@ export const NetworkList = {
     shortName: 'Ethereum',
     networkId: 1,
     chainId: toHex('1'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
+    blockExplorerUrl: MAINNET_BLOCK_EXPLORER,
   },
   [LINEA_MAINNET]: {
     name: 'Linea Main Network',
     shortName: 'Linea',
     networkId: 59144,
     chainId: toHex('59144'),
+    ticker: 'ETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
+    blockExplorerUrl: LINEA_MAINNET_BLOCK_EXPLORER,
   },
   [SEPOLIA]: {
     name: 'Sepolia',
     shortName: 'Sepolia',
     networkId: 11155111,
     chainId: toHex('11155111'),
+    ticker: 'SepoliaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
+    blockExplorerUrl: SEPOLIA_BLOCK_EXPLORER,
   },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia',
     shortName: 'Linea Sepolia',
     networkId: 59141,
     chainId: toHex('59141'),
+    ticker: 'LineaETH',
     // Third party color
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
+    blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
   },
   [RPC]: {
     name: 'Private Network',
@@ -269,7 +284,7 @@ export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
 }
 
-export function isprivateConnection(hostname) {
+export function isPrivateConnection(hostname) {
   return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
@@ -286,22 +301,20 @@ export function toggleUseSafeChainsListValidation(value) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTargetUrl
+ * @param {string} providerRpcTarget
  * @param {object} networkConfigurations
  */
-export function findBlockExplorerForRpc(
-  rpcTargetUrl = undefined,
-  networkConfigurations,
-) {
+export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
   const networkConfiguration = Object.values(networkConfigurations).find(
-    ({ rpcUrl }) => compareRpcUrls(rpcUrl, rpcTargetUrl),
+    ({ rpcEndpoints }) => rpcEndpoints?.some(({ url }) => url === rpcTargetUrl),
   );
+
   if (networkConfiguration) {
-    return (
-      networkConfiguration.rpcPrefs &&
-      networkConfiguration.rpcPrefs.blockExplorerUrl
-    );
+    return networkConfiguration?.blockExplorerUrls[
+      networkConfiguration?.defaultBlockExplorerUrlIndex
+    ];
   }
+
   return undefined;
 }
 
@@ -390,9 +403,13 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
   let name = strings('network_information.unknown_network');
   if (providerConfig.nickname) {
     name = providerConfig.nickname;
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.MAINNET) {
+    name = 'Ethereum Main Network';
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET) {
+    name = 'Linea Main Network';
   } else {
     const networkType = providerConfig.type;
-    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+    name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
   }
   return name;
 };
@@ -407,14 +424,8 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
-  const isDefaultEthMainnet = isDefaultMainnet(networkType);
-  const isLineaMainnetNetwork = isLineaMainnet(networkType);
 
-  if (defaultNetwork && isDefaultEthMainnet) {
-    return defaultNetwork.imageSource;
-  }
-
-  if (defaultNetwork && isLineaMainnetNetwork) {
+  if (defaultNetwork) {
     return defaultNetwork.imageSource;
   }
 
@@ -564,5 +575,5 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isMutichainVersion1Enabled =
+export const isMultichainVersion1Enabled =
   process.env.MM_MULTICHAIN_V1_ENABLED === '1';
