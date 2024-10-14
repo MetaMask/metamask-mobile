@@ -93,10 +93,10 @@ export default async function migrate(state: unknown) {
             jsonString: persistedControllerData,
           });
 
-          if (isObject(persistedControllerJSON) && hasProperty(persistedControllerJSON, '_persist')) {
+          if (hasProperty(persistedControllerJSON, '_persist')) {
             const { _persist, ...controllerJSON } = persistedControllerJSON;
             newEngineState.backgroundState[controllerName] = controllerJSON;
-          } else if (isObject(persistedControllerJSON)) {
+          } else {
             newEngineState.backgroundState[controllerName] =
               persistedControllerJSON;
           }

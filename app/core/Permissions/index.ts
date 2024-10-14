@@ -86,11 +86,10 @@ export const switchActiveAccounts = (hostname: string, accAddress: string) => {
   }
   let newPermittedAccountAddresses = [...existingPermittedAccountAddresses];
   newPermittedAccountAddresses.splice(accountIndex, 1);
-  const uniqueList = getUniqueList([
+  newPermittedAccountAddresses = getUniqueList([
     accAddress,
     ...newPermittedAccountAddresses,
   ]);
-  newPermittedAccountAddresses = Array.isArray(uniqueList) ? uniqueList.map(String) : [];
 
   PermissionController.updateCaveat(
     hostname,
@@ -119,7 +118,6 @@ export const addPermittedAccounts = (
 
   // No change in permitted account addresses
   if (
-    Array.isArray(newPermittedAccountsAddresses) &&
     newPermittedAccountsAddresses.length ===
     existingPermittedAccountAddresses.length
   ) {
@@ -136,9 +134,7 @@ export const addPermittedAccounts = (
     newPermittedAccountsAddresses,
   );
 
-  return Array.isArray(newPermittedAccountsAddresses) && newPermittedAccountsAddresses.length > 0
-    ? String(newPermittedAccountsAddresses[0])
-    : '';
+  return newPermittedAccountsAddresses[0];
 };
 
 export const removePermittedAccounts = (
