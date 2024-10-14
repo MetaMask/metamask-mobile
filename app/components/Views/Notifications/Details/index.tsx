@@ -36,12 +36,12 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
 
   // Effect - Mark As Read, on open
   useEffect(() => {
-    if (!notification.isRead) {
+    if (!notification?.isRead) {
       markNotificationAsRead([
         {
-          id: notification.id,
-          type: notification.type,
-          isRead: notification.isRead,
+          id: notification?.id,
+          type: notification?.type,
+          isRead: notification?.isRead,
         },
       ]);
     }
