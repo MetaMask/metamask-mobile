@@ -80,10 +80,7 @@ describe('useNotificationHandler', () => {
     await result.current.handlePressedNotification(notification);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.NOTIFICATIONS.DETAILS,
-      {
-        notificationId: notification.id,
-      },
+      Routes.NOTIFICATIONS.VIEW,
     );
   });
 

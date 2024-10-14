@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { Linking } from 'react-native';
+import '@react-native-firebase/app';
 import messaging from '@react-native-firebase/messaging';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';

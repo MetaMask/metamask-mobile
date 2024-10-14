@@ -20,6 +20,49 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
+jest.mock('@react-native-firebase/app', () => ({
+  utils: () => ({
+    playServicesAvailability: {
+      status: 1,
+      isAvailable: false,
+      hasResolution: true,
+      isUserResolvableError: true,
+    },
+    makePlayServicesAvailable: jest.fn(() => Promise.resolve()),
+    resolutionForPlayServices: jest.fn(() => Promise.resolve()),
+    promptForPlayServices: jest.fn(() => Promise.resolve()),
+  }),
+}));
+
+jest.mock('@react-native-firebase/messaging', () => ({
+  __esModule: true,
+  default: () => ({
+    hasPermission: jest.fn(() => Promise.resolve(true)),
+    subscribeToTopic: jest.fn(),
+    unsubscribeFromTopic: jest.fn(),
+    isDeviceRegisteredForRemoteMessages: false,
+    registerDeviceForRemoteMessages: jest.fn(() =>
+      Promise.resolve('registered'),
+    ),
+    unregisterDeviceForRemoteMessages: jest.fn(() =>
+      Promise.resolve('unregistered'),
+    ),
+    deleteToken: jest.fn(() => Promise.resolve()),
+    requestPermission: jest.fn(() => Promise.resolve(1)),
+    getToken: jest.fn(() => Promise.resolve('fcm-token')),
+    onMessage: jest.fn(),
+    onNotificationDisplayed: jest.fn(),
+    onBackgroundMessage: jest.fn(),
+    setBackgroundMessageHandler: jest.fn(),
+  }),
+  FirebaseMessagingTypes: {
+    AuthorizationStatus: {
+      AUTHORIZED: 1,
+      PROVISIONAL: 2,
+    },
+  },
+}));
+
 /*
  * NOTE: react-native-webview requires a jest mock starting on v12.
  * More info on https://github.com/react-native-webview/react-native-webview/issues/2934

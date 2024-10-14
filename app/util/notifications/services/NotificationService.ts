@@ -5,6 +5,7 @@ import notifee, {
   EventDetail,
   AndroidChannel,
 } from '@notifee/react-native';
+import '@react-native-firebase/app';
 import messaging from '@react-native-firebase/messaging';
 import { Notification } from '../types';
 
