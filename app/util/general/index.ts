@@ -1,5 +1,3 @@
-import URL from 'url-parse';
-
 interface RouteObject {
   state?: RouteObject;
   index?: number;
@@ -32,11 +30,9 @@ export function findRouteNameFromNavigatorState(routes: RouteObject[]): string |
   if (route?.state) {
     route = route.state;
   }
-  while (route && route.index !== undefined) {
+  while (route?.index !== undefined) {
     route = route.routes?.[route.index];
-    if (route?.state) {
-      route = route.state;
-    }
+    route = route?.state ?? route;
   }
 
   let name = route?.name;

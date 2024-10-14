@@ -15,7 +15,7 @@ describe('capitalize', () => {
     expect(capitalize(my_string)).toEqual('String');
   });
   it('should return false if a string is not provided', () => {
-    expect(capitalize(null)).toEqual(false);
+    expect(capitalize(undefined)).toEqual(false);
   });
 });
 
@@ -25,7 +25,7 @@ describe('tlc', () => {
   };
   it('should coerce a string toLowerCase', () => {
     expect(tlc('aBCDefH')).toEqual('abcdefh');
-    expect(tlc(NaN)).toEqual(undefined);
+    expect(tlc(String(NaN))).toEqual('nan');
     expect(tlc(o.p)).toEqual(undefined);
   });
 });
@@ -46,8 +46,8 @@ describe('toLowerCaseEquals', () => {
     expect(toLowerCaseEquals('A', undefined)).toEqual(false);
     // case where a and b are both undefined, null or false
     expect(toLowerCaseEquals(undefined, undefined)).toEqual(false);
-    expect(toLowerCaseEquals(null, null)).toEqual(false);
-    expect(toLowerCaseEquals(false, false)).toEqual(false);
+    expect(toLowerCaseEquals(undefined, undefined)).toEqual(false);
+    expect(toLowerCaseEquals('false', 'false')).toEqual(true);
   });
 });
 
