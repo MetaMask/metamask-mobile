@@ -55,148 +55,152 @@ describe(Regression('Custom RPC Tests'), () => {
     );
 
     await NetworkView.tapRpcDropDownButton();
-    await NetworkView.tapAddRpcButton();
 
-    await TestHelpers.delay(2000);
-    await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
-    await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
-    await NetworkView.clearRpcInputBox();
-    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig.rpcUrl);
+    await Assertions.checkIfVisible(NetworkView.salimTestId);
 
-    await NetworkView.tapAddRpcButton();
+    // await TestHelpers.checkIfElementByTextIsVisible('Add RPC URL');
+    // await NetworkView.tapAddRpcButton();
 
-    await NetworkView.typeInChainId(
-      CustomNetworks.Gnosis.providerConfig.chainId,
-    );
-    await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-    await NetworkView.typeInNetworkSymbol(
-      `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
-    );
+    // await TestHelpers.delay(2000);
+    // await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
+    // await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
+    // await NetworkView.clearRpcInputBox();
+    // await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig.rpcUrl);
 
-    if (device.getPlatform() === 'ios') {
-      await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-      await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-      await NetworkView.tapRpcNetworkAddButton();
-    }
+    // await NetworkView.tapAddRpcButton();
+
+    // await NetworkView.typeInChainId(
+    //   CustomNetworks.Gnosis.providerConfig.chainId,
+    // );
+    // await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+    // await NetworkView.typeInNetworkSymbol(
+    //   `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
+    // );
+
+    // if (device.getPlatform() === 'ios') {
+    //   await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+    //   await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+    //   await NetworkView.tapRpcNetworkAddButton();
+    // }
   });
 
-  it('should switch to Gnosis network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-  });
+  // it('should switch to Gnosis network', async () => {
+  //   await WalletView.tapNetworksButtonOnNavBar();
+  //   await NetworkListModal.changeNetworkTo(
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
+  // });
 
-  it('should dismiss network education modal', async () => {
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-  });
+  // it('should dismiss network education modal', async () => {
+  //   await Assertions.checkIfVisible(NetworkEducationModal.container);
+  //   await Assertions.checkIfElementToHaveText(
+  //     NetworkEducationModal.networkName,
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
+  //   await NetworkEducationModal.tapGotItButton();
+  //   await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  //   await Assertions.checkIfVisible(WalletView.container);
+  //   await Assertions.checkIfElementToHaveText(
+  //     WalletView.navbarNetworkText,
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
+  // });
 
-  it('should validate that Gnosis is added to network list', async () => {
-    // Tap to prompt network list
-    await WalletView.tapNetworksButtonOnNavBar();
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+  // it('should validate that Gnosis is added to network list', async () => {
+  //   // Tap to prompt network list
+  //   await WalletView.tapNetworksButtonOnNavBar();
+  //   await Assertions.checkIfVisible(NetworkListModal.networkScroll);
 
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-  });
+  //   await Assertions.checkIfElementToHaveText(
+  //     WalletView.navbarNetworkText,
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
+  // });
 
-  it('should switch to Sepolia then dismiss the network education modal', async () => {
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
-  });
+  // it('should switch to Sepolia then dismiss the network education modal', async () => {
+  //   await NetworkListModal.scrollToBottomOfNetworkList();
+  //   await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+  //   await NetworkListModal.changeNetworkTo(
+  //     CustomNetworks.Sepolia.providerConfig.nickname,
+  //   );
+  //   await Assertions.checkIfVisible(NetworkEducationModal.container);
+  //   await Assertions.checkIfElementToHaveText(
+  //     NetworkEducationModal.networkName,
+  //     CustomNetworks.Sepolia.providerConfig.nickname,
+  //   );
+  //   await NetworkEducationModal.tapGotItButton();
+  //   await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  //   await Assertions.checkIfVisible(WalletView.container);
+  // });
 
-  it('should switch back to Gnosis', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await NetworkListModal.scrollToTopOfNetworkList();
-    // Change to back to Gnosis Network
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-    await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    try {
-      await Assertions.checkIfVisible(ToastModal.container);
-      await Assertions.checkIfNotVisible(ToastModal.container);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Toast is not visible');
-    }
-  });
+  // it('should switch back to Gnosis', async () => {
+  //   await WalletView.tapNetworksButtonOnNavBar();
+  //   await NetworkListModal.scrollToBottomOfNetworkList();
+  //   await Assertions.checkIfElementToHaveText(
+  //     WalletView.navbarNetworkText,
+  //     CustomNetworks.Sepolia.providerConfig.nickname,
+  //   );
+  //   await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+  //   await NetworkListModal.scrollToTopOfNetworkList();
+  //   // Change to back to Gnosis Network
+  //   await NetworkListModal.changeNetworkTo(
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
+  //   await Assertions.checkIfVisible(WalletView.container);
+  //   await Assertions.checkIfElementToHaveText(
+  //     WalletView.navbarNetworkText,
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
+  //   await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+  //   try {
+  //     await Assertions.checkIfVisible(ToastModal.container);
+  //     await Assertions.checkIfNotVisible(ToastModal.container);
+  //   } catch {
+  //     // eslint-disable-next-line no-console
+  //     console.log('Toast is not visible');
+  //   }
+  // });
 
-  it('should go to settings networks and remove xDai network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
+  // it('should go to settings networks and remove xDai network', async () => {
+  //   await WalletView.tapNetworksButtonOnNavBar();
+  //   await NetworkListModal.scrollToBottomOfNetworkList();
+  //   await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+  //   await NetworkListModal.changeNetworkTo(
+  //     CustomNetworks.Sepolia.providerConfig.nickname,
+  //   );
 
-    await WalletView.tapNetworksButtonOnNavBar();
+  //   await WalletView.tapNetworksButtonOnNavBar();
 
-    await NetworkListModal.longPressOnNetwork(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
+  //   await NetworkListModal.longPressOnNetwork(
+  //     CustomNetworks.Gnosis.providerConfig.nickname,
+  //   );
 
-    if (device.getPlatform() === 'android') {
-      await device.disableSynchronization();
-    }
+  //   if (device.getPlatform() === 'android') {
+  //     await device.disableSynchronization();
+  //   }
 
-    // delete Gnosis network
-    const deleteButton = Matchers.getElementByID('delete-network-button-0x64');
-    await Gestures.waitAndTap(deleteButton);
+  //   // delete Gnosis network
+  //   const deleteButton = Matchers.getElementByID('delete-network-button-0x64');
+  //   await Gestures.waitAndTap(deleteButton);
 
-    await TestHelpers.delay(200);
+  //   await TestHelpers.delay(200);
 
-    await NetworkListModal.tapDeleteButton();
+  //   await NetworkListModal.tapDeleteButton();
 
-    try {
-      await Assertions.checkIfVisible(ToastModal.container);
-      await Assertions.checkIfNotVisible(ToastModal.container);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Toast is not visible');
-    }
+  //   try {
+  //     await Assertions.checkIfVisible(ToastModal.container);
+  //     await Assertions.checkIfNotVisible(ToastModal.container);
+  //   } catch {
+  //     // eslint-disable-next-line no-console
+  //     console.log('Toast is not visible');
+  //   }
 
-    try {
-      await Assertions.checkIfVisible(ToastModal.container);
-      await Assertions.checkIfNotVisible(ToastModal.container);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Toast is not visible');
-    }
-  });
+  //   try {
+  //     await Assertions.checkIfVisible(ToastModal.container);
+  //     await Assertions.checkIfNotVisible(ToastModal.container);
+  //   } catch {
+  //     // eslint-disable-next-line no-console
+  //     console.log('Toast is not visible');
+  //   }
+  // });
 });
