@@ -12,7 +12,7 @@ export const tlc = (str: unknown) =>
  */
 export function timeoutFetch(
   url: RequestInfo,
-  options: RequestInit,
+  options?: RequestInit,
   timeout = 500,
 ) {
   return Promise.race([
