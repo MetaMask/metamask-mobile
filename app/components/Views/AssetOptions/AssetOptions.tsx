@@ -14,7 +14,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
@@ -28,6 +27,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
+import { useChainId } from '../../../selectors/hooks';
+
 interface Option {
   label: string;
   onPress: () => void;
@@ -52,7 +53,7 @@ const AssetOptions = (props: Props) => {
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(

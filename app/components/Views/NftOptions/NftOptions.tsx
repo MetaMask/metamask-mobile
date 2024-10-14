@@ -8,7 +8,6 @@ import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-import { selectChainId } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
 import Text, {
@@ -26,6 +25,7 @@ import {
   MetaMetricsEvents,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
+import { useChainId } from '../../../selectors/hooks';
 
 interface Props {
   route: {
@@ -41,7 +41,7 @@ const NftOptions = (props: Props) => {
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const { trackEvent } = useMetrics();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,

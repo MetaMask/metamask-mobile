@@ -10,7 +10,6 @@ import {
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
 import { Pressable } from 'react-native';
 import Text, {
   TextColor,
@@ -26,7 +25,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../reducers';
-
+import { useChainId } from '../../../../../selectors/hooks';
 interface StakeButtonProps {
   asset: TokenI;
 }
@@ -38,7 +37,7 @@ export const StakeButton = ({ asset }: StakeButtonProps) => {
   const { trackEvent } = useMetrics();
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
 
   const onStakeButtonPress = () => {
     if (isPooledStakingFeatureEnabled()) {
