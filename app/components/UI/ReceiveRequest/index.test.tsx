@@ -1,19 +1,23 @@
 import { cloneDeep } from 'lodash';
+import { RpcEndpointType } from '@metamask/network-controller';
 import ReceiveRequest from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../util/test/network';
 
 const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          chainId: '0x1',
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum',
           ticker: 'ETH',
-        },
+          chainId: '0x1',
+          type: RpcEndpointType.Infura,
+        }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
@@ -47,7 +51,6 @@ describe('ReceiveRequest', () => {
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
-      // @ts-expect-error initialBackgroundState throws error
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
@@ -55,12 +58,12 @@ describe('ReceiveRequest', () => {
 
   it('render with different ticker matches snapshot', () => {
     const state = cloneDeep(initialState);
-    state.engine.backgroundState.NetworkController.providerConfig.ticker =
-      'DIFF';
+    state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
+      '0x1'
+    ].nativeCurrency = 'DIFF';
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
-      // @ts-expect-error initialBackgroundState throws error
       { state },
     );
     expect(toJSON()).toMatchSnapshot();
@@ -74,7 +77,6 @@ describe('ReceiveRequest', () => {
     const { toJSON } = renderScreen(
       ReceiveRequest,
       { name: 'ReceiveRequest' },
-      // @ts-expect-error initialBackgroundState throws error
       { state },
     );
     expect(toJSON()).toMatchSnapshot();

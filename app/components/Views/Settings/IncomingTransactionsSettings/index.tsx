@@ -84,7 +84,8 @@ const IncomingTransactionsSettings = () => {
 
   const renderRpcNetworks = () =>
     Object.values(networkConfigurations).map(
-      ({ nickname, rpcUrl, chainId }) => {
+      ({ name: nickname, rpcEndpoints, chainId, defaultRpcEndpointIndex }) => {
+        const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
         if (!chainId || !Object.keys(supportedNetworks).includes(chainId))
           return null;
         const { name } = { name: nickname || rpcUrl };
