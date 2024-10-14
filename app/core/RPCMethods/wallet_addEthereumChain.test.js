@@ -34,6 +34,7 @@ jest.mock('../Engine', () => ({
       setActiveNetwork: jest.fn(),
       upsertNetworkConfiguration: jest.fn(),
       addNetwork: jest.fn(),
+      updateNetwork: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -59,7 +60,7 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            ...mockNetworkState([
+            ...mockNetworkState(
               {
                 chainId: '0x1',
                 id: 'Mainnet',
@@ -69,7 +70,7 @@ jest.mock('../../store', () => ({
               {
                 ...existingNetworkConfiguration,
               },
-            ]),
+            ),
           },
         },
       },
@@ -99,6 +100,8 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     mockFetch = jest.fn().mockImplementation(async (url) => {
       if (url === 'https://rpc.gnosischain.com') {
         return { json: () => Promise.resolve({ result: '0x64' }) };
+      } else if (url === 'https://different-rpc-url.com') {
+        return { json: () => Promise.resolve({ result: '0x2' }) };
       } else if (url === 'https://chainid.network/chains.json') {
         return {
           json: () =>
@@ -290,6 +293,14 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
   describe('Approval Flow', () => {
     it('should start and end a new approval flow if chain does not already exist', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockResolvedValue({
+          id: '1',
+          chainId: '0x64',
+          rpcEndpoints: [correctParams.rpcUrls[0]],
+          defaultRpcEndpointIndex: 0,
+        });
       await wallet_addEthereumChain({
         req: {
           params: [correctParams],
@@ -346,10 +357,15 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   });
 
   it('should correctly add and switch to a new chain when chain is not already in wallet state ', async () => {
-    const spyOnUpsertNetworkConfiguration = jest.spyOn(
-      Engine.context.NetworkController,
-      'upsertNetworkConfiguration',
-    );
+    const spyOnAddNetwork = jest
+      .spyOn(Engine.context.NetworkController, 'addNetwork')
+      .mockResolvedValue({
+        id: '1',
+        chainId: '0x64',
+        rpcEndpoints: [correctParams.rpcUrls[0]],
+        defaultRpcEndpointIndex: 0,
+      });
+
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.NetworkController,
       'setActiveNetwork',
@@ -367,25 +383,25 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       ...otherOptions,
     });
 
-    expect(spyOnUpsertNetworkConfiguration).toHaveBeenCalledTimes(1);
-    expect(spyOnUpsertNetworkConfiguration).toHaveBeenCalledWith(
+    expect(spyOnAddNetwork).toHaveBeenCalledTimes(1);
+    expect(spyOnAddNetwork).toHaveBeenCalledWith(
       expect.objectContaining({
         chainId: correctParams.chainId,
-        rpcUrl: correctParams.rpcUrls[0],
-        ticker: correctParams.nativeCurrency.symbol,
-        nickname: correctParams.chainName,
+        blockExplorerUrls: correctParams.blockExplorerUrls,
+        nativeCurrency: correctParams.nativeCurrency.symbol,
+        name: correctParams.chainName,
       }),
-      expect.any(Object),
     );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
     expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });
 
   it('should not add a networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
-    const spyOnUpsertNetworkConfiguration = jest.spyOn(
+    const spyOnAddNetwork = jest.spyOn(
       Engine.context.NetworkController,
-      'upsertNetworkConfiguration',
+      'addNetwork',
     );
+
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.NetworkController,
       'setActiveNetwork',
@@ -394,17 +410,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       Engine.context.CurrencyRateController,
       'updateExchangeRate',
     );
-
-    const existingNetworkConfiguration = {
-      id: 'test-network-configuration-id',
-      chainId: '0x2',
-      rpcUrl: 'https://rpc.test-chain.com',
-      ticker: 'TST',
-      nickname: 'Test Chain',
-      rpcPrefs: {
-        blockExplorerUrl: 'https://explorer.test-chain.com',
-      },
-    };
 
     const existingParams = {
       chainId: existingNetworkConfiguration.chainId,
@@ -425,7 +430,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       ...otherOptions,
     });
 
-    expect(spyOnUpsertNetworkConfiguration).not.toHaveBeenCalled();
+    expect(spyOnAddNetwork).not.toHaveBeenCalled();
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
     expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });

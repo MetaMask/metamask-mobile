@@ -6,10 +6,12 @@ import {
   NetworkConfiguration,
   NetworkState,
   RpcEndpointType,
+  Hex,
 } from '@metamask/network-controller';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { InfuraNetworkType } from '@metamask/controller-utils';
+import { NetworkList } from '../util/networks';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -171,9 +173,9 @@ export const selectNetworkNameByChainId = createSelector(
     if (builtInNetwork) {
       return builtInNetwork.name;
     }
-    const networkConfig = Object.values(
+    const networkConfig: NetworkConfiguration = Object.values(
       networkControllerState.networkConfigurations,
-    ).find((config) => config.chainId === chainId);
+    ).find((config: NetworkConfiguration) => config.chainId === chainId);
     return networkConfig?.nickname;
   },
 );

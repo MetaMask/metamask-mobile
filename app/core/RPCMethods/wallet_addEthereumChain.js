@@ -3,7 +3,10 @@ import { ChainId } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
-import { selectNetworkConfigurations } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
 import { store } from '../../store';
 import checkSafeNetwork from './networkChecker.util';
 import {
@@ -70,7 +73,6 @@ const wallet_addEthereumChain = async ({
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
   );
-
   if (existingEntry) {
     const [chainId, networkConfiguration] = existingEntry;
     const currentChainId = selectChainId(store.getState());
@@ -115,14 +117,15 @@ const wallet_addEthereumChain = async ({
     );
 
     const analyticsParams = {
-      chain_id: getDecimalChainId(_chainId),
+      chain_id: getDecimalChainId(chainId),
       source: 'Custom Network API',
       symbol: networkConfiguration.ticker,
       ...analytics,
     };
 
+    const network = [clonedNetwork.id, clonedNetwork];
     await switchToNetwork({
-      network: existingNetwork,
+      network,
       chainId,
       controllers: {
         CurrencyRateController,
@@ -192,7 +195,7 @@ const wallet_addEthereumChain = async ({
       );
       throw providerErrors.userRejectedRequest();
     }
-    const NetworkConfiguration = await NetworkController.addNetwork({
+    const networkConfiguration = await NetworkController.addNetwork({
       chainId,
       blockExplorerUrls: [firstValidBlockExplorerUrl],
       defaultRpcEndpointIndex: 0,
@@ -216,11 +219,11 @@ const wallet_addEthereumChain = async ({
     });
 
     const { networkClientId } =
-    NetworkConfiguration?.rpcEndpoints?.[
-      NetworkConfiguration.defaultRpcEndpointIndex
-    ] ?? {};
+      networkConfiguration?.rpcEndpoints?.[
+        networkConfiguration.defaultRpcEndpointIndex
+      ] ?? {};
 
-    const network = [networkClientId, requestData];
+    const network = [networkClientId, networkConfiguration];
     const analyticsParams = await switchToNetwork({
       network,
       chainId,

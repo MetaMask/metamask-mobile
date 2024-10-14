@@ -1,6 +1,17 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
 import Engine from '../Engine';
+import { mockNetworkState } from '../../util/test/network';
 
+const existingNetworkConfiguration = {
+  id: 'test-network-configuration-id',
+  chainId: '0x64',
+  rpcUrl: 'https://rpc.test-chain.com',
+  ticker: 'ETH',
+  nickname: 'Gnosis Chain',
+  rpcPrefs: {
+    blockExplorerUrl: 'https://explorer.test-chain.com',
+  },
+};
 jest.mock('../Engine', () => ({
   context: {
     NetworkController: {
@@ -28,30 +39,39 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'https://mainnet.infura.io/v3',
+            // selectedNetworkClientId: 'mainnet',
+            // networksMetadata: {},
+            ...mockNetworkState(
+              {
                 chainId: '0x1',
+                id: 'Mainnet',
+                nickname: 'Mainnet',
                 ticker: 'ETH',
-                nickname: 'Sepolia network',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
               },
-              'test-network-configuration-id': {
-                id: 'test-network-configuration-id',
-                rpcUrl: 'https://gnosis-chain.infura.io/v3',
-                chainId: '0x64',
-                ticker: 'ETH',
-                nickname: 'Gnosis Chain',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://gnosisscan.com',
-                },
+              {
+                ...existingNetworkConfiguration,
               },
-            },
+            ),
+            // mainnet: {
+            //   id: 'mainnet',
+            //   rpcUrl: 'https://mainnet.infura.io/v3',
+            //   chainId: '0x1',
+            //   ticker: 'ETH',
+            //   nickname: 'Sepolia network',
+            //   rpcPrefs: {
+            //     blockExplorerUrl: 'https://etherscan.com',
+            //   },
+            // },
+            // 'test-network-configuration-id': {
+            //   id: 'test-network-configuration-id',
+            //   rpcUrl: 'https://gnosis-chain.infura.io/v3',
+            //   chainId: '0x64',
+            //   ticker: 'ETH',
+            //   nickname: 'Gnosis Chain',
+            //   rpcPrefs: {
+            //     blockExplorerUrl: 'https://gnosisscan.com',
+            //   },
+            // },
           },
         },
       },
