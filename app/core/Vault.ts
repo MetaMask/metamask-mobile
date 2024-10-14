@@ -3,6 +3,11 @@ import Logger from '../util/Logger';
 import { KeyringTypes, KeyringControllerState, AccountImportStrategy } from '@metamask/keyring-controller';
 import { withLedgerKeyring } from './Ledger/Ledger';
 
+interface LedgerBridgeKeyringOptions {
+  accounts?: string[];
+  // Add other properties as needed
+}
+
 /**
  * Restore the given serialized QR keyring.
  *
@@ -28,7 +33,7 @@ export const restoreQRKeyring = async (serializedQrKeyring: unknown): Promise<vo
 export const restoreLedgerKeyring = async (serializedLedgerKeyring: unknown): Promise<void> => {
   try {
     await withLedgerKeyring(async (keyring) => {
-      await keyring.deserialize(serializedLedgerKeyring as any);
+      await keyring.deserialize(serializedLedgerKeyring as Partial<LedgerBridgeKeyringOptions> | undefined);
     });
   } catch (e) {
     Logger.error(
@@ -69,8 +74,7 @@ export const recreateVaultWithNewPassword = async (
     const simpleKeyrings = KeyringController.state.keyrings.filter(
       (keyring) => keyring.type === KeyringTypes.simple,
     );
-    for (let i = 0; i < simpleKeyrings.length; i++) {
-      const simpleKeyring = simpleKeyrings[i];
+    for (const simpleKeyring of simpleKeyrings) {
       const simpleKeyringAccounts = await Promise.all(
         simpleKeyring.accounts.map((account) =>
           KeyringController.exportAccount(password, account),
@@ -103,7 +107,7 @@ export const recreateVaultWithNewPassword = async (
     : undefined;
 
   // Recreate keyring with password given to this method
-  await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase as any);
+  await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase as Uint8Array);
 
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
@@ -119,9 +123,9 @@ export const recreateVaultWithNewPassword = async (
 
   try {
     // Import imported accounts again
-    for (let i = 0; i < importedAccounts.length; i++) {
+    for (const importedAccount of importedAccounts) {
       await KeyringController.importAccountWithStrategy('privateKey' as AccountImportStrategy, [
-        importedAccounts[i],
+        importedAccount,
       ]);
     }
   } catch (e) {
@@ -141,10 +145,11 @@ export const recreateVaultWithNewPassword = async (
  * Recreates a vault with the same password for the purpose of using the newest encryption methods
  *
  * @param password - Password to recreate and set the vault with
+ * @param selectedAddress
  */
 export const recreateVaultWithSamePassword = async (
-  password = '',
   selectedAddress: string,
+  password = '',
 ): Promise<void> => recreateVaultWithNewPassword(password, password, selectedAddress);
 
 /**
