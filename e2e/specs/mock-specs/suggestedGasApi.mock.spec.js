@@ -17,7 +17,7 @@ import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
 import { urls } from '../../mockServer/mockUrlCollection.json';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
