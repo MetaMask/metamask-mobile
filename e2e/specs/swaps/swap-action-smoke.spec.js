@@ -86,23 +86,28 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.1 '}  | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Optimism}
     ${'wrapped'}$    |${'.2'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.1 '}  | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Optimism}
+    ${'unapproved'}$ |${'50 '}  | ${'USDC'}         | ${'DAI'}        | ${CustomNetworks.Tenderly.Optimism}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
       await TabBarComponent.tapWallet();
+      await WalletView.tapNetworksButtonOnNavBar();
+      await TestHelpers.delay(1000);
+
       if (network.providerConfig.nickname !== currentNetwork)
       {
-        await WalletView.tapNetworksButtonOnNavBar();
-        await TestHelpers.delay(1000);
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
         await TestHelpers.delay(3000);
         currentNetwork = network.providerConfig.nickname;
+      } else {
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, true);
       }
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
+      await TestHelpers.delay(1000);
       await WalletActionsModal.tapSwapButton();
 
       if (!swapOnboarded) {
