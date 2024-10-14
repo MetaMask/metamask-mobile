@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useState, useMemo } from 'react';
@@ -298,35 +299,40 @@ const EditGasFee1559Update = ({
     [ignoreOptions],
   );
 
-  const renderLabel = (selected: boolean, disabled: boolean, label: string) => (
-    <Text bold primary={selected && !disabled}>
-      {label}
-    </Text>
+  const renderOptions = useMemo(
+    () =>
+      [
+        {
+          name: AppConstants.GAS_OPTIONS.LOW,
+          label: strings('edit_gas_fee_eip1559.low'),
+        },
+        {
+          name: AppConstants.GAS_OPTIONS.MEDIUM,
+          label: strings('edit_gas_fee_eip1559.market'),
+        },
+        {
+          name: AppConstants.GAS_OPTIONS.HIGH,
+          label: strings('edit_gas_fee_eip1559.aggressive'),
+        },
+      ]
+        .filter(({ name }) => !shouldIgnore(name))
+        .map(({ name, label, ...option }) => ({
+          name,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          label: function LabelComponent(selected: any, disabled: any) {
+            return (
+              <Text bold primary={selected && !disabled}>
+                {label}
+              </Text>
+            );
+          },
+          topLabel: recommended?.name === name && recommended.render,
+          ...option,
+          ...extendOptions[name],
+        })),
+    [recommended, extendOptions, shouldIgnore],
   );
-
-  const renderOptions = () =>
-    [
-      {
-        name: AppConstants.GAS_OPTIONS.LOW,
-        label: strings('edit_gas_fee_eip1559.low'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.MEDIUM,
-        label: strings('edit_gas_fee_eip1559.market'),
-      },
-      {
-        name: AppConstants.GAS_OPTIONS.HIGH,
-        label: strings('edit_gas_fee_eip1559.aggressive'),
-      },
-    ]
-      .filter(({ name }) => !shouldIgnore(name))
-      .map(({ name, label, ...option }) => ({
-        name,
-        label: renderLabel(selectedOption === name, false, label),
-        topLabel: recommended?.name === name && recommended.render,
-        ...option,
-        ...extendOptions[name],
-      }));
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
@@ -341,7 +347,7 @@ const EditGasFee1559Update = ({
 
   const valueToWatch = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
-  const renderLeftLabelComponent = ({
+  const LeftLabelComponent = ({
     value,
     infoValue,
   }: {
@@ -365,7 +371,7 @@ const EditGasFee1559Update = ({
     </View>
   );
 
-  const renderRightLabelComponent = ({ value }: { value: string }) => (
+  const RightLabelComponent = ({ value }: { value: string }) => (
     <Text noMargin small grey>
       <Text bold reset>
         {strings(value)}:
@@ -374,7 +380,7 @@ const EditGasFee1559Update = ({
     </Text>
   );
 
-  const renderTextComponent = ({
+  const TextComponent = ({
     title,
     value,
   }: {
@@ -421,10 +427,12 @@ const EditGasFee1559Update = ({
             <View style={styles.advancedOptionsInputsContainer}>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
-                  leftLabelComponent={renderLeftLabelComponent({
-                    value: 'edit_gas_fee_eip1559.gas_limit',
-                    infoValue: 'gas_limit',
-                  })}
+                  leftLabelComponent={
+                    <LeftLabelComponent
+                      value="edit_gas_fee_eip1559.gas_limit"
+                      infoValue="gas_limit"
+                    />
+                  }
                   min={GAS_LIMIT_MIN}
                   value={suggestedGasLimit}
                   onChangeValue={changedGasLimit}
@@ -437,13 +445,15 @@ const EditGasFee1559Update = ({
                 testID={EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID}
               >
                 <RangeInput
-                  leftLabelComponent={renderLeftLabelComponent({
-                    value: 'edit_gas_fee_eip1559.max_priority_fee',
-                    infoValue: 'max_priority_fee',
-                  })}
-                  rightLabelComponent={renderRightLabelComponent({
-                    value: 'edit_gas_fee_eip1559.estimate',
-                  })}
+                  leftLabelComponent={
+                    <LeftLabelComponent
+                      value="edit_gas_fee_eip1559.max_priority_fee"
+                      infoValue="max_priority_fee"
+                    />
+                  }
+                  rightLabelComponent={
+                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
+                  }
                   value={suggestedMaxPriorityFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_priority_fee')}
                   unit={'GWEI'}
@@ -462,13 +472,15 @@ const EditGasFee1559Update = ({
               </View>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
-                  leftLabelComponent={renderLeftLabelComponent({
-                    value: 'edit_gas_fee_eip1559.max_fee',
-                    infoValue: 'max_fee',
-                  })}
-                  rightLabelComponent={renderRightLabelComponent({
-                    value: 'edit_gas_fee_eip1559.estimate',
-                  })}
+                  leftLabelComponent={
+                    <LeftLabelComponent
+                      value="edit_gas_fee_eip1559.max_fee"
+                      infoValue="max_fee"
+                    />
+                  }
+                  rightLabelComponent={
+                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
+                  }
                   value={suggestedMaxFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_fee')}
                   unit={'GWEI'}
@@ -748,20 +760,18 @@ const EditGasFee1559Update = ({
                         <Text noMargin grey infoModal>
                           {strings('edit_gas_fee_eip1559.learn_more.intro')}
                         </Text>
-                        {renderTextComponent({
-                          title: 'edit_gas_fee_eip1559.learn_more.low_label',
-                          value: 'edit_gas_fee_eip1559.learn_more.low_text',
-                        })}
-                        {renderTextComponent({
-                          title: 'edit_gas_fee_eip1559.learn_more.market_label',
-                          value: 'edit_gas_fee_eip1559.learn_more.market_text',
-                        })}
-                        {renderTextComponent({
-                          title:
-                            'edit_gas_fee_eip1559.learn_more.aggressive_label',
-                          value:
-                            'edit_gas_fee_eip1559.learn_more.aggressive_text',
-                        })}
+                        <TextComponent
+                          title="edit_gas_fee_eip1559.learn_more.low_label"
+                          value="edit_gas_fee_eip1559.learn_more.low_text"
+                        />
+                        <TextComponent
+                          title="edit_gas_fee_eip1559.learn_more.market_label"
+                          value="edit_gas_fee_eip1559.learn_more.market_text"
+                        />
+                        <TextComponent
+                          title="edit_gas_fee_eip1559.learn_more.aggressive_label"
+                          value="edit_gas_fee_eip1559.learn_more.aggressive_text"
+                        />
                       </View>
                     </TouchableWithoutFeedback>
                   </ScrollView>
