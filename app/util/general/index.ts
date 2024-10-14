@@ -1,5 +1,12 @@
 import URL from 'url-parse';
 
+interface RouteObject {
+  state?: RouteObject;
+  index?: number;
+  routes?: RouteObject[];
+  name?: string;
+}
+
 export const tlc = (str: string | undefined): string | undefined => str?.toLowerCase?.();
 
 /**
@@ -20,16 +27,15 @@ export function timeoutFetch(url: string, options: RequestInit, timeout = 500): 
   ]);
 }
 
-// TODO: Investigate the exact type for 'routes'
-export function findRouteNameFromNavigatorState(routes: unknown[]): string | undefined {
-  let route = routes?.[routes.length - 1] as { state?: unknown, index?: number, routes?: unknown[], name?: string } | undefined;
+export function findRouteNameFromNavigatorState(routes: RouteObject[]): string | undefined {
+  let route: RouteObject | undefined = routes[routes.length - 1];
   if (route?.state) {
-    route = route.state as typeof route;
+    route = route.state;
   }
-  while (route !== undefined && route.index !== undefined) {
-    route = route?.routes?.[route.index] as typeof route;
+  while (route && route.index !== undefined) {
+    route = route.routes?.[route.index];
     if (route?.state) {
-      route = route.state as typeof route;
+      route = route.state;
     }
   }
 
