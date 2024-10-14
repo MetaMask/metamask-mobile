@@ -1,11 +1,10 @@
 import { useCallback, useEffect } from 'react';
 import { Linking } from 'react-native';
-import '@react-native-firebase/app';
-import messaging from '@react-native-firebase/messaging';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  isNotificationsFeatureEnabled,
   TRIGGER_TYPES,
 } from '../../../util/notifications';
 import { Notification } from '../../../util/notifications/types';
@@ -41,21 +40,25 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
   }, []);
 
   useEffect(() => {
-    const unsubscribeForegroundEvent = messaging().onMessage(async (remoteMessage: any) => {
-      await NotificationsService.handleNotificationEvent({
-        type: 'foreground',
-        detail: remoteMessage,
-        callback: handlePressedNotification
-      });
-    });
+    if (!isNotificationsFeatureEnabled()) return;
 
-    messaging().setBackgroundMessageHandler(async (remoteMessage: any) => {
-      await NotificationsService.handleNotificationEvent({
-        type: 'background',
-        detail: remoteMessage,
-        callback: handlePressedNotification
-      });
-    });
+    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handlePressedNotification,
+        }),
+    );
+
+    NotificationsService.onBackgroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handlePressedNotification,
+        }),
+    );
 
     return () => {
       unsubscribeForegroundEvent();

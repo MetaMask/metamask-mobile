@@ -234,7 +234,7 @@ class NotificationsService {
   onAppBootstrap = async () => {
     await messaging().registerDeviceForRemoteMessages();
     const token = await messaging().getToken();
-    console.log('FCM Token:', token);
+    Logger.log('FCM Token:', token);
   };
 }
 
