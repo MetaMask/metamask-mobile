@@ -37,6 +37,9 @@ export enum TraceOperation {
   CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
   StorageRehydration = 'custom.storage.rehydration',
   UIStartup = 'custom.ui.startup',
+  NotificationDisplay = 'Notification Display',
+  PPOMValidation = 'PPOM Validation',
+  Signature = 'Signature',
 }
 
 const ID_DEFAULT = 'default';

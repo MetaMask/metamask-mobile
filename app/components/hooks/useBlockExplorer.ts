@@ -19,7 +19,7 @@ const useBlockExplorer = () => {
     (address: string) => {
       const { type, rpcUrl } = providerConfig;
       let accountLink: string;
-      if (type === RPC) {
+      if (type === RPC && rpcUrl) {
         const blockExplorer =
           findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
           NO_RPC_BLOCK_EXPLORER;
@@ -27,6 +27,7 @@ const useBlockExplorer = () => {
       } else {
         accountLink = getEtherscanAddressUrl(type, address);
       }
+
       navigation.navigate(Routes.WEBVIEW.MAIN, {
         screen: Routes.WEBVIEW.SIMPLE,
         params: {
