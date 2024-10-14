@@ -62,9 +62,7 @@ if (typeof localStorage !== 'undefined') {
 if (isTest) {
   (async () => {
     const { fetch: originalFetch } = global;
-    const MOCKTTP_URL = `http://${
-      Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
-    }:${defaultMockPort}`;
+    const MOCKTTP_URL = `http://10.0.2.2:${defaultMockPort}`;
 
     const isMockServerAvailable = await originalFetch(
       `${MOCKTTP_URL}/health-check`,
