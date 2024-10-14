@@ -14,13 +14,14 @@ import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no
 import { setupSentry } from './app/util/sentry/utils';
 setupSentry();
 
-import { AppRegistry, LogBox } from 'react-native';
+import { AppRegistry, LogBox, ErrorUtils } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
 import { isTest } from './app/util/test/utils.js';
 
 
 import { Performance } from './app/core/Performance';
+import { handleCustomError } from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
 
 LogBox.ignoreAllLogs();
@@ -92,3 +93,6 @@ AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
   isTest ? Root : Sentry.wrap(Root),
 );
+
+// link to our customError Handler to handle all uncaught errors which haven't been caught by the components.
+global.ErrorUtils.setGlobalHandler(handleCustomError);
