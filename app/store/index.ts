@@ -115,7 +115,6 @@ const createStoreAndPersistor = async (appStartTime: number) => {
       store.dispatch({
         type: 'FETCH_FEATURE_FLAGS',
       });
-    console.log('ENTER store.getState?.()', store.getState?.());
 
     await trace(
       {

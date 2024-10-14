@@ -4,25 +4,14 @@ import initialRootState, {
   backgroundState,
 } from '../../../util/test/initial-root-state';
 import { userInitialState } from '../../../reducers/user';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 
 describe('Tags Utils', () => {
-  //const getEnvironmentTypeMock = jest.mocked(getEnvironmentType);
-
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   describe('getTraceTags', () => {
-    /*    it('includes UI type', () => {
-      getEnvironmentTypeMock.mockReturnValue(ENVIRONMENT_TYPE_FULLSCREEN);
-
-      const tags = getTraceTags(STATE_EMPTY_MOCK);
-
-      expect(tags['wallet.ui_type']).toStrictEqual(ENVIRONMENT_TYPE_FULLSCREEN);
-    });
- */
     it('includes if unlocked', () => {
       const state = {
         ...initialRootState,
