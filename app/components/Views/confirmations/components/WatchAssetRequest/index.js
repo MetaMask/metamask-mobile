@@ -14,13 +14,13 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import useTokenBalance from '../../../../hooks/useTokenBalance';
 import { useTheme } from '../../../../../util/theme';
 import NotificationManager from '../../../../../core/NotificationManager';
-import { selectChainId } from '../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../util/transactions';
 import { isEqual } from 'lodash';
 import { AssetWatcherSelectorsIDs } from '../../../../../../e2e/selectors/Modals/AssetWatcher.selectors';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useChainId } from '../../../../../selectors/hooks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -107,7 +107,7 @@ const WatchAssetRequest = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const balanceWithSymbol = error
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;

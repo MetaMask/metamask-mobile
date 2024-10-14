@@ -17,10 +17,7 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectTicker } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../util/networks';
@@ -34,6 +31,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { useChainId } from '../../../selectors/hooks';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -91,7 +89,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const ticker = useSelector(selectTicker);
 
   const setFocusState = useCallback(
