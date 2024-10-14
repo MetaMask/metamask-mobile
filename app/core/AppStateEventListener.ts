@@ -51,13 +51,16 @@ export class AppStateEventListener {
     }
 
     try {
-      const attributionId = processAttribution({ currentDeeplink: this.currentDeeplink, store: this.store });
-        DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId}`);
-      MetaMetrics.getInstance().trackEvent(
-        MetaMetricsEvents.APP_OPENED,
-        { attributionId },
-        true
-      );
+      const attribution = processAttribution({ currentDeeplink: this.currentDeeplink, store: this.store });
+      if(attribution) {
+        const { attributionId, utm, ...utmParams } = attribution;
+        DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`, utmParams);
+        MetaMetrics.getInstance().trackEvent(
+          MetaMetricsEvents.APP_OPENED,
+          { attributionId, ...utmParams },
+          true
+        );
+      }
     } catch (error) {
       Logger.error(error as Error, 'AppStateManager: Error processing app state change');
     }
