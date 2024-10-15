@@ -13,9 +13,9 @@ export const startMockServer = async ({
 }) => {
   if (!mockUrl) throw new Error('The mockUrl parameter is required');
   await portfinder.setBasePort(port);
-  port = await portfinder.getPortPromise();
-  await mockServer.start(port);
-  console.log(`Mockttp server running at http://localhost:${port}`);
+  const mockPort = await portfinder.getPortPromise();
+  await mockServer.start(mockPort);
+  console.log(`Mockttp server running at http://localhost:${mockPort}`);
 
   await mockServer
     .forGet('/health-check')
