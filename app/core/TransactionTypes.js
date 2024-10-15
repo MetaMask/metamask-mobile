@@ -13,4 +13,7 @@ export default {
   },
   MMM: 'MetaMask Mobile',
   MM: 'metamask',
+  STAKING: {
+    STAKE: 'STAKE',
+  },
 };
