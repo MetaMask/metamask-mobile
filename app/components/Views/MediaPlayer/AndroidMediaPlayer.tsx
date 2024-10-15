@@ -34,7 +34,11 @@ interface VideoPlayerProps {
   textTracks?: VideoProperties['textTracks'];
   selectedTextTrack?: VideoProperties['selectedTextTrack'];
   onLoad?: (data: OnLoadData) => void;
+  onProgress?: (data: OnProgressData) => void;
+  onSeek?: (data: OnSeekData) => void;
   style?: ViewStyle;
+  // Additional VideoProperties that might be passed to the Video component
+  [key: string]: unknown;
 }
 
 const createStyles = (theme: Theme) =>
@@ -177,6 +181,8 @@ export default function VideoPlayer({
   textTracks,
   selectedTextTrack,
   onLoad: propsOnLoad,
+  onProgress: propsOnProgress,
+  onSeek: propsOnSeek,
   style,
   ...videoProps
 }: VideoPlayerProps & { [key: string]: unknown }) {
@@ -217,6 +223,8 @@ export default function VideoPlayer({
       rotate: Animated.Value;
       MAX_VALUE: number;
     };
+    // We use 'unknown' here as there might be additional animation properties
+    // that are not explicitly defined in the interface but used in the component
     [key: string]: unknown;
   } = {
     bottomControl: {
@@ -366,6 +374,9 @@ export default function VideoPlayer({
       const position = data.currentTime / data.seekableDuration;
       updateSeekerPosition(position * seekerWidth);
     }
+    if (propsOnProgress) {
+      propsOnProgress(data);
+    }
   };
 
   const onSeek = (data: OnSeekData) => {
@@ -374,6 +385,9 @@ export default function VideoPlayer({
         setPaused(originallyPaused);
       }
       setScrubbing(false);
+    }
+    if (propsOnSeek) {
+      propsOnSeek(data);
     }
   };
 
