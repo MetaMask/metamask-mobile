@@ -329,7 +329,9 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "uri": "MockImage",
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
                   style={
@@ -689,7 +691,9 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   resizeMode="contain"
                   source={
                     {
-                      "uri": "MockImage",
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
                   style={
