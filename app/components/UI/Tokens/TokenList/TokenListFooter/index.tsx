@@ -106,6 +106,7 @@ export const TokenListFooter = ({
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
         >
           <Text style={styles.centered}>
             <Text style={styles.emptyText}>

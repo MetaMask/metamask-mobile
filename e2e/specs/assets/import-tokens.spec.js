@@ -69,4 +69,20 @@ describe(SmokeAssets('Import Tokens'), () => {
     await WalletView.removeTokenFromWallet('0 SNX');
     await Assertions.checkIfNotVisible(WalletView.tokenInWallet('SNX'));
   });
+
+  it('should add a token via token footer link', async () => {
+    await WalletView.tapImportTokensFooterLink();
+    await ImportTokensView.searchToken('SNX');
+    await ImportTokensView.tapOnToken(); // taps the first token in the returned list
+    await ImportTokensView.tapOnNextButton();
+
+    await TestHelpers.delay(500);
+    await Assertions.checkIfVisible(ConfirmAddAssetView.container);
+
+    await ConfirmAddAssetView.tapOnConfirmButton();
+
+    await Assertions.checkIfVisible(WalletView.container);
+    await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
+    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 SNX'));
+  });
 });

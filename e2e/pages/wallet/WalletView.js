@@ -51,6 +51,12 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
 
+  get importTokensFooterLink() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
+    );
+  }
+
   get networkName() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME);
   }
@@ -120,6 +126,10 @@ class WalletView {
 
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.importTokensButton);
+  }
+
+  async tapImportTokensFooterLink() {
+    await Gestures.waitAndTap(this.importTokensFooterLink);
   }
 
   async tapOnNFTInWallet(nftName) {
