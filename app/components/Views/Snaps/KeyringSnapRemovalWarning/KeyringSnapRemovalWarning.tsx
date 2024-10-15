@@ -205,7 +205,9 @@ export default function KeyringSnapRemovalWarning({
                 'app_settings.snaps.snap_settings.remove_account_snap_warning.description',
               )}
             </Text>
-            <ScrollView>{accountListItems}</ScrollView>
+            <ScrollView style={styles.scrollView}>
+              {accountListItems}
+            </ScrollView>
           </>
         )}
       </View>
