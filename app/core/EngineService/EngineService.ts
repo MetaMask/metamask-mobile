@@ -74,7 +74,7 @@ class EngineService {
       },
       {
         name: 'PhishingController',
-        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+        key: `${engine.context.PhishingController.name}:stateChange`,
       },
       {
         name: 'PreferencesController',
