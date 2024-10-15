@@ -21,7 +21,11 @@ import {
   MOCK_ADDRESS_2,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { KEYRING_SNAP_REMOVAL_WARNING } from '../../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning.constants';
+import {
+  KEYRING_SNAP_REMOVAL_WARNING,
+  KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
+  KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT,
+} from '../../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning.constants';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
@@ -223,6 +227,7 @@ jest.mock('../../../../../core/Engine', () => {
           MOCK_ADDRESS_2.toLowerCase(),
         ]),
     }),
+    removeAccount: jest.fn(),
     context: {
       SnapController: {
         removeSnap: jest.fn(),
@@ -367,55 +372,101 @@ describe('SnapSettings with keyring snap', () => {
   const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SNAP =
     createMockAccountsControllerStateWithSnap([MOCK_ADDRESS_1, MOCK_ADDRESS_2]);
 
-  it('renders KeyringSnapRemovalWarning when removing a keyring snap', async () => {
-    const mockKeyringSnapPermissions: SubjectPermissions<PermissionConstraint> =
-      {
-        'endowment:keyring': {
-          id: 'Bjj3InYtb6U4ak-uja0f_',
-          parentCapability: 'endowment:keyring',
-          invoker: 'npm:@chainsafe/filsnap',
-          caveats: null,
-          date: mockDate,
-        },
-        snap_manageAccounts: {
-          id: 'BKbg3uDSHHu0D1fCUTOmS',
-          parentCapability: 'snap_manageAccounts',
-          invoker: mockKeyringSnapId,
-          caveats: null,
-          date: mockDate2,
-        },
-      };
+  const mockKeyringSnapPermissions: SubjectPermissions<PermissionConstraint> = {
+    'endowment:keyring': {
+      id: 'Bjj3InYtb6U4ak-uja0f_',
+      parentCapability: 'endowment:keyring',
+      invoker: 'npm:@chainsafe/filsnap',
+      caveats: null,
+      date: mockDate,
+    },
+    snap_manageAccounts: {
+      id: 'BKbg3uDSHHu0D1fCUTOmS',
+      parentCapability: 'snap_manageAccounts',
+      invoker: mockKeyringSnapId,
+      caveats: null,
+      date: mockDate2,
+    },
+  };
 
-    const initialStateWithKeyringSnap = {
-      settings: {},
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          PermissionController: {
-            subjects: {
-              [mockKeyringSnapId]: {
-                permissions: mockKeyringSnapPermissions,
-              },
+  const initialStateWithKeyringSnap = {
+    settings: {},
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        PermissionController: {
+          subjects: {
+            [mockKeyringSnapId]: {
+              permissions: mockKeyringSnapPermissions,
             },
           },
-          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SNAP,
         },
+        AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SNAP,
       },
-    };
+    },
+  };
 
+  it('renders KeyringSnapRemovalWarning when removing a keyring snap', async () => {
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: initialStateWithKeyringSnap as any,
     });
 
+    // Needed to allow for useEffect to run
     // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
-    // console.log('removeButton', removeButton);
     fireEvent.press(removeButton);
     await waitFor(() => {
       expect(getByTestId(KEYRING_SNAP_REMOVAL_WARNING)).toBeTruthy();
+    });
+  });
+
+  it('calls Engine.context.SnapController and Engine.removeAccount when removing a keyring snap with accounts', async () => {
+    const { getByTestId } = renderWithProvider(<SnapSettings />, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      state: initialStateWithKeyringSnap as any,
+    });
+
+    // Needed to allow for useEffect to run
+    // eslint-disable-next-line no-empty-function
+    await act(async () => {});
+
+    // Step 1: // Trigger the remove snap action
+    const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
+    fireEvent.press(removeButton);
+
+    // Step 2: Click continue on the warning modal
+    const keyringSnapRemovalWarningContinueButton = getByTestId(
+      KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
+    );
+    fireEvent.press(keyringSnapRemovalWarningContinueButton);
+
+
+    // Step 3: Wait for the warning modal to appear and enter the snap name
+    await waitFor(() => {
+      const inputField = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
+      expect(inputField).toBeTruthy();
+    });
+    const inputField = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);
+    fireEvent.changeText(inputField, mockKeyringSnap.manifest.proposedName);
+
+    // Step 4: Click the continue button
+    fireEvent.press(keyringSnapRemovalWarningContinueButton);
+
+    // Step 5: Verify that the removal functions are called
+    await waitFor(() => {
+      expect(Engine.context.SnapController.removeSnap).toHaveBeenCalledWith(
+        mockKeyringSnapId,
+      );
+      expect(Engine.removeAccount).toHaveBeenCalledTimes(2);
+      expect(Engine.removeAccount).toHaveBeenCalledWith(
+        MOCK_ADDRESS_1.toLowerCase(),
+      );
+      expect(Engine.removeAccount).toHaveBeenCalledWith(
+        MOCK_ADDRESS_2.toLowerCase(),
+      );
     });
   });
 });
