@@ -47,7 +47,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
         }
       }
     >
-      6 months ago
+      Yesterday
     </Text>
   </View>
   <View
