@@ -31,6 +31,7 @@ import {
 } from '../../../../selectors/notifications';
 
 import { useToggleNotifications } from './useToggleNotifications';
+
 import Routes from '../../../../constants/navigation/Routes';
 
 import ButtonIcon, {
@@ -56,6 +57,7 @@ import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { useToggleNotifications } from './useToggleNotifications';
 
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;
@@ -169,7 +171,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
    * it will request the push notifications permission and enable the notifications
    * if the permission is granted.
    */
-
   const { toggleNotificationsEnabled } = useToggleNotifications({
     navigation,
     basicFunctionalityEnabled,

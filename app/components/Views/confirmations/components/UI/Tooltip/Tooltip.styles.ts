@@ -31,9 +31,10 @@ const styleSheet = (params: { theme: Theme }) => {
       ...fontStyles.bold,
       fontSize: 16,
       fontWeight: '700',
-      marginBottom: 16,
+      marginTop: 8,
     },
     modalContent: {
+      marginTop: 8,
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
