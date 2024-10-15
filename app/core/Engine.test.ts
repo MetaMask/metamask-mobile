@@ -11,7 +11,45 @@ jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
 
 describe('Engine', () => {
-  // ... (existing tests)
+  it('should expose an API', () => {
+    const engine = Engine.init({});
+    expect(engine.context).toHaveProperty('AccountTrackerController');
+    expect(engine.context).toHaveProperty('AddressBookController');
+    expect(engine.context).toHaveProperty('AssetsContractController');
+    expect(engine.context).toHaveProperty('TokenListController');
+    expect(engine.context).toHaveProperty('TokenDetectionController');
+    expect(engine.context).toHaveProperty('NftDetectionController');
+    expect(engine.context).toHaveProperty('NftController');
+    expect(engine.context).toHaveProperty('CurrencyRateController');
+    expect(engine.context).toHaveProperty('KeyringController');
+    expect(engine.context).toHaveProperty('NetworkController');
+    expect(engine.context).toHaveProperty('PhishingController');
+    expect(engine.context).toHaveProperty('PreferencesController');
+    expect(engine.context).toHaveProperty('SignatureController');
+    expect(engine.context).toHaveProperty('TokenBalancesController');
+    expect(engine.context).toHaveProperty('TokenRatesController');
+    expect(engine.context).toHaveProperty('TokensController');
+    expect(engine.context).toHaveProperty('LoggingController');
+    expect(engine.context).toHaveProperty('TransactionController');
+    expect(engine.context).toHaveProperty('SmartTransactionsController');
+    expect(engine.context).toHaveProperty('AuthenticationController');
+    expect(engine.context).toHaveProperty('UserStorageController');
+    expect(engine.context).toHaveProperty('NotificationServicesController');
+    expect(engine.context).toHaveProperty('SelectedNetworkController');
+  });
+
+  it('calling Engine.init twice returns the same instance', () => {
+    const engine = Engine.init({});
+    const newEngine = Engine.init({});
+    expect(engine).toStrictEqual(newEngine);
+  });
+
+  it('calling Engine.destroy deletes the old instance', async () => {
+    const engine = Engine.init({});
+    await engine.destroyEngineInstance();
+    const newEngine = Engine.init({});
+    expect(engine).not.toStrictEqual(newEngine);
+  });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
     const engine = Engine.init({});
@@ -27,7 +65,6 @@ describe('Engine', () => {
   describe('getTotalFiatAccountBalance', () => {
     let engine: ReturnType<typeof Engine.init>;
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
-    const chainId = '0x1';
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
 
