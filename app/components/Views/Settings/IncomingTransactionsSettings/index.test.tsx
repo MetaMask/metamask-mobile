@@ -21,7 +21,7 @@ const mockEngine = Engine;
 jest.mock('../../../../core/Engine', () => {
   mockSetEnableNetworkIncomingTransactions = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init({} as Record<string, never>),
     context: {
       PreferencesController: {
         setEnableNetworkIncomingTransactions:
