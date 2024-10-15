@@ -19,7 +19,7 @@ import {
   TokenListState,
   TokenListStateChange,
   TokenRatesController,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensController,
   TokensControllerState,
   CodefiTokenPricesServiceV2,
@@ -345,7 +345,7 @@ export interface EngineState {
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
-  TokenRatesController: TokenRatesState;
+  TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
@@ -515,7 +515,7 @@ class Engine {
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         ApprovalType.Transaction,
-        ApprovalType.WatchAsset
+        ApprovalType.WatchAsset,
       ],
     });
 
@@ -569,6 +569,34 @@ class Engine {
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
+
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
+
+    const defaultAccountsControllerState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    };
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController ?? defaultAccountsControllerState,
+    });
+
     const nftController = new NftController({
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
@@ -580,10 +608,13 @@ class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
 
@@ -619,32 +650,7 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    const accountsControllerMessenger: AccountsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'AccountsController',
-        allowedEvents: [
-          'SnapController:stateChange',
-          'KeyringController:accountRemoved',
-          'KeyringController:stateChange',
-        ],
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'KeyringController:getKeyringsByType',
-          'KeyringController:getKeyringForAccount',
-        ],
-      });
 
-    const defaultAccountsControllerState: AccountsControllerState = {
-      internalAccounts: {
-        accounts: {},
-        selectedAccount: '',
-      },
-    };
-
-    const accountsController = new AccountsController({
-      messenger: accountsControllerMessenger,
-      state: initialState.AccountsController ?? defaultAccountsControllerState,
-    });
     const tokensController = new TokensController({
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
@@ -936,21 +942,35 @@ class Engine {
       ),
     });
 
-    const accountTrackerController = new AccountTrackerController({
-      onPreferencesStateChange,
-      getIdentities: () => preferencesController.state.identities,
-      getSelectedAddress: () => accountsController.getSelectedAccount().address,
-      getMultiAccountBalancesEnabled: () =>
-        preferencesController.state.isMultiAccountBalancesEnabled,
-      getCurrentChainId: () =>
-        toHexadecimal(
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId,
-        ),
-      getNetworkClientById:
-        networkController.getNetworkClientById.bind(networkController),
-    });
+    const accountTrackerController = new AccountTrackerController(
+      {
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions fix < ======.
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'AccountTrackerController',
+          allowedActions: [
+            `AccountsController:getSelectedAccount`,
+            `AccountsController:listAccounts`,
+          ],
+          allowedEvents: [
+            'AccountsController:selectedEvmAccountChange',
+            'AccountsController:selectedAccountChange',
+          ],
+        }),
+        getMultiAccountBalancesEnabled: () =>
+          preferencesController.state.isMultiAccountBalancesEnabled,
+        getCurrentChainId: () =>
+          toHexadecimal(
+            networkController.getNetworkClientById(
+              networkController?.state.selectedNetworkClientId,
+            ).configuration.chainId,
+          ),
+        getNetworkClientById:
+          networkController.getNetworkClientById.bind(networkController),
+      },
+      undefined,
+      { accounts: {} },
+    );
+
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -1480,6 +1500,7 @@ class Engine {
             'NetworkController:getState',
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
+            'AccountsController:getSelectedAccount',
           ],
         }),
         disabled: false,
@@ -1503,28 +1524,24 @@ class Engine {
         interval: 180000,
       }),
       new TokenRatesController({
-        onTokensStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `${tokensController.name}:stateChange`,
-            listener,
-          ),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        onPreferencesStateChange,
-        chainId: networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration.chainId,
-        ticker: networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration.ticker,
-        selectedAddress: preferencesController.state.selectedAddress,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenRatesController',
+          allowedActions: [
+            'TokensController:getState',
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'PreferencesController:getState',
+          ],
+          allowedEvents: [
+            'PreferencesController:stateChange',
+            'TokensController:stateChange',
+            'NetworkController:stateChange',
+          ],
+        }),
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
+        state: initialState.TokenRatesController || { marketData: {} },
       }),
       this.transactionController,
       this.smartTransactionsController,
@@ -1990,7 +2007,7 @@ class Engine {
     NftController.reset();
 
     TokenBalancesController.reset();
-    TokenRatesController.update({ marketData: {} });
+    TokenRatesController.reset();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({
