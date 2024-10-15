@@ -12,23 +12,23 @@ import Text, {
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { useStyles } from '../../../../../hooks/useStyles';
 import NetworkMainAssetLogo from '../../../../NetworkMainAssetLogo';
-import styleSheet from './AmountHeader.styles';
+import styleSheet from './TokenValueStack.styles';
 import images from '../../../../../../images/image-icons';
-import { AmountHeaderProps } from './AmountHeader.types';
+import { TokenValueStackProps } from './TokenValueStack.types';
 import { renderFromWei } from '../../../../../../util/number';
 
-const AmountHeader = ({
+const TokenValueStack = ({
   amountWei,
   amountFiat,
   tokenSymbol,
   style,
-}: AmountHeaderProps) => {
+}: TokenValueStackProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const networkName = useSelector(selectNetworkName);
 
   return (
-    <View style={[styles.amountHeaderContainer, style]}>
+    <View style={[styles.tokenValueStackContainer, style]}>
       <BadgeWrapper
         style={styles.badgeWrapper}
         badgeElement={
@@ -51,4 +51,4 @@ const AmountHeader = ({
   );
 };
 
-export default AmountHeader;
+export default TokenValueStack;

@@ -247,7 +247,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#9fa6ae",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -665,7 +665,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#9fa6ae",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -1083,7 +1083,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#9fa6ae",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",

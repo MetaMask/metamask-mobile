@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AmountHeader render matches snapshot 1`] = `
+exports[`TokenValueStack render matches snapshot 1`] = `
 <View
   style={
     [

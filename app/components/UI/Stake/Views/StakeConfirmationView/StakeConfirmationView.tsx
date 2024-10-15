@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
-import AmountHeader from '../../components/StakingConfirmation/AmountHeader/AmountHeader';
+import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
 import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
@@ -13,7 +13,6 @@ import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockDat
 import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_REWARD_DATA = {
-  REWARD_RATE: '2.6%',
   REWARDS: {
     ETH: '0.13 ETH',
     FIAT: '$334.93',
@@ -39,7 +38,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   return (
     <View style={styles.mainContainer}>
       <View>
-        <AmountHeader
+        <TokenValueStack
           amountWei={route.params.amountWei}
           amountFiat={`$${route.params.amountFiat}`}
           tokenSymbol="ETH"

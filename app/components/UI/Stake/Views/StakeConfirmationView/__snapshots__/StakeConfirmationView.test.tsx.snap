@@ -1091,7 +1091,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#9fa6ae",
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",

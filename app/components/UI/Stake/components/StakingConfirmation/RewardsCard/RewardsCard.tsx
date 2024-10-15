@@ -45,7 +45,7 @@ const RewardsCard = ({
         value={{
           label: (
             <View style={styles.estAnnualRewardValue}>
-              <Text color={TextColor.Muted}>{rewardsFiat}</Text>
+              <Text color={TextColor.Alternative}>{rewardsFiat}</Text>
               <Text>{rewardsEth}</Text>
             </View>
           ),

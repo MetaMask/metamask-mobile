@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const stylesSheet = () =>
   StyleSheet.create({
-    amountHeaderContainer: {
+    tokenValueStackContainer: {
       alignItems: 'center',
       paddingVertical: 8,
       gap: 8,
