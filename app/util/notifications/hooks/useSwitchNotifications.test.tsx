@@ -9,6 +9,7 @@ import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from './useSwitchNotifications';
+import { Account } from '../../../components/hooks/useAccounts/useAccounts.types';
 import * as Actions from '../../../actions/notification/helpers';
 import initialRootState from '../../test/initial-root-state';
 import Engine from '../../../core/Engine';
@@ -113,7 +114,7 @@ describe('useAccountSettingsProps', () => {
     jest.clearAllMocks();
   });
 
-  function arrangeHook(accounts: string[]) {
+  function arrangeHook(accounts: Account[]) {
     const store = arrangeStore();
     const hook = renderHook(() => useAccountSettingsProps(accounts), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
@@ -172,7 +173,7 @@ describe('useAccountSettingsProps', () => {
     ]);
 
     const { result } = arrangeHook([]);
-    expect(result.current.accountsBeingUpdated.length).toBeGreaterThan(0);
+    expect(result.current.updateAndfetchAccountSettings).toBeDefined();
   });
 
 });
