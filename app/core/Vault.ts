@@ -5,17 +5,14 @@ import { withLedgerKeyring } from './Ledger/Ledger';
 
 interface LedgerBridgeKeyringOptions {
   accounts?: string[];
-  // Add other properties as needed
 }
 
 /**
  * Restore the given serialized QR keyring.
  *
  * @param {unknown} serializedQrKeyring - A serialized QR keyring.
- * The type is kept as 'unknown' due to the dynamic nature of the serialized keyring data
- * returned by the getSerializedKeyring function, which uses keyring.serialize().
  */
-export const restoreQRKeyring = async (serializedQrKeyring: unknown): Promise<void> => {
+export const restoreQRKeyring = async (serializedQrKeyring: unknown) => {
   const { KeyringController } = Engine.context;
 
   try {
@@ -30,7 +27,7 @@ export const restoreQRKeyring = async (serializedQrKeyring: unknown): Promise<vo
  *
  * @param {unknown} serializedLedgerKeyring - A serialized Ledger keyring.
  */
-export const restoreLedgerKeyring = async (serializedLedgerKeyring: unknown): Promise<void> => {
+export const restoreLedgerKeyring = async (serializedLedgerKeyring: unknown) => {
   try {
     await withLedgerKeyring(async (keyring) => {
       await keyring.deserialize(serializedLedgerKeyring as Partial<LedgerBridgeKeyringOptions> | undefined);
@@ -64,7 +61,7 @@ export const recreateVaultWithNewPassword = async (
   password: string,
   newPassword: string,
   selectedAddress: string,
-): Promise<void> => {
+) => {
   const { KeyringController } = Engine.context;
   const seedPhrase = await getSeedPhrase(password);
 
@@ -145,12 +142,11 @@ export const recreateVaultWithNewPassword = async (
  * Recreates a vault with the same password for the purpose of using the newest encryption methods
  *
  * @param password - Password to recreate and set the vault with
- * @param selectedAddress
  */
 export const recreateVaultWithSamePassword = async (
   selectedAddress: string,
   password = '',
-): Promise<void> => recreateVaultWithNewPassword(password, password, selectedAddress);
+) => recreateVaultWithNewPassword(password, password, selectedAddress);
 
 /**
  * Checks whether the given keyring type exists in the given state.
@@ -159,7 +155,7 @@ export const recreateVaultWithSamePassword = async (
  * @param {KeyringTypes} type - The keyring type to check for.
  * @returns Whether the type was found in state.
  */
-function hasKeyringType(state: KeyringControllerState, type: KeyringTypes): boolean {
+function hasKeyringType(state: KeyringControllerState, type: KeyringTypes) {
   return state?.keyrings?.some((keyring) => keyring.type === type);
 }
 
@@ -169,7 +165,7 @@ function hasKeyringType(state: KeyringControllerState, type: KeyringTypes): bool
  * @param {KeyringTypes} type - The type of keyring to serialize.
  * @returns The serialized state for the first keyring found of the given type.
  */
-async function getSerializedKeyring(type: KeyringTypes): Promise<unknown> {
+async function getSerializedKeyring(type: KeyringTypes) {
   const { KeyringController } = Engine.context;
   return await KeyringController.withKeyring({ type }, (keyring) =>
     keyring.serialize(),
