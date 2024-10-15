@@ -1,5 +1,7 @@
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
+import path from 'path';  // Add path to help with file paths if necessary
+import fs from 'fs';      // Optionally use fs to check file existence
 
 const mockServer = getLocal();
 
@@ -16,13 +18,14 @@ export const startMockServer = async (events, port) => {
   // Set up mock events
   for (const event of events) {
     const { mockUrl, responseCode, responseBodyFile } = event;
-    let responseBody;
+    let responseBody = {};
 
-    // Dynamically import the response body from the file
+    // Use require instead of dynamic import
     if (responseBodyFile) {
-      responseBody = (await import(responseBodyFile)).default; // Adjust based on your exports
-    } else {
-      responseBody = {};
+      const filePath = path.resolve(responseBodyFile);  // Resolve the full path
+      if (fs.existsSync(filePath)) {                    // Check if file exists
+        responseBody = require(filePath);               // Load the file synchronously
+      }
     }
 
     await mockServer.forGet(mockUrl).thenReply(responseCode, JSON.stringify(responseBody));

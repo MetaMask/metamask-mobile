@@ -7,7 +7,7 @@ import {
   testConfig,
 } from './app/util/test/utils.js';
 import { LaunchArguments } from 'react-native-launch-arguments';
-import { defaultMockPort } from './e2e/mockServer/mockUrlCollection';
+import { defaultMockPort } from './e2e/specs/mock-data/mockUrlCollection.json';
 
 // In a testing environment, assign the fixtureServerPort to use a deterministic port
 if (isTest) {

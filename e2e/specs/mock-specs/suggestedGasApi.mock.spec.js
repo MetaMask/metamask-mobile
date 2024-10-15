@@ -16,7 +16,7 @@ import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
-import { urls } from '../mock-data/mockUrlCollection.json';
+// import { urls } from '../mock-data/mockUrlCollection.json';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
 import { mockEvents } from '../mock-data/mock-events.js';
 
@@ -27,7 +27,7 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
     await TestHelpers.reverseServerPort();
 
     mockServer = await startMockServer([
-      mockEvents.suggestedGasApiSuccessResponse   // Multiple events can be passed through this
+      mockEvents.suggestedGasApiErrorResponse,
     ]);
   });
 
