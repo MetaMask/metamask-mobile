@@ -7,7 +7,6 @@ import {
   setFeatureAnnouncementsEnabled,
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/helpers';
-import { UseSwitchAccountNotificationsData } from './types';
 import Engine from '../../../core/Engine';
 import { useDispatch } from 'react-redux';
 
