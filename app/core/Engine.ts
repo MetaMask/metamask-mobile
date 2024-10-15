@@ -942,7 +942,7 @@ class Engine {
 
     const accountTrackerController = new AccountTrackerController(
       {
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions fix < ======.
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions
         messenger: this.controllerMessenger.getRestricted({
           name: 'AccountTrackerController',
           allowedActions: [
