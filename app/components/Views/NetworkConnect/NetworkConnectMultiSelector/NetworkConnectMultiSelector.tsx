@@ -27,6 +27,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { useSelector } from 'react-redux';
+import {
+  selectEnabledNetworkList,
+  EnabledNetwork,
+} from '../../../../selectors/networkController';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -39,6 +44,28 @@ const NetworkConnectMultiSelector = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
+  const enabledNetworkList = useSelector(selectEnabledNetworkList);
+
+  // Helper function to get the network name
+  const getNetworkName = (network: EnabledNetwork): string => {
+    if ('nickname' in network) {
+      return network.nickname as string;
+    } else if ('shortname' in network) {
+      return network.shortname as string;
+    }
+    return '';
+  };
+
+  // TODO this needs to actually be by chainId not networkClientId once NetworkController v21
+  // is merged: https://github.com/MetaMask/metamask-mobile/pull/11292
+  const enabledNetworks: Network[] = Object.entries(enabledNetworkList).map(
+    ([key, network]) => ({
+      id: key,
+      name: getNetworkName(network),
+      isSelected: false,
+      imageSource: network.imageSource,
+    }),
+  );
 
   const mockNetworks: Network[] = PopularList.map((network) => ({
     id: network.chainId,
@@ -52,7 +79,7 @@ const NetworkConnectMultiSelector = ({
     (clickedNetworkId) => {
       const selectedAddressIndex = selectedNetworkIds.indexOf(clickedNetworkId);
       // Reconstruct selected network ids.
-      const newNetworkList = mockNetworks.reduce((acc, { id }) => {
+      const newNetworkList = enabledNetworks.reduce((acc, { id }) => {
         if (clickedNetworkId === id) {
           selectedAddressIndex === -1 && acc.push(id);
         } else if (selectedNetworkIds.includes(id)) {
@@ -62,7 +89,7 @@ const NetworkConnectMultiSelector = ({
       }, [] as string[]);
       setSelectedNetworkIds(newNetworkList);
     },
-    [mockNetworks, selectedNetworkIds],
+    [enabledNetworks, selectedNetworkIds],
   );
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
