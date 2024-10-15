@@ -468,6 +468,7 @@
     "nyc": "^15.1.0",
     "octonode": "0.10.2",
     "patch-package": "^6.2.2",
+    "portfinder": "^1.0.32",
     "prettier": "^2.2.1",
     "prettier-plugin-gherkin": "^1.1.1",
     "react-dom": "18.2.0",

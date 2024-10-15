@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import { defaultMockPort } from './mockUrlCollection';
+import portfinder from 'portfinder';
 
 const mockServer = getLocal();
 
@@ -11,7 +12,8 @@ export const startMockServer = async ({
   port = defaultMockPort,
 }) => {
   if (!mockUrl) throw new Error('The mockUrl parameter is required');
-
+  await portfinder.setBasePort(port);
+  port = await portfinder.getPortPromise();
   await mockServer.start(port);
   console.log(`Mockttp server running at http://localhost:${port}`);
 
