@@ -102,6 +102,118 @@ describe('Engine', () => {
       }
     });
 
-    // ... (other test cases)
+    it('calculates when theres only ETH', () => {
+      const ethBalance = 1; // 1 ETH
+      const ethPricePercentChange1d = 5; // up 5%
+      const chainId = '0x1';
+
+      engine = Engine.init({
+        ...mockState,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: { balance: ethBalance * 1e18 },
+            },
+          },
+        },
+        TokenRatesController: {
+          marketData: {
+            [chainId]: {
+              '0x0000000000000000000000000000000000000000': {
+                pricePercentChange1d: ethPricePercentChange1d,
+              },
+            },
+          },
+        },
+      } as unknown as EngineInitState);
+
+      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+
+      const ethFiat = ethBalance * ethConversionRate;
+      expect(totalFiatBalance).toStrictEqual({
+        ethFiat,
+        ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+      });
+    });
+
+    it('calculates when there are ETH and tokens', () => {
+      const ethBalance = 1;
+      const ethPricePercentChange1d = 5;
+      const chainId = '0x1';
+
+      const tokens = [
+        {
+          address: '0x001',
+          balance: 1,
+          price: '1',
+          pricePercentChange1d: -1,
+        },
+        {
+          address: '0x002',
+          balance: 2,
+          price: '2',
+          pricePercentChange1d: 2,
+        },
+      ];
+
+      engine = Engine.init({
+        ...mockState,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: { balance: ethBalance * 1e18 },
+            },
+          },
+        },
+        TokensController: {
+          tokens: tokens.map((token) => ({
+            address: token.address,
+            balance: token.balance,
+          })),
+        },
+        TokenRatesController: {
+          marketData: {
+            [chainId]: {
+              '0x0000000000000000000000000000000000000000': {
+                pricePercentChange1d: ethPricePercentChange1d,
+              },
+              ...tokens.reduce(
+                (acc, token) => ({
+                  ...acc,
+                  [token.address]: {
+                    price: token.price,
+                    pricePercentChange1d: token.pricePercentChange1d,
+                  },
+                }),
+                {},
+              ),
+            },
+          },
+        },
+      } as unknown as EngineInitState);
+
+      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+
+      const ethFiat = ethBalance * ethConversionRate;
+      const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
+        ([fiat, fiat1d], token) => {
+          const value = token.balance * Number(token.price) * ethConversionRate;
+          return [
+            fiat + value,
+            fiat1d + value / (1 + token.pricePercentChange1d / 100),
+          ];
+        },
+        [0, 0],
+      );
+
+      expect(totalFiatBalance).toStrictEqual({
+        ethFiat,
+        ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
+        tokenFiat,
+        tokenFiat1dAgo,
+      });
+    });
   });
 });
