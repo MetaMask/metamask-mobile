@@ -51,8 +51,11 @@ class BuildQuoteView {
     await Gestures.waitAndTap(Matchers.getElementByText(paymentMethod));
   }
 
+  async tapFiatAmount(amount) {
+    await Gestures.waitAndTap(Matchers.getElementByText(amount));
+  }
+
   async enterFiatAmount(amount) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
       await Gestures.waitAndTap(numberButton);

@@ -58,11 +58,27 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
+  it('should select a new currency and check the quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
+    await BuildQuoteView.tapSelectedCurrency(/.*USD.*/)
+    await BuildQuoteView.selectCurrency('EUR')
+    await BuildQuoteView.tapFiatAmount('€0')
+    await BuildQuoteView.enterFiatAmount('50')
+    await BuildQuoteView.tapGetQuotesButton()
+    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
+    await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
+    await Assertions.checkIfTextIsNotDisplayed(/^≈ \$.*USD$/);
+    await QuoteView.dismiss()
+    await BuildQuoteView.tapCancelButton();
+  });
+
   it('should select a new region and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
     await BuildQuoteView.tapSelectedRegionFlag('🇺🇸')
     await BuildQuoteView.selectRegion('France')
+    await BuildQuoteView.tapFiatAmount('€0')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
@@ -77,6 +93,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await WalletActionsModal.tapBuyButton();
     await BuildQuoteView.tapSelectedToken('Ethereum')
     await BuildQuoteView.selectToken('Uniswap')
+    await BuildQuoteView.tapFiatAmount('€0')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
@@ -87,25 +104,12 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  it('should select a new currency and check the quotes', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.tapSelectedCurrency(/.*EUR.*/)
-    await BuildQuoteView.selectCurrency('USD')
-    await BuildQuoteView.enterFiatAmount('50')
-    await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
-    await Assertions.checkIfTextIsDisplayed(/^≈ \$.*USD$/);
-    await Assertions.checkIfTextIsNotDisplayed(/^≈ €.*EUR$/);
-    await QuoteView.dismiss()
-    await BuildQuoteView.tapCancelButton();
-  });
-
   it('should select a new payment method and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
     await BuildQuoteView.tapSelectedPaymentMethod('Debit or Credit')
     await BuildQuoteView.selectPaymentMethod('Apple Pay')
+    await BuildQuoteView.tapFiatAmount('€0')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
