@@ -16,10 +16,13 @@ import {
 import Video, { LoadError, OnLoadData, OnProgressData, OnSeekData, VideoProperties } from 'react-native-video';
 import { useTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
-import { strings } from '../../../../locales/i18n';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+
+// Import image assets
+import foxImage from '../../../../images/fox.png';
+import errorIcon from '../../../../images/error-icon.png';
 
 type Theme = ReturnType<typeof useTheme>;
 
@@ -190,7 +193,6 @@ export default function VideoPlayer({
   const [muted, setMuted] = useState<boolean>(true);
   const [seekerFillWidth, setSeekerFillWidth] = useState<number>(0);
   const [seekerPosition, setSeekerPosition] = useState<number>(0);
-  const [seekerOffset, setSeekerOffset] = useState<number>(0);
   const [seeking, setSeeking] = useState<boolean>(false);
   const [originallyPaused, setOriginallyPaused] = useState<boolean>(false);
   const [scrubbing, setScrubbing] = useState<boolean>(false);
@@ -326,7 +328,6 @@ export default function VideoPlayer({
       position = constrainToSeekerMinMax(position);
       setSeekerFillWidth(position);
       setSeekerPosition(position);
-      setSeekerOffset(position);
     },
     [constrainToSeekerMinMax],
   );
@@ -354,7 +355,7 @@ export default function VideoPlayer({
         }
       });
     }
-  }, [loading, animations.loader.rotate]);
+  }, [loading, animations.loader.rotate, animations.loader.MAX_VALUE]);
 
   const onLoadStart = () => {
     loadAnimation();
@@ -404,9 +405,11 @@ export default function VideoPlayer({
     return duration * percent;
   }, [seekerPosition, seekerWidth, duration]);
 
-  const seekTo = (time = 0) => {
-    videoRef.current?.seek(time);
-  };
+  const seekTo = useCallback((time = 0) => {
+    if (videoRef.current) {
+      videoRef.current.seek(time);
+    }
+  }, []);
 
   const seekPanResponder = useMemo(
     () =>
@@ -420,11 +423,11 @@ export default function VideoPlayer({
           setScrubbing(false);
           updateSeekerPosition(e.nativeEvent.locationX);
         },
-        onPanResponderMove: (e: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        onPanResponderMove: (e: GestureResponderEvent, _: PanResponderGestureState) => {
           setScrubbing(true);
           updateSeekerPosition(e.nativeEvent.locationX);
         },
-        onPanResponderRelease: (e: GestureResponderEvent) => {
+        onPanResponderRelease: (_: GestureResponderEvent) => {
           setSeeking(false);
           setScrubbing(false);
           seekTo(calculateTimeFromSeekerPosition());
@@ -442,11 +445,11 @@ export default function VideoPlayer({
   );
 
   const renderControl = useCallback(
-    (children: React.ReactNode, callback: () => void, style = {}) => (
+    (children: React.ReactNode, callback: () => void, controlStyle = {}) => (
       <TouchableHighlight
         underlayColor="transparent"
         onPress={callback}
-        style={[styles.controlsControl, style]}
+        style={[styles.controlsControl, controlStyle]}
       >
         {children}
       </TouchableHighlight>
@@ -541,7 +544,7 @@ export default function VideoPlayer({
     return (
       <View style={styles.loaderContainer}>
         <Animated.Image
-          source={require('../../../../images/fox.png')}
+          source={foxImage}
           style={{
             transform: [
               {
@@ -562,7 +565,7 @@ export default function VideoPlayer({
     if (error) {
       return (
         <View style={styles.errorContainer}>
-          <Image source={require('../../../../images/error-icon.png')} style={styles.errorIcon} />
+          <Image source={errorIcon} style={styles.errorIcon} />
           <Text style={styles.errorText}>Video unavailable</Text>
         </View>
       );
@@ -573,7 +576,9 @@ export default function VideoPlayer({
     () =>
       renderControl(
         <AntIcon color={styles.actionButtons.color} size={16} name={'close'} />,
-        onClose!,
+        onClose || (() => {
+          // No-op function as a fallback when onClose is not provided
+        }),
         {},
       ),
     [onClose, renderControl, styles.actionButtons.color],
@@ -624,7 +629,7 @@ export default function VideoPlayer({
   return (
     <TouchableNativeFeedback
       onPress={onScreenTouch}
-      style={[styles.playerContainer, style]}
+      style={[styles.playerContainer, style] as ViewStyle}
     >
       <View style={baseStyles.flexGrow}>
         <Video
@@ -641,7 +646,7 @@ export default function VideoPlayer({
           textTracks={textTracks}
           selectedTextTrack={selectedTextTrack}
           resizeMode="contain"
-          repeat={true}
+          repeat
           {...videoProps}
         />
         {renderLoader()}
