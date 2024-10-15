@@ -234,7 +234,7 @@ function setupGlobalState({
   permittedAccounts,
   selectedNetworkClientId,
   networksMetadata,
-  networkConfigurations,
+  networkConfigurationsByChainId,
   selectedAddress,
   originThrottling,
 }: {
@@ -243,7 +243,7 @@ function setupGlobalState({
   permittedAccounts?: Record<string, string[]>;
   selectedNetworkClientId: string;
   networksMetadata?: Record<string, object>;
-  networkConfigurations?: Record<string, object>;
+  networkConfigurationsByChainId?: Record<string, object>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
   originThrottling?: OriginThrottlingState;
@@ -265,9 +265,10 @@ function setupGlobalState({
           NetworkController: {
             selectedNetworkClientId: selectedNetworkClientId || '',
             networksMetadata: networksMetadata || {},
+            networkConfigurationsByChainId:
+              networkConfigurationsByChainId || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
-          networkConfigurations: networkConfigurations || {},
         },
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -309,16 +310,20 @@ function setupSignature() {
     activeTab: 1,
     selectedNetworkClientId: 'mainnet',
     networksMetadata: {},
-    networkConfigurations: {
-      mainnet: {
-        id: 'mainnet',
-        rpcUrl: 'https://mainnet.infura.io/v3',
+    networkConfigurationsByChainId: {
+      '0x1': {
+        blockExplorerUrls: ['https://etherscan.com'],
         chainId: '0x1',
-        ticker: 'ETH',
-        nickname: 'Sepolia network',
-        rpcPrefs: {
-          blockExplorerUrl: 'https://etherscan.com',
-        },
+        defaultRpcEndpointIndex: 0,
+        name: 'Sepolia network',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: 'Custom',
+            url: 'https://mainnet.infura.io/v3',
+          },
+        ],
       },
     },
     selectedAddress: addressMock,
@@ -674,16 +679,20 @@ describe('getRpcMethodMiddleware', () => {
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
             },
           },
         });
@@ -718,16 +727,21 @@ describe('getRpcMethodMiddleware', () => {
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
             },
           },
         });
@@ -766,16 +780,21 @@ describe('getRpcMethodMiddleware', () => {
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Ethereum Mainnet', // Use "Ethereum Mainnet" instead of Sepolia, as chainId '0x1' refers to Mainnet
+              nativeCurrency: 'ETH',
             },
           },
         });
@@ -815,16 +834,20 @@ describe('getRpcMethodMiddleware', () => {
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
             },
           },
           selectedAddress: mockAddress,
@@ -857,16 +880,21 @@ describe('getRpcMethodMiddleware', () => {
           permittedAccounts: { 'example.metamask.io': [] },
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Ethereum Mainnet', // Correcting to Ethereum Mainnet as per chainId '0x1'
+              nativeCurrency: 'ETH',
             },
           },
           selectedAddress: differentMockAddress,
@@ -908,16 +936,20 @@ describe('getRpcMethodMiddleware', () => {
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
             },
           },
           selectedAddress: mockAddress,
@@ -950,16 +982,21 @@ describe('getRpcMethodMiddleware', () => {
           // Set minimal network controller state to support validation
           selectedNetworkClientId: 'mainnet',
           networksMetadata: {},
-          networkConfigurations: {
-            mainnet: {
-              id: 'mainnet',
-              rpcUrl: 'https://mainnet.infura.io/v3',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
               chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Sepolia network',
-              rpcPrefs: {
-                blockExplorerUrl: 'https://etherscan.com',
-              },
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Ethereum Mainnet', // Correcting to Ethereum Mainnet as per chainId '0x1'
+              nativeCurrency: 'ETH',
             },
           },
           selectedAddress: differentMockAddress,
@@ -997,16 +1034,20 @@ describe('getRpcMethodMiddleware', () => {
         // Set minimal network controller state to support validation
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
-        networkConfigurations: {
-          mainnet: {
-            id: 'mainnet',
-            rpcUrl: 'https://mainnet.infura.io/v3',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: ['https://etherscan.com'],
             chainId: '0x1',
-            ticker: 'ETH',
-            nickname: 'Sepolia network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia network',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Custom',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
           },
         },
       });
