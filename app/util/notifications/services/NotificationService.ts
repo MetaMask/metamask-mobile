@@ -164,7 +164,7 @@ class NotificationsService {
 
   onBackgroundEvent = (observer: (event: NotifeeEvent) => Promise<void>) => {
     notifee.onBackgroundEvent(observer);
-  }
+  };
 
   incrementBadgeCount = async (incrementBy?: number) => {
     notifee.incrementBadgeCount(incrementBy);
