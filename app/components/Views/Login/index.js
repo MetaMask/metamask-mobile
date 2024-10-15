@@ -479,8 +479,8 @@ class Login extends PureComponent {
     field?.blur();
   };
 
-  triggerLogIn = async () => {
-    await endTrace({ name: TraceName.LoginToPasswordEntry });
+  triggerLogIn = () => {
+    endTrace({ name: TraceName.LoginToPasswordEntry });
     this.onLogin();
   };
 
