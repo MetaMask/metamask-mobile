@@ -74,11 +74,13 @@ describe('Engine', () => {
         chainId: '0x1',
       }),
       CurrencyRateController: {
-        // @ts-expect-error Mock state doesn't match exact CurrencyRateState, but it's sufficient for testing
         conversionRate: ethConversionRate,
         currentCurrency: 'usd',
         nativeCurrency: ticker,
-      },
+        usdConversionRate: ethConversionRate, // Adding this property as it's likely required
+        currencyRates: {}, // Adding an empty object for currency rates
+        pendingRefreshRates: false, // Adding a default value for pending refresh
+      } as EngineState['CurrencyRateController'], // Use the full type instead of Partial
     };
 
     it('calculates when theres no balances', () => {
