@@ -75,31 +75,6 @@ export function useSwitchNotifications() {
   };
 }
 
-export function useRefetchAccountSettings(
-  isMetamaskNotificationsEnabled: boolean,
-) {
-  const getAccountSettings = useCallback(
-    async (accounts: string[]): Promise<UseSwitchAccountNotificationsData> => {
-      try {
-        if (!isMetamaskNotificationsEnabled) {
-          return {};
-        }
-        const result =
-          await Engine.context.NotificationServicesController.checkAccountsPresence(
-            accounts,
-          );
-
-        return result;
-      } catch {
-        return {};
-      }
-    },
-    [isMetamaskNotificationsEnabled],
-  );
-
-  return { getAccountSettings };
-}
-
 /**
  * Account Settings Hook.
  * Gets initial loading states, and returns enable/disable account states.
