@@ -19,8 +19,8 @@ import handleSendMessage from './handleSendMessage';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
 import { mockNetworkState } from '../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
@@ -112,10 +112,11 @@ describe('handleConnectionMessage', () => {
         }),
         state: {
           ...mockNetworkState({
-            chainId: CHAIN_IDS.MAINNET,
+            chainId: '0x1',
             id: 'mainnet',
             nickname: 'Ethereum Mainnet',
             ticker: 'ETH',
+            blockExplorerUrl: 'https://goerli.lineascan.build',
           }),
         },
       } as unknown as NetworkController,
@@ -255,10 +256,7 @@ describe('handleConnectionMessage', () => {
         navigation: undefined,
         connection,
         selectedAddress: toChecksumHexAddress(MOCK_ADDRESS),
-        selectedChainId:
-          Engine.context.NetworkController.state.networkConfigurations[
-            Engine.context.NetworkController.state.selectedNetworkClientId
-          ].chainId,
+        selectedChainId: NETWORKS_CHAIN_ID.MAINNET,
         rpc: {
           method: message.method,
           params: message.params,

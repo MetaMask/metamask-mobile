@@ -1,11 +1,13 @@
 import React from 'react';
 import { shallow } from 'enzyme';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { NetworkSettings } from './'; // Import the undecorated component
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -22,20 +24,36 @@ const initialState = {
   networkOnboarded: {
     networkOnboardedState: { '1': true },
   },
+  NetworkController: {
+    ...mockNetworkState({
+      chainId: '0x1',
+      id: 'mainnet',
+      nickname: 'Ethereum Mainnet',
+      ticker: 'ETH',
+      blockExplorerUrl: 'https://goerli.lineascan.build',
+    }),
+  },
 };
 
 const store = mockStore(initialState);
 
 const SAMPLE_NETWORKSETTINGS_PROPS = {
   route: { params: {} },
-  networkConfigurations: {
-    chainId: '0x1',
-    rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-    nickname: 'Ethereum mainnet',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://etherscan.io',
+  networkConfigurationsByChainId: {
+    '0x1': {
+      blockExplorerUrls: ['https://etherscan.io'],
+      chainId: '0x1',
+      defaultRpcEndpointIndex: 0,
+      name: 'Ethereum mainnet',
+      nativeCurrency: 'ETH',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mainnet',
+          type: 'Custom',
+          url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+        },
+      ],
     },
-    ticker: 'ETH',
   },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
   matchedChainNetwork: {
@@ -165,38 +183,57 @@ describe('NetworkSettings', () => {
     expect(isNetworkUiRedesignEnabled()).toBe(false);
   });
 
-  it('should return an empty string if the mainnet configuration is not found', () => {
-    const newProps = {
-      ...SAMPLE_NETWORKSETTINGS_PROPS,
+  it('should update state and call getCurrentState on RPC URL change', async () => {
+    const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      route: {
+        params: {
+          network: 'mainnet',
+        },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
       networkConfigurations: {
-        '4': {
-          chainId: '4',
-          rpcUrl: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
+        '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
+          chainId: '0x1',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'Infura',
+              url: 'https://mainnet.infura.io/v3/',
+            },
+          ],
+          name: 'Ethereum Main Network',
+          nativeCurrency: 'ETH',
         },
       },
     };
 
-    wrapper = shallow(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wrapper2: any = shallow(
       <Provider store={store}>
-        <NetworkSettings {...newProps} />
+        <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
       </Provider>,
     )
       .find(NetworkSettings)
       .dive();
 
-    const instance = wrapper.instance();
-    const rpcUrl = instance.getCustomMainnetRPCURL();
-    expect(rpcUrl).toBe('');
-  });
-  it('should update state and call getCurrentState on RPC URL change', async () => {
     const getCurrentStateSpy = jest.spyOn(
-      wrapper.instance(),
+      wrapper2.instance(),
       'getCurrentState',
     );
 
-    await wrapper.instance().onRpcUrlChange('http://localhost:8545');
+    wrapper2.setState({
+      chainId: '0x1',
+    });
 
-    expect(wrapper.state('rpcUrl')).toBe('http://localhost:8545');
+    await wrapper2.instance().onRpcUrlChange('http://localhost:8545');
+    expect(wrapper2.state('rpcUrl')).toBe('http://localhost:8545');
     expect(getCurrentStateSpy).toHaveBeenCalled();
   });
 
@@ -214,13 +251,19 @@ describe('NetworkSettings', () => {
       },
       networkConfigurations: {
         '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
           chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-          },
-          ticker: 'ETH',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'Infura',
+              url: 'https://mainnet.infura.io/v3/',
+            },
+          ],
+          name: 'Ethereum Main Network',
+          nativeCurrency: 'ETH',
         },
       },
     };
@@ -254,13 +297,19 @@ describe('NetworkSettings', () => {
       },
       networkConfigurations: {
         '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
           chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-          },
-          ticker: 'ETH',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+          name: 'Ethereum Main Custom',
+          nativeCurrency: 'ETH',
         },
       },
     };
@@ -298,13 +347,19 @@ describe('NetworkSettings', () => {
       },
       networkConfigurations: {
         '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
           chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-          },
-          ticker: 'ETH',
+          rpcEndpoints: [
+            {
+              url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Custom,
+              name: 'Ethereum mainnet',
+            },
+          ],
+          name: 'Ethereum mainnet',
+          nativeCurrency: 'ETH',
         },
       },
     };
@@ -391,7 +446,37 @@ describe('NetworkSettings', () => {
     expect(wrapper.state('validatedChainId')).toBe(true);
   });
 
+  // here
   it('should update state and call getCurrentState on block explorer URL change', async () => {
+    const newProps = {
+      ...SAMPLE_NETWORKSETTINGS_PROPS,
+      networkConfigurations: {
+        '0x1': {
+          chainId: '0x1',
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          rpcEndpoints: [
+            {
+              url: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Infura,
+            },
+          ],
+        },
+      },
+    };
+
+    wrapper = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...newProps} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+
+    wrapper.setState({
+      chainId: '0x1',
+    });
+
     const getCurrentStateSpy = jest.spyOn(
       wrapper.instance(),
       'getCurrentState',

@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { NftState } from '@metamask/assets-controllers';
+import { NftControllerState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 
 const selectNftControllerState = (state: RootState) =>
@@ -7,10 +7,11 @@ const selectNftControllerState = (state: RootState) =>
 
 export const selectAllNftContracts = createSelector(
   selectNftControllerState,
-  (nftControllerState: NftState) => nftControllerState.allNftContracts,
+  (nftControllerState: NftControllerState) =>
+    nftControllerState.allNftContracts,
 );
 
 export const selectAllNfts = createSelector(
   selectNftControllerState,
-  (nftControllerState: NftState) => nftControllerState.allNfts,
+  (nftControllerState: NftControllerState) => nftControllerState.allNfts,
 );

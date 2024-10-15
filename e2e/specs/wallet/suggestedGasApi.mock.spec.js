@@ -11,12 +11,13 @@ import WalletView from '../../pages/wallet/WalletView.js';
 import Assertions from '../../utils/Assertions.js';
 import AccountListView from '../../pages/AccountListView.js';
 import AddAccountModal from '../../pages/modals/AddAccountModal.js';
-import ImportAccountView from '../../pages/ImportAccountView.js';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
 import { urls } from '../../mockServer/mockUrlCollection.json';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
@@ -59,10 +60,10 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
         await Assertions.checkIfVisible(AccountListView.accountList);
         await AccountListView.tapAddAccountButton();
         await AddAccountModal.tapImportAccount();
-        await ImportAccountView.isVisible();
+        await Assertions.checkIfVisible(ImportAccountView.container);
         await ImportAccountView.enterPrivateKey(validPrivateKey.keys);
-        await ImportAccountView.isImportSuccessSreenVisible();
-        await ImportAccountView.tapCloseButtonOnImportSuccess();
+        await Assertions.checkIfVisible(SuccessImportAccountView.container);
+        await SuccessImportAccountView.tapCloseButton();
         if (device.getPlatform() === 'ios') {
           await AccountListView.swipeToDismissAccountsModal();
           await Assertions.checkIfNotVisible(AccountListView.title);

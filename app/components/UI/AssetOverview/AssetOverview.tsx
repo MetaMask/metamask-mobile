@@ -263,7 +263,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       style={styles.wrapper}
       {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
     >
-      {asset.balanceError ? (
+      {asset.hasBalanceError ? (
         renderWarning()
       ) : (
         <View>

@@ -5,14 +5,15 @@ import NotificationContent from './Content';
 
 describe('NotificationContent', () => {
   const title = 'Welcome to the new Test!';
-  const createdAt = '2024-04-26T16:35:03.147606Z';
+  const yesterday = new Date().setDate(new Date().getDate() - 1);
+  const createdAt = new Date(yesterday).toISOString(); // Relative date: one day before current date
   const description = {
     start:
       'We are excited to announce the launch of our brand new website and app!',
     end: 'Ethereum',
   };
 
-  it('renders correctly', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <NotificationContent
         title={title}

@@ -21,10 +21,6 @@ class WalletView {
     );
   }
 
-  get okAlertButton() {
-    return Matchers.getElementByText(CommonSelectorsText.OK_ALERT_BUTTON);
-  }
-
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
@@ -81,10 +77,6 @@ class WalletView {
 
   async tapMainWalletAccountActions() {
     await Gestures.waitAndTap(this.mainWalletAccountActions);
-  }
-
-  async tapOKAlertButton() {
-    await Gestures.waitAndTap(this.okAlertButton);
   }
 
   async tapOnToken(token) {

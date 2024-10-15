@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import StakeInputView from '../Views/InputView/StakeInputView';
+import StakeInputView from '../Views/StakeInputView/StakeInputView';
 import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
+import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
-
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -21,6 +21,7 @@ const clearStackNavigatorOptions = {
 const StakeScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+    <Stack.Screen name={Routes.STAKING.UNSTAKE} component={UnstakeInputView} />
     <Stack.Screen
       name={Routes.STAKING.STAKE_CONFIRMATION}
       component={StakeConfirmationView}

@@ -183,8 +183,6 @@ prebuild_ios(){
 }
 
 prebuild_android(){
-	adb kill-server
-	adb start-server
 	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
@@ -363,16 +361,16 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
+  	echo "Start iOS QA build..."
+
   	remapEnvVariableQA
 
 	prebuild_ios
 
-  	echo "Start QA build..."
-
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
-    echo "$IOS_ENV"
+    	echo "$IOS_ENV"
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
@@ -382,22 +380,25 @@ buildIosQA(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA--configuration Release --simulator "iPhone 13 Pro"
+		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Release -sdk iphonesimulator -derivedDataPath build
+		# ./node_modules/.bin/react-native run-ios --scheme MetaMask-QA- -configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
 
 buildAndroidQA(){
+	echo "Start Android QA build..."
+
   	remapEnvVariableQA
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.qa
-	fi
+	# if [ "$PRE_RELEASE" = false ] ; then
+	# 	adb uninstall io.metamask.qa
+	# fi
 
 	prebuild_android
 
 	# Generate APK
-	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -409,9 +410,9 @@ buildAndroidQA(){
 		yarn build:android:checksum:qa
 	fi
 
-	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	 fi
+	#  if [ "$PRE_RELEASE" = false ] ; then
+	#  	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
+	#  fi
 }
 
 buildAndroidRelease(){

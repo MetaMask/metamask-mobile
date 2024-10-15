@@ -3,9 +3,9 @@ import { Text, View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
+import { useStyles } from '../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import createStyles from './style';
+import styleSheet from './Title.styles';
 
 const getTitle = (confirmationType?: string) => {
   switch (confirmationType) {
@@ -18,10 +18,9 @@ const getTitle = (confirmationType?: string) => {
 
 const Title = () => {
   const { approvalRequest } = useApprovalRequest();
-  const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
 
   const title = getTitle(approvalRequest?.type);
-  const styles = createStyles(colors);
 
   return (
     <View style={styles.titleContainer}>

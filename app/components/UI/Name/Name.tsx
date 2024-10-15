@@ -47,11 +47,21 @@ const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
   );
 };
 
-const Name: React.FC<NameProperties> = ({ type, value }) => {
+const Name: React.FC<NameProperties> = ({
+  chainId,
+  preferContractSymbol,
+  type,
+  value,
+}) => {
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
-  const displayName = useDisplayName(type, value);
+  const displayName = useDisplayName(
+    type,
+    value,
+    chainId,
+    preferContractSymbol,
+  );
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: displayName.variant,
   });

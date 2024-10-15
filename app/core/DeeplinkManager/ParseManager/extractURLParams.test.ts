@@ -43,6 +43,7 @@ describe('extractURLParams', () => {
       comm: 'test',
       v: '2',
       attributionId: '',
+      utm: '',
     };
 
     mockUrlParser.mockImplementation(
@@ -83,6 +84,7 @@ describe('extractURLParams', () => {
       pubkey: '',
       v: '',
       attributionId: '',
+      utm: '',
     });
   });
 
@@ -116,6 +118,7 @@ describe('extractURLParams', () => {
       pubkey: '',
       v: '',
       attributionId: '',
+      utm: '',
     });
 
     expect(alertSpy).toHaveBeenCalledWith(
@@ -137,6 +140,7 @@ describe('extractURLParams', () => {
       sdkVersion: '',
       pubkey: 'xyz',
       attributionId: '',
+      utm: '',
     };
 
     mockUrlParser.mockImplementation(

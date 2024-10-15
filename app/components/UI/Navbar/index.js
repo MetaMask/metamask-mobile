@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   notificationButton: {
-    marginRight: 4,
+    marginHorizontal: 4,
   },
   disabled: {
     opacity: 0.3,
@@ -1825,7 +1825,7 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
   };
 };
 
-export function getStakeInputNavbar(navigation, themeColors) {
+export function getStakingNavbar(title, navigation, themeColors) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -1838,7 +1838,6 @@ export function getStakeInputNavbar(navigation, themeColors) {
       elevation: 0,
     },
   });
-  const title = strings('stake.stake_eth');
   return {
     headerTitle: () => (
       <NavbarTitle title={title} disableNetwork translate={false} />

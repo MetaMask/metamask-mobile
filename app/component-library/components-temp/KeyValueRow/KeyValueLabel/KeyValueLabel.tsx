@@ -20,9 +20,8 @@ import { isPreDefinedKeyValueRowLabel } from '../KeyValueRow.utils';
  * A label and tooltip component.
  *
  * @param {Object} props - Component props.
- * @param {TextVariant} [props.variant] - Optional text variant. Defaults to TextVariant.BodyMDMedium.
- * @param {TextVariant} [props.color] - Optional text color. Defaults to TextColor.Default.
- * @param {TextVariant} [props.tooltip] - Optional tooltip to render to the right of the label text.
+ * @param {PreDefinedKeyValueRowLabel | ReactNode} props.label - The label content to display.
+ * @param {KeyValueRowTooltip} [props.tooltip] - Optional tooltip to render to the right of the label.
  *
  * @returns {JSX.Element} The rendered KeyValueRowLabel component.
  */
@@ -31,11 +30,11 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
 
   const { openTooltipModal } = useTooltipModal();
 
-  const hasTooltip = tooltip?.title && tooltip?.text;
+  const hasTooltip = tooltip?.title && tooltip?.content;
 
   const onNavigateToTooltipModal = () => {
     if (!hasTooltip) return;
-    openTooltipModal(tooltip.title, tooltip.text);
+    openTooltipModal(tooltip.title, tooltip.content);
   };
 
   return (

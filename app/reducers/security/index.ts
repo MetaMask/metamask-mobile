@@ -2,6 +2,15 @@
 import { ActionType, Action } from '../../actions/security';
 import { SecuritySettingsState } from '../../actions/security/state';
 
+export interface SecurityState {
+  allowLoginWithRememberMe: boolean;
+  automaticSecurityChecksEnabled: boolean;
+  hasUserSelectedAutomaticSecurityCheckOption: boolean;
+  isAutomaticSecurityChecksModalOpen: boolean;
+  dataCollectionForMarketing: boolean | null;
+  isNFTAutoDetectionModalViewed: boolean;
+}
+
 export const initialState: Readonly<SecuritySettingsState> = {
   allowLoginWithRememberMe: false,
   automaticSecurityChecksEnabled: false,

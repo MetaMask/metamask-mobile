@@ -64,7 +64,7 @@ describe(Regression('Change Account Name'), () => {
     await SettingsView.scrollToLockButton();
     await SettingsView.tapLock();
     await SettingsView.tapYesAlertButton();
-    await LoginView.isVisible();
+    await Assertions.checkIfVisible(LoginView.container);
 
     // Unlock wallet and verify updated name persists
     await loginToApp();

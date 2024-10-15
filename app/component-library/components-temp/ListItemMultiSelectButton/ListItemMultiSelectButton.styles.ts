@@ -25,10 +25,10 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
+        flex: 1,
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
         padding: 16,
-        width: '95%',
         zIndex: 1,
       } as ViewStyle,
       style,
@@ -71,10 +71,8 @@ const styleSheet = (params: {
       backgroundColor: isSelected
         ? colors.primary.muted
         : colors.background.default,
-      paddingRight: 20,
       flexDirection: 'row',
       alignItems: 'center',
-      width: '100%',
     },
     itemColumn: {
       display: 'flex',
@@ -85,6 +83,9 @@ const styleSheet = (params: {
     arrowStyle: {
       paddingLeft: 8,
       paddingTop: 32,
+    },
+    buttonIcon: {
+      paddingHorizontal: 20,
     },
   });
 };

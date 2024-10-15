@@ -19,9 +19,9 @@ interface KeyValueRowTooltip {
    */
   title: string;
   /**
-   * The text displayed within the tooltip body.
+   * The content displayed within the tooltip body.
    */
-  text: string | ReactNode;
+  content: string | ReactNode;
   /**
    * Optional size of the tooltip icon.
    * @default TooltipSizes.Md
@@ -46,6 +46,9 @@ export enum KeyValueRowFieldIconSides {
  * @see KeyValueRowProps
  */
 interface KeyValueRowField {
+  /**
+   * The label content displayed.
+   */
   label: PreDefinedKeyValueRowLabel | ReactNode;
   /**
    * Optional icon to display. If undefined, no icon is displayed.
@@ -84,6 +87,9 @@ export interface PreDefinedKeyValueRowLabel {
  * @see KeyValueRowLabel in ./KeyValueRow.tsx
  */
 export interface KeyValueRowLabelProps {
+  /**
+   * The label content displayed.
+   */
   label: PreDefinedKeyValueRowLabel | ReactNode;
   /**
    * Optional tooltip. If undefined, the tooltip won't be displayed.

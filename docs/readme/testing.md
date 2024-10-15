@@ -357,4 +357,4 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 
 ### Best Practices
 
-For more guidelines and best practices, refer to our [Best Practices Document](https://github.com/MetaMask/contributor-docs/blob/main/docs/e2e-testing.md).
+For more guidelines and best practices, refer to our [Best Practices Document](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md).
