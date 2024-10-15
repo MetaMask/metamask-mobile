@@ -12,6 +12,10 @@ import { useDispatch } from 'react-redux';
 
 import { updateAccountState } from '../../../core/redux/slices/notifications';
 import { Account } from '../../../components/hooks/useAccounts/useAccounts.types';
+import Logger from '../../../util/Logger';
+
+jest.mock('../../../util/Logger');
+
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,8 +101,8 @@ export function useAccountSettingsProps(accounts: Account[]) {
           dispatch(updateAccountState(result));
           return result;
         });
-    } catch {
-      throw new Error('Failed to get account settings');
+    } catch (err) {
+      Logger.log(err, 'Failed to get account settings');
     }
 }, [dispatch, memoAccounts]);
 
