@@ -282,7 +282,7 @@ class Onboarding extends PureComponent {
           name: TraceName.CreateNewWalletToChoosePassword,
           op: TraceOperation.CreateNewWalletToChoosePassword,
         },
-        async () => {
+        () => {
           const { metrics } = this.props;
           if (metrics.isEnabled()) {
             this.props.navigation.navigate('ChoosePassword', {
