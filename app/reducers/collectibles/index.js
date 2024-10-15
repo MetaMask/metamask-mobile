@@ -4,10 +4,7 @@ import {
   selectAllNftContracts,
   selectAllNfts,
 } from '../../selectors/nftController';
-import {
-  selectSelectedInternalAccountAddress,
-  selectSelectedInternalAccountChecksummedAddress,
-} from '../../selectors/accountsController';
+import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
 import { createDeepEqualSelector } from '../../selectors/util';
 
