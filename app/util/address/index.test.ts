@@ -20,8 +20,6 @@ import {
   mockQrKeyringAddress,
   mockSimpleKeyringAddress,
 } from '../test/keyringControllerTestUtils';
-import initialRootState from '../test/initial-root-state';
-import { expectedUuid2 } from '../test/accountsControllerTestUtils';
 
 const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const namedSnapAddress = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
@@ -305,46 +303,12 @@ describe('isHardwareAccount,', () => {
   });
 });
 describe('getLabelTextByAddress,', () => {
-  beforeEach(() => {
-    const { engine } = initialRootState;
-    engine.backgroundState.AccountsController = {
-      internalAccounts: {
-        ...engine.backgroundState.AccountsController.internalAccounts,
-        accounts: {
-          ...engine.backgroundState.AccountsController.internalAccounts
-            .accounts,
-          [expectedUuid2]: {
-            ...engine.backgroundState.AccountsController.internalAccounts
-              .accounts[expectedUuid2],
-            metadata: {
-              ...engine.backgroundState.AccountsController.internalAccounts
-                .accounts[expectedUuid2].metadata,
-              keyring: {
-                type: 'Snap Keyring',
-              },
-              snap: {
-                id: 'metamask-snap-keyring',
-                name: 'MetaMask Simple Snap Keyring',
-                enabled: true,
-              },
-            },
-          },
-        },
-      },
-    };
-    jest.resetAllMocks();
-  });
-
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe(
-      'accounts.qr_hardware',
-    );
+    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
-      'accounts.imported',
-    );
+    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe('Imported');
   });
 
   it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
@@ -354,9 +318,7 @@ describe('getLabelTextByAddress,', () => {
   });
 
   it('returns "Snaps (beta)" if account is a Snap keyring and there is no snap name', () => {
-    expect(getLabelTextByAddress(snapAddress)).toBe(
-      'accounts.snap_account_tag',
-    );
+    expect(getLabelTextByAddress(snapAddress)).toBe('Snaps (beta)');
   });
 
   it('should return null if address is empty', () => {
