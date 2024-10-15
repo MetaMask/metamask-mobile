@@ -20,15 +20,11 @@ class NetworkView {
   }
 
   get addNetworkButtonForm() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(NetworkListModalSelectorsIDs.ADD_BUTTON);
+    return Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON);
   }
 
   get addRpcDropDownButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC)
-      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
   }
 
   get addRpcButton() {
@@ -149,6 +145,10 @@ class NetworkView {
   }
 
   async tapAddRpcButton() {
+    /* android is failing to tap on this element
+    The bottom sheet to add RPC url is not in the viewport for detox
+    Need to double check if the element is seen on android
+    */
     await Gestures.waitAndTap(this.addRpcButton);
   }
 
