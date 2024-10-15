@@ -1,4 +1,4 @@
-import { NetworkState } from '@metamask/network-controller';
+import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -201,19 +201,30 @@ describe('getAddress', () => {
 });
 
 describe('shouldShowBlockExplorer', () => {
-  const networkConfigurations: NetworkState['networkConfigurations'] = {
-    networkId1: {
-      id: 'networkId1',
-      chainId: '0x1',
-      nickname: 'Main Ethereum Network',
-      ticker: 'USD',
-      rpcUrl: 'https://mainnet.infura.io/v3/123',
-    },
-  };
+  const networkConfigurations: NetworkState['networkConfigurationsByChainId'] =
+    {
+      '0x1': {
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Main Ethereum Network',
+        nativeCurrency: 'USD',
+        rpcEndpoints: [
+          {
+            networkClientId: 'networkId1',
+            type: RpcEndpointType.Custom,
+            url: 'https://mainnet.infura.io/v3/123',
+          },
+        ],
+      },
+    };
 
   it('returns true if provider type is not rpc', () => {
     const providerType = 'mainnet';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
+
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -226,9 +237,14 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns block explorer URL if defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
+
     const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
-    networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
+
+    networkConfigurations['0x1'].blockExplorerUrls = [blockExplorerUrl];
+    networkConfigurations['0x1'].defaultBlockExplorerUrlIndex = 0;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -241,8 +257,12 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns undefined if block explorer URL is not defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
-    networkConfigurations.networkId1.rpcPrefs = undefined;
+
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
+
+    networkConfigurations['0x1'].blockExplorerUrls = [];
 
     const result = shouldShowBlockExplorer(
       providerType,
