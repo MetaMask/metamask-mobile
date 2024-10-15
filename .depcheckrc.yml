@@ -52,6 +52,7 @@ ignores:
   - '@metamask/swappable-obj-proxy'
   - '@segment/sovran-react-native'
   - '@tradle/react-native-http'
+  - 'asyncstorage-down'
   - 'buffer'
   - 'd3-shape'
   - 'eciesjs'
