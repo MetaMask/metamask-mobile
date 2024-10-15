@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
+import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -57,9 +58,20 @@ jest.mock('@react-navigation/native', () => {
 
 describe('UnstakeConfirmationView', () => {
   it('render matches snapshot', () => {
+    const props: UnstakeConfirmationViewProps = {
+      route: {
+        key: '1',
+        name: 'params',
+        params: {
+          amountWei: '4999820000000000000',
+          amountFiat: '12894.52',
+        },
+      },
+    };
+
     const { toJSON } = renderWithProvider(
       <Provider store={store}>
-        <UnstakeConfirmationView />
+        <UnstakeConfirmationView {...props} />
       </Provider>,
     );
 

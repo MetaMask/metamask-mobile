@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakeConfirmationNavbar } from '../../../Navbar';
+import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
 import AmountHeader from '../../components/Confirmation/AmountHeader/AmountHeader';
 import AccountHeaderCard from '../../components/Confirmation/AccountHeaderCard/AccountHeaderCard';
@@ -24,11 +24,10 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
 
   useEffect(() => {
     navigation.setOptions(
-      getStakeConfirmationNavbar(
-        navigation,
-        theme.colors,
-        strings('stake.stake'),
-      ),
+      getStakingNavbar(strings('stake.stake'), navigation, theme.colors, {
+        backgroundColor: theme.colors.background.alternative,
+        hasCancelButton: false,
+      }),
     );
   }, [navigation, theme.colors]);
 
@@ -36,9 +35,9 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
     <View style={styles.mainContainer}>
       <View>
         <AmountHeader
-          wei={route.params.wei}
-          fiat={`$${route.params.fiat}`}
-          tokenSymbol="wETH"
+          amountWei={route.params.wei}
+          amountFiat={`$${route.params.fiat}`}
+          tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
           <AccountHeaderCard

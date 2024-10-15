@@ -3299,10 +3299,8 @@
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
     "estimated_annual_earnings": "Estimated annual earnings",
-    "estimated_annual_reward": "Est. annual Rewards",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip",
-      "unstake_estimated_changes": "unstake estimated changes tooltip"
+      "stake_annual_rate_tooltip": "Annual rate tooltip"
     },
     "estimated_annual_rewards": "Estimated annual rewards",
     "metamask_pool": "MetaMask Pool",
@@ -3352,7 +3350,8 @@
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     },
-<<<<<<< HEAD
+    "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "max": "Max",
     "staking_from": "Staking from",
     "interacting_with": "Interacting with",
     "12_hours": "12 hours",
@@ -3364,10 +3363,6 @@
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
     "unstaking_to": "Unstaking to"
-=======
-    "unstake_input_banner_description":"On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
-    "max": "Max"
->>>>>>> origin/main
   },
   "default_settings": {
     "title": "Your Wallet is ready",

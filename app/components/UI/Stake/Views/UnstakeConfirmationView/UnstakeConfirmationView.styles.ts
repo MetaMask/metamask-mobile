@@ -10,11 +10,11 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 8,
       paddingHorizontal: 16,
       backgroundColor: colors.background.alternative,
-      height: '100%',
+      flex: 1,
       justifyContent: 'space-between',
     },
     cardsContainer: {
-      paddingTop: 8,
+      paddingTop: 16,
       gap: 8,
     },
   });

@@ -1,4 +1,4 @@
 export interface YouReceiveCardProps {
-  wei: string;
-  fiat: string;
+  amountWei: string;
+  amountFiat: string;
 }

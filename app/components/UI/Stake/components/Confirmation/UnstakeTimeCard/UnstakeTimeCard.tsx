@@ -18,7 +18,7 @@ const UnstakingTimeCard = () => {
           label: { text: strings('tooltip_modal.unstaking_time.title') },
           tooltip: {
             title: strings('tooltip_modal.unstaking_time.title'),
-            text: strings('tooltip_modal.unstaking_time.tooltip'),
+            content: strings('tooltip_modal.unstaking_time.tooltip'),
             size: TooltipSizes.Sm,
           },
         }}

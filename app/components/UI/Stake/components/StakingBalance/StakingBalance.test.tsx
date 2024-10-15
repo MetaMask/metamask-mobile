@@ -48,9 +48,9 @@ describe('StakingBalance', () => {
   });
 
   it('redirects to UnstakeInputView on unstake button click', () => {
-    render(StakingBalance);
+    const { getByText } = renderWithProvider(<StakingBalance />);
 
-    fireEvent.press(screen.getByText(strings('stake.unstake')));
+    fireEvent.press(getByText(strings('stake.unstake')));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {

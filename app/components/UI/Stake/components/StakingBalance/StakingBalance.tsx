@@ -40,8 +40,6 @@ import {
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_ASSET,
 } from './mockData';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const StakingBalance = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -74,11 +72,6 @@ const StakingBalance = () => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
-  const { navigate } = useNavigation();
-
-  const handleNavigateToUnstakeConfirmationScreen = () =>
-    navigate('StakeScreens', { screen: Routes.STAKING.UNSTAKE_CONFIRMATION });
-
   return (
     <View>
       {Boolean(MOCK_STAKED_ETH_ASSET.balance) && !isGeoBlocked && (
@@ -86,7 +79,6 @@ const StakingBalance = () => {
           asset={MOCK_STAKED_ETH_ASSET}
           mainBalance={MOCK_STAKED_ETH_ASSET.balance}
           balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
-          onPress={handleNavigateToUnstakeConfirmationScreen}
         >
           <BadgeWrapper
             style={styles.badgeWrapper}
