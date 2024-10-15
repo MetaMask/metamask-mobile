@@ -24,6 +24,8 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
+import loaderImage from '../../../images/sync-icon.png';
+import errorImage from '../../../images/metamask-error.png';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -539,8 +541,7 @@ export default function VideoPlayer({
               },
             ],
           }}
-          // eslint-disable-next-line
-          source={require('<--path to laoder image-->')}
+          source={loaderImage}
         />
       </View>
     );
@@ -552,8 +553,7 @@ export default function VideoPlayer({
       return (
         <View style={styles.errorContainer}>
           <Image
-            // eslint-disable-next-line
-            source={require('<--path to error image-->')}
+            source={errorImage}
             style={styles.errorIcon}
           />
           <Text style={styles.errorText}>Video unavailable</Text>
