@@ -221,14 +221,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           order: 'dsc',
           sortCallback: 'stringNumeric',
         });
-        return 'foo';
+        return 'tokenFiatAmount_dsc';
       case 1:
         PreferencesController.setTokenSortConfig({
           key: 'symbol',
           sortCallback: 'alphaNumeric',
           order: 'asc',
         });
-        return 'bar';
+        return 'symbol_asc';
       default:
         break;
     }
