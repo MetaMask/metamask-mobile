@@ -57,6 +57,7 @@ jest.mock('../services/NotificationService', () => ({
   onForegroundEvent: jest.fn(),
   onBackgroundEvent: jest.fn(),
   handleNotificationEvent: jest.fn(),
+  onAppBootstrap: jest.fn(),
 }));
 describe('useNotificationHandler', () => {
   beforeEach(() => {
