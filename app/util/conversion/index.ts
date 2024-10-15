@@ -161,7 +161,11 @@ const getBigNumber = (value: string | number | BigNumber, base = 10): BigNumber 
   return new BigNumber(String(value), base);
 };
 
-const addCurrencies = (a: string | number | BigNumber, b: string | number | BigNumber, options: Partial<ConverterOptions> & { aBase?: number; bBase?: number } = {}): BigNumber => {
+const addCurrencies = (
+  a: string | number | BigNumber,
+  b: string | number | BigNumber,
+  options: Partial<ConverterOptions> & { aBase?: number; bBase?: number } = {}
+): BigNumber => {
   const { aBase = 10, bBase = 10, ...conversionOptions } = options;
 
   if (!isValidBase(aBase) || !isValidBase(bBase)) {
@@ -175,7 +179,11 @@ const addCurrencies = (a: string | number | BigNumber, b: string | number | BigN
   } as ConverterOptions);
 };
 
-const subtractCurrencies = (a: string | number | BigNumber, b: string | number | BigNumber, options: Partial<ConverterOptions> & { aBase?: number; bBase?: number } = {}): BigNumber => {
+const subtractCurrencies = (
+  a: string | number | BigNumber,
+  b: string | number | BigNumber,
+  options: Partial<ConverterOptions> & { aBase?: number; bBase?: number } = {}
+): BigNumber => {
   const { aBase = 10, bBase = 10, ...conversionOptions } = options;
 
   if (!isValidBase(aBase) || !isValidBase(bBase)) {
