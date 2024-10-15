@@ -70,13 +70,16 @@ have to have all these workarounds in the tests
 };
 
 export const skipNotificationsDeviceSettings = async () => {
-
   await TestHelpers.delay(1000);
 
   try {
-    await Assertions.checkIfVisible(EnableDeviceNotificationsAlert.stepOneContainer);
+    await Assertions.checkIfVisible(
+      EnableDeviceNotificationsAlert.stepOneContainer,
+    );
     await EnableDeviceNotificationsAlert.tapOnNotEnableDeviceNotificationsButton();
-    await Assertions.checkIfNotVisible(EnableDeviceNotificationsAlert.stepOneContainer);
+    await Assertions.checkIfNotVisible(
+      EnableDeviceNotificationsAlert.stepOneContainer,
+    );
   } catch {
     /* eslint-disable no-console */
 
@@ -99,6 +102,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   await ImportWalletView.enterPassword(validAccount.password);
   await ImportWalletView.reEnterPassword(validAccount.password);
 
+  //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
@@ -187,7 +191,9 @@ export const addLocalhostNetwork = async () => {
 
 export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
+  await NetworkListModal.scrollToBottomOfNetworkList();
   await NetworkListModal.tapTestNetworkSwitch();
+  await NetworkListModal.scrollToBottomOfNetworkList();
   await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
@@ -210,6 +216,6 @@ export const switchToSepoliaNetwork = async () => {
 
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
-  await LoginView.isVisible();
+  await Assertions.checkIfVisible(LoginView.container);
   await LoginView.enterPassword(PASSWORD);
 };

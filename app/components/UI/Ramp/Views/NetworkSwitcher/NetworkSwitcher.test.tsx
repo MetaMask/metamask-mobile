@@ -90,7 +90,7 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
                   chainId: '0x89',
                   id: 'networkId1',
                   nickname: 'Polygon Mainnet',
-                  ticker: 'MATIC',
+                  ticker: 'POL',
                 },
               ),
             },
