@@ -20,7 +20,7 @@ import { name } from './app.json';
 import { isTest } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';
-import { handleCustomError } from './app/core/ErrorHandler';
+import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
 Performance.setupPerformanceObservers();
 
 LogBox.ignoreAllLogs();
@@ -93,5 +93,13 @@ AppRegistry.registerComponent(name, () =>
   isTest ? Root : Sentry.wrap(Root),
 );
 
-// link to our customError Handler to handle all uncaught errors which haven't been caught by the components.
-global.ErrorUtils.setGlobalHandler(handleCustomError);
+function setupGlobalErrorHandler() {
+  const reactNativeDefaultHandler = global.ErrorUtils.getGlobalHandler();
+  // set the base handler to the react native ExceptionsManager.handleException(), please refer to setupErrorHandling.js under react-native/Libraries/Core/ for details.
+  setReactNativeDefaultHandler(reactNativeDefaultHandler);
+  // override the global handler to provide custom error handling
+  global.ErrorUtils.setGlobalHandler(handleCustomError);
+}
+
+setupGlobalErrorHandler();
+
