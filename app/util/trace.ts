@@ -6,9 +6,8 @@ import {
   Scope,
 } from '@sentry/react-native';
 import performance from 'react-native-performance';
-import type { Span, StartSpanOptions } from '@sentry/types';
+import type { Span, StartSpanOptions, MeasurementUnit } from '@sentry/types';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import { MeasurementUnit } from '@sentry/types';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
