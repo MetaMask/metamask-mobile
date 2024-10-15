@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     description: {
-      paddingTop: 16,
+      paddingVertical: 8,
     },
     buttonContainer: {
       paddingTop: 16,
@@ -28,6 +28,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     placeholderText: {
       color: colors.text.muted,
+    },
+    scrollView: {
+      flexGrow: 1,
+      maxHeight: 300,
     },
   });
 };
