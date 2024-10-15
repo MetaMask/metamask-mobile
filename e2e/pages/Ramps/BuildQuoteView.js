@@ -15,10 +15,6 @@ class BuildQuoteView {
     return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON);
   }
   
-  get amountInput() {
-    return Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT);
-  }
-
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
