@@ -285,7 +285,7 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {strings('confirmation_modal.confirm_cta')}
+                {strings('accounts.connect')}
               </StyledButton>
             </View>
           )}
