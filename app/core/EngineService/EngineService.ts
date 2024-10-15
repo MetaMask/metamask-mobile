@@ -92,7 +92,7 @@ class EngineService {
         name: 'TokenBalancesController',
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
-      { name: 'TokenRatesController' },
+      { name: 'TokenRatesController', key: 'TokenRatesController:stateChange' },
       {
         name: 'TransactionController',
         key: `${engine.context.TransactionController.name}:stateChange`,
