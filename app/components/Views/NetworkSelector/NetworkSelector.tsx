@@ -200,8 +200,15 @@ const NetworkSelector = () => {
 
       // Set the active network
       NetworkController.setActiveNetwork(clientId);
+      // Redirect to wallet page
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     },
-    [networkConfigurations],
+    [networkConfigurations, navigate],
   );
 
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
@@ -219,54 +226,6 @@ const NetworkSelector = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
-
-  // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = (type: InfuraNetworkType) => {
-    const {
-      NetworkController,
-      CurrencyRateController,
-      AccountTrackerController,
-      SelectedNetworkController,
-    } = Engine.context;
-
-    if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
-      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-    } else {
-      let ticker = type;
-      if (type === LINEA_SEPOLIA) {
-        ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
-      }
-      if (type === SEPOLIA) {
-        ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
-      }
-
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          BUILT_IN_NETWORKS[type].chainId,
-        );
-
-      const clientId =
-        networkConfiguration?.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
-        ].networkClientId ?? type;
-
-      CurrencyRateController.updateExchangeRate(ticker);
-      NetworkController.setActiveNetwork(clientId);
-      AccountTrackerController.refresh();
-
-      setTimeout(async () => {
-        await updateIncomingTransactions();
-      }, 1000);
-    }
-
-    sheetRef.current?.onCloseBottomSheet();
-
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: getDecimalChainId(selectedChainId),
-      from_network: selectedNetworkName,
-      to_network: type,
-    });
-  };
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
     const {
@@ -382,6 +341,55 @@ const NetworkSelector = () => {
 
   const goToLearnMore = () => {
     Linking.openURL(strings('networks.learn_more_url'));
+  };
+
+  // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
+  const onNetworkChange = (type: InfuraNetworkType) => {
+    const {
+      NetworkController,
+      CurrencyRateController,
+      AccountTrackerController,
+      SelectedNetworkController,
+    } = Engine.context;
+
+    if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
+      SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+    } else {
+      let ticker = type;
+      if (type === LINEA_SEPOLIA) {
+        ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
+      }
+      if (type === SEPOLIA) {
+        ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
+      }
+
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          BUILT_IN_NETWORKS[type].chainId,
+        );
+
+      const clientId =
+        networkConfiguration?.rpcEndpoints[
+          networkConfiguration.defaultRpcEndpointIndex
+        ].networkClientId ?? type;
+
+      CurrencyRateController.updateExchangeRate(ticker);
+      NetworkController.setActiveNetwork(clientId);
+      closeRpcModal();
+      AccountTrackerController.refresh();
+
+      setTimeout(async () => {
+        await updateIncomingTransactions();
+      }, 1000);
+    }
+
+    sheetRef.current?.onCloseBottomSheet();
+
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+      chain_id: getDecimalChainId(selectedChainId),
+      from_network: selectedNetworkName,
+      to_network: type,
+    });
   };
 
   const filterNetworksByName = (
@@ -901,6 +909,7 @@ const NetworkSelector = () => {
               }
               isDisabled={false}
               gap={8}
+              // TODO HERE ....
               onPress={() => {
                 onRpcSelect(networkClientId, chainId as `0x${string}`);
                 closeRpcModal();

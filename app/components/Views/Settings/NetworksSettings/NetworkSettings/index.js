@@ -22,7 +22,6 @@ import Networks, {
   getAllNetworks,
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
-import Modal from 'react-native-modal';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
@@ -117,7 +116,7 @@ const createStyles = (colors) =>
       paddingBottom: 16,
     },
     scrollableBox: {
-      height: 150,
+      height: 164,
       marginVertical: 10,
       justifyContent: 'center',
       alignItems: 'center',
@@ -140,11 +139,10 @@ const createStyles = (colors) =>
       flexGrow: 1,
     },
     addRpcNameButton: {
-      paddingTop: 64,
+      paddingTop: 32,
       alignSelf: 'center',
     },
     sheet: {
-      // position: 'absolute',
       flexDirection: 'column',
       bottom: 0,
       top: Device.getDeviceHeight() * 0.5,
@@ -174,12 +172,6 @@ const createStyles = (colors) =>
     sheetContent: {
       flex: 1,
       flexShrink: 1,
-      // justifyContent: 'flex-start',
-    },
-    wrapper2: {
-      flex: 1,
-      paddingHorizontal: 16,
-      bottom: 64,
     },
     notch: {
       width: 48,
@@ -190,7 +182,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
     },
     rpcMenu: {
-      // height: Device.getDeviceHeight() * 0.7,
       paddingHorizontal: 16,
       flex: 1,
     },
@@ -269,7 +260,6 @@ const createStyles = (colors) =>
     },
     heading: {
       fontSize: 16,
-      paddingVertical: 12,
       color: colors.text.default,
       ...fontStyles.bold,
     },
@@ -2128,7 +2118,7 @@ export class NetworkSettings extends PureComponent {
             </View>
           </ReusableModal>
         ) : null}
-        {/* {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
+        {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
           <ReusableModal style={styles.sheetRpcForm} shouldGoBack={false}>
             <View style={styles.sheetContent}>
               <View style={styles.notch} />
@@ -2189,7 +2179,7 @@ export class NetworkSettings extends PureComponent {
               </KeyboardAwareScrollView>
             </View>
           </ReusableModal>
-        ) : null} */}
+        ) : null}
 
         {isNetworkUiRedesignEnabled() &&
         showMultiBlockExplorerAddModal.isVisible ? (
