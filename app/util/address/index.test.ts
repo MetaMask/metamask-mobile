@@ -25,24 +25,12 @@ const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const namedSnapAddress = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
 
 jest.mock('../../core/Engine', () => {
-  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
-  const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
-    '../test/keyringControllerTestUtils',
-  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES } =
+    jest.requireActual('../test/accountsControllerTestUtils');
   return {
     context: {
-      KeyringController: {
-        ...MOCK_KEYRING_CONTROLLER_STATE,
-        state: {
-          keyrings: [
-            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
-            {
-              accounts: [snapAddress],
-              index: 0,
-              type: KeyringTypes.snap,
-            },
-          ],
-        },
+      AccountsController: {
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
       },
     },
   };
@@ -322,7 +310,7 @@ describe('isHardwareAccount,', () => {
     ).toBeFalsy();
   });
 });
-describe('getLabelTextByAddress,', () => {
+describe.only('getLabelTextByAddress,', () => {
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
     expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
   });
