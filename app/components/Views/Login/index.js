@@ -376,12 +376,14 @@ class Login extends PureComponent {
       this.state.rememberMe,
     );
 
-    
     try {
       await trace(
-        { name: TraceName.AuthenticateUser, op: TraceOperation.AuthenticateUser },
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.AuthenticateUser,
+        },
         async () => {
-        await Authentication.userEntryAuth(password, authType);
+          await Authentication.userEntryAuth(password, authType);
         },
       );
 
@@ -444,8 +446,6 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
-
-    
   };
 
   tryBiometric = async (e) => {
@@ -453,7 +453,15 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await Authentication.appTriggeredAuth();
+      await trace(
+        {
+          name: TraceName.BiometricAuthentication,
+          op: TraceOperation.BiometricAuthentication,
+        },
+        async () => {
+          await Authentication.appTriggeredAuth();
+        },
+      );
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -555,10 +563,7 @@ class Login extends PureComponent {
                 )}
               </TouchableOpacity>
 
-              <Text
-                style={styles.title}
-                testID={LoginViewSelectors.TITLE_ID}
-              >
+              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>

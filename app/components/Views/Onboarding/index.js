@@ -301,12 +301,9 @@ class Onboarding extends PureComponent {
           }
         },
       );
-      console.log('action finished');
     };
 
-    console.log('calling handleExistingUser');
     this.handleExistingUser(action);
-    console.log('onPressCreate finished');
   };
 
   onPressImport = () => {
