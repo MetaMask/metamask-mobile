@@ -14,8 +14,11 @@ export function useUpdateAccountSetting(address: string, updateAndfetchAccountSe
     async (state: boolean) => {
       setLoading(true);
       try {
+        // change the account state in the controller
         await switchAccountNotifications([address], state);
+        // refetch the account settings from the controller
         updateAndfetchAccountSettings();
+        // refetch the notifications from the controller
         refetch();
       } catch {
         // Do nothing (we don't need to propagate this)

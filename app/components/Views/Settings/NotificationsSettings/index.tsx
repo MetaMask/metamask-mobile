@@ -30,8 +30,6 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../../selectors/notifications';
 
-import { useToggleNotifications } from './useToggleNotifications';
-
 import Routes from '../../../../constants/navigation/Routes';
 
 import ButtonIcon, {

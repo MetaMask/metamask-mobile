@@ -10,7 +10,6 @@ import { Notification } from '../../../util/notifications/types';
 import {
   TRIGGER_TYPES,
 } from  '../../../util/notifications/constants';
-import { Linking } from 'react-native';
 
 const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
   const performActionBasedOnOpenedNotificationType = useCallback(
