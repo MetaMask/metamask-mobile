@@ -5,7 +5,6 @@ import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
-  getDefaultNetworkByChainId,
   isChainPermissionsFeatureEnabled,
 } from '../../../util/networks';
 import {
@@ -184,13 +183,10 @@ export async function validateRpcEndpoint(rpcUrl, chainId) {
 }
 
 export function findExistingNetwork(chainId, networkConfigurations) {
-  const existingNetworkDefault = getDefaultNetworkByChainId(chainId);
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) => networkConfiguration.chainId === chainId,
   );
-  if (existingNetworkDefault) {
-    return [existingNetworkDefault?.networkType, existingNetworkDefault];
-  } else if (existingEntry) {
+  if (existingEntry) {
     const [, networkConfiguration] = existingEntry;
     const networkConfigurationId =
       networkConfiguration.rpcEndpoints[
@@ -238,6 +234,7 @@ export async function switchToNetwork({
       ],
     chainId,
     chainName:
+      networkConfiguration.name ||
       networkConfiguration.chainName ||
       networkConfiguration.nickname ||
       networkConfiguration.shortName,
