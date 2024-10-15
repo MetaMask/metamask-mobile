@@ -123,7 +123,12 @@ const wallet_addEthereumChain = async ({
       ...analytics,
     };
 
-    const network = [clonedNetwork.id, clonedNetwork];
+    const { networkClientId } =
+      networkConfiguration.rpcEndpoints[
+        networkConfiguration.defaultRpcEndpointIndex
+      ];
+
+    const network = [networkClientId, clonedNetwork];
     await switchToNetwork({
       network,
       chainId,
@@ -136,6 +141,7 @@ const wallet_addEthereumChain = async ({
       requestUserApproval,
       analytics,
       origin,
+      isAddNetworkFlow: true,
     });
 
     MetaMetrics.getInstance().trackEvent(
