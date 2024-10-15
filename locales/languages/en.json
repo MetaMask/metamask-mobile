@@ -817,6 +817,7 @@
     "save_rpc_url": "SAVE",
     "invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
     "invalid_rpc_url": "Invalid RPC URL",
+    "invalid_block_explorer_url": "Invalid Block Explorer URL",
     "sync": "SYNC",
     "clear_approved_dapps": "CLEAR APPROVED DAPPS",
     "clear_browser_history": "CLEAR BROWSER HISTORY",
@@ -892,10 +893,13 @@
     "networks_default_title": "Default Network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
     "networks_default_cta": "Use this network",
+    "add_rpc_url": "Add RPC URL",
+    "add_block_explorer_url": "Add Block Explorer URL",
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
     "network_rpc_url_label": "RPC Url",
+    "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
@@ -3431,6 +3435,11 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
-    "rpc_url": "RPC URL"
+    "rpc_url": "RPC URL",
+    "simulation": {
+      "title": "Estimated changes",
+      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
+      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
+    }
   }
 }

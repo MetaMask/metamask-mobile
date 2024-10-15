@@ -74,6 +74,7 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -231,10 +232,9 @@ import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
@@ -514,11 +514,8 @@ class Engine {
       }),
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
-        // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
-        'personal_sign',
-        'eth_signTypedData',
-        'transaction',
-        'wallet_watchAsset',
+        ApprovalType.Transaction,
+        ApprovalType.WatchAsset
       ],
     });
 
@@ -574,7 +571,6 @@ class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      // @ts-expect-error TODO: Resolve bump the assets controller version.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -659,7 +655,6 @@ class Engine {
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
       selectedAddress: preferencesController.state.selectedAddress,
-      // @ts-expect-error TODO: Resolve provider type mismatch
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -958,7 +953,6 @@ class Engine {
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId,
         ),
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -1342,7 +1336,6 @@ class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
@@ -1535,7 +1528,6 @@ class Engine {
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         getNetworkClientById:
           networkController.getNetworkClientById.bind(networkController),
       }),
@@ -1734,7 +1726,6 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
-    this.transactionController.clearUnapprovedTransactions();
 
     Engine.instance = this;
   }
@@ -1787,7 +1778,6 @@ class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
