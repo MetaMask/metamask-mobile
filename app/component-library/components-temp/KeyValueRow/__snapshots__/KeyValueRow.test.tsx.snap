@@ -52,24 +52,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
             "flexDirection": "row",
           }
         }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Key Text
-        </Text>
-      </View>
+      />
     </View>
   </View>
   <View
@@ -108,24 +91,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
             "flexDirection": "row",
           }
         }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Value Text
-        </Text>
-      </View>
+      />
     </View>
   </View>
 </View>
@@ -184,22 +150,6 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         }
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Key Text
-        </Text>
         <TouchableOpacity
           accessibilityLabel="Sample Tooltip 2 tooltip"
           accessibilityRole="button"
@@ -273,22 +223,6 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         }
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Value Text
-        </Text>
         <TouchableOpacity
           accessibilityLabel="Sample Tooltip 2 tooltip"
           accessibilityRole="button"
@@ -369,22 +303,6 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         }
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Key Text
-        </Text>
         <TouchableOpacity
           accessibilityLabel="Sample Tooltip 1 tooltip"
           accessibilityRole="button"
@@ -446,22 +364,6 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         }
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Value Text
-        </Text>
         <TouchableOpacity
           accessibilityLabel="Sample Tooltip 2 tooltip"
           accessibilityRole="button"
@@ -541,24 +443,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
             "flexDirection": "row",
           }
         }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Sample Key Text
-        </Text>
-      </View>
+      />
     </View>
   </View>
   <View
@@ -585,24 +470,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
             "flexDirection": "row",
           }
         }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          testID="label"
-        >
-          Sample Value Text
-        </Text>
-      </View>
+      />
     </View>
   </View>
 </View>
