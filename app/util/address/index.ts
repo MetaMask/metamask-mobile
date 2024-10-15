@@ -48,7 +48,6 @@ import { Hex, isHexString } from '@metamask/utils';
 const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
-
 /**
  * Returns full checksummed address
  *
@@ -573,7 +572,6 @@ export async function validateAddressOrENS(
     confusableCollection,
   };
 }
-
 /** Method to evaluate if an input is a valid ethereum address
  * via QR code scanning.
  *
@@ -667,7 +665,7 @@ export const getTokenDecimal = async (
 export const shouldShowBlockExplorer = (
   providerType: NetworkType,
   providerRpcTarget: string,
-  networkConfigurations: NetworkState['networkConfigurations'],
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'],
 ) => {
   if (providerType === RPC) {
     return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);

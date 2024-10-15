@@ -15,8 +15,6 @@ import { TagProps } from './Tag.types';
 const Tag = ({ label, style, ...props }: TagProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
-  console.log('label', label);
-
   return (
     <View style={styles.base} {...props}>
       <Text variant={TextVariant.BodyMD}>{label}</Text>
