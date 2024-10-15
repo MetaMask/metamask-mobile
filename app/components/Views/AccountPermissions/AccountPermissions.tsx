@@ -116,6 +116,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
+    USER_INTENT.None,
+  );
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
@@ -371,8 +374,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   useEffect(() => {
-    if (userIntent === USER_INTENT.None) return;
+    if (networkSelectorUserIntent === USER_INTENT.Confirm) {
+      hideSheet();
+    }
+  }, [networkSelectorUserIntent, hideSheet]);
 
+  useEffect(() => {
+    if (userIntent === USER_INTENT.None) return;
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
@@ -586,7 +594,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <NetworkConnectMultiSelector
         onSelectNetworkIds={setSelectedAddresses}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
+        onUserAction={setNetworkSelectorUserIntent}
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
@@ -597,7 +605,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       isLoading,
-      setUserIntent,
+      setNetworkSelectorUserIntent,
       urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,
