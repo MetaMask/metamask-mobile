@@ -1020,7 +1020,7 @@ const NetworkSelector = () => {
                 actionTitle={strings('app_settings.delete')}
                 iconName={IconName.Trash}
                 onPress={() => removeRpcUrl(showNetworkMenuModal.chainId)}
-                testID={`delete-network-button-${showNetworkMenuModal.chainId}`}
+                testID={NetworkListModalSelectorsIDs.DELETE_NETWORK}
               />
             ) : null}
           </View>

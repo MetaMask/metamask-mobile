@@ -46,12 +46,18 @@ class NetworkListModal {
     );
   }
 
+  get deleteButton() {
+    return Matchers.getElementByID('delete-network-button');
+  }
+
   async getCustomNetwork(network, custom = false) {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
 
-    return Matchers.getElementByID(NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(network));
+    return Matchers.getElementByID(
+      NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(network),
+    );
   }
 
   async tapDeleteButton() {
@@ -97,6 +103,9 @@ class NetworkListModal {
 
   async tapAddNetworkButton() {
     await Gestures.waitAndTap(this.addPopularNetworkButton);
+  }
+  async deleteNetwork() {
+    await Gestures.waitAndTap(this.deleteButton);
   }
 }
 

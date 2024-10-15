@@ -28,9 +28,7 @@ class NetworkView {
   }
 
   get addRpcButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON)
-      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
   }
 
   get noMatchingText() {
@@ -94,13 +92,9 @@ class NetworkView {
   }
 
   get rpcAddButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-        )
-      : Matchers.getElementByID(
-          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-        );
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
   }
 
   get blockExplorer() {
