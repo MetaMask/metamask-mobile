@@ -1,4 +1,4 @@
-import Engine from './Engine';
+import Engine, { EngineState } from './Engine';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../util/test/network';
@@ -30,12 +30,13 @@ describe('Engine', () => {
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
 
-    const state = {
+    const mockState: Partial<EngineState> = {
       AccountsController: createMockAccountsControllerState([selectedAddress], selectedAddress),
       NetworkController: mockNetworkState({
         chainId: '0x1',
       }),
       CurrencyRateController: {
+        // @ts-expect-error Mock state doesn't match exact CurrencyRateState, but it's sufficient for testing
         conversionRate: ethConversionRate,
         currentCurrency: 'usd',
         nativeCurrency: ticker,
@@ -43,10 +44,17 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      // Cast state to unknown and then to EngineInitState to satisfy TypeScript
-      engine = Engine.init(state as unknown as EngineInitState);
+      // Use type assertion to satisfy TypeScript
+      engine = Engine.init(mockState as unknown as EngineInitState);
       if (typeof engine === 'object' && engine !== null && 'getTotalFiatAccountBalance' in engine) {
-        const totalFiatBalance = (engine as { getTotalFiatAccountBalance: () => unknown }).getTotalFiatAccountBalance();
+        const totalFiatBalance = (engine as {
+          getTotalFiatAccountBalance: () => {
+            ethFiat: number;
+            ethFiat1dAgo: number;
+            tokenFiat: number;
+            tokenFiat1dAgo: number;
+          }
+        }).getTotalFiatAccountBalance();
         expect(totalFiatBalance).toStrictEqual({
           ethFiat: 0,
           ethFiat1dAgo: 0,
