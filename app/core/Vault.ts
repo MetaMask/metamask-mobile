@@ -4,7 +4,7 @@ import { KeyringTypes, KeyringControllerState, AccountImportStrategy } from '@me
 import { withLedgerKeyring } from './Ledger/Ledger';
 
 interface LedgerBridgeKeyringOptions {
-  accounts?: string[];
+  accounts: string[];
 }
 
 /**
@@ -45,7 +45,7 @@ export const restoreLedgerKeyring = async (serializedLedgerKeyring: unknown) => 
  * It does it using an empty password or a password set by the user
  * depending on the state the app is currently in
  */
-export const getSeedPhrase = async (password = ''): Promise<Uint8Array> => {
+export const getSeedPhrase = async (password = '') => {
   const { KeyringController } = Engine.context;
   return await KeyringController.exportSeedPhrase(password);
 };
