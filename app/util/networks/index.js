@@ -305,22 +305,20 @@ export function toggleUseSafeChainsListValidation(value) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTargetUrl
+ * @param {string} providerRpcTarget
  * @param {object} networkConfigurations
  */
-export function findBlockExplorerForRpc(
-  rpcTargetUrl = undefined,
-  networkConfigurations,
-) {
+export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
   const networkConfiguration = Object.values(networkConfigurations).find(
-    ({ rpcUrl }) => compareRpcUrls(rpcUrl, rpcTargetUrl),
+    ({ rpcEndpoints }) => rpcEndpoints?.some(({ url }) => url === rpcTargetUrl),
   );
+
   if (networkConfiguration) {
-    return (
-      networkConfiguration.rpcPrefs &&
-      networkConfiguration.rpcPrefs.blockExplorerUrl
-    );
+    return networkConfiguration?.blockExplorerUrls[
+      networkConfiguration?.defaultBlockExplorerUrlIndex
+    ];
   }
+
   return undefined;
 }
 
@@ -409,6 +407,10 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
   let name = strings('network_information.unknown_network');
   if (providerConfig.nickname) {
     name = providerConfig.nickname;
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.MAINNET) {
+    name = 'Ethereum Main Network';
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET) {
+    name = 'Linea Main Network';
   } else {
     const networkType = providerConfig.type;
     name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
@@ -426,14 +428,8 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
-  const isDefaultEthMainnet = isDefaultMainnet(networkType);
-  const isLineaMainnetNetwork = isLineaMainnet(networkType);
 
-  if (defaultNetwork && isDefaultEthMainnet) {
-    return defaultNetwork.imageSource;
-  }
-
-  if (defaultNetwork && isLineaMainnetNetwork) {
+  if (defaultNetwork) {
     return defaultNetwork.imageSource;
   }
 

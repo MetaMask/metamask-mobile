@@ -7,8 +7,6 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
       "alignItems": "center",
       "backgroundColor": "#ffffff",
       "flexDirection": "row",
-      "paddingRight": 20,
-      "width": "100%",
     }
   }
 >
@@ -16,10 +14,10 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
     disabled={false}
     style={
       {
+        "flex": 1,
         "opacity": 1,
         "padding": 16,
         "position": "relative",
-        "width": "90%",
         "zIndex": 1,
       }
     }
