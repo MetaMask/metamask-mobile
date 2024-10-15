@@ -131,6 +131,6 @@ export const UnpopularNetworkList = [
 ];
 
 export const CustomNetworkImgMapping = {
-  [toHex('14')]: require('../../images/flare-mainnet.png'), // Flare Mainnet
-  [toHex('19')]: require('../../images/songbird.png'), // Songbird Testnet
+  '0xe': require('../../images/flare-mainnet.png'), // Flare Mainnet
+  '0x13': require('../../images/songbird.png'), // Songbird Testnet
 };
