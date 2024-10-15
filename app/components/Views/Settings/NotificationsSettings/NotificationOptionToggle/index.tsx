@@ -34,7 +34,7 @@ interface NotificationOptionsToggleProps {
   disabledSwitch?: boolean;
   isLoading?: boolean;
   isEnabled: boolean;
-  refetchAccountSettings: () => Promise<void>;
+  updateAndfetchAccountSettings: () => Promise<void>;
 }
 
 /**
@@ -50,7 +50,7 @@ const NotificationOptionToggle = ({
   isEnabled,
   disabledSwitch,
   isLoading,
-  refetchAccountSettings,
+  updateAndfetchAccountSettings,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
@@ -59,7 +59,7 @@ const NotificationOptionToggle = ({
 
   const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
     address,
-    refetchAccountSettings,
+    updateAndfetchAccountSettings,
   );
 
   const loading = isLoading || isUpdatingAccount;
@@ -104,7 +104,7 @@ const NotificationOptionToggle = ({
         )}
       </View>
       <View style={styles.switchElement}>
-        {isLoading || loading ? (
+        {loading ? (
           <ActivityIndicator />
         ) : (
           <Switch
