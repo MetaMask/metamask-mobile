@@ -6,19 +6,11 @@ import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
 import AmountHeader from '../../components/StakingConfirmation/AmountHeader/AmountHeader';
 import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
-import EstimatedGasCard from '../../components/StakingConfirmation/EstimatedGasCard/EstimatedGasCard';
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
 import { strings } from '../../../../../../locales/i18n';
-
-const MOCK_STAKING_REVIEW_DATA = {
-  GAS_COST: {
-    ETH: '0.0884 ETH',
-    FIAT: '$43.56',
-  },
-};
 
 const MOCK_REWARD_DATA = {
   REWARD_RATE: '2.6%',
@@ -50,14 +42,10 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
         <AmountHeader
           amountWei={route.params.amountWei}
           amountFiat={`$${route.params.amountFiat}`}
-          tokenSymbol="wETH"
+          tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
           <AccountHeaderCard contractName={MOCK_STAKING_CONTRACT_NAME} />
-          <EstimatedGasCard
-            gasCostEth={MOCK_STAKING_REVIEW_DATA.GAS_COST.ETH}
-            gasCostFiat={MOCK_STAKING_REVIEW_DATA.GAS_COST.FIAT}
-          />
           <RewardsCard
             rewardRate={MOCK_GET_VAULT_RESPONSE.apy}
             rewardsEth={MOCK_REWARD_DATA.REWARDS.ETH}
