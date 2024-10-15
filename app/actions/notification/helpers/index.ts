@@ -179,3 +179,21 @@ export const syncInternalAccountsWithUserStorage = async () => {
     return getErrorMessage(error);
   }
 };
+
+/**
+ * Perform the deletion of the notifications storage key and the creation of on chain triggers to reset the notifications.
+ *
+ * @returns {Promise<string | undefined>} A promise that resolves to a string error message or undefined if successful.
+ */
+export const performDeleteStorage = async (): Promise<string | undefined> => {
+  try {
+   await Engine.context.UserStorageController.performDeleteStorage('notifications.notification_settings');
+   await Engine.context.NotificationServicesController.createOnChainTriggers(
+    {
+      resetNotifications: true,
+    },
+  );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+}
