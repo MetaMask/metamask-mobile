@@ -221,7 +221,7 @@ describe('PersonalSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'localhost:8545',
-        chain_id: 'N/A',
+        chain_id: '1',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
         security_alert_reason: '',
@@ -248,7 +248,7 @@ describe('PersonalSign', () => {
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
         dapp_host_name: 'localhost:8545',
-        chain_id: 'N/A',
+        chain_id: '1',
         signature_type: 'personal_sign',
         security_alert_response: 'Benign',
         security_alert_reason: '',

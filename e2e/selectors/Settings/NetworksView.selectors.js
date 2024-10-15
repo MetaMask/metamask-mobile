@@ -18,6 +18,10 @@ export const NetworksViewSelectorsIDs = {
   CLOSE_ICON: 'close-network-icon',
   BACK_ARROW_BUTTON: 'back-arrow-button',
   SEARCH_NETWORK_INPUT_BOX_ID: 'network-search-input',
+  CONTAINER: 'network-form-container',
+  ICON_BUTTON_RPC: 'drop-down-rpc-menu',
+  ADD_RPC_BUTTON: 'add-rpc-button',
+  RPC_NAME_INPUT: 'input-rpc-name',
 };
 
 export const NetworksSelectorSelectorsIDs = {

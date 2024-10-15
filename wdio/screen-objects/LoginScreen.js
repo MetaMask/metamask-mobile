@@ -1,37 +1,30 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import {
-  LOGIN_VIEW_PASSWORD_INPUT_ID,
-  LOGIN_VIEW_RESET_WALLET_ID,
-  LOGIN_VIEW_SCREEN_ID,
-  LOGIN_VIEW_TITLE_ID,
-  LOGIN_VIEW_UNLOCK_BUTTON_ID,
-  LOGIN_WITH_REMEMBER_ME_SWITCH,
-} from './testIDs/Screens/LoginScreen.testIds';
+import { LoginViewSelectors } from '../../e2e/selectors/LoginView.selectors';
 
 class LoginScreen {
   get loginScreen() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
   }
 
   get resetWalletButton() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_RESET_WALLET_ID);
+    return Selectors.getXpathElementByResourceId(LoginViewSelectors.RESET_WALLET);
   }
 
   get passwordInput() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_PASSWORD_INPUT_ID);
+    return Selectors.getXpathElementByResourceId(LoginViewSelectors.PASSWORD_INPUT);
   }
 
   get unlockButton() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_UNLOCK_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(LoginViewSelectors.LOGIN_BUTTON_ID);
   }
 
   get title() {
-    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
   }
 
   get rememberMeToggle() {
-    return Selectors.getXpathElementByResourceId(LOGIN_WITH_REMEMBER_ME_SWITCH);
+    return Selectors.getXpathElementByResourceId(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
   async isLoginScreenVisible() {
@@ -62,10 +55,6 @@ class LoginScreen {
 
   async tapRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
-  }
-
-  async isRememberMeToggle(value) {
-    await expect(this.rememberMeToggle).toHaveText(value);
   }
 }
 

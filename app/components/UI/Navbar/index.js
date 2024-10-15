@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   notificationButton: {
-    marginRight: 4,
+    marginHorizontal: 4,
   },
   disabled: {
     opacity: 0.3,
