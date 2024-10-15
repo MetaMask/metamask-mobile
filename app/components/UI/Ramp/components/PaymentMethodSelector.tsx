@@ -41,7 +41,7 @@ const PaymentMethodSelector: React.FC<IProps> = ({
   const styles = createStyles(colors);
   return (
     <Box label={label} onPress={onPress} highlighted={highlighted} compact>
-      <View testID={'payment-method-selector'}>
+      <View>
         <ListItem>
           {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
 

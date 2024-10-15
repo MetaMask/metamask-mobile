@@ -5,9 +5,5 @@ export const BuildQuoteSelectors = {
   GET_QUOTES_BUTTON: enContent.fiat_on_ramp_aggregator.get_quotes,
   CANCEL_BUTTON: enContent.navigation.cancel,
   DONE_BUTTON: enContent.fiat_on_ramp_aggregator.done,
-  CURRENCY_SELECTOR: 'currency-selector',
-  TOKEN_SELECTOR: 'token-selector',
-  REGION_SELECTOR: 'region-selector',
-  PAYMENT_METHOD_SELECTOR: 'payment-method-selector',
   AMOUNT_INPUT: 'amount-input',
 };

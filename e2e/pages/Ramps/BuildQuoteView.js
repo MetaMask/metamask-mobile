@@ -19,22 +19,6 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT);
   }
 
-  get currencySelector() {
-    return Matchers.getElementByID(BuildQuoteSelectors.CURRENCY_SELECTOR);
-  }
-
-  get tokenSelector() {
-    return Matchers.getElementByID(BuildQuoteSelectors.TOKEN_SELECTOR);
-  }
-
-  get regionSelector() {
-    return Matchers.getElementByID(BuildQuoteSelectors.REGION_SELECTOR);
-  }
-
-  get paymentMethodSelector() {
-    return Matchers.getElementByID(BuildQuoteSelectors.PAYMENT_METHOD_SELECTOR);
-  }
-
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
@@ -43,24 +27,24 @@ class BuildQuoteView {
     await Gestures.waitAndTap(this.getQuotesButton);
   }
 
-  async openCurrencySelector() {
-    await Gestures.waitAndTap(this.currencySelector);
+  async tapSelectedCurrency(currency) {
+    await Gestures.waitAndTap(Matchers.getElementByText(currency));
   }
 
   async selectCurrency(currency) {
     await Gestures.waitAndTap(Matchers.getElementByText(currency));
   }
 
-  async openRegionSelector() {
-    await Gestures.waitAndTap(this.regionSelector);
+  async tapSelectedRegionFlag(flag) {
+    await Gestures.waitAndTap(Matchers.getElementByText(flag));
   }
 
   async selectRegion(region) {
     await Gestures.waitAndTap(Matchers.getElementByText(region));
   }
 
-  async openPaymentMethodSelector() {
-    await Gestures.waitAndTap(this.paymentMethodSelector);
+  async tapSelectedPaymentMethod(paymentMethod) {
+    await Gestures.waitAndTap(Matchers.getElementByText(paymentMethod));
   }
 
   async selectPaymentMethod(paymentMethod) {
@@ -76,8 +60,8 @@ class BuildQuoteView {
     await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON));
   }
 
-  async openTokenSelector() {
-    await Gestures.waitAndTap(this.tokenSelector);
+  async tapSelectedToken(token) {
+    await Gestures.waitAndTap(Matchers.getElementByText(token));
   }
 
   async selectToken(token) {

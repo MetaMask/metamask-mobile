@@ -61,7 +61,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
   it('should select a new region and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.openRegionSelector()
+    await BuildQuoteView.tapSelectedRegionFlag('🇺🇸')
     await BuildQuoteView.selectRegion('France')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
@@ -76,7 +76,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
   it('should select a new token and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.openTokenSelector()
+    await BuildQuoteView.tapSelectedToken('Ethereum')
     await BuildQuoteView.selectToken('Uniswap')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
@@ -92,7 +92,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
   it('should select a new currency and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.openCurrencySelector()
+    await BuildQuoteView.tapSelectedCurrency(/.*EUR.*/)
     await BuildQuoteView.selectCurrency('USD')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
@@ -107,7 +107,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
   it('should select a new payment method and check the quotes', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapBuyButton();
-    await BuildQuoteView.openPaymentMethodSelector()
+    await BuildQuoteView.tapSelectedPaymentMethod('Debit or Credit')
     await BuildQuoteView.selectPaymentMethod('Apple Pay')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
