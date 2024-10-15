@@ -15,8 +15,8 @@ export const notificationChannels = [
   {
     id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
     name: 'Transaction Complete',
-    lights: false,
-    vibration: false,
+    lights: true,
+    vibration: true,
     importance: AndroidImportance.DEFAULT,
     title: 'Transaction',
     subtitle: 'Transaction Complete',
@@ -24,8 +24,8 @@ export const notificationChannels = [
   {
     id: ChannelId.ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID,
     name: 'MetaMask Announcement',
-    lights: false,
-    vibration: false,
+    lights: true,
+    vibration: true,
     importance: AndroidImportance.DEFAULT,
     title: 'Announcement',
     subtitle: 'MetaMask Announcement',
