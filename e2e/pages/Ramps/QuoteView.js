@@ -7,10 +7,6 @@ class QuoteView {
     return Matchers.getElementByText(QuoteSelectors.SELECT_A_QUOTE);
   }
 
-  get quotes() {
-    return Matchers.getElementByID(QuoteSelectors.QUOTES);
-  }
-
   async dismiss() {
     await TestHelpers.swipeByText('Select a Quote', 'down', 'fast', 0.5);
   }

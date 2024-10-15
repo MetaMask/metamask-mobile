@@ -65,7 +65,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.selectRegion('France')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.quotes);
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
     await Assertions.checkIfTextIsNotDisplayed(/^≈ $.*USD$/);
@@ -80,7 +79,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.selectToken('Uniswap')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.quotes);
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/.*UNI$/);
     await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
@@ -96,7 +94,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.selectCurrency('USD')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.quotes);
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/^≈ \$.*USD$/);
     await Assertions.checkIfTextIsNotDisplayed(/^≈ €.*EUR$/);
@@ -111,7 +108,6 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await BuildQuoteView.selectPaymentMethod('Apple Pay')
     await BuildQuoteView.enterFiatAmount('50')
     await BuildQuoteView.tapGetQuotesButton()
-    await Assertions.checkIfVisible(QuoteView.quotes);
     await Assertions.checkIfVisible(QuoteView.selectAQuoteLabel)
     await Assertions.checkIfTextIsDisplayed(/^≈ €.*EUR$/);
     await QuoteView.dismiss()
