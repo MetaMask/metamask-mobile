@@ -15,7 +15,7 @@ const correctParams = {
 };
 
 jest.mock('../Engine', () => ({
-  init: () => mockEngine.init({} as Record<string, never>),
+  init: () => mockEngine.init({}),
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),

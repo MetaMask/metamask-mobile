@@ -1,7 +1,8 @@
 import Engine, { EngineState } from './Engine';
-import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../util/test/network';
+
+// const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 // Update the EngineInitState type to match the expected input of Engine.init()
 type EngineInitState = Record<string, never>;
