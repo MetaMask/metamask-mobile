@@ -1,4 +1,5 @@
 import {
+  Scope,
   setMeasurement,
   startSpan,
   startSpanManual,
@@ -12,6 +13,7 @@ jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  setMeasurement: jest.fn(),
 }));
 
 const NAME_MOCK = TraceName.Middleware;
@@ -50,8 +52,9 @@ describe('Trace', () => {
       }),
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    withScopeMock.mockImplementation((fn: any) => fn({ setTags: setTagMock }));
+    withScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
+      fn({ setTag: setTagMock } as unknown as Scope),
+    );
   });
 
   describe('trace', () => {

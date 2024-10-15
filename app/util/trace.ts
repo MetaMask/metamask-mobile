@@ -245,7 +245,6 @@ function startTrace(request: TraceRequest): TraceContext {
 
     return span;
   };
-  console.log('ENTER REQUEST', request);
 
   return startSpan(request, (spanOptions) =>
     startSpanManual(spanOptions, callback),
