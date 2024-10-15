@@ -294,7 +294,6 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-
     previousNetworkConfigurations.current = networkConfigurations;
   }, [networkConfigurations, networkName, networkImage, toastRef]);
 
@@ -493,7 +492,6 @@ const MainFlow = () => (
     mode={'modal'}
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
     <Stack.Screen name={'Main'} component={ConnectedMain} />
