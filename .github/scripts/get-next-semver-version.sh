@@ -16,7 +16,7 @@ VERSION_BRANCHES=$(git branch -r | grep -o 'release/[0-9]*\.[0-9]*\.[0-9]*' | gr
 VERSION_TAGS=$(git tag | grep -o 'v[0-9]*\.[0-9]*\.[0-9]*' | grep -o '[0-9]*\.[0-9]*\.[0-9]*' | sort --version-sort | tail -n 1)
 
 # Get the version from package.json
-VERSION_PACKAGE=$(node -p "require('./package.json').version")
+VERSION_PACKAGE=$(node -p "require('../../package.json').version")
 
 # Compare versions and keep the highest one
 HIGHEST_VERSION=$(printf "%s\n%s\n%s" "$VERSION_BRANCHES" "$VERSION_TAGS" "$VERSION_PACKAGE" | sort --version-sort | tail -n 1)
