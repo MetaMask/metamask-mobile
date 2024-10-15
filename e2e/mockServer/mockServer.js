@@ -3,28 +3,30 @@ import portfinder from 'portfinder';
 
 const mockServer = getLocal();
 
-export const startMockServer = async ({
-  mockUrl,
-  responseCode = 500,
-  responseBody = {},
-  port,
-}) => {
-  if (!mockUrl) throw new Error('The mockUrl parameter is required');
-
+export const startMockServer = async (events, port) => {
   // Find an available port
   port = port || await portfinder.getPortPromise();
   
   await mockServer.start(port);
   console.log(`Mockttp server running at http://localhost:${port}`);
 
-  await mockServer
-    .forGet('/health-check')
-    .thenReply(200, 'Mock server is running');
+  // Health check endpoint
+  await mockServer.forGet('/health-check').thenReply(200, 'Mock server is running');
 
-  await mockServer
-    .forGet('/proxy')
-    .withQuery({ url: mockUrl })
-    .thenReply(responseCode, JSON.stringify(responseBody));
+  // Set up mock events
+  for (const event of events) {
+    const { mockUrl, responseCode, responseBodyFile } = event;
+    let responseBody;
+
+    // Dynamically import the response body from the file
+    if (responseBodyFile) {
+      responseBody = (await import(responseBodyFile)).default; // Adjust based on your exports
+    } else {
+      responseBody = {};
+    }
+
+    await mockServer.forGet(mockUrl).thenReply(responseCode, JSON.stringify(responseBody));
+  }
 
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method }) => {

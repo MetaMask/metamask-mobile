@@ -16,8 +16,9 @@ import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
-import { urls } from '../../mockServer/mockUrlCollection.json';
+import { urls } from '../mock-data/mockUrlCollection.json';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
+import { mockEvents } from '../mock-data/mock-events.js';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
@@ -25,11 +26,9 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
 
-    mockServer = await startMockServer({ // Configure mock server
-      mockUrl: urls.suggestedGasApiMainnet,
-      responseCode: 500,
-      responseBody: { error: 'Internal server error' },
-    });
+    mockServer = await startMockServer([
+      mockEvents.suggestedGasApiSuccessResponse   // Multiple events can be passed through this
+    ]);
   });
 
   // Because we stop the server within the test, a try catch block here would stop the server if the test fails midway
