@@ -1263,6 +1263,8 @@ workflows:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
+    envs:
+       - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1302,12 +1304,14 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
+    envs:
+       - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
       - _upload_ipa_to_browserstack
       - notify_failure
-    steps:
+    steps: 
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
