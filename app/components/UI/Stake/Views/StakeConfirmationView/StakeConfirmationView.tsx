@@ -11,7 +11,6 @@ import ConfirmationFooter from '../../components/StakingConfirmation/Confirmatio
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
 import { strings } from '../../../../../../locales/i18n';
-import { ethers } from 'ethers';
 
 const MOCK_REWARD_DATA = {
   REWARDS: {
@@ -20,7 +19,6 @@ const MOCK_REWARD_DATA = {
   },
 };
 
-// TODO: Trigger transaction in @transaction/controller using addTransaction() method.
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
 const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
@@ -54,11 +52,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           />
         </View>
       </View>
-      <ConfirmationFooter
-        value={ethers.utils.formatEther(
-          ethers.BigNumber.from(route.params.amountWei),
-        )}
-      />
+      <ConfirmationFooter valueWei={route.params.amountWei} />
     </View>
   );
 };

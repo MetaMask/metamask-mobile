@@ -4,18 +4,15 @@ import styleSheet from './ConfirmationFooter.styles';
 import { View } from 'react-native';
 import FooterLegalLinks from './LegalLinks/LegalLinks';
 import FooterButtonGroup from './FooterButtonGroup/FooterButtonGroup';
+import { ConfirmationFooterProps } from './ConfirmationFooter.types';
 
-interface ConfirmationFooterProps {
-  value: string; // deposit, unstake, and claim value
-}
-
-const ConfirmationFooter = ({ value }: ConfirmationFooterProps) => {
+const ConfirmationFooter = ({ valueWei }: ConfirmationFooterProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.footerContainer}>
       <FooterLegalLinks />
-      <FooterButtonGroup value={value} />
+      <FooterButtonGroup valueWei={valueWei} />
     </View>
   );
 };
