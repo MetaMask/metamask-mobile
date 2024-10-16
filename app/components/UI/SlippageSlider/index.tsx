@@ -20,14 +20,7 @@ import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import Svg, { Path } from 'react-native-svg';
 
-interface Theme {
-  colors: Record<string, any>;
-  shadows: Record<string, any>;
-}
-
-/* eslint-disable import/no-commonjs */
-const SlippageSliderBgImg = require('../../../images/slippage-slider-bg.png');
-/* eslint-enable import/no-commonjs */
+import SlippageSliderBgImg from '../../../images/slippage-slider-bg.png';
 
 const DIAMETER = 30;
 const TRACK_PADDING = 2;
@@ -55,7 +48,16 @@ interface StylesColors {
 
 interface StylesShadows {
   size: {
-    md: object;
+    md: {
+      shadowColor?: string;
+      shadowOffset?: {
+        width: number;
+        height: number;
+      };
+      shadowOpacity?: number;
+      shadowRadius?: number;
+      elevation?: number;
+    };
   };
 }
 
@@ -225,9 +227,9 @@ const SlippageSlider: React.FC<SlippageSliderProps> = ({
             extrapolate: 'clamp',
           });
 
-          relativeValue.addListener((value) => {
+          relativeValue.addListener((currentValue) => {
             const [sliderValue, newValue] = getValuesByProgress(
-              value.value / trackWidth,
+              currentValue.value / trackWidth,
             );
             slider.setValue(sliderValue);
             setTemporaryValue(newValue);
@@ -238,8 +240,8 @@ const SlippageSlider: React.FC<SlippageSliderProps> = ({
         },
         onPanResponderRelease: () => {
           pan.flattenOffset();
-          pan.addListener((value) => {
-            const relativeValue = Math.min(Math.max(0, value.value), trackWidth);
+          pan.addListener((panValue) => {
+            const relativeValue = Math.min(Math.max(0, panValue.value), trackWidth);
             pan.setValue(relativeValue);
             if (changeOnRelease && onChange) {
               const progress = relativeValue / trackWidth;
