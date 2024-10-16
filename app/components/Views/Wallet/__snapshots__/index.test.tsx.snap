@@ -54,7 +54,16 @@ exports[`Wallet should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": {
+                  "alternative": "#f2f4f6",
+                  "alternativeHover": "#e7ebee",
+                  "alternativePressed": "#dbe0e6",
+                  "default": "#ffffff",
+                  "defaultHover": "#f5f5f5",
+                  "defaultPressed": "#ebebeb",
+                  "hover": "#0000000a",
+                  "pressed": "#00000014",
+                },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -116,41 +125,10 @@ exports[`Wallet should render correctly 1`] = `
                 }
               }
             >
-              <Image
-                resizeMethod="auto"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
-                style={
-                  {
-                    "height": 24,
-                    "marginLeft": 16,
-                    "width": 24,
-                  }
-                }
-                testID="fox-icon"
-              />
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
               <View
                 style={
                   {
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "marginTop": 5,
+                    "marginLeft": 16,
                   }
                 }
               >
@@ -170,7 +148,11 @@ exports[`Wallet should render correctly 1`] = `
                   testID="open-networks-button"
                 >
                   <View
-                    style={null}
+                    style={
+                      {
+                        "marginRight": 8,
+                      }
+                    }
                   >
                     <View
                       style={
@@ -205,25 +187,6 @@ exports[`Wallet should render correctly 1`] = `
                       />
                     </View>
                   </View>
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#141618",
-                        "flexShrink": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                        "marginHorizontal": 8,
-                      }
-                    }
-                    testID="open-networks-text"
-                  >
-                    Ethereum Main Network
-                  </Text>
                   <SvgMock
                     color="#141618"
                     height={16}
@@ -238,6 +201,266 @@ exports[`Wallet should render correctly 1`] = `
                     width={16}
                   />
                 </TouchableOpacity>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
+                  "opacity": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                    "marginTop": 5,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#bbc0c5",
+                        "borderRadius": 4,
+                        "borderWidth": 0,
+                        "flexDirection": "row",
+                        "marginRight": 16,
+                        "padding": 0,
+                      }
+                    }
+                    testID="account-picker"
+                  >
+                    <View
+                      style={
+                        {
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "column",
+                            "justifyContent": "flex-start",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderRadius": 8,
+                                "height": 16,
+                                "marginRight": 8,
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "overflow": "hidden",
+                                  },
+                                  {
+                                    "backgroundColor": "#C7144F",
+                                    "borderRadius": 8,
+                                    "height": 16,
+                                    "width": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <RNSVGSvgView
+                                bbHeight={16}
+                                bbWidth={16}
+                                focusable={false}
+                                height={16}
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": 16,
+                                      "width": 16,
+                                    },
+                                  ]
+                                }
+                                width={16}
+                              >
+                                <RNSVGGroup
+                                  fill={
+                                    {
+                                      "payload": 4278190080,
+                                      "type": 0,
+                                    }
+                                  }
+                                >
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4294711651,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        0.46329603511986217,
+                                        0.8862035792312145,
+                                        -0.8862035792312145,
+                                        0.46329603511986217,
+                                        14.533838247048674,
+                                        -4.145301667327908,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4280576225,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.5778576243835052,
+                                        0.8161375900801603,
+                                        -0.8161375900801603,
+                                        -0.5778576243835052,
+                                        25.81008357317059,
+                                        8.619501547206044,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278407261,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        0.7046342099635947,
+                                        -0.7095707365365209,
+                                        0.7095707365365209,
+                                        0.7046342099635947,
+                                        -12.612859343389378,
+                                        -2.3055131539418934,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 14,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                            testID="account-label"
+                          >
+                            Account 1
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <SvgMock
+                      color="#141618"
+                      height={12}
+                      name="ArrowDown"
+                      style={
+                        {
+                          "height": 12,
+                          "marginLeft": 8,
+                          "width": 12,
+                        }
+                      }
+                      width={12}
+                    />
+                  </TouchableOpacity>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#6a737d",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginRight": 8,
+                        "textAlign": "center",
+                      }
+                    }
+                  >
+                    0xC495...D272
+                  </Text>
+                </View>
               </View>
             </View>
             <View
@@ -270,6 +493,7 @@ exports[`Wallet should render correctly 1`] = `
                       "marginHorizontal": 4,
                     }
                   }
+                  testID="navbar-address-copy-button"
                 >
                   <View
                     style={
@@ -317,10 +541,7 @@ exports[`Wallet should render correctly 1`] = `
                 <View
                   style={
                     {
-                      "alignItems": "center",
-                      "flex": 1,
-                      "justifyContent": "center",
-                      "position": "relative",
+                      "marginHorizontal": 4,
                     }
                   }
                 />
@@ -346,7 +567,7 @@ exports[`Wallet should render correctly 1`] = `
                   <SvgMock
                     color="#141618"
                     height={24}
-                    name="Scan"
+                    name="ScanBarcode"
                     style={
                       {
                         "height": 24,

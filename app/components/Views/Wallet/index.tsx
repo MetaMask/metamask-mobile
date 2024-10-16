@@ -605,10 +605,8 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,

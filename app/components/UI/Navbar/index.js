@@ -124,10 +124,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   notificationsWrapper: {
-    position: 'relative',
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginHorizontal: 4,
   },
   notificationsBadge: {
     width: 8,
@@ -943,7 +940,7 @@ export function getWalletNavbarOptions(
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: themeColors.background,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -1054,7 +1051,10 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.rightElementContainer}>
-        <View style={styles.addressCopyWrapper}>
+        <View
+          testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+          style={styles.addressCopyWrapper}
+        >
           <AddressCopy />
         </View>
         <View style={styles.notificationsWrapper}>
@@ -1085,7 +1085,7 @@ export function getWalletNavbarOptions(
         <ButtonIcon
           iconColor={IconColor.Default}
           onPress={openQRScanner}
-          iconName={IconName.Scan}
+          iconName={IconName.ScanBarcode}
           size={IconSize.Xl}
           testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
         />
