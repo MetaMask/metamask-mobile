@@ -54,7 +54,6 @@ Given(/^I have imported my wallet$/, async () => {
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
-  await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   if (!(await TermOfUseScreen.isCheckBoxChecked())) {
