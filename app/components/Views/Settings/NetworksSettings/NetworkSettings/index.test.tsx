@@ -856,6 +856,16 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('blockExplorerUrls').length).toBe(1);
       expect(getCurrentStateSpy).toHaveBeenCalled();
     });
+
+    it('should not validate the symbol if useSafeChainsListValidation is false', async () => {
+      const instance = wrapper.instance();
+
+      const validSymbol = 'ETH';
+
+      await instance.validateSymbol(validSymbol);
+
+      expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
+    });
   });
 
   describe('NetworkSettings componentDidMount', () => {
