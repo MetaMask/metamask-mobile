@@ -4,7 +4,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
-import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
+import Url from '../../../UI/InfoRow/InfoValue/Url';
 import Message from './Message';
 import Simulation from './Simulation';
 
@@ -23,7 +23,7 @@ const PersonalSign = () => {
           label={strings('confirm.request_from')}
           tooltip={strings('confirm.personal_sign_tooltip')}
         >
-          <InfoURL url={approvalRequest.origin} />
+          <Url url={approvalRequest.origin} />
         </InfoRow>
       </InfoSection>
       <Message />

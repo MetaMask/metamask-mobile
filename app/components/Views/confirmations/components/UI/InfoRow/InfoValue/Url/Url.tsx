@@ -8,20 +8,20 @@ import Icon, {
 } from '../../../../../../../../component-library/components/Icons/Icon';
 import Logger from '../../../../../../../../util/Logger';
 import { useStyles } from '../../../../../../../../component-library/hooks';
-import styleSheet from './InfoURL.styles';
+import styleSheet from './Url.styles';
 
-interface InfoURLProps {
+interface URLProps {
   url: string;
 }
 
-const InfoURL = ({ url }: InfoURLProps) => {
+const Url = ({ url }: URLProps) => {
   let urlObject;
 
   try {
     urlObject = new URL(url);
   } catch (e) {
     // eslint-disable-next-line no-console
-    Logger.error(e as Error, `InfoURL: new URL(url) cannot parse ${url}`);
+    Logger.error(e as Error, `Url: new URL(url) cannot parse ${url}`);
   }
 
   const isHTTP = urlObject?.protocol === 'http:';
@@ -47,4 +47,4 @@ const InfoURL = ({ url }: InfoURLProps) => {
   );
 };
 
-export default InfoURL;
+export default Url;

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`InfoURL should display url as expected 1`] = `
+exports[`URL should display url as expected 1`] = `
 <View
   style={
     {

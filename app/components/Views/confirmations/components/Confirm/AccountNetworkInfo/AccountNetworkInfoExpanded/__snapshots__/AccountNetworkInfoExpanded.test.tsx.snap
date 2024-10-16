@@ -223,19 +223,61 @@ exports[`AccountNetworkInfoExpanded should match snapshot for personal sign 1`] 
           />
         </View>
       </View>
-      <Text
+      <View
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "marginTop": 8,
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
           }
         }
       >
-        Ethereum Main Network
-      </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 12,
+              "height": 24,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 24,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={
+              {
+                "default": {
+                  "uri": "MockImage",
+                },
+              }
+            }
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            testID="network-avatar-image"
+          />
+        </View>
+        <Text
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "marginLeft": 8,
+            }
+          }
+        >
+          Mainnet
+        </Text>
+      </View>
     </View>
     <View
       style={

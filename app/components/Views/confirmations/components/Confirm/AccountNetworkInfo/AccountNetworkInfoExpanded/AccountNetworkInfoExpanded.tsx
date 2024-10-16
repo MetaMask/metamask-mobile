@@ -3,18 +3,21 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import { selectProviderConfig } from '../../../../../../../selectors/networkController';
-import { selectNetworkName } from '../../../../../../../selectors/networkInfos';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../../../../../selectors/networkController';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
-import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
+import Url from '../../../UI/InfoRow/InfoValue/Url';
+import Network from '../../../UI/InfoRow/InfoValue/Network';
 
-// todo: use value component for address, network, currency value
+// todo: use value component for address, currency value
 const AccountNetworkInfoExpanded = () => {
   const { approvalRequest } = useApprovalRequest();
-  const networkName = useSelector(selectNetworkName);
+  const chainId = useSelector(selectChainId);
   const { rpcUrl: networkRpcUrl, type: networkType } =
     useSelector(selectProviderConfig);
   const fromAddress = approvalRequest?.requestData?.from;
@@ -32,12 +35,10 @@ const AccountNetworkInfoExpanded = () => {
           // todo: add tooltip content when available
           tooltip={strings('confirm.network')}
         >
-          {networkName}
+          <Network chainId={chainId} />
         </InfoRow>
         <InfoRow label={strings('confirm.rpc_url')}>
-          <InfoURL
-            url={networkRpcUrl ?? `https://${networkType}.infura.io/v3/`}
-          />
+          <Url url={networkRpcUrl ?? `https://${networkType}.infura.io/v3/`} />
         </InfoRow>
       </InfoSection>
     </View>

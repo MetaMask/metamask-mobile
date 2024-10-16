@@ -4,7 +4,7 @@ import { StyleProp, Text, TextStyle, View } from 'react-native';
 
 import InfoRow from './InfoRow';
 import InfoSection from './InfoSection';
-import InfoURL from './InfoValue/InfoURL';
+import Url from './InfoValue/Url';
 
 const style = {
   container: { padding: 8 },
@@ -30,10 +30,10 @@ storiesOf('Confirmations / InfoRow', module)
       <Text style={style.title as StyleProp<TextStyle>}>URL</Text>
       <InfoSection>
         <InfoRow label="url-key">
-          <InfoURL url="https://google.com" />
+          <Url url="https://google.com" />
         </InfoRow>
         <InfoRow label="url-key">
-          <InfoURL url="http://google.com" />
+          <Url url="http://google.com" />
         </InfoRow>
       </InfoSection>
     </View>
