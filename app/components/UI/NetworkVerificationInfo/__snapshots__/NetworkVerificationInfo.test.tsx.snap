@@ -70,7 +70,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "paddingHorizontal": 16,
+        "minWidth": "100%",
       }
     }
   >
@@ -151,6 +151,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             "borderRadius": 4,
             "flexDirection": "row",
             "marginBottom": 8,
+            "marginHorizontal": 16,
             "padding": 12,
             "paddingLeft": 8,
           }
@@ -242,25 +243,15 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           </TouchableOpacity>
         </View>
       </View>
-      <Text
-        accessibilityRole="text"
+      <View
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-            "textAlign": "center",
+            "paddingHorizontal": 16,
           }
         }
       >
-        MetaMask doesn’t verify custom networks, so only approve networks you trust.
-         
         <Text
           accessibilityRole="text"
-          onPress={[Function]}
           style={
             {
               "color": "#141618",
@@ -269,12 +260,44 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
+              "textAlign": "center",
             }
           }
         >
-          Learn more about network security risks and scams.
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            MetaMask doesn’t verify custom networks, so only approve networks you trust.
+             
+          </Text>
+          <Text
+            accessibilityRole="text"
+            onPress={[Function]}
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Learn more about network security risks and scams.
+          </Text>
         </Text>
-      </Text>
+      </View>
       <RCTScrollView
         collapsable={false}
         nestedScrollEnabled={true}
@@ -287,6 +310,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               "borderColor": "#bbc0c5",
               "borderRadius": 10,
               "borderWidth": 1,
+              "marginHorizontal": 16,
               "marginVertical": 16,
               "padding": 16,
             },
@@ -321,6 +345,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "marginBottom": 8,
+                "marginHorizontal": 16,
               }
             }
           >
@@ -352,6 +377,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "marginBottom": 8,
+                "marginHorizontal": 16,
               }
             }
           >
@@ -383,6 +409,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "marginBottom": 8,
+                "marginHorizontal": 16,
               }
             }
           >
