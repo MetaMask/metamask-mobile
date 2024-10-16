@@ -38,7 +38,11 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import {
+  getHost,
+  getUrlObj,
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
@@ -551,6 +555,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   const renderPermissionsSummaryScreen = useCallback(() => {
+    console.log('>>> selectedAddresses', selectedAddresses);
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
@@ -564,9 +569,10 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
+      accountAddresses: selectedAddresses,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol]);
+  }, [faviconSource, urlWithProtocol, selectedAddresses]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
@@ -591,8 +597,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const renderMultiConnectSelectorScreen = useCallback(
-    () => (
+  const renderMultiConnectSelectorScreen = useCallback(() => {
+    console.log(
+      '>>> renderMultiConnectSelectorScreen selectedAddresses',
+      selectedAddresses,
+    );
+
+    return (
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
@@ -612,19 +623,18 @@ const AccountConnect = (props: AccountConnectProps) => {
             : undefined
         }
       />
-    ),
-    [
-      accounts,
-      ensByAccountAddress,
-      selectedAddresses,
-      isLoading,
-      faviconSource,
-      secureIcon,
-      urlWithProtocol,
-      sdkConnection,
-      hostname,
-    ],
-  );
+    );
+  }, [
+    accounts,
+    ensByAccountAddress,
+    selectedAddresses,
+    isLoading,
+    faviconSource,
+    secureIcon,
+    urlWithProtocol,
+    sdkConnection,
+    hostname,
+  ]);
 
   const renderMultiConnectNetworkSelectorScreen = useCallback(
     () => (

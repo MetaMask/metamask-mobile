@@ -191,12 +191,7 @@ const PermissionsSummary = ({
             <View style={styles.permissionRequestAccountInfo}>
               <View style={styles.permissionRequestAccountName}>
                 <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                  {/* <TextComponent variant={TextVariant.BodySM}>
-                    {isAlreadyConnected
-                      ? strings('permissions.connected_to')
-                      : strings('permissions.requesting_for')}
-                  </TextComponent> */}
-                  <TextComponent variant={TextVariant.BodySMMedium}>
+                  <TextComponent variant={TextVariant.BodySM}>
                     {getAccountLabel()}
                   </TextComponent>
                 </TextComponent>
@@ -248,12 +243,6 @@ const PermissionsSummary = ({
               <View style={styles.permissionRequestNetworkName}>
                 <TextComponent numberOfLines={1} ellipsizeMode="tail">
                   <TextComponent variant={TextVariant.BodySM}>
-                    {/* NEXT STEP: tomorrow pass in the selected accounts back to
-                    this component, as a prop from the parent then based on the
-                    count of selected accounts, render the corresponding string
-                    then based on if its already connected, the screen should
-                    also change, if its only one, its the account name, if its
-                    many its # accounts connected */}
                     {strings('permissions.requesting_for')}
                   </TextComponent>
                   <TextComponent variant={TextVariant.BodySMMedium}>
