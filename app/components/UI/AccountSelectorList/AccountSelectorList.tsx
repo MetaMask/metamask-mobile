@@ -232,6 +232,7 @@ const AccountSelectorList = ({
                 testID={WalletViewSelectorsIDs.ACCOUNT_ACTIONS}
               >
                 <ButtonIcon
+                  onPress={onNavigateToAccountActions}
                   iconName={IconName.MoreVertical}
                   size={ButtonIconSizes.Sm}
                 />

@@ -1153,7 +1153,7 @@ export function getImportTokenNavbarOptions(
         style={styles.backButton}
         testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
-        <ButtonIcon
+        {/* <ButtonIcon
           iconName={IconName.Close}
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Lg}
@@ -1168,7 +1168,7 @@ export function getImportTokenNavbarOptions(
                     },
                   })
           }
-        />
+        /> */}
       </TouchableOpacity>
     ),
     headerLeft: null,
