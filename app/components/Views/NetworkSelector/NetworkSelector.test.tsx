@@ -185,6 +185,20 @@ describe('Network Selector', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly when network UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('shows popular networks when UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    const popularNetworksTitle = getByText('Additional networks');
+    expect(popularNetworksTitle).toBeTruthy();
+  });
+
   it('changes network when another network cell is pressed', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);

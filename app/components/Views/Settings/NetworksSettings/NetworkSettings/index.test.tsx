@@ -124,7 +124,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
         },
         infoURL: 'https://ethereum.org',
         shortName: 'eth',
-        chainId: 1,
         networkId: 1,
         slip44: 60,
         ens: {
