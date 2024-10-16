@@ -86,13 +86,13 @@ import BottomSheetFooter from '../../../component-library/components/BottomSheet
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { Hex } from '@metamask/utils';
-import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';
+import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 
 interface infuraNetwork {
   name: string;
@@ -850,91 +850,6 @@ const NetworkSelector = () => {
     onPress: () => confirmRemoveRpc(),
   };
 
-  const renderBottomSheetRpc = useCallback(() => {
-    let imageSource;
-
-    if (showMultiRpcSelectModal.chainId === CHAIN_IDS.MAINNET) {
-      imageSource = images.ETHEREUM;
-    } else if (showMultiRpcSelectModal.chainId === CHAIN_IDS.LINEA_MAINNET) {
-      imageSource = images['LINEA-MAINNET'];
-    } else {
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-      imageSource = getNetworkImageSource({
-        chainId: showMultiRpcSelectModal?.chainId?.toString(),
-      });
-    }
-
-    if (!showMultiRpcSelectModal.isVisible) return null;
-
-    const chainId = showMultiRpcSelectModal.chainId;
-
-    const rpcEndpoints =
-      networkConfigurations[chainId as `0x${string}`]?.rpcEndpoints || [];
-
-    return (
-      <BottomSheet
-        ref={rpcMenuSheetRef}
-        onClose={closeRpcModal}
-        shouldNavigateBack={false}
-      >
-        <BottomSheetHeader style={styles.baseHeader}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('app_settings.select_rpc_url')}{' '}
-          </Text>
-          <Cell
-            variant={CellVariant.Display}
-            title={Networks.mainnet.name}
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name: showMultiRpcSelectModal.networkName,
-              imageSource,
-              size: AvatarSize.Sm,
-              style: { marginRight: 0 },
-            }}
-            style={styles.cellBorder}
-          >
-            <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
-              {showMultiRpcSelectModal.networkName}
-            </Text>
-          </Cell>
-        </BottomSheetHeader>
-        <View style={styles.rpcMenu}>
-          {rpcEndpoints.map(({ url, networkClientId }, index) => (
-            <ListItemSelect
-              key={index}
-              isSelected={
-                networkClientId ===
-                rpcEndpoints[
-                  networkConfigurations[chainId as `0x${string}`]
-                    .defaultRpcEndpointIndex
-                ].networkClientId
-              }
-              isDisabled={false}
-              gap={8}
-              onPress={() => {
-                onRpcSelect(networkClientId, chainId as `0x${string}`);
-                closeRpcModal();
-              }}
-            >
-              <View style={styles.rpcText}>
-                <Text style={styles.textCentred}>
-                  {hideKeyFromUrl(hideProtocolFromUrl(url))}
-                </Text>
-              </View>
-            </ListItemSelect>
-          ))}
-        </View>
-      </BottomSheet>
-    );
-  }, [
-    showMultiRpcSelectModal,
-    rpcMenuSheetRef,
-    closeRpcModal,
-    styles,
-    networkConfigurations,
-    onRpcSelect,
-  ]);
-
   const renderBottomSheetContent = () => (
     <>
       <SheetHeader title={strings('networks.select_network')} />
@@ -1037,7 +952,14 @@ const NetworkSelector = () => {
         </BottomSheet>
       ) : null}
 
-      {renderBottomSheetRpc()}
+      <RpcSelectionModal
+        showMultiRpcSelectModal={showMultiRpcSelectModal}
+        closeRpcModal={closeRpcModal}
+        onRpcSelect={onRpcSelect}
+        rpcMenuSheetRef={rpcMenuSheetRef}
+        networkConfigurations={networkConfigurations}
+        styles={styles}
+      />
 
       {showConfirmDeleteModal.isVisible ? (
         <BottomSheet
