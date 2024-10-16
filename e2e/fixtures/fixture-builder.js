@@ -368,6 +368,18 @@ class FixtureBuilder {
               pendingApprovalCount: 0,
               approvalFlows: [],
             },
+            NotificationServicesController: {
+              subscriptionAccountsSeen: [],
+              isMetamaskNotificationsFeatureSeen: false,
+              isNotificationServicesEnabled: false,
+              isFeatureAnnouncementsEnabled: false,
+              metamaskNotificationsList: [],
+              metamaskNotificationsReadList: [],
+              isUpdatingMetamaskNotifications: false,
+              isFetchingMetamaskNotifications: false,
+              isUpdatingMetamaskNotificationsAccount: [],
+              isCheckingAccountsPresence: false,
+            },
           },
         },
         privacy: {
