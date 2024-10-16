@@ -20,6 +20,11 @@ import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import Svg, { Path } from 'react-native-svg';
 
+interface Theme {
+  colors: Record<string, any>;
+  shadows: Record<string, any>;
+}
+
 /* eslint-disable import/no-commonjs */
 const SlippageSliderBgImg = require('../../../images/slippage-slider-bg.png');
 /* eslint-enable import/no-commonjs */
@@ -144,8 +149,9 @@ const SlippageSlider: React.FC<SlippageSliderProps> = ({
   disabled,
   changeOnRelease,
 }) => {
-  const { colors, shadows } = useTheme();
-  const styles = createStyles(colors, shadows);
+  const theme = useTheme();
+  const { colors, shadows } = theme;
+  const styles = useMemo(() => createStyles(colors, shadows), [colors, shadows]);
   /* Reusable/truncated references to the range prop values */
   const [r0, r1] = useMemo(() => range, [range]);
   const fullRange = useMemo(() => r1 - r0, [r0, r1]);
