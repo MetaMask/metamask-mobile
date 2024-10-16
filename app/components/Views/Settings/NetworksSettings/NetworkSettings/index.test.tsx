@@ -892,6 +892,41 @@ describe('NetworkSettings', () => {
         'Could not fetch chain ID. Is your RPC URL correct?',
       );
     });
+
+    it('should return without updating warningName when useSafeChainsListValidation is false', () => {
+      const instance = wrapper.instance();
+
+      instance.props.useSafeChainsListValidation = false; // Disable validation
+
+      instance.validateName();
+
+      // Make sure warningName wasn't updated
+      expect(instance.state.warningName).toBeUndefined();
+    });
+
+    it('should set warningName to undefined if chainToMatch name is the same as nickname', () => {
+      const instance = wrapper.instance();
+
+      const chainToMatch = { name: 'Test Network' };
+
+      instance.validateName(chainToMatch);
+
+      expect(instance.state.warningName).toBeUndefined();
+    });
+
+    it('should set warningName to undefined when networkList name is the same as nickname', () => {
+      const instance = wrapper.instance();
+
+      instance.setState({
+        networkList: {
+          name: 'Test Network', // same as nickname
+        },
+      });
+
+      instance.validateName();
+
+      expect(instance.state.warningName).toBeUndefined();
+    });
   });
 
   describe('NetworkSettings componentDidMount', () => {
