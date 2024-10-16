@@ -16,12 +16,13 @@ class ActivitiesView {
   }
 
   get firstTransactionStatus() {
-    return Matchers.getElementByID(CommonSelectorsIDs.TRANSACTION_STATUS, this.FIRST_ROW);
+    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.FIRST_ROW)
   }
 
   get secondTransactionStatus() {
-     return Matchers.getElementByID(CommonSelectorsIDs.TRANSACTION_STATUS, this.SECOND_ROW);
+    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.SECOND_ROW)
   }
+
   generateSwapActivityLabel(sourceToken, destinationToken) {
     let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
