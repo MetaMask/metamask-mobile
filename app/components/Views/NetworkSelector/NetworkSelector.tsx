@@ -911,7 +911,6 @@ const NetworkSelector = () => {
               }
               isDisabled={false}
               gap={8}
-              // TODO HERE ....
               onPress={() => {
                 onRpcSelect(networkClientId, chainId as `0x${string}`);
                 closeRpcModal();

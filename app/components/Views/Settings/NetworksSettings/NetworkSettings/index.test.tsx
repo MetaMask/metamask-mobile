@@ -8,6 +8,7 @@ import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../../../util/test/network';
+import Engine from '../../../../../core/Engine';
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -34,6 +35,28 @@ const initialState = {
     }),
   },
 };
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      setProviderType: jest.fn(),
+      setActiveNetwork: jest.fn(),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      removeNetwork: jest.fn(),
+      updateNetwork: jest.fn(),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(),
+    },
+  },
+}));
 
 const store = mockStore(initialState);
 
@@ -1125,6 +1148,86 @@ describe('NetworkSettings', () => {
       expect(wrapper4.state('nickname')).toBe('Custom Network');
       expect(wrapper4.state('chainId')).toBe('0x123');
       expect(wrapper4.state('rpcUrl')).toBe('https://custom-network.io');
+    });
+  });
+
+  describe('NetworkSettings - handleNetworkUpdate', () => {
+    const mockNavigation = {
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+    };
+
+    const SAMPLE_PROPS = {
+      route: {
+        params: {
+          network: 'mainnet',
+        },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
+      networkConfigurations: {
+        '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
+          chainId: '0x1',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'Infura',
+              url: 'https://mainnet.infura.io/v3/',
+            },
+          ],
+          name: 'Ethereum Main Network',
+          nativeCurrency: 'ETH',
+        },
+      },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wrapper4: any = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...SAMPLE_PROPS} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should update the network if the network exists', async () => {
+      const instance = wrapper4.instance();
+
+      await instance.handleNetworkUpdate({
+        rpcUrl: 'http://localhost:8080',
+        rpcUrls: [{ url: 'http://localhost:8080', type: 'custom', name: '' }],
+        blockExplorerUrls: ['https://etherscan.io'],
+        isNetworkExists: [],
+        chainId: '0x1',
+        navigation: mockNavigation,
+      });
+
+      expect(
+        Engine.context.NetworkController.updateNetwork,
+      ).toHaveBeenCalledWith(
+        '0x1', // chainId
+        expect.objectContaining({
+          blockExplorerUrls: ['https://etherscan.io'],
+          chainId: '0x1',
+          defaultBlockExplorerUrlIndex: undefined,
+          defaultRpcEndpointIndex: 0,
+          name: undefined,
+          nativeCurrency: undefined,
+          rpcEndpoints: [
+            { name: '', type: 'custom', url: 'http://localhost:8080' },
+          ],
+        }),
+        { replacementSelectedRpcEndpointIndex: 0 },
+      );
     });
   });
 });
