@@ -15,7 +15,7 @@ import Address from '../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
 
-// todo: use value component for address, currency value
+// todo: use value component for currency value
 const AccountNetworkInfoExpanded = () => {
   const { approvalRequest } = useApprovalRequest();
   const chainId = useSelector(selectChainId);
