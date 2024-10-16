@@ -594,7 +594,7 @@ const Wallet = ({
           <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <>
-          <PortfolioBalance />
+          {accountBalanceByChainId && <PortfolioBalance />}
           <ScrollableTabView
             renderTabBar={renderTabBar}
             // eslint-disable-next-line react/jsx-no-bind
