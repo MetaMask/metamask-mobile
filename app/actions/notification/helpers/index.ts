@@ -187,13 +187,13 @@ export const syncInternalAccountsWithUserStorage = async () => {
  */
 export const performDeleteStorage = async (): Promise<string | undefined> => {
   try {
-   await Engine.context.UserStorageController.performDeleteStorage('notifications.notification_settings');
-   await Engine.context.NotificationServicesController.createOnChainTriggers(
-    {
+    await Engine.context.UserStorageController.performDeleteStorage(
+      'notifications.notification_settings',
+    );
+    await Engine.context.NotificationServicesController.createOnChainTriggers({
       resetNotifications: true,
-    },
-  );
+    });
   } catch (error) {
     return getErrorMessage(error);
   }
-}
+};
