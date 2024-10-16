@@ -7,6 +7,7 @@ import { selectTransactions } from '../../../selectors/transactionController';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 
 export function getTraceTags(state: RootState) {
+  if (!Object.keys(state?.engine?.backgroundState).length) return;
   const unlocked = state.user.userLoggedIn;
   const accountCount = selectInternalAccounts(state).length;
   const nftCount = selectAllNftsFlat(state).length;
