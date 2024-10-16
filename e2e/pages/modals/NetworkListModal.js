@@ -78,7 +78,7 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal() {
-    await Gestures.swipe(this.selectNetwork, 'down', 'slow', 0.6);
+    await Gestures.swipe(this.selectNetwork, 'down', 'slow', 0.9);
   }
 
   async tapTestNetworkSwitch() {
