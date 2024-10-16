@@ -685,19 +685,28 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    const networkController = this.fixture.state.engine.backgroundState.NetworkController;
+    const networkController =
+    this.fixture.state.engine.backgroundState.NetworkController;
+
+    // Extract providerConfig data
+    const { providerConfig } = data;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(networkController.networkConfigurationsByChainId).length + 1
+    }`;
 
     // Define the network configuration
     const networkConfig = {
       chainId: providerConfig.chainId,
       rpcEndpoints: [
         {
-          networkClientId: newNetworkClientId,
-          url: providerConfig.rpcUrl,
-          type: providerConfig.type,
-          name: providerConfig.nickname,
+         networkClientId: newNetworkClientId,
+         url: providerConfig.rpcUrl,
+         type: providerConfig.type,
+         name: providerConfig.nickname,
         },
-      ],
+     ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
       name: providerConfig.nickname,
@@ -705,17 +714,19 @@ class FixtureBuilder {
     };
 
     // Add the new network configuration to the object
-    networkController.networkConfigurationsByChainId[providerConfig.chainId] =
-      networkConfig;
+    networkController.networkConfigurationsByChainId[providerConfig.chainId] = networkConfig;
 
-    (NetworkController.selectedNetworkClientId = network.id),
-      (NetworkController.providerConfig = network);
+    // Update selectedNetworkClientId to the new network client ID
+    networkController.selectedNetworkClientId = newNetworkClientId;
 
-    NetworkController.networksMetadata[network.id] = {
-      status: 'available',
-      EIPS: { 1559: true },
-    };
-    NetworkController.networkConfigurations[network.id] = network;
+    // Merge the rest of the data
+    merge(networkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH') {
+      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
+        data.providerConfig.ticker;
+    }
+
     return this;
   }
 
