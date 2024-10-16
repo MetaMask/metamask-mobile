@@ -20,9 +20,6 @@ import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
@@ -34,6 +31,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -240,20 +238,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        <Button
-          variant={ButtonVariants.Primary}
+        <ButtonBase
           label={strings('wallet.sort_by')}
           onPress={showSortControls}
           endIconName={IconName.ArrowDown}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
-        <Button
+        <ButtonBase
           testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-          variant={ButtonVariants.Primary}
           label={strings('wallet.import')}
           onPress={goToAddToken}
           startIconName={IconName.Add}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
       </View>
 
@@ -278,7 +274,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       />
       <ActionSheet
         ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={'Sort by'}
+        title={strings('wallet.sort_by')}
         options={[
           strings('wallet.declining_balance', { currency: currentCurrency }),
           strings('wallet.alphabetically'),
