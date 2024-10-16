@@ -24,7 +24,10 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { selectTokenSortConfig } from '../../../selectors/preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectTokenSortConfig,
+} from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -75,6 +78,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { trackEvent } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const hideZeroBalanceTokens = useSelector(
@@ -87,6 +91,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const actionSheet = useRef<typeof ActionSheet>();
   const sortControlsActionSheet = useRef<typeof ActionSheet>();
+  const filterControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -147,6 +152,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const showSortControls = () => {
     if (sortControlsActionSheet.current) {
       sortControlsActionSheet.current.show();
+    }
+  };
+
+  const showFilterControls = () => {
+    if (filterControlsActionSheet.current) {
+      filterControlsActionSheet.current.show();
     }
   };
 
@@ -234,12 +245,35 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
+  const onFilterControlsActionSheetPress = (index: number) => {
+    const { PreferencesController } = Engine.context;
+    switch (index) {
+      case 0:
+        PreferencesController.setTokenNetworkFilter({});
+        break;
+      case 1:
+        PreferencesController.setTokenNetworkFilter({ [chainId]: true });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={
+            tokenNetworkFilter[chainId] ? 'Current Network' : 'All Networks'
+          }
+          onPress={showFilterControls}
+          endIconName={IconName.ArrowDown}
+          style={styles.sortButton}
+        />
         <Button
           variant={ButtonVariants.Primary}
           label={strings('wallet.sort_by')}
@@ -286,6 +320,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         ]}
         cancelButtonIndex={2}
         onPress={onSortControlsActionSheetPress}
+      />
+      <ActionSheet
+        ref={filterControlsActionSheet as LegacyRef<typeof ActionSheet>}
+        title={'Filter By'}
+        options={['All Networks', 'Current Network', 'Cancel']}
+        cancelButtonIndex={2}
+        onPress={onFilterControlsActionSheetPress}
       />
     </View>
   );
