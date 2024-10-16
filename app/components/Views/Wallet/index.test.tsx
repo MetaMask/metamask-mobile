@@ -176,6 +176,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
   ScrollableTabViewMock.defaultProps = {
     onChangeTab: jest.fn(),
     renderTabBar: jest.fn(),
+    tabs: [],
   };
   return ScrollableTabViewMock;
 });
