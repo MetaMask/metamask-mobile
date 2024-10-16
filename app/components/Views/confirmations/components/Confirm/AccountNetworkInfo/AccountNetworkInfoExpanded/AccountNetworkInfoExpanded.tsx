@@ -10,6 +10,7 @@ import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
+import InfoAddress from '../../../UI/InfoRow/InfoValue/InfoAddress';
 
 // todo: use value component for address, network, currency value
 const AccountNetworkInfoExpanded = () => {
@@ -23,7 +24,9 @@ const AccountNetworkInfoExpanded = () => {
   return (
     <View>
       <InfoSection>
-        <InfoRow label={strings('confirm.account')}>{accountAddress}</InfoRow>
+        <InfoRow label={strings('confirm.account')}>
+          <InfoAddress address={accountAddress}></InfoAddress>
+        </InfoRow>
         <InfoRow label={strings('confirm.balance')}>{accountBalance}</InfoRow>
       </InfoSection>
       <InfoSection>
