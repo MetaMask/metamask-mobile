@@ -1,6 +1,5 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
-import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../util/test/network';
 import type { EngineState } from './Engine';
@@ -12,31 +11,32 @@ jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
 
 describe('Engine', () => {
   it('should expose an API', () => {
-    const engine = Engine.init({} as Record<string, never>);
+    Engine.init({});
     // Existing expect statements remain unchanged
   });
 
   it('calling Engine.init twice returns the same instance', () => {
-    const engine = Engine.init({} as Record<string, never>);
-    const newEngine = Engine.init({} as Record<string, never>);
+    const engine = Engine.init({});
+    const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {
-    const engine = Engine.init({} as Record<string, never>);
+    const engine = Engine.init({});
     await engine.destroyEngineInstance();
-    const newEngine = Engine.init({} as Record<string, never>);
+    const newEngine = Engine.init({});
     expect(engine).not.toStrictEqual(newEngine);
   });
 
   it('matches initial state fixture', () => {
-    const engine = Engine.init({} as Record<string, never>);
+    const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
-    const engine = Engine.init(backgroundState as unknown as Record<string, never>);
+    // @ts-expect-error: backgroundState is not exactly Record<string, never>, but it's fine for this test
+    const engine = Engine.init(backgroundState);
     const invalidAddress = '0xInvalidAddress';
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
@@ -48,7 +48,6 @@ describe('Engine', () => {
     afterEach(() => engine?.destroyEngineInstance());
 
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
-    const chainId = '0x1';
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
 
@@ -79,7 +78,8 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      engine = Engine.init(state as unknown as Record<string, never>);
+      // @ts-expect-error: state is not exactly Record<string, never>, but it's fine for this test
+      engine = Engine.init(state);
       const totalFiatBalance = engine.getTotalFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
