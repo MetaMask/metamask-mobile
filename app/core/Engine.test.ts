@@ -3,13 +3,14 @@ import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../util/test/network';
+import { EngineState } from './Engine';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
 
 describe('Engine', () => {
   it('should expose an API', () => {
-    const engine = Engine.init({});
+    const engine = Engine.init({} as Partial<EngineState>);
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
@@ -36,28 +37,28 @@ describe('Engine', () => {
   });
 
   it('calling Engine.init twice returns the same instance', () => {
-    const engine = Engine.init({});
-    const newEngine = Engine.init({});
+    const engine = Engine.init({} as Partial<EngineState>);
+    const newEngine = Engine.init({} as Partial<EngineState>);
     expect(engine).toStrictEqual(newEngine);
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {
-    const engine = Engine.init({});
+    const engine = Engine.init({} as Partial<EngineState>);
     await engine.destroyEngineInstance();
-    const newEngine = Engine.init({});
+    const newEngine = Engine.init({} as Partial<EngineState>);
     expect(engine).not.toStrictEqual(newEngine);
   });
 
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
-    const engine = Engine.init({});
+    const engine = Engine.init({} as Partial<EngineState>);
     const initialBackgroundState = engine.datamodel.state;
 
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(backgroundState as Partial<EngineState>);
     const invalidAddress = '0xInvalidAddress';
 
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
@@ -66,7 +67,7 @@ describe('Engine', () => {
   });
 
   describe('getTotalFiatAccountBalance', () => {
-    let engine;
+    let engine: Engine;
     afterEach(() => engine?.destroyEngineInstance());
 
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
@@ -74,7 +75,7 @@ describe('Engine', () => {
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
 
-    const state = {
+    const state: Partial<EngineState> = {
       AccountsController: createMockAccountsControllerState(
         [selectedAddress],
         selectedAddress,
@@ -86,7 +87,7 @@ describe('Engine', () => {
             id: '0x1',
             nickname: 'mainnet',
             ticker: 'ETH',
-            type: 'infura',
+            type: 'mainnet',
           }),
         },
       },
@@ -117,7 +118,7 @@ describe('Engine', () => {
         AccountTrackerController: {
           accountsByChainId: {
             [chainId]: {
-              [selectedAddress]: { balance: ethBalance * 1e18 },
+              [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
             },
           },
         },
@@ -130,7 +131,7 @@ describe('Engine', () => {
             },
           },
         },
-      });
+      } as Partial<EngineState>);
 
       const totalFiatBalance = engine.getTotalFiatAccountBalance();
 
@@ -150,13 +151,13 @@ describe('Engine', () => {
       const tokens = [
         {
           address: '0x001',
-          balance: 1,
+          balance: '1',
           price: '1',
           pricePercentChange1d: -1,
         },
         {
           address: '0x002',
-          balance: 2,
+          balance: '2',
           price: '2',
           pricePercentChange1d: 2,
         },
@@ -167,7 +168,7 @@ describe('Engine', () => {
         AccountTrackerController: {
           accountsByChainId: {
             [chainId]: {
-              [selectedAddress]: { balance: ethBalance * 1e18 },
+              [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
             },
           },
         },
@@ -196,14 +197,14 @@ describe('Engine', () => {
             },
           },
         },
-      });
+      } as Partial<EngineState>);
 
       const totalFiatBalance = engine.getTotalFiatAccountBalance();
 
       const ethFiat = ethBalance * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
-          const value = token.balance * token.price * ethConversionRate;
+          const value = parseFloat(token.balance) * parseFloat(token.price) * ethConversionRate;
           return [
             fiat + value,
             fiat1d + value / (1 + token.pricePercentChange1d / 100),
