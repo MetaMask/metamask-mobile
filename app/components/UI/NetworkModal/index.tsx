@@ -36,6 +36,12 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+  AddNetworkFields,
+} from '@metamask/network-controller';
 
 export interface SafeChain {
   chainId: string;
@@ -162,6 +168,10 @@ const NetworkModals = (props: NetworkProps) => {
     selectUseSafeChainsListValidation,
   );
 
+  const networkConfigurationByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
+
   const customNetworkInformation = {
     chainId,
     blockExplorerUrl,
@@ -189,52 +199,154 @@ const NetworkModals = (props: NetworkProps) => {
     checkNetwork();
   }, [checkNetwork]);
 
-  const closeModal = () => {
+  const closeModal = async () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
-    NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: url.href,
+
+    const existingNetwork = networkConfigurationByChainId[chainId];
+    let networkClientId;
+
+    if (existingNetwork) {
+      const updatedNetwork = await NetworkController.updateNetwork(
+        existingNetwork.chainId,
+        existingNetwork,
+        existingNetwork.chainId === chainId
+          ? {
+              replacementSelectedRpcEndpointIndex:
+                existingNetwork.defaultRpcEndpointIndex,
+            }
+          : undefined,
+      );
+
+      networkClientId =
+        updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
+    } else {
+      const addedNetwork = await NetworkController.addNetwork({
         chainId,
-        ticker,
-        nickname,
-        rpcPrefs: { blockExplorerUrl },
-      },
-      {
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
-    );
+        blockExplorerUrls: [blockExplorerUrl],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints: [
+          {
+            url: rpcUrl,
+            name: nickname,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+
+      networkClientId =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
+    }
+
+    if (networkClientId) {
+      await NetworkController.setActiveNetwork(networkClientId);
+    }
+
     onClose();
   };
 
-  const switchNetwork = () => {
+  const handleExistingNetwork = async (
+    existingNetwork: NetworkConfiguration,
+    networkId: string,
+  ) => {
+    const { NetworkController } = Engine.context;
+    const updatedNetwork = await NetworkController.updateNetwork(
+      existingNetwork.chainId,
+      existingNetwork,
+      existingNetwork.chainId === networkId
+        ? {
+            replacementSelectedRpcEndpointIndex:
+              existingNetwork.defaultRpcEndpointIndex,
+          }
+        : undefined,
+    );
+
+    const { networkClientId } =
+      updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
+      {};
+
+    await NetworkController.setActiveNetwork(networkClientId);
+  };
+
+  const handleNewNetwork = async (
+    networkId: `0x${string}`,
+    networkRpcUrl: string,
+    name: string,
+    nativeCurrency: string,
+    networkBlockExplorerUrl: string,
+  ) => {
+    const { NetworkController } = Engine.context;
+    const networkConfig = {
+      chainId: networkId,
+      blockExplorerUrls: networkBlockExplorerUrl
+        ? [networkBlockExplorerUrl]
+        : [],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
+      name,
+      nativeCurrency,
+      rpcEndpoints: [
+        {
+          url: networkRpcUrl,
+          name,
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    } as AddNetworkFields;
+
+    return NetworkController.addNetwork(networkConfig);
+  };
+
+  const handleNavigation = (
+    onSwitchNetwork: () => void,
+    networkSwitchPopToWallet: boolean,
+  ) => {
+    if (onSwitchNetwork) {
+      onSwitchNetwork();
+    } else {
+      networkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
+    }
+  };
+
+  const switchNetwork = async () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
+    const existingNetwork = networkConfigurationByChainId[chainId];
+
     CurrencyRateController.updateExchangeRate(ticker);
-    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
-    NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: url.href,
+
+    if (!isPrivateConnection(url.hostname)) {
+      url.set('protocol', 'https:');
+    }
+
+    if (existingNetwork) {
+      await handleExistingNetwork(existingNetwork, chainId);
+    } else {
+      const addedNetwork = await handleNewNetwork(
         chainId,
-        ticker,
+        rpcUrl,
         nickname,
-        rpcPrefs: { blockExplorerUrl },
-      },
-      {
-        setActive: true,
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
-    );
-    closeModal();
+        ticker,
+        blockExplorerUrl,
+      );
+      const { networkClientId } =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
+        {};
+
+      NetworkController.setActiveNetwork(networkClientId);
+    }
+    onClose();
+
     if (onNetworkSwitch) {
-      onNetworkSwitch();
+      handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
     } else {
       shouldNetworkSwitchPopToWallet
         ? navigation.navigate('WalletView')
