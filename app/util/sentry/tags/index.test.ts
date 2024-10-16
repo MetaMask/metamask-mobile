@@ -20,7 +20,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.unlocked']).toStrictEqual(true);
+      expect(tags?.['wallet.unlocked']).toStrictEqual(true);
     });
 
     it('includes if not unlocked', () => {
@@ -31,7 +31,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.unlocked']).toStrictEqual(false);
+      expect(tags?.['wallet.unlocked']).toStrictEqual(false);
     });
 
     it('includes pending approval type', () => {
@@ -54,7 +54,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.pending_approval']).toStrictEqual(
+      expect(tags?.['wallet.pending_approval']).toStrictEqual(
         'eth_sendTransaction',
       );
     });
@@ -83,7 +83,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.pending_approval']).toStrictEqual(
+      expect(tags?.['wallet.pending_approval']).toStrictEqual(
         'eth_sendTransaction',
       );
     });
@@ -104,7 +104,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.account_count']).toStrictEqual(2);
+      expect(tags?.['wallet.account_count']).toStrictEqual(2);
     });
 
     it('includes nft count', () => {
@@ -149,7 +149,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.nft_count']).toStrictEqual(5);
+      expect(tags?.['wallet.nft_count']).toStrictEqual(5);
     });
 
     it('includes notification count', () => {
@@ -167,7 +167,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.notification_count']).toStrictEqual(3);
+      expect(tags?.['wallet.notification_count']).toStrictEqual(3);
     });
 
     it('includes token count', () => {
@@ -193,7 +193,7 @@ describe('Tags Utils', () => {
 
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.token_count']).toStrictEqual(4);
+      expect(tags?.['wallet.token_count']).toStrictEqual(4);
     });
 
     it('includes transaction count', () => {
@@ -223,7 +223,7 @@ describe('Tags Utils', () => {
       } as unknown as RootState;
       const tags = getTraceTags(state);
 
-      expect(tags['wallet.transaction_count']).toStrictEqual(3);
+      expect(tags?.['wallet.transaction_count']).toStrictEqual(3);
     });
   });
 });
