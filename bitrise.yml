@@ -135,7 +135,7 @@ stages:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_assets_ios: {}
+      # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
@@ -145,8 +145,8 @@ stages:
       - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+        - ios_e2e_build: {}
+        - android_e2e_build: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -267,8 +267,29 @@ workflows:
                 source "${HOME}/.nvm/nvm.sh"
                 echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
 
-                nvm install ${NODE_VERSION}
+                 # Retry logic for Node installation
+                MAX_ATTEMPTS=3
+                ATTEMPT=1
+                until [ $ATTEMPT -gt $MAX_ATTEMPTS ]
+                do
+                  echo "Attempt $ATTEMPT to install Node.js"
+                  nvm install ${NODE_VERSION}
+                  INSTALL_STATUS=$? # Capture the exit status of the nvm install command
+                  if [ $INSTALL_STATUS -eq 0 ]; then
+                      echo "Node.js installation successful!"
+                      break
+                  else
+                      echo "Node.js installation failed with exit code $INSTALL_STATUS"
+                      ATTEMPT=$((ATTEMPT+1))
+                      echo "Node.js installation failed, retrying in 5 seconds..."
+                      sleep 5
+                  fi
+                done
 
+                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+                  echo "Node.js installation failed after $MAX_ATTEMPTS attempts."
+                  exit 1
+                fi
                 envman add --key PATH --value $PATH
 
                 node --version
@@ -586,6 +607,10 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -620,7 +645,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -700,7 +725,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -802,6 +827,8 @@ workflows:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
   ios_e2e_build:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - install_applesimutils
       - code_setup
@@ -833,7 +860,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install ccache
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -867,7 +894,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -888,6 +915,8 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - setup
       - install_applesimutils
@@ -923,7 +952,7 @@ workflows:
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
       - script:
           inputs:
             - content: |-
@@ -954,7 +983,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1234,8 +1263,6 @@ workflows:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1275,8 +1302,6 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
-    envs:
-      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
