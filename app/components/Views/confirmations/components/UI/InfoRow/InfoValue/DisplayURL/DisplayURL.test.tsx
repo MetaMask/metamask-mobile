@@ -1,16 +1,16 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
-import Url from './Url';
+import DisplayURL from './DisplayURL';
 
-describe('URL', () => {
+describe('DisplayURL', () => {
   it('should display url as expected', async () => {
-    const container = render(<Url url="https://google.com" />);
+    const container = render(<DisplayURL url="https://google.com" />);
     expect(container).toMatchSnapshot();
   });
 
   it('should show warning if protocol is HTTP', async () => {
-    const { getByText } = render(<Url url="http://google.com" />);
+    const { getByText } = render(<DisplayURL url="http://google.com" />);
     expect(getByText('HTTP')).toBeDefined();
   });
 });

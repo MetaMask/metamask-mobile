@@ -11,7 +11,7 @@ import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
-import Url from '../../../UI/InfoRow/InfoValue/Url';
+import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
 
 // todo: use value component for address, currency value
@@ -38,7 +38,9 @@ const AccountNetworkInfoExpanded = () => {
           <Network chainId={chainId} />
         </InfoRow>
         <InfoRow label={strings('confirm.rpc_url')}>
-          <Url url={networkRpcUrl ?? `https://${networkType}.infura.io/v3/`} />
+          <DisplayURL
+            url={networkRpcUrl ?? `https://${networkType}.infura.io/v3/`}
+          />
         </InfoRow>
       </InfoSection>
     </View>
