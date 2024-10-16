@@ -150,9 +150,9 @@ export const deepJSONParse = ({
   const parsedObject = JSON.parse(jsonString);
 
   // Function to recursively parse stringified properties
-  function parseProperties(obj: object): void {
+  function parseProperties(obj: Record<string, unknown>): void {
     Object.keys(obj).forEach((key) => {
-      const value = (obj as Record<string, unknown>)[key];
+      const value = obj[key];
 
       if (typeof value === 'string') {
         const isNumber = !isNaN(Number(value));
@@ -161,10 +161,10 @@ export const deepJSONParse = ({
           try {
             // Attempt to parse the string as JSON
             const parsed = JSON.parse(value);
-            (obj as Record<string, unknown>)[key] = parsed;
+            obj[key] = parsed;
             // If the parsed value is an object, parse its properties too
             if (typeof parsed === 'object' && parsed !== null) {
-              parseProperties(parsed as object);
+              parseProperties(parsed as Record<string, unknown>);
             }
           } catch (e) {
             // If parsing throws, it's not a JSON string, so do nothing
@@ -172,14 +172,14 @@ export const deepJSONParse = ({
         }
       } else if (typeof value === 'object' && value !== null) {
         // If it's an object, parse its properties
-        parseProperties(value as object);
+        parseProperties(value as Record<string, unknown>);
       }
     });
   }
 
   // Start parsing from the root object
   if (typeof parsedObject === 'object' && parsedObject !== null) {
-    parseProperties(parsedObject);
+    parseProperties(parsedObject as Record<string, unknown>);
   }
 
   return parsedObject;
