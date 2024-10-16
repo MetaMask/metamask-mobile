@@ -8400,24 +8400,14 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -9059,24 +9049,14 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -9718,24 +9698,14 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
