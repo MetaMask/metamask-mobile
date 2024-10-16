@@ -50,8 +50,14 @@ const StakeInputView = () => {
   };
 
   const handleStakePress = useCallback(() => {
-    // TODO: Display the Review bottom sheet: STAKE-824
-  }, []);
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE_CONFIRMATION,
+      params: {
+        amountWei: amountWei.toString(),
+        amountFiat: fiatAmount,
+      },
+    });
+  }, [amountWei, fiatAmount, navigation]);
 
   const balanceText = strings('stake.balance');
 
@@ -66,7 +72,11 @@ const StakeInputView = () => {
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   useEffect(() => {
-    navigation.setOptions(getStakingNavbar(title, navigation, theme.colors));
+    navigation.setOptions(
+      getStakingNavbar(title, navigation, theme.colors, {
+        hasBackButton: false,
+      }),
+    );
   }, [navigation, theme.colors, title]);
 
   useEffect(() => {

@@ -29,7 +29,6 @@ const styleSheet = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   accountNameLabelText: {
-    marginLeft: 4,
     paddingHorizontal: 8,
     borderWidth: 1,
     borderRadius: 8,
