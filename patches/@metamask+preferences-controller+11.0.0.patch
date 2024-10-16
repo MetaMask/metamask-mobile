@@ -175,7 +175,7 @@ index 30e985c..cc567e4 100644
  _syncIdentities = new WeakSet();
  syncIdentities_fn = function(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
-index 7e3ba15..734de54 100644
+index 7e3ba15..a4be46d 100644
 --- a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 @@ -69,9 +69,10 @@ export type PreferencesState = {
@@ -214,7 +214,7 @@ index 7e3ba15..734de54 100644
 +    /**
 +     * Controls the token network filter
 +     */
-+    tokenNetworkFilter: Record<string, string>
++    tokenNetworkFilter: Record<string, boolean>
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
@@ -235,7 +235,7 @@ index 7e3ba15..734de54 100644
 +    useTransactionSimulations: boolean;
 +    showMultiRpcModal: boolean;
 +    tokenSortConfig: Record<string, string>
-+    tokenNetworkFilter: Record<string, string>
++    tokenNetworkFilter: Record<string, boolean>
  };
  /**
   * Controller that stores shared settings and exposes convenience methods
@@ -292,7 +292,7 @@ index 7e3ba15..734de54 100644
 +     *
 +     * @param tokenNetworkFilter - Object describing token network filter configuration.
 +     */
-+    setTokenNetworkFilter(tokenNetworkFilter: Record<string, string>): void
++    setTokenNetworkFilter(tokenNetworkFilter: Record<string, boolean>): void
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.ts.map
