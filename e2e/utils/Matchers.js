@@ -11,8 +11,11 @@ class Matchers {
    * @param {number} [index] - Index of the element (default: 0)
    * @return {Promise<Detox.IndexableNativeElement | Detox.NativeElement>} - Resolves to the located element
    */
-  static async getElementByID(elementId, index = 0) {
-    return element(by.id(elementId)).atIndex(index);
+  static async getElementByID(elementId, index) {
+    if (index) {
+      return element(by.id(elementId)).atIndex(index);
+    }
+    return element(by.id(elementId));
   }
 
   /**
