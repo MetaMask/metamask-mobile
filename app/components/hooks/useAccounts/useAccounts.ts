@@ -8,10 +8,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectTicker } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -22,6 +19,7 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../selectors/accountsController';
+import { useChainId } from '../../../selectors/hooks';
 
 // Internal dependencies
 import {
@@ -46,7 +44,7 @@ const useAccounts = ({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const accountInfoByAddress = useSelector(selectAccounts);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
