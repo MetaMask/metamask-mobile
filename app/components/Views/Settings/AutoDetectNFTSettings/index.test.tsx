@@ -32,7 +32,7 @@ jest.mock('../../../../core/Engine', () => {
   mockAddTraitsToUser = jest.fn();
   mockTrackEvent = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init({} as Record<string, never>),
     context: {
       PreferencesController: {
         setDisplayNftMedia: mockSetDisplayNftMedia,

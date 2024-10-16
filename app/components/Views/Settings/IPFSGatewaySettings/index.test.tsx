@@ -20,7 +20,7 @@ jest.mock('../../../../core/Engine', () => {
   mockSetIsIpfsGatewayEnabled = jest.fn();
   mockSetIpfsGateway = jest.fn();
   return {
-    init: () => mockEngine.init({}),
+    init: () => mockEngine.init({} as Record<string, never>),
     context: {
       PreferencesController: {
         setIsIpfsGatewayEnabled: mockSetIsIpfsGatewayEnabled,
