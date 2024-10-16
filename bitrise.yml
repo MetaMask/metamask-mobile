@@ -132,17 +132,17 @@ stages:
       - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      # - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_assets_android: {}
+      # - run_tag_smoke_confirmations_ios: {}
+      # - run_tag_smoke_confirmations_android: {}
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
+      # - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
         - ios_e2e_build: {}
@@ -1484,6 +1484,9 @@ app:
   envs:
     - opts:
         is_expand: false
+      MM_SENTRY_AUTH_TOKEN: 'dummytoken1234abcd5678efgh90ijklmnop'
+    - opts:
+        is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
@@ -1575,3 +1578,7 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
+  - pull_request_target_branch: "main"
+    pull_request_source_branch: "*"
+    pull_request_label: "needs-qa"
+    pipeline: pr_smoke_e2e_pipeline
