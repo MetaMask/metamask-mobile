@@ -11,6 +11,7 @@ import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
+import Address from '../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
 
@@ -26,7 +27,9 @@ const AccountNetworkInfoExpanded = () => {
   return (
     <View>
       <InfoSection>
-        <InfoRow label={strings('confirm.account')}>{accountAddress}</InfoRow>
+        <InfoRow label={strings('confirm.account')}>
+          <Address address={accountAddress}></Address>
+        </InfoRow>
         <InfoRow label={strings('confirm.balance')}>{accountBalance}</InfoRow>
       </InfoSection>
       <InfoSection>
