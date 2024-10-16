@@ -927,6 +927,74 @@ describe('NetworkSettings', () => {
 
       expect(instance.state.warningName).toBeUndefined();
     });
+
+    it('should update rpcUrl, set validatedRpcURL to false, and call validation methods', async () => {
+      const instance = wrapper.instance();
+
+      const validateNameSpy = jest.spyOn(instance, 'validateName');
+      const validateChainIdSpy = jest.spyOn(instance, 'validateChainId');
+      const validateSymbolSpy = jest.spyOn(instance, 'validateSymbol');
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      // Mock initial state
+      instance.setState({
+        addMode: true,
+      });
+
+      // Call the function
+      await instance.onRpcUrlChangeWithName(
+        'https://example.com',
+        'Test Network',
+        'Custom',
+      );
+
+      // Assert that state was updated
+      expect(wrapper.state('rpcUrl')).toBe('https://example.com');
+      expect(wrapper.state('validatedRpcURL')).toBe(false);
+      expect(wrapper.state('rpcName')).toBe('Test Network');
+      expect(wrapper.state('warningRpcUrl')).toBeUndefined();
+      expect(wrapper.state('warningChainId')).toBeUndefined();
+      expect(wrapper.state('warningSymbol')).toBeUndefined();
+      expect(wrapper.state('warningName')).toBeUndefined();
+
+      // Assert that the validation methods were called
+      expect(validateNameSpy).toHaveBeenCalled();
+      expect(validateChainIdSpy).toHaveBeenCalled();
+      expect(validateSymbolSpy).toHaveBeenCalled();
+      expect(getCurrentStateSpy).toHaveBeenCalled();
+    });
+
+    it('should set rpcName to type if name is not provided', async () => {
+      const instance = wrapper.instance();
+
+      await instance.onRpcUrlChangeWithName(
+        'https://example.com',
+        null,
+        'Custom',
+      );
+
+      expect(wrapper.state('rpcName')).toBe('Custom');
+    });
+
+    it('should not call validateChainId if addMode is false', async () => {
+      const instance = wrapper.instance();
+
+      const validateChainIdSpy = jest.spyOn(instance, 'validateChainId');
+
+      // Set addMode to false
+      instance.setState({
+        addMode: false,
+      });
+
+      await instance.onRpcUrlChangeWithName(
+        'https://example.com',
+        'Test Network',
+        'Custom',
+      );
+
+      // ValidateChainId should not be called
+      expect(validateChainIdSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('NetworkSettings componentDidMount', () => {
