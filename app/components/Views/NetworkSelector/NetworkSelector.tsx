@@ -159,9 +159,15 @@ const NetworkSelector = () => {
       networkName: '',
     });
 
-  const [showNetworkMenuModal, setNetworkMenuModal] = useState({
+  const [showNetworkMenuModal, setNetworkMenuModal] = useState<{
+    isVisible: boolean;
+    chainId: `0x${string}`;
+    displayEdit: boolean;
+    networkTypeOrRpcUrl: string;
+    isReadOnly: boolean;
+  }>({
     isVisible: false,
-    chainId: '',
+    chainId: '0x1',
     displayEdit: false,
     networkTypeOrRpcUrl: '',
     isReadOnly: false,
@@ -302,7 +308,7 @@ const NetworkSelector = () => {
 
   const closeModal = useCallback(() => {
     setNetworkMenuModal(() => ({
-      chainId: '',
+      chainId: '0x1',
       isVisible: false,
       displayEdit: false,
       networkTypeOrRpcUrl: '',
@@ -640,9 +646,7 @@ const NetworkSelector = () => {
       >;
       const { name, imageSource, chainId } = TypedNetworks[networkType];
 
-      const networkConfiguration = Object.values(networkConfigurations).find(
-        ({ chainId: networkId }) => networkId === chainId,
-      );
+      const networkConfiguration = networkConfigurations[chainId];
 
       const rpcUrl =
         networkConfiguration?.rpcEndpoints?.[
@@ -802,10 +806,8 @@ const NetworkSelector = () => {
     setSearchString('');
   };
 
-  const removeRpcUrl = (chainId: string) => {
-    const networkConfiguration = Object.values(networkConfigurations).find(
-      (config) => config.chainId === chainId,
-    );
+  const removeRpcUrl = (chainId: `0x${string}`) => {
+    const networkConfiguration = networkConfigurations[chainId];
 
     if (!networkConfiguration) {
       throw new Error(`Unable to find network with chain id ${chainId}`);

@@ -1,8 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import {
-  TransactionControllerState,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { parse, equal } from 'uri-js';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 import { hasProperty, isObject, RuntimeObject } from '@metamask/utils';
@@ -16,8 +13,7 @@ export const version = 55;
  * @param networkConfigurations - Existing network configurations.
  * @returns Updated network configurations including Infura networks.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function addBuiltInInfuraNetworks(networkConfigurations: any[]) {
+function addBuiltInInfuraNetworks(networkConfigurations: unknown[]) {
   return [
     {
       type: 'infura',
@@ -74,8 +70,8 @@ export default function migrate(state: unknown) {
 
   const networkControllerState =
     state.engine?.backgroundState?.NetworkController;
-  const transactionControllerState = state.engine?.backgroundState
-    ?.TransactionController as TransactionControllerState;
+  const transactionControllerState =
+    state.engine?.backgroundState?.TransactionController;
   const selectedNetworkController = state.engine?.backgroundState
     ?.SelectedNetworkController as SelectedNetworkControllerState;
 
@@ -379,23 +375,6 @@ export default function migrate(state: unknown) {
           Array.isArray(networkConfiguration.rpcEndpoints) &&
           networkConfiguration.rpcEndpoints.length > 1,
       );
-  }
-
-  // Migrate the user's drag + drop preference order for the network menu
-  if (
-    hasProperty(state.engine.backgroundState, 'NetworkOrderController') &&
-    isObject(state.engine.backgroundState.NetworkOrderController) &&
-    Array.isArray(
-      state.engine.backgroundState.NetworkOrderController.orderedNetworkList,
-    )
-  ) {
-    state.engine.backgroundState.NetworkOrderController.orderedNetworkList = [
-      ...new Set(
-        state.engine.backgroundState.NetworkOrderController.orderedNetworkList.map(
-          (network) => network.networkId,
-        ),
-      ),
-    ].map((networkId) => ({ networkId }));
   }
 
   // Return the modified state
