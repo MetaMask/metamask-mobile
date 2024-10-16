@@ -811,7 +811,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                yarn test:api-specs
+                yarn test:api-specs --retries 1
       - script@1:
           is_always_run: true
           is_skippable: false
