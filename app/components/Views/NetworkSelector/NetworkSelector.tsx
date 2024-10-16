@@ -294,7 +294,6 @@ const NetworkSelector = () => {
 
   const openModal = useCallback(
     (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
-      console.log('OPEN_MODAL_CALLED ....');
       setNetworkMenuModal({
         isVisible: true,
         chainId,

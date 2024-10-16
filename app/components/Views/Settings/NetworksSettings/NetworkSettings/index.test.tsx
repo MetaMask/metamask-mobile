@@ -857,4 +857,135 @@ describe('NetworkSettings', () => {
       expect(getCurrentStateSpy).toHaveBeenCalled();
     });
   });
+
+  describe('NetworkSettings componentDidMount', () => {
+    it('should correctly initialize state when networkTypeOrRpcUrl is provided', () => {
+      const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+        route: {
+          params: {
+            network: 'mainnet',
+          },
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+        networkConfigurations: {
+          '0x1': {
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Infura',
+                url: 'https://mainnet.infura.io/v3/',
+              },
+            ],
+            name: 'Ethereum Main Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      // Reinitialize the component with new props
+      const wrapper2 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance2 = wrapper2.instance();
+
+      // Simulate component mounting
+      instance2.componentDidMount?.();
+
+      // Check if state was initialized correctly
+      expect(wrapper2.state('blockExplorerUrl')).toBe('https://etherscan.io');
+      expect(wrapper2.state('nickname')).toBe('Ethereum Main Network');
+      expect(wrapper2.state('chainId')).toBe('0x1');
+      expect(wrapper2.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
+    });
+
+    it('should set addMode to true if no networkTypeOrRpcUrl is provided', () => {
+      const SAMPLE_NETWORKSETTINGS_PROPS_3 = {
+        route: {
+          params: {},
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+      };
+
+      // Reinitialize the component without networkTypeOrRpcUrl
+      const wrapper3 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_3} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance3 = wrapper3.instance();
+
+      // Simulate component mounting
+      instance3.componentDidMount?.();
+
+      // Check if state was initialized with addMode set to true
+      expect(wrapper3.state('addMode')).toBe(true);
+    });
+
+    it('should handle cases where the network is custom', () => {
+      const SAMPLE_NETWORKSETTINGS_PROPS_4 = {
+        route: {
+          params: { network: 'https://custom-network.io' },
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+        networkConfigurations: {
+          '0x123': {
+            blockExplorerUrls: ['https://custom-explorer.io'],
+            chainId: '0x123',
+            defaultRpcEndpointIndex: 0,
+            rpcEndpoints: [
+              {
+                url: 'https://custom-network.io',
+                type: RpcEndpointType.Custom,
+              },
+            ],
+            name: 'Custom Network',
+            nativeCurrency: 'CUST',
+          },
+        },
+      };
+
+      // Reinitialize the component with custom network
+      const wrapper4 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_4} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance4 = wrapper4.instance();
+
+      // Simulate component mounting
+      instance4.componentDidMount?.();
+
+      // Check if state was initialized correctly for the custom network
+      expect(wrapper4.state('nickname')).toBe('Custom Network');
+      expect(wrapper4.state('chainId')).toBe('0x123');
+      expect(wrapper4.state('rpcUrl')).toBe('https://custom-network.io');
+    });
+  });
 });
