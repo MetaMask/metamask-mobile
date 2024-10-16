@@ -22,8 +22,6 @@ const CellSelect = ({
   tagLabel,
   isSelected = false,
   children,
-  rightAccessory,
-  onRightAccessoryPress,
   ...props
 }: CellSelectProps) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -33,7 +31,6 @@ const CellSelect = ({
       isSelected={isSelected}
       style={styles.base}
       testID={CellModalSelectorsIDs.SELECT}
-      rightAccessory={rightAccessory}
       {...props}
     >
       <CellBase
