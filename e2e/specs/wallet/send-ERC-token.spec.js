@@ -30,7 +30,9 @@ describe(SmokeCore('Send ERC Token'), () => {
   it('should add Sepolia testnet to my networks list', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await TestHelpers.delay(2000);
+    await NetworkListModal.scrollToBottomOfNetworkList();
     await NetworkListModal.tapTestNetworkSwitch();
+    await NetworkListModal.scrollToBottomOfNetworkList();
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
