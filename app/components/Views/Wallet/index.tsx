@@ -106,6 +106,7 @@ import { useListNotifications } from '../../../util/notifications/hooks/useNotif
 import { useAccountSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
 
 import { isObject } from 'lodash';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
