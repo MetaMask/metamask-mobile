@@ -35,8 +35,7 @@ describe('Engine', () => {
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
-    // @ts-expect-error: backgroundState is not exactly Record<string, never>, but it's fine for this test
-    const engine = Engine.init(backgroundState);
+    const engine = Engine.init(backgroundState as unknown as Record<string, never>);
     const invalidAddress = '0xInvalidAddress';
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
@@ -78,8 +77,7 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      // @ts-expect-error: state is not exactly Record<string, never>, but it's fine for this test
-      engine = Engine.init(state);
+      engine = Engine.init(state as unknown as Record<string, never>);
       const totalFiatBalance = engine.getTotalFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
