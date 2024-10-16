@@ -15,6 +15,7 @@ import {
 } from '../../selectors/networkController';
 import { store } from '../../store';
 import checkSafeNetwork from './networkChecker.util';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -24,6 +25,18 @@ const waitForInteraction = async () =>
       resolve();
     });
   });
+
+// Utility function to find or add an item in an array and return the updated array and index
+const addOrUpdateIndex = (array, value, comparator) => {
+  const index = array.findIndex(comparator);
+  if (index === -1) {
+    return {
+      updatedArray: [...array, value],
+      index: array.length,
+    };
+  }
+  return { updatedArray: array, index };
+};
 
 const wallet_addEthereumChain = async ({
   req,
@@ -112,6 +125,14 @@ const wallet_addEthereumChain = async ({
     );
   }
 
+  if (typeof rawChainName !== 'string' || !rawChainName) {
+    throw rpcErrors.invalidParams({
+      message: `Expected non-empty string 'chainName'. Received:\n${rawChainName}`,
+    });
+  }
+
+  const chainName = rawChainName.slice(0, 100);
+
   //TODO: Remove aurora from default chains in @metamask/controller-utils
   const actualChains = { ...ChainId, aurora: undefined };
   if (Object.values(actualChains).find((value) => value === _chainId)) {
@@ -124,12 +145,47 @@ const wallet_addEthereumChain = async ({
   );
 
   if (existingEntry) {
-    const [networkConfigurationId, networkConfiguration] = existingEntry;
+    const [chainId, networkConfiguration] = existingEntry;
     const currentChainId = selectChainId(store.getState());
-    if (currentChainId === _chainId) {
-      res.result = null;
-      return;
-    }
+
+    // A network for this chain id already exists.
+    // Update it with any new information.
+    const clonedNetwork = { ...networkConfiguration };
+
+    // Use the addOrUpdateIndex utility for rpcEndpoints
+    const rpcResult = addOrUpdateIndex(
+      clonedNetwork.rpcEndpoints,
+      {
+        url: firstValidRPCUrl,
+        type: RpcEndpointType.Custom,
+        name: chainName,
+      },
+      (endpoint) => endpoint.url === firstValidRPCUrl,
+    );
+
+    clonedNetwork.rpcEndpoints = rpcResult.updatedArray;
+    clonedNetwork.defaultRpcEndpointIndex = rpcResult.index;
+
+    // Use the addOrUpdateIndex utility for blockExplorerUrls
+    const blockExplorerResult = addOrUpdateIndex(
+      clonedNetwork.blockExplorerUrls,
+      firstValidBlockExplorerUrl,
+      (url) => url === firstValidBlockExplorerUrl,
+    );
+
+    clonedNetwork.blockExplorerUrls = blockExplorerResult.updatedArray;
+    clonedNetwork.defaultBlockExplorerUrlIndex = blockExplorerResult.index;
+
+    await NetworkController.updateNetwork(
+      clonedNetwork.chainId,
+      clonedNetwork,
+      currentChainId === chainId
+        ? {
+            replacementSelectedRpcEndpointIndex:
+              clonedNetwork.defaultRpcEndpointIndex,
+          }
+        : undefined,
+    );
 
     const analyticsParams = {
       chain_id: getDecimalChainId(_chainId),
@@ -144,8 +200,8 @@ const wallet_addEthereumChain = async ({
         requestData: {
           rpcUrl: networkConfiguration.rpcUrl,
           chainId: _chainId,
-          chainName: networkConfiguration.nickname,
-          ticker: networkConfiguration.ticker,
+          chainName: networkConfiguration.name,
+          ticker: networkConfiguration.nativeCurrency,
           type: 'switch',
         },
       });
@@ -158,7 +214,12 @@ const wallet_addEthereumChain = async ({
     }
 
     CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
-    NetworkController.setActiveNetwork(networkConfigurationId);
+    const { networkClientId } =
+      networkConfiguration?.rpcEndpoints?.[
+        networkConfiguration.defaultRpcEndpointIndex
+      ] ?? {};
+
+    NetworkController.setActiveNetwork(networkClientId);
 
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_SWITCHED,
@@ -186,14 +247,6 @@ const wallet_addEthereumChain = async ({
       data: { chainId: endpointChainId },
     });
   }
-
-  if (typeof rawChainName !== 'string' || !rawChainName) {
-    throw rpcErrors.invalidParams({
-      message: `Expected non-empty string 'chainName'. Received:\n${rawChainName}`,
-    });
-  }
-  const chainName =
-    rawChainName.length > 100 ? rawChainName.substring(0, 100) : rawChainName;
 
   if (nativeCurrency !== null) {
     if (typeof nativeCurrency !== 'object' || Array.isArray(nativeCurrency)) {
@@ -272,24 +325,21 @@ const wallet_addEthereumChain = async ({
       );
       throw providerErrors.userRejectedRequest();
     }
-    const networkConfigurationId =
-      await NetworkController.upsertNetworkConfiguration(
+    const networkConfigurationId = await NetworkController.addNetwork({
+      chainId,
+      blockExplorerUrls,
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      name: chainName,
+      nativeCurrency: ticker,
+      rpcEndpoints: [
         {
-          rpcUrl: firstValidRPCUrl,
-          chainId: _chainId,
-          ticker,
-          nickname: chainName,
-          rpcPrefs: {
-            blockExplorerUrl: firstValidBlockExplorerUrl,
-          },
+          url: firstValidRPCUrl,
+          name: chainName,
+          type: RpcEndpointType.Custom,
         },
-        {
-          // Metrics-related properties required, but the metric event is a no-op
-          // TODO: Use events for controller metric events
-          referrer: 'ignored',
-          source: 'ignored',
-        },
-      );
+      ],
+    });
 
     MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_ADDED,
@@ -304,7 +354,12 @@ const wallet_addEthereumChain = async ({
     });
 
     CurrencyRateController.updateExchangeRate(ticker);
-    NetworkController.setActiveNetwork(networkConfigurationId);
+    const { networkClientId } =
+      networkConfigurationId?.rpcEndpoints?.[
+        networkConfigurationId.defaultRpcEndpointIndex
+      ] ?? {};
+
+    NetworkController.setActiveNetwork(networkClientId);
   } finally {
     endApprovalFlow({ id: approvalFlowId });
   }

@@ -1,9 +1,9 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../../../util/test/confirm-data-helpers';
 import Message from './index';
-import { fireEvent } from '@testing-library/react-native';
 
 describe('Message', () => {
   it('should match snapshot', async () => {

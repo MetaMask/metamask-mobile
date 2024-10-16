@@ -38,7 +38,7 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
@@ -177,7 +177,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const urlWithProtocol =
     hostname && !isUUID(hostname)
-      ? prefixUrlWithProtocol(hostname)
+      ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
   const isAllowedOrigin = useCallback((origin: string) => {

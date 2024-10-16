@@ -57,7 +57,11 @@ const UnstakeInputView = () => {
     : strings('stake.review');
 
   useEffect(() => {
-    navigation.setOptions(getStakingNavbar(title, navigation, theme.colors));
+    navigation.setOptions(
+      getStakingNavbar(title, navigation, theme.colors, {
+        hasBackButton: false,
+      }),
+    );
   }, [navigation, theme.colors, title]);
 
   const handleUnstakePress = useCallback(() => {

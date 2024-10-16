@@ -58,6 +58,12 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -244,6 +250,10 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
+    trace({
+      name: TraceName.LoginToPasswordEntry,
+      op: TraceOperation.LoginToPasswordEntry,
+    });
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -367,7 +377,15 @@ class Login extends PureComponent {
     );
 
     try {
-      await Authentication.userEntryAuth(password, authType);
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.AuthenticateUser,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       Keyboard.dismiss();
 
@@ -435,7 +453,15 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await Authentication.appTriggeredAuth();
+      await trace(
+        {
+          name: TraceName.BiometricAuthentication,
+          op: TraceOperation.BiometricAuthentication,
+        },
+        async () => {
+          await Authentication.appTriggeredAuth();
+        },
+      );
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -454,6 +480,7 @@ class Login extends PureComponent {
   };
 
   triggerLogIn = () => {
+    endTrace({ name: TraceName.LoginToPasswordEntry });
     this.onLogin();
   };
 
@@ -536,10 +563,7 @@ class Login extends PureComponent {
                 )}
               </TouchableOpacity>
 
-              <Text
-                style={styles.title}
-                testID={LoginViewSelectors.TITLE_ID}
-              >
+              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
