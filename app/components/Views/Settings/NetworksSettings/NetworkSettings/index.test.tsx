@@ -866,6 +866,32 @@ describe('NetworkSettings', () => {
 
       expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
     });
+
+    it('should validateChainIdOnSubmit', async () => {
+      const instance = wrapper.instance();
+
+      const validChainId = '0x38';
+
+      await instance.validateChainIdOnSubmit(
+        validChainId,
+        validChainId,
+        'https://bsc-dataseed.binance.org/',
+      );
+
+      expect(instance.state.warningChainId).toBeUndefined();
+    });
+
+    it('should set a warning when chainId is not valid', async () => {
+      const instance = wrapper.instance();
+
+      const validChainId = '0xInvalidChainId';
+
+      await instance.validateChainIdOnSubmit(validChainId);
+
+      expect(instance.state.warningChainId).toBe(
+        'Could not fetch chain ID. Is your RPC URL correct?',
+      );
+    });
   });
 
   describe('NetworkSettings componentDidMount', () => {
