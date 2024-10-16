@@ -479,6 +479,9 @@ export function setupSentry() {
     return;
   }
 
+  const isQa = METAMASK_ENVIRONMENT === 'qa';
+  const isDev = __DEV__;
+
   const init = async () => {
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
@@ -491,7 +494,7 @@ export function setupSentry() {
 
     Sentry.init({
       dsn,
-      debug: __DEV__,
+      debug: isDev,
       environment,
       integrations:
         metricsOptIn === AGREED
@@ -503,7 +506,7 @@ export function setupSentry() {
             ]
           : integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: __DEV__ ? 1.0 : 0.08,
+      tracesSampleRate: isDev || isQa ? 1.0 : 0.08,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
