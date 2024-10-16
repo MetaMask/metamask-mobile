@@ -126,9 +126,7 @@ exports[`SlippageSlider should render correctly 1`] = `
       resizeMode="stretch"
       source={
         {
-          "default": {
-            "uri": "MockImage",
-          },
+          "uri": "MockImage",
         }
       }
       style={
@@ -183,7 +181,7 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       }
     >
-      undefined%
+      0%
     </Text>
   </ForwardRef>
   <ForwardRef
