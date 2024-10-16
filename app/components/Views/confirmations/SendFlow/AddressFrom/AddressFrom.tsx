@@ -8,10 +8,7 @@ import {
   setSelectedAsset,
 } from '../../../../../actions/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../../selectors/networkController';
+import { selectTicker } from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
@@ -20,6 +17,7 @@ import { getEther, getTicker } from '../../../../../util/transactions';
 import { AddressFrom } from '../../../../UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { useChainId } from '../../../../../selectors/hooks';
 
 const SendFlowAddressFrom = ({
   fromAccountBalanceState,
@@ -29,7 +27,7 @@ const SendFlowAddressFrom = ({
 
   const accounts = useSelector(selectAccounts);
 
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const ticker = useSelector(selectTicker);
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);

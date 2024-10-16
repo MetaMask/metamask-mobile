@@ -25,4 +25,8 @@ export interface AddressElementProps extends TouchableOpacityProps {
    * Callback for icon press
    */
   onIconPress: () => void;
+  /**
+   * Chain ID
+   */
+  chainId: string;
 }
