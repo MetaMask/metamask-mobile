@@ -2047,13 +2047,13 @@ export class NetworkSettings extends PureComponent {
             shouldGoBack={false}
           >
             <View style={styles.sheetContent}>
+              <View style={styles.notch} />
               <BottomSheetHeader
                 onBack={() => {
                   this.closeAddRpcForm();
                   this.openRpcModal();
                 }}
               >
-                <View style={styles.notch} />
                 <Text style={styles.heading}>
                   {strings('app_settings.add_rpc_url')}
                 </Text>
@@ -2124,7 +2124,11 @@ export class NetworkSettings extends PureComponent {
           </ReusableModal>
         ) : null}
         {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
-          <ReusableModal style={styles.sheetRpcForm} shouldGoBack={false}>
+          <ReusableModal
+            style={styles.sheetRpcForm}
+            shouldGoBack={false}
+            onDismiss={this.closeAddBlockExplorerRpcForm}
+          >
             <View style={styles.sheetContent}>
               <View style={styles.notch} />
 
