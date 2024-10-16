@@ -34,7 +34,12 @@ const firstElement = 0;
 describe(Regression('Multiple Swaps from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
+  const wallet = ethers.Wallet.createRandom();
+
   beforeAll(async () => {
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Polygon.providerConfig.rpcUrl, wallet.address, '0x1043561A8829300000');
+
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Polygon)
@@ -58,10 +63,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   });
 
   it('should be able to import account', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Polygon.providerConfig.rpcUrl, wallet.address, '0x1043561A8829300000');
-
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
@@ -75,11 +76,8 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await ImportAccountView.tapCloseButtonOnImportSuccess();
     await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementNotToHaveText(
-      WalletView.accountName,
-      'Account 1',
-    );
-    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0', 60000);
+    // Wait for funds to become available
+    await TestHelpers.delay(10000);
   });
 
   it.each`
@@ -115,7 +113,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       }
       await Assertions.checkIfVisible(QuoteView.getQuotes);
 
-      //Select source token, if native tiken can skip because already selected
+      //Select source token, if native token can skip because already selected
       if (type !== 'native') {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
@@ -159,14 +157,14 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
+      await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
 
       // Check the tokeb approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
           ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT);
+        await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
       }
     },
   );

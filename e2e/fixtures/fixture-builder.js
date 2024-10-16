@@ -622,7 +622,7 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    const NetworkController =
+    const networkController =
       this.fixture.state.engine.backgroundState.NetworkController;
 
     const network = {
@@ -635,14 +635,14 @@ class FixtureBuilder {
       type: data.providerConfig.type,
     };
 
-    (NetworkController.selectedNetworkClientId = network.id),
-      (NetworkController.providerConfig = network);
+    (networkController.selectedNetworkClientId = network.id),
+      (networkController.providerConfig = network);
 
-    NetworkController.networksMetadata[network.id] = {
+      networkController.networksMetadata[network.id] = {
       status: 'available',
       EIPS: { 1559: true },
     };
-    NetworkController.networkConfigurations[network.id] = network;
+    networkController.networkConfigurations[network.id] = network;
     return this;
   }
 
