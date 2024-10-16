@@ -17,7 +17,7 @@ describe('notificationChannels', () => {
       name: 'Transaction Complete',
       lights: true,
       vibration: true,
-      importance: AndroidImportance.DEFAULT,
+      importance: AndroidImportance.HIGH,
       title: 'Transaction',
       subtitle: 'Transaction Complete',
     });
@@ -30,7 +30,7 @@ describe('notificationChannels', () => {
       name: 'MetaMask Announcement',
       lights: true,
       vibration: true,
-      importance: AndroidImportance.DEFAULT,
+      importance: AndroidImportance.HIGH,
       title: 'Announcement',
       subtitle: 'MetaMask Announcement',
     });
