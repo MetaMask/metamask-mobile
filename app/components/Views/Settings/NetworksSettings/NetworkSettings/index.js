@@ -734,8 +734,13 @@ export class NetworkSettings extends PureComponent {
   checkIfChainIdExists = async (chainId) => {
     const { networkConfigurations } = this.props;
 
-    // Convert the chainId to hex format
-    const hexChainId = toHex(chainId);
+    let hexChainId;
+    try {
+      // Convert the chainId to hex format
+      hexChainId = toHex(chainId);
+    } catch (error) {
+      hexChainId = null;
+    }
 
     // Check if any network configuration matches the given chainId
     const chainIdExists = Object.values(networkConfigurations).some(

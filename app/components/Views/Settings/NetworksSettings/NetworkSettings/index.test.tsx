@@ -39,7 +39,10 @@ const store = mockStore(initialState);
 
 const SAMPLE_NETWORKSETTINGS_PROPS = {
   route: { params: {} },
-  networkConfigurationsByChainId: {
+  providerConfig: {
+    rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+  },
+  networkConfigurations: {
     '0x1': {
       blockExplorerUrls: ['https://etherscan.io'],
       chainId: '0x1',
@@ -604,6 +607,184 @@ describe('NetworkSettings', () => {
       expect(instanceTest.getDecimalChainId('0x7fffffffffffffff')).toBe(
         '9223372036854776000',
       );
+    });
+  });
+
+  describe('NetworkSettings additional tests', () => {
+    beforeEach(() => {
+      wrapper = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should validate chain ID format and set warning if invalid', async () => {
+      const instance = wrapper.instance();
+
+      // Test with an invalid chainId format
+      await instance.onChainIDChange('invalidChainId');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(
+        "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
+      );
+    });
+
+    it('should validate chain ID correctly if valid', async () => {
+      const instance = wrapper.instance();
+
+      // Test with a valid chainId
+      await instance.onChainIDChange('0x1');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(undefined);
+    });
+
+    it('should toggle the modal for RPC form correctly', () => {
+      const instance = wrapper.instance();
+
+      instance.openAddRpcForm();
+      expect(wrapper.state('showAddRpcForm').isVisible).toBe(true);
+
+      instance.closeAddRpcForm();
+      expect(wrapper.state('showAddRpcForm').isVisible).toBe(false);
+    });
+
+    it('should toggle the modal for Block Explorer form correctly', () => {
+      const instance = wrapper.instance();
+
+      instance.openAddBlockExplorerForm();
+      expect(wrapper.state('showAddBlockExplorerForm').isVisible).toBe(true);
+
+      instance.closeAddBlockExplorerRpcForm();
+      expect(wrapper.state('showAddBlockExplorerForm').isVisible).toBe(false);
+    });
+
+    it('should validate RPC URL and set a warning if the format is invalid', async () => {
+      const instance = wrapper.instance();
+
+      // Test with an invalid RPC URL
+      await instance.onRpcUrlChange('invalidUrl');
+      await instance.validateRpcUrl('invalidUrl');
+
+      expect(wrapper.state('warningRpcUrl')).toBe(
+        'URIs require the appropriate HTTPS prefix',
+      );
+    });
+
+    it('should not set warning for a valid RPC URL', async () => {
+      const instance = wrapper.instance();
+
+      // Test with a valid RPC URL
+      await instance.onRpcUrlChange(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+
+      expect(wrapper.state('warningRpcUrl')).toBe(undefined);
+    });
+
+    it('should correctly add RPC URL through modal and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Open RPC form modal and add a new RPC URL
+      instance.openAddRpcForm();
+      await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+      expect(wrapper.state('rpcUrls').length).toBe(1);
+      expect(wrapper.state('rpcUrls')[0].url).toBe('https://new-rpc-url.com');
+      expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
+    });
+
+    it('should correctly add Block Explorer URL through modal and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Open Block Explorer form modal and add a new URL
+      instance.openAddBlockExplorerForm();
+      await instance.onBlockExplorerItemAdd('https://new-blockexplorer.com');
+
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://new-blockexplorer.com',
+      );
+    });
+
+    it('should call validateRpcAndChainId when chainId and rpcUrl are set', async () => {
+      const instance = wrapper.instance();
+      const validateRpcAndChainIdSpy = jest.spyOn(
+        instance,
+        'validateRpcAndChainId',
+      );
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+      });
+
+      await instance.validateRpcAndChainId();
+
+      expect(validateRpcAndChainIdSpy).toHaveBeenCalled();
+    });
+
+    it('should correctly delete an RPC URL and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Add and then delete an RPC URL
+      await instance.onRpcItemAdd('https://to-delete-url.com', 'RPC to delete');
+      expect(wrapper.state('rpcUrls').length).toBe(1);
+
+      await instance.onRpcUrlDelete('https://to-delete-url.com');
+      expect(wrapper.state('rpcUrls').length).toBe(0);
+    });
+
+    it('should correctly delete a Block Explorer URL and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Add and then delete a Block Explorer URL
+      await instance.onBlockExplorerItemAdd(
+        'https://to-delete-blockexplorer.com',
+      );
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+
+      await instance.onBlockExplorerUrlDelete(
+        'https://to-delete-blockexplorer.com',
+      );
+      expect(wrapper.state('blockExplorerUrls').length).toBe(0);
+    });
+
+    it('should call the navigation method to go back when removeRpcUrl is called', () => {
+      const instance = wrapper.instance();
+      wrapper.setState({
+        rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      });
+      instance.removeRpcUrl();
+
+      expect(SAMPLE_NETWORKSETTINGS_PROPS.navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('should disable action button when form is incomplete', async () => {
+      const instance = wrapper.instance();
+
+      // Set incomplete form state
+      wrapper.setState({
+        rpcUrl: '',
+        chainId: '',
+        nickname: '',
+      });
+
+      await instance.addRpcUrl();
+
+      // The action button should be disabled
+      expect(wrapper.state('enableAction')).toBe(false);
     });
   });
 });
