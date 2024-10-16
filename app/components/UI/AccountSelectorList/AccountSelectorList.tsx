@@ -1,8 +1,16 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, Platform, View } from 'react-native';
+import {
+  Alert,
+  ListRenderItem,
+  Platform,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Hex } from '@metamask/utils';
 
@@ -19,12 +27,17 @@ import {
   getLabelTextByAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
@@ -46,6 +59,7 @@ const AccountSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
+  const { navigate } = useNavigation();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
@@ -151,6 +165,12 @@ const AccountSelectorList = ({
     ],
   );
 
+  const onNavigateToAccountActions = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_ACTIONS,
+    });
+  }, [navigate]);
+
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
       item: { name, address, assets, type, isSelected, balanceError },
@@ -177,39 +197,58 @@ const AccountSelectorList = ({
 
       const cellStyle = {
         opacity: isLoading ? 0.5 : 1,
+        alignItems: 'center',
       };
 
       return (
-        <Cell
-          onLongPress={() => {
-            onLongPress({
-              address,
-              imported: type === KeyringTypes.simple,
-              isSelected: isSelectedAccount,
-              index,
-            });
-          }}
-          variant={cellVariant}
-          isSelected={isSelectedAccount}
-          title={accountName}
-          secondaryText={shortAddress}
-          tertiaryText={balanceError}
-          onPress={() => onSelectAccount?.(address, isSelectedAccount)}
-          avatarProps={{
-            variant: AvatarVariant.Account,
-            type: accountAvatarType,
-            accountAddress: address,
-          }}
-          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
-          disabled={isDisabled}
-          style={cellStyle}
-        >
-          {renderRightAccessory?.(address, accountName) ||
-            (assets && renderAccountBalances(assets, address))}
-        </Cell>
+        <View style={styles.accountItemContainer}>
+          <Cell
+            onLongPress={() => {
+              onLongPress({
+                address,
+                imported: type === KeyringTypes.simple,
+                isSelected: isSelectedAccount,
+                index,
+              });
+            }}
+            variant={cellVariant}
+            isSelected={isSelectedAccount}
+            title={accountName}
+            secondaryText={shortAddress}
+            tertiaryText={balanceError}
+            onPress={() => onSelectAccount?.(address, isSelectedAccount)}
+            avatarProps={{
+              variant: AvatarVariant.Account,
+              type: accountAvatarType,
+              accountAddress: address,
+            }}
+            tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
+            disabled={isDisabled}
+            style={cellStyle as ViewStyle}
+            rightAccessory={
+              <TouchableOpacity
+                onPress={onNavigateToAccountActions}
+                style={styles.rightAccessoryContainer}
+                testID={WalletViewSelectorsIDs.ACCOUNT_ACTIONS}
+              >
+                <ButtonIcon
+                  onPress={onNavigateToAccountActions}
+                  iconName={IconName.MoreVertical}
+                  size={ButtonIconSizes.Sm}
+                />
+              </TouchableOpacity>
+            }
+          >
+            {renderRightAccessory?.(address, accountName) ||
+              (assets && renderAccountBalances(assets, address))}
+          </Cell>
+        </View>
       );
     },
     [
+      styles.rightAccessoryContainer,
+      styles.accountItemContainer,
+      onNavigateToAccountActions,
       accountAvatarType,
       onSelectAccount,
       renderAccountBalances,

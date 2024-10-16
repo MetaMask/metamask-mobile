@@ -7793,6 +7793,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                   accessibilityRole="button"
                                                   accessible={true}
                                                   disabled={false}
+                                                  onLongPress={[Function]}
                                                   onPress={[Function]}
                                                   style={
                                                     {
@@ -7824,58 +7825,77 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                       <View
                                                         style={
                                                           {
-                                                            "flex": 1,
+                                                            "alignItems": "center",
+                                                            "flexDirection": "row",
+                                                            "justifyContent": "space-between",
+                                                            "width": "100%",
                                                           }
                                                         }
-                                                        testID="listitemcolumn"
                                                       >
                                                         <View
                                                           style={
                                                             {
-                                                              "alignItems": "center",
-                                                              "flexDirection": "row",
+                                                              "flex": 1,
                                                             }
                                                           }
                                                         >
                                                           <View
                                                             style={
                                                               {
-                                                                "paddingRight": 16,
+                                                                "flex": 1,
                                                               }
                                                             }
+                                                            testID="listitemcolumn"
                                                           >
-                                                            <Text
-                                                              accessibilityRole="text"
+                                                            <View
                                                               style={
                                                                 {
-                                                                  "color": "#141618",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 14,
-                                                                  "fontWeight": "400",
-                                                                  "letterSpacing": 0,
-                                                                  "lineHeight": 22,
+                                                                  "alignItems": "center",
+                                                                  "flexDirection": "row",
                                                                 }
                                                               }
                                                             >
-                                                              🇨🇱
-                                                            </Text>
-                                                          </View>
-                                                          <View>
-                                                            <Text
-                                                              accessibilityRole="text"
-                                                              style={
-                                                                {
-                                                                  "color": "#141618",
-                                                                  "fontFamily": "EuclidCircularB-Medium",
-                                                                  "fontSize": 16,
-                                                                  "fontWeight": "500",
-                                                                  "letterSpacing": 0,
-                                                                  "lineHeight": 24,
+                                                              <View
+                                                                style={
+                                                                  {
+                                                                    "paddingRight": 16,
+                                                                  }
                                                                 }
-                                                              }
-                                                            >
-                                                              Chile
-                                                            </Text>
+                                                              >
+                                                                <Text
+                                                                  accessibilityRole="text"
+                                                                  style={
+                                                                    {
+                                                                      "color": "#141618",
+                                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                                      "fontSize": 14,
+                                                                      "fontWeight": "400",
+                                                                      "letterSpacing": 0,
+                                                                      "lineHeight": 22,
+                                                                    }
+                                                                  }
+                                                                >
+                                                                  🇨🇱
+                                                                </Text>
+                                                              </View>
+                                                              <View>
+                                                                <Text
+                                                                  accessibilityRole="text"
+                                                                  style={
+                                                                    {
+                                                                      "color": "#141618",
+                                                                      "fontFamily": "EuclidCircularB-Medium",
+                                                                      "fontSize": 16,
+                                                                      "fontWeight": "500",
+                                                                      "letterSpacing": 0,
+                                                                      "lineHeight": 24,
+                                                                    }
+                                                                  }
+                                                                >
+                                                                  Chile
+                                                                </Text>
+                                                              </View>
+                                                            </View>
                                                           </View>
                                                         </View>
                                                       </View>
@@ -7902,6 +7922,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 accessibilityRole="button"
                                                 accessible={true}
                                                 disabled={false}
+                                                onLongPress={[Function]}
                                                 onPress={[Function]}
                                                 style={
                                                   {
@@ -7933,58 +7954,77 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                     <View
                                                       style={
                                                         {
-                                                          "flex": 1,
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                          "justifyContent": "space-between",
+                                                          "width": "100%",
                                                         }
                                                       }
-                                                      testID="listitemcolumn"
                                                     >
                                                       <View
                                                         style={
                                                           {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
+                                                            "flex": 1,
                                                           }
                                                         }
                                                       >
                                                         <View
                                                           style={
                                                             {
-                                                              "paddingRight": 16,
+                                                              "flex": 1,
                                                             }
                                                           }
+                                                          testID="listitemcolumn"
                                                         >
-                                                          <Text
-                                                            accessibilityRole="text"
+                                                          <View
                                                             style={
                                                               {
-                                                                "color": "#141618",
-                                                                "fontFamily": "EuclidCircularB-Regular",
-                                                                "fontSize": 14,
-                                                                "fontWeight": "400",
-                                                                "letterSpacing": 0,
-                                                                "lineHeight": 22,
+                                                                "alignItems": "center",
+                                                                "flexDirection": "row",
                                                               }
                                                             }
                                                           >
-                                                            🇦🇷
-                                                          </Text>
-                                                        </View>
-                                                        <View>
-                                                          <Text
-                                                            accessibilityRole="text"
-                                                            style={
-                                                              {
-                                                                "color": "#141618",
-                                                                "fontFamily": "EuclidCircularB-Medium",
-                                                                "fontSize": 16,
-                                                                "fontWeight": "500",
-                                                                "letterSpacing": 0,
-                                                                "lineHeight": 24,
+                                                            <View
+                                                              style={
+                                                                {
+                                                                  "paddingRight": 16,
+                                                                }
                                                               }
-                                                            }
-                                                          >
-                                                            Argentina
-                                                          </Text>
+                                                            >
+                                                              <Text
+                                                                accessibilityRole="text"
+                                                                style={
+                                                                  {
+                                                                    "color": "#141618",
+                                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                                    "fontSize": 14,
+                                                                    "fontWeight": "400",
+                                                                    "letterSpacing": 0,
+                                                                    "lineHeight": 22,
+                                                                  }
+                                                                }
+                                                              >
+                                                                🇦🇷
+                                                              </Text>
+                                                            </View>
+                                                            <View>
+                                                              <Text
+                                                                accessibilityRole="text"
+                                                                style={
+                                                                  {
+                                                                    "color": "#141618",
+                                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                                    "fontSize": 16,
+                                                                    "fontWeight": "500",
+                                                                    "letterSpacing": 0,
+                                                                    "lineHeight": 24,
+                                                                  }
+                                                                }
+                                                              >
+                                                                Argentina
+                                                              </Text>
+                                                            </View>
+                                                          </View>
                                                         </View>
                                                       </View>
                                                     </View>

@@ -18,6 +18,10 @@ export interface ListItemSelectProps
    * Optional prop to determine if the item is disabled.
    */
   isDisabled?: boolean;
+  /**
+   * Optional prop to determine if the item is disabled.
+   */
+  rightAccessory?: React.ReactNode;
 }
 
 /**

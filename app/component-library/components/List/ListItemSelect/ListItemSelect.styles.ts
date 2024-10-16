@@ -47,6 +47,15 @@ const styleSheet = (params: {
       borderRadius: 2,
       backgroundColor: colors.primary.default,
     },
+    contentContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    childrenContainer: {
+      flex: 1,
+    },
   });
 };
 
