@@ -139,10 +139,6 @@ class NetworkView {
   }
 
   async tapAddRpcButton() {
-    /* android is failing to tap on this element
-    The bottom sheet to add RPC url is not in the viewport for detox
-    Need to double check if the element is seen on android
-    */
     await Gestures.waitAndTap(this.addRpcButton);
   }
 

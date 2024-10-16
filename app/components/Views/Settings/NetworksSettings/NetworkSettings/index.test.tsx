@@ -87,6 +87,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       {
         name: 'Ethereum Mainnet',
         chain: 'ETH',
+        chainId: 1,
         icon: 'ethereum',
         rpc: [
           'https://mainnet.infura.io/v3/${INFURA_API_KEY}',
@@ -148,6 +149,17 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
             standard: 'EIP3091',
           },
         ],
+      },
+      {
+        name: 'Polygon',
+        chain: 'MATIC',
+        chainId: 137,
+        faucets: [],
+        nativeCurrency: {
+          name: 'Polygon',
+          symbol: 'MATIC',
+          decimals: 18,
+        },
       },
     ],
   },
@@ -465,6 +477,15 @@ describe('NetworkSettings', () => {
 
   it('should validate RPC URL and Chain ID combination', async () => {
     wrapper.setState({ rpcUrl: 'http://localhost:8545', chainId: '0x1' });
+
+    await wrapper.instance().validateRpcAndChainId();
+
+    expect(wrapper.state('validatedRpcURL')).toBe(true);
+    expect(wrapper.state('validatedChainId')).toBe(true);
+  });
+
+  it('should add RPC URL correctly to POL for polygon', async () => {
+    wrapper.setState({ rpcUrl: 'http://localhost:8545', chainId: '0x89' });
 
     await wrapper.instance().validateRpcAndChainId();
 
@@ -1148,6 +1169,34 @@ describe('NetworkSettings', () => {
       expect(wrapper4.state('nickname')).toBe('Custom Network');
       expect(wrapper4.state('chainId')).toBe('0x123');
       expect(wrapper4.state('rpcUrl')).toBe('https://custom-network.io');
+    });
+
+    it('should call validateRpcAndChainId when matchedChainNetwork changes', () => {
+      const instance = wrapper.instance();
+
+      const validateRpcAndChainIdSpy = jest.spyOn(
+        wrapper.instance(),
+        'validateRpcAndChainId',
+      );
+      const updateNavBarSpy = jest.spyOn(wrapper.instance(), 'updateNavBar');
+
+      const prevProps = {
+        matchedChainNetwork: {
+          id: 'network1',
+        },
+      };
+
+      // Simulate a prop change
+      wrapper.setProps({
+        matchedChainNetwork: {
+          id: 'network2',
+        },
+      });
+
+      instance.componentDidUpdate(prevProps);
+
+      expect(updateNavBarSpy).toHaveBeenCalled();
+      expect(validateRpcAndChainIdSpy).toHaveBeenCalled();
     });
   });
 
