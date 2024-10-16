@@ -1,12 +1,12 @@
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
-import path from 'path';  // Add path to help with file paths if necessary
-import fs from 'fs';      // Optionally use fs to check file existence
+import path from 'path';  // For resolving file paths
+import fs from 'fs';      // For file system operations
 
 const mockServer = getLocal();
 
 export const startMockServer = async (events, port) => {
-  // Find an available port
+  // Find an available port if not provided
   port = port || await portfinder.getPortPromise();
   
   await mockServer.start(port);
@@ -20,21 +20,29 @@ export const startMockServer = async (events, port) => {
     const { mockUrl, responseCode, responseBodyFile } = event;
     let responseBody = {};
 
-    // Use require instead of dynamic import
+    // Load response body from file if provided
     if (responseBodyFile) {
-      const filePath = path.resolve(responseBodyFile);  // Resolve the full path
-      if (fs.existsSync(filePath)) {                    // Check if file exists
+      const filePath = path.resolve(responseBodyFile);  // Resolve the full file path
+      if (fs.existsSync(filePath)) {                    // Ensure the file exists
         responseBody = require(filePath);               // Load the file synchronously
+      } else {
+        console.warn(`Response body file not found at: ${filePath}`);
       }
     }
 
-    await mockServer.forGet(mockUrl).thenReply(responseCode, JSON.stringify(responseBody));
+    // Set up the mock response for the URL, using query parameter matching if needed
+    await mockServer.forGet('/proxy')
+      .withQuery({ url: mockUrl })  // Match on the 'url' query parameter
+      .thenReply(responseCode, JSON.stringify(responseBody));  // Return the mock response
+      // console.log(`Mocking request to: ${method} ${url}`);
+
   }
 
+  // Pass through unmatched requests and log them
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method }) => {
       console.log(`Forwarding request to: ${method} ${url}`);
-      return { url: new URL(url).searchParams.get('url') || url };
+      return { url: new URL(url).searchParams.get('url') || url };  // Pass through or adjust the URL
     },
   });
 
