@@ -9,7 +9,6 @@ import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Text, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
-import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
@@ -62,7 +61,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
             style={styles.accountNameLabelText}
             testID={AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL}
           >
-            {strings(accountTypeLabel)}
+            {accountTypeLabel}
           </Text>
         )}
         {showAddress && (
