@@ -9,7 +9,6 @@ import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Text, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
-import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
