@@ -786,5 +786,75 @@ describe('NetworkSettings', () => {
       // The action button should be disabled
       expect(wrapper.state('enableAction')).toBe(false);
     });
+
+    it('should enable action button when form is complete', async () => {
+      const instance = wrapper.instance();
+
+      // Set complete form state
+      wrapper.setState({
+        rpcUrls: [
+          { url: 'http://localhost:8545', type: 'custom', name: 'test' },
+        ],
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        nickname: 'Localhost',
+        ticker: 'ETH',
+      });
+
+      await instance.getCurrentState();
+
+      // The action button should be enabled
+      expect(wrapper.state('enableAction')).toBe(true);
+    });
+
+    it('should validateChainId and set appropriate error messages for invalid chainId formats', async () => {
+      const instance = wrapper.instance();
+
+      // Set an invalid chain ID
+      await instance.onChainIDChange('0xinvalid');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(
+        'Invalid hexadecimal number.',
+      );
+    });
+
+    it('should handle valid chainId conversion and updating state correctly', async () => {
+      const instance = wrapper.instance();
+
+      await instance.onChainIDChange('0x1');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(undefined);
+    });
+
+    it('should call getCurrentState when onNicknameChange is triggered', async () => {
+      const instance = wrapper.instance();
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      await instance.onNicknameChange('New Nickname');
+
+      expect(wrapper.state('nickname')).toBe('New Nickname');
+      expect(getCurrentStateSpy).toHaveBeenCalled();
+    });
+
+    it('should not call getCurrentState', async () => {
+      const instance = wrapper.instance();
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      await instance.onBlockExplorerItemAdd('');
+
+      expect(getCurrentStateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should set blockExplorerState', async () => {
+      const instance = wrapper.instance();
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      await instance.onBlockExplorerItemAdd('https://etherscan.io');
+
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(getCurrentStateSpy).toHaveBeenCalled();
+    });
   });
 });
