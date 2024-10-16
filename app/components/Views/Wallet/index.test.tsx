@@ -8,7 +8,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { BN } from 'ethereumjs-util';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -30,9 +29,6 @@ jest.mock('../../../core/Engine', () => ({
           [MOCK_ADDRESS]: [],
         },
       },
-    },
-    TokensController: {
-      ignoreTokens: jest.fn(() => Promise.resolve()),
     },
     TokenRatesController: {
       poll: jest.fn(),
@@ -87,60 +83,6 @@ const mockInitialState = {
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
-      TokensController: {
-        tokens: [
-          {
-            name: 'Ethereum',
-            symbol: 'ETH',
-            address: '0x0',
-            decimals: 18,
-            isETH: true,
-
-            balanceFiat: '< $0.01',
-            iconUrl: '',
-          },
-          {
-            name: 'Bat',
-            symbol: 'BAT',
-            address: '0x01',
-            decimals: 18,
-            balanceFiat: '$0',
-            iconUrl: '',
-          },
-          {
-            name: 'Link',
-            symbol: 'LINK',
-            address: '0x02',
-            decimals: 18,
-            balanceFiat: '$0',
-            iconUrl: '',
-          },
-        ],
-      },
-      TokenRatesController: {
-        marketData: {
-          '0x1': {
-            '0x0': { price: 0.005 },
-            '0x01': { price: 0.005 },
-            '0x02': { price: 0.005 },
-          },
-        },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-        currencyRates: {
-          ETH: {
-            conversionRate: 1,
-          },
-        },
-      },
-      TokenBalancesController: {
-        contractBalances: {
-          '0x00': new BN(2).toString(),
-          '0x01': new BN(2).toString(),
-          '0x02': new BN(0).toString(),
-        },
-      },
     },
   },
 };
@@ -152,20 +94,6 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
-const mockNavigate = jest.fn();
-const mockPush = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualReactNavigation,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      push: mockPush,
-    }),
-  };
-});
-
 jest.mock('react-native-scrollable-tab-view', () => {
   const ScrollableTabViewMock = jest
     .fn()
@@ -176,7 +104,6 @@ jest.mock('react-native-scrollable-tab-view', () => {
   ScrollableTabViewMock.defaultProps = {
     onChangeTab: jest.fn(),
     renderTabBar: jest.fn(),
-    tabs: [],
   };
   return ScrollableTabViewMock;
 });
