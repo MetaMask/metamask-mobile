@@ -1,5 +1,5 @@
-import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState, LegacyRef, useMemo, ReactNode } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -34,6 +34,13 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import Text from '../../../component-library/components/Texts/Text';
+import currencySymbols from '../../../util/currency-symbols.json';
+import Cell, {
+  CellVariant,
+} from '../../../component-library/components/Cells/Cell';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -66,6 +73,46 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
+type SelectableListItemProps = {
+  isSelected: boolean;
+  onPress?: () => void;
+  testId?: string;
+  children: ReactNode;
+};
+
+export const SelectableListItem = ({
+  isSelected,
+  onPress,
+  testId,
+  children,
+}: SelectableListItemProps) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return (
+    <View style={styles.selectableListItemWrapper} data-testid={testId}>
+      {/* <TouchableOpacity
+        data-testid={`${testId}__button`}
+        // className={classnames('selectable-list-item', {
+        //   'selectable-list-item--selected': isSelected,
+        // })}
+        style={[
+          styles.selectableListItem,
+          isSelected && styles.selectableListItemSelected,
+        ]}
+        onPress={() => console.log('Press')}
+      >
+        {children}
+      </TouchableOpacity> */}
+      <Cell
+        variant={CellVariant.Select}
+        title="name"
+        isSelected={isSelected}
+        onPress={() => console.log('press')}
+      />
+    </View>
+  );
+};
+
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const navigation =
     useNavigation<
@@ -86,7 +133,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const conversionRate = useSelector(selectConversionRate);
 
   const actionSheet = useRef<typeof ActionSheet>();
-  const sortControlsActionSheet = useRef<typeof ActionSheet>();
+  // const sortControlsActionSheet = useRef<typeof ActionSheet>();
+  const [isTokenSortBottomSheetOpen, setIsTokenSortBottomSheetOpen] =
+    useState(false);
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -145,8 +194,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const showSortControls = () => {
-    if (sortControlsActionSheet.current) {
-      sortControlsActionSheet.current.show();
+    if (!isTokenSortBottomSheetOpen) {
+      setIsTokenSortBottomSheetOpen(true);
     }
   };
 
@@ -268,25 +317,42 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           setIsAddTokenEnabled={setIsAddTokenEnabled}
         />
       )}
-      <ActionSheet
+      {isTokenSortBottomSheetOpen && (
+        <BottomSheet
+          onClose={() => setIsTokenSortBottomSheetOpen(false)}
+          shouldNavigateBack={false}
+        >
+          <View style={styles.bottomSheetWrapper}>
+            <Text style={styles.bottomSheetTitle}>Sort By</Text>
+            <Cell
+              variant={CellVariant.Select}
+              title={strings('wallet.declining_balance', {
+                currency:
+                  currencySymbols[
+                    currentCurrency as keyof typeof currencySymbols
+                  ] ?? currentCurrency,
+              })}
+              isSelected={tokenSortConfig.key === 'tokenFiatAmount'}
+              onPress={() => onSortControlsActionSheetPress(0)}
+            />
+            <Cell
+              variant={CellVariant.Select}
+              title={strings('wallet.alphabetically')}
+              isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}
+              onPress={() => onSortControlsActionSheetPress(1)}
+            />
+          </View>
+        </BottomSheet>
+      )}
+
+      {/* <ActionSheet
         ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}
         options={[strings('wallet.remove'), strings('wallet.cancel')]}
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
-      />
-      <ActionSheet
-        ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={'Sort by'}
-        options={[
-          strings('wallet.declining_balance', { currency: currentCurrency }),
-          strings('wallet.alphabetically'),
-          'Cancel',
-        ]}
-        cancelButtonIndex={2}
-        onPress={onSortControlsActionSheetPress}
-      />
+      /> */}
     </View>
   );
 };
