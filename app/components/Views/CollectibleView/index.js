@@ -64,7 +64,6 @@ class CollectibleView extends PureComponent {
       route.params?.contractName ?? '',
       false,
       navigation,
-      colors,
     );
   };
 
