@@ -6,13 +6,13 @@ import FooterLegalLinks from './LegalLinks/LegalLinks';
 import FooterButtonGroup from './FooterButtonGroup/FooterButtonGroup';
 import { ConfirmationFooterProps } from './ConfirmationFooter.types';
 
-const ConfirmationFooter = ({ valueWei }: ConfirmationFooterProps) => {
+const ConfirmationFooter = ({ valueWei, action }: ConfirmationFooterProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.footerContainer}>
       <FooterLegalLinks />
-      <FooterButtonGroup valueWei={valueWei} />
+      <FooterButtonGroup valueWei={valueWei} action={action} />
     </View>
   );
 };

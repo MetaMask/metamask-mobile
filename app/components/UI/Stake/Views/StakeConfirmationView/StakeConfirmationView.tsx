@@ -11,6 +11,7 @@ import ConfirmationFooter from '../../components/StakingConfirmation/Confirmatio
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
 import { strings } from '../../../../../../locales/i18n';
+import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
 
 const MOCK_REWARD_DATA = {
   REWARDS: {
@@ -52,7 +53,10 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           />
         </View>
       </View>
-      <ConfirmationFooter valueWei={route.params.amountWei} />
+      <ConfirmationFooter
+        valueWei={route.params.amountWei}
+        action={FooterButtonGroupActions.STAKE}
+      />
     </View>
   );
 };
