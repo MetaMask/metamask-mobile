@@ -5,10 +5,33 @@ import {
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CellModalSelectorsIDs } from '../../selectors/Modals/CellModal.selectors';
+import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
 
 class NetworkListModal {
   get networkScroll() {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL);
+  }
+
+  get closeIcon() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  }
+
+  get deleteNetworkButton() {
+    return Matchers.getElementByText(
+      NetworkListModalSelectorsText.DELETE_NETWORK,
+    );
+  }
+
+  get addPopularNetworkButton() {
+    return Matchers.getElementByText(
+      NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
+    );
+  }
+
+  get networkSearchInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+    );
   }
 
   get selectNetwork() {
@@ -31,6 +54,14 @@ class NetworkListModal {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.CUSTOM_NETWORK_CELL(network));
   }
 
+  async tapDeleteButton() {
+    await Gestures.waitAndTap(this.deleteNetworkButton);
+  }
+
+  async scrollToTopOfNetworkList() {
+    await Gestures.swipe(this.networkScroll, 'down', 'fast');
+  }
+
   async changeNetworkTo(networkName, custom) {
     const elem = this.getCustomNetwork(networkName, custom);
     await Gestures.waitAndTap(elem);
@@ -46,6 +77,26 @@ class NetworkListModal {
 
   async tapTestNetworkSwitch() {
     await Gestures.waitAndTap(this.testNetToggle);
+  }
+
+  async longPressOnNetwork(networkName) {
+    const network = Matchers.getElementByText(networkName);
+    await Gestures.tapAndLongPress(network);
+  }
+
+  async SearchNetworkName(networkName) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkSearchInput,
+      networkName,
+    );
+  }
+
+  async tapClearSearch() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+
+  async tapAddNetworkButton() {
+    await Gestures.waitAndTap(this.addPopularNetworkButton);
   }
 }
 

@@ -54,15 +54,19 @@ class EngineService {
         key: `${engine.context.AddressBookController.name}:stateChange`,
       },
       { name: 'AssetsContractController' },
-      { name: 'NftController' },
+      { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',
+        key: `${engine.context.TokensController.name}:stateChange`,
       },
       {
         name: 'TokenDetectionController',
         key: `${engine.context.TokenDetectionController.name}:stateChange`,
       },
-      { name: 'NftDetectionController' },
+      {
+        name: 'NftDetectionController',
+        key: 'NftDetectionController:stateChange',
+      },
       {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
@@ -74,7 +78,7 @@ class EngineService {
       },
       {
         name: 'PhishingController',
-        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+        key: `${engine.context.PhishingController.name}:stateChange`,
       },
       {
         name: 'PreferencesController',

@@ -19,7 +19,7 @@ import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
-import { ImportAccountFromPrivateKeySelectorsIDs } from '../../../../e2e/selectors/ImportAccountFromPrivateKey.selectors';
+import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -129,7 +129,7 @@ const ImportPrivateKey = () => {
         <View
           style={styles.content}
           testID={
-            ImportAccountFromPrivateKeySelectorsIDs.IMPORT_ACCOUNT_SCREEN_ID
+            ImportAccountFromPrivateKeyIDs.CONTAINER
           }
         >
           <TouchableOpacity onPress={dismiss} style={styles.navbarRightButton}>
@@ -138,7 +138,7 @@ const ImportPrivateKey = () => {
               size={15}
               style={styles.closeIcon}
               testID={
-                ImportAccountFromPrivateKeySelectorsIDs.CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID
+                ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON
               }
             />
           </TouchableOpacity>
@@ -171,7 +171,7 @@ const ImportPrivateKey = () => {
               style={[styles.input, inputWidth ? { width: inputWidth } : {}]}
               onChangeText={setPrivateKey}
               testID={
-                ImportAccountFromPrivateKeySelectorsIDs.PRIVATE_KEY_INPUT_BOX_ID
+                ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX
               }
               blurOnSubmit
               onSubmitEditing={() => goNext()}
@@ -196,7 +196,7 @@ const ImportPrivateKey = () => {
             type={'confirm'}
             onPress={() => goNext()}
             testID={
-              ImportAccountFromPrivateKeySelectorsIDs.IMPORT_PRIVATE_KEY_BUTTON_ID
+              ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON
             }
           >
             {loading ? (

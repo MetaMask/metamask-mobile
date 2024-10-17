@@ -11,12 +11,10 @@ import {
   LOGIN_OPTIONS,
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
-  NFT_AUTO_DETECT_MODE_SECTION,
   REVEAL_PRIVATE_KEY_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
-  USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
@@ -105,9 +103,7 @@ describe('SecuritySettings', () => {
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
     expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
-    expect(getByTestId(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
     expect(getByText('Automatic security checks')).toBeTruthy();
-    expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
   });
 
   it('renders Blockaid settings', async () => {

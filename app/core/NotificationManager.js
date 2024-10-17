@@ -16,8 +16,10 @@ import {
 
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId } from '../selectors/networkController';
+import { selectChainId, selectTicker } from '../selectors/networkController';
 import { store } from '../store';
+import { useSelector } from 'react-redux';
+import { getTicker } from '../../app/util/transactions';
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -412,6 +414,7 @@ class NotificationManager {
     );
 
     const chainId = selectChainId(store.getState());
+    const ticker = useSelector(selectTicker);
 
     /// Find the incoming TX
     const transactions = TransactionController.getTransactions({
@@ -442,7 +445,7 @@ class NotificationManager {
             nonce: `${hexToBN(txs[0].txParams.nonce).toString()}`,
             amount: `${renderFromWei(hexToBN(txs[0].txParams.value))}`,
             id: txs[0]?.id,
-            assetType: strings('unit.eth'),
+            assetType: getTicker(ticker),
           },
           autoHide: true,
           duration: 7000,

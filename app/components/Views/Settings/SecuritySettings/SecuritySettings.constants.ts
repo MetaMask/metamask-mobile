@@ -13,8 +13,3 @@ export const DELETE_METRICS_BUTTON = 'delete-metrics-button';
 export const SECURITY_SETTINGS_DELETE_WALLET_BUTTON =
   'security-settings-delete-wallet-buttons';
 export const THIRD_PARTY_SECTION = 'third-party-section';
-export const NFT_AUTO_DETECT_MODE_SECTION =
-  'nft-opensea-autodetect-mode-section';
-export const USE_SAFE_CHAINS_LIST_VALIDATION = 'use-chains-list-validation';
-export const DISPLAY_SAFE_CHAINS_LIST_VALIDATION =
-  'display-use-safe-list-validation';

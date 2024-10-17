@@ -52,11 +52,7 @@ import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
 import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
-import {
-  HeadingProps,
-  // NetworksI,
-  SecuritySettingsParams,
-} from './SecuritySettings.types';
+import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {

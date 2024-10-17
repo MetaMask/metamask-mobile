@@ -47,6 +47,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../StakeButton';
+import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -135,7 +136,7 @@ export const TokenListItem = ({
     }
   }
 
-  if (asset?.balanceError) {
+  if (asset?.hasBalanceError) {
     mainBalance = asset.symbol;
     secondaryBalance = strings('wallet.unable_to_load');
   }
@@ -156,6 +157,10 @@ export const TokenListItem = ({
     if (isMainnet) return images.ETHEREUM;
 
     if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+    if (CustomNetworkImgMapping[chainId]) {
+      return CustomNetworkImgMapping[chainId];
+    }
 
     return ticker ? images[ticker] : undefined;
   };

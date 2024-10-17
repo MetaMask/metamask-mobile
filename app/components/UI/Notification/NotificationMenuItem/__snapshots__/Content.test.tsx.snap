@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationContent renders correctly 1`] = `
+exports[`NotificationContent render matches snapshot 1`] = `
 <View
   style={
     {
@@ -47,7 +47,7 @@ exports[`NotificationContent renders correctly 1`] = `
         }
       }
     >
-      5 months ago
+      Yesterday
     </Text>
   </View>
   <View

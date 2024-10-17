@@ -20,7 +20,7 @@ describe('ExpandableSection', () => {
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(container).toMatchSnapshot();
@@ -39,7 +39,7 @@ describe('ExpandableSection', () => {
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(getByText('Open')).toBeDefined();
@@ -58,11 +58,11 @@ describe('ExpandableSection', () => {
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(getByText('Open')).toBeDefined();
-    fireEvent.press(getByTestId('openButtonTestId'));
+    fireEvent.press(getByText('Open'));
     expect(getByText('Value-Text')).toBeDefined();
     fireEvent.press(getByTestId('closeButtonTestId'));
     expect(getByText('Open')).toBeDefined();

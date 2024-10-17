@@ -84,7 +84,8 @@ const IncomingTransactionsSettings = () => {
 
   const renderRpcNetworks = () =>
     Object.values(networkConfigurations).map(
-      ({ nickname, rpcUrl, chainId }) => {
+      ({ name: nickname, rpcEndpoints, chainId, defaultRpcEndpointIndex }) => {
+        const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
         if (!chainId || !Object.keys(supportedNetworks).includes(chainId))
           return null;
         const { name } = { name: nickname || rpcUrl };
@@ -94,7 +95,7 @@ const IncomingTransactionsSettings = () => {
           supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
         return (
           <NetworkCell
-            key={chainId}
+            key={`${nickname}-${chainId}`}
             name={name}
             chainId={chainId as EtherscanSupportedHexChainId}
             imageSource={image}
@@ -116,7 +117,7 @@ const IncomingTransactionsSettings = () => {
         supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
       return (
         <NetworkCell
-          key={chainId}
+          key={`${name}-${chainId}`}
           name={name}
           chainId={chainId as keyof typeof supportedNetworks}
           imageSource={imageSource as ImageSourcePropType}
