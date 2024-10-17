@@ -1,6 +1,5 @@
-/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { ScrollView, Switch, View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
@@ -13,6 +12,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { AccountsList} from './AccountsList';
 import { useAccounts } from '../../../../components/hooks/useAccounts';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
@@ -21,9 +21,7 @@ import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 import { useStyles } from '../../../../component-library/hooks';
 
-import NotificationOptionToggle from './NotificationOptionToggle';
 import CustomNotificationsRow from './CustomNotificationsRow';
-import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 import {
   selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
@@ -51,7 +49,7 @@ import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import styleSheet from './NotificationsSettings.styles';
+import styleSheet, { styles as navigationOptionsStyles } from './NotificationsSettings.styles';
 import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -121,19 +119,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     selectIsUpdatingMetamaskNotificationsAccount,
   );
 
-  const accountAddresses = useMemo(
-    () => accounts.map((a) => a.address),
-    [accounts],
-  );
-
-  const { switchFeatureAnnouncements } = useSwitchNotifications();
-
-  // Account Settings
-  const accountSettingsProps = useAccountSettingsProps(accountAddresses);
-  const refetchAccountSettings = useCallback(async () => {
-    await accountSettingsProps.update(accountAddresses);
-  }, [accountAddresses, accountSettingsProps]);
-
   const {
     enableNotifications,
     loading: enableLoading,
@@ -146,6 +131,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     error: disablingError,
   } = useDisableNotifications();
 
+  const { switchFeatureAnnouncements } = useSwitchNotifications();
+  const { updateAndfetchAccountSettings } = useAccountSettingsProps(accounts);
+
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -157,7 +145,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
   const [platformAnnouncementsState, setPlatformAnnouncementsState] =
     React.useState(isFeatureAnnouncementsEnabled);
-
+  const accountSettingsData = useSelector((state: RootState) => state.notifications);
   const loading = enableLoading || disableLoading;
   const errorText = enablingError || disablingError;
   const loadingText = !uiNotificationStatus
@@ -170,7 +158,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const isFullScreenModal = route?.params?.isFullScreenModal;
   // Style
   const { colors } = theme;
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { theme });
 
   /**
    * Initializes the notifications feature.
@@ -220,37 +208,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     );
   }, [colors, isFullScreenModal, navigation]);
 
-  const renderAccounts = useCallback(
-    () =>
-      accounts.map((account) => {
-        const isEnabled =
-          accountSettingsProps.data?.[account.address.toLowerCase()];
-        return (
-          <NotificationOptionToggle
-            type={NotificationsToggleTypes.ACCOUNT}
-            icon={accountAvatarType}
-            key={account.address}
-            title={account.name}
-            address={account.address}
-            disabledSwitch={isUpdatingMetamaskNotificationsAccount.length > 0}
-            isLoading={accountSettingsProps.accountsBeingUpdated.includes(
-              account.address.toLowerCase(),
-            )}
-            isEnabled={isEnabled ?? false}
-            refetchAccountSettings={refetchAccountSettings}
-          />
-        );
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      accountSettingsProps.data,
-      accountSettingsProps.accountsBeingUpdated,
-      accountAvatarType,
-      isUpdatingMetamaskNotificationsAccount.length,
-      refetchAccountSettings,
-    ],
-  );
-
   const renderResetNotificationsBtn = useCallback(() => (
         <Button
           variant={ButtonVariants.Primary}
@@ -299,7 +256,13 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             styles={styles}
           />
 
-          {renderAccounts()}
+          <AccountsList
+            accounts={accounts}
+            accountAvatarType={accountAvatarType}
+            accountSettingsData={accountSettingsData}
+            updateAndfetchAccountSettings={updateAndfetchAccountSettings}
+            isUpdatingMetamaskNotificationsAccount={isUpdatingMetamaskNotificationsAccount}
+          />
           {renderResetNotificationsBtn()}
         </>
       )}
@@ -330,7 +293,7 @@ NotificationsSettings.navigationOptions = ({
           ? navigation.navigate(Routes.WALLET.HOME)
           : navigation.goBack()
       }
-      style={{ marginHorizontal: 16 }}
+      style={navigationOptionsStyles.headerLeft}
     />
   ),
 });
