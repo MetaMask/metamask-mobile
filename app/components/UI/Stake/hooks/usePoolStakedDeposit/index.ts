@@ -1,8 +1,8 @@
 import { Web3Provider } from '@ethersproject/providers';
 import { captureException } from '@sentry/react-native';
 import { Contract, BigNumber } from 'ethers';
-import poolStakingContractJson from './abi1.json';
-import { ChainId, StakeSdk, StakingType } from '@metamask/stake-sdk';
+import poolStakingContractJson from './poolStakingContractAbi.json';
+import { ChainId, StakeSdk } from '@metamask/stake-sdk';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -15,6 +15,7 @@ import {
 } from '@metamask/transaction-controller';
 import { toHex } from '@metamask/controller-utils';
 import { addTransaction } from '../../../../../util/transaction-controller';
+import usePoolStakeSdk from '../usePoolStakeSdk';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -91,8 +92,6 @@ const generateDepositTxParams = (
   chainId: `0x${chainId}`,
   data: encodedDepositTransactionData,
   value: toHex(valueWei.toString()),
-  // TODO: Add STAKING.STAKE/UNSTAKE/CLAIM TransactionTypes
-  // type: TransactionTypes.STAKING.STAKE
 });
 
 const attemptDepositTransaction =
@@ -145,17 +144,10 @@ const attemptDepositTransaction =
     }
   };
 
-const useDepositPoolStake = () => {
+const usePoolStakedDeposit = () => {
   const chainId = useSelector(selectChainId);
 
-  const stakeSdk = useMemo(
-    () =>
-      StakeSdk.create({
-        chainId: parseInt(hexToDecimal(chainId).toString()),
-        stakingType: StakingType.POOLED,
-      }),
-    [chainId],
-  );
+  const stakeSdk = usePoolStakeSdk(parseInt(hexToDecimal(chainId).toString()));
 
   const poolStakingContract = useMemo(
     () => initPoolStakingContract(hexToDecimal(chainId) as ChainId),
@@ -172,4 +164,4 @@ const useDepositPoolStake = () => {
   };
 };
 
-export default useDepositPoolStake;
+export default usePoolStakedDeposit;

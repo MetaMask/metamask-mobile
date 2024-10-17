@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
@@ -16,20 +15,20 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
-import useDepositPoolStake from '../../../../utils/deposit';
+import usePoolStakedDeposit from '../../../../hooks/usePoolStakedDeposit';
 import Engine from '../../../../../../../core/Engine';
 import { FooterButtonGroupProps } from './FooterButtonGroup.types';
 
 const FooterButtonGroup = ({ valueWei }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
-
-  const navigateToAssetScreen = () => navigation.navigate('Asset');
+  const { navigate } = useNavigation();
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
-  const { attemptDepositTransaction } = useDepositPoolStake();
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
+
+  const navigateToAssetScreen = () => navigate('Asset');
 
   const handleStake = async () => {
     if (!activeAccount?.address) return;
