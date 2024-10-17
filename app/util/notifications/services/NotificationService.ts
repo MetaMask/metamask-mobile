@@ -5,8 +5,7 @@ import notifee, {
   EventDetail,
   AndroidChannel,
 } from '@notifee/react-native';
-
-import { Notification } from '../types';
+import { HandleNotificationCallback, LAUNCH_ACTIVITY, Notification, PressActionId } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -221,7 +220,14 @@ class NotificationsService {
     await notifee.cancelTriggerNotification(id);
   };
 
-  getInitialNotification = async () => notifee.getInitialNotification();
+  getInitialNotification = async (
+    callback: HandleNotificationCallback
+  ): Promise<void> => {
+    const event = await notifee.getInitialNotification()
+    if (event) {
+      callback(event.notification.data as Notification['data'])
+    }
+  }
 
   cancelAllNotifications = async () => {
     await notifee.cancelAllNotifications();
@@ -229,6 +235,42 @@ class NotificationsService {
 
   createChannel = async (channel: AndroidChannel): Promise<string> =>
     notifee.createChannel(channel);
+
+  displayNotification = async ({
+    channelId,
+    title,
+    body,
+    data
+  }: {
+    channelId: ChannelId
+    title: string
+    body?: string
+    data?: Notification['data']
+  }): Promise<void> => {
+    await notifee.displayNotification({
+      title,
+      body,
+      data: data as unknown as Notification['data'],
+      android: {
+        smallIcon: 'ic_notification_small',
+        largeIcon: 'ic_notification',
+        channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+        pressAction: {
+          id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+          launchActivity: LAUNCH_ACTIVITY
+        }
+      },
+      ios: {
+        foregroundPresentationOptions: {
+          alert: true,
+          sound: true,
+          badge: true,
+          banner: true,
+          list: true,
+        },
+      },
+    });
+  };
 }
 
 export default new NotificationsService();
