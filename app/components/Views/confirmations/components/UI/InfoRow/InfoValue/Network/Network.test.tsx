@@ -23,7 +23,7 @@ const mockInitialState = {
 };
 
 describe('Network', () => {
-  it('should display url as expected', async () => {
+  it('should match snapshot', async () => {
     const container = renderWithProvider(
       <Network chainId={CHAIN_IDS.MAINNET} />,
       { state: mockInitialState },
