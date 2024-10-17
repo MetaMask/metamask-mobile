@@ -10,6 +10,17 @@ import { TRIGGER_TYPES } from '../../constants';
  */
 export type Notification = NotificationServicesController.Types.INotification;
 
+export type HandleNotificationCallback = (
+  data: Notification['data'] | undefined
+) => void
+
+export enum PressActionId {
+  OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
+  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id'
+}
+
+export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
+
 /**
  * NotificationFC is the shared component interface for all notification components
  */
