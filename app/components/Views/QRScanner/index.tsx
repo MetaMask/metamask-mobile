@@ -11,7 +11,6 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { RNCamera } from 'react-native-camera';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
@@ -19,7 +18,6 @@ import { MM_SDK_DEEPLINK } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
-import { selectChainId } from '../../../selectors/networkController';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import {
@@ -29,6 +27,7 @@ import {
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
+import { useChainId } from '../../../selectors/hooks';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -51,7 +50,7 @@ const QRScanner = ({
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
 
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useChainId();
   const theme = useTheme();
   const styles = createStyles(theme);
 
