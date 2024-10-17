@@ -120,7 +120,6 @@ const createStoreAndPersistor = async (appStartTime: number) => {
       {
         name: TraceName.EngineInitialization,
         op: TraceOperation.EngineInitialization,
-        tags: getTraceTags(store?.getState?.()),
       },
       () => {
         EngineService.initalizeEngine(store);
