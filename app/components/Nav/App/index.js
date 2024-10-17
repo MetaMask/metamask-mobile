@@ -790,12 +790,6 @@ const App = (props) => {
     </Stack.Navigator>
   );
 
-  const EditAccountNameFlow = () => (
-    <Stack.Navigator>
-      <Stack.Screen name="EditAccountName" component={EditAccountName} />
-    </Stack.Navigator>
-  );
-
   // eslint-disable-next-line react/prop-types
   const AddNetworkFlow = ({ route }) => (
     <Stack.Navigator>
@@ -921,7 +915,7 @@ const App = (props) => {
           <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
           <Stack.Screen
             name="EditAccountName"
-            component={EditAccountNameFlow}
+            component={EditAccountName}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen

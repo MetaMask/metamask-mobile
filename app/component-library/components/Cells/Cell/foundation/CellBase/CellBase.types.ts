@@ -37,6 +37,14 @@ export interface CellBaseProps {
    * Optional prop to control the style of the CellBase.
    */
   style?: StyleProp<ViewStyle> | undefined;
+  /**
+   * Optional right accessory that can be inserted on the right of Cell Account.
+   */
+  rightAccessory?: React.ReactNode;
+  /**
+   * Optional callback function to handle right accessory press.
+   */
+  onRightAccessoryPress?: () => void;
 }
 
 /**

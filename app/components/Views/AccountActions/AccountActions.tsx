@@ -1,11 +1,17 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  RouteProp,
+  ParamListBase,
+  useRoute,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
-// External dependencies.
+// External dependencies
+import { InternalAccount } from '@metamask/keyring-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -25,7 +31,6 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
@@ -45,7 +50,13 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 
+interface AccountActionsParams {
+  selectedAccount: InternalAccount;
+}
+
 const AccountActions = () => {
+  const route = useRoute<RouteProp<ParamListBase, string>>();
+  const { selectedAccount } = route.params as AccountActionsParams;
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -62,7 +73,6 @@ const AccountActions = () => {
 
   const providerConfig = useSelector(selectProviderConfig);
 
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
 
@@ -135,6 +145,7 @@ const AccountActions = () => {
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         credentialName: 'private_key',
         shouldUpdateNav: true,
+        selectedAccount,
       });
     });
   };
@@ -257,7 +268,7 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate('EditAccountName');
+    navigate('EditAccountName', { selectedAccount });
   };
 
   const isExplorerVisible = Boolean(

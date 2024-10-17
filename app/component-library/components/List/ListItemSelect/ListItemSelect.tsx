@@ -1,8 +1,6 @@
-/* eslint-disable react/prop-types */
-
 // Third party dependencies.
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { TouchableOpacity, View, GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -22,23 +20,52 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
+  rightAccessory,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
+  const handlePress = useCallback(
+    (event: GestureResponderEvent) => {
+      if (!isDisabled && onPress) {
+        onPress(event);
+      }
+    },
+    [isDisabled, onPress],
+  );
+
+  const handleLongPress = useCallback(
+    (event: GestureResponderEvent) => {
+      if (!isDisabled && onLongPress) {
+        onLongPress(event);
+      }
+    },
+    [isDisabled, onLongPress],
+  );
+
   return (
     <TouchableOpacity
       style={styles.base}
+      onPress={handlePress}
+      onLongPress={handleLongPress}
       disabled={isDisabled}
-      onPress={onPress}
-      onLongPress={onLongPress}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
-        {children}
+        <View style={styles.contentContainer}>
+          <View style={styles.childrenContainer}>{children}</View>
+          {rightAccessory && (
+            <View pointerEvents="box-none">{rightAccessory}</View>
+          )}
+        </View>
       </ListItem>
       {isSelected && (
-        <View style={styles.underlay} accessibilityRole="checkbox" accessible>
+        <View
+          pointerEvents="box-none"
+          style={styles.underlay}
+          accessibilityRole="checkbox"
+          accessible
+        >
           <View style={styles.underlayBar} />
         </View>
       )}
