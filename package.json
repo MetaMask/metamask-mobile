@@ -45,7 +45,6 @@
     "build:ios:pre-flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flask --pre",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "build:ios:pre-release:sourcemap": "./scripts/build.sh ios releaseSourcemap --pre",
-    "build:ios:qa": "./scripts/build.sh ios QA",
     "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",
     "build:android:qa": "NO_FLIPPER='1' ./scripts/build.sh android QA",
     "build:ios:qa": "NO_FLIPPER='1' ./scripts/build.sh ios QA",
