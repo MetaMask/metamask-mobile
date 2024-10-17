@@ -73,7 +73,7 @@ const useStakingInputHandlers = (balance: BN) => {
   const handleKeypadChange = useCallback(
     ({ value }) => {
       isEth ? handleEthInput(value) : handleFiatInput(value);
-      trackEvent(MetaMetricsEvents.STAKE_INPUT_CLICKED)
+      trackEvent(MetaMetricsEvents.STAKE_INPUT_CLICKED);
     },
     [handleEthInput, handleFiatInput, isEth, trackEvent],
   );
