@@ -36,7 +36,7 @@ describe('FCMService', () => {
 
   it('saves FCM token', async () => {
     const mockToken = 'fcmToken';
-    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus.AUTHORIZED);
+    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus);
     (messaging().getToken as jest.Mock).mockResolvedValue(mockToken);
 
     await FCMService.saveFCMToken();
