@@ -15,20 +15,27 @@ fi
 
 RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
 CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
-RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The changelog will be found in another PR ${CHANGELOG_BRANCH_NAME}."
+RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The changelog will be found in another PR ${CHANGELOG_BRANCH_NAME}.
+
+  # Team sign-off checklist
+  - [] team-security
+  - [] team-platform
+  - [] team-snaps-platform
+  - [] team-sdk
+  - [] team-assets
+  - [] team-notifications
+  - [] team-confirmations
+  - [] team-design-system
+  - [] team-tiger
+  - [] team-wallet-framework
+  - [] team-stake
+  - [] team-accounts
+
+  # Reference
+  - Testing plan sheet - https://docs.google.com/spreadsheets/d/1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ/edit?gid=404070372#gid=404070372"
 
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
-
-git checkout -b "${RELEASE_BRANCH_NAME}"
-
-if ! (git add . && git commit -m "${NEW_VERSION}");
-then
-    echo "Error: No changes detected."
-    exit 1
-fi
-
-git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
 
 gh pr create \
   --draft \
@@ -36,9 +43,7 @@ gh pr create \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
 
-
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
-
 
 #Generate changelog and test plan csv
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
