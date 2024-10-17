@@ -925,6 +925,7 @@ export function getOfflineModalNavbar() {
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
+  accountActionsRef,
   selectedAddress,
   accountName,
   accountAvatarType,
@@ -1025,6 +1026,7 @@ export function getWalletNavbarOptions(
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
         <PickerAccount
+          ref={accountActionsRef}
           accountAddress={selectedAddress}
           accountName={accountName}
           accountAvatarType={accountAvatarType}
