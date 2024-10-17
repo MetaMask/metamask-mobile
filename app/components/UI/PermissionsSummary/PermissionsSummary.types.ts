@@ -15,4 +15,5 @@ export interface PermissionsSummaryProps {
   isRenderedAsBottomSheet?: boolean;
   isDisconnectAllShown?: boolean;
   isNetworkSwitch?: boolean;
+  accountAddresses?: string[];
 }
