@@ -1,13 +1,15 @@
 import React from 'react';
 import Wallet from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
+import { AppState } from 'react-native';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -108,6 +110,13 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
+jest.mock('../../../util/notifications/hooks/useAccountSyncing', () => ({
+  useAccountSyncing: jest.fn().mockReturnValue({
+    dispatchAccountSyncing: jest.fn(),
+    error: undefined,
+  }),
+}));
+
 const render = (Component: React.ComponentType) =>
   renderScreen(
     Component,
@@ -143,5 +152,35 @@ describe('Wallet', () => {
     render(Wallet);
     const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
+  });
+  it('should dispatch account syncing on mount', () => {
+    jest.clearAllMocks();
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(1);
+  });
+  it('should dispatch account syncing when appState switches from inactive|background to active', () => {
+    jest.clearAllMocks();
+    const addEventListener = jest.spyOn(AppState, 'addEventListener');
+
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+
+    const handleAppStateChange = addEventListener.mock.calls[0][1];
+    act(() => {
+      handleAppStateChange('background');
+      handleAppStateChange('active');
+    });
+
+    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      handleAppStateChange('inactive');
+      handleAppStateChange('active');
+    });
+
+    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(3);
   });
 });

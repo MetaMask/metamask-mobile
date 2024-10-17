@@ -452,7 +452,7 @@ const Wallet = ({
   useLayoutEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (
-        appState.current.match(/inactive|background/) &&
+        appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         listNotifications();
