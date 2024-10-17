@@ -189,16 +189,16 @@ exports[`Wallet should render correctly 1`] = `
                   </View>
                   <SvgMock
                     color="#141618"
-                    height={16}
+                    height={12}
                     name="ArrowDown"
                     style={
                       {
-                        "height": 16,
-                        "width": 16,
+                        "height": 12,
+                        "width": 12,
                       }
                     }
                     testID="pickernetwork-arrow"
-                    width={16}
+                    width={12}
                   />
                 </TouchableOpacity>
               </View>
@@ -226,6 +226,8 @@ exports[`Wallet should render correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
+                      "flexDirection": "column",
+                      "justifyContent": "center",
                     }
                   }
                 >
@@ -239,7 +241,6 @@ exports[`Wallet should render correctly 1`] = `
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "flexDirection": "row",
-                        "marginRight": 16,
                         "padding": 0,
                       }
                     }
@@ -248,7 +249,9 @@ exports[`Wallet should render correctly 1`] = `
                     <View
                       style={
                         {
+                          "alignItems": "center",
                           "flexDirection": "row",
+                          "justifyContent": "center",
                         }
                       }
                     >
@@ -257,7 +260,7 @@ exports[`Wallet should render correctly 1`] = `
                           {
                             "alignItems": "center",
                             "flexDirection": "column",
-                            "justifyContent": "flex-start",
+                            "justifyContent": "center",
                           }
                         }
                       >
@@ -448,12 +451,11 @@ exports[`Wallet should render correctly 1`] = `
                     style={
                       {
                         "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
-                        "marginRight": 8,
+                        "lineHeight": 20,
                         "textAlign": "center",
                       }
                     }

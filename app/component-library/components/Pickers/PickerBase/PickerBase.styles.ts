@@ -26,7 +26,6 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        marginRight: 16,
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
