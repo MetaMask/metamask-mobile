@@ -101,6 +101,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
   );
+  const [confirmedAddresses, setConfirmedAddresses] =
+    useState<string[]>(selectedAddresses);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
@@ -555,7 +558,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   const renderPermissionsSummaryScreen = useCallback(() => {
-    console.log('>>> selectedAddresses', selectedAddresses);
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
@@ -569,10 +571,10 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
-      accountAddresses: selectedAddresses,
+      accountAddresses: confirmedAddresses,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol, selectedAddresses]);
+  }, [faviconSource, urlWithProtocol, confirmedAddresses]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
@@ -597,13 +599,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const renderMultiConnectSelectorScreen = useCallback(() => {
-    console.log(
-      '>>> renderMultiConnectSelectorScreen selectedAddresses',
-      selectedAddresses,
-    );
-
-    return (
+  const renderMultiConnectSelectorScreen = useCallback(
+    () => (
       <AccountConnectMultiSelector
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
@@ -614,27 +611,33 @@ const AccountConnect = (props: AccountConnectProps) => {
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
-        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        onBack={() => {
+          setSelectedAddresses(confirmedAddresses);
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
         connection={sdkConnection}
         hostname={hostname}
-        onPrimaryActionButtonPress={
-          isMultichainVersion1Enabled
-            ? () => setScreen(AccountConnectScreens.SingleConnect)
-            : undefined
-        }
+        onPrimaryActionButtonPress={() => {
+          setConfirmedAddresses(selectedAddresses);
+          return isMultichainVersion1Enabled
+            ? setScreen(AccountConnectScreens.SingleConnect)
+            : undefined;
+        }}
       />
-    );
-  }, [
-    accounts,
-    ensByAccountAddress,
-    selectedAddresses,
-    isLoading,
-    faviconSource,
-    secureIcon,
-    urlWithProtocol,
-    sdkConnection,
-    hostname,
-  ]);
+    ),
+    [
+      accounts,
+      ensByAccountAddress,
+      selectedAddresses,
+      confirmedAddresses,
+      isLoading,
+      faviconSource,
+      secureIcon,
+      urlWithProtocol,
+      sdkConnection,
+      hostname,
+    ],
+  );
 
   const renderMultiConnectNetworkSelectorScreen = useCallback(
     () => (
