@@ -2193,6 +2193,7 @@
     "wallet": "Wallet",
     "web3": "Web3",
     "staking_provider": "Staking Provider",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
