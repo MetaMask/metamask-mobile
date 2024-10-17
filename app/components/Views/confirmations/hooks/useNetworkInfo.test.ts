@@ -31,7 +31,7 @@ jest.mock('react-redux', () => ({
     fn(mockInitialState),
 }));
 
-describe('useAccountInfo', () => {
+describe('useNetworkInfo', () => {
   it('should return existing address from accounts controller', async () => {
     const { result } = renderHookWithProvider(
       () => useNetworkInfo(CHAIN_IDS.MAINNET),
