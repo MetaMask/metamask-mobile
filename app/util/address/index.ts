@@ -223,6 +223,17 @@ export function isHardwareAccount(
 }
 
 /**
+ * Determines if an address belongs to a snap account
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isSnapAccount(address: string) {
+  const keyring = getKeyringByAddress(address);
+  return keyring && keyring.type === KeyringTypes.snap;
+}
+
+/**
  * judge address is a hardware account that require external operation or not
  *
  * @param {String} address - String corresponding to an address
