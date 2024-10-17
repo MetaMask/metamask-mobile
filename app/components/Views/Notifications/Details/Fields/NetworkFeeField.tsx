@@ -163,7 +163,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
         </View>
       </TouchableOpacity>
 
-      {!isCollapsed && (
+      {!isCollapsed && networkFee && (
         <BottomSheet
           ref={sheetRef}
           shouldNavigateBack={false}
