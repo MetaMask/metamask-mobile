@@ -217,13 +217,7 @@ class AccountInfoCard extends PureComponent {
               ({address})
             </Text>
           </View>
-          <Text
-            numberOfLines={1}
-            style={[
-              styles.balanceText,
-              accountLabelTag ? styles.balanceTextSmall : undefined,
-            ]}
-          >
+          <Text numberOfLines={1} style={[styles.balanceText, undefined]}>
             {strings('signature_request.balance_title')}{' '}
             {dollarBalance !== undefined
               ? `${dollarBalance} (${balance})`
@@ -233,7 +227,7 @@ class AccountInfoCard extends PureComponent {
         {accountLabelTag && (
           <View style={styles.tag}>
             <Text variant={TextVariant.BodySMBold} style={styles.tagText}>
-              {strings(accountLabelTag)}
+              {accountLabelTag}
             </Text>
           </View>
         )}
