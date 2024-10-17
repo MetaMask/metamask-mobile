@@ -171,6 +171,15 @@ export const markMetamaskNotificationsAsRead = async (
     return getErrorMessage(error);
   }
 };
+
+export const syncInternalAccountsWithUserStorage = async () => {
+  try {
+    await Engine.context.UserStorageController.syncInternalAccountsWithUserStorage();
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
 /**
  * Perform the deletion of the notifications storage key and the creation of on chain triggers to reset the notifications.
  *
@@ -178,12 +187,12 @@ export const markMetamaskNotificationsAsRead = async (
  */
 export const performDeleteStorage = async (): Promise<string | undefined> => {
   try {
-   await Engine.context.UserStorageController.performDeleteStorage('notifications.notification_settings');
-   await Engine.context.NotificationServicesController.createOnChainTriggers(
-    {
+    await Engine.context.UserStorageController.performDeleteStorage(
+      'notifications.notification_settings',
+    );
+    await Engine.context.NotificationServicesController.createOnChainTriggers({
       resetNotifications: true,
-    },
-  );
+    });
   } catch (error) {
     return getErrorMessage(error);
   }
