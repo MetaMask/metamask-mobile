@@ -2,7 +2,6 @@
 ignores:
   - '@metamask/oss-attribution-generator'
   - 'webpack-cli'
-  - '@react-native-community/datetimepicker'
   - '@react-native-community/slider'
   - 'patch-package'
   - '@lavamoat/allow-scripts'
