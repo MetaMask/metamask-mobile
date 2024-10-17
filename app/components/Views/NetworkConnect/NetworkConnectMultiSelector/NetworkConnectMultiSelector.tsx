@@ -36,6 +36,7 @@ import {
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../../core/Permissions/constants';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -49,17 +50,23 @@ const NetworkConnectMultiSelector = ({
   const { navigate } = useNavigation();
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  console.log('ALEX LOGGING: networkConfigurations', networkConfigurations);
 
-  const handleUpdateNetworkPermissions = useCallback(() => {
+  const handleUpdateNetworkPermissions = useCallback(async () => {
     console.log('ALEX LOGGING: selectedChainIds', selectedChainIds);
     try {
-      Engine.context.PermissionController.grantPermissions({
+      await Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
           origin: hostname,
         },
         approvedPermissions: {
-          [PermissionKeys.permittedChains]: selectedChainIds,
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              {
+                type: CaveatTypes.restrictNetworkSwitching,
+                value: selectedChainIds,
+              },
+            ],
+          },
         },
         preserveExistingPermissions: false,
       });
@@ -109,6 +116,7 @@ const NetworkConnectMultiSelector = ({
         }
         return acc;
       }, [] as string[]);
+      console.log('ALEX LOGGING: newNetworkList', newNetworkList);
       setSelectedChainIds(newNetworkList);
     },
     [networks, selectedChainIds],
