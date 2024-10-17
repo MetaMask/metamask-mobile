@@ -26,7 +26,6 @@ export interface StakeProviderProps {
 export const StakeSDKProvider: React.FC<PropsWithChildren<StakeProviderProps>> = ({
   children,
 }) => {
-  // from react state
   const [sdkService, setSdkService] = useState<PooledStakingContract>();
   const [sdkError, setSdkError] = useState<Error>();
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
