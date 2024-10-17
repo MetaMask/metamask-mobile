@@ -11,7 +11,6 @@ import { useStyles } from '../../../hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
@@ -22,13 +21,14 @@ import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import { colors as importedColors } from '../../../../styles/common';
 import { AvatarSize } from '../../Avatars/Avatar';
 import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
+import { useChainId } from '../../../../selectors/hooks';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const tabBarRef = useRef(null);
   /**
    * Current onboarding wizard step

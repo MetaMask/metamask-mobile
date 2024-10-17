@@ -25,8 +25,8 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectChainId } from '../../../selectors/networkController';
 import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
+import { useChainId } from '../../../selectors/hooks';
 
 const NATIVE_DECIMALS = 18;
 
@@ -177,7 +177,7 @@ export default function useBalanceChanges(
 ): { pending: boolean; value: BalanceChange[] } {
   const nativeFiatRate = useSelector(selectConversionRate) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
@@ -200,7 +200,7 @@ export default function useBalanceChanges(
     [JSON.stringify(erc20TokenAddresses), chainId, fiatCurrency],
   );
 
-  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData ) {
+  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData) {
     return { pending: true, value: [] };
   }
 

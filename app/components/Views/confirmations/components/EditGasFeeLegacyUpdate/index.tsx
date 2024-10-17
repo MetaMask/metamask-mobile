@@ -22,7 +22,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
-import { selectChainId } from '../../../../../selectors/networkController';
 import {
   getDecimalChainId,
   isMainnetByChainId,
@@ -45,6 +44,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { useChainId } from '../../../../../selectors/hooks';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -85,7 +85,7 @@ const EditGasFeeLegacy = ({
 
   const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
 
   const gasTransaction = useGasTransaction({
     onlyGas,

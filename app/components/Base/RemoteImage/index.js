@@ -21,10 +21,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectTicker } from '../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
   isLineaMainnet,
@@ -38,6 +35,7 @@ import { BadgeAnchorElementShape } from '../../../component-library/components/B
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import Logger from '../../../util/Logger';
+import { useChainId } from '../../../selectors/hooks';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -64,7 +62,7 @@ const RemoteImage = (props) => {
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const ticker = useSelector(selectTicker);
   const networkName = useSelector(selectNetworkName);
   const resolvedIpfsUrl = useMemo(() => {

@@ -6,7 +6,6 @@ import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectChainId } from '../../../../selectors/networkController';
 import {
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
@@ -27,6 +26,7 @@ import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
+import { useChainId } from '../../../../selectors/hooks';
 
 interface BalanceProps {
   asset: TokenI;
@@ -51,7 +51,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
 
   return (
     <View style={styles.wrapper}>

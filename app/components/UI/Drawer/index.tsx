@@ -27,7 +27,6 @@ import styles from './styles';
 import { useTheme } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleInfoNetworkModal } from '../../../actions/modals';
-import { selectChainId } from '../../../selectors/networkController';
 import { getIsNetworkOnboarded } from '../../../util/networks';
 import Animated, {
   interpolate,
@@ -38,6 +37,8 @@ import Animated, {
   withTiming,
   Extrapolate,
 } from 'react-native-reanimated';
+import { useChainId } from '../../../selectors/hooks';
+
 /**
  * This indicates that 60% of the sheet needs to be offscreen to meet the distance threshold.
  */
@@ -82,7 +83,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.networkOnboarded.networkOnboardedState,
   );
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
 
   useEffect(() => {
     if (prevNetwork.current !== chainId && chainId) {
