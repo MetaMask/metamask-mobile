@@ -16,6 +16,7 @@ import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
+import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
@@ -84,7 +85,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
               variant={TextVariant.BodySM}
               style={styles.accountNameLabelText}
             >
-              {accountTypeLabel}
+              {strings(accountTypeLabel)}
             </Text>
           )}
         </View>

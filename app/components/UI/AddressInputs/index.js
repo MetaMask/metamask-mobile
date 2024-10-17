@@ -219,7 +219,7 @@ const AddressName = ({
           variant={TextVariant.BodySMBold}
           style={styles.accountNameLabelText}
         >
-          {accountLabel}
+          {strings(accountLabel)}
         </Text>
       )}
     </View>

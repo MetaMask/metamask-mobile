@@ -21,7 +21,10 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { renderAccountName } from '../../../util/address';
+import {
+  getLabelTextByAddress,
+  renderAccountName,
+} from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
@@ -36,7 +39,9 @@ import {
   selectSelectedInternalAccountChecksummedAddress,
 } from '../../../selectors/accountsController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { isPortfolioUrl } from '../../../util/url';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -334,6 +339,8 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
+    const accountLabelTag = getLabelTextByAddress(address);
+
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
         <ScrollView
@@ -404,6 +411,16 @@ class AccountOverview extends PureComponent {
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
+                  {accountLabelTag && (
+                    <View style={styles.tag}>
+                      <Text
+                        variant={TextVariant.BodySMBold}
+                        style={styles.tagText}
+                      >
+                        {strings(accountLabelTag)}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
