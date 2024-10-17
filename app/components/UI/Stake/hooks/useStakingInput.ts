@@ -73,18 +73,14 @@ const useStakingInputHandlers = (balance: BN) => {
   const handleKeypadChange = useCallback(
     ({ value }) => {
       isEth ? handleEthInput(value) : handleFiatInput(value);
-      trackEvent(MetaMetricsEvents.STAKE_INPUT_CLICKED, {
-        selected_provider: 'consensys',
-      })
+      trackEvent(MetaMetricsEvents.STAKE_INPUT_CLICKED)
     },
     [handleEthInput, handleFiatInput, isEth, trackEvent],
   );
 
   const handleCurrencySwitch = useCallback(() => {
     setIsEth(!isEth);
-    trackEvent(MetaMetricsEvents.STAKE_INPUT_TEXT_ENTERED, {
-      selected_provider: 'consensys',
-    });
+    trackEvent(MetaMetricsEvents.STAKE_INPUT_TEXT_ENTERED);
   }, [isEth, trackEvent]);
 
   const percentageOptions = [
