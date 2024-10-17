@@ -43,8 +43,10 @@ describe('RevealPrivateCredential', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
-            credentialName: undefined,
+            credentialName: '',
           },
         }}
         navigation={null}
@@ -59,6 +61,8 @@ describe('RevealPrivateCredential', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: SRP_CREDENTIAL,
           },
@@ -76,6 +80,8 @@ describe('RevealPrivateCredential', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: PRIV_KEY_CREDENTIAL,
           },
@@ -92,6 +98,8 @@ describe('RevealPrivateCredential', () => {
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: SRP_CREDENTIAL,
           },
@@ -115,6 +123,8 @@ describe('RevealPrivateCredential', () => {
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: SRP_CREDENTIAL,
           },
