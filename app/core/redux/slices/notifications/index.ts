@@ -24,10 +24,14 @@ const slice = createSlice({
       state,
       action: PayloadAction<NotificationsAccountsState>,
     ) => {
+    // Check if the payload is not an empty object
+    if (Object.keys(action.payload).length > 0) {
+      // Only update if there are differences
       if (JSON.stringify(state) !== JSON.stringify(action.payload)) {
-        return action.payload;
+        return { ...state, ...action.payload };
       }
-      return state;
+    }
+    return state;
     },
   },
 });

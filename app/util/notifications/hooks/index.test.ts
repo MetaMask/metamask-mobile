@@ -57,6 +57,7 @@ jest.mock('../services/NotificationService', () => ({
   onForegroundEvent: jest.fn(),
   onBackgroundEvent: jest.fn(),
   handleNotificationEvent: jest.fn(),
+  onAppBootstrap: jest.fn(),
 }));
 describe('useNotificationHandler', () => {
   beforeEach(() => {
@@ -71,10 +72,7 @@ describe('useNotificationHandler', () => {
     });
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.NOTIFICATIONS.DETAILS,
-      {
-        notificationId: notification.id,
-      },
+      Routes.NOTIFICATIONS.VIEW,
     );
   });
 

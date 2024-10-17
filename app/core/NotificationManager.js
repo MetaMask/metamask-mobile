@@ -3,15 +3,13 @@
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
-import notifee from '@notifee/react-native';
-import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 
 import {
   NotificationTransactionTypes,
-  isNotificationsFeatureEnabled,
-
+  isNotificationsFeatureEnabled
 } from '../util/notifications';
 
 import { safeToChecksumAddress } from '../util/address';
@@ -141,8 +139,7 @@ class NotificationManager {
     );
   };
 
-  // TODO: Refactor this method to use notifee's channels in combination with MM auth
-  _showNotification(data, channelId = STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID) {
+  _showNotification(data, channelId = 'DEFAULT_NOTIFICATION_CHANNEL_ID') {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
       const id = data?.transaction?.id || '';
@@ -156,6 +153,7 @@ class NotificationManager {
         android: {
           lightUpScreen: true,
           channelId,
+          importance: AndroidImportance.HIGH,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
           pressAction: {
@@ -179,7 +177,7 @@ class NotificationManager {
       if (Device.isAndroid()) {
         pushData.tag = JSON.stringify(extraData);
       } else {
-        pushData.userInfo = extraData; // check if is still needed
+        pushData.userInfo = extraData;
       }
       isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {

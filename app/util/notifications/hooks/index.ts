@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react';
+import { Linking } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';
@@ -9,7 +10,6 @@ import { Notification } from '../../../util/notifications/types';
 import {
   TRIGGER_TYPES,
 } from  '../../../util/notifications/constants';
-import { Linking } from 'react-native';
 
 const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
   const performActionBasedOnOpenedNotificationType = useCallback(
@@ -20,9 +20,7 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
       ) {
         Linking.openURL(notification.data.externalLink.externalLinkUrl);
       } else {
-        navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notificationId: notification.id,
-        });
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     },
     [navigation],
@@ -37,6 +35,10 @@ const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
     },
     [performActionBasedOnOpenedNotificationType],
   );
+
+  useEffect(() => {
+    NotificationsService.onAppBootstrap();
+  }, []);
 
   useEffect(() => {
     if (!isNotificationsFeatureEnabled()) return;
