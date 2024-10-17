@@ -326,7 +326,7 @@ exports[`Confirm should match snapshot for personal sign 1`] = `
                     }
                   }
                 >
-                  Ethereum Main Network
+                  Mainnet
                 </Text>
               </View>
             </View>
