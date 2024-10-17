@@ -341,10 +341,30 @@ class NetworksSettings extends PureComponent {
 
   renderRpcNetworksView = () => {
     const { networkConfigurations } = this.props;
+    // Define the chainIds to exclude (Mainnet and Linea)
+    const excludedChainIds = [
+      CHAIN_IDS.MAINNET,
+      CHAIN_IDS.LINEA_MAINNET,
+      CHAIN_IDS.SEPOLIA,
+      CHAIN_IDS.LINEA_SEPOLIA,
+    ];
+
+    const filtredChain = Object.keys(networkConfigurations).reduce(
+      (filtered, key) => {
+        const network = networkConfigurations[key];
+        // If the chainId is not in the excludedChainIds, add it to the result
+        if (!excludedChainIds.includes(network.chainId)) {
+          filtered[key] = network;
+        }
+        return filtered;
+      },
+      {},
+    );
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (Object.keys(networkConfigurations).length > 0) {
+    if (Object.keys(filtredChain).length > 0) {
       return (
         <View testID={NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST}>
           <Text style={styles.sectionLabel}>

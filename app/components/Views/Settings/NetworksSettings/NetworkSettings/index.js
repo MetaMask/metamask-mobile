@@ -1425,7 +1425,10 @@ export class NetworkSettings extends PureComponent {
   };
 
   closeAddRpcForm = () => {
-    this.setState({ showAddRpcForm: { isVisible: false } });
+    this.setState({
+      showAddRpcForm: { isVisible: false },
+      warningRpcUrl: undefined,
+    });
   };
 
   openAddBlockExplorerForm = () => {
@@ -1942,7 +1945,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={chainId}
-              editable={!this.isAnyModalVisible()}
+              editable={!this.isAnyModalVisible() && addMode}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
                 this.validateChainId();
@@ -2078,14 +2081,7 @@ export class NetworkSettings extends PureComponent {
                   keyboardAppearance={themeAppearance}
                 />
                 {warningRpcUrl && (
-                  <View
-                    style={
-                      isNetworkUiRedesignEnabled()
-                        ? styles.newWarningContainer
-                        : styles.warningContainer
-                    }
-                    testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
-                  >
+                  <View testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}>
                     <Text style={styles.warningText}>{warningRpcUrl}</Text>
                   </View>
                 )}
@@ -2099,7 +2095,6 @@ export class NetworkSettings extends PureComponent {
                   value={rpcNameForm}
                   autoCorrect={false}
                   onChangeText={this.onRpcNameAdd}
-                  onFocus={this.onRpcUrlFocused}
                   placeholder={strings('app_settings.network_rpc_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   onSubmitEditing={this.jumpToChainId}
@@ -2161,13 +2156,7 @@ export class NetworkSettings extends PureComponent {
                   keyboardAppearance={themeAppearance}
                 />
                 {blockExplorerUrl && !isUrl(blockExplorerUrl) && (
-                  <View
-                    style={
-                      isNetworkUiRedesignEnabled()
-                        ? styles.newWarningContainer
-                        : styles.warningContainer
-                    }
-                  >
+                  <View>
                     <Text style={styles.warningText}>
                       {strings('app_settings.invalid_block_explorer_url')}
                     </Text>
