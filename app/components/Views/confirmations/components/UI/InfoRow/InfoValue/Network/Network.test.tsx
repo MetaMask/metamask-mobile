@@ -22,7 +22,7 @@ const mockInitialState = {
   },
 };
 
-describe('URL', () => {
+describe('Network', () => {
   it('should display url as expected', async () => {
     const container = renderWithProvider(
       <Network chainId={CHAIN_IDS.MAINNET} />,
