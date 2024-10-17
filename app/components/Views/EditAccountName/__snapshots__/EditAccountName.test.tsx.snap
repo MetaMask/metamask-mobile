@@ -87,7 +87,7 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="account-name-input"
-            value="Account 1"
+            value="Test Account"
           />
         </View>
       </View>

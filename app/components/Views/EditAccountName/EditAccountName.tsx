@@ -1,10 +1,16 @@
 // Third party dependencies
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useRoute,
+  useNavigation,
+  RouteProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native';
 
 // External dependencies
+import { InternalAccount } from '@metamask/keyring-api';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
@@ -24,7 +30,6 @@ import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
@@ -37,7 +42,20 @@ import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
+interface RootNavigationParamList extends ParamListBase {
+  EditAccountName: {
+    selectedAccount: InternalAccount;
+  };
+}
+
+type EditAccountNameRouteProp = RouteProp<
+  RootNavigationParamList,
+  'EditAccountName'
+>;
+
 const EditAccountName = () => {
+  const route = useRoute<EditAccountNameRouteProp>();
+  const { selectedAccount } = route.params;
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
@@ -45,10 +63,8 @@ const EditAccountName = () => {
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-
-  const selectedChecksummedAddress = selectedInternalAccount?.address
-    ? toChecksumHexAddress(selectedInternalAccount.address)
+  const selectedChecksummedAddress = selectedAccount?.address
+    ? toChecksumHexAddress(selectedAccount.address)
     : undefined;
 
   const chainId = useSelector(selectChainId);
@@ -80,28 +96,22 @@ const EditAccountName = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    const name = selectedInternalAccount?.metadata.name;
+    const name = selectedAccount?.metadata.name;
     setAccountName(isDefaultAccountName(name) && ens ? ens : name);
-  }, [ens, selectedInternalAccount?.metadata.name]);
+  }, [ens, selectedAccount?.metadata.name]);
 
   const onChangeName = (name: string) => {
     setAccountName(name);
   };
 
   const saveAccountName = async () => {
-    if (
-      accountName &&
-      accountName.length > 0 &&
-      selectedInternalAccount?.address
-    ) {
-      Engine.setAccountLabel(selectedInternalAccount?.address, accountName);
+    if (accountName && accountName.length > 0 && selectedAccount?.address) {
+      Engine.setAccountLabel(selectedAccount?.address, accountName);
       navigate('WalletView');
 
       try {
         const analyticsProperties = async () => {
-          const accountType = getAddressAccountType(
-            selectedInternalAccount?.address,
-          );
+          const accountType = getAddressAccountType(selectedAccount?.address);
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
           return { account_type, chain_id: getDecimalChainId(chainId) };
         };
@@ -130,13 +140,10 @@ const EditAccountName = () => {
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('address_book.address')}
           </Text>
-          {selectedInternalAccount?.address ? (
+          {selectedAccount?.address ? (
             <TextField
               isDisabled
-              placeholder={formatAddress(
-                selectedInternalAccount?.address,
-                'mid',
-              )}
+              placeholder={formatAddress(selectedAccount?.address, 'mid')}
             />
           ) : null}
         </View>

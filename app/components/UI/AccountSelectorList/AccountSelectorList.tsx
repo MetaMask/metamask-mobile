@@ -15,9 +15,11 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Hex } from '@metamask/utils';
 
 // External dependencies.
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
+import { InternalAccount } from '@metamask/keyring-api';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
@@ -75,6 +77,8 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const internalAccounts = useSelector(selectInternalAccounts);
 
   const getKeyExtractor = ({ address }: Account) => address;
 
@@ -165,11 +169,21 @@ const AccountSelectorList = ({
     ],
   );
 
-  const onNavigateToAccountActions = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_ACTIONS,
-    });
-  }, [navigate]);
+  const onNavigateToAccountActions = useCallback(
+    (selectedAccount: string) => {
+      // TODO: Fix this, there has to be a better
+      // way to get a internal account from the address.
+      const account = internalAccounts.find(
+        (accountData: InternalAccount) =>
+          accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
+      );
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ACCOUNT_ACTIONS,
+        params: { selectedAccount: account },
+      });
+    },
+    [navigate, internalAccounts],
+  );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
@@ -227,12 +241,12 @@ const AccountSelectorList = ({
             style={cellStyle as ViewStyle}
             rightAccessory={
               <TouchableOpacity
-                onPress={onNavigateToAccountActions}
+                onPress={() => onNavigateToAccountActions(address)}
                 style={styles.rightAccessoryContainer}
                 testID={WalletViewSelectorsIDs.ACCOUNT_ACTIONS}
               >
                 <ButtonIcon
-                  onPress={onNavigateToAccountActions}
+                  onPress={() => onNavigateToAccountActions(address)}
                   iconName={IconName.MoreVertical}
                   size={ButtonIconSizes.Sm}
                 />

@@ -11,7 +11,9 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { InternalAccount } from '@metamask/keyring-api';
 import QRCode from 'react-native-qrcode-svg';
+import { RouteProp, ParamListBase } from '@react-navigation/native';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
@@ -62,15 +64,26 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const PRIVATE_KEY = 'private_key';
 
+interface RootStackParamList extends ParamListBase {
+  RevealPrivateCredential: {
+    credentialName: string;
+    shouldUpdateNav?: boolean;
+    selectedAccount?: InternalAccount;
+  };
+}
+
+type RevealPrivateCredentialRouteProp = RouteProp<
+  RootStackParamList,
+  'RevealPrivateCredential'
+>;
+
 interface IRevealPrivateCredentialProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   credentialName: string;
   cancel: () => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  route: any;
+  route: RevealPrivateCredentialRouteProp;
 }
 
 const RevealPrivateCredential = ({
@@ -91,9 +104,12 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
+  const checkSummedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
+
+  const selectedAddress =
+    route?.params?.selectedAccount?.address || checkSummedAddress;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
