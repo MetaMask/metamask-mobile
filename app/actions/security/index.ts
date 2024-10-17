@@ -8,6 +8,7 @@ export enum ActionType {
   SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN = 'SET_AUTOMATIC_SECURITY_CHECKS_MODAL_OPEN',
   SET_DATA_COLLECTION_FOR_MARKETING = 'SET_DATA_COLLECTION_FOR_MARKETING',
   SET_NFT_AUTO_DETECTION_MODAL_OPEN = 'SET_NFT_AUTO_DETECTION_MODAL_OPEN',
+  SET_MULTI_RPC_MIGRATION_MODAL_OPEN = 'SET_MULTI_RPC_MIGRATION_MODAL_OPEN',
 }
 
 export interface AllowLoginWithRememberMeUpdated
@@ -35,6 +36,11 @@ export interface SetNftAutoDetectionModalOpen
   open: boolean;
 }
 
+export interface SetMultiRpcMigrationModalOpen
+  extends ReduxAction<ActionType.SET_MULTI_RPC_MIGRATION_MODAL_OPEN> {
+  open: boolean;
+}
+
 export interface SetDataCollectionForMarketing
   extends ReduxAction<ActionType.SET_DATA_COLLECTION_FOR_MARKETING> {
   enabled: boolean;
@@ -46,7 +52,8 @@ export type Action =
   | UserSelectedAutomaticSecurityChecksOptions
   | SetAutomaticSecurityChecksModalOpen
   | SetDataCollectionForMarketing
-  | SetNftAutoDetectionModalOpen;
+  | SetNftAutoDetectionModalOpen
+  | SetMultiRpcMigrationModalOpen;
 
 export const setAllowLoginWithRememberMe = (
   enabled: boolean,
@@ -79,6 +86,13 @@ export const setNftAutoDetectionModalOpen = (
   open: boolean,
 ): SetNftAutoDetectionModalOpen => ({
   type: ActionType.SET_NFT_AUTO_DETECTION_MODAL_OPEN,
+  open,
+});
+
+export const setMultiRpcMigrationModalOpen = (
+  open: boolean,
+): SetMultiRpcMigrationModalOpen => ({
+  type: ActionType.SET_MULTI_RPC_MIGRATION_MODAL_OPEN,
   open,
 });
 

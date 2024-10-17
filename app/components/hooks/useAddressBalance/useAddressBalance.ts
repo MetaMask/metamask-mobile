@@ -16,7 +16,7 @@ import { selectSelectedInternalAccountChecksummedAddress } from '../../../select
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (
-  asset: Asset,
+  asset?: Asset,
   address?: string,
   dontWatchAsset?: boolean,
 ) => {

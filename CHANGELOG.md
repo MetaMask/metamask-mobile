@@ -2,16 +2,13 @@
 
 ## Current Main Branch
 
-## 7.33.0 - Oct 3, 2024
+## 7.33.0 - Oct 17, 2024
 ### Added
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
-- [#11347](https://github.com/MetaMask/metamask-mobile/pull/11347): "chore: revert ""feat: react native fast crypto for notifications"" (#11347)"
 - [#11318](https://github.com/MetaMask/metamask-mobile/pull/11318): feat: app event manager and attribution id parameters (#11318)
 - [#11445](https://github.com/MetaMask/metamask-mobile/pull/11445): feat: add the abilty to hide the disconnect all button as well as showing and hiding the accounts row when necessary (#11445)
 - [#11386](https://github.com/MetaMask/metamask-mobile/pull/11386): feat(3299): add tracking to network switching and confirmation (#11386)
-- [#11379](https://github.com/MetaMask/metamask-mobile/pull/11379): refactor: rename the feature flag since it had a typo (#11379)
 - [#11239](https://github.com/MetaMask/metamask-mobile/pull/11239): feat(2739): permission summary view gets the ability to disconnect all (#11239)
-- [#11382](https://github.com/MetaMask/metamask-mobile/pull/11382): chore(runway): cherry-pick feat: app event manager and attribution id parameters (#11382)
 - [#11497](https://github.com/MetaMask/metamask-mobile/pull/11497): feat: simple key-> value component for text value type (#11497)
 - [#11478](https://github.com/MetaMask/metamask-mobile/pull/11478): feat: adding title to confirmation page (#11478)
 - [#11477](https://github.com/MetaMask/metamask-mobile/pull/11477): feat: adding footer section to confirmation page (#11477)
@@ -23,21 +20,20 @@
 - [#11399](https://github.com/MetaMask/metamask-mobile/pull/11399): feat: add learn more modal component for staking (#11399)
 - [#11261](https://github.com/MetaMask/metamask-mobile/pull/11261): feat: STAKE-822 build your balance component (#11261)
 - [#11294](https://github.com/MetaMask/metamask-mobile/pull/11294): feat: added KeyValueRow to component-library/components-temp (#11294)
-- [#11185](https://github.com/MetaMask/metamask-mobile/pull/11185): "feat: display ""Snaps (Beta)"" decorator tag in accounts list (#11185)"
+- [#11185](https://github.com/MetaMask/metamask-mobile/pull/11185): feat: display ""Snaps (Beta)"" decorator tag in accounts list (#11185)
 - [#10829](https://github.com/MetaMask/metamask-mobile/pull/10829): feat: Eth snap keyring (#10829)
 - [#11455](https://github.com/MetaMask/metamask-mobile/pull/11455): feat: bootstrap a reset notifications feat (#11455)
 - [#11466](https://github.com/MetaMask/metamask-mobile/pull/11466): feat: add support for external links (#11466)
 - [#11429](https://github.com/MetaMask/metamask-mobile/pull/11429): feat: add timeout handler (#11429)
 - [#11427](https://github.com/MetaMask/metamask-mobile/pull/11427): feat: add feature announcements channel for android (#11427)
-- [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
 - [#11069](https://github.com/MetaMask/metamask-mobile/pull/11069): feat: react native fast crypto for notifications (#11069)
 
 ### Changed
+- [#11379](https://github.com/MetaMask/metamask-mobile/pull/11379): refactor: rename the feature flag since it had a typo (#11379)
 - [#11615](https://github.com/MetaMask/metamask-mobile/pull/11615): chore: exclude temporarily sentry SDK advisory (#11615)
 - [#11577](https://github.com/MetaMask/metamask-mobile/pull/11577): ci: disable swaps e2e workflow (#11577)
 - [#11350](https://github.com/MetaMask/metamask-mobile/pull/11350): chore: replace Segment patch by plugin (#11350)
 - [#11287](https://github.com/MetaMask/metamask-mobile/pull/11287): chore: remove unused events (#11287)
-- [#11512](https://github.com/MetaMask/metamask-mobile/pull/11512): fix: android firebase docs template (#11512)
 - [#11517](https://github.com/MetaMask/metamask-mobile/pull/11517): chore: delete swaps token charts test (#11517)
 - [#11515](https://github.com/MetaMask/metamask-mobile/pull/11515): test: disable swaps token charts regression tests (#11515)
 - [#11504](https://github.com/MetaMask/metamask-mobile/pull/11504): chore: revert measuring with react native performance (#11504)
@@ -83,13 +79,15 @@
 - [#11104](https://github.com/MetaMask/metamask-mobile/pull/11104): chore(deps): Bump `@metamask/address-book-controller` from `^4.0.1` to `^6.0.1` (#11104)
 - [#10917](https://github.com/MetaMask/metamask-mobile/pull/10917): chore(ci): split out ci scripts and devDeps into separate project (#10917)
 - [#11081](https://github.com/MetaMask/metamask-mobile/pull/11081): chore: Prevent redundant Sentry sourcemap uploads (#11081)
-- [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
 - [#11470](https://github.com/MetaMask/metamask-mobile/pull/11470): chore: [Design quality] Update token details (#11470)
-- [#11439](https://github.com/MetaMask/metamask-mobile/pull/11439): "chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)"
-- [#11169](https://github.com/MetaMask/metamask-mobile/pull/11169): "chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`
-- [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): "chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
+- [#11439](https://github.com/MetaMask/metamask-mobile/pull/11439): chore: cherry-pick fix: ""chore(deps): Bump @metamask/base-controller from ^6.0.0 to ^7.0.0 (#11207)"" (#11439)
+- [#11169](https://github.com/MetaMask/metamask-mobile/pull/11169): chore(deps): Bump `@metamask/signature-controller` from `^17.0.0` to `^19.1.0`
+- [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
 ### Fixed
+- [#11512](https://github.com/MetaMask/metamask-mobile/pull/11512): fix: android firebase docs template (#11512)
+- [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
+- [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
 - [#11581](https://github.com/MetaMask/metamask-mobile/pull/11581): fix: Fix invalid browser url crash (#11581)
 - [#11467](https://github.com/MetaMask/metamask-mobile/pull/11467): fix: Reorder prep_environment (#11467)
 - [#11367](https://github.com/MetaMask/metamask-mobile/pull/11367): fix: Update steps of the methods that are no longer valid (#11367)
@@ -470,10 +468,7 @@
 - [#10383](https://github.com/MetaMask/metamask-mobile/pull/10383): fix: race condition issues when doing batch-rpc calls in the DeeplinkProtocolService (#10383)
 - [#10365](https://github.com/MetaMask/metamask-mobile/pull/10365): fix: attribution link (#10365)
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
-<<<<<<< HEAD
 
-=======
->>>>>>> main
 ## 7.28.1 - Aug 15, 2024
 ### Fixed
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)

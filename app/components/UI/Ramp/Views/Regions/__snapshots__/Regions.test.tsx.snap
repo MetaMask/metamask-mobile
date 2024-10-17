@@ -578,104 +578,92 @@ exports[`Regions View renders correctly 1`] = `
                                       },
                                       undefined,
                                       undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Select your region
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          Select your region
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
                                           {
                                             "flex": 0,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontSize": 15,
-                                            },
-                                            undefined,
-                                            {
-                                              "fontFamily": "FontAwesome",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        
-                                      </Text>
+                                        <Text
+                                          allowFontScaling={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#141618",
+                                                "fontSize": 15,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "FontAwesome",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
+                                          }
+                                        >
+                                          
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -1388,6 +1376,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                                     undefined,
                                     undefined,
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -1942,53 +1931,18 @@ exports[`Regions View renders correctly with error 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
+                                    }
                                   }
                                 >
                                   Error
@@ -2682,6 +2636,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                                     undefined,
                                     undefined,
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -3236,53 +3191,18 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                 }
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      [
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 18,
-                                          "fontWeight": "600",
-                                          "marginVertical": 3,
-                                        },
-                                        {
-                                          "textAlign": "center",
-                                        },
-                                        undefined,
-                                        undefined,
-                                      ],
-                                    ]
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
+                                    }
                                   }
                                 >
                                   Oops, something went wrong
@@ -3994,107 +3914,95 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       },
                                       undefined,
                                       undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        🇨🇱
-                                         
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          🇨🇱
                                            
-                                        Chile
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                             
+                                          Chile
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
                                           {
                                             "flex": 0,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontSize": 15,
-                                            },
-                                            undefined,
-                                            {
-                                              "fontFamily": "FontAwesome",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        
-                                      </Text>
+                                        <Text
+                                          allowFontScaling={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#141618",
+                                                "fontSize": 15,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "FontAwesome",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
+                                          }
+                                        >
+                                          
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -4820,104 +4728,92 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       },
                                       undefined,
                                       undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Select your region
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          Select your region
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
                                           {
                                             "flex": 0,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontSize": 15,
-                                            },
-                                            undefined,
-                                            {
-                                              "fontFamily": "FontAwesome",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        
-                                      </Text>
+                                        <Text
+                                          allowFontScaling={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#141618",
+                                                "fontSize": 15,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "FontAwesome",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
+                                          }
+                                        >
+                                          
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -5157,6 +5053,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
+                                      undefined,
                                       undefined,
                                       undefined,
                                       {
@@ -6020,104 +5917,92 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       },
                                       undefined,
                                       undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Select your region
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          Select your region
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
                                           {
                                             "flex": 0,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontSize": 15,
-                                            },
-                                            undefined,
-                                            {
-                                              "fontFamily": "FontAwesome",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        
-                                      </Text>
+                                        <Text
+                                          allowFontScaling={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#141618",
+                                                "fontSize": 15,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "FontAwesome",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
+                                          }
+                                        >
+                                          
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -6357,6 +6242,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
+                                      undefined,
                                       undefined,
                                       undefined,
                                       {
@@ -7220,104 +7106,92 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       },
                                       undefined,
                                       undefined,
+                                      {
+                                        "padding": 0,
+                                      },
                                       undefined,
                                     ]
                                   }
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
                                           {
                                             "flex": 1,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        style={
-                                          [
+                                          }
+                                        }
+                                        testID="listitemcolumn"
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
                                             {
                                               "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 30,
-                                              "fontWeight": "400",
-                                              "marginVertical": 2,
-                                            },
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        Select your region
-                                      </Text>
-                                    </View>
-                                    <View
-                                      style={
-                                        [
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          Select your region
+                                        </Text>
+                                      </View>
+                                      <View
+                                        accessible={false}
+                                        style={
                                           {
-                                            "alignItems": "flex-end",
-                                            "flex": 0.6,
-                                          },
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
                                           {
                                             "flex": 0,
-                                          },
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        allowFontScaling={false}
-                                        style={
-                                          [
-                                            {
-                                              "color": "#141618",
-                                              "fontSize": 15,
-                                            },
-                                            undefined,
-                                            {
-                                              "fontFamily": "FontAwesome",
-                                              "fontStyle": "normal",
-                                              "fontWeight": "normal",
-                                            },
-                                            {},
-                                          ]
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
-                                        
-                                      </Text>
+                                        <Text
+                                          allowFontScaling={false}
+                                          style={
+                                            [
+                                              {
+                                                "color": "#141618",
+                                                "fontSize": 15,
+                                              },
+                                              undefined,
+                                              {
+                                                "fontFamily": "FontAwesome",
+                                                "fontStyle": "normal",
+                                                "fontWeight": "normal",
+                                              },
+                                              {},
+                                            ]
+                                          }
+                                        >
+                                          
+                                        </Text>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -7839,7 +7713,9 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 }
                                               }
                                             >
-                                              <Text>
+                                              <Text
+                                                variant="sBodyLGMedium"
+                                              >
                                                 No region matches
                                               </Text>
                                             </View>
@@ -7916,40 +7792,42 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 <TouchableOpacity
                                                   accessibilityRole="button"
                                                   accessible={true}
+                                                  disabled={false}
                                                   onPress={[Function]}
+                                                  style={
+                                                    {
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderRadius": 4,
+                                                      "opacity": 1,
+                                                      "paddingHorizontal": 24,
+                                                      "position": "relative",
+                                                    }
+                                                  }
                                                 >
                                                   <View
+                                                    accessibilityRole="none"
+                                                    accessible={true}
                                                     style={
-                                                      [
-                                                        {
-                                                          "padding": 15,
-                                                        },
-                                                        {
-                                                          "paddingHorizontal": 24,
-                                                        },
-                                                      ]
+                                                      {
+                                                        "padding": 16,
+                                                      }
                                                     }
                                                   >
                                                     <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "alignItems": "center",
-                                                            "flexDirection": "row",
-                                                          },
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "alignItems": "center",
+                                                          "flexDirection": "row",
+                                                        }
                                                       }
                                                     >
                                                       <View
                                                         style={
-                                                          [
-                                                            {
-                                                              "flex": 1,
-                                                            },
-                                                            undefined,
-                                                          ]
+                                                          {
+                                                            "flex": 1,
+                                                          }
                                                         }
+                                                        testID="listitemcolumn"
                                                       >
                                                         <View
                                                           style={
@@ -7967,40 +7845,16 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                             }
                                                           >
                                                             <Text
+                                                              accessibilityRole="text"
                                                               style={
-                                                                [
-                                                                  {
-                                                                    "color": "#141618",
-                                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                                    "fontSize": 30,
-                                                                    "fontWeight": "400",
-                                                                    "marginVertical": 2,
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                ]
+                                                                {
+                                                                  "color": "#141618",
+                                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                                  "fontSize": 14,
+                                                                  "fontWeight": "400",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 22,
+                                                                }
                                                               }
                                                             >
                                                               🇨🇱
@@ -8008,44 +7862,16 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                           </View>
                                                           <View>
                                                             <Text
+                                                              accessibilityRole="text"
                                                               style={
-                                                                [
-                                                                  {
-                                                                    "color": "#141618",
-                                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                                    "fontSize": 30,
-                                                                    "fontWeight": "400",
-                                                                    "marginVertical": 2,
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  false,
-                                                                  undefined,
-                                                                  {
-                                                                    "color": "#141618",
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  {
-                                                                    "color": "#141618",
-                                                                  },
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                  undefined,
-                                                                ]
+                                                                {
+                                                                  "color": "#141618",
+                                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                                  "fontSize": 16,
+                                                                  "fontWeight": "500",
+                                                                  "letterSpacing": 0,
+                                                                  "lineHeight": 24,
+                                                                }
                                                               }
                                                             >
                                                               Chile
@@ -8075,40 +7901,42 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 accessible={true}
+                                                disabled={false}
                                                 onPress={[Function]}
+                                                style={
+                                                  {
+                                                    "backgroundColor": "#ffffff",
+                                                    "borderRadius": 4,
+                                                    "opacity": 1,
+                                                    "paddingHorizontal": 24,
+                                                    "position": "relative",
+                                                  }
+                                                }
                                               >
                                                 <View
+                                                  accessibilityRole="none"
+                                                  accessible={true}
                                                   style={
-                                                    [
-                                                      {
-                                                        "padding": 15,
-                                                      },
-                                                      {
-                                                        "paddingHorizontal": 24,
-                                                      },
-                                                    ]
+                                                    {
+                                                      "padding": 16,
+                                                    }
                                                   }
                                                 >
                                                   <View
                                                     style={
-                                                      [
-                                                        {
-                                                          "alignItems": "center",
-                                                          "flexDirection": "row",
-                                                        },
-                                                        undefined,
-                                                      ]
+                                                      {
+                                                        "alignItems": "center",
+                                                        "flexDirection": "row",
+                                                      }
                                                     }
                                                   >
                                                     <View
                                                       style={
-                                                        [
-                                                          {
-                                                            "flex": 1,
-                                                          },
-                                                          undefined,
-                                                        ]
+                                                        {
+                                                          "flex": 1,
+                                                        }
                                                       }
+                                                      testID="listitemcolumn"
                                                     >
                                                       <View
                                                         style={
@@ -8126,40 +7954,16 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                           }
                                                         >
                                                           <Text
+                                                            accessibilityRole="text"
                                                             style={
-                                                              [
-                                                                {
-                                                                  "color": "#141618",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 30,
-                                                                  "fontWeight": "400",
-                                                                  "marginVertical": 2,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                              ]
+                                                              {
+                                                                "color": "#141618",
+                                                                "fontFamily": "EuclidCircularB-Regular",
+                                                                "fontSize": 14,
+                                                                "fontWeight": "400",
+                                                                "letterSpacing": 0,
+                                                                "lineHeight": 22,
+                                                              }
                                                             }
                                                           >
                                                             🇦🇷
@@ -8167,44 +7971,16 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                         </View>
                                                         <View>
                                                           <Text
+                                                            accessibilityRole="text"
                                                             style={
-                                                              [
-                                                                {
-                                                                  "color": "#141618",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 30,
-                                                                  "fontWeight": "400",
-                                                                  "marginVertical": 2,
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                false,
-                                                                undefined,
-                                                                {
-                                                                  "color": "#141618",
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                {
-                                                                  "color": "#141618",
-                                                                },
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                                undefined,
-                                                              ]
+                                                              {
+                                                                "color": "#141618",
+                                                                "fontFamily": "EuclidCircularB-Medium",
+                                                                "fontSize": 16,
+                                                                "fontWeight": "500",
+                                                                "letterSpacing": 0,
+                                                                "lineHeight": 24,
+                                                              }
                                                             }
                                                           >
                                                             Argentina

@@ -7,12 +7,12 @@ import {
   EnableNotificationsReturn,
   DisableNotificationsReturn,
   MarkNotificationAsReadReturn,
-  ResetNotificationsStorageKeyReturn,
+  deleteNotificationsStorageKeyReturn,
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   MarkAsReadNotificationsParam,
-  createOnChainTriggersByAccount,
+  performDeleteStorage,
   disableNotificationServices,
   enableNotificationServices,
   fetchAndUpdateMetamaskNotifications,
@@ -206,20 +206,20 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 }
 
 /**
- * Custom hook to enable notifications by creating on-chain triggers.
+ * Custom hook to delete notifications storage key.
  * It manages loading and error states internally.
  *
- * @returns An object containing the `enableNotifications` function, loading state, and error state.
+ * @returns An object containing the `deleteNotificationsStorageKey` function, loading state, and error state.
  */
-export function useResetNotificationsStorageKey(): ResetNotificationsStorageKeyReturn {
+export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKeyReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const resetNotificationsStorageKey = useCallback(async () => {
+  const deleteNotificationsStorageKey = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await createOnChainTriggersByAccount(true);
+      const errorMessage = await performDeleteStorage();
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -234,7 +234,7 @@ export function useResetNotificationsStorageKey(): ResetNotificationsStorageKeyR
   }, []);
 
   return {
-    resetNotificationsStorageKey,
+    deleteNotificationsStorageKey,
     loading,
     error,
   };

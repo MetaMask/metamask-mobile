@@ -1,39 +1,34 @@
 import React from 'react';
-import BaseListItem from '../../../../Base/ListItem';
-import BaseText from '../../../../Base/Text';
 import Box from '../Box';
-import Row from '../Row';
 import SkeletonBox from '../SkeletonBox';
 import SkeletonText from '../SkeletonText';
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Text = BaseText as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text from '../../../../../component-library/components/Texts/Text';
+import ListItemColumnEnd from '../ListItemColumnEnd';
 
 const SkeletonPaymentMethod = () => (
-  <Box>
-    <ListItem.Content>
-      <ListItem.Icon>
+  <Box compact>
+    <ListItem
+      bottomAccessoryGap={16}
+      bottomAccessory={<SkeletonText thin medium />}
+    >
+      <ListItemColumn>
         <SkeletonBox />
-      </ListItem.Icon>
-      <ListItem.Body>
-        <ListItem.Title>
-          <SkeletonText thin title />
-        </ListItem.Title>
-      </ListItem.Body>
-      <ListItem.Amounts>
+      </ListItemColumn>
+
+      <ListItemColumn>
+        <SkeletonText thin title />
+      </ListItemColumn>
+
+      <ListItemColumnEnd widthType={WidthType.Fill}>
         <Text>
           <SkeletonText medium /> <SkeletonText medium />
         </Text>
-      </ListItem.Amounts>
-    </ListItem.Content>
-    <Row />
-    <ListItem.Content>
-      <SkeletonText thin medium />
-    </ListItem.Content>
+      </ListItemColumnEnd>
+    </ListItem>
   </Box>
 );
 

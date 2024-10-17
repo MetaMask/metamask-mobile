@@ -26,7 +26,7 @@ module.exports = {
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: 'ios.debug',
+      app: process.env.CI ? 'ios.qa' :'ios.debug',
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
@@ -41,10 +41,9 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
-    // because e2e run on debug mode in bitrise
-    'android.emu.bitrise.debug': {
-      device: 'android.bitrise.emulator',
-      app: 'android.bitrise.debug',
+    'ios.sim.qa': {
+      device: 'ios.simulator',
+      app: 'ios.qa',
     },
 
     'android.emu.debug': {
@@ -86,32 +85,21 @@ module.exports = {
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
       build: 'yarn start:ios:e2e',
     },
-    'ios.release': {
+    'ios.qa': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
-      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
-    },
-    'android.bitrise.debug': {
-      type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
-      build: 'yarn start:android:e2e',
+        'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
+      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:qa",
     },
     'android.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
       build: 'yarn start:android:e2e',
     },
-    'android.release': {
-      type: 'android.apk',
-      binaryPath:
-        'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
-    },
     'android.qa': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
-      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
+      build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:qa",
     },
   },
 };

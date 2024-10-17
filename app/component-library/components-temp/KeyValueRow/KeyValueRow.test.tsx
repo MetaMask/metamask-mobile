@@ -19,8 +19,8 @@ describe('KeyValueRow', () => {
       it('should render when there is only text', () => {
         const { toJSON } = render(
           <KeyValueRow
-            field={{ text: 'Sample Key Text' }}
-            value={{ text: 'Sample Value Text' }}
+            field={{ label: { text: 'Sample Key Text' } }}
+            value={{ label: { text: 'Sample Value Text' } }}
           />,
         );
 
@@ -31,17 +31,17 @@ describe('KeyValueRow', () => {
         const { toJSON } = render(
           <KeyValueRow
             field={{
-              text: 'Key Text',
+              label: { text: 'Key Text' },
               tooltip: {
                 title: 'Sample Tooltip 1',
-                text: 'Tooltip 1 text',
+                content: 'Tooltip 1 text',
               },
             }}
             value={{
-              text: 'Value Text',
+              label: { text: 'Value Text' },
               tooltip: {
                 title: 'Sample Tooltip 2',
-                text: 'Tooltip 2 text',
+                content: 'Tooltip 2 text',
               },
             }}
           />,
@@ -54,13 +54,13 @@ describe('KeyValueRow', () => {
         const { toJSON } = render(
           <KeyValueRow
             field={{
-              text: 'Key Text',
+              label: { text: 'Key Text' },
               icon: {
                 name: IconName.Activity,
               },
             }}
             value={{
-              text: 'Value Text',
+              label: { text: 'Value Text' },
               icon: {
                 name: IconName.Add,
               },
@@ -75,23 +75,23 @@ describe('KeyValueRow', () => {
         const { toJSON } = render(
           <KeyValueRow
             field={{
-              text: 'Key Text',
+              label: { text: 'Key Text' },
               icon: {
                 name: IconName.Activity,
               },
               tooltip: {
                 title: 'Sample Tooltip 2',
-                text: 'Tooltip 2 text',
+                content: 'Tooltip 2 text',
               },
             }}
             value={{
-              text: 'Value Text',
+              label: { text: 'Value Text' },
               icon: {
                 name: IconName.Add,
               },
               tooltip: {
                 title: 'Sample Tooltip 2',
-                text: 'Tooltip 2 text',
+                content: 'Tooltip 2 text',
               },
             }}
           />,

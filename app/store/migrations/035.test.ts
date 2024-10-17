@@ -104,7 +104,11 @@ describe('Migration #35', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: { networkDetails: {}, providerConfig: null },
+            NetworkController: {
+              networkDetails: {},
+              providerConfig: null,
+              networkConfigurations: {},
+            },
           },
         },
       }),

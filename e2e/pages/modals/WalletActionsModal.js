@@ -17,6 +17,10 @@ class WalletActionsModal {
     return Matchers.getElementByID(WalletActionsModalSelectorsIDs.SWAP_BUTTON);
   }
 
+  get buyButton() {
+    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.BUY_BUTTON);
+  }
+
   async tapSendButton() {
     await Gestures.waitAndTap(this.sendButton);
   }
@@ -27,6 +31,10 @@ class WalletActionsModal {
 
   async tapSwapButton() {
     await Gestures.waitAndTap(this.swapButton);
+  }
+
+  async tapBuyButton() {
+    await Gestures.waitAndTap(this.buyButton);
   }
 }
 

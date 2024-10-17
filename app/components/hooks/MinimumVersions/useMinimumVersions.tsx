@@ -1,30 +1,25 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { getBuildNumber } from 'react-native-device-info';
-import { useAppConfig } from '../AppConfig';
 import { createUpdateNeededNavDetails } from '../../UI/UpdateNeeded/UpdateNeeded';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InteractionManager } from 'react-native';
+import { FeatureFlagsState } from '../../../core/redux/slices/featureFlags';
+import { SecurityState } from '../../../../app/reducers/security';
+import { RootState } from '../../../../app/reducers';
 
 const useMinimumVersions = () => {
-  const allowAutomaticSecurityChecks = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.security.automaticSecurityChecksEnabled,
+  const { automaticSecurityChecksEnabled }: SecurityState = useSelector(
+    (state: RootState) => state.security,
   );
-  const minimumValues = useAppConfig(allowAutomaticSecurityChecks);
+  const { featureFlags }: FeatureFlagsState = useSelector(
+    (state: RootState) => state.featureFlags,
+  );
   const currentBuildNumber = Number(getBuildNumber());
   const navigation = useNavigation();
-  const shouldTriggerUpdateFlow = useMemo(
-    () =>
-      !!(
-        allowAutomaticSecurityChecks &&
-        minimumValues.data &&
-        minimumValues.data.security.minimumVersions.appMinimumBuild >
-          currentBuildNumber
-      ),
-    [allowAutomaticSecurityChecks, currentBuildNumber, minimumValues.data],
-  );
+  const shouldTriggerUpdateFlow =
+    automaticSecurityChecksEnabled &&
+    featureFlags?.mobileMinimumVersions?.appMinimumBuild > currentBuildNumber;
 
   useEffect(() => {
     if (shouldTriggerUpdateFlow) {
