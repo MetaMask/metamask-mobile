@@ -328,8 +328,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           accessible={true}
                           activeOpacity={1}
                           onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -343,15 +341,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "height": 40,
                               "justifyContent": "center",
                               "paddingHorizontal": 16,
-                              "text": "#141618",
                             }
                           }
                         >
                           <Text
-                            accessibilityRole="text"
+                            accessibilityRole="none"
                             style={
                               {
-                                "color": "#ffffff",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -360,10 +357,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               }
                             }
                           >
-                            Sort By
+                            Sort by
                           </Text>
                           <SvgMock
-                            color="#ffffff"
+                            color="#141618"
                             height={16}
                             name="ArrowDown"
                             style={
@@ -381,8 +378,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           accessible={true}
                           activeOpacity={1}
                           onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -396,13 +391,12 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "height": 40,
                               "justifyContent": "center",
                               "paddingHorizontal": 16,
-                              "text": "#141618",
                             }
                           }
                           testID="import-token-button"
                         >
                           <SvgMock
-                            color="#ffffff"
+                            color="#141618"
                             height={16}
                             name="Add"
                             style={
@@ -415,10 +409,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             width={16}
                           />
                           <Text
-                            accessibilityRole="text"
+                            accessibilityRole="none"
                             style={
                               {
-                                "color": "#ffffff",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -1575,8 +1569,6 @@ exports[`Tokens should render correctly 1`] = `
                           accessible={true}
                           activeOpacity={1}
                           onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -1590,15 +1582,14 @@ exports[`Tokens should render correctly 1`] = `
                               "height": 40,
                               "justifyContent": "center",
                               "paddingHorizontal": 16,
-                              "text": "#141618",
                             }
                           }
                         >
                           <Text
-                            accessibilityRole="text"
+                            accessibilityRole="none"
                             style={
                               {
-                                "color": "#ffffff",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -1607,10 +1598,10 @@ exports[`Tokens should render correctly 1`] = `
                               }
                             }
                           >
-                            Sort By
+                            Sort by
                           </Text>
                           <SvgMock
-                            color="#ffffff"
+                            color="#141618"
                             height={16}
                             name="ArrowDown"
                             style={
@@ -1628,8 +1619,6 @@ exports[`Tokens should render correctly 1`] = `
                           accessible={true}
                           activeOpacity={1}
                           onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -1643,13 +1632,12 @@ exports[`Tokens should render correctly 1`] = `
                               "height": 40,
                               "justifyContent": "center",
                               "paddingHorizontal": 16,
-                              "text": "#141618",
                             }
                           }
                           testID="import-token-button"
                         >
                           <SvgMock
-                            color="#ffffff"
+                            color="#141618"
                             height={16}
                             name="Add"
                             style={
@@ -1662,10 +1650,10 @@ exports[`Tokens should render correctly 1`] = `
                             width={16}
                           />
                           <Text
-                            accessibilityRole="text"
+                            accessibilityRole="none"
                             style={
                               {
-                                "color": "#ffffff",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -2822,8 +2810,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           accessible={true}
                           activeOpacity={1}
                           onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -2837,15 +2823,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "height": 40,
                               "justifyContent": "center",
                               "paddingHorizontal": 16,
-                              "text": "#141618",
                             }
                           }
                         >
                           <Text
-                            accessibilityRole="text"
+                            accessibilityRole="none"
                             style={
                               {
-                                "color": "#ffffff",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -2854,10 +2839,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               }
                             }
                           >
-                            Sort By
+                            Sort by
                           </Text>
                           <SvgMock
-                            color="#ffffff"
+                            color="#141618"
                             height={16}
                             name="ArrowDown"
                             style={
@@ -2875,8 +2860,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           accessible={true}
                           activeOpacity={1}
                           onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
                           style={
                             {
                               "alignItems": "center",
@@ -2890,13 +2873,12 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "height": 40,
                               "justifyContent": "center",
                               "paddingHorizontal": 16,
-                              "text": "#141618",
                             }
                           }
                           testID="import-token-button"
                         >
                           <SvgMock
-                            color="#ffffff"
+                            color="#141618"
                             height={16}
                             name="Add"
                             style={
@@ -2909,10 +2891,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             width={16}
                           />
                           <Text
-                            accessibilityRole="text"
+                            accessibilityRole="none"
                             style={
                               {
-                                "color": "#ffffff",
+                                "color": "#141618",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",

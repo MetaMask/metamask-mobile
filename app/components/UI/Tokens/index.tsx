@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo, ReactNode } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -20,9 +20,6 @@ import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectTokenSortConfig } from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
@@ -34,15 +31,8 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text from '../../../component-library/components/Texts/Text';
-import currencySymbols from '../../../util/currency-symbols.json';
-import Cell, {
-  CellVariant,
-} from '../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -224,20 +214,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        <Button
-          variant={ButtonVariants.Primary}
+        <ButtonBase
           label={strings('wallet.sort_by')}
           onPress={showSortControls}
           endIconName={IconName.ArrowDown}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
-        <Button
+        <ButtonBase
           testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-          variant={ButtonVariants.Primary}
           label={strings('wallet.import')}
           onPress={goToAddToken}
           startIconName={IconName.Add}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
       </View>
       {tokensList && (

@@ -45,7 +45,6 @@ describe(SmokeAssets('Import Tokens'), () => {
     await ConfirmAddAssetView.tapOnConfirmButton();
 
     await Assertions.checkIfVisible(WalletView.container);
-    await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
     await Assertions.checkIfVisible(WalletView.tokenInWallet('0 SNX'));
   });
 
@@ -82,7 +81,6 @@ describe(SmokeAssets('Import Tokens'), () => {
     await ConfirmAddAssetView.tapOnConfirmButton();
 
     await Assertions.checkIfVisible(WalletView.container);
-    await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
     await Assertions.checkIfVisible(WalletView.tokenInWallet('0 SNX'));
   });
 });
