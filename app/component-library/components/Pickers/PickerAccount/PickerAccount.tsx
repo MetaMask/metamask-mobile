@@ -65,7 +65,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
             style={styles.accountNameLabelText}
             testID={AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL}
           >
-            {strings(accountTypeLabel)}
+            {strings('accountTypeLabel')}
           </Text>
         )}
       </View>
@@ -84,7 +84,10 @@ const PickerAccount: React.ForwardRefRenderFunction<
         {renderCellAccount()}
       </PickerBase>
       {showAddress && (
-        <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>
+        <Text
+          variant={TextVariant.BodySMMedium}
+          style={styles.accountAddressLabel}
+        >
           {shortenedAddress}
         </Text>
       )}

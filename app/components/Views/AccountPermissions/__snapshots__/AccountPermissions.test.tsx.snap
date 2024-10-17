@@ -334,16 +334,16 @@ exports[`AccountPermissions renders correctly 1`] = `
           </Text>
           <SvgMock
             color="#141618"
-            height={16}
+            height={12}
             name="ArrowDown"
             style={
               {
-                "height": 16,
-                "width": 16,
+                "height": 12,
+                "width": 12,
               }
             }
             testID="pickernetwork-arrow"
-            width={16}
+            width={12}
           />
         </TouchableOpacity>
       </View>

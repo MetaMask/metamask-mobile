@@ -36,16 +36,17 @@ const styleSheet = (params: {
     accountAddressLabel: {
       color: colors.text.alternative,
       textAlign: 'center',
-      marginRight: 8,
     },
     cellAccount: {
       flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
       ...cellAccountContainerStyle,
     },
     accountNameLabel: {
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
     },
     accountNameLabelText: {
       marginTop: 4,
@@ -64,6 +65,8 @@ const styleSheet = (params: {
       alignItems: 'center',
     },
     pickerAccountContainer: {
+      flexDirection: 'column',
+      justifyContent: 'center',
       alignItems: 'center',
     },
     dropDownIcon: {
