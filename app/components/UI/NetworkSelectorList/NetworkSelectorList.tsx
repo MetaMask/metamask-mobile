@@ -19,6 +19,7 @@ import {
   Network,
 } from './NetworkSelectorList.types';
 import styleSheet from './NetworkSelectorList.styles';
+import Text from '../../../component-library/components/Texts/Text';
 
 const NetworkSelectorList = ({
   onSelectNetwork,
@@ -33,7 +34,6 @@ const NetworkSelectorList = ({
 }: NetworkConnectMultiSelectorProps) => {
   const networksLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-
   /**
    * Ref for the FlatList component.
    * The type of the ref is not explicitly defined.
@@ -64,7 +64,7 @@ const NetworkSelectorList = ({
           avatarProps={{
             variant: AvatarVariant.Network,
             name,
-            imageSource: imageSource as ImageSourcePropType,
+            // imageSource: imageSource as ImageSourcePropType,
             size: AvatarSize.Sm,
           }}
           disabled={isDisabled}

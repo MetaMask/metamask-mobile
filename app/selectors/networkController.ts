@@ -7,11 +7,9 @@ import {
   NetworkState,
   RpcEndpointType,
 } from '@metamask/network-controller';
-import { Hex } from '@metamask/utils';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
-import { NetworkList } from '../util/networks';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -157,25 +155,4 @@ export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
-);
-
-// fetches the first network configuration that matches the chainId
-// TODO: this is a temporary selector until network controller is updated to v21
-export const selectNetworkNameByChainId = createSelector(
-  [selectNetworkControllerState, (_: RootState, chainId: Hex) => chainId],
-  (networkControllerState: NetworkState, chainId: Hex) => {
-    const builtInNetwork = Object.values(NetworkList).find((network) => {
-      if ('chainId' in network) {
-        return network.chainId === chainId;
-      }
-      return false;
-    });
-    if (builtInNetwork) {
-      return builtInNetwork.name;
-    }
-    const networkConfig: NetworkConfiguration | undefined = Object.values(
-      networkControllerState.networkConfigurations,
-    ).find((config: NetworkConfiguration) => config.chainId === chainId);
-    return networkConfig?.nickname;
-  },
 );

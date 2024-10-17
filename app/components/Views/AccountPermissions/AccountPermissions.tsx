@@ -114,6 +114,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
+    USER_INTENT.None,
+  );
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
@@ -225,6 +228,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
+  const handleUpdateNetworkPermissions = useCallback(() => {
+    console.log('ALEX LOGGING: handleUpdateNetworkPermissions');
+    // TODO: update network permissions
+  }, []);
+
   const handleConnect = useCallback(() => {
     try {
       setIsLoading(true);
@@ -289,6 +297,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
+    console.log('ALEX LOGGING: userIntent', userIntent);
+    console.log(
+      'ALEX LOGGING: networkSelectorUserIntent',
+      networkSelectorUserIntent,
+    );
+    // need separate user actions intent flow for networkPermissions
+    if (networkSelectorUserIntent === USER_INTENT.Confirm) {
+      handleUpdateNetworkPermissions();
+    }
 
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
@@ -332,6 +349,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     setUserIntent(USER_INTENT.None);
   }, [
+    networkSelectorUserIntent,
+    handleUpdateNetworkPermissions,
     navigation,
     userIntent,
     sheetRef,
@@ -468,7 +487,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <NetworkConnectMultiSelector
         onSelectNetworkIds={setSelectedAddresses}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
+        onUserAction={setNetworkSelectorUserIntent}
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
@@ -479,7 +498,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       isLoading,
-      setUserIntent,
+      setNetworkSelectorUserIntent,
       urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,

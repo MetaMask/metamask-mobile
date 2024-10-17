@@ -1,6 +1,8 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { Platform, SafeAreaView, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -10,7 +12,6 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { useNavigation } from '@react-navigation/native';
 
 import { useStyles } from '../../../../component-library/hooks';
 import { USER_INTENT } from '../../../../constants/permissions';
@@ -27,11 +28,14 @@ import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import { PopularList } from '../../../../util/networks/customNetworks';
-import { useSelector } from 'react-redux';
 import {
   selectEnabledNetworkList,
   EnabledNetwork,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import Engine from '../../../../core/Engine';
+import { PermissionKeys } from '../../../../core/Permissions/specifications';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -43,53 +47,71 @@ const NetworkConnectMultiSelector = ({
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
-  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
-  const enabledNetworkList = useSelector(selectEnabledNetworkList);
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  console.log('ALEX LOGGING: networkConfigurations', networkConfigurations);
 
-  // Helper function to get the network name
-  const getNetworkName = (network: EnabledNetwork): string => {
-    if ('nickname' in network) {
-      return network.nickname as string;
-    } else if ('shortname' in network) {
-      return network.shortname as string;
+  const handleUpdateNetworkPermissions = useCallback(() => {
+    console.log('ALEX LOGGING: selectedChainIds', selectedChainIds);
+    try {
+      Engine.context.PermissionController.grantPermissions({
+        subject: {
+          origin: hostname,
+        },
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: selectedChainIds,
+        },
+        preserveExistingPermissions: false,
+      });
+    } catch (e) {
+      console.log('ALEX LOGGING: error', e);
     }
-    return '';
-  };
+  }, [selectedChainIds, hostname]);
 
-  // TODO this needs to actually be by chainId not networkClientId once NetworkController v21
-  // is merged: https://github.com/MetaMask/metamask-mobile/pull/11292
-  const enabledNetworks: Network[] = Object.entries(enabledNetworkList).map(
+  // { chainId: '0xaa36a7',
+  //   rpcEndpoints:
+  //    [ { networkClientId: 'sepolia',
+  //        url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+  //        type: 'infura' } ],
+  //   defaultRpcEndpointIndex: 0,
+  //   blockExplorerUrls: [ 'https://sepolia.etherscan.io' ],
+  //   defaultBlockExplorerUrlIndex: 0,
+  //   name: 'Sepolia',
+  //   nativeCurrency: 'SepoliaETH' },
+
+  const networks = Object.entries(networkConfigurations).map(
     ([key, network]) => ({
       id: key,
-      name: getNetworkName(network),
+      name: network.name,
+      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
-      imageSource: network.imageSource,
+      imageSource: 'test',
     }),
   );
 
-  const mockNetworks: Network[] = PopularList.map((network) => ({
-    id: network.chainId,
-    name: network.nickname,
-    rpcUrl: network.rpcUrl,
-    isSelected: false,
-    imageSource: network.rpcPrefs.imageSource,
-  }));
+  // const networks: Network[] = PopularList.map((network) => ({
+  //   id: network.chainId,
+  //   name: network.nickname,
+  //   rpcUrl: network.rpcUrl,
+  //   isSelected: false,
+  //   imageSource: network.rpcPrefs.imageSource,
+  // }));
 
   const onSelectNetwork = useCallback(
-    (clickedNetworkId) => {
-      const selectedAddressIndex = selectedNetworkIds.indexOf(clickedNetworkId);
+    (clickedChainId) => {
+      const selectedAddressIndex = selectedChainIds.indexOf(clickedChainId);
       // Reconstruct selected network ids.
-      const newNetworkList = enabledNetworks.reduce((acc, { id }) => {
-        if (clickedNetworkId === id) {
+      const newNetworkList = networks.reduce((acc, { id }) => {
+        if (clickedChainId === id) {
           selectedAddressIndex === -1 && acc.push(id);
-        } else if (selectedNetworkIds.includes(id)) {
+        } else if (selectedChainIds.includes(id)) {
           acc.push(id);
         }
         return acc;
       }, [] as string[]);
-      setSelectedNetworkIds(newNetworkList);
+      setSelectedChainIds(newNetworkList);
     },
-    [enabledNetworks, selectedNetworkIds],
+    [networks, selectedChainIds],
   );
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
@@ -105,12 +127,12 @@ const NetworkConnectMultiSelector = ({
     });
   }, [navigate, urlWithProtocol]);
 
-  const areAllNetworksSelected = mockNetworks
+  const areAllNetworksSelected = networks
     .map(({ id }) => id)
-    .every((id) => selectedNetworkIds.includes(id));
+    .every((id) => selectedChainIds.includes(id));
 
-  const areAnyNetworksSelected = selectedNetworkIds?.length !== 0;
-  const areNoNetworksSelected = selectedNetworkIds?.length === 0;
+  const areAnyNetworksSelected = selectedChainIds?.length !== 0;
+  const areNoNetworksSelected = selectedChainIds?.length === 0;
 
   const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
     const areSomeNetworksSelectedButNotAll =
@@ -118,13 +140,13 @@ const NetworkConnectMultiSelector = ({
 
     const selectAll = () => {
       if (isLoading) return;
-      const allSelectedNetworkIds = mockNetworks.map(({ id }) => id);
-      setSelectedNetworkIds(allSelectedNetworkIds);
+      const allSelectedChainIds = networks.map(({ id }) => id);
+      setSelectedChainIds(allSelectedChainIds);
     };
 
     const unselectAll = () => {
       if (isLoading) return;
-      setSelectedNetworkIds([]);
+      setSelectedChainIds([]);
     };
 
     const onPress = () => {
@@ -145,14 +167,14 @@ const NetworkConnectMultiSelector = ({
   }, [
     areAllNetworksSelected,
     areAnyNetworksSelected,
-    mockNetworks,
+    networks,
     isLoading,
-    setSelectedNetworkIds,
+    setSelectedChainIds,
     styles.selectAllContainer,
   ]);
 
   const renderCtaButtons = useCallback(() => {
-    const isConnectDisabled = Boolean(!selectedNetworkIds.length) || isLoading;
+    const isConnectDisabled = Boolean(!selectedChainIds.length) || isLoading;
 
     return (
       <View style={styles.buttonsContainer}>
@@ -161,7 +183,7 @@ const NetworkConnectMultiSelector = ({
             <Button
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
-              onPress={() => onUserAction(USER_INTENT.Confirm)}
+              onPress={handleUpdateNetworkPermissions}
               size={ButtonSize.Lg}
               style={{
                 ...styles.buttonPositioning,
@@ -201,10 +223,10 @@ const NetworkConnectMultiSelector = ({
       </View>
     );
   }, [
+    handleUpdateNetworkPermissions,
     areAnyNetworksSelected,
     isLoading,
-    onUserAction,
-    selectedNetworkIds,
+    selectedChainIds,
     styles,
     areNoNetworksSelected,
     hostname,
@@ -221,8 +243,8 @@ const NetworkConnectMultiSelector = ({
           />
           <View style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
           <NetworkSelectorList
-            networks={mockNetworks}
-            selectedNetworkIds={selectedNetworkIds}
+            networks={networks}
+            selectedChainIds={selectedChainIds}
             onSelectNetwork={onSelectNetwork}
           ></NetworkSelectorList>
           <View style={styles.bodyContainer}>{renderCtaButtons()}</View>
@@ -230,10 +252,10 @@ const NetworkConnectMultiSelector = ({
       </SafeAreaView>
     ),
     [
-      mockNetworks,
+      networks,
       onSelectNetwork,
       renderCtaButtons,
-      selectedNetworkIds,
+      selectedChainIds,
       styles.bodyContainer,
       styles.bottomSheetContainer,
       onBack,
