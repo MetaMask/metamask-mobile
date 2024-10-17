@@ -5,6 +5,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { BN } from 'ethereumjs-util';
+import { Stake } from '../../sdk/stakeSdkProvider';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -51,6 +52,17 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
 }));
 
 const mockBalanceBN = new BN('1500000000000000000');
+
+jest.mock('../../hooks/useStakeContext.ts', () => ({
+  useStakeContext: jest.fn(() => {
+    const stakeContext: Stake = {
+      setSdkType: jest.fn(),
+      sdkService: undefined
+    }
+    return stakeContext
+  })
+}))
+
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
