@@ -11,6 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { MetaMetricsEvents, useMetrics } from '../../../../app/components/hooks/useMetrics';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
@@ -104,6 +105,10 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+}));
+
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +128,12 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: jest.fn(),
+    });
+  })
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
@@ -256,6 +267,11 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
   it('navigates to Portfolio Stake url when stake button is pressed', () => {
+    const trackEvent = jest.fn();
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent,
+    });
+
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
@@ -266,5 +282,16 @@ describe('Tokens', () => {
       },
       screen: Routes.BROWSER.VIEW,
     });
+    expect(trackEvent).toHaveBeenNthCalledWith(
+      1,
+      MetaMetricsEvents.STAKE_BUTTON_CLICKED,
+      {
+        chain_id: expect.any(String),
+        location: 'Home Screen',
+        text: 'Stake',
+        token_symbol: expect.any(String),
+        url: AppConstants.STAKE.URL,
+      }
+    );
   });
 });
