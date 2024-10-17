@@ -4320,12 +4320,22 @@
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/utils" "^9.1.0"
 
-"@metamask/approval-controller@^7.0.0", "@metamask/approval-controller@^7.0.2", "@metamask/approval-controller@^7.0.3":
+"@metamask/approval-controller@^7.0.0", "@metamask/approval-controller@^7.0.2":
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.0.3.tgz#0f6cf8e474689c41caae63b4253b0d77b98a3dd7"
   integrity sha512-OJ/VpkmYfqT6xEnIOpTaXmYZQ6DsK8Ovt26AmVTCq4o/uGG6legNr5W6a/hAAx7bWO5BTQbxDXst7eVPxraFjw==
   dependencies:
     "@metamask/base-controller" "^7.0.0"
+    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/utils" "^9.1.0"
+    nanoid "^3.1.31"
+
+"@metamask/approval-controller@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.0.tgz#34b07bc4eaf6938b15f9d915c6885d4a5c0a5205"
+  integrity sha512-dhqUeX8wMzW88U+Vgr7oKf0Vouol10ncB3lxmvWyC1VZJhSOdO3VUkn0tH1lzt3ybxYVMOkPaB3gfdksfnNRyA==
+  dependencies:
+    "@metamask/base-controller" "^7.0.1"
     "@metamask/rpc-errors" "^6.3.1"
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
