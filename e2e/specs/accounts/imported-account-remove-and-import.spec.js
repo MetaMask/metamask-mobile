@@ -13,10 +13,11 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import AccountListView from '../../pages/AccountListView.js';
-import ImportAccountView from '../../pages/ImportAccountView.js';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import Assertions from '../../utils/Assertions.js';
 import { AccountListViewSelectorsText } from '../../selectors/AccountListView.selectors.js';
 import AddAccountModal from '../../pages/modals/AddAccountModal.js';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 const fixtureServer = new FixtureServer();
 // This key is for testing private key import only
@@ -56,10 +57,10 @@ describe(
       // Import account again
       await AccountListView.tapAddAccountButton();
       await AddAccountModal.tapImportAccount();
-      await ImportAccountView.isVisible();
+      await Assertions.checkIfVisible(ImportAccountView.container);
       await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-      await ImportAccountView.isImportSuccessSreenVisible();
-      await ImportAccountView.tapCloseButtonOnImportSuccess();
+      await Assertions.checkIfVisible(SuccessImportAccountView.container);
+      await SuccessImportAccountView.tapCloseButton();
       await Assertions.checkIfElementToHaveText(
         AccountListView.accountTypeLabel,
         AccountListViewSelectorsText.ACCOUNT_TYPE_LABEL_TEXT,

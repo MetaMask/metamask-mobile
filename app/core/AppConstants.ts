@@ -129,6 +129,7 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -212,7 +213,7 @@ export default {
     'config-api.metamask.io/featureFlags',
   ],
   FEATURE_FLAGS_API: {
-    BASE_URL: 'https://client-config.api.cx.metamask.io/',
+    BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
   },
 } as const;
