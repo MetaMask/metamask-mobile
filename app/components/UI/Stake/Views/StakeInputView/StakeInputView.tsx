@@ -61,6 +61,7 @@ const StakeInputView = () => {
         amountFiat: fiatAmount,
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amountWei, fiatAmount, navigation, sdkService]);
 
   const balanceText = strings('stake.balance');

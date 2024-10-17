@@ -4,9 +4,9 @@ import {
   StakingType,
 } from '@metamask/stake-sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { Stake } from '../sdk/stakeSdkProvider';
+// eslint-disable-next-line import/no-namespace
 import * as useStakeContextHook from '../hooks/useStakeContext';
 import { Contract } from '@ethersproject/contracts';
 import { StakeModalStack, StakeScreenStack } from '../routes';
@@ -42,7 +42,6 @@ describe('Stake Modals With Stake Sdk Provider', () => {
       backgroundState,
     },
   };
-    
   it('should render correctly stake screen with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
     .spyOn(useStakeContextHook, 'useStakeContext')

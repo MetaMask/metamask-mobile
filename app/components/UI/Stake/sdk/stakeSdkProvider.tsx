@@ -4,9 +4,7 @@ import React, {
   useState,
   useEffect,
   createContext,
-  useContext,
   useMemo,
-  FC,
   PropsWithChildren,
 } from 'react';
 
@@ -27,7 +25,6 @@ export interface StakeProviderProps {
 }
 export const StakeSDKProvider: React.FC<PropsWithChildren<StakeProviderProps>> = ({
   children,
-  ...props
 }) => {
   // from react state
   const [sdkService, setSdkService] = useState<PooledStakingContract>();
