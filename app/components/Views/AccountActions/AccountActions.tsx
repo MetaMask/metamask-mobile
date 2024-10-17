@@ -34,7 +34,12 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { isHardwareAccount } from '../../../util/address';
+import {
+  isHardwareAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  isSnapAccount,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
@@ -189,6 +194,50 @@ const AccountActions = () => {
     }
   }, [controllers.KeyringController]);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+  /**
+   * Remove the snap account from the keyring
+   */
+  const removeSnapAccount = useCallback(async () => {
+    if (selectedAddress) {
+      await controllers.KeyringController.removeAccount(selectedAddress as Hex);
+      await removeAccountsFromPermissions([selectedAddress]);
+      trackEvent(MetaMetricsEvents.ACCOUNT_REMOVED, {
+        accountType: keyring?.type,
+        selectedAddress,
+      });
+    }
+  }, [
+    controllers.KeyringController,
+    keyring?.type,
+    selectedAddress,
+    trackEvent,
+  ]);
+
+  const showRemoveSnapAccountAlert = useCallback(() => {
+    Alert.alert(
+      strings('accounts.remove_snap_account'),
+      strings('accounts.remove_snap_account_alert_description'),
+      [
+        {
+          text: strings('accounts.remove_account_alert_cancel_btn'),
+          style: 'cancel',
+        },
+        {
+          text: strings('accounts.remove_account_alert_remove_btn'),
+          onPress: async () => {
+            sheetRef.current?.onCloseBottomSheet(async () => {
+              await removeSnapAccount();
+              await selectFirstAccount();
+            });
+          },
+        },
+      ],
+    );
+  }, [removeSnapAccount, selectFirstAccount]);
+  ///: END:ONLY_INCLUDE_IF
+
   /**
    * Forget the device if there are no more accounts in the keyring
    * @param keyringType - The keyring type
@@ -306,6 +355,18 @@ const AccountActions = () => {
             testID={AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
           />
         )}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          selectedAddress && isSnapAccount(selectedAddress) && (
+            <AccountAction
+              actionTitle={strings('accounts.remove_snap_account')}
+              iconName={IconName.Close}
+              onPress={showRemoveSnapAccountAlert}
+              testID={AccountActionsModalSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+            />
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
       </View>
       <BlockingActionModal
         modalVisible={blockingModalVisible}

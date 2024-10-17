@@ -695,6 +695,8 @@
     "yes_remove_it": "Yes, remove it",
     "remove_hardware_account": "Remove hardware account",
     "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
     "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Accounts",
