@@ -439,7 +439,7 @@ export type ControllerMessenger = ExtendedControllerMessenger<
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
-export class Engine {
+class Engine {
   /**
    * The global Engine singleton
    */
@@ -2124,15 +2124,16 @@ function assertEngineExists(
 let instance: Engine | null;
 
 export default {
-  Engine,
   get context() {
     assertEngineExists(instance);
     return instance.context;
   },
+
   get controllerMessenger() {
     assertEngineExists(instance);
     return instance.controllerMessenger;
   },
+
   get state() {
     assertEngineExists(instance);
     const {
@@ -2215,36 +2216,44 @@ export default {
       AccountsController,
     };
   },
+
   get datamodel() {
     assertEngineExists(instance);
     return instance.datamodel;
   },
+
   getTotalFiatAccountBalance() {
     assertEngineExists(instance);
     return instance.getTotalFiatAccountBalance();
   },
+
   hasFunds() {
     assertEngineExists(instance);
     return instance.hasFunds();
   },
+
   resetState() {
     assertEngineExists(instance);
     return instance.resetState();
   },
+
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
   },
+
   init(state: Record<string, never> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },
+
   acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
     opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
+
   rejectPendingApproval: (
     id: string,
     reason: Error,
@@ -2253,14 +2262,17 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
   },
+
   setAccountLabel: (address: string, label: string) => {
     assertEngineExists(instance);
     instance.setAccountLabel(address, label);
   },
+
   getGlobalEthQuery: (): EthQuery => {
     assertEngineExists(instance);
     return instance.getGlobalEthQuery();
