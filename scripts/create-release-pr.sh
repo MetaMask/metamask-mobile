@@ -6,6 +6,7 @@ set -o pipefail
 
 PREVIOUS_VERSION="${1}"
 NEW_VERSION="${2}"
+NEW_VERSION_NUMBER="${3}"
 RELEASE_BRANCH_PREFIX="release/"
 
 if [[ -z $NEW_VERSION ]]; then
@@ -44,6 +45,9 @@ gh pr create \
   --head "${RELEASE_BRANCH_NAME}";
 
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
+
+#Bump versions for the release"
+SEMVER_VERSION="${NEW_VERSION}" VERSION_NUMBER="${NEW_VERSION_NUMBER}" yarn set-version
 
 #Generate changelog and test plan csv
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
