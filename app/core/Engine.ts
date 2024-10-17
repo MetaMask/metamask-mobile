@@ -252,6 +252,7 @@ import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 import { trace } from '../util/trace';
+import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -515,7 +516,7 @@ class Engine {
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         ApprovalType.Transaction,
-        ApprovalType.WatchAsset
+        ApprovalType.WatchAsset,
       ],
     });
 
@@ -1220,18 +1221,24 @@ class Engine {
         accountSyncing: {
           onAccountAdded: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
-              MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
-              {
-                profile_id: profileId,
-              },
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
             );
           },
           onAccountNameUpdated: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
-              MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
-              {
-                profile_id: profileId,
-              },
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
             );
           },
         },
