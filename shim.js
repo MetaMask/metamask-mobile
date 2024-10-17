@@ -5,7 +5,7 @@ import {
   FIXTURE_SERVER_PORT,
   isTest,
   testConfig,
-} from './app/util/test/utils.js';
+} from './app/util/test/utils.ts';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import { defaultMockPort } from './e2e/mockServer/mockUrlCollection';
 
