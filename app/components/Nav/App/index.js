@@ -111,6 +111,9 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
+import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
+import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
+import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
@@ -128,6 +131,7 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -176,6 +180,21 @@ const OnboardingSuccessFlow = () => (
     <Stack.Screen
       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
       component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.GENERAL_SETTINGS}
+      component={OnboardingGeneralSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.ASSETS_SETTINGS}
+      component={OnboardingAssetsSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SECURITY_SETTINGS}
+      component={OnboardingSecuritySettings}
       options={DefaultSettings.navigationOptions}
     />
   </Stack.Navigator>
@@ -336,7 +355,15 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          await Authentication.appTriggeredAuth();
+          await trace(
+            {
+              name: TraceName.BiometricAuthentication,
+              op: TraceOperation.BiometricAuthentication,
+            },
+            async () => {
+              await Authentication.appTriggeredAuth();
+            },
+          );
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
@@ -693,7 +720,6 @@ const App = (props) => {
           component={MultiRpcModal}
         />
       ) : null}
-
       <Stack.Screen
         name={Routes.SHEET.SHOW_TOKEN_ID}
         component={ShowTokenIdSheet}

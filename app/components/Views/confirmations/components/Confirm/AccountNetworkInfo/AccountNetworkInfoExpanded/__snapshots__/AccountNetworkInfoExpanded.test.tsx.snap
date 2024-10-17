@@ -49,19 +49,52 @@ exports[`AccountNetworkInfoExpanded should match snapshot for personal sign 1`] 
           Account
         </Text>
       </View>
-      <Text
+      <View
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "marginTop": 8,
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "#f2f4f6",
+            "borderRadius": 99,
+            "flexDirection": "row",
+            "gap": 5,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingVertical": 4,
           }
         }
       >
-        0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477
-      </Text>
+        <SvgMock
+          color="#141618"
+          height={20}
+          name="Question"
+          style={
+            {
+              "height": 20,
+              "width": 20,
+            }
+          }
+          width={20}
+        />
+        <Text
+          accessibilityRole="text"
+          ellipsizeMode="middle"
+          numberOfLines={1}
+          style={
+            {
+              "color": "#141618",
+              "flexShrink": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          0x935E7...05477
+        </Text>
+      </View>
     </View>
     <View
       style={
@@ -291,7 +324,9 @@ exports[`AccountNetworkInfoExpanded should match snapshot for personal sign 1`] 
               "marginTop": 8,
             }
           }
-        />
+        >
+          mainnet.infura.io/v3/
+        </Text>
       </View>
     </View>
   </View>

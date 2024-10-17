@@ -58,6 +58,9 @@ const Routes = {
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
     DEFAULT_SETTINGS: 'DefaultSettings',
+    GENERAL_SETTINGS: 'GeneralSettings',
+    ASSETS_SETTINGS: 'AssetsSettings',
+    SECURITY_SETTINGS: 'SecuritySettings',
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
@@ -141,6 +144,7 @@ const Routes = {
   },
   STAKING: {
     STAKE: 'Stake',
+    STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
     CLAIM: 'Claim',
     MODALS: {
