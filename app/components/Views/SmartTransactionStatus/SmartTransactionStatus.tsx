@@ -329,7 +329,7 @@ const SmartTransactionStatus = ({
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
 
-  const PrimaryButton = () =>
+  const renderPrimaryButton = () =>
     handlePrimaryButtonPress ? (
       <Button
         variant={ButtonVariants.Primary}
@@ -341,7 +341,7 @@ const SmartTransactionStatus = ({
       </Button>
     ) : null;
 
-  const SecondaryButton = () =>
+  const renderSecondaryButton = () =>
     handleSecondaryButtonPress ? (
       <Button
         variant={ButtonVariants.Secondary}
@@ -353,7 +353,7 @@ const SmartTransactionStatus = ({
       </Button>
     ) : null;
 
-  const ViewTransactionLink = () => (
+  const renderViewTransactionLink = () => (
     <TouchableOpacity onPress={onViewTransaction}>
       <Text style={styles.link}>
         {strings('smart_transactions.view_transaction')}
@@ -378,7 +378,7 @@ const SmartTransactionStatus = ({
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
 
-          <ViewTransactionLink />
+          {renderViewTransactionLink()}
         </View>
       </View>
       <LoopingScrollAnimation width={800}>
@@ -386,8 +386,8 @@ const SmartTransactionStatus = ({
       </LoopingScrollAnimation>
 
       <View style={styles.buttonWrapper}>
-        <PrimaryButton />
-        <SecondaryButton />
+        {renderPrimaryButton()}
+        {renderSecondaryButton()}
       </View>
     </View>
   );

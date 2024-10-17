@@ -180,7 +180,7 @@ const SmartTransactionsOptInModal = () => {
     }
   };
 
-  const Header = () => (
+  const renderHeader = () => (
     <View style={styles.header}>
       <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
         {strings('whats_new.stx.header')}
@@ -188,7 +188,7 @@ const SmartTransactionsOptInModal = () => {
     </View>
   );
 
-  const Benefits = () => (
+  const renderBenefits = () => (
     <View style={styles.benefits}>
       <Benefit
         iconName={IconName.Confirmation}
@@ -214,7 +214,7 @@ const SmartTransactionsOptInModal = () => {
     </View>
   );
 
-  const Descriptions = () => (
+  const renderDescriptions = () => (
     <View style={styles.descriptions}>
       <Text>{strings('whats_new.stx.description_1')}</Text>
       <Text>
@@ -231,7 +231,7 @@ const SmartTransactionsOptInModal = () => {
     </View>
   );
 
-  const PrimaryButton = () => (
+  const renderPrimaryButton = () => (
     <Button
       style={styles.button}
       variant={ButtonVariants.Primary}
@@ -242,7 +242,7 @@ const SmartTransactionsOptInModal = () => {
     </Button>
   );
 
-  const SecondaryButton = () => (
+  const renderSecondaryButton = () => (
     <Button
       style={styles.button}
       variant={ButtonVariants.Link}
@@ -274,18 +274,18 @@ const SmartTransactionsOptInModal = () => {
             resizeMode="cover"
             style={styles.backgroundImage}
           >
-            <Header />
-            <Benefits />
+            {renderHeader()}
+            {renderBenefits()}
           </ImageBackground>
 
           {/* Content */}
           <ScrollView>
             <View style={styles.content}>
-              <Descriptions />
+              {renderDescriptions()}
 
               <View style={styles.buttons}>
-                <PrimaryButton />
-                <SecondaryButton />
+                {renderPrimaryButton()}
+                {renderSecondaryButton()}
               </View>
             </View>
           </ScrollView>
