@@ -16,7 +16,6 @@ import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
-import { getTraceTags } from '../util/sentry/tags';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
