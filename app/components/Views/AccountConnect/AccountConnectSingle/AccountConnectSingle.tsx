@@ -146,7 +146,7 @@ const AccountConnectSingle = ({
           type: accountAvatarType,
           accountAddress: address,
         }}
-        tagLabel={tagLabel || ''}
+        tagLabel={tagLabel ?? ''}
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
