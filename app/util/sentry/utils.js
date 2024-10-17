@@ -506,7 +506,7 @@ export function setupSentry() {
             ]
           : integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.08,
+      tracesSampleRate: isDev || isQa ? 1.0 : 0.04,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),

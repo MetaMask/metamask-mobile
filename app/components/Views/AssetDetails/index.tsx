@@ -46,6 +46,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
+import { RpcEndpointType } from '@metamask/network-controller';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -138,8 +139,7 @@ const AssetDetails = (props: Props) => {
          * removes goerli from provider config types
          */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (Networks as any)[providerConfig.type]?.name ||
-        { ...Networks.rpc, color: null }.name;
+        (Networks as any)[providerConfig?.type ?? RpcEndpointType.Custom];
     }
     return name;
   };
