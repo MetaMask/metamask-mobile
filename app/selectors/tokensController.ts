@@ -34,23 +34,3 @@ export const selectDetectedTokens = createSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensState) => tokensControllerState?.detectedTokens,
 );
-
-const selectAllTokens = createSelector(
-  selectTokensControllerState,
-  (tokensControllerState: TokensState) => tokensControllerState?.allTokens,
-);
-
-export const selectAllTokensFlat = createSelector(
-  selectAllTokens,
-  (tokensByAccountByChain) => {
-    if (Object.values(tokensByAccountByChain).length === 0) {
-      return [];
-    }
-    const tokensByAccountArray = Object.values(tokensByAccountByChain);
-
-    return tokensByAccountArray.reduce((acc, tokensByAccount) => {
-      const tokensArray = Object.values(tokensByAccount);
-      return acc.concat(...tokensArray);
-    }, [] as Token[]);
-  },
-);
