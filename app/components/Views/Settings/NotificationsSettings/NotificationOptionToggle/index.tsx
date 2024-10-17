@@ -34,7 +34,7 @@ interface NotificationOptionsToggleProps {
   disabledSwitch?: boolean;
   isLoading?: boolean;
   isEnabled: boolean;
-  updateAndfetchAccountSettings: () => Promise<void>;
+  updateAndfetchAccountSettings: () => Promise<Record<string, boolean> | undefined>;
 }
 
 /**

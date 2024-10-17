@@ -16,7 +16,7 @@ export const AccountsList = ({
   accounts: Account[];
   accountAvatarType: AvatarAccountType;
   accountSettingsData: NotificationsAccountsState;
-  updateAndfetchAccountSettings: () => Promise<void>;
+  updateAndfetchAccountSettings: () => Promise<Record<string, boolean> | undefined>;
   isUpdatingMetamaskNotificationsAccount: string[];
 }) => {
 

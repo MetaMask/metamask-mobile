@@ -49,7 +49,7 @@ import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import styleSheet, { styles } from './NotificationsSettings.styles';
+import styleSheet, { styles as navigationOptionsStyles } from './NotificationsSettings.styles';
 import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -293,7 +293,7 @@ NotificationsSettings.navigationOptions = ({
           ? navigation.navigate(Routes.WALLET.HOME)
           : navigation.goBack()
       }
-      style={styles.headerLeft}
+      style={navigationOptionsStyles.headerLeft}
     />
   ),
 });
