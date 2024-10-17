@@ -1,17 +1,14 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import {
-  IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
-  IMPORT_SUCESS_SCREEN_ID,
-} from './testIDs/Screens/ImportSuccessScreen.testIds';
+import { SuccessImportAccountIDs } from '../../e2e/selectors/ImportAccount/SuccessImportAccount.selectors';
 
 class ImportAccountScreen {
   get container() {
-    return Selectors.getXpathElementByResourceId(IMPORT_SUCESS_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(SuccessImportAccountIDs.CONTAINER);
   }
 
   get closeButton() {
-    return Selectors.getXpathElementByResourceId(IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(SuccessImportAccountIDs.CLOSE_BUTTON);
   }
 
   async tapCloseButton() {
