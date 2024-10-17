@@ -96,7 +96,6 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
-
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
