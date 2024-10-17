@@ -1,4 +1,4 @@
-import React, { Component, useCallback } from 'react';
+import React, { Component, useCallback, useEffect } from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -20,6 +20,11 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import CLText, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
@@ -34,12 +39,9 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    content: {
-      paddingHorizontal: 24,
-      flex: 1,
-    },
     header: {
       alignItems: 'center',
+      paddingTop: 20,
     },
     errorImage: {
       width: 50,
@@ -49,6 +51,8 @@ const createStyles = (colors) =>
     title: {
       color: colors.text.default,
       fontSize: 24,
+      paddingTop: 10,
+      paddingBottom: 20,
       lineHeight: 34,
       ...fontStyles.bold,
     },
@@ -63,10 +67,11 @@ const createStyles = (colors) =>
     errorContainer: {
       backgroundColor: colors.error.muted,
       borderRadius: 8,
-      marginTop: 24,
+      marginTop: 10,
+      padding: 10,
     },
     error: {
-      color: colors.text.default,
+      color: 'red',
       padding: 8,
       fontSize: 14,
       lineHeight: 20,
@@ -76,7 +81,8 @@ const createStyles = (colors) =>
       marginTop: 24,
       borderColor: colors.primary.default,
       borderWidth: 1,
-      borderRadius: 50,
+      borderRadius: 48,
+      height: 48,
       padding: 12,
       paddingHorizontal: 34,
     },
@@ -105,13 +111,18 @@ const createStyles = (colors) =>
     reportStep: {
       marginTop: 14,
     },
+    banner: {
+      width: '100%',
+      marginTop: 20,
+      paddingHorizontal: 16,
+    },
   });
 
 const UserFeedbackSection = ({ styles, sentryId }) => {
   /**
    * Prompt bug report form
    */
-  const promptBugReport = useCallback(() => {
+  const promptBugReport = () => {
     Alert.prompt(
       strings('error_screen.bug_report_prompt_title'),
       strings('error_screen.bug_report_prompt_description'),
@@ -121,13 +132,13 @@ const UserFeedbackSection = ({ styles, sentryId }) => {
           text: strings('error_screen.send'),
           onPress: (comments = '') => {
             // Send Sentry feedback
-            captureSentryFeedback({ sentryId, comments });
+            captureSentryFeedback({ sentryId, comments }); // FRANK: This is the function that sends the feedback to sentry
             Alert.alert(strings('error_screen.bug_report_thanks'));
           },
         },
       ],
     );
-  }, [sentryId]);
+  };
 
   return (
     <Text style={[styles.reportStep, styles.text]}>
@@ -147,30 +158,118 @@ UserFeedbackSection.propTypes = {
   sentryId: PropTypes.string,
 };
 
-const Fallback = (props) => {
+export const Fallback = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  // https://support.metamask.io/
+  const handleWhatHappened = () => {
+    console.log('Nav to what happened screen');
+  };
+  const handleContactSupport = () => {
+    console.log('Contact support: https://support.metamask.io/');
+  };
+  const handleTryAgain = () => {
+    console.log('Try again!');
+  };
+  const handleRedesign = () => {
+    const redesign = true;
+    return (
+      <View
+        style={{
+          justifyContent: 'space-between',
+          flex: 1,
+          paddingHorizontal: 16,
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            title={strings('wallet.banner.title')}
+            style={{ marginBottom: 20 }}
+            description={
+              <CLText
+                color={TextColor.Info}
+                onPress={() => console.log('pressed')}
+              >
+                {strings('wallet.banner.link')}
+              </CLText>
+            }
+          />
+          <BannerAlert
+            severity={BannerAlertSeverity.Warning}
+            title={strings('wallet.banner.title')}
+            description={
+              <CLText
+                color={TextColor.Info}
+                onPress={() => console.log('pressed')}
+              >
+                {strings('wallet.banner.link')}
+              </CLText>
+            }
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginTop: 20,
+            }}
+          >
+            <Text style={{ fontWeight: '600' }}>Error messsage:</Text>
+            <TouchableOpacity
+              style={{ flexDirection: 'row' }}
+              onPress={props.copyErrorToClipboard}
+            >
+              <Text style={[styles.text, { fontWeight: '500' }]}>
+                <Icon name="copy" size={14} color={colors.primary.default} />
+                {'  '}
+                <Text style={styles.link}>
+                  {strings('error_screen.submit_ticket_3')}
+                </Text>{' '}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.errorContainer}>
+            <Text style={styles.error}>{props.errorMessage}</Text>
+          </View>
+        </View>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+          }}
+        >
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary.default }]}
+            onPress={handleWhatHappened}
+          >
+            <Text style={[styles.buttonText, { color: 'white' }]}>
+              Describe what happened
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleContactSupport}
+          >
+            <Text style={styles.buttonText}>Contact support</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
+            <Text style={styles.buttonText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <ScrollView style={styles.content}>
+    <ScrollView contentContainerStyle={{ flex: 1 }}>
       <View style={styles.header}>
-        <Image source={metamaskErrorImage} style={styles.errorImage} />
+        {/* <Image source={metamaskErrorImage} style={styles.errorImage} /> */}
+        <Icon name="warning" size={20} color="orange" />
         <Text style={styles.title}>{strings('error_screen.title')}</Text>
-        <Text style={styles.subtitle}>{strings('error_screen.subtitle')}</Text>
       </View>
-      <View style={styles.errorContainer}>
-        <Text style={styles.error}>{props.errorMessage}</Text>
-      </View>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.button} onPress={props.resetError}>
-          <Text style={styles.buttonText}>
-            <Icon name="refresh" size={15} />
-            {'  '}
-            {strings('error_screen.try_again_button')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.textContainer}>
+      {handleRedesign()}
+
+      {/* <View style={styles.textContainer}>
         <Text style={styles.text}>
           <Text>{strings('error_screen.submit_ticket_1')}</Text>
         </Text>
@@ -208,7 +307,7 @@ const Fallback = (props) => {
           </Text>{' '}
           {strings('error_screen.save_seedphrase_3')}
         </Text>
-      </View>
+      </View> */}
     </ScrollView>
   );
 };
