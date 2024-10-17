@@ -12,7 +12,7 @@ export interface CellBaseProps {
    * Props for avatar component (with the exception of size).
    * Avatar size is restricted to size Md (32x32) for Cells
    */
-  avatarProps: AvatarProps;
+  avatarProps?: AvatarProps;
   /**
    * Title of the Cell Account, 1 line truncation.
    */

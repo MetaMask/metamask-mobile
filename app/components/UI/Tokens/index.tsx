@@ -31,6 +31,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 // this will be imported from TokenRatesController when it is exported from there
@@ -84,7 +85,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const conversionRate = useSelector(selectConversionRate);
 
   const actionSheet = useRef<typeof ActionSheet>();
-  const sortControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -143,9 +143,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const showSortControls = () => {
-    if (sortControlsActionSheet.current) {
-      sortControlsActionSheet.current.show();
-    }
+    navigation.navigate(...createTokensBottomSheetNavDetails({}));
   };
 
   const onRefresh = async () => {
@@ -210,28 +208,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const onSortControlsActionSheetPress = (index: number) => {
-    const { PreferencesController } = Engine.context;
-    switch (index) {
-      case 0:
-        PreferencesController.setTokenSortConfig({
-          key: 'tokenFiatAmount',
-          order: 'dsc',
-          sortCallback: 'stringNumeric',
-        });
-        break;
-      case 1:
-        PreferencesController.setTokenSortConfig({
-          key: 'symbol',
-          sortCallback: 'alphaNumeric',
-          order: 'asc',
-        });
-        break;
-      default:
-        break;
-    }
-  };
-
   return (
     <View
       style={styles.wrapper}
@@ -252,7 +228,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           style={styles.controlButton}
         />
       </View>
-
       {tokensList && (
         <TokenList
           tokens={tokensList}
@@ -271,17 +246,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
-      />
-      <ActionSheet
-        ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.sort_by')}
-        options={[
-          strings('wallet.declining_balance', { currency: currentCurrency }),
-          strings('wallet.alphabetically'),
-          'Cancel',
-        ]}
-        cancelButtonIndex={2}
-        onPress={onSortControlsActionSheetPress}
       />
     </View>
   );
