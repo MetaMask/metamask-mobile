@@ -19,14 +19,19 @@ const clearStackNavigatorOptions = {
 
 // Regular Stack for Screens
 const StakeScreenStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
-    <Stack.Screen name={Routes.STAKING.UNSTAKE} component={UnstakeInputView} />
-    <Stack.Screen
-      name={Routes.STAKING.STAKE_CONFIRMATION}
-      component={StakeConfirmationView}
-    />
-  </Stack.Navigator>
+  <StakeSDKProvider>
+    <Stack.Navigator>
+      <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+      <Stack.Screen
+        name={Routes.STAKING.UNSTAKE}
+        component={UnstakeInputView}
+      />
+      <Stack.Screen
+        name={Routes.STAKING.STAKE_CONFIRMATION}
+        component={StakeConfirmationView}
+      />
+    </Stack.Navigator>
+  </StakeSDKProvider>
 );
 
 // Modal Stack for Modals
