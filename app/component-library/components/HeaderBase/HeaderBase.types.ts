@@ -22,7 +22,7 @@ export interface HeaderBaseProps extends ViewProps {
    * below device's knob
    * @default: false
    */
-  includesTopInset?: false;
+  includesTopInset?: boolean;
 }
 
 /**
