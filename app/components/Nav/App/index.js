@@ -58,6 +58,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import TokenSortBottomSheet from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -603,6 +604,10 @@ const App = (props) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.TOKEN_SORT}
+        component={TokenSortBottomSheet}
       />
       <Stack.Screen
         name={Routes.SHEET.SDK_LOADING}

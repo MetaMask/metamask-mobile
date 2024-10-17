@@ -14,36 +14,14 @@ const createStyles = (colors: Colors) =>
     },
     bottomSheetTitle: {
       alignSelf: 'center',
+      paddingTop: 16,
+      paddingBottom: 16,
     },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 50,
-    },
-    selectableListItemWrapper: {
-      // display: 'flex',
-      // flexDirection: 'column',
-      // alignItems: 'flex-start',
-    },
-    selectableListItem: {
-      // display: 'flex',
-      // alignItems: 'flex-start',
-    },
-    // eslint-disable-next-line react-native/no-color-literals
-    selectableListItemSelected: {
-      // display: 'flex',
-      // alignItems: 'flex-start',
-      backgroundColor: 'blue',
-    },
-    selectableListItemIndicator: {
-      width: 4,
-      height: 4,
-      // height: '100%',
-      // position: absolute;
-      top: 4,
-      left: 4,
-      marginRight: 10,
     },
     text: {
       fontSize: 20,
