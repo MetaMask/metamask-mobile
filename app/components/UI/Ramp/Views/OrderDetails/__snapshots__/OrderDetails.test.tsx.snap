@@ -157,7 +157,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -168,9 +167,9 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -185,22 +184,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -208,10 +191,10 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1659,7 +1642,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -1670,9 +1652,9 @@ exports[`OrderDetails renders a completed order 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -1687,22 +1669,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -1710,10 +1676,10 @@ exports[`OrderDetails renders a completed order 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -3172,7 +3138,6 @@ exports[`OrderDetails renders a created order 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -3183,9 +3148,9 @@ exports[`OrderDetails renders a created order 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -3200,22 +3165,6 @@ exports[`OrderDetails renders a created order 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -3223,10 +3172,10 @@ exports[`OrderDetails renders a created order 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -4646,7 +4595,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -4657,9 +4605,9 @@ exports[`OrderDetails renders a failed order 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -4674,22 +4622,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -4697,10 +4629,10 @@ exports[`OrderDetails renders a failed order 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -6148,7 +6080,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -6159,9 +6090,9 @@ exports[`OrderDetails renders a pending order 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -6176,22 +6107,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -6199,10 +6114,10 @@ exports[`OrderDetails renders a pending order 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -7622,7 +7537,6 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -7633,9 +7547,9 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -7650,22 +7564,6 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -7673,10 +7571,10 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -8065,7 +7963,6 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -8076,9 +7973,9 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -8093,22 +7990,6 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -8116,10 +7997,10 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -8714,7 +8595,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -8725,9 +8605,9 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -8742,22 +8622,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -8765,10 +8629,10 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -10270,7 +10134,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -10281,9 +10144,9 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -10298,22 +10161,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -10321,10 +10168,10 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -11831,7 +11678,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -11842,9 +11688,9 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -11859,22 +11705,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -11882,10 +11712,10 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -13305,7 +13135,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -13316,9 +13145,9 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -13333,22 +13162,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -13356,10 +13169,10 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
