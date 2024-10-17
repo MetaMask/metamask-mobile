@@ -44,11 +44,9 @@ jobs:
         id: is-docs
         run: |
           if [[ "${{ startsWith(github.event.pull_request.title, 'docs:') }}" == "true" ]]; then
-            echo "IS_DOCS_PR=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_DOCS_PR=false" >> "$GITHUB_OUTPUT"
-          fi
-
+            echo "Is a documentation PR, will skip running e2e"
+            exit 0
+  
   check-if-bitrise-ran:
     name: Checking to see if Bitrise comment was posted
     runs-on: ubuntu-latest
@@ -62,7 +60,7 @@ jobs:
 
           if echo "$PR_COMMENTS" | grep -q "Bitrise"; then
             echo "Bitrise comment found."
-            echo "BITRISE_COMMENT_EXISTS=true" >> "$GITHUB_OUTPUT"
+            exit 0
           else
             echo "No Bitrise comment found."
             echo "BITRISE_COMMENT_EXISTS=false" >> "$GITHUB_OUTPUT"
@@ -72,10 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   run-bitrise-e2e-check:
-    needs:
-      - is-fork-pull-request
-      - is-documentation-pull-request
-      - check-if-bitrise-ran
+    needs: [is-fork-pull-request, is-documentation-pull-request, check-if-bitrise-ran]
     runs-on: ubuntu-latest
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' && needs.is-documentation-pull-request.outputs.IS_DOCS_PR == 'false' }}
     permissions:
