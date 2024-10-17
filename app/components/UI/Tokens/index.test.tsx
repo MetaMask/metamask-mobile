@@ -109,6 +109,10 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
 }));
 
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+}));
+
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,6 +132,12 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: jest.fn(),
+    });
+  });
+
   beforeEach(() => {
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: jest.fn(),
