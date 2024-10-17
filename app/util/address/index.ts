@@ -233,47 +233,29 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
- * gets the internal account by address
+ * gets i18n account label tag text based on address
  *
  * @param {String} address - String corresponding to an address
- * @returns {InternalAccount | undefined} - Returns the internal account by address
- */
-function getInternalAccountByAddress(
-  address: string,
-): InternalAccount | undefined {
-  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find(
-    (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
-  );
-}
-
-/**
- * gets account label tag text based on address
- *
- * @param {String} address - String corresponding to an address
- * @returns {String} - Returns address's translated label text
+ * @returns {String} - Returns address's i18n label text
  */
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
-  const internalAccount = getInternalAccountByAddress(address);
-  const keyring = internalAccount?.metadata?.keyring;
+  const keyring = getKeyringByAddress(address);
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.ledger:
-        return strings('accounts.ledger');
+        return 'accounts.ledger';
       case ExtendedKeyringTypes.qr:
-        return strings('accounts.qr_hardware');
+        return 'accounts.qr_hardware';
       case ExtendedKeyringTypes.simple:
-        return strings('accounts.imported');
+        return 'accounts.imported';
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
-        return (
-          internalAccount?.metadata.snap?.name ||
-          strings('accounts.snap_account_tag')
-        );
+        return 'accounts.snap_account_tag';
       ///: END:ONLY_INCLUDE_IF
     }
   }
+  return null;
 }
 
 /**

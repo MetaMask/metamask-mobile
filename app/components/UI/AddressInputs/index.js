@@ -608,7 +608,7 @@ export const AddressFrom = (props) => {
                 variant={TextVariant.BodySMBold}
                 style={styles.accountNameLabelText}
               >
-                {accountLabel}
+                {strings(accountLabel)}
               </Text>
             )}
           </View>

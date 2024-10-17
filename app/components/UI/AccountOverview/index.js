@@ -73,6 +73,22 @@ const createStyles = (colors) =>
     labelWrapper: {
       flexDirection: 'row',
     },
+    tag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 2,
+      padding: 4,
+      paddingHorizontal: 8,
+      borderWidth: 1,
+      borderColor: colors.text.default,
+      height: 28,
+      borderRadius: 14,
+    },
+    tagText: {
+      minWidth: 32,
+      textAlign: 'center',
+      color: colors.text.default,
+    },
     addressWrapper: {
       backgroundColor: colors.primary.muted,
       borderRadius: 40,
