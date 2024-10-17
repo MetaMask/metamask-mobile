@@ -21,12 +21,15 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/address';
+import {
+  importAccountFromPrivateKey,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
@@ -53,6 +56,9 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import AddressCopy from '../AddressCopy';
+import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
+import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -96,7 +102,7 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.3,
   },
-  leftButtonContainer: {
+  rightElementContainer: {
     marginRight: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -114,16 +120,11 @@ const styles = StyleSheet.create({
   metamaskNameWrapper: {
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
-  fox: {
-    width: 24,
-    height: 24,
+  leftElementContainer: {
     marginLeft: 16,
   },
   notificationsWrapper: {
-    position: 'relative',
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginHorizontal: 4,
   },
   notificationsBadge: {
     width: 8,
@@ -133,6 +134,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 10,
+  },
+  addressCopyWrapper: {
+    marginHorizontal: 4,
   },
 });
 
@@ -904,12 +908,27 @@ export function getOfflineModalNavbar() {
 }
 
 /**
- * Function that returns the navigation options
- * for our wallet screen,
+ * Function that returns the navigation options for the wallet screen.
  *
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ * @param {string} selectedAddress - The currently selected Ethereum address
+ * @param {string} accountName - The name of the currently selected account
+ * @param {string} accountAvatarType - The type of avatar for the currently selected account
+ * @param {string} networkName - The name of the current network
+ * @param {Object} networkImageSource - The image source for the network icon
+ * @param {Function} onPressTitle - Callback function when the title is pressed
+ * @param {Object} navigation - The navigation object
+ * @param {Object} themeColors - The theme colors object
+ * @param {boolean} isNotificationEnabled - Whether notifications are enabled
+ * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
+ * @param {number} unreadNotificationCount - The number of unread notifications
+ * @param {number} readNotificationCount - The number of read notifications
+ * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
+  accountActionsRef,
+  selectedAddress,
+  accountName,
+  accountAvatarType,
   networkName,
   networkImageSource,
   onPressTitle,
@@ -922,7 +941,7 @@ export function getWalletNavbarOptions(
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: themeColors.background,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -1006,24 +1025,40 @@ export function getWalletNavbarOptions(
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
+        <PickerAccount
+          ref={accountActionsRef}
+          accountAddress={selectedAddress}
+          accountName={accountName}
+          accountAvatarType={accountAvatarType}
+          onPress={() => {
+            navigation.navigate(...createAccountSelectorNavDetails({}));
+          }}
+          accountTypeLabel={getLabelTextByAddress(selectedAddress) || undefined}
+          showAddress
+          cellAccountContainerStyle={styles.account}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+        />
+      </View>
+    ),
+    headerLeft: () => (
+      <View style={styles.leftElementContainer}>
         <PickerNetwork
           label={networkName}
           imageSource={networkImageSource}
           onPress={onPressTitle}
           testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+          hideNetworkName
         />
       </View>
     ),
-    headerLeft: () => (
-      <Image
-        source={metamask_fox}
-        style={styles.fox}
-        resizeMethod={'auto'}
-        testID={CommonSelectorsIDs.FOX_ICON}
-      />
-    ),
     headerRight: () => (
-      <View style={styles.leftButtonContainer}>
+      <View style={styles.rightElementContainer}>
+        <View
+          testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+          style={styles.addressCopyWrapper}
+        >
+          <AddressCopy />
+        </View>
         <View style={styles.notificationsWrapper}>
           {isNotificationsFeatureEnabled() && (
             <ButtonIcon
@@ -1050,9 +1085,9 @@ export function getWalletNavbarOptions(
         </View>
 
         <ButtonIcon
-          iconColor={IconColor.Primary}
+          iconColor={IconColor.Default}
           onPress={openQRScanner}
-          iconName={IconName.Scan}
+          iconName={IconName.ScanBarcode}
           size={IconSize.Xl}
           testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
         />
@@ -1120,7 +1155,7 @@ export function getImportTokenNavbarOptions(
         style={styles.backButton}
         testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
-        <ButtonIcon
+        {/* <ButtonIcon
           iconName={IconName.Close}
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Lg}
@@ -1135,7 +1170,7 @@ export function getImportTokenNavbarOptions(
                     },
                   })
           }
-        />
+        /> */}
       </TouchableOpacity>
     ),
     headerLeft: null,

@@ -7,7 +7,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -138,10 +137,20 @@ describe('Wallet', () => {
     render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
   });
-  it('should render fox icon', () => {
+  it('should render the address copy button', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
-    expect(foxIcon).toBeDefined();
+    const addressCopyButton = screen.getByTestId(
+      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
+    );
+    expect(addressCopyButton).toBeDefined();
+  });
+  it('should render the account picker', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+    const accountPicker = screen.getByTestId(
+      WalletViewSelectorsIDs.ACCOUNT_ICON,
+    );
+    expect(accountPicker).toBeDefined();
   });
 });

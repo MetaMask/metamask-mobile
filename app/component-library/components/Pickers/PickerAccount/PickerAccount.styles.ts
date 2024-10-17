@@ -24,22 +24,29 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { style, cellAccountContainerStyle } = vars;
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    base: {
+      ...(style as ViewStyle),
+      flexDirection: 'row',
+      padding: 0,
+      borderWidth: 0,
+    },
     accountAvatar: {
-      marginRight: 16,
+      marginRight: 8,
     },
     accountAddressLabel: {
       color: colors.text.alternative,
+      textAlign: 'center',
     },
     cellAccount: {
-      flex: 1,
       flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
       ...cellAccountContainerStyle,
     },
     accountNameLabel: {
-      flexDirection: 'row',
+      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
     },
     accountNameLabelText: {
       marginTop: 4,
@@ -52,6 +59,18 @@ const styleSheet = (params: {
       borderColor: colors.border.default,
       justifyContent: 'center',
       textAlign: 'center',
+    },
+    accountNameAvatar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    pickerAccountContainer: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    dropDownIcon: {
+      marginLeft: 8,
     },
   });
 };
