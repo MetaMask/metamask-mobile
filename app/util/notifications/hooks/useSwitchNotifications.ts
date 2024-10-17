@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable import/prefer-default-export */
 import { useState, useCallback, useMemo } from 'react';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
@@ -13,8 +11,6 @@ import { useDispatch } from 'react-redux';
 import { updateAccountState } from '../../../core/redux/slices/notifications';
 import { Account } from '../../../components/hooks/useAccounts/useAccounts.types';
 import Logger from '../../../util/Logger';
-
-jest.mock('../../../util/Logger');
 
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -92,18 +88,14 @@ export function useAccountSettingsProps(accounts: Account[]) {
 
   // Memoize the accounts array to avoid unnecessary re-fetching
   const memoAccounts = useMemo(() => accounts.map((account) => account.address),[accounts]);
-
   const updateAndfetchAccountSettings = useCallback(async () => {
-    try {
-        Engine.context.NotificationServicesController.checkAccountsPresence(
-          memoAccounts,
-        ).then((result) => {
-          dispatch(updateAccountState(result));
-          return result;
-        });
-    } catch (err) {
-      Logger.log(err, 'Failed to get account settings');
-    }
+  try {
+    const result = await Engine.context.NotificationServicesController.checkAccountsPresence(memoAccounts);
+    dispatch(updateAccountState(result));
+    return result;
+  } catch (err) {
+    Logger.log('Failed to get account settings:', err);
+  }
 }, [dispatch, memoAccounts]);
 
   return { updateAndfetchAccountSettings };

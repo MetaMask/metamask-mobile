@@ -62,6 +62,13 @@ const styleSheet = (params: { theme: Theme }) =>
       alignSelf: 'stretch',
       marginBottom: 48,
     },
+
+  });
+
+  export const styles = StyleSheet.create({
+    headerLeft: {
+      marginHorizontal: 16,
+    },
   });
 
 export default styleSheet;

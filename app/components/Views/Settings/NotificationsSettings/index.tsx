@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 import React, { useEffect, useCallback } from 'react';
 import { ScrollView, Switch, View, Linking } from 'react-native';
@@ -50,7 +49,7 @@ import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import styleSheet from './NotificationsSettings.styles';
+import styleSheet, { styles } from './NotificationsSettings.styles';
 import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -159,7 +158,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const isFullScreenModal = route?.params?.isFullScreenModal;
   // Style
   const { colors } = theme;
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { theme });
 
   /**
    * Initializes the notifications feature.
@@ -294,7 +293,7 @@ NotificationsSettings.navigationOptions = ({
           ? navigation.navigate(Routes.WALLET.HOME)
           : navigation.goBack()
       }
-      style={{ marginHorizontal: 16 }}
+      style={styles.headerLeft}
     />
   ),
 });

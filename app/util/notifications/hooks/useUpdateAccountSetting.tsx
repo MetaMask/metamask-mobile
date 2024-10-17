@@ -15,10 +15,11 @@ export function useUpdateAccountSetting(address: string, updateAndfetchAccountSe
       try {
         // change the account state in the controller
         await switchAccountNotifications([address], state);
-        // refetch the account settings from the controller
-        await updateAndfetchAccountSettings();
-        // refetch the notifications from the controller
-        await refetch();
+        // Concurrently refetch account settings and notifications
+        await Promise.all([
+          updateAndfetchAccountSettings(),
+          refetch()
+        ]);
       } catch {
         // Do nothing (we don't need to propagate this)
       }
