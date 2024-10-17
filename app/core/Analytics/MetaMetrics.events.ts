@@ -275,6 +275,8 @@ enum EVENT_NAME {
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
+  STAKE_INPUT_TEXT_ENTERED = 'Stake Input Text Entered',
+  STAKE_INPUT_CLICKED = 'Stake Input Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -1222,10 +1224,19 @@ const legacyMetaMetricsEvents = {
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
   ),
+  // Stake
   STAKE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+  STAKE_INPUT_TEXT_ENTERED: generateOpt(
+    EVENT_NAME.STAKE_INPUT_TEXT_ENTERED,
+    ACTIONS.STAKE,
+    DESCRIPTION.STAKE,
+  ),
+  STAKE_INPUT_CLICKED: generateOpt(
+    EVENT_NAME.STAKE_INPUT_CLICKED,
   ),
 };
 
