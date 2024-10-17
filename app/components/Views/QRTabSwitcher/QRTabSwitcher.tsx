@@ -113,6 +113,7 @@ const QRTabSwitcher = () => {
         <ReceiveRequest
           navigation={navigation}
           hideModal={() => false}
+          origin={origin}
           showReceiveModal
         />
       ) : null}
