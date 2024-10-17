@@ -26,6 +26,7 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         padding: 0,
+        flex: 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,

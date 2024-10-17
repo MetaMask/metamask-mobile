@@ -7,10 +7,12 @@ import {
   EnableNotificationsReturn,
   DisableNotificationsReturn,
   MarkNotificationAsReadReturn,
+  deleteNotificationsStorageKeyReturn,
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   MarkAsReadNotificationsParam,
+  performDeleteStorage,
   disableNotificationServices,
   enableNotificationServices,
   fetchAndUpdateMetamaskNotifications,
@@ -198,6 +200,41 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 
   return {
     markNotificationAsRead,
+    loading,
+    error,
+  };
+}
+
+/**
+ * Custom hook to delete notifications storage key.
+ * It manages loading and error states internally.
+ *
+ * @returns An object containing the `deleteNotificationsStorageKey` function, loading state, and error state.
+ */
+export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKeyReturn {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>();
+
+  const deleteNotificationsStorageKey = useCallback(async () => {
+    setLoading(true);
+    setError(undefined);
+    try {
+      const errorMessage = await performDeleteStorage();
+      if (errorMessage) {
+        setError(getErrorMessage(errorMessage));
+        return errorMessage;
+      }
+    } catch (e) {
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage);
+      return errorMessage;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    deleteNotificationsStorageKey,
     loading,
     error,
   };

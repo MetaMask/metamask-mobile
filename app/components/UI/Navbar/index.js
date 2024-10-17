@@ -28,7 +28,6 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -53,6 +52,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   notificationButton: {
-    marginRight: 4,
+    marginHorizontal: 4,
   },
   disabled: {
     opacity: 0.3,
@@ -1024,7 +1024,6 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-
         <View style={styles.notificationsWrapper}>
           {isNotificationsFeatureEnabled() && (
             <ButtonIcon
@@ -1046,9 +1045,9 @@ export function getWalletNavbarOptions(
                     : themeColors.background.transparent,
                 },
               ]}
-            />)}
+            />
+          )}
         </View>
-
 
         <ButtonIcon
           iconColor={IconColor.Primary}
@@ -1119,7 +1118,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1129,12 +1128,12 @@ export function getImportTokenNavbarOptions(
             onClose
               ? () => onClose()
               : () =>
-                navigation.navigate(Routes.WALLET.HOME, {
-                  screen: Routes.WALLET.TAB_STACK_FLOW,
-                  params: {
-                    screen: Routes.WALLET_VIEW,
-                  },
-                })
+                  navigation.navigate(Routes.WALLET.HOME, {
+                    screen: Routes.WALLET.TAB_STACK_FLOW,
+                    params: {
+                      screen: Routes.WALLET_VIEW,
+                    },
+                  })
           }
         />
       </TouchableOpacity>
@@ -1178,7 +1177,7 @@ export function getNftDetailsNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -1189,14 +1188,14 @@ export function getNftDetailsNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-          <Icon
-            name={IconName.MoreVertical}
-            size={IconSize.Lg}
-            style={innerStyles.headerBackIcon}
-          />
-        </TouchableOpacity>
-      )
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Lg}
+              style={innerStyles.headerBackIcon}
+            />
+          </TouchableOpacity>
+        )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
@@ -1301,7 +1300,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
       >
         <IonicIcon
           name={'ios-close'}
@@ -1312,15 +1311,15 @@ export function getNetworkNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-          <MaterialCommunityIcon
-            name={'dots-horizontal'}
-            size={28}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-        // eslint-disable-next-line no-mixed-spaces-and-tabs
-      )
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <MaterialCommunityIcon
+              name={'dots-horizontal'}
+              size={28}
+              style={innerStyles.headerIcon}
+            />
+          </TouchableOpacity>
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
@@ -1825,35 +1824,61 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
   };
 };
 
-export function getStakeInputNavbar(navigation, themeColors) {
+/**
+ *
+ * @param {String} title - Navbar Title.
+ * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
+ * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [options] - Optional options for navbar.
+ * @returns Staking Navbar Component.
+ */
+export function getStakingNavbar(title, navigation, themeColors, options) {
+  const { hasBackButton = true, hasCancelButton = true } = options ?? {};
+
   const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor:
+        options?.backgroundColor ?? themeColors.background.default,
+      shadowOffset: null,
+    },
+    headerLeft: {
+      marginHorizontal: 16,
+    },
     headerButtonText: {
       color: themeColors.primary.default,
       fontSize: 14,
       ...fontStyles.normal,
     },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
   });
-  const title = strings('stake.stake_eth');
+
+  function navigationPop() {
+    navigation.goBack();
+  }
+
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
-    ),
-    headerLeft: () => <View />,
-    headerRight: () => (
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
-      >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
-      </TouchableOpacity>
+      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
     ),
     headerStyle: innerStyles.headerStyle,
+    headerLeft: () =>
+      hasBackButton ? (
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.ArrowLeft}
+          onPress={navigationPop}
+          style={innerStyles.headerLeft}
+        />
+      ) : null,
+    headerRight: () =>
+      hasCancelButton ? (
+        <TouchableOpacity
+          onPress={() => navigation.dangerouslyGetParent()?.pop()}
+          style={styles.closeButton}
+        >
+          <Text style={innerStyles.headerButtonText}>
+            {strings('navigation.cancel')}
+          </Text>
+        </TouchableOpacity>
+      ) : null,
   };
 }

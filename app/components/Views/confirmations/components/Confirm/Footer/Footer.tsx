@@ -3,21 +3,19 @@ import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import StyledButton from '../../../../../../components/UI/StyledButton';
-import { useTheme } from '../../../../../../util/theme';
+import { useStyles } from '../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import createStyles from './style';
+import styleSheet from './Footer.styles';
 
 const Footer = () => {
   const { onConfirm, onReject } = useApprovalRequest();
-  const { colors } = useTheme();
-
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.buttonsContainer}>
       <StyledButton
         onPress={onReject}
-        containerStyle={styles.fill}
+        containerStyle={styles.rejectButton}
         type={'normal'}
       >
         {strings('confirm.reject')}
@@ -25,7 +23,7 @@ const Footer = () => {
       <View style={styles.buttonDivider} />
       <StyledButton
         onPress={onConfirm}
-        containerStyle={styles.fill}
+        containerStyle={styles.confirmButton}
         type={'confirm'}
       >
         {strings('confirm.confirm')}
