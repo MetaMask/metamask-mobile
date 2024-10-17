@@ -5,32 +5,23 @@ exports[`DefaultSettings should render correctly 1`] = `
   style={
     {
       "flex": 1,
-      "paddingHorizontal": 16,
       "paddingTop": 16,
     }
   }
 >
   <View>
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
+          "paddingHorizontal": 16,
         }
       }
     >
-      MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.
       <Text
         accessibilityRole="text"
-        onPress={[Function]}
         style={
           {
-            "color": "#0376c9",
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -39,10 +30,26 @@ exports[`DefaultSettings should render correctly 1`] = `
           }
         }
       >
-         
-        Learn more about privacy best practices.
+        MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+           
+          Learn more about privacy best practices.
+        </Text>
       </Text>
-    </Text>
+    </View>
     <TouchableOpacity
       onPress={[Function]}
     >
