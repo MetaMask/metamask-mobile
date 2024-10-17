@@ -1,0 +1,95 @@
+name: Merge Queue E2E Status Check
+on:
+  issue_comment:
+    types:
+      - edited
+      - deleted
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - labeled
+      - unlabeled
+      - synchronize
+
+jobs:
+  is-fork-pull-request:
+    name: Determine pull request source
+    if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    outputs:
+      IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Determine whether this PR is from a fork
+        id: is-fork
+        run: |
+          echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number || github.event.issue.number }}
+
+  is-documentation-pull-request:
+    name: Check if pull request is for documentation
+    runs-on: ubuntu-latest
+    outputs:
+      IS_DOCS_PR: ${{ steps.is-docs.outputs.IS_DOCS_PR }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check if docs PR
+        id: is-docs
+        run: |
+          if [[ "${{ startsWith(github.event.pull_request.title, 'docs:') }}" == "true" ]]; then
+            echo "Is a documentation PR, will skip running e2e"
+          else
+            echo "Is not a documentation PR will proceed to running tests"
+  
+  check-if-bitrise-ran:
+    name: Checking to see if Bitrise comment was posted
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check if PR has Bitrise status commented
+        id: check_bitrise_comment
+        run: |
+          PR_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments")
+
+          if echo "$PR_COMMENTS" | grep -q "✅✅✅ pr_smoke_e2e_pipeline passed on Bitrise! ✅✅✅"; then
+            echo "Bitrise comment found."
+            echo "BITRISE_COMMENT_EXISTS=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Bitrise comment found which means no E2E ran"
+            echo "BITRISE_COMMENT_EXISTS=false" >> "$GITHUB_OUTPUT"
+            exit 1  # Fail the job if the comment does not exist
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  e2e-all-jobs-pass:
+    name: All jobs pass
+    runs-on: ubuntu-20.04
+    needs:
+      [
+        is-fork-pull-request,
+        check-if-bitrise-ran,
+        is-documentation-pull-request
+      ]
+    outputs:
+      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
+    steps:
+      - name: Set jobs passed status
+        id: jobs-passed-status
+        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+  check-all-jobs-pass:
+    name: Check all jobs pass
+    runs-on: ubuntu-20.04
+    needs: e2e-all-jobs-pass
+    if: always()
+    steps:
+      - run: |
+          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
+            echo "All jobs passed. Unblock PR."
+          else
+            echo "All jobs passed step skipped. Block PR."
+            exit 1
+          fi

@@ -1,5 +1,5 @@
 name: Run Bitrise E2E Check
-'on':
+on:
   issue_comment:
     types:
       - edited
@@ -32,47 +32,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number || github.event.issue.number }}
-
-  is-documentation-pull-request:
-    name: Check if pull request is for documentation
-    runs-on: ubuntu-latest
-    outputs:
-      IS_DOCS_PR: ${{ steps.is-docs.outputs.IS_DOCS_PR }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check if docs PR
-        id: is-docs
-        run: |
-          if [[ "${{ startsWith(github.event.pull_request.title, 'docs:') }}" == "true" ]]; then
-            echo "Is a documentation PR, will skip running e2e"
-            exit 0
-  
-  check-if-bitrise-ran:
-    name: Checking to see if Bitrise comment was posted
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check if PR has Bitrise status commented
-        id: check_bitrise_comment
-        run: |
-          PR_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments")
-
-          if echo "$PR_COMMENTS" | grep -q "Bitrise"; then
-            echo "Bitrise comment found."
-            exit 0
-          else
-            echo "No Bitrise comment found."
-            echo "BITRISE_COMMENT_EXISTS=false" >> "$GITHUB_OUTPUT"
-            exit 1  # Fail the job if the comment does not exist
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          
   run-bitrise-e2e-check:
-    needs: [is-fork-pull-request, is-documentation-pull-request, check-if-bitrise-ran]
+    needs: is-fork-pull-request
     runs-on: ubuntu-latest
-    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' && needs.is-documentation-pull-request.outputs.IS_DOCS_PR == 'false' }}
+    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false'}}
     permissions:
       pull-requests: write
       contents: write
