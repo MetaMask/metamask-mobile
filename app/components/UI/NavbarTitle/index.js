@@ -27,21 +27,6 @@ const createStyles = (colors) =>
     network: {
       flexDirection: 'row',
     },
-    networkIcon: {
-      width: 5,
-      height: 5,
-      borderRadius: 100,
-      marginRight: 5,
-      marginTop: Device.isIos() ? 4 : 5,
-    },
-    title: {
-      fontSize: scale(14),
-    },
-    otherNetworkIcon: {
-      backgroundColor: importedColors.transparent,
-      borderColor: colors.border.default,
-      borderWidth: 1,
-    },
   });
 
 /**
@@ -139,11 +124,7 @@ class NavbarTitle extends PureComponent {
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
       >
         {title ? (
-          <Text
-            numberOfLines={1}
-            style={styles.title}
-            variant={TextVariant.BodyMDBold}
-          >
+          <Text numberOfLines={1} variant={TextVariant.BodyMDBold}>
             {realTitle}
           </Text>
         ) : null}
