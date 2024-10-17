@@ -43,8 +43,13 @@ gh pr create \
   --title "feat: ${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
+echo "Release PR Created"
+
+git checkout "${RELEASE_BRANCH_NAME}"
+echo "Release Branch Checked Out"
 
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
+echo "Changelog Branch Created"
 
 #Bump versions for the release"
 SEMVER_VERSION="${NEW_VERSION}" VERSION_NUMBER="${NEW_VERSION_NUMBER}" yarn set-version
