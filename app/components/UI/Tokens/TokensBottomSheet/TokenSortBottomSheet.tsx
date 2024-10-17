@@ -15,7 +15,6 @@ import currencySymbols from '../../../../util/currency-symbols.json';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 
 const TokenSortBottomSheet = () => {
   const { colors } = useTheme();
