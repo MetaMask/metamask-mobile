@@ -4,6 +4,7 @@ on:
     types:
       - edited
       - deleted
+      - created
   pull_request:
     types:
       - opened
