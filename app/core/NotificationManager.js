@@ -3,15 +3,15 @@
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
-import notifee from '@notifee/react-native';
-import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
+
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
+import NotificationsService from '../util/notifications/services/NotificationService';
 
 import {
   NotificationTransactionTypes,
   isNotificationsFeatureEnabled,
-
+  ChannelId,
 } from '../util/notifications';
 
 import { safeToChecksumAddress } from '../util/address';
@@ -141,8 +141,7 @@ class NotificationManager {
     );
   };
 
-  // TODO: Refactor this method to use notifee's channels in combination with MM auth
-  _showNotification(data, channelId = STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID) {
+  _showNotification = async (data) => {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
       const id = data?.transaction?.id || '';
@@ -153,25 +152,7 @@ class NotificationManager {
       const pushData = {
         title,
         body: message,
-        android: {
-          lightUpScreen: true,
-          channelId,
-          smallIcon: 'ic_notification_small',
-          largeIcon: 'ic_notification',
-          pressAction: {
-            id: 'default',
-            launchActivity: 'com.metamask.ui.MainActivity',
-          },
-        },
-        ios: {
-          foregroundPresentationOptions: {
-            alert: true,
-            sound: true,
-            badge: true,
-            banner: true,
-            list: true,
-          },
-        },
+        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
       };
 
       const extraData = { action: 'tx', id };
@@ -179,9 +160,10 @@ class NotificationManager {
       if (Device.isAndroid()) {
         pushData.tag = JSON.stringify(extraData);
       } else {
-        pushData.userInfo = extraData; // check if is still needed
+        pushData.userInfo = extraData;
       }
-      isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
+
+      isNotificationsFeatureEnabled() && await NotificationsService.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
@@ -189,7 +171,7 @@ class NotificationManager {
         status: data.type,
       });
     }
-  }
+  };
 
   _failedCallback = (transactionMeta) => {
     // If it fails we hide the pending tx notification
