@@ -44,6 +44,7 @@ jobs:
             echo "Is a documentation PR, will skip running e2e"
           else
             echo "Is not a documentation PR will proceed to running tests"
+            fi
   
   check-if-bitrise-ran:
     name: Checking to see if Bitrise comment was posted
