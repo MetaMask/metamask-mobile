@@ -1222,7 +1222,6 @@ const legacyMetaMetricsEvents = {
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
   ),
-  // Stake
   STAKE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
