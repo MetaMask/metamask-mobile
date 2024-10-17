@@ -14,10 +14,7 @@ import {
   getNetworkNavbarOptions,
 } from '../../UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -36,6 +33,7 @@ import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
+import { useChainId } from '../../../selectors/hooks';
 
 const AddAsset = () => {
   const navigation = useNavigation();
@@ -47,7 +45,7 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const isTokenDetectionSupported =
