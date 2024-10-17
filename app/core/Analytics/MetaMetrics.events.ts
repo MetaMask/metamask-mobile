@@ -273,7 +273,6 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
-  // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
 
   // Force Upgrade | Automatic Security Checks
