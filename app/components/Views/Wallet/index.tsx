@@ -477,6 +477,7 @@ const Wallet = ({
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
         selectedAddress || '',
         accountName,
         accountAvatarType,
