@@ -161,6 +161,7 @@ describe('Wallet', () => {
   });
   it('should dispatch account syncing when appState switches from inactive|background to active', () => {
     jest.clearAllMocks();
+
     const addEventListener = jest.spyOn(AppState, 'addEventListener');
 
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
@@ -169,6 +170,7 @@ describe('Wallet', () => {
     expect(addEventListener).toHaveBeenCalledTimes(1);
 
     const handleAppStateChange = addEventListener.mock.calls[0][1];
+
     act(() => {
       handleAppStateChange('background');
       handleAppStateChange('active');
