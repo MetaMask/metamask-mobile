@@ -67,5 +67,5 @@ export const deriveBalanceFromAssetMarketDetails = (
       ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
       : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 
-  return { balanceFiat, balanceValueFormatted };
+  return { balanceFiat, balanceValueFormatted, balanceFiatCalculation };
 };
