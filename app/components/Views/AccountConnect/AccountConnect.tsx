@@ -345,7 +345,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
-
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
@@ -607,6 +606,11 @@ const AccountConnect = (props: AccountConnectProps) => {
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
         hostname={hostname}
+        onPrimaryActionButtonPress={
+          isMultichainVersion1Enabled
+            ? () => setScreen(AccountConnectScreens.SingleConnect)
+            : undefined
+        }
       />
     ),
     [
