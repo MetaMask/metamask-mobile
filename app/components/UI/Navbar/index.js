@@ -53,6 +53,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import HeaderBase from '../../../component-library/components/HeaderBase';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -133,6 +134,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 10,
+  },
+  headerLeftButton: {
+    marginHorizontal: 16,
+  },
+  headerRightButton: {
+    marginHorizontal: 16,
   },
 });
 
@@ -1265,66 +1272,40 @@ export function getNetworkNavbarOptions(
   title,
   translate,
   navigation,
-  themeColors,
   onRightPress = undefined,
   disableNetwork = false,
-  contentOffset = 0,
 ) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerShadow: {
-      elevation: 2,
-      shadowColor: themeColors.background.primary,
-      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
   return {
-    headerTitle: () => (
-      <NavbarTitle
-        disableNetwork={disableNetwork}
-        title={title}
-        translate={translate}
-      />
-    ),
-    headerLeft: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.pop()}
-        style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+    header: () => (
+      <HeaderBase
+        includesTopInset
+        startAccessory={
+          <ButtonIcon
+            style={styles.headerLeftButton}
+            onPress={() => navigation.pop()}
+            testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+            size={ButtonIconSizes.Lg}
+            iconName={IconName.ArrowLeft}
+            iconColor={IconColor.Default}
+          />
+        }
+        endAccessory={
+          <ButtonIcon
+            style={styles.headerRightButton}
+            onPress={onRightPress}
+            size={ButtonIconSizes.Lg}
+            iconName={IconName.MoreVertical}
+            iconColor={IconColor.Default}
+          />
+        }
       >
-        <IonicIcon
-          name={'ios-close'}
-          size={38}
-          style={innerStyles.headerIcon}
+        <NavbarTitle
+          disableNetwork={disableNetwork}
+          title={title}
+          translate={translate}
         />
-      </TouchableOpacity>
+      </HeaderBase>
     ),
-    headerRight: onRightPress
-      ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-            <MaterialCommunityIcon
-              name={'dots-horizontal'}
-              size={28}
-              style={innerStyles.headerIcon}
-            />
-          </TouchableOpacity>
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        )
-      : () => <View />,
-    headerStyle: [
-      innerStyles.headerStyle,
-      contentOffset && innerStyles.headerShadow,
-    ],
   };
 }
 
