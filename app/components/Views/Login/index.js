@@ -55,12 +55,9 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-<<<<<<< HEAD
 import TextField, { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import HelpText, { HelpTextSeverity } from '../../../component-library/components/Form/HelpText';
-=======
->>>>>>> 81b43ec96 (cherry-picking commit bf5bb9782)
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
