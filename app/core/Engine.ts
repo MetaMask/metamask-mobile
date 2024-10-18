@@ -958,7 +958,7 @@ class Engine {
           'AccountsController:selectedAccountChange',
         ],
       }),
-      state: { accounts: {} },
+      state: initialState.AccountTrackerController ?? { accounts: {} },
     });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
