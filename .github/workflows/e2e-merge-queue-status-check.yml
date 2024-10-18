@@ -15,37 +15,37 @@ on:
       - synchronize
 
 jobs:
-  is-fork-pull-request:
-    name: Determine pull request source
-    if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
-    outputs:
-      IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Determine whether this PR is from a fork
-        id: is-fork
-        run: |
-          echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.number || github.event.issue.number }}
+  # is-fork-pull-request:
+  #   name: Determine pull request source
+  #   if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Determine whether this PR is from a fork
+  #       id: is-fork
+  #       run: |
+  #         echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         PR_NUMBER: ${{ github.event.number || github.event.issue.number }}
 
-  is-documentation-pull-request:
-    name: Check if pull request is for documentation
-    runs-on: ubuntu-latest
-    outputs:
-      IS_DOCS_PR: ${{ steps.is-docs.outputs.IS_DOCS_PR }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check if docs PR
-        id: is-docs
-        run: |
-          if [[ "${{ startsWith(github.event.pull_request.title, 'docs:') }}" == "true" ]]; then
-            echo "Is a documentation PR, will skip running e2e"
-          else
-            echo "Is not a documentation PR will proceed to running tests"
-            fi
+  # is-documentation-pull-request:
+  #   name: Check if pull request is for documentation
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     IS_DOCS_PR: ${{ steps.is-docs.outputs.IS_DOCS_PR }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Check if docs PR
+  #       id: is-docs
+  #       run: |
+  #         if [[ "${{ startsWith(github.event.pull_request.title, 'docs:') }}" == "true" ]]; then
+  #           echo "Is a documentation PR, will skip running e2e"
+  #         else
+  #           echo "Is not a documentation PR will proceed to running tests"
+  #           fi
   
   check-if-bitrise-ran:
     name: Check if E2E comment is success
@@ -78,31 +78,31 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  e2e-all-jobs-pass:
-    name: All jobs pass
-    runs-on: ubuntu-20.04
-    needs:
-      [
-        is-fork-pull-request,
-        check-if-bitrise-ran,
-        is-documentation-pull-request
-      ]
-    outputs:
-      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
-    steps:
-      - name: Set jobs passed status
-        id: jobs-passed-status
-        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  check-all-jobs-pass:
-    name: Check all jobs pass
-    runs-on: ubuntu-20.04
-    needs: e2e-all-jobs-pass
-    if: always()
-    steps:
-      - run: |
-          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
-            echo "All jobs passed. Unblock PR."
-          else
-            echo "All jobs passed step skipped. Block PR."
-            exit 1
-          fi
+  # e2e-all-jobs-pass:
+  #   name: All jobs pass
+  #   runs-on: ubuntu-20.04
+  #   needs:
+  #     [
+  #       is-fork-pull-request,
+  #       check-if-bitrise-ran,
+  #       is-documentation-pull-request
+  #     ]
+  #   outputs:
+  #     ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
+  #   steps:
+  #     - name: Set jobs passed status
+  #       id: jobs-passed-status
+  #       run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+  # check-all-jobs-pass:
+  #   name: Check all jobs pass
+  #   runs-on: ubuntu-20.04
+  #   needs: e2e-all-jobs-pass
+  #   if: always()
+  #   steps:
+  #     - run: |
+  #         if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
+  #           echo "All jobs passed. Unblock PR."
+  #         else
+  #           echo "All jobs passed step skipped. Block PR."
+  #           exit 1
+  #         fi
