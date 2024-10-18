@@ -4,7 +4,7 @@ exports[`Title should match snapshot for personal sign 1`] = `
 <View
   style={
     {
-      "marginBottom": 10,
+      "marginBottom": 24,
     }
   }
 >
@@ -15,6 +15,7 @@ exports[`Title should match snapshot for personal sign 1`] = `
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 18,
         "fontWeight": "700",
+        "textAlign": "center",
       }
     }
   >
