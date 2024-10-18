@@ -1,8 +1,9 @@
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Platform, SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -18,7 +19,6 @@ import { USER_INTENT } from '../../../../constants/permissions';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
-import { Network } from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList.types';
 
 // Internal dependencies.
 import ConnectNetworkModalSelectorsIDs from '../../../../../e2e/selectors/Modals/ConnectNetworkModal.selectors';
@@ -27,13 +27,7 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
-import { PopularList } from '../../../../util/networks/customNetworks';
-import {
-  selectEnabledNetworkList,
-  EnabledNetwork,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
@@ -51,11 +45,41 @@ const NetworkConnectMultiSelector = ({
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const handleUpdateNetworkPermissions = useCallback(async () => {
-    console.log('ALEX LOGGING: selectedChainIds', selectedChainIds);
+  useEffect(() => {
+    let currentlyPermittedChains;
     try {
-      //maybe use updateCaveat instead.
-      await Engine.context.PermissionController.grantPermissionsIncremental({
+      currentlyPermittedChains = Engine.context.PermissionController.getCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+    } catch (e) {
+      // noop
+    }
+
+    setSelectedChainIds(currentlyPermittedChains?.value || []);
+  }, [hostname]);
+
+  const handleUpdateNetworkPermissions = useCallback(async () => {
+    let hasPermittedChains = false;
+    try {
+      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+    } catch {
+      // noop
+    }
+    if (hasPermittedChains) {
+      Engine.context.PermissionController.updateCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+        selectedChainIds,
+      );
+    } else {
+      Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
           origin: hostname,
         },
@@ -69,42 +93,19 @@ const NetworkConnectMultiSelector = ({
             ],
           },
         },
-        preserveExistingPermissions: false,
       });
-    } catch (e) {
-      console.log('ALEX LOGGING: error', e);
     }
-    onUserAction();
-  }, [selectedChainIds, hostname]);
-
-  // { chainId: '0xaa36a7',
-  //   rpcEndpoints:
-  //    [ { networkClientId: 'sepolia',
-  //        url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
-  //        type: 'infura' } ],
-  //   defaultRpcEndpointIndex: 0,
-  //   blockExplorerUrls: [ 'https://sepolia.etherscan.io' ],
-  //   defaultBlockExplorerUrlIndex: 0,
-  //   name: 'Sepolia',
-  //   nativeCurrency: 'SepoliaETH' },
-
+    onUserAction(USER_INTENT.Confirm);
+  }, [selectedChainIds, hostname, onUserAction]);
   const networks = Object.entries(networkConfigurations).map(
-    ([key, network]) => ({
+    ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
-      imageSource: 'test',
+      imageSource: '', // TODO not sure where to get image sources
     }),
   );
-
-  // const networks: Network[] = PopularList.map((network) => ({
-  //   id: network.chainId,
-  //   name: network.nickname,
-  //   rpcUrl: network.rpcUrl,
-  //   isSelected: false,
-  //   imageSource: network.rpcPrefs.imageSource,
-  // }));
 
   const onSelectNetwork = useCallback(
     (clickedChainId) => {
@@ -118,13 +119,18 @@ const NetworkConnectMultiSelector = ({
         }
         return acc;
       }, [] as string[]);
-      console.log('ALEX LOGGING: newNetworkList', newNetworkList);
       setSelectedChainIds(newNetworkList);
     },
     [networks, selectedChainIds],
   );
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
+    // not sure if we want to do this here or on the sub modal
+    // which provides the extra warning that it will fully disconnect you
+    Engine.context.PermissionController.revokePermissions({
+      [hostname]: [PermissionKeys.permittedChains, PermissionKeys.eth_accounts],
+    });
+
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -135,11 +141,11 @@ const NetworkConnectMultiSelector = ({
         },
       },
     });
-  }, [navigate, urlWithProtocol]);
+  }, [navigate, urlWithProtocol, hostname]);
 
   const areAllNetworksSelected = networks
     .map(({ id }) => id)
-    .every((id) => selectedChainIds.includes(id));
+    .every((id) => selectedChainIds?.includes(id));
 
   const areAnyNetworksSelected = selectedChainIds?.length !== 0;
   const areNoNetworksSelected = selectedChainIds?.length === 0;

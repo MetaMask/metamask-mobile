@@ -19,7 +19,6 @@ import {
   Network,
 } from './NetworkSelectorList.types';
 import styleSheet from './NetworkSelectorList.styles';
-import Text from '../../../component-library/components/Texts/Text';
 
 const NetworkSelectorList = ({
   onSelectNetwork,
@@ -64,7 +63,7 @@ const NetworkSelectorList = ({
           avatarProps={{
             variant: AvatarVariant.Network,
             name,
-            // imageSource: imageSource as ImageSourcePropType,
+            imageSource: imageSource as ImageSourcePropType,
             size: AvatarSize.Sm,
           }}
           disabled={isDisabled}

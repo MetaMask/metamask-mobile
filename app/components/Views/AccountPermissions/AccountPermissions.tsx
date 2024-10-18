@@ -228,11 +228,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     [setIsLoading],
   );
 
-  const handleUpdateNetworkPermissions = useCallback(() => {
-    console.log('ALEX LOGGING: handleUpdateNetworkPermissions');
-    // TODO: update network permissions
-  }, []);
-
   const handleConnect = useCallback(() => {
     try {
       setIsLoading(true);
@@ -295,18 +290,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     trackEvent,
   ]);
 
+  // connect networks userIntent
+  useEffect(() => {
+    if (networkSelectorUserIntent === USER_INTENT.Confirm) {
+      hideSheet();
+    }
+  }, [networkSelectorUserIntent, hideSheet]);
+
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
-    console.log('ALEX LOGGING: userIntent', userIntent);
-    console.log(
-      'ALEX LOGGING: networkSelectorUserIntent',
-      networkSelectorUserIntent,
-    );
-    // need separate user actions intent flow for networkPermissions
-    if (networkSelectorUserIntent === USER_INTENT.Confirm) {
-      handleUpdateNetworkPermissions();
-    }
-
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
@@ -349,8 +341,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     setUserIntent(USER_INTENT.None);
   }, [
-    networkSelectorUserIntent,
-    handleUpdateNetworkPermissions,
     navigation,
     userIntent,
     sheetRef,
