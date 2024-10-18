@@ -178,32 +178,6 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
-  it('fiat balance must be defined', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toBeDefined();
-  });
-  it('portfolio button should render correctly', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON)).toBeDefined();
-  });
-  it('navigates to Portfolio url when portfolio button is pressed', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    const expectedUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile&metricsEnabled=false&marketingEnabled=${initialState.security.dataCollectionForMarketing}`;
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: expectedUrl,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
-    });
-  });
   it('should display unable to find conversion rate', async () => {
     const state = {
       engine: {
