@@ -103,6 +103,8 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
+
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
 
@@ -170,6 +172,7 @@ const Wallet = ({
   const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
   const { listNotifications } = useListNotifications();
+  const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -444,13 +447,17 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
+  // Layout effect when component/view is visible
+  // - fetches notifications
+  // - dispatches account syncing
   useLayoutEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (
-        appState.current.match(/inactive|background/) &&
+        appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         listNotifications();
+        dispatchAccountSyncing();
       }
 
       appState.current = nextAppState;
@@ -460,11 +467,14 @@ const Wallet = ({
       'change',
       handleAppStateChange,
     );
+
     listNotifications();
+    dispatchAccountSyncing();
+
     return () => {
       subscription.remove();
     };
-  }, [listNotifications]);
+  }, [listNotifications, dispatchAccountSyncing]);
 
   useEffect(() => {
     navigation.setOptions(
