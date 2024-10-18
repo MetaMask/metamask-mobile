@@ -1024,6 +1024,7 @@ function SwapsQuotesView({
         if (isHardwareAddress || shouldUseSmartTransaction) {
           const { id: transactionId } = transactionMeta;
 
+          // TODO: Read into this to understand subscribing to events
           Engine.controllerMessenger.subscribeOnceIf(
             'TransactionController:transactionConfirmed',
             (transactionMeta) => {

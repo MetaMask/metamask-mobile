@@ -13,16 +13,41 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
+import usePoolStakedDeposit from '../../../../hooks/usePoolStakedDeposit';
+import Engine from '../../../../../../../core/Engine';
+import { FooterButtonGroupProps } from './FooterButtonGroup.types';
 
-const FooterButtonGroup = () => {
+const FooterButtonGroup = ({ valueWei }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
-  const handleGoBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
+
+  const navigateToAssetScreen = () => navigate('Asset');
+
+  const handleStake = async () => {
+    if (!activeAccount?.address) return;
+
+    const txRes = await attemptDepositTransaction(
+      valueWei,
+      activeAccount.address,
+    );
+
+    const transactionId = txRes?.transactionMeta?.id;
+
+    // Listening for confirmation
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionSubmitted',
+      () => {
+        navigateToAssetScreen();
+      },
+      ({ transactionMeta }) => transactionMeta.id === transactionId,
+    );
   };
 
   return (
@@ -37,7 +62,7 @@ const FooterButtonGroup = () => {
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        onPress={handleGoBack}
+        onPress={navigateToAssetScreen}
       />
       <Button
         label={
@@ -50,7 +75,7 @@ const FooterButtonGroup = () => {
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         // TODO: Replace with actual stake confirmation flow
-        onPress={handleGoBack}
+        onPress={handleStake}
       />
     </View>
   );

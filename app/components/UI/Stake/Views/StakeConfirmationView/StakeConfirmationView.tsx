@@ -52,7 +52,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           />
         </View>
       </View>
-      <ConfirmationFooter />
+      <ConfirmationFooter valueWei={route.params.amountWei} />
     </View>
   );
 };
