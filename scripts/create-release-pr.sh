@@ -19,18 +19,18 @@ CHANGELOG_BRANCH_NAME="chore/${NEW_VERSION}-Changelog"
 RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The changelog will be found in another PR ${CHANGELOG_BRANCH_NAME}.
 
   # Team sign-off checklist
-  - [] team-security
-  - [] team-platform
-  - [] team-snaps-platform
-  - [] team-sdk
-  - [] team-assets
-  - [] team-notifications
-  - [] team-confirmations
-  - [] team-design-system
-  - [] team-tiger
-  - [] team-wallet-framework
-  - [] team-stake
-  - [] team-accounts
+  - [ ] team-accounts
+  - [ ] team-assets
+  - [ ] team-confirmations
+  - [ ] team-design-system
+  - [ ] team-notifications
+  - [ ] team-platform
+  - [ ] team-security
+  - [ ] team-snaps-platform
+  - [ ] team-sdk
+  - [ ] team-stake
+  - [ ] team-tiger
+  - [ ] team-wallet-framework
 
   # Reference
   - Testing plan sheet - https://docs.google.com/spreadsheets/d/1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ/edit?gid=404070372#gid=404070372"
