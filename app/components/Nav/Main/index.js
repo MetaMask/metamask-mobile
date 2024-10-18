@@ -81,7 +81,7 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
-import { trackEvent } from '../../../UI/Ramp/hooks/useAnalytics';
+import { trackEvent } from '../../../components/UI/Ramp/hooks/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
