@@ -19,11 +19,18 @@ brew install watchman
 
 ### Ruby
 
-MacOS ships with an old ruby version that is incompatible with this project
+MacOS ships with an old ruby version that is incompatible with this project.
 
-It is recommended to install a Ruby version manager such as [rbenv](https://github.com/rbenv/rbenv?tab=readme-ov-file#installation)
+It is recommended to install a ruby version manager, and use it to install the ruby version defined in the file `.ruby-version`.
 
-Install ruby version defined in the file `.ruby-version`
+For example, the following commands will [install `rbenv`](https://github.com/rbenv/rbenv?tab=readme-ov-file#installation) and use it to [install the configured ruby version](https://github.com/rbenv/rbenv#installing-ruby-versions):
+
+```bash
+brew install rbenv
+rbenv init
+rbenv install
+rbenv local  # if installation is successful, this will print the installed ruby version.
+```
 
 ### Gems
 
