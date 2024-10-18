@@ -8,8 +8,11 @@ jobs:
   label-pr:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
       - name: Apply labels to PR
         env: 
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr edit https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }} --add-label "Run Smoke E2E"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "Run Smoke E2E"
