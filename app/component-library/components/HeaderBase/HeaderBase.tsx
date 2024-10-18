@@ -30,6 +30,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   const { size: endAccessorySize, onLayout: endAccessoryOnLayout } =
     useComponentSize();
   const insets = useSafeAreaInsets();
+
   const { styles } = useStyles(styleSheet, {
     style,
     startAccessorySize,
