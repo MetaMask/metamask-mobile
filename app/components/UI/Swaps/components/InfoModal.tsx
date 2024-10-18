@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
@@ -92,7 +91,13 @@ interface InfoViewProps {
   };
 }
 
-const InfoView: React.FC<InfoViewProps> = ({ message, urlText, url, onClose, style }) => {
+const InfoView: React.FC<InfoViewProps> = ({
+  message,
+  urlText,
+  url,
+  onClose,
+  style,
+}) => {
   if (!message) {
     return <CloseButton onPress={onClose} style={style} />;
   }
