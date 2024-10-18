@@ -1,4 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -17,8 +20,12 @@ import Text, {
 import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import PermissionItem from './PermissionItem';
-import mockPermissionItems from './PermissionItem/PermissionItem.constants';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { RootState } from '../../../../reducers';
+import {
+  PermissionListItemViewModel,
+  PermissionSource,
+} from './PermissionItem/PermissionItem.types';
 
 interface SDKSessionsManagerProps {
   navigation: NavigationProp<ParamListBase>;
@@ -53,6 +60,76 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const { navigation } = props;
+  const [inAppBrowserPermissions, setInAppBrowserPermissions] = useState<
+    PermissionListItemViewModel[]
+  >([]);
+  const subjects = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PermissionController.subjects,
+  );
+
+  useEffect(() => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const walletConnectRegex = /^https?:\/\//;
+    const uuidSubjects: any[] = [];
+    const inAppBrowserSubjects: any[] = [];
+    const walletConnectSubjects: any[] = [];
+
+    Object.entries(subjects || {}).forEach(([key, value]) => {
+      if (key === 'npm:@metamask/message-signing-snap') return;
+
+      if (uuidRegex.test(key)) {
+        uuidSubjects.push(value);
+      } else if (
+        walletConnectRegex.test((value as { origin: string }).origin)
+      ) {
+        walletConnectSubjects.push(value);
+      } else {
+        inAppBrowserSubjects.push(value);
+      }
+    });
+
+    const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
+      inAppBrowserSubjects.map((subject) => ({
+        dappLogoUrl: '',
+        dappHostName: subject.origin,
+        numberOfAccountPermissions:
+          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
+        numberOfNetworkPermissions: 0,
+        permissionSource: PermissionSource.MetaMaskBrowser,
+      }));
+
+    const mappedUuidPermissions: PermissionListItemViewModel[] =
+      uuidSubjects.map((subject) => ({
+        dappLogoUrl: '',
+        dappHostName: subject.origin,
+        numberOfAccountPermissions:
+          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
+        numberOfNetworkPermissions: 0,
+        permissionSource: PermissionSource.SDK,
+      }));
+
+    const mappedWalletConnectPermissions: PermissionListItemViewModel[] =
+      walletConnectSubjects.map((subject) => ({
+        dappLogoUrl: '',
+        dappHostName: subject.origin,
+        numberOfAccountPermissions:
+          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
+        numberOfNetworkPermissions: 0,
+        permissionSource: PermissionSource.WalletConnect,
+      }));
+
+    const mappedPermissions: PermissionListItemViewModel[] = [
+      ...mappedInAppBrowserPermissions,
+      ...mappedUuidPermissions,
+      ...mappedWalletConnectPermissions,
+    ];
+
+    setInAppBrowserPermissions(mappedPermissions);
+    // console.log('>>> uuidSubjects: ', JSON.stringify(uuidSubjects));
+    // console.log('>>> mappedPermissions: ', JSON.stringify(mappedPermissions));
+  }, [subjects]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -80,21 +157,18 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     () => (
       <>
         <ScrollView>
-          {
-            /* TODO: replace mock data with real data once available */
-            isMultichainVersion1Enabled &&
-              mockPermissionItems.map((mockPermissionItem, _index) => (
-                <PermissionItem
-                  key={`${_index}`}
-                  item={mockPermissionItem}
-                  onPress={goToPermissionsDetails}
-                />
-              ))
-          }
+          {isMultichainVersion1Enabled &&
+            inAppBrowserPermissions.map((permissionItem, index) => (
+              <PermissionItem
+                key={`${index}`}
+                item={permissionItem}
+                onPress={goToPermissionsDetails}
+              />
+            ))}
         </ScrollView>
       </>
     ),
-    [goToPermissionsDetails],
+    [goToPermissionsDetails, inAppBrowserPermissions],
   );
 
   const renderEmptyResult = () => (
@@ -114,7 +188,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.perissionsWrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {isMultichainVersion1Enabled && mockPermissionItems.length
+      {isMultichainVersion1Enabled && inAppBrowserPermissions.length
         ? renderPermissions()
         : renderEmptyResult()}
     </View>
