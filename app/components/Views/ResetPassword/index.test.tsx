@@ -5,6 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ShallowWrapper } from 'enzyme';
 
 // Mock the trackEvent function
 jest.mock('../../../core/Analytics', () => ({
@@ -27,8 +28,8 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('Main component', () => {
-  let wrapper;
-  let instance;
+  let wrapper: ShallowWrapper<any, any, any>;
+  let instance: any;
 
   beforeEach(() => {
     jest.useFakeTimers();
