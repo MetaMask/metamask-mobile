@@ -1,4 +1,6 @@
 'use strict';
+/* global Platform */
+
 
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
 import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
@@ -29,7 +31,8 @@ import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/modals/ToastModal';
 
-const host = platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
+
+const host = Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
 const LOCALHOST_URL = `http://${host}:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 
