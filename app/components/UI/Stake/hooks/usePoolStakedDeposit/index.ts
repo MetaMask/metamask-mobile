@@ -1,17 +1,11 @@
-import { Web3Provider } from '@ethersproject/providers';
 import { captureException } from '@sentry/react-native';
-import { ChainId, StakeSdk } from '@metamask/stake-sdk';
-import { useSelector } from 'react-redux';
-import Engine from '../../../../../core/Engine';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { hexToDecimal } from '../../../../../util/conversions';
+import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import {
   TransactionParams,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { toHex } from '@metamask/controller-utils';
 import { addTransaction } from '../../../../../util/transaction-controller';
-import usePoolStakeSdk from '../usePoolStakeSdk';
 import { formatEther } from 'ethers/lib/utils';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -31,7 +25,7 @@ const generateDepositTxParams = (
 });
 
 const attemptDepositTransaction =
-  (stakeSdk: StakeSdk) =>
+  (pooledStakingContract: PooledStakingContract) =>
   async (
     depositValueWei: string,
     receiver: string, // the address that can claim exited ETH
@@ -39,14 +33,14 @@ const attemptDepositTransaction =
     referrer: string = ZERO_ADDRESS, // any address to track referrals or deposits from different interfaces (can use zero address if not needed)
   ) => {
     try {
-      const gasLimit = await stakeSdk.pooledStakingContract.estimateDepositGas(
+      const gasLimit = await pooledStakingContract.estimateDepositGas(
         formatEther(depositValueWei),
         receiver,
         referrer,
       );
 
       const encodedDepositTransactionData =
-        await stakeSdk.pooledStakingContract.encodeDepositTransactionData(
+        await pooledStakingContract.encodeDepositTransactionData(
           formatEther(depositValueWei),
           receiver,
           referrer,
@@ -61,7 +55,7 @@ const attemptDepositTransaction =
       const txParams = generateDepositTxParams(
         depositValueWei,
         receiver,
-        stakeSdk.pooledStakingContract.contract.address,
+        pooledStakingContract.contract.address,
         data,
         chainId,
       );
@@ -82,28 +76,8 @@ const attemptDepositTransaction =
     }
   };
 
-const usePoolStakedDeposit = () => {
-  const chainId = useSelector(selectChainId);
-
-  const stakeSdk = usePoolStakeSdk(parseInt(hexToDecimal(chainId).toString()));
-
-  const networkClientId =
-    Engine.context.NetworkController.findNetworkClientIdByChainId(
-      toHex(chainId),
-    );
-
-  const provider =
-    Engine.context.NetworkController.getNetworkClientById(
-      networkClientId,
-    )?.provider;
-
-  stakeSdk.pooledStakingContract.connectSignerOrProvider(
-    new Web3Provider(provider),
-  );
-
-  return {
-    attemptDepositTransaction: attemptDepositTransaction(stakeSdk),
-  };
-};
+const usePoolStakedDeposit = (poolStakingContract: PooledStakingContract) => ({
+  attemptDepositTransaction: attemptDepositTransaction(poolStakingContract),
+});
 
 export default usePoolStakedDeposit;

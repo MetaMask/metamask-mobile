@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -22,6 +22,7 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { useStakeContext } from '../../../../hooks/useStakeContext';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -30,7 +31,9 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
-  const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const { sdkService } = useStakeContext();
+
+  const { attemptDepositTransaction } = usePoolStakedDeposit(sdkService);
 
   const handleStake = async () => {
     if (!activeAccount?.address) return;

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Stake Modals With Stake Sdk Provider should render correctly stake modal with stake sdk provider and resolve the stake context 1`] = `
+exports[`Stake Modals With Stake Sdk Provider renders stake modal with stake sdk provider and resolved stake context 1`] = `
 <View
   style={
     {
@@ -591,7 +591,7 @@ exports[`Stake Modals With Stake Sdk Provider should render correctly stake moda
 </View>
 `;
 
-exports[`Stake Modals With Stake Sdk Provider should render correctly stake screen with stake sdk provider and resolve the stake context 1`] = `
+exports[`Stake Modals With Stake Sdk Provider renders stake screen with stake sdk provider and resolved stake context 1`] = `
 <View
   style={
     {
