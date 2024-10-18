@@ -4294,7 +4294,7 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.0.0"
 
-"@metamask/accounts-controller@^17.0.0", "@metamask/accounts-controller@^17.2.0", "@metamask/accounts-controller@^18.1.0", "@metamask/accounts-controller@^18.2.1":
+"@metamask/accounts-controller@^17.1.0", "@metamask/accounts-controller@^17.2.0", "@metamask/accounts-controller@^18.1.0", "@metamask/accounts-controller@^18.2.1":
   version "18.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-18.2.1.tgz#8e4a842316e9b7bbd0409b36129f7123ba4a4c79"
   integrity sha512-BEvux+ZFpTOQa6HbRl7i7Tq24ztqrZIsX+H0ePh47lU+N8RWq1q0JCItV+zbsgdcYnwhtcMZTsp4jJPQwPe2og==
@@ -4330,10 +4330,10 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^33.0.0":
-  version "33.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-33.0.0.tgz#e00082a1f68a72ca10d4cffe1dc7a0a7b1c52957"
-  integrity sha512-9/W8E13cVVpfHtzaF4UABo1IKnfeg+gfhJdN7MJfNMrDclw2nK101OXLPIFwtGL4rddpRMuEBk0EWJAglNjWQQ==
+"@metamask/assets-controllers@^34.0.0":
+  version "34.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-34.0.0.tgz#ccd9bc60fb79613156b9ee15aa76fd828107f10e"
+  integrity sha512-MjMzfwlgqm8AmoRjQVWN/04z51KnUo8hnZ+2UcUfVYmi7/r6MqL4/KML2pZHejMp8NFgjtxc2qxYuQG0TxLbDg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/address" "^5.7.0"
@@ -4341,7 +4341,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.2"
-    "@metamask/accounts-controller" "^17.0.0"
+    "@metamask/accounts-controller" "^17.1.0"
     "@metamask/approval-controller" "^7.0.0"
     "@metamask/base-controller" "^6.0.0"
     "@metamask/contract-metadata" "^2.4.0"
