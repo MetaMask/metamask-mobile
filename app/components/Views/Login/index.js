@@ -55,9 +55,12 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
+<<<<<<< HEAD
 import TextField, { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import HelpText, { HelpTextSeverity } from '../../../component-library/components/Form/HelpText';
+=======
+>>>>>>> 81b43ec96 (cherry-picking commit bf5bb9782)
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -237,10 +240,6 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    trace({
-      name: TraceName.LoginToPasswordEntry,
-      op: TraceOperation.LoginToPasswordEntry,
-    });
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -364,15 +363,7 @@ class Login extends PureComponent {
     );
 
     try {
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.AuthenticateUser,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+      await Authentication.userEntryAuth(password, authType);
 
       Keyboard.dismiss();
 
@@ -440,15 +431,7 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await trace(
-        {
-          name: TraceName.BiometricAuthentication,
-          op: TraceOperation.BiometricAuthentication,
-        },
-        async () => {
-          await Authentication.appTriggeredAuth();
-        },
-      );
+      await Authentication.appTriggeredAuth();
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -467,7 +450,6 @@ class Login extends PureComponent {
   };
 
   triggerLogIn = () => {
-    endTrace({ name: TraceName.LoginToPasswordEntry });
     this.onLogin();
   };
 

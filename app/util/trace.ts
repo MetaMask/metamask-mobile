@@ -80,10 +80,13 @@ export interface TraceRequest {
    * Custom tags to associate with the trace.
    */
   tags?: Record<string, number | string | boolean>;
+<<<<<<< HEAD
   /**
    * Custom operation name to associate with the trace.
    */
   op?: string;
+=======
+>>>>>>> bf5bb9782 (chore: revert sentry traces (#11862))
 }
 /**
  * A request to end a pending trace.
@@ -231,13 +234,13 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, op } = request;
+  const { data: attributes, name, parentContext, startTime, tags } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
     attributes,
     name,
-    op: op || OP_DEFAULT,
+    op: OP_DEFAULT,
     // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
     // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
     parentSpanId: parentSpan?.spanId,
