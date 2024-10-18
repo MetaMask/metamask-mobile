@@ -35,6 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -66,7 +67,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -103,6 +103,7 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useAccountName } from '../../hooks/useAccountName';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
 const createStyles = ({ colors, typography }: Theme) =>
@@ -232,6 +233,14 @@ const Wallet = ({
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  const accountName = useAccountName();
+
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   useEffect(() => {
     if (
@@ -468,6 +477,10 @@ const Wallet = ({
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
+        selectedAddress || '',
+        accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -481,6 +494,9 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
+    selectedAddress,
+    accountName,
+    accountAvatarType,
     navigation,
     colors,
     networkName,
@@ -590,9 +606,6 @@ const Wallet = ({
             />
           </View>
         ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
-        ) : null}
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
           <ScrollableTabView
@@ -624,10 +637,8 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,
