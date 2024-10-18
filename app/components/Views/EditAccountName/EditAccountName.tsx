@@ -134,6 +134,7 @@ const EditAccountName = () => {
             value={accountName}
             onChangeText={onChangeName}
             testID={EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT}
+            autoFocus
           />
         </View>
         <View style={styles.inputContainer}>
@@ -144,6 +145,7 @@ const EditAccountName = () => {
             <TextField
               isDisabled
               placeholder={formatAddress(selectedAccount?.address, 'mid')}
+              autoFocus
             />
           ) : null}
         </View>
