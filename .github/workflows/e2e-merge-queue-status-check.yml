@@ -57,18 +57,23 @@ jobs:
       - name: Check if PR has Bitrise status commented
         id: check_bitrise_comment
         run: |
-          # Fetch comments from the PR
+          # Fetch all PR comments
           PR_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments")
 
-          # Check if the specific comment exists from the GitHub Actions bot
-          if echo "$PR_COMMENTS" | jq -e '.[] | select(.user.login == "github-actions" and .body == "✅✅✅ pr_smoke_e2e_pipeline passed on Bitrise! ✅✅✅")' > /dev/null; then
-            echo "Bitrise comment found."
-            echo "BITRISE_COMMENT_EXISTS=true" >> "$GITHUB_OUTPUT"
+          # Extract the latest comment from GitHub Actions bot related to pr_smoke_e2e_pipeline
+          LATEST_BOT_COMMENT=$(echo "$PR_COMMENTS" | jq -r \
+            '.[] | select(.user.login == "github-actions[bot]" and (.body | test("pr_smoke_e2e_pipeline"))) | .body' | tail -n 1)
+
+          # Check if the most recent comment indicates pass or fail
+          if [[ "$LATEST_BOT_COMMENT" == *"✅✅✅ pr_smoke_e2e_pipeline passed on Bitrise! ✅✅✅"* ]]; then
+            echo "Latest E2E comment indicates success."
+          elif [[ "$LATEST_BOT_COMMENT" == *"❌❌❌ pr_smoke_e2e_pipeline failed on Bitrise! ❌❌❌"* ]]; then
+            echo "Latest E2E comment indicates failure."
+            exit 1  # Fail the job if the latest comment is a failure
           else
-            echo "No Bitrise comment found which means no E2E ran."
-            echo "BITRISE_COMMENT_EXISTS=false" >> "$GITHUB_OUTPUT"
-            exit 1  # Fail the job if the comment does not exist
+            echo "No relevant Bitrise comment found."
+            exit 1  # Fail the job if no Bitrise comment is found
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
