@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
