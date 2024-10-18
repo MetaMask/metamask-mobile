@@ -49,7 +49,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import { colors as importedColors } from '../../../styles/common';
 import {
   ToastContext,
   ToastVariants,
@@ -82,6 +81,8 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { trackEvent } from '../../../UI/Ramp/hooks/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 
@@ -134,23 +135,28 @@ const Main = (props) => {
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
   const connectionChangeHandler = (state) => {
-    if (!state) return;
-    const { isConnected } = state;
+    try {
+      if (!state) return;
+      const { isConnected } = state;
 
-    // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
-    const debounceTimeout = setTimeout(() => {
-      if (connected && isConnected === false) {
-        props.navigation.navigate('OfflineModeView');
+      // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
+      const debounceTimeout = setTimeout(() => {
+        if (connected && isConnected === false) {
+          props.navigation.navigate('OfflineModeView');
+        }
+      }, 3000);
+
+      // Clear timeout if connection stabilizes
+      if (isConnected === true) {
+        clearTimeout(debounceTimeout);
       }
-    }, 3000);
 
-    // Clear timeout if connection stabilizes
-    if (isConnected === true) {
-      clearTimeout(debounceTimeout);
-    }
-
-    if (connected !== isConnected && isConnected !== null) {
-      setConnected(isConnected);
+      if (connected !== isConnected && isConnected !== null) {
+        setConnected(isConnected);
+      }
+    } catch (e) {
+      console.error('User dropped connection', e);
+      trackEvent(MetaMetricsEvents.CONNECTION_DROPPED);
     }
   };
 

@@ -371,6 +371,9 @@ enum EVENT_NAME {
 
   // network
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
+
+  // Connection
+  CONNECTION_DROPPED = 'Connection dropped',
 }
 
 enum ACTIONS {
@@ -854,6 +857,9 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
+
+  // Connection
+  CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
 };
 
 /**
