@@ -51,20 +51,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install jq
+        run: sudo apt-get install jq
       - name: Check if PR has Bitrise status commented
         id: check_bitrise_comment
         run: |
-          PR_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments")
+            # Fetch comments from the PR
+            PR_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments")
 
-          if echo "$PR_COMMENTS" | grep -q "✅✅✅ pr_smoke_e2e_pipeline passed on Bitrise! ✅✅✅"; then
-            echo "Bitrise comment found."
-            echo "BITRISE_COMMENT_EXISTS=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "No Bitrise comment found which means no E2E ran"
-            echo "BITRISE_COMMENT_EXISTS=false" >> "$GITHUB_OUTPUT"
-            exit 1  # Fail the job if the comment does not exist
-          fi
+            # Check if the specific comment exists from the GitHub Actions bot
+            if echo "$PR_COMMENTS" | jq -e '.[] | select(.user.login == "github-actions" and .body == "✅✅✅ pr_smoke_e2e_pipeline passed on Bitrise! ✅✅✅")' > /dev/null; then
+              echo "Bitrise comment found."
+              echo "BITRISE_COMMENT_EXISTS=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "No Bitrise comment found which means no E2E ran."
+              echo "BITRISE_COMMENT_EXISTS=false" >> "$GITHUB_OUTPUT"
+              exit 1  # Fail the job if the comment does not exist
+            fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   e2e-all-jobs-pass:
