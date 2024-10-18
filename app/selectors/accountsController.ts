@@ -78,12 +78,3 @@ export const selectCanSignTransactions = createSelector(
   (selectedAccount) =>
     selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
 );
-
-/**
- * A memoized selector that returns whether the selected internal account can sign transactions
- */
-export const selectCanSignTransactions = createSelector(
-  selectSelectedInternalAccount,
-  (selectedAccount) =>
-    selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
-);
