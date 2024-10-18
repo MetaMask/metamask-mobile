@@ -20,13 +20,14 @@ import useStakingInputHandlers from '../../hooks/useStakingInput';
 import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
 import { useStakeContext } from '../../hooks/useStakeContext';
+import { getPooledStakeApi } from '../../Queries/stakeApiQueries';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { balance, balanceFiatNumber, balanceWei } = useBalance();
-
+  
   const {
     isEth,
     currentCurrency,
@@ -44,8 +45,10 @@ const StakeInputView = () => {
     estimatedAnnualRewards,
   } = useStakingInputHandlers(balanceWei);
 
-
-  const { onChainService } = useStakeContext();
+  const { onChainService, offChainService } = useStakeContext();
+  if(offChainService) {
+    const { useGetPooledStakingEligibilityQuery } = getPooledStakeApi(offChainService);
+  }
   
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
