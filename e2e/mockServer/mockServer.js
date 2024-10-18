@@ -38,5 +38,5 @@ export const startMockServer = async ({
 
 export const stopMockServer = async () => {
   await mockServer.stop();
-  console.log('Mockttp server stopped');
+  console.log('Mockttp server shutting down');
 };
