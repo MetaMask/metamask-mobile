@@ -50,6 +50,7 @@ function useNetworkFee({ getNetworkFees }: NetworkFeeFieldProps) {
       })
       .catch(() => {
         setData(undefined);
+      }).finally(() => {
         setIsLoading(false);
       });
   }, [getNetworkFees]);
