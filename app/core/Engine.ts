@@ -193,7 +193,7 @@ import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
-} from './Permissions/specifications.js';
+} from './Permissions/specifications';
 import { backupVault } from './BackupVault';
 import {
   SignatureController,
