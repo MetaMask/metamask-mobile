@@ -3,11 +3,13 @@
 exports[`HeaderBase should render snapshot correctly 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "flexDirection": "row",
-    }
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+      },
+      false,
+    ]
   }
   testID="header"
 >
