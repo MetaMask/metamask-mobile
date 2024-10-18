@@ -333,7 +333,7 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
-export interface EngineState {
+export type EngineState = {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
@@ -367,12 +367,12 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
-}
+};
 
 /**
  * All mobile controllers, keyed by name
  */
-interface Controllers {
+type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -409,7 +409,7 @@ interface Controllers {
   NotificationServicesController: NotificationServicesController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Controllers that area always instantiated
