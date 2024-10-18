@@ -12,9 +12,4 @@ jobs:
         env: 
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
-            -f labels='["Run Smoke E2E"]'
-
+          gh pr edit https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }} --add-label Run Smoke E2E
