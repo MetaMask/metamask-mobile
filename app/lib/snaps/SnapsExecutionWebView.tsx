@@ -48,10 +48,17 @@ export class SnapsExecutionWebView extends Component {
     this.webViewRef = ref;
   }
 
+
   onWebViewLoad() {
     const api = {
       injectJavaScript: (js: string) => {
-        this.webViewRef?.injectJavaScript(js);
+        requestAnimationFrame(() => {
+          this.webViewRef?.injectJavaScript(`
+            (function() {
+              ${js}
+            })();
+          `);
+        });
       },
       registerMessageListener: (
         listener: (event: PostMessageEvent) => void,
@@ -92,6 +99,10 @@ export class SnapsExecutionWebView extends Component {
             onLoadEnd={this.onWebViewLoad}
             originWhitelist={['*']}
             javaScriptEnabled
+            cacheEnabled={false}
+            cacheMode={'LOAD_NO_CACHE'}
+            androidLayerType="hardware"
+            incognito
           />
         </View>
       </ScrollView>
