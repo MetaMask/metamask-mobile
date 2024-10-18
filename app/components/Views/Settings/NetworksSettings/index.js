@@ -345,11 +345,13 @@ class NetworksSettings extends PureComponent {
     const excludedChainIds = [
       CHAIN_IDS.MAINNET,
       CHAIN_IDS.LINEA_MAINNET,
+      CHAIN_IDS.GOERLI,
+      CHAIN_IDS.LINEA_GOERLI,
       CHAIN_IDS.SEPOLIA,
       CHAIN_IDS.LINEA_SEPOLIA,
     ];
 
-    const filtredChain = Object.keys(networkConfigurations).reduce(
+    const filteredChain = Object.keys(networkConfigurations).reduce(
       (filtered, key) => {
         const network = networkConfigurations[key];
         // If the chainId is not in the excludedChainIds, add it to the result
@@ -364,7 +366,7 @@ class NetworksSettings extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (Object.keys(filtredChain).length > 0) {
+    if (Object.keys(filteredChain).length > 0) {
       return (
         <View testID={NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST}>
           <Text style={styles.sectionLabel}>

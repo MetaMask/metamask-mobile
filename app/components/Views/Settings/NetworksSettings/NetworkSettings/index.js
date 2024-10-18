@@ -2049,20 +2049,23 @@ export class NetworkSettings extends PureComponent {
             onDismiss={this.closeAddRpcForm}
             shouldGoBack={false}
           >
-            <View style={styles.sheetContent}>
-              <View style={styles.notch} />
-              <BottomSheetHeader
-                onBack={() => {
-                  this.closeAddRpcForm();
-                  this.openRpcModal();
-                }}
-              >
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_rpc_url')}
-                </Text>
-              </BottomSheetHeader>
-
-              <KeyboardAwareScrollView contentContainerStyle={styles.rpcMenu}>
+            <KeyboardAwareScrollView
+              style={styles.sheetContent}
+              enableOnAndroid
+              keyboardShouldPersistTaps="handled"
+            >
+              <SafeAreaView style={styles.rpcMenu}>
+                <View style={styles.notch} />
+                <BottomSheetHeader
+                  onBack={() => {
+                    this.closeAddRpcForm();
+                    this.openRpcModal();
+                  }}
+                >
+                  <Text style={styles.heading}>
+                    {strings('app_settings.add_rpc_url')}
+                  </Text>
+                </BottomSheetHeader>
                 <Text style={styles.label}>
                   {strings('app_settings.network_rpc_url_label')}
                 </Text>
@@ -2114,8 +2117,8 @@ export class NetworkSettings extends PureComponent {
                     testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
                   />
                 </View>
-              </KeyboardAwareScrollView>
-            </View>
+              </SafeAreaView>
+            </KeyboardAwareScrollView>
           </ReusableModal>
         ) : null}
         {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
@@ -2124,20 +2127,24 @@ export class NetworkSettings extends PureComponent {
             shouldGoBack={false}
             onDismiss={this.closeAddBlockExplorerRpcForm}
           >
-            <View style={styles.sheetContent}>
-              <View style={styles.notch} />
+            <KeyboardAwareScrollView
+              style={styles.sheetContent}
+              enableOnAndroid
+              keyboardShouldPersistTaps="handled"
+            >
+              <SafeAreaView style={styles.rpcMenu}>
+                <View style={styles.notch} />
 
-              <BottomSheetHeader
-                onBack={() => {
-                  this.closeAddBlockExplorerRpcForm();
-                  this.openBlockExplorerModal();
-                }}
-              >
-                <Text style={styles.heading}>
-                  {strings('app_settings.add_block_explorer_url')}
-                </Text>
-              </BottomSheetHeader>
-              <KeyboardAwareScrollView style={styles.rpcMenu}>
+                <BottomSheetHeader
+                  onBack={() => {
+                    this.closeAddBlockExplorerRpcForm();
+                    this.openBlockExplorerModal();
+                  }}
+                >
+                  <Text style={styles.heading}>
+                    {strings('app_settings.add_block_explorer_url')}
+                  </Text>
+                </BottomSheetHeader>
                 <Text style={styles.label}>
                   {strings('app_settings.network_block_explorer_label')}
                 </Text>
@@ -2174,8 +2181,8 @@ export class NetworkSettings extends PureComponent {
                     isDisabled={!blockExplorerUrl || !isUrl(blockExplorerUrl)}
                   />
                 </View>
-              </KeyboardAwareScrollView>
-            </View>
+              </SafeAreaView>
+            </KeyboardAwareScrollView>
           </ReusableModal>
         ) : null}
 

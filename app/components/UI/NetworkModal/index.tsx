@@ -249,9 +249,6 @@ const NetworkModals = (props: NetworkProps) => {
     }
 
     onClose();
-    shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
   };
 
   const handleExistingNetwork = async (
