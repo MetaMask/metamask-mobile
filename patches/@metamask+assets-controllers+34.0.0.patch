@@ -381,7 +381,7 @@ index af5d784..410e36d 100644
      }
    } finally {
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js b/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
-index 995ec6b..f7b15e1 100644
+index 995ec6b..80cafa4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
 @@ -19,7 +19,7 @@ function getDefaultTokenBalancesState() {
@@ -429,12 +429,14 @@ index 995ec6b..f7b15e1 100644
    /**
     * Blocks controller from updating tracked tokens contract balances.
     */
-@@ -107,20 +120,28 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+@@ -107,20 +120,29 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
        "AccountsController:getSelectedAccount"
      );
      const newContractBalances = {};
 -    for (const token of _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens)) {
--      const { address } = token;
++
++    const balancePromises = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens).map((token) => {
+       const { address } = token;
 -      try {
 -        const balance = await _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedInternalAccount.address);
 -        newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
@@ -444,9 +446,7 @@ index 995ec6b..f7b15e1 100644
 -        token.hasBalanceError = true;
 -      }
 -    }
-+
-+    const balancePromises = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens).map((token) => {
-+      return _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedAddress).then((balance) => {
++      return _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedInternalAccount.address).then((balance) => {
 +          newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
 +              token = {
 +                ...token,
@@ -469,7 +469,7 @@ index 995ec6b..f7b15e1 100644
    }
  };
  _handle = new WeakMap();
-@@ -128,6 +149,7 @@ _getERC20BalanceOf = new WeakMap();
+@@ -128,6 +150,7 @@ _getERC20BalanceOf = new WeakMap();
  _interval = new WeakMap();
  _tokens = new WeakMap();
  _disabled = new WeakMap();
