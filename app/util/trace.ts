@@ -23,30 +23,7 @@ export enum TraceName {
   NotificationDisplay = 'Notification Display',
   PPOMValidation = 'PPOM Validation',
   Signature = 'Signature',
-  LoadScripts = 'Load Scripts',
-  SetupStore = 'Setup Store',
-  LoginToPasswordEntry = 'Login to Password Entry',
-  AuthenticateUser = 'Authenticate User',
-  BiometricAuthentication = 'Biometrics Authentication',
-  EngineInitialization = 'Engine Initialization',
-  CreateStore = 'Create Store',
-  CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
-  StorageRehydration = 'Storage Rehydration',
-  UIStartup = 'Custom UIStartup',
-}
-
-export enum TraceOperation {
-  LoadScripts = 'custom.load.scripts',
-  SetupStore = 'custom.setup.store',
-  LoginToPasswordEntry = 'custom.login.to.password.entry',
-  BiometricAuthentication = 'biometrics.authentication',
-  AuthenticateUser = 'custom.authenticate.user',
-  EngineInitialization = 'custom.engine.initialization',
-  CreateStore = 'custom.create.store',
-  CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
-  StorageRehydration = 'custom.storage.rehydration',
-  UIStartup = 'custom.ui.startup',
-}
+  }
 
 const ID_DEFAULT = 'default';
 const OP_DEFAULT = 'custom';
