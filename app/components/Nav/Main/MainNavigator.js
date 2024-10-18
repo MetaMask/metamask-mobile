@@ -812,7 +812,6 @@ const MainNavigator = () => (
     <Stack.Screen
       name="SetPasswordFlow"
       component={SetPasswordFlow}
-      // eslint-disable-next-line react/no-unstable-nested-components
       headerTitle={() => (
         <Image
           style={styles.headerLogo}
