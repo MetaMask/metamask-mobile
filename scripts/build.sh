@@ -182,7 +182,7 @@ prebuild_ios(){
   #Create GoogleService-Info.plist file to be used by the Firebase services.
   # Check if GOOGLE_SERVICES_B64_IOS is set
   if [ ! -z "$GOOGLE_SERVICES_B64_IOS" ]; then
-    echo -n $GOOGLE_SERVICES_B64_IOS | base64 -d > ./ios/GoogleServices/GoogleService-Info.plist
+    echo -n $GOOGLE_SERVICES_B64_IOS | base64 -d > ./ios/GoogleService-Info.plist
     echo "GoogleService-Info.plist has been created successfully."
   else
     echo "GOOGLE_SERVICES_B64_IOS is not set in the .env file."
