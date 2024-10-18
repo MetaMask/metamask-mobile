@@ -71,7 +71,10 @@ class EngineService {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
       },
-      { name: 'AccountTrackerController' },
+      {
+        name: 'AccountTrackerController',
+        key: 'AccountTrackerController:stateChange',
+      },
       {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,

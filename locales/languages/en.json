@@ -732,6 +732,9 @@
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
+    "account_connected": "account connected.",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnected": "disconnected.",
     "disconnected_all": "All accounts disconnected.",
     "disconnected_from": "Disconnected from {{dappHostName}}",
@@ -2193,6 +2196,7 @@
     "wallet": "Wallet",
     "web3": "Web3",
     "staking_provider": "Staking Provider",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
