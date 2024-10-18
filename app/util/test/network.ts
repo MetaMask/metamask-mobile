@@ -40,7 +40,6 @@ export const mockNetworkState = (
       'rpcUrl' in network
         ? network.rpcUrl
         : `https://localhost/rpc/${network.chainId}`;
-
     return {
       chainId: network.chainId,
       blockExplorerUrls: blockExplorer ? [blockExplorer] : [],
