@@ -1,73 +1,37 @@
-import { useCallback, useEffect } from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import NotificationsService from '../../../util/notifications/services/NotificationService';
-import Routes from '../../../constants/navigation/Routes';
+import { useEffect } from 'react';
+
+import { useSelector } from 'react-redux';
 import {
   isNotificationsFeatureEnabled,
 } from '../../../util/notifications';
-import { Notification } from '../../../util/notifications/types';
-import {
-  TRIGGER_TYPES,
-} from  '../../../util/notifications/constants';
-import { Linking } from 'react-native';
 
-const useNotificationHandler = (navigation: NavigationProp<ParamListBase>) => {
-  const performActionBasedOnOpenedNotificationType = useCallback(
-    async (notification: Notification) => {
-      if (
-        notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
-        notification.data.externalLink
-      ) {
-        Linking.openURL(notification.data.externalLink.externalLinkUrl);
-      } else {
-        navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
-          notificationId: notification.id,
-        });
-      }
-    },
-    [navigation],
+import FCMService from '../services/FCMService';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+
+const useNotificationHandler = () => {
+  /**
+   * Handles the action based on the type of notification (sent from the backend & following Notification types) that is opened
+   * @param notification - The notification that is opened
+   */
+
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
   );
 
-  const handlePressedNotification = useCallback(
-    (notification?: Notification) => {
-      if (!notification) {
-        return;
-      }
-      performActionBasedOnOpenedNotificationType(notification);
-    },
-    [performActionBasedOnOpenedNotificationType],
-  );
+  const notificationEnabled = isNotificationsFeatureEnabled() || isNotificationEnabled;
 
   useEffect(() => {
-    if (!isNotificationsFeatureEnabled()) return;
-
-    const unsubscribeForegroundEvent = NotificationsService.onForegroundEvent(
-      async ({ type, detail }) =>
-        await NotificationsService.handleNotificationEvent({
-          type,
-          detail,
-          callback: handlePressedNotification,
-        }),
-    );
-
-    NotificationsService.onBackgroundEvent(
-      async ({ type, detail }) =>
-        await NotificationsService.handleNotificationEvent({
-          type,
-          detail,
-          callback: handlePressedNotification,
-        }),
-    );
+    if (!notificationEnabled) return;
+    FCMService.registerAppWithFCM();
+    FCMService.saveFCMToken();
+    const unsubscribeRegisterTokenRefreshListener = FCMService.registerTokenRefreshListener();
+    const unsubscribeForegroundEvent = FCMService.listenForMessagesForeground();
 
     return () => {
-      unsubscribeForegroundEvent();
+        unsubscribeForegroundEvent();
+        unsubscribeRegisterTokenRefreshListener();
     };
-  }, [handlePressedNotification]);
-
-  return {
-    performActionBasedOnOpenedNotificationType,
-    handlePressedNotification,
-  };
+  }, [notificationEnabled]);
 };
 
 export default useNotificationHandler;

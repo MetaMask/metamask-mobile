@@ -85,6 +85,7 @@ import {
   selectShowMultiRpcModal,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   setNftAutoDetectionModalOpen,
   setMultiRpcMigrationModalOpen,
@@ -447,11 +448,12 @@ const Wallet = ({
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (
         appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
+        nextAppState === 'active' &&
+        isNotificationEnabled &&
+        isNotificationsFeatureEnabled()
       ) {
         listNotifications();
       }
-
       appState.current = nextAppState;
     };
 
@@ -463,7 +465,7 @@ const Wallet = ({
     return () => {
       subscription.remove();
     };
-  }, [listNotifications]);
+  }, [isNotificationEnabled, listNotifications]);
 
   useEffect(() => {
     navigation.setOptions(

@@ -7,6 +7,7 @@ import notifee, {
 import { Linking } from 'react-native';
 import { ChannelId } from '../../../util/notifications/androidChannels';
 import NotificationsService from './NotificationService';
+import { LAUNCH_ACTIVITY, PressActionId } from '../types';
 
 jest.mock('@notifee/react-native');
 jest.mock('react-native', () => ({
@@ -34,7 +35,7 @@ describe('NotificationsService', () => {
     jest.clearAllMocks();
   });
 
-  it('should get blocked notifications', async () => {
+  it('gets blocked notifications', async () => {
     (notifee.getNotificationSettings as jest.Mock).mockResolvedValue({
       authorizationStatus: AuthorizationStatus.AUTHORIZED,
     });
@@ -50,7 +51,7 @@ describe('NotificationsService', () => {
     ).toBe(true);
   });
 
-  it('should handle notification press', async () => {
+  it('handles notification press action', async () => {
     const detail = {
       notification: {
         id: 'test-id',
@@ -65,13 +66,13 @@ describe('NotificationsService', () => {
     expect(callback).toHaveBeenCalledWith(detail.notification);
   });
 
-  it('should open system settings on iOS', () => {
+  it('opens system settings on iOS', () => {
     NotificationsService.openSystemSettings();
 
     expect(Linking.openSettings).toHaveBeenCalled();
   });
 
-  it('should create notification channels', async () => {
+  it('creates notification channels', async () => {
     const channel: AndroidChannel = {
       id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
       name: 'Test Channel',
@@ -84,7 +85,7 @@ describe('NotificationsService', () => {
   });
 
   it.concurrent(
-    'should return authorized from getAllPermissions',
+    'returns authorized from getAllPermissions',
     async () => {
       const result = await NotificationsService.getAllPermissions();
       expect(result.permission).toBe('authorized');
@@ -92,12 +93,12 @@ describe('NotificationsService', () => {
     10000,
   );
 
-  it('should return authorized from requestPermission ', async () => {
+  it('returns authorized from requestPermission ', async () => {
     const result = await NotificationsService.requestPermission();
     expect(result).toBe('authorized');
   });
 
-  it('should return denied from requestPermission', async () => {
+  it('returns denied from requestPermission', async () => {
     (notifee.requestPermission as jest.Mock).mockResolvedValue({
       authorizationStatus: AuthorizationStatus.DENIED,
     });
@@ -105,7 +106,7 @@ describe('NotificationsService', () => {
     expect(result).toBe('denied');
   });
 
-  it('should handle notification event', async () => {
+  it('handles notification event', async () => {
     const callback = jest.fn();
 
     await NotificationsService.handleNotificationEvent({
@@ -134,5 +135,39 @@ describe('NotificationsService', () => {
     expect(NotificationsService.cancelTriggerNotification).toBeInstanceOf(
       Function,
     );
+  });
+
+  it('displays notification', async () => {
+    const notification = {
+      title: 'Test Title',
+      body: 'Test Body',
+      data: undefined,
+      android: {
+        smallIcon: 'ic_notification_small',
+        largeIcon: 'ic_notification',
+        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+        pressAction: {
+          id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+          launchActivity: LAUNCH_ACTIVITY
+        }
+      },
+      ios: {
+        foregroundPresentationOptions: {
+          alert: true,
+          sound: true,
+          badge: true,
+          banner: true,
+          list: true,
+        },
+      },
+    };
+
+    await NotificationsService.displayNotification({
+      title: 'Test Title',
+      body: 'Test Body',
+      channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+    });
+
+    expect(notifee.displayNotification).toHaveBeenCalledWith(notification);
   });
 });
