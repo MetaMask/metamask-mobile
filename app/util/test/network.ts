@@ -1,5 +1,5 @@
 // TODO: This is intentionally the old network state, and could be
-
+/* global Platform */
 import {
   NetworkMetadata,
   NetworkState,
@@ -28,18 +28,18 @@ export const mockNetworkState = (
       "mockNetworkState doesn't currently support multiple rpc urls per chain id",
     );
   }
-
+  const host = Platform.OS === 'ios' ? 'localhost' : '10.0.2.2';
   const networkConfigurations = networks.map((network) => {
     const blockExplorer =
       !('blockExplorerUrl' in network) || network.blockExplorerUrl
         ? network.blockExplorerUrl ??
-          `https://localhost/blockExplorer/${network.chainId}`
+          `https://${host}/blockExplorer/${network.chainId}`
         : undefined;
 
     const rpc =
       'rpcUrl' in network
         ? network.rpcUrl
-        : `https://localhost/rpc/${network.chainId}`;
+        : `https://${host}/rpc/${network.chainId}`;
 
     return {
       chainId: network.chainId,

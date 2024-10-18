@@ -26,7 +26,7 @@ module.exports = {
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: process.env.CI ? 'ios.qa' :'ios.debug',
+      app: 'ios.qa',
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
@@ -75,7 +75,7 @@ module.exports = {
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_5_Pro_API_34',
+        avdName: 'Pixel_5_API_34',
       },
     },
   },

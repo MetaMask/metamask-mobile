@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getFixturesServerPortInApp } from './utils';
+/* global Platform */
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
 
@@ -21,7 +22,7 @@ const fetchWithTimeout = (url) =>
     }, FETCH_TIMEOUT);
   });
 
-const FIXTURE_SERVER_HOST = 'localhost';
+const FIXTURE_SERVER_HOST = Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
 const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${getFixturesServerPortInApp()}/state.json`;
 
 class ReadOnlyNetworkStore {
