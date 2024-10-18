@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { useGetPooledStakingEligibilityQuery } from '../slices/stakingApi';
 
-const useGetStakingEligibility = () => {
+const useStakingEligibility = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
@@ -26,4 +26,4 @@ const useGetStakingEligibility = () => {
   };
 };
 
-export default useGetStakingEligibility;
+export default useStakingEligibility;

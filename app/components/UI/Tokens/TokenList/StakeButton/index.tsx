@@ -26,6 +26,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../reducers';
+import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -40,8 +41,10 @@ export const StakeButton = ({ asset }: StakeButtonProps) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
 
+  const { isConfirmedEligible } = useStakingEligibility();
+
   const onStakeButtonPress = () => {
-    if (isPooledStakingFeatureEnabled()) {
+    if (isPooledStakingFeatureEnabled() && isConfirmedEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     } else {
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>

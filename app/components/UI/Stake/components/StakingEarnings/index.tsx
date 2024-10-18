@@ -16,7 +16,8 @@ import ButtonIcon, {
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../../locales/i18n';
 import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
-import useGetStakingEligibility from '../../hooks/useGetStakingEligibility';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import useStakingChain from '../../hooks/useStakingChain';
 
 // TODO: Remove mock data when connecting component to backend.
 const MOCK_DATA = {
@@ -46,8 +47,15 @@ const StakingEarnings = () => {
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
-  const { isConfirmedIneligible } = useGetStakingEligibility();
-  if (!isPooledStakingFeatureEnabled() || isConfirmedIneligible) return <></>;
+  const { isConfirmedIneligible } = useStakingEligibility();
+
+  const { isStakingSupportedChain } = useStakingChain();
+  if (
+    !isPooledStakingFeatureEnabled() ||
+    isConfirmedIneligible ||
+    !isStakingSupportedChain
+  )
+    return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>

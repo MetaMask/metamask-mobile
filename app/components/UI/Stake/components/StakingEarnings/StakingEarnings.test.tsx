@@ -1,7 +1,7 @@
 import React from 'react';
 import StakingEarnings from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../locales/i18n';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../Stake/constants', () => ({
   isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),

@@ -2,9 +2,7 @@ import {
   ChainId,
   StakeSdk,
   StakingApiEnvironments,
-  StakingType,
   type PooledStakes,
-  type StakeSdkConfig,
   type VaultData,
 } from '@metamask/stake-sdk';
 import {
@@ -13,22 +11,15 @@ import {
   type FetchBaseQueryError,
 } from '@reduxjs/toolkit/query/react';
 
-// Configuration for SDK initialization
-export const sdkConfig: StakeSdkConfig = {
-  chainId: ChainId.ETHEREUM, // Ethereum mainnet
-  stakingType: StakingType.POOLED,
+export const sdk = StakeSdk.create({
   endpointEnv: StakingApiEnvironments.PROD,
-};
+});
 
-// Initialize the StakeSdk
-export const sdk = StakeSdk.create(sdkConfig);
-
-// Access the StakingApiService from the SDK
 export const stakingApiService = sdk.stakingApiService;
 
 export const stakeApi = createApi({
   reducerPath: 'stakeApi',
-  baseQuery: fetchBaseQuery({ baseUrl: stakingApiService.baseUrl }),
+  baseQuery: fetchBaseQuery({ baseUrl: stakingApiService.baseUrl || '' }),
   endpoints: (builder) => ({
     getPooledStakes: builder.query<
       PooledStakes,

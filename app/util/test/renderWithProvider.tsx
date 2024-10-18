@@ -38,9 +38,10 @@ export default function renderWithProvider(
   component: React.ReactElement,
   providerValues?: ProviderValues,
   includeNavigationContainer = true,
+  middlewares = [],
 ) {
   const { state = {}, theme = mockTheme } = providerValues ?? {};
-  const store = configureStore(state);
+  const store = configureStore(state, middlewares);
 
   const InnerProvider = ({ children }: { children: React.ReactElement }) => (
     <Provider store={store}>

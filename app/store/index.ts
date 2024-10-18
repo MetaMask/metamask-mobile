@@ -13,6 +13,7 @@ import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
+import { stakeApi } from '../components/UI/Stake/slices/stakingApi';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -35,7 +36,7 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
-  const middlewares = [sagaMiddleware, thunk];
+  const middlewares = [sagaMiddleware, thunk, stakeApi.middleware];
 
   if (__DEV__) {
     // Add redux flipper middleware for debugging Redux with Flipper
