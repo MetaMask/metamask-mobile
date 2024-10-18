@@ -1067,6 +1067,7 @@ function SwapsQuotesView({
       setRecipient,
       resetTransaction,
       shouldUseSmartTransaction,
+      chainId,
     ],
   );
 
