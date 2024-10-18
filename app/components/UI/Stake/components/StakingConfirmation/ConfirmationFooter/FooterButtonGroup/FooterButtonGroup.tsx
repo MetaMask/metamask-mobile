@@ -21,6 +21,7 @@ import {
   FooterButtonGroupActions,
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
+import Routes from '../../../../../../../constants/navigation/Routes';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -30,8 +31,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const { attemptDepositTransaction } = usePoolStakedDeposit();
-
-  const navigateToAssetScreen = () => navigate('Asset');
 
   const handleStake = async () => {
     if (!activeAccount?.address) return;
@@ -47,7 +46,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
     Engine.controllerMessenger.subscribeOnceIf(
       'TransactionController:transactionSubmitted',
       () => {
-        navigateToAssetScreen();
+        navigate(Routes.TRANSACTIONS_VIEW);
       },
       ({ transactionMeta }) => transactionMeta.id === transactionId,
     );
@@ -70,7 +69,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        onPress={navigateToAssetScreen}
+        onPress={() => navigate('Asset')}
       />
       <Button
         label={
