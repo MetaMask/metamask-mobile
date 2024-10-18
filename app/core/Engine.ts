@@ -7,9 +7,8 @@ import {
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
-  GetTokenListState,
+  CurrencyRateControllerEvents,
+  CurrencyRateControllerActions,
   NftController,
   NftDetectionController,
   NftControllerState,
@@ -17,7 +16,6 @@ import {
   TokenDetectionController,
   TokenListController,
   TokenListState,
-  TokenListStateChange,
   TokenRatesController,
   TokenRatesState,
   TokensController,
@@ -27,8 +25,11 @@ import {
   TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
-  TokenBalancesControllerState,
+  TokenBalancesControllerActions,
+  TokenBalancesControllerEvents,
 } from '@metamask/assets-controllers';
+// TODO: Remove subpath import once it is exported at the package-level in `@metamask/assets-controllers@37.0.0`
+import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/types/TokenBalancesController';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
 import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
@@ -72,15 +73,18 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
+  TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
+// TODO: Remove subpath import once `@metamask/transaction-controller` is upgraded to `36.1.0`
+import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import {
   GasFeeController,
   GasFeeState,
-  GasFeeStateChange,
-  GetGasFeeState,
+  GasFeeControllerEvents,
+  GasFeeControllerActions,
 } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
@@ -124,6 +128,8 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapsRegistryActions,
+  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -263,30 +269,32 @@ const encryptor = new Encryptor({
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
-
 type SnapsGlobalActions =
   | SnapControllerActions
+  | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
 
 type SnapsGlobalEvents =
   | SnapControllerEvents
+  | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  // TODO: uncomment once `AccountTrackerController` is upgraded to V2
+  // | AccountTrackerControllerActions
+  // TODO: uncomment once `NftController` is upgraded to V2
+  // | NftControllerActions
+  // TODO: uncomment once `SwapsController` is upgraded to V2
+  // | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
+  | CurrencyRateControllerActions
+  | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
@@ -294,36 +302,47 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  // TODO: uncomment once `PPOMController` is upgraded to V2
+  // | PPOMControllerActions
+  | TokenBalancesControllerActions
   | TokensControllerActions
   | TokenListControllerActions
+  | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions;
 
 type GlobalEvents =
+  // TODO: uncomment once `AccountTrackerController` is upgraded to V2
+  // | AccountTrackerControllerEvents
+  // TODO: uncomment once `NftController` is upgraded to V2
+  // | NftControllerEvents
+  // TODO: uncomment once `SwapsController` is upgraded to V2
+  // | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
+  | CurrencyRateControllerEvents
+  | GasFeeControllerEvents
   | KeyringControllerEvents
-  | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | AuthenticationController.Events
+  | UserStorageController.Events
+  | NotificationServicesController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
   | TokensControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
@@ -333,7 +352,10 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
-export interface EngineState {
+// Interfaces are incompatible with our controllers and data types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EngineState = {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
@@ -367,12 +389,15 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
-}
+};
 
 /**
  * All mobile controllers, keyed by name
  */
-interface Controllers {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -409,7 +434,7 @@ interface Controllers {
   NotificationServicesController: NotificationServicesController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Controllers that area always instantiated
@@ -455,9 +480,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datamodel: any;
+  datamodel: ComposableController<EngineState, Controllers[keyof Controllers]>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -485,7 +508,6 @@ class Engine {
   /**
    * Creates a CoreController instance
    */
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
@@ -506,7 +528,6 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -1645,18 +1666,74 @@ class Engine {
       }
     }
 
-    this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
+    this.datamodel = new ComposableController<
+      EngineState,
+      Controllers[keyof Controllers]
+    >({
       controllers,
-      this.controllerMessenger,
-    );
-    this.context = controllers.reduce<Partial<typeof this.context>>(
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ComposableController',
+        allowedActions: [],
+        allowedEvents: [
+          /**
+           * V1/V2 controllers with correctly defined messengers and `stateChange` events.
+           */
+          'AccountsController:stateChange',
+          'AddressBookController:stateChange',
+          'ApprovalController:stateChange',
+          'AuthenticationController:stateChange',
+          'CurrencyRateController:stateChange',
+          'GasFeeController:stateChange',
+          'KeyringController:stateChange',
+          'LoggingController:stateChange',
+          'NetworkController:stateChange',
+          'NotificationServicesController:stateChange',
+          'PermissionController:stateChange',
+          'PhishingController:stateChange',
+          'PreferencesController:stateChange',
+          'SignatureController:stateChange',
+          'SmartTransactionsController:stateChange',
+          'SnapController:stateChange',
+          'SnapsRegistry:stateChange',
+          'SubjectMetadataController:stateChange',
+          'TokenBalancesController:stateChange',
+          'TokenListController:stateChange',
+          'TokensController:stateChange',
+          'TransactionController:stateChange',
+          'UserStorageController:stateChange',
+
+          /**
+           * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
+           * These `stateChange` events must be included in the datamodel's events allowlist.
+           */
+          // TODO: Remove `ts-expect-error` directive once `NftController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
+          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
+          'NftController:stateChange',
+          // TODO: Remove `ts-expect-error` directive once `PPOMController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
+          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
+          'PPOMController:stateChange',
+
+          /**
+           * V1 controllers that should be excluded from the datamodel's events allowlist for now.
+           * For each of the following, an error will be logged to the console - "Error: Event missing from allow list: ExampleController:stateChange"
+           * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
+           */
+          // TODO: uncomment once `AccountTrackerController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
+          // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+          // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
+          // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
+          // TODO: uncomment once `TokenRatesController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
+          // 'TokenRatesController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
+        ],
+      }),
+    });
+    this.context = controllers.reduce<EngineContext>(
       (context, controller) => ({
         ...context,
         [controller.name]: controller,
       }),
-      {},
-    ) as typeof this.context;
+      {} as never,
+    );
 
     const { NftController: nfts } = this.context;
 
@@ -2175,10 +2252,12 @@ export default {
     // TODO: handle `null` currencyRate by hiding fiat values instead
     const modifiedCurrencyRateControllerState = {
       ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
+      currencyRates: Object.fromEntries(
+        Object.entries(CurrencyRateController.currencyRates).map(([k, v]) => [
+          k,
+          { ...v, conversionRate: v.conversionRate ?? 0 },
+        ]),
+      ),
     };
 
     return {
