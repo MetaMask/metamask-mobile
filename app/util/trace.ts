@@ -23,7 +23,7 @@ export enum TraceName {
   NotificationDisplay = 'Notification Display',
   PPOMValidation = 'PPOM Validation',
   Signature = 'Signature',
-  }
+}
 
 const ID_DEFAULT = 'default';
 const OP_DEFAULT = 'custom';
