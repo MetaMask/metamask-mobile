@@ -27,7 +27,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
 };
 
 const mockSDK: Stake = {
-  sdkService: mockPooledStakingContractService,
+  stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };
@@ -44,8 +44,8 @@ describe('Stake Modals With Stake Sdk Provider', () => {
   };
   it('should render correctly stake screen with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeScreenStack(), {
       state: initialState,
@@ -57,8 +57,8 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
   it('should render correctly stake modal with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeModalStack(), {
       state: initialState,
@@ -66,6 +66,5 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
     expect(toJSON()).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalledTimes(0);
-
   });
 });
