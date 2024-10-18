@@ -19,7 +19,7 @@ const styleSheet = (params: {
   const { vars } = params;
   return StyleSheet.create({
     container: {
-      height: Device.isAndroid() ? '99%' : '100%',
+      height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     body: {
       paddingHorizontal: 16,
