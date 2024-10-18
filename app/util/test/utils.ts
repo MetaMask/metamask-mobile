@@ -3,7 +3,11 @@ export const flushPromises = () => new Promise(setImmediate);
 export const FIXTURE_SERVER_PORT = 12345;
 
 // E2E test configuration required in app
-export const testConfig = {};
+interface TestConfig {
+  fixtureServerPort?: number;
+}
+
+export const testConfig: TestConfig = {};
 
 /**
  * TODO: Update this condition once we change E2E builds to use release instead of debug
