@@ -5,7 +5,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { InternalAccount } from '@metamask/keyring-api';
+import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 
 /**
  *
@@ -71,12 +71,10 @@ export const selectSelectedInternalAccountChecksummedAddress = createSelector(
 );
 
 /**
- * A memoized selector that returns the selected internal account address
+ * A memoized selector that returns whether the selected internal account can sign transactions
  */
-export const selectSelectedInternalAccountAddress = createSelector(
+export const selectCanSignTransactions = createSelector(
   selectSelectedInternalAccount,
-  (account) => {
-    const selectedAddress = account?.address;
-    return selectedAddress || undefined;
-  },
+  (selectedAccount) =>
+    selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
 );
