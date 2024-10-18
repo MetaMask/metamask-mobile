@@ -1780,7 +1780,6 @@ class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    // AccountTrackerController.configure({ provider });
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
