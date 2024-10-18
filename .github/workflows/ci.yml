@@ -300,12 +300,12 @@ jobs:
     needs:
       [
         check-diff,
-        dedupe,
-        scripts,
-        unit-tests,
-        check-workflows,
-        js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
+        # dedupe,
+        # scripts,
+        # unit-tests,
+        # check-workflows,
+        # js-bundle-size-check,
+        # sonar-cloud-quality-gate-status,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}

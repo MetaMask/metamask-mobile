@@ -2,9 +2,10 @@ name: Merge Queue E2E Status Check
 on:
   issue_comment:
     types:
+      - created
       - edited
       - deleted
-      - created
+
   pull_request:
     types:
       - opened
@@ -47,7 +48,7 @@ jobs:
             fi
   
   check-if-bitrise-ran:
-    name: Checking to see if Bitrise comment was posted
+    name: Check if E2E comment is success
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -70,10 +71,10 @@ jobs:
             echo "Latest E2E comment indicates success."
           elif [[ "$LATEST_BOT_COMMENT" == *"❌❌❌ pr_smoke_e2e_pipeline failed on Bitrise! ❌❌❌"* ]]; then
             echo "Latest E2E comment indicates failure."
-            exit 1  # Fail the job if the latest comment is a failure
+            exit 1  
           else
             echo "No relevant Bitrise comment found."
-            exit 1  # Fail the job if no Bitrise comment is found
+            exit 1
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
