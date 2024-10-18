@@ -83,6 +83,6 @@ describe('AccountsList', () => {
       },
     );
 
-    expect(updateAndfetchAccountSettings).toHaveBeenCalled();
+    expect(updateAndfetchAccountSettings).toHaveBeenCalledTimes(1);
   });
 });
