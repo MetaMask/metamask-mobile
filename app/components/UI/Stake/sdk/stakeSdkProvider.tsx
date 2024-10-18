@@ -3,12 +3,7 @@ import {
   StakeSdk,
   PooledStakingContract,
 } from '@metamask/stake-sdk';
-import React, {
-  useState,
-  createContext,
-  useMemo,
-  PropsWithChildren,
-} from 'react';
+import React, { useState, createContext, useMemo } from 'react';
 import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -29,13 +24,7 @@ export const StakeContext = createContext<Stake>({
   setSdkType: noop,
 });
 
-export interface StakeProviderProps {
-  stakingType?: StakingType;
-}
-
-export const StakeSDKProvider: React.FC<
-  PropsWithChildren<StakeProviderProps>
-> = ({ children }) => {
+export const StakeSDKProvider: React.FC = ({ children }) => {
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
 
   const chainId = useSelector(selectChainId);
