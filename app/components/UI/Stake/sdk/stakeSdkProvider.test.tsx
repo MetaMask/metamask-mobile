@@ -11,7 +11,7 @@ import * as useStakeContextHook from '../hooks/useStakeContext';
 import { Contract } from '@ethersproject/contracts';
 import { StakeModalStack, StakeScreenStack } from '../routes';
 
-const mockPooledStakingContractService: PooledStakingContract = {
+const mockOnChainService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
   connectSignerOrProvider: jest.fn(),
   contract: new Contract('0x0000000000000000000000000000000000000000', []),
@@ -27,7 +27,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
 };
 
 const mockSDK: Stake = {
-  sdkService: mockPooledStakingContractService,
+  onChainService: mockOnChainService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };
@@ -44,8 +44,8 @@ describe('Stake Modals With Stake Sdk Provider', () => {
   };
   it('should render correctly stake screen with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeScreenStack(), {
       state: initialState,
@@ -57,8 +57,8 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
   it('should render correctly stake modal with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeModalStack(), {
       state: initialState,
@@ -66,6 +66,5 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
     expect(toJSON()).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalledTimes(0);
-
   });
 });

@@ -5532,10 +5532,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/stake-sdk@^0.2.11":
-  version "0.2.11"
-  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.2.11.tgz#70b003a7b7f5208fad0d5a986aedd84b0987979f"
-  integrity sha512-l2novyUK7oVKO2vZDd2tCSyQ8e468hWp0ZB3ed2FoR61HGlZDMqv3hDtXPAfOeA0+cQwsZM861yoUdSXNo0WPA==
+"@metamask/stake-sdk@^0.2.12":
+  version "0.2.12"
+  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.2.12.tgz#c296af7ae0f6683801a5a0c79d185305895b0d49"
+  integrity sha512-44zEvliIREzd2fksy9NUMU950JYBmyVvEyhBtvvqYrC0kXmZDuHrFPB9In/VR3mF49mHr6zOLDEfYj835c3mOw==
   dependencies:
     axios "^1.7.7"
 
