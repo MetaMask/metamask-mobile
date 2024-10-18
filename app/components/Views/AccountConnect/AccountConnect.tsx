@@ -607,6 +607,11 @@ const AccountConnect = (props: AccountConnectProps) => {
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
         hostname={hostname}
+        onPrimaryActionButtonPress={
+          isMultichainVersion1Enabled
+            ? () => setScreen(AccountConnectScreens.SingleConnect)
+            : undefined
+        }
       />
     ),
     [
