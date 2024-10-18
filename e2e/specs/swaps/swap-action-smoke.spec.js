@@ -87,7 +87,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
           'Max slippage 0%',
         );
       }
-      // await QuoteView.tapOnGetQuotes();
+      await QuoteView.tapOnGetQuotes();
       await Assertions.checkIfVisible(SwapView.fetchingQuotes);
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
