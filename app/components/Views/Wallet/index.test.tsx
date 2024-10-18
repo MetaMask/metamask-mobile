@@ -153,13 +153,13 @@ describe('Wallet', () => {
     const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
   });
-  it('should dispatch account syncing on mount', () => {
+  it('dispatches account syncing on mount', () => {
     jest.clearAllMocks();
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
     expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(1);
   });
-  it('should dispatch account syncing when appState switches from inactive|background to active', () => {
+  it('dispatches account syncing when appState switches from inactive|background to active', () => {
     jest.clearAllMocks();
 
     const addEventListener = jest.spyOn(AppState, 'addEventListener');
@@ -167,9 +167,13 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
-    expect(addEventListener).toHaveBeenCalledTimes(1);
-
-    const handleAppStateChange = addEventListener.mock.calls[0][1];
+    expect(addEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
+    const handleAppStateChange = (
+      addEventListener as jest.Mock
+    ).mock.calls.find(([event]) => event === 'change')[1];
 
     act(() => {
       handleAppStateChange('background');
