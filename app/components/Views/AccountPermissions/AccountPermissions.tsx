@@ -290,7 +290,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     trackEvent,
   ]);
 
-  // connect networks userIntent
   useEffect(() => {
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
       hideSheet();

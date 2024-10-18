@@ -58,7 +58,6 @@ const wallet_switchEthereumChain = async ({
       res.result = null;
       return;
     }
-    console.log("ALEX LOGGING: existingNetwork", existingNetwork);
     const analyticsParams = await switchToNetwork({
       network: existingNetwork,
       chainId: _chainId,
