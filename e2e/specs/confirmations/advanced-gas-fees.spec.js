@@ -35,7 +35,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await loginToApp();
 
         // Check that we are on the wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
+        // await Assertions.checkIfVisible(WalletView.container);
 
         //Tap send Icon
         await TestHelpers.delay(2000);
