@@ -563,7 +563,10 @@ class Login extends PureComponent {
                 )}
               </TouchableOpacity>
 
-              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
+              <Text
+                style={styles.title}
+                testID={LoginViewSelectors.TITLE_ID}
+              >
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
