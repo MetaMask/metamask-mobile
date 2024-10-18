@@ -69,6 +69,7 @@ const attemptDepositTransaction =
       // TODO: Add Stake/Unstake/Claim TransactionType to display contract method in confirmation screen.
       return addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        // TODO: Figure out what this value is supposed to be before v1 release.
         origin: process.env.MM_FOX_CODE,
       });
     } catch (e) {
