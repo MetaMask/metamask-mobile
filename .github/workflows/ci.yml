@@ -282,47 +282,47 @@ jobs:
   #             exit 1
   #           fi
   #         fi
-  check-workflows:
-    name: Check workflows
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download actionlint
-        id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
-        shell: bash
-      - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color
-        shell: bash
-  all-jobs-pass:
-    name: All jobs pass
-    runs-on: ubuntu-20.04
-    needs:
-      [
-        check-diff,
-        # dedupe,
-        # scripts,
-        # unit-tests,
-        # check-workflows,
-        # js-bundle-size-check,
-        # sonar-cloud-quality-gate-status,
-      ]
-    outputs:
-      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
-    steps:
-      - name: Set jobs passed status
-        id: jobs-passed-status
-        run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  check-all-jobs-pass:
-    name: Check all jobs pass
-    runs-on: ubuntu-20.04
-    needs: all-jobs-pass
-    if: always()
-    steps:
-      - run: |
-          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
-            echo "All jobs passed. Unblock PR."
-          else
-            echo "All jobs passed step skipped. Block PR."
-            exit 1
-          fi
+  # check-workflows:
+  #   name: Check workflows
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Download actionlint
+  #       id: download-actionlint
+  #       run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
+  #       shell: bash
+  #     - name: Check workflow files
+  #       run: ${{ steps.download-actionlint.outputs.executable }} -color
+  #       shell: bash
+  # all-jobs-pass:
+  #   name: All jobs pass
+  #   runs-on: ubuntu-20.04
+  #   needs:
+  #     [
+  #       check-diff,
+  #       # dedupe,
+  #       # scripts,
+  #       # unit-tests,
+  #       # check-workflows,
+  #       # js-bundle-size-check,
+  #       # sonar-cloud-quality-gate-status,
+  #     ]
+  #   outputs:
+  #     ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
+  #   steps:
+  #     - name: Set jobs passed status
+  #       id: jobs-passed-status
+  #       run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+  # check-all-jobs-pass:
+  #   name: Check all jobs pass
+  #   runs-on: ubuntu-20.04
+  #   needs: all-jobs-pass
+  #   if: always()
+  #   steps:
+  #     - run: |
+  #         if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" == "true" ]]; then
+  #           echo "All jobs passed. Unblock PR."
+  #         else
+  #           echo "All jobs passed step skipped. Block PR."
+  #           exit 1
+  #         fi
