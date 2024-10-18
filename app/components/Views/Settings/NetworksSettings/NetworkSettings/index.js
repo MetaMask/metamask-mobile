@@ -93,6 +93,9 @@ const createStyles = (colors) =>
     base: {
       paddingHorizontal: 16,
     },
+    baseAll: {
+      padding: 16,
+    },
     addRpcButton: {
       position: 'absolute',
       alignSelf: 'center',
@@ -2049,23 +2052,24 @@ export class NetworkSettings extends PureComponent {
             onDismiss={this.closeAddRpcForm}
             shouldGoBack={false}
           >
+            <View style={styles.notch} />
+            <BottomSheetHeader
+              onBack={() => {
+                this.closeAddRpcForm();
+                this.openRpcModal();
+              }}
+              style={styles.baseAll}
+            >
+              <Text style={styles.heading}>
+                {strings('app_settings.add_rpc_url')}
+              </Text>
+            </BottomSheetHeader>
             <KeyboardAwareScrollView
               style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >
               <SafeAreaView style={styles.rpcMenu}>
-                <View style={styles.notch} />
-                <BottomSheetHeader
-                  onBack={() => {
-                    this.closeAddRpcForm();
-                    this.openRpcModal();
-                  }}
-                >
-                  <Text style={styles.heading}>
-                    {strings('app_settings.add_rpc_url')}
-                  </Text>
-                </BottomSheetHeader>
                 <Text style={styles.label}>
                   {strings('app_settings.network_rpc_url_label')}
                 </Text>
@@ -2127,24 +2131,24 @@ export class NetworkSettings extends PureComponent {
             shouldGoBack={false}
             onDismiss={this.closeAddBlockExplorerRpcForm}
           >
+            <View style={styles.notch} />
+            <BottomSheetHeader
+              onBack={() => {
+                this.closeAddBlockExplorerRpcForm();
+                this.openBlockExplorerModal();
+              }}
+              style={styles.baseAll}
+            >
+              <Text style={styles.heading}>
+                {strings('app_settings.add_block_explorer_url')}
+              </Text>
+            </BottomSheetHeader>
             <KeyboardAwareScrollView
               style={styles.sheetContent}
               enableOnAndroid
               keyboardShouldPersistTaps="handled"
             >
               <SafeAreaView style={styles.rpcMenu}>
-                <View style={styles.notch} />
-
-                <BottomSheetHeader
-                  onBack={() => {
-                    this.closeAddBlockExplorerRpcForm();
-                    this.openBlockExplorerModal();
-                  }}
-                >
-                  <Text style={styles.heading}>
-                    {strings('app_settings.add_block_explorer_url')}
-                  </Text>
-                </BottomSheetHeader>
                 <Text style={styles.label}>
                   {strings('app_settings.network_block_explorer_label')}
                 </Text>
