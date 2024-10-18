@@ -45,6 +45,10 @@ export interface TraceRequest {
   parentContext?: TraceContext;
   startTime?: number;
   tags?: Record<string, number | string | boolean>;
+<<<<<<< HEAD
+=======
+  op?: string;
+>>>>>>> e168bcc3b (chore: revert custom tags sentry (#11861))
 }
 
 export interface EndTraceRequest {
@@ -154,7 +158,14 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, tags } = request;
+  const {
+    data: attributes,
+    name,
+    parentContext,
+    startTime,
+    tags,
+    op,
+  } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
