@@ -49,7 +49,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import { colors as importedColors } from '../../../styles/common';
 import {
   ToastContext,
   ToastVariants,
@@ -82,6 +81,8 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { trackEvent } from '../../../components/UI/Ramp/hooks/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const Stack = createStackNavigator();
 
@@ -133,22 +134,33 @@ const Main = (props) => {
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
-  const connectionChangeHandler = useCallback(
-    (state) => {
+  const connectionChangeHandler = (state) => {
+    try {
       if (!state) return;
       const { isConnected } = state;
-      // Show the modal once the status changes to offline
-      if (connected && isConnected === false) {
-        props.navigation.navigate('OfflineModeView');
+
+      // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
+      const debounceTimeout = setTimeout(() => {
+        if (connected && isConnected === false) {
+          props.navigation.navigate('OfflineModeView');
+        }
+      }, 3000);
+
+      // Clear timeout if connection stabilizes
+      if (isConnected === true) {
+        clearTimeout(debounceTimeout);
       }
+
       if (connected !== isConnected && isConnected !== null) {
         setConnected(isConnected);
       }
-    },
-    [connected, setConnected, props.navigation],
-  );
+    } catch (e) {
+      console.error('User dropped connection', e);
+      trackEvent(MetaMetricsEvents.CONNECTION_DROPPED);
+    }
+  };
 
-  const checkInfuraAvailability = useCallback(async () => {
+  const checkInfuraAvailability = async () => {
     if (props.providerType !== 'rpc') {
       try {
         const ethQuery = Engine.getGlobalEthQuery();
@@ -163,13 +175,7 @@ const Main = (props) => {
     } else {
       props.setInfuraAvailabilityNotBlocked();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.navigation,
-    props.providerType,
-    props.setInfuraAvailabilityBlocked,
-    props.setInfuraAvailabilityNotBlocked,
-  ]);
+  };
 
   const handleAppStateChange = useCallback(
     (appState) => {
