@@ -13,6 +13,6 @@ jobs:
 
       - name: Apply labels to PR
         env: 
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.BUG_REPORT_TOKEN }}
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --add-label "Run Smoke E2E"
