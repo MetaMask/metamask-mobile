@@ -54,6 +54,7 @@ const NetworkConnectMultiSelector = ({
   const handleUpdateNetworkPermissions = useCallback(async () => {
     console.log('ALEX LOGGING: selectedChainIds', selectedChainIds);
     try {
+      //maybe use updateCaveat instead.
       await Engine.context.PermissionController.grantPermissionsIncremental({
         subject: {
           origin: hostname,
@@ -73,6 +74,7 @@ const NetworkConnectMultiSelector = ({
     } catch (e) {
       console.log('ALEX LOGGING: error', e);
     }
+    onUserAction();
   }, [selectedChainIds, hostname]);
 
   // { chainId: '0xaa36a7',
