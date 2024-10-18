@@ -3,7 +3,6 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import { fontStyles } from '../../../../styles/common';
 
 // Internal dependencies.
 import { PickerAccountStyleSheetVars } from './PickerAccount.types';
@@ -47,18 +46,6 @@ const styleSheet = (params: {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    accountNameLabelText: {
-      marginTop: 4,
-      marginHorizontal: 5,
-      paddingHorizontal: 5,
-      ...fontStyles.bold,
-      color: colors.text.alternative,
-      borderWidth: 1,
-      borderRadius: 10,
-      borderColor: colors.border.default,
-      justifyContent: 'center',
-      textAlign: 'center',
     },
     accountNameAvatar: {
       flexDirection: 'row',
