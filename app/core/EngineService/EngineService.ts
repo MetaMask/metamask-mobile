@@ -78,7 +78,7 @@ class EngineService {
       },
       {
         name: 'PhishingController',
-        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+        key: `${engine.context.PhishingController.name}:stateChange`,
       },
       {
         name: 'PreferencesController',
@@ -92,7 +92,7 @@ class EngineService {
         name: 'TokenBalancesController',
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
-      { name: 'TokenRatesController' },
+      { name: 'TokenRatesController', key: 'TokenRatesController:stateChange' },
       {
         name: 'TransactionController',
         key: `${engine.context.TransactionController.name}:stateChange`,
