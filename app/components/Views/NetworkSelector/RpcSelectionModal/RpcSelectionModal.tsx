@@ -1,5 +1,5 @@
 import React, { FC, useMemo } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -32,9 +32,14 @@ interface RpcSelectionModalProps {
   onRpcSelect: (networkClientId: string, chainId: `0x${string}`) => void;
   rpcMenuSheetRef: React.RefObject<BottomSheetRef>;
   networkConfigurations: Record<string, NetworkConfiguration>;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
+  styles: StyleSheet.NamedStyles<{
+    baseHeader: unknown;
+    alternativeText: unknown;
+    cellBorder: unknown;
+    rpcMenu: unknown;
+    rpcText: unknown;
+    textCentred: unknown;
+  }>;
 }
 
 const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
