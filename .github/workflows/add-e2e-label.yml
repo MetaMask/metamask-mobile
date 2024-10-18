@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Apply labels to PR
+        env: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api \
             --method POST \
