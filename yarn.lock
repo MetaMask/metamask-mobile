@@ -5532,6 +5532,13 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
+"@metamask/stake-sdk@^0.2.11":
+  version "0.2.11"
+  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.2.11.tgz#70b003a7b7f5208fad0d5a986aedd84b0987979f"
+  integrity sha512-l2novyUK7oVKO2vZDd2tCSyQ8e468hWp0ZB3ed2FoR61HGlZDMqv3hDtXPAfOeA0+cQwsZM861yoUdSXNo0WPA==
+  dependencies:
+    axios "^1.7.7"
+
 "@metamask/superstruct@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/superstruct/-/superstruct-3.1.0.tgz#148f786a674fba3ac885c1093ab718515bf7f648"
@@ -12969,7 +12976,7 @@ axios-retry@^3.1.2:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
 
-axios@1.4.0, axios@^0.26.0, axios@^0.28.0, axios@^0.x, axios@^1.6.7, axios@^1.6.8, axios@^1.7.4, axios@~1.6.8:
+axios@1.4.0, axios@^0.26.0, axios@^0.28.0, axios@^0.x, axios@^1.6.7, axios@^1.6.8, axios@^1.7.4, axios@^1.7.7, axios@~1.6.8:
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.4.tgz#4c8ded1b43683c8dd362973c393f3ede24052aa2"
   integrity sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==
