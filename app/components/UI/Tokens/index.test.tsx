@@ -225,11 +225,13 @@ describe('Tokens', () => {
       await findByText(strings('wallet.unable_to_find_conversion_rate')),
     ).toBeDefined();
   });
+
   it('renders stake button correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
+
   it('navigates to Portfolio Stake url when stake button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
 
@@ -240,6 +242,27 @@ describe('Tokens', () => {
         timestamp: 123,
       },
       screen: Routes.BROWSER.VIEW,
+    });
+  });
+
+  it('should refresh tokens and call necessary controllers', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.TokenDetectionController.detectTokens,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.AccountTrackerController.refresh,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.CurrencyRateController.startPollingByNetworkClientId,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.TokenRatesController.updateExchangeRates,
+      ).toHaveBeenCalled();
     });
   });
 });
