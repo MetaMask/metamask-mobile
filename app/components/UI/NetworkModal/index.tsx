@@ -245,7 +245,7 @@ const NetworkModals = (props: NetworkProps) => {
     }
 
     if (networkClientId) {
-      await NetworkController.setActiveNetwork(networkClientId);
+      NetworkController.setActiveNetwork(networkClientId);
     }
 
     onClose();
@@ -271,7 +271,7 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
 
-    await NetworkController.setActiveNetwork(networkClientId);
+    NetworkController.setActiveNetwork(networkClientId);
   };
 
   const handleNewNetwork = async (

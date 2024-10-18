@@ -9,6 +9,7 @@ export const NetworkListModalSelectorsText = {
 export const NetworkListModalSelectorsIDs = {
   SCROLL: 'other-networks-scroll',
   TEST_NET_TOGGLE: 'test-network-switch-id',
+  DELETE_NETWORK: 'delete-network-button',
   OTHER_LIST: 'other-network-name',
   ADD_BUTTON: 'add-network-button',
   TOOLTIP: 'popular-networks-information-tooltip',

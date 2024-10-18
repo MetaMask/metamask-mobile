@@ -78,13 +78,15 @@ import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetwo
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import ButtonPrimary from '../../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
+import ReusableModal from '../../../../../components/UI/ReusableModal';
+import Device from '../../../../../util/device';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -92,16 +94,96 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
     },
     addRpcButton: {
+      position: 'absolute',
       alignSelf: 'center',
     },
-    addRpcNameButton: {
-      alignSelf: 'center',
-      paddingHorizontal: 16,
+    screen: {
+      flex: 1,
+      paddingHorizontal: 24,
       paddingVertical: 16,
-      width: '100%',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
+    container: {
+      flex: 1,
+    },
+    headerText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    scrollViewContent: {
+      paddingBottom: 16,
+    },
+    scrollableBox: {
+      height: 164,
+      marginVertical: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+      bottom: 64,
+    },
+    footer: {
+      height: 60,
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'absolute',
+      bottom: 16,
+      left: 0,
+      right: 0,
+      zIndex: 10, // Ensures it stays on top of other components
+    },
+    content: {
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      flexGrow: 1,
+    },
+    addRpcNameButton: {
+      paddingTop: 32,
+      alignSelf: 'center',
+    },
+    sheet: {
+      flexDirection: 'column',
+      bottom: 0,
+      top: Device.getDeviceHeight() * 0.5,
+      backgroundColor: colors.background.default,
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      height: Device.getDeviceHeight() * 0.5,
+    },
+    sheetSmall: {
+      position: 'absolute',
+      bottom: 0,
+      top: Device.getDeviceHeight() * 0.7,
+      backgroundColor: colors.background.default,
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      height: Device.getDeviceHeight() * 0.3,
+    },
+    sheetRpcForm: {
+      position: 'absolute',
+      bottom: 0,
+      top: Device.getDeviceHeight() * 0.3,
+      backgroundColor: colors.background.default,
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      height: Device.getDeviceHeight() * 0.7,
+    },
+    sheetContent: {
+      flex: 1,
+      flexShrink: 1,
+    },
+    notch: {
+      width: 48,
+      height: 5,
+      borderRadius: 4,
+      backgroundColor: colors.border.default,
+      marginTop: 4,
+      alignSelf: 'center',
     },
     rpcMenu: {
       paddingHorizontal: 16,
+      flex: 1,
     },
     wrapper: {
       backgroundColor: colors.background.default,
@@ -178,7 +260,6 @@ const createStyles = (colors) =>
     },
     heading: {
       fontSize: 16,
-      paddingVertical: 12,
       color: colors.text.default,
       ...fontStyles.bold,
     },
@@ -401,10 +482,6 @@ export class NetworkSettings extends PureComponent {
   inputChainId = React.createRef();
   inputSymbol = React.createRef();
   inputBlockExplorerURL = React.createRef();
-  rpcAddMenuSheetRef = React.createRef();
-  addBlockExplorerMenuSheetRef = React.createRef();
-  rpcAddFormSheetRef = React.createRef();
-  blockExplorerAddFormSheetRef = React.createRef();
 
   getOtherNetworks = () => allNetworks.slice(1);
 
@@ -657,8 +734,13 @@ export class NetworkSettings extends PureComponent {
   checkIfChainIdExists = async (chainId) => {
     const { networkConfigurations } = this.props;
 
-    // Convert the chainId to hex format
-    const hexChainId = toHex(chainId);
+    let hexChainId;
+    try {
+      // Convert the chainId to hex format
+      hexChainId = toHex(chainId);
+    } catch (error) {
+      hexChainId = null;
+    }
 
     // Check if any network configuration matches the given chainId
     const chainIdExists = Object.values(networkConfigurations).some(
@@ -1340,22 +1422,21 @@ export class NetworkSettings extends PureComponent {
 
   openAddRpcForm = () => {
     this.setState({ showAddRpcForm: { isVisible: true } });
-    this.rpcAddFormSheetRef.current?.onOpenBottomSheet();
   };
 
   closeAddRpcForm = () => {
-    this.setState({ showAddRpcForm: { isVisible: false } });
-    this.rpcAddFormSheetRef.current?.onCloseBottomSheet();
+    this.setState({
+      showAddRpcForm: { isVisible: false },
+      warningRpcUrl: undefined,
+    });
   };
 
   openAddBlockExplorerForm = () => {
     this.setState({ showAddBlockExplorerForm: { isVisible: true } });
-    this.blockExplorerAddFormSheetRef.current?.onOpenBottomSheet();
   };
 
   closeAddBlockExplorerRpcForm = () => {
     this.setState({ showAddBlockExplorerForm: { isVisible: false } });
-    this.blockExplorerAddFormSheetRef.current?.onCloseBottomSheet();
   };
 
   closeRpcModal = () => {
@@ -1364,22 +1445,18 @@ export class NetworkSettings extends PureComponent {
       rpcUrlForm: '',
       rpcNameForm: '',
     });
-    this.rpcAddMenuSheetRef.current?.onCloseBottomSheet();
   };
 
   openRpcModal = () => {
     this.setState({ showMultiRpcAddModal: { isVisible: true } });
-    this.rpcAddMenuSheetRef.current?.onOpenBottomSheet();
   };
 
   openBlockExplorerModal = () => {
     this.setState({ showMultiBlockExplorerAddModal: { isVisible: true } });
-    this.addBlockExplorerMenuSheetRef.current?.onOpenBottomSheet();
   };
 
   closeBlockExplorerModal = () => {
     this.setState({ showMultiBlockExplorerAddModal: { isVisible: false } });
-    this.addBlockExplorerMenuSheetRef.current?.onCloseBottomSheet();
   };
 
   switchToMainnet = () => {
@@ -1448,7 +1525,7 @@ export class NetworkSettings extends PureComponent {
     });
   };
 
-  customNetwork = (networkTypeOrRpcUrl) => {
+  customNetwork = () => {
     const {
       rpcUrl,
       rpcUrls,
@@ -1743,17 +1820,7 @@ export class NetworkSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
-        <KeyboardAwareScrollView
-          style={styles.informationCustomWrapper}
-          onTouchEnd={() => {
-            if (this.isAnyModalVisible()) {
-              this.closeAddBlockExplorerRpcForm();
-              this.closeAddRpcForm();
-              this.closeBlockExplorerModal();
-              this.closeRpcModal();
-            }
-          }}
-        >
+        <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
           <SafeAreaView
             style={
               this.isAnyModalVisible()
@@ -1769,6 +1836,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={nickname}
+              editable={!this.isAnyModalVisible()}
               onChangeText={this.onNicknameChange}
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
@@ -1877,6 +1945,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={chainId}
+              editable={!this.isAnyModalVisible() && addMode}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
                 this.validateChainId();
@@ -1901,6 +1970,7 @@ export class NetworkSettings extends PureComponent {
               autoCapitalize={'none'}
               autoCorrect={false}
               value={ticker}
+              editable={!this.isAnyModalVisible()}
               onChangeText={this.onTickerChange}
               onBlur={() => {
                 this.validateSymbol();
@@ -1974,259 +2044,284 @@ export class NetworkSettings extends PureComponent {
         </KeyboardAwareScrollView>
 
         {isNetworkUiRedesignEnabled() && showAddRpcForm.isVisible ? (
-          <BottomSheet
-            ref={this.rpcAddFormSheetRef}
-            onClose={this.closeAddRpcForm}
-            style={styles.rpcMenu}
-            shouldNavigateBack={false}
+          <ReusableModal
+            style={styles.sheetRpcForm}
+            onDismiss={this.closeAddRpcForm}
+            shouldGoBack={false}
           >
-            <BottomSheetHeader
-              onBack={() => {
-                this.closeAddRpcForm();
-                this.openRpcModal();
-              }}
+            <KeyboardAwareScrollView
+              style={styles.sheetContent}
+              enableOnAndroid
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={styles.heading}>
-                {strings('app_settings.add_rpc_url')}
-              </Text>
-            </BottomSheetHeader>
-            <View style={styles.rpcMenu}>
-              <Text style={styles.label}>
-                {strings('app_settings.network_rpc_url_label')}
-              </Text>
-              <TextInput
-                ref={this.inputRpcURL}
-                style={inputErrorRpcStyle}
-                value={rpcUrlForm}
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                onChangeText={this.onRpcUrlAdd}
-                onFocus={this.onRpcUrlFocused}
-                placeholder={strings('app_settings.network_rpc_placeholder')}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.jumpToChainId}
-                testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
-                keyboardAppearance={themeAppearance}
-              />
-              {warningRpcUrl && (
-                <View
-                  style={
-                    isNetworkUiRedesignEnabled()
-                      ? styles.newWarningContainer
-                      : styles.warningContainer
-                  }
-                  testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
-                >
-                  <Text style={styles.warningText}>{warningRpcUrl}</Text>
-                </View>
-              )}
-              <Text style={styles.label}>
-                {strings('app_settings.network_rpc_name_label')}
-              </Text>
-              <TextInput
-                ref={this.inputNameRpcURL}
-                style={inputErrorRpcStyle}
-                autoCapitalize={'none'}
-                value={rpcNameForm}
-                autoCorrect={false}
-                onChangeText={this.onRpcNameAdd}
-                onFocus={this.onRpcUrlFocused}
-                placeholder={strings('app_settings.network_rpc_placeholder')}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.jumpToChainId}
-                testID={NetworksViewSelectorsIDs.RPC_NAME_INPUT}
-                keyboardAppearance={themeAppearance}
-              />
-              <View style={styles.addRpcNameButton}>
-                <ButtonPrimary
-                  label={strings('app_settings.add_rpc_url')}
-                  size={ButtonSize.Lg}
-                  onPress={() => {
-                    this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
+              <SafeAreaView style={styles.rpcMenu}>
+                <View style={styles.notch} />
+                <BottomSheetHeader
+                  onBack={() => {
+                    this.closeAddRpcForm();
+                    this.openRpcModal();
                   }}
-                  width={ButtonWidthTypes.Full}
-                  labelTextVariant={TextVariant.DisplayMD}
-                  isDisabled={!!warningRpcUrl}
-                  testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
+                >
+                  <Text style={styles.heading}>
+                    {strings('app_settings.add_rpc_url')}
+                  </Text>
+                </BottomSheetHeader>
+                <Text style={styles.label}>
+                  {strings('app_settings.network_rpc_url_label')}
+                </Text>
+                <TextInput
+                  ref={this.inputRpcURL}
+                  style={inputErrorRpcStyle}
+                  value={rpcUrlForm}
+                  autoCapitalize={'none'}
+                  autoCorrect={false}
+                  onChangeText={this.onRpcUrlAdd}
+                  onFocus={this.onRpcUrlFocused}
+                  placeholder={strings('app_settings.network_rpc_placeholder')}
+                  placeholderTextColor={colors.text.muted}
+                  onSubmitEditing={this.jumpToChainId}
+                  testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
+                  keyboardAppearance={themeAppearance}
                 />
-              </View>
-            </View>
-          </BottomSheet>
+                {warningRpcUrl && (
+                  <View testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}>
+                    <Text style={styles.warningText}>{warningRpcUrl}</Text>
+                  </View>
+                )}
+                <Text style={styles.label}>
+                  {strings('app_settings.network_rpc_name_label')}
+                </Text>
+                <TextInput
+                  ref={this.inputNameRpcURL}
+                  style={inputErrorRpcStyle}
+                  autoCapitalize={'none'}
+                  value={rpcNameForm}
+                  autoCorrect={false}
+                  onChangeText={this.onRpcNameAdd}
+                  placeholder={strings('app_settings.network_rpc_placeholder')}
+                  placeholderTextColor={colors.text.muted}
+                  onSubmitEditing={this.jumpToChainId}
+                  testID={NetworksViewSelectorsIDs.RPC_NAME_INPUT}
+                  keyboardAppearance={themeAppearance}
+                />
+                <View style={styles.addRpcNameButton}>
+                  <ButtonPrimary
+                    label={strings('app_settings.add_rpc_url')}
+                    size={ButtonSize.Lg}
+                    onPress={() => {
+                      this.onRpcItemAdd(rpcUrlForm, rpcNameForm);
+                    }}
+                    width={ButtonWidthTypes.Auto}
+                    labelTextVariant={TextVariant.DisplayMD}
+                    isDisabled={!!warningRpcUrl}
+                    testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
+                  />
+                </View>
+              </SafeAreaView>
+            </KeyboardAwareScrollView>
+          </ReusableModal>
         ) : null}
         {isNetworkUiRedesignEnabled() && showAddBlockExplorerForm.isVisible ? (
-          <BottomSheet
-            ref={this.blockExplorerAddFormSheetRef}
-            onClose={this.closeAddBlockExplorerRpcForm}
-            style={styles.rpcMenu}
-            shouldNavigateBack={false}
+          <ReusableModal
+            style={styles.sheetRpcForm}
+            shouldGoBack={false}
+            onDismiss={this.closeAddBlockExplorerRpcForm}
           >
-            <BottomSheetHeader
-              onBack={() => {
-                this.closeAddBlockExplorerRpcForm();
-                this.openBlockExplorerModal();
-              }}
+            <KeyboardAwareScrollView
+              style={styles.sheetContent}
+              enableOnAndroid
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={styles.heading}>
-                {strings('app_settings.add_block_explorer_url')}
-              </Text>
-            </BottomSheetHeader>
-            <View style={styles.rpcMenu}>
-              <Text style={styles.label}>
-                {strings('app_settings.network_block_explorer_label')}
-              </Text>
-              <TextInput
-                ref={this.inputBlockExplorerURL}
-                style={inputStyle}
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                onChangeText={this.onBlockExplorerUrlChange}
-                placeholder={strings(
-                  'app_settings.network_block_explorer_placeholder',
-                )}
-                testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.toggleNetworkDetailsModal}
-                keyboardAppearance={themeAppearance}
-              />
-              {blockExplorerUrl && !isUrl(blockExplorerUrl) && (
-                <View
-                  style={
-                    isNetworkUiRedesignEnabled()
-                      ? styles.newWarningContainer
-                      : styles.warningContainer
-                  }
-                >
-                  <Text style={styles.warningText}>
-                    {strings('app_settings.invalid_block_explorer_url')}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.addRpcNameButton}>
-                <ButtonPrimary
-                  label={strings('app_settings.add_block_explorer_url')}
-                  size={ButtonSize.Lg}
-                  onPress={() => {
-                    this.onBlockExplorerItemAdd(blockExplorerUrl);
+              <SafeAreaView style={styles.rpcMenu}>
+                <View style={styles.notch} />
+
+                <BottomSheetHeader
+                  onBack={() => {
+                    this.closeAddBlockExplorerRpcForm();
+                    this.openBlockExplorerModal();
                   }}
-                  width={ButtonWidthTypes.Full}
-                  labelTextVariant={TextVariant.DisplayMD}
-                  isDisabled={!blockExplorerUrl || !isUrl(blockExplorerUrl)}
+                >
+                  <Text style={styles.heading}>
+                    {strings('app_settings.add_block_explorer_url')}
+                  </Text>
+                </BottomSheetHeader>
+                <Text style={styles.label}>
+                  {strings('app_settings.network_block_explorer_label')}
+                </Text>
+                <TextInput
+                  ref={this.inputBlockExplorerURL}
+                  style={inputStyle}
+                  autoCapitalize={'none'}
+                  autoCorrect={false}
+                  onChangeText={this.onBlockExplorerUrlChange}
+                  placeholder={strings(
+                    'app_settings.network_block_explorer_placeholder',
+                  )}
+                  testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
+                  placeholderTextColor={colors.text.muted}
+                  onSubmitEditing={this.toggleNetworkDetailsModal}
+                  keyboardAppearance={themeAppearance}
                 />
-              </View>
-            </View>
-          </BottomSheet>
+                {blockExplorerUrl && !isUrl(blockExplorerUrl) && (
+                  <View>
+                    <Text style={styles.warningText}>
+                      {strings('app_settings.invalid_block_explorer_url')}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.addRpcNameButton}>
+                  <ButtonPrimary
+                    label={strings('app_settings.add_block_explorer_url')}
+                    size={ButtonSize.Lg}
+                    onPress={() => {
+                      this.onBlockExplorerItemAdd(blockExplorerUrl);
+                    }}
+                    width={ButtonWidthTypes.Full}
+                    labelTextVariant={TextVariant.DisplayMD}
+                    isDisabled={!blockExplorerUrl || !isUrl(blockExplorerUrl)}
+                  />
+                </View>
+              </SafeAreaView>
+            </KeyboardAwareScrollView>
+          </ReusableModal>
         ) : null}
+
         {isNetworkUiRedesignEnabled() &&
         showMultiBlockExplorerAddModal.isVisible ? (
-          <BottomSheet
-            ref={this.addBlockExplorerMenuSheetRef}
-            onClose={this.closeBlockExplorerModal}
-            style={styles.rpcMenu}
-            shouldNavigateBack={false}
+          <ReusableModal
+            style={
+              blockExplorerUrls.length > 0 ? styles.sheet : styles.sheetSmall
+            }
+            onDismiss={this.closeBlockExplorerModal}
+            shouldGoBack={false}
           >
-            <BottomSheetHeader>
-              <Text style={styles.heading}>
-                {strings('app_settings.add_block_explorer_url')}
-              </Text>
-            </BottomSheetHeader>
-            <View>
-              {blockExplorerUrls.map((url) => (
-                <Cell
-                  key={url}
-                  variant={CellVariant.SelectWithMenu}
-                  title={url}
-                  isSelected={blockExplorerUrl === url}
-                  withAvatar={false}
-                  onPress={async () => {
-                    await this.onBlockExplorerUrlChange(url);
-                  }}
-                  showButtonIcon={blockExplorerUrl !== url}
-                  buttonIcon={IconName.Trash}
-                  buttonProps={{
-                    onButtonClick: () => {
-                      this.onBlockExplorerUrlDelete(url);
-                    },
-                  }}
-                  avatarProps={{
-                    variant: AvatarVariant.Network,
-                  }}
-                />
-              ))}
-              <View style={styles.addRpcButton}>
-                <ButtonLink
-                  label={strings('app_settings.add_block_explorer_url')}
-                  endIconName={IconName.Add}
-                  size={ButtonSize.Lg}
-                  onPress={() => {
-                    this.openAddBlockExplorerForm();
-                    this.closeBlockExplorerModal();
-                  }}
-                  width={ButtonWidthTypes.Auto}
-                  labelTextVariant={TextVariant.DisplayMD}
-                />
-              </View>
+            {/* Sticky Notch */}
+            <View style={styles.notch} />
+            <View style={styles.container}>
+              {/* Sticky Header */}
+              <BottomSheetHeader>
+                <Text style={styles.heading}>
+                  {strings('app_settings.add_block_explorer_url')}
+                </Text>
+              </BottomSheetHeader>
+
+              {/* Scrollable Middle Content */}
+              <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                {blockExplorerUrls.length > 0 ? (
+                  <View>
+                    {blockExplorerUrls.map((url) => (
+                      <Cell
+                        key={url}
+                        variant={CellVariant.SelectWithMenu}
+                        title={url}
+                        isSelected={blockExplorerUrl === url}
+                        withAvatar={false}
+                        onPress={async () => {
+                          await this.onBlockExplorerUrlChange(url);
+                          this.closeBlockExplorerModal();
+                        }}
+                        showButtonIcon={blockExplorerUrl !== url}
+                        buttonIcon={IconName.Trash}
+                        buttonProps={{
+                          onButtonClick: () => {
+                            this.onBlockExplorerUrlDelete(url);
+                          },
+                        }}
+                        avatarProps={{
+                          variant: AvatarVariant.Network,
+                        }}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+
+                {/* Add Block Explorer Button */}
+                <View style={styles.scrollableBox}>
+                  <ButtonLink
+                    label={strings('app_settings.add_block_explorer_url')}
+                    endIconName={IconName.Add}
+                    size={ButtonSize.Lg}
+                    onPress={() => {
+                      this.openAddBlockExplorerForm();
+                      this.closeBlockExplorerModal();
+                    }}
+                    width={ButtonWidthTypes.Auto}
+                    labelTextVariant={TextVariant.DisplayMD}
+                  />
+                </View>
+              </ScrollView>
             </View>
-          </BottomSheet>
+          </ReusableModal>
         ) : null}
+
         {isNetworkUiRedesignEnabled() && showMultiRpcAddModal.isVisible ? (
-          <BottomSheet
-            ref={this.rpcAddMenuSheetRef}
-            onClose={this.closeRpcModal}
-            style={styles.rpcMenu}
-            shouldNavigateBack={false}
+          <ReusableModal
+            style={rpcUrls.length > 0 ? styles.sheet : styles.sheetSmall}
+            onDismiss={this.closeRpcModal}
+            shouldGoBack={false}
           >
-            <BottomSheetHeader>
-              <Text style={styles.heading}>
-                {strings('app_settings.add_rpc_url')}
-              </Text>
-            </BottomSheetHeader>
-            <View>
-              {rpcUrls.map(({ url, name, type }) => (
-                <Cell
-                  key={`${url}-${name}`}
-                  variant={CellVariant.SelectWithMenu}
-                  title={name ?? type}
-                  secondaryText={hideKeyFromUrl(url)}
-                  isSelected={rpcUrl === url}
-                  withAvatar={false}
-                  onPress={async () => {
-                    await this.onRpcUrlChangeWithName(url, name, type);
-                    this.closeRpcModal();
-                  }}
-                  showButtonIcon={
-                    rpcUrl !== url && type !== RpcEndpointType.Infura
-                  }
-                  buttonIcon={IconName.Trash}
-                  buttonProps={{
-                    onButtonClick: () => {
-                      this.onRpcUrlDelete(url);
-                    },
-                  }}
-                  onTextClick={async () => {
-                    await this.onRpcUrlChangeWithName(url, name, type);
-                    this.closeRpcModal();
-                  }}
-                  avatarProps={{
-                    variant: AvatarVariant.Token,
-                  }}
-                />
-              ))}
-              <View style={styles.addRpcButton}>
-                <ButtonLink
-                  label={strings('app_settings.add_rpc_url')}
-                  endIconName={IconName.Add}
-                  size={ButtonSize.Lg}
-                  onPress={() => {
-                    this.openAddRpcForm();
-                    this.closeRpcModal();
-                  }}
-                  width={ButtonWidthTypes.Auto}
-                  labelTextVariant={TextVariant.DisplayMD}
-                  testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
-                />
-              </View>
+            <View style={styles.notch} />
+            <View style={styles.container}>
+              {/* Sticky Header */}
+              <BottomSheetHeader>
+                <Text style={styles.heading}>
+                  {strings('app_settings.add_rpc_url')}
+                </Text>
+              </BottomSheetHeader>
+
+              {/* Scrollable Middle Content */}
+              <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                {rpcUrls.length > 0 ? (
+                  <View>
+                    {rpcUrls.map(({ url, name, type }) => (
+                      <Cell
+                        key={`${url}-${name}`}
+                        variant={CellVariant.SelectWithMenu}
+                        title={name ?? type}
+                        secondaryText={hideKeyFromUrl(url)}
+                        isSelected={rpcUrl === url}
+                        withAvatar={false}
+                        onPress={async () => {
+                          await this.onRpcUrlChangeWithName(url, name, type);
+                          this.closeRpcModal();
+                        }}
+                        showButtonIcon={
+                          rpcUrl !== url && type !== RpcEndpointType.Infura
+                        }
+                        buttonIcon={IconName.Trash}
+                        buttonProps={{
+                          onButtonClick: () => {
+                            this.onRpcUrlDelete(url);
+                          },
+                        }}
+                        onTextClick={async () => {
+                          await this.onRpcUrlChangeWithName(url, name, type);
+                          this.closeRpcModal();
+                        }}
+                        avatarProps={{
+                          variant: AvatarVariant.Token,
+                        }}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+                <View style={styles.scrollableBox}>
+                  <ButtonLink
+                    label={strings('app_settings.add_rpc_url')}
+                    endIconName={IconName.Add}
+                    size={ButtonSize.Lg}
+                    onPress={() => {
+                      this.openAddRpcForm();
+                      this.closeRpcModal();
+                    }}
+                    width={ButtonWidthTypes.Auto}
+                    labelTextVariant={TextVariant.DisplayMD}
+                    testID={NetworksViewSelectorsIDs.ADD_RPC_BUTTON}
+                  />
+                </View>
+              </ScrollView>
             </View>
-          </BottomSheet>
+          </ReusableModal>
         ) : null}
       </SafeAreaView>
     );
@@ -2302,7 +2397,7 @@ export class NetworkSettings extends PureComponent {
         <View style={styles.informationWrapper}>
           {(isNetworkUiRedesignEnabled() && !shouldShowPopularNetworks) ||
           networkTypeOrRpcUrl ? (
-            this.customNetwork(networkTypeOrRpcUrl)
+            this.customNetwork()
           ) : (
             <ScrollableTabView
               tabBarTextStyle={styles.tabLabelStyle}
