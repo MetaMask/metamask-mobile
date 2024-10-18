@@ -23,20 +23,7 @@ MacOS ships with an old ruby version that is incompatible with this project
 
 It is recommended to install a Ruby version manager such as [rbenv](https://github.com/rbenv/rbenv?tab=readme-ov-file#installation)
 
-```bash
-brew install rbenv
-```
-
 Install ruby version defined in the file `.ruby-version`
-
-```bash
-rbenv install
-rbenv local
-
-# If the above fails, try this:
-rbenv install $(cat .ruby-version)
-rbenv shell $(cat .ruby-version)
-```
 
 ### Gems
 
