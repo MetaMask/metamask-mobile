@@ -19,29 +19,6 @@ export enum TraceName {
   NotificationDisplay = 'Notification Display',
   PPOMValidation = 'PPOM Validation',
   Signature = 'Signature',
-  LoadScripts = 'Load Scripts',
-  SetupStore = 'Setup Store',
-  LoginToPasswordEntry = 'Login to Password Entry',
-  AuthenticateUser = 'Authenticate User',
-  BiometricAuthentication = 'Biometrics Authentication',
-  EngineInitialization = 'Engine Initialization',
-  CreateStore = 'Create Store',
-  CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
-  StorageRehydration = 'Storage Rehydration',
-  UIStartup = 'Custom UIStartup',
-}
-
-export enum TraceOperation {
-  LoadScripts = 'custom.load.scripts',
-  SetupStore = 'custom.setup.store',
-  LoginToPasswordEntry = 'custom.login.to.password.entry',
-  BiometricAuthentication = 'biometrics.authentication',
-  AuthenticateUser = 'custom.authenticate.user',
-  EngineInitialization = 'custom.engine.initialization',
-  CreateStore = 'custom.create.store',
-  CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
-  StorageRehydration = 'custom.storage.rehydration',
-  UIStartup = 'custom.ui.startup',
 }
 
 const ID_DEFAULT = 'default';
@@ -68,7 +45,6 @@ export interface TraceRequest {
   parentContext?: TraceContext;
   startTime?: number;
   tags?: Record<string, number | string | boolean>;
-  op?: string;
 }
 
 export interface EndTraceRequest {
@@ -178,20 +154,13 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const {
-    data: attributes,
-    name,
-    parentContext,
-    startTime,
-    tags,
-    op,
-  } = request;
+  const { data: attributes, name, parentContext, startTime, tags } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
     attributes,
     name,
-    op: op || OP_DEFAULT,
+    op: OP_DEFAULT,
     // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
     // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
     parentSpanId: parentSpan?.spanId,

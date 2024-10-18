@@ -147,7 +147,8 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
-  const isOriginWalletConnect = !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';

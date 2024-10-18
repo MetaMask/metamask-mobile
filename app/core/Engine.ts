@@ -3,7 +3,7 @@ import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
-  AccountTrackerState,
+  AccountTrackerControllerState,
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
@@ -334,7 +334,7 @@ type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 export interface EngineState {
-  AccountTrackerController: AccountTrackerState;
+  AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
   NftController: NftControllerState;
@@ -515,7 +515,7 @@ class Engine {
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         ApprovalType.Transaction,
-        ApprovalType.WatchAsset
+        ApprovalType.WatchAsset,
       ],
     });
 
@@ -653,7 +653,6 @@ class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      selectedAddress: preferencesController.state.selectedAddress,
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -662,11 +661,14 @@ class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           'NetworkController:getNetworkClientById',
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
           'TokenListController:stateChange',
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
     });
@@ -940,34 +942,24 @@ class Engine {
       ),
     });
 
-    const accountTrackerController = new AccountTrackerController(
-      {
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'AccountTrackerController',
-          allowedActions: [
-            `AccountsController:getSelectedAccount`,
-            `AccountsController:listAccounts`,
-          ],
-          allowedEvents: [
-            'AccountsController:selectedEvmAccountChange',
-            'AccountsController:selectedAccountChange',
-          ],
-        }),
-        getMultiAccountBalancesEnabled: () =>
-          preferencesController.state.isMultiAccountBalancesEnabled,
-        getCurrentChainId: () =>
-          toHexadecimal(
-            networkController.getNetworkClientById(
-              networkController?.state.selectedNetworkClientId,
-            ).configuration.chainId,
-          ),
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
-      },
-      undefined,
-      { accounts: {} },
-    );
+    const accountTrackerController = new AccountTrackerController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AccountTrackerController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
+          'PreferencesController:getState',
+          'NetworkController:getState',
+          'NetworkController:getNetworkClientById',
+        ],
+        allowedEvents: [
+          'AccountsController:selectedEvmAccountChange',
+          'AccountsController:selectedAccountChange',
+        ],
+      }),
+      state: initialState.AccountTrackerController ?? { accounts: {} },
+    });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -1454,15 +1446,16 @@ class Engine {
             'TokenListController:getState',
             'TokensController:getState',
             'TokensController:addDetectedTokens',
+            'AccountsController:getAccount',
           ],
           allowedEvents: [
-            'AccountsController:selectedAccountChange',
             'KeyringController:lock',
             'KeyringController:unlock',
             'PreferencesController:stateChange',
             'NetworkController:networkDidChange',
             'TokenListController:stateChange',
             'TokensController:stateChange',
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1512,7 +1505,7 @@ class Engine {
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
-          allowedActions: ['PreferencesController:getState'],
+          allowedActions: ['AccountsController:getSelectedAccount'],
           allowedEvents: ['TokensController:stateChange'],
         }),
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
@@ -1528,12 +1521,13 @@ class Engine {
             'TokensController:getState',
             'NetworkController:getNetworkClientById',
             'NetworkController:getState',
-            'PreferencesController:getState',
+            'AccountsController:getAccount',
+            'AccountsController:getSelectedAccount',
           ],
           allowedEvents: [
-            'PreferencesController:stateChange',
             'TokensController:stateChange',
             'NetworkController:stateChange',
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         tokenPricesService: codefiTokenApiV2,
@@ -1786,7 +1780,6 @@ class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    AccountTrackerController.configure({ provider });
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
