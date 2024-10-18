@@ -58,37 +58,37 @@ async function main(): Promise<void> {
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
 
   // Pass check since e2e smoke label is not applied
-  if (!hasSmokeTestLabel) {
-    console.log(
-      `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
-    );
-    // Post success status (skipped)
-    const createStatusCheckResponse = await octokit.rest.checks.create({
-      owner,
-      repo,
-      name: statusCheckName,
-      head_sha: latestCommitHash,
-      status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Success,
-      started_at: new Date().toISOString(),
-      output: {
-        title: statusCheckTitle,
-        summary: 'Skip run since no E2E smoke label is applied',
-      },
-    });
+  // if (!hasSmokeTestLabel) {
+  //   console.log(
+  //     `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
+  //   );
+  //   // Post success status (skipped)
+  //   const createStatusCheckResponse = await octokit.rest.checks.create({
+  //     owner,
+  //     repo,
+  //     name: statusCheckName,
+  //     head_sha: latestCommitHash,
+  //     status: StatusCheckStatusType.Completed,
+  //     conclusion: CompletedConclusionType.Success,
+  //     started_at: new Date().toISOString(),
+  //     output: {
+  //       title: statusCheckTitle,
+  //       summary: 'Skip run since no E2E smoke label is applied',
+  //     },
+  //   });
 
-    if (createStatusCheckResponse.status === 201) {
-      console.log(
-        `Created '${statusCheckName}' check with skipped status for commit ${latestCommitHash}`,
-      );
-    } else {
-      core.setFailed(
-        `Failed to create '${statusCheckName}' check with skipped status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
-      );
-      process.exit(1);
-    }
-    return;
-  }
+  //   if (createStatusCheckResponse.status === 201) {
+  //     console.log(
+  //       `Created '${statusCheckName}' check with skipped status for commit ${latestCommitHash}`,
+  //     );
+  //   } else {
+  //     core.setFailed(
+  //       `Failed to create '${statusCheckName}' check with skipped status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+  //     );
+  //     process.exit(1);
+  //   }
+  //   return;
+  // }
 
   // Kick off E2E smoke tests if E2E smoke label is applied
   if (
