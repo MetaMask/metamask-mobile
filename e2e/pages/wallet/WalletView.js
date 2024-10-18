@@ -48,9 +48,13 @@ class WalletView {
   }
 
   get importTokensButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText(WalletViewSelectorsText.IMPORT_TOKENS)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+    return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+  }
+
+  get importTokensFooterLink() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
+    );
   }
 
   get networkName() {
@@ -122,6 +126,10 @@ class WalletView {
 
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.importTokensButton);
+  }
+
+  async tapImportTokensFooterLink() {
+    await Gestures.waitAndTap(this.importTokensFooterLink);
   }
 
   async tapOnNFTInWallet(nftName) {

@@ -25,6 +25,7 @@ export const WalletViewSelectorsIDs = {
   ACCOUNT_ADDRESS: 'wallet-account-address',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
   COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
+  IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
 };
 
 export const WalletViewSelectorsText = {
