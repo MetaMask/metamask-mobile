@@ -80,13 +80,6 @@ export interface TraceRequest {
    * Custom tags to associate with the trace.
    */
   tags?: Record<string, number | string | boolean>;
-<<<<<<< HEAD
-  /**
-   * Custom operation name to associate with the trace.
-   */
-  op?: string;
-=======
->>>>>>> bf5bb9782 (chore: revert sentry traces (#11862))
 }
 /**
  * A request to end a pending trace.
