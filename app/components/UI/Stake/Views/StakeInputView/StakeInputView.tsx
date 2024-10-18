@@ -45,7 +45,7 @@ const StakeInputView = () => {
   } = useStakingInputHandlers(balanceWei);
 
 
-  const { sdkService } = useStakeContext();
+  const { onChainService } = useStakeContext();
   
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
@@ -62,7 +62,7 @@ const StakeInputView = () => {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountWei, fiatAmount, navigation, sdkService]);
+  }, [amountWei, fiatAmount, navigation, onChainService]);
 
   const balanceText = strings('stake.balance');
 
