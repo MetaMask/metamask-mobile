@@ -33,7 +33,7 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
-
+import FCMService from '../../../util/notifications/services/FCMService';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
@@ -111,9 +111,11 @@ const Main = (props) => {
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-  useNotificationHandler(props.navigation);
+  useNotificationHandler();
+  FCMService.listenForMessagesBackground();
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
+  FCMService.getFCMToken();
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
