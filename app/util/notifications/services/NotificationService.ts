@@ -257,10 +257,13 @@ class NotificationsService {
         channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         pressAction: {
           id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
-          launchActivity: LAUNCH_ACTIVITY
+          launchActivity: LAUNCH_ACTIVITY,
         }
       },
       ios: {
+        launchImageName: 'Default',
+        sound: 'default',
+        interruptionLevel: 'critical',
         foregroundPresentationOptions: {
           alert: true,
           sound: true,
