@@ -9,7 +9,7 @@ import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeade
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
-import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
+import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
 import { strings } from '../../../../../../locales/i18n';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
 
