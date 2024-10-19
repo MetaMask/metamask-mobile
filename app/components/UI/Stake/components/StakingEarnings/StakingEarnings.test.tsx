@@ -1,9 +1,9 @@
 import React from 'react';
 import StakingEarnings from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../locales/i18n';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 
-jest.mock('../../Stake/constants', () => ({
+jest.mock('../../constants', () => ({
   isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
@@ -18,6 +18,16 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
 
 describe('Staking Earnings', () => {
   it('should render correctly', () => {

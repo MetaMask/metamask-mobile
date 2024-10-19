@@ -16,7 +16,9 @@ import ButtonIcon, {
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../../locales/i18n';
 import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
-import useGetStakingEligibility from '../../hooks/useGetStakingEligibility';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import useIsStakingSupportedChain from '../../hooks/useStakingChain';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 
 // TODO: Remove mock data when connecting component to backend.
 const MOCK_DATA = {
@@ -31,7 +33,7 @@ const MOCK_DATA = {
   },
 };
 
-const StakingEarnings = () => {
+const StakingEarningsContent = () => {
   // TODO: Remove mock data when connecting component to backend.
   const { ANNUAL_EARNING_RATE, LIFETIME_REWARDS, EST_ANNUAL_EARNINGS } =
     MOCK_DATA;
@@ -46,8 +48,15 @@ const StakingEarnings = () => {
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
-  const { isConfirmedIneligible } = useGetStakingEligibility();
-  if (!isPooledStakingFeatureEnabled() || isConfirmedIneligible) return <></>;
+  const { isEligible } = useStakingEligibility();
+
+  const { isStakingSupportedChain } = useIsStakingSupportedChain();
+  if (
+    !isPooledStakingFeatureEnabled() ||
+    !isEligible ||
+    !isStakingSupportedChain
+  )
+    return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>
@@ -121,5 +130,11 @@ const StakingEarnings = () => {
     </View>
   );
 };
+
+export const StakingEarnings = () => (
+  <StakeSDKProvider>
+    <StakingEarningsContent />
+  </StakeSDKProvider>
+);
 
 export default StakingEarnings;
