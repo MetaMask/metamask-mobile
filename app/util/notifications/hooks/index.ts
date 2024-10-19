@@ -18,7 +18,7 @@ const useNotificationHandler = () => {
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const notificationEnabled = isNotificationsFeatureEnabled() || isNotificationEnabled;
+  const notificationEnabled = isNotificationsFeatureEnabled() && isNotificationEnabled;
 
   useEffect(() => {
     if (!notificationEnabled) return;
