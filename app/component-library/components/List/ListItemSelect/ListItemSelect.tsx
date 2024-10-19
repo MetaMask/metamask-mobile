@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+
 // Third party dependencies.
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
@@ -20,7 +22,6 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   onLongPress,
   gap = DEFAULT_SELECTITEM_GAP,
   verticalAlignment,
-  rightAccessory,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });

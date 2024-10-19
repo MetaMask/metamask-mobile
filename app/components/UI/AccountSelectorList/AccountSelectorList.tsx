@@ -249,7 +249,6 @@ const AccountSelectorList = ({
       );
     },
     [
-      styles.rightAccessoryContainer,
       onNavigateToAccountActions,
       accountAvatarType,
       onSelectAccount,

@@ -15,10 +15,6 @@ const styleSheet = () =>
       alignItems: 'flex-end',
     },
     balanceLabel: { textAlign: 'right' },
-    rightAccessoryContainer: {
-      marginLeft: 16,
-      paddingVertical: 8,
-    },
   });
 
 export default styleSheet;
