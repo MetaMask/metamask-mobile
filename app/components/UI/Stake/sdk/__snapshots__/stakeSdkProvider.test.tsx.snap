@@ -1168,7 +1168,7 @@ exports[`Stake Modals With Stake Sdk Provider should render correctly stake scre
                                     }
                                   }
                                 >
-                                  2.6%
+                                  0%
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
