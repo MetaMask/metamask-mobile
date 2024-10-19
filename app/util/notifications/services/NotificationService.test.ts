@@ -148,8 +148,8 @@ describe('NotificationsService', () => {
         channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         pressAction: {
           id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
-          launchActivity: LAUNCH_ACTIVITY
-        }
+          launchActivity: LAUNCH_ACTIVITY,
+        },
       },
       ios: {
         foregroundPresentationOptions: {
@@ -159,6 +159,9 @@ describe('NotificationsService', () => {
           banner: true,
           list: true,
         },
+        interruptionLevel: 'critical',
+        launchImageName: 'Default',
+        sound: 'default',
       },
     };
 
