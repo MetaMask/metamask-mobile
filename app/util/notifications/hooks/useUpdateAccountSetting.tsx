@@ -1,8 +1,9 @@
-import { useSwitchNotifications } from '../../../util/notifications/hooks/useSwitchNotifications';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { useCallback, useState } from 'react';
 
-export function useUpdateAccountSetting(address: string, refetchAccountSettings: () => Promise<void>) {
+import { useSwitchNotifications } from '../../../util/notifications/hooks/useSwitchNotifications';
+import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+
+export function useUpdateAccountSetting(address: string, updateAndfetchAccountSettings: () => Promise<void>) {
   const { switchAccountNotifications } = useSwitchNotifications();
   const { listNotifications: refetch } = useListNotifications();
 
@@ -13,15 +14,18 @@ export function useUpdateAccountSetting(address: string, refetchAccountSettings:
     async (state: boolean) => {
       setLoading(true);
       try {
+        // change the account state in the controller
         await switchAccountNotifications([address], state);
-        refetchAccountSettings();
+        // refetch the account settings from the controller
+        updateAndfetchAccountSettings();
+        // refetch the notifications from the controller
         refetch();
       } catch {
         // Do nothing (we don't need to propagate this)
       }
       setLoading(false);
     },
-    [address, refetch, refetchAccountSettings, switchAccountNotifications],
+    [address, refetch, updateAndfetchAccountSettings, switchAccountNotifications],
   );
 
   return { toggleAccount, loading };
