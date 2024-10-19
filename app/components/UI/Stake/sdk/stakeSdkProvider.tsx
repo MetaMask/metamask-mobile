@@ -1,4 +1,9 @@
-import { StakingType, StakeSdk, PooledStakingContract } from '@metamask/stake-sdk';
+import {
+  StakingType,
+  StakeSdk,
+  PooledStakingContract,
+  type StakingApiService,
+} from '@metamask/stake-sdk';
 import Logger from '../../../../util/Logger';
 import React, {
   useState,
@@ -11,11 +16,11 @@ import React, {
 export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
 export interface Stake {
-    sdkError?: Error;
-    sdkService?: PooledStakingContract; // to do : facade it for other services implementation
-
-    sdkType?: StakingType;
-    setSdkType: (stakeType: StakingType) => void;
+  sdkError?: Error;
+  stakingContract?: PooledStakingContract;
+  stakingApiService?: StakingApiService;
+  sdkType?: StakingType;
+  setSdkType: (stakeType: StakingType) => void;
 }
 
 export const StakeContext = createContext<Stake | undefined>(undefined);
@@ -23,18 +28,23 @@ export const StakeContext = createContext<Stake | undefined>(undefined);
 export interface StakeProviderProps {
   stakingType?: StakingType;
 }
-export const StakeSDKProvider: React.FC<PropsWithChildren<StakeProviderProps>> = ({
-  children,
-}) => {
-  const [sdkService, setSdkService] = useState<PooledStakingContract>();
+export const StakeSDKProvider: React.FC<
+  PropsWithChildren<StakeProviderProps>
+> = ({ children }) => {
+  const [stakingContract, setStakingContract] =
+    useState<PooledStakingContract>();
+  const [stakingApiService, setStakingApiService] =
+    useState<StakingApiService>();
+
   const [sdkError, setSdkError] = useState<Error>();
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
 
   useEffect(() => {
     (async () => {
       try {
+        setStakingApiService(SDK.stakingApiService);
         if (sdkType === StakingType?.POOLED) {
-          setSdkService(SDK.pooledStakingContractService);
+          setStakingContract(SDK.pooledStakingContract);
         } else {
           const notImplementedError = new Error(
             `StakeSDKProvider SDK.StakingType ${sdkType} not implemented yet`,
@@ -52,16 +62,12 @@ export const StakeSDKProvider: React.FC<PropsWithChildren<StakeProviderProps>> =
   const stakeContextValue = useMemo(
     (): Stake => ({
       sdkError,
-      sdkService,
+      stakingContract,
       sdkType,
       setSdkType,
+      stakingApiService,
     }),
-    [
-      sdkError,
-      sdkService,
-      sdkType,
-      setSdkType,
-    ],
+    [sdkError, stakingContract, sdkType, stakingApiService],
   );
   return (
     <StakeContext.Provider value={stakeContextValue}>
