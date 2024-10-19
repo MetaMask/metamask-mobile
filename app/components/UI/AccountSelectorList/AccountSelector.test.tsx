@@ -33,6 +33,15 @@ jest.mock('../../../util/address', () => {
   };
 });
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 const initialState = {
   engine: {
     backgroundState: {
