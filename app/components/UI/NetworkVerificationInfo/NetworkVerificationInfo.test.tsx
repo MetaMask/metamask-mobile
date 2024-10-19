@@ -1,9 +1,9 @@
 import React from 'react';
 import NetworkVerificationInfo from './NetworkVerificationInfo';
-import { render } from '@testing-library/react-native';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import renderWithSafeAreaProvider from '../../../util/test/renderWithProvider';
 
 const mockNetworkInfo = {
   chainName: 'Test Chain',
@@ -32,7 +32,7 @@ describe('NetworkVerificationInfo', () => {
   });
   it('renders correctly', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
-    const { toJSON } = render(
+    const { toJSON } = renderWithSafeAreaProvider(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
         onReject={() => undefined}
@@ -44,7 +44,7 @@ describe('NetworkVerificationInfo', () => {
   });
   it('renders one alert', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
-    const { getByText } = render(
+    const { getByText } = renderWithSafeAreaProvider(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
         onReject={() => undefined}
@@ -58,7 +58,7 @@ describe('NetworkVerificationInfo', () => {
 
   it('should render the banner', () => {
     (useSelector as jest.Mock).mockReturnValue(false);
-    const { getByText } = render(
+    const { getByText } = renderWithSafeAreaProvider(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
         onReject={() => undefined}
@@ -72,7 +72,7 @@ describe('NetworkVerificationInfo', () => {
 
   it('should not render alert', () => {
     (useSelector as jest.Mock).mockReturnValue(false);
-    const { getByText } = render(
+    const { getByText } = renderWithSafeAreaProvider(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
         onReject={() => undefined}
@@ -87,7 +87,7 @@ describe('NetworkVerificationInfo', () => {
 
   it('should render chainId on decimal', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
-    const { getByText } = render(
+    const { getByText } = renderWithSafeAreaProvider(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
         onReject={() => undefined}
