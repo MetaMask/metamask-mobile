@@ -198,7 +198,7 @@ const AccountSelectorList = ({
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
         ? CellVariant.MultiSelect
-        : CellVariant.Select;
+        : CellVariant.SelectWithMenu;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
@@ -215,53 +215,41 @@ const AccountSelectorList = ({
       };
 
       return (
-        <View style={styles.accountItemContainer}>
-          <Cell
-            onLongPress={() => {
-              onLongPress({
-                address,
-                imported: type === KeyringTypes.simple,
-                isSelected: isSelectedAccount,
-                index,
-              });
-            }}
-            variant={cellVariant}
-            isSelected={isSelectedAccount}
-            title={accountName}
-            secondaryText={shortAddress}
-            tertiaryText={balanceError}
-            onPress={() => onSelectAccount?.(address, isSelectedAccount)}
-            avatarProps={{
-              variant: AvatarVariant.Account,
-              type: accountAvatarType,
-              accountAddress: address,
-            }}
-            tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
-            disabled={isDisabled}
-            style={cellStyle as ViewStyle}
-            rightAccessory={
-              <TouchableOpacity
-                onPress={() => onNavigateToAccountActions(address)}
-                style={styles.rightAccessoryContainer}
-                testID={WalletViewSelectorsIDs.ACCOUNT_ACTIONS}
-              >
-                <ButtonIcon
-                  onPress={() => onNavigateToAccountActions(address)}
-                  iconName={IconName.MoreVertical}
-                  size={ButtonIconSizes.Sm}
-                />
-              </TouchableOpacity>
-            }
-          >
-            {renderRightAccessory?.(address, accountName) ||
-              (assets && renderAccountBalances(assets, address))}
-          </Cell>
-        </View>
+        <Cell
+          key={address}
+          onLongPress={() => {
+            onLongPress({
+              address,
+              imported: type === KeyringTypes.simple,
+              isSelected: isSelectedAccount,
+              index,
+            });
+          }}
+          variant={cellVariant}
+          isSelected={isSelectedAccount}
+          title={accountName}
+          secondaryText={shortAddress}
+          tertiaryText={balanceError}
+          onPress={() => onSelectAccount?.(address, isSelectedAccount)}
+          avatarProps={{
+            variant: AvatarVariant.Account,
+            type: accountAvatarType,
+            accountAddress: address,
+          }}
+          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
+          disabled={isDisabled}
+          style={cellStyle as ViewStyle}
+          buttonProps={{
+            onButtonClick: () => onNavigateToAccountActions(address),
+          }}
+        >
+          {renderRightAccessory?.(address, accountName) ||
+            (assets && renderAccountBalances(assets, address))}
+        </Cell>
       );
     },
     [
       styles.rightAccessoryContainer,
-      styles.accountItemContainer,
       onNavigateToAccountActions,
       accountAvatarType,
       onSelectAccount,

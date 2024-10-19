@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { waitFor, within, fireEvent } from '@testing-library/react-native';
+import { waitFor, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
@@ -16,8 +16,6 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import Routes from '../../../constants/navigation/Routes';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -238,26 +236,6 @@ describe('AccountSelectorList', () => {
     await waitFor(async () => {
       const snapTag = await queryByText('Snaps (beta)');
       expect(snapTag).toBeDefined();
-    });
-  });
-
-  it('renders and handles the "More" button correctly', async () => {
-    const { getAllByTestId } = renderComponent(initialState);
-
-    await waitFor(() => {
-      const moreButtons = getAllByTestId(
-        WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
-      );
-      expect(moreButtons.length).toBe(2);
-
-      fireEvent.press(moreButtons[0]);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        expect.objectContaining({
-          screen: Routes.SHEET.ACCOUNT_ACTIONS,
-          params: expect.any(Object),
-        }),
-      );
     });
   });
 });

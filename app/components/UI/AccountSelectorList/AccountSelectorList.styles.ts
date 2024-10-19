@@ -15,9 +15,6 @@ const styleSheet = () =>
       alignItems: 'flex-end',
     },
     balanceLabel: { textAlign: 'right' },
-    accountItemContainer: {
-      flexDirection: 'row',
-    },
     rightAccessoryContainer: {
       marginLeft: 16,
       paddingVertical: 8,

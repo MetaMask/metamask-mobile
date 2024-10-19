@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useCallback } from 'react';
-import { TouchableOpacity, View, GestureResponderEvent } from 'react-native';
+import React from 'react';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -25,47 +25,19 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
-  const handlePress = useCallback(
-    (event: GestureResponderEvent) => {
-      if (!isDisabled && onPress) {
-        onPress(event);
-      }
-    },
-    [isDisabled, onPress],
-  );
-
-  const handleLongPress = useCallback(
-    (event: GestureResponderEvent) => {
-      if (!isDisabled && onLongPress) {
-        onLongPress(event);
-      }
-    },
-    [isDisabled, onLongPress],
-  );
-
   return (
     <TouchableOpacity
       style={styles.base}
-      onPress={handlePress}
-      onLongPress={handleLongPress}
       disabled={isDisabled}
+      onPress={onPress}
+      onLongPress={onLongPress}
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
-        <View style={styles.contentContainer}>
-          <View style={styles.childrenContainer}>{children}</View>
-          {rightAccessory && (
-            <View pointerEvents="box-none">{rightAccessory}</View>
-          )}
-        </View>
+        {children}
       </ListItem>
       {isSelected && (
-        <View
-          pointerEvents="box-none"
-          style={styles.underlay}
-          accessibilityRole="checkbox"
-          accessible
-        >
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible>
           <View style={styles.underlayBar} />
         </View>
       )}

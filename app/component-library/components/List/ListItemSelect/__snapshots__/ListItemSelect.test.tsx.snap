@@ -3,8 +3,6 @@
 exports[`ListItemSelect should render snapshot correctly 1`] = `
 <TouchableOpacity
   disabled={false}
-  onLongPress={[Function]}
-  onPress={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -31,26 +29,7 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
         }
       }
     >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "width": "100%",
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "flex": 1,
-            }
-          }
-        >
-          <View />
-        </View>
-      </View>
+      <View />
     </View>
   </View>
 </TouchableOpacity>
