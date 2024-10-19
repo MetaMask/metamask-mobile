@@ -32,7 +32,7 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/modals/ToastModal';
 
 
-const host = Platform.OS === 'ios' ? 'localhost' : '10.0.2.2'
+const host = device.getPlatform() === 'ios' ? 'localhost' : '10.0.2.2';
 const LOCALHOST_URL = `http://${host}:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 
