@@ -5,6 +5,10 @@ import StakingBalance from './StakingBalance';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Image } from 'react-native';
+import {
+  MOCK_GET_POOLED_STAKES_API_RESPONSE,
+  MOCK_GET_VAULT_RESPONSE,
+} from '../../__mocks__/mockData';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -24,12 +28,50 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
+const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
+
+const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+// Mock hooks
+jest.mock('../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    pooledStakesData: mockPooledStakeData,
+    exchangeRate: mockExchangeRate,
+    loading: false,
+    error: null,
+    refreshPooledStakes: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useVaultData', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultData: mockVaultData,
+    loading: false,
+    error: null,
+    refreshVaultData: jest.fn(),
+  }),
+}));
+
 afterEach(() => {
   jest.clearAllMocks();
 });
 
 describe('StakingBalance', () => {
-  beforeEach(() => jest.resetAllMocks());
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
 
   it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(<StakingBalance />);
