@@ -212,6 +212,10 @@ const createStyles = (colors) =>
       borderColor: staticColors.transparent,
       padding: 0,
     },
+    onboardingInputDisabled: {
+      borderColor: colors.border.muted,
+      color: colors.text.muted,
+    },
     input: {
       ...fontStyles.normal,
       borderColor: colors.border.default,
@@ -1619,6 +1623,7 @@ export class NetworkSettings extends PureComponent {
         : styles.input,
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
+      !addMode ? styles.onboardingInputDisabled : undefined,
     ];
 
     const isRPCEditable = isCustomMainnet || editable;
