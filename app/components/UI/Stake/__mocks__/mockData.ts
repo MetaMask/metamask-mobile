@@ -1,10 +1,6 @@
-import { TokenI } from '../../../../UI/Tokens/types';
-import {
-  GetStakesApiResponse,
-  GetVaultDataApiResponse,
-} from './StakingBalance.types';
+import type { PooledStakes, VaultData } from '@metamask/stake-sdk';
+import { TokenI } from '../../Tokens/types';
 
-// TODO: Replace mock data when connecting to backend.
 export const MOCK_STAKED_ETH_ASSET = {
   balance: '4.9999 ETH',
   balanceFiat: '$13,292.20',
@@ -12,8 +8,7 @@ export const MOCK_STAKED_ETH_ASSET = {
   symbol: 'ETH',
 } as TokenI;
 
-// TODO: Replace mock data when connecting to backend.
-export const MOCK_GET_POOLED_STAKES_API_RESPONSE: GetStakesApiResponse = {
+export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
     {
       account: '0x0123456789abcdef0123456789abcdef01234567',
@@ -64,8 +59,7 @@ export const MOCK_GET_POOLED_STAKES_API_RESPONSE: GetStakesApiResponse = {
   exchangeRate: '1.010906701603882254',
 };
 
-// TODO: See if this data is available yet. If not, mock backend response.
-export const MOCK_GET_VAULT_RESPONSE: GetVaultDataApiResponse = {
+export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   apy: '2.853065141088762750393474836309926',
   capacity:
     '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456',

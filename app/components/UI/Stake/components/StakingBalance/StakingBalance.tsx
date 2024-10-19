@@ -35,28 +35,32 @@ import {
 } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
-import {
-  MOCK_GET_POOLED_STAKES_API_RESPONSE,
-  MOCK_GET_VAULT_RESPONSE,
-  MOCK_STAKED_ETH_ASSET,
-} from './mockData';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
+import useIsStakingSupportedChain from '../../hooks/useStakingChain';
+import usePooledStakes from '../../hooks/usePooledStakes';
+import useVaultData from '../../hooks/useVaultData';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 
-const StakingBalance = () => {
+const StakingBalanceContent = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const networkName = useSelector(selectNetworkName);
 
-  const [isGeoBlocked] = useState(false);
+  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
+
+  const { isStakingSupportedChain } = useIsStakingSupportedChain();
+
+  const { pooledStakesData, exchangeRate } = usePooledStakes();
+  const { vaultData } = useVaultData();
+  const annualRewardRate = vaultData?.apy || '';
+
   const [hasStakedPositions] = useState(false);
 
-  const { unstakingRequests, claimableRequests } = useMemo(
-    () =>
-      filterExitRequests(
-        MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0].exitRequests,
-        MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
-      ),
-    [],
-  );
+  const { unstakingRequests, claimableRequests } = useMemo(() => {
+    const exitRequests = pooledStakesData?.exitRequests ?? [];
+    return filterExitRequests(exitRequests, exchangeRate);
+  }, [pooledStakesData, exchangeRate]);
 
   const claimableEth = useMemo(
     () =>
@@ -72,9 +76,13 @@ const StakingBalance = () => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
+  if (!isStakingSupportedChain) {
+    return <></>;
+  }
+
   return (
     <View>
-      {Boolean(MOCK_STAKED_ETH_ASSET.balance) && !isGeoBlocked && (
+      {Boolean(MOCK_STAKED_ETH_ASSET.balance) && isEligibleForPooledStaking && (
         <AssetElement
           asset={MOCK_STAKED_ETH_ASSET}
           mainBalance={MOCK_STAKED_ETH_ASSET.balance}
@@ -99,7 +107,7 @@ const StakingBalance = () => {
       )}
 
       <View style={styles.container}>
-        {isGeoBlocked ? (
+        {!isEligibleForPooledStaking ? (
           <Banner
             variant={BannerVariant.Alert}
             severity={BannerAlertSeverity.Warning}
@@ -137,14 +145,11 @@ const StakingBalance = () => {
             {!hasStakedPositions && (
               <StakingCta
                 style={styles.stakingCta}
-                estimatedRewardRate={formatPercent(
-                  MOCK_GET_VAULT_RESPONSE.apy,
-                  {
-                    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-                    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-                    fixed: 1,
-                  },
-                )}
+                estimatedRewardRate={formatPercent(annualRewardRate, {
+                  inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+                  outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+                  fixed: 1,
+                })}
               />
             )}
 
@@ -155,5 +160,11 @@ const StakingBalance = () => {
     </View>
   );
 };
+
+export const StakingBalance = () => (
+  <StakeSDKProvider>
+    <StakingBalanceContent />
+  </StakeSDKProvider>
+);
 
 export default StakingBalance;
