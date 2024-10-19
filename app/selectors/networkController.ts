@@ -156,3 +156,4 @@ export const selectNetworkClientId = createSelector(
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
 );
+
