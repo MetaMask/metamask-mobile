@@ -4,6 +4,7 @@ import UnstakeInputView from './UnstakeInputView';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -46,6 +47,28 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectConversionRate: jest.fn(() => 2000),
   selectCurrentCurrency: jest.fn(() => 'USD'),
+}));
+
+const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useVaultData', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultData: mockVaultData,
+    loading: false,
+    error: null,
+    refreshVaultData: jest.fn(),
+  }),
 }));
 
 describe('UnstakeInputView', () => {
