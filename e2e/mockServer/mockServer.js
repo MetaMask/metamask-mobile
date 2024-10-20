@@ -2,6 +2,7 @@
 import { getLocal } from 'mockttp';
 import { defaultMockPort } from './mockUrlCollection';
 import portfinder from 'portfinder';
+import { Platform } from 'react-native';
 
 const mockServer = getLocal();
 
@@ -28,8 +29,13 @@ export const startMockServer = async ({
 
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method }) => {
-      console.log(`Forwarding request to: ${method} ${url}`);
-      return { url: new URL(url).searchParams.get('url') || url };
+      let newUrl = url;
+      // Check if Platform is Android and URL contains localhost
+      if (device.getPlatform() === 'android' && newUrl.includes('localhost')) {
+        newUrl = newUrl.replace('localhost', '10.0.2.2');
+      }
+      console.log(`Forwarding request to: ${method} ${newUrl}`);
+      return { url: new URL(newUrl).searchParams.get('url') || newUrl };
     },
   });
 
