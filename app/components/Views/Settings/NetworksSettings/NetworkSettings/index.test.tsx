@@ -80,6 +80,12 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
         },
       ],
     },
+
+    '0x5': {
+      chainId: '0x5',
+      name: 'Goerli',
+      rpcEndpoints: [{ url: 'https://goerli.infura.io/v3/{infuraProjectId}' }],
+    },
   },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
   matchedChainNetwork: {
@@ -1292,6 +1298,63 @@ describe('NetworkSettings', () => {
         }),
         { replacementSelectedRpcEndpointIndex: 0 },
       );
+    });
+  });
+
+  describe('checkIfRpcUrlExists', () => {
+    // Mock network configurations
+    const networkConfigurations = {
+      '0x1': {
+        chainId: '0x1',
+        name: 'Mainnet',
+        rpcEndpoints: [
+          { url: 'https://mainnet.infura.io/v3/{infuraProjectId}' },
+        ],
+      },
+      '0x5': {
+        chainId: '0x5',
+        name: 'Goerli',
+        rpcEndpoints: [
+          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
+        ],
+      },
+    };
+
+    it('should return matching custom network if RPC URL exists in networkConfigurations', async () => {
+      const rpcUrl = 'https://goerli.infura.io/v3/{infuraProjectId}';
+      const instance = wrapper.instance();
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([networkConfigurations['0x5']]);
+    });
+
+    it('should return an empty array if the RPC URL does not exist', async () => {
+      const rpcUrl = 'https://random.network.io';
+      const instance = wrapper.instance();
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return multiple networks if multiple RPC URLs match', async () => {
+      const instance = wrapper.instance();
+
+      // Add another endpoint with the same RPC URL
+      instance.props.networkConfigurations['0x2'] = {
+        chainId: '0x2',
+        name: 'Another Network',
+        rpcEndpoints: [
+          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
+        ],
+      };
+
+      const rpcUrl = 'https://goerli.infura.io/v3/{infuraProjectId}';
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([
+        networkConfigurations['0x5'],
+        instance.props.networkConfigurations['0x2'],
+      ]);
     });
   });
 });
