@@ -15,15 +15,6 @@ jest.mock('../../../core/Engine.ts', () => ({
     subscribeOnceIf: jest.fn(),
   },
 }));
-jest.mock('../../../components/hooks/useMetrics');
-
-const mockMetrics = {
-  trackEvent: jest.fn(),
-  enable: jest.fn(() => Promise.resolve()),
-  addTraitsToUser: jest.fn(() => Promise.resolve()),
-  isDataRecorded: jest.fn(() => true),
-  isEnabled: jest.fn(() => true),
-};
 
 const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
 
