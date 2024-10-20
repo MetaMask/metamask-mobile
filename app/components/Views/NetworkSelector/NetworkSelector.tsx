@@ -26,11 +26,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-  ProviderConfig,
-} from '../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
@@ -127,7 +123,6 @@ const NetworkSelector = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const route =
@@ -370,9 +365,7 @@ const NetworkSelector = () => {
       }
 
       const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          BUILT_IN_NETWORKS[type].chainId,
-        );
+        networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
 
       const clientId =
         networkConfiguration?.rpcEndpoints[
@@ -450,7 +443,7 @@ const NetworkSelector = () => {
             imageSource: images.ETHEREUM,
             size: AvatarSize.Sm,
           }}
-          isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
+          isSelected={chainId === selectedChainId}
           onPress={() => onNetworkChange(MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
@@ -482,7 +475,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
+        isSelected={chainId === selectedChainId}
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
       />
@@ -541,7 +534,7 @@ const NetworkSelector = () => {
           imageSource: images['LINEA-MAINNET'],
           size: avatarSize,
         }}
-        isSelected={chainId === selectedChainId && !providerConfig?.rpcUrl}
+        isSelected={chainId === selectedChainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -587,7 +580,7 @@ const NetworkSelector = () => {
               imageSource: image,
               size: AvatarSize.Sm,
             }}
-            isSelected={Boolean(chainId === selectedChainId && selectedRpcUrl)}
+            isSelected={Boolean(chainId === selectedChainId)}
             onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
@@ -622,9 +615,7 @@ const NetworkSelector = () => {
             imageSource: image,
             size: avatarSize,
           }}
-          isSelected={Boolean(
-            chainId === selectedChainId && selectedRpcUrl === rpcUrl,
-          )}
+          isSelected={Boolean(chainId === selectedChainId)}
           onPress={() => onSetRpcTarget(networkConfiguration)}
           style={styles.networkCell}
         >

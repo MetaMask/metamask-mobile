@@ -758,6 +758,32 @@ export class NetworkSettings extends PureComponent {
     return isNetworkUiRedesignEnabled() && chainIdExists;
   };
 
+  checkIfRpcUrlExists = async (rpcUrl) => {
+    // First, check custom networks in networkConfigurationsByChainId
+    const checkCustomNetworks = Object.values(
+      this.props.networkConfigurations,
+    ).filter((item) =>
+      item.rpcEndpoints.some((endpoint) => endpoint.url === rpcUrl),
+    );
+
+    if (checkCustomNetworks.length > 0) {
+      return checkCustomNetworks;
+    }
+
+    // Check default networks (assuming getAllNetworks and Networks are still valid for default networks)
+    const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
+    const checkDefaultNetworks = defaultNetworks.filter((item) =>
+      item.rpcEndpoints.some((endpoint) => endpoint.url === rpcUrl),
+    );
+
+    if (checkDefaultNetworks.length > 0) {
+      return checkDefaultNetworks;
+    }
+
+    // If no network exists with the given RPC URL
+    return [];
+  };
+
   checkIfNetworkExists = async (rpcUrl) => {
     const checkCustomNetworks = Object.values(
       this.props.networkConfigurations,
@@ -939,6 +965,9 @@ export class NetworkSettings extends PureComponent {
    */
   validateRpcUrl = async (rpcUrl) => {
     const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
+    // TODO HERE ...
+    const isRpcExists = await this.checkIfRpcUrlExists(rpcUrl);
+
     if (!isWebUri(rpcUrl)) {
       const appendedRpc = `http://${rpcUrl}`;
       if (isWebUri(appendedRpc)) {
@@ -951,6 +980,12 @@ export class NetworkSettings extends PureComponent {
         });
       }
       return false;
+    }
+
+    if (isRpcExists.length > 0) {
+      return this.setState({
+        warningRpcUrl: strings('app_settings.url_already_been_added'),
+      });
     }
 
     if (isNetworkExists.length > 0) {
@@ -2286,7 +2321,7 @@ export class NetworkSettings extends PureComponent {
                       <Cell
                         key={`${url}-${name}`}
                         variant={CellVariant.SelectWithMenu}
-                        title={name ?? type}
+                        title={name || type}
                         secondaryText={hideKeyFromUrl(url)}
                         isSelected={rpcUrl === url}
                         withAvatar={false}
