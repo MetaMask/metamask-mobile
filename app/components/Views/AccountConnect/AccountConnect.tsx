@@ -38,7 +38,11 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import {
+  getHost,
+  getUrlObj,
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
@@ -121,7 +125,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const isOriginWalletConnect = wc2Metadata?.id && wc2Metadata?.id.length > 0;
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
@@ -140,6 +143,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   });
 
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
+
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -605,6 +611,11 @@ const AccountConnect = (props: AccountConnectProps) => {
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
         hostname={hostname}
+        onPrimaryActionButtonPress={
+          isMultichainVersion1Enabled
+            ? () => setScreen(AccountConnectScreens.SingleConnect)
+            : undefined
+        }
       />
     ),
     [

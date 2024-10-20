@@ -16,11 +16,14 @@ export class AppStateEventListener {
 
   constructor() {
     this.lastAppState = AppState.currentState;
-    this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateSubscription = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
   }
 
   init(store: Store) {
-    if(this.store) {
+    if (this.store) {
       Logger.error(new Error('store is already initialized'));
       throw new Error('store is already initialized');
     }
@@ -32,10 +35,7 @@ export class AppStateEventListener {
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
-    if (
-      nextAppState === 'active' &&
-      this.lastAppState !== nextAppState
-    ) {
+    if (nextAppState === 'active' && this.lastAppState !== nextAppState) {
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange();
@@ -51,15 +51,27 @@ export class AppStateEventListener {
     }
 
     try {
-      const attributionId = processAttribution({ currentDeeplink: this.currentDeeplink, store: this.store });
-        DevLogger.log(`AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attributionId}`);
-      MetaMetrics.getInstance().trackEvent(
-        MetaMetricsEvents.APP_OPENED,
-        { attributionId },
-        true
-      );
+      const attribution = processAttribution({
+        currentDeeplink: this.currentDeeplink,
+        store: this.store,
+      });
+      if (attribution) {
+        const { attributionId, utm, ...utmParams } = attribution;
+        DevLogger.log(
+          `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`,
+          utmParams,
+        );
+        MetaMetrics.getInstance().trackEvent(
+          MetaMetricsEvents.APP_OPENED,
+          { attributionId, ...utmParams },
+          true,
+        );
+      }
     } catch (error) {
-      Logger.error(error as Error, 'AppStateManager: Error processing app state change');
+      Logger.error(
+        error as Error,
+        'AppStateManager: Error processing app state change',
+      );
     }
   };
 

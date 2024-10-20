@@ -39,8 +39,6 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            // selectedNetworkClientId: 'mainnet',
-            // networksMetadata: {},
             ...mockNetworkState(
               {
                 chainId: '0x1',
@@ -52,26 +50,6 @@ jest.mock('../../store', () => ({
                 ...existingNetworkConfiguration,
               },
             ),
-            // mainnet: {
-            //   id: 'mainnet',
-            //   rpcUrl: 'https://mainnet.infura.io/v3',
-            //   chainId: '0x1',
-            //   ticker: 'ETH',
-            //   nickname: 'Sepolia network',
-            //   rpcPrefs: {
-            //     blockExplorerUrl: 'https://etherscan.com',
-            //   },
-            // },
-            // 'test-network-configuration-id': {
-            //   id: 'test-network-configuration-id',
-            //   rpcUrl: 'https://gnosis-chain.infura.io/v3',
-            //   chainId: '0x64',
-            //   ticker: 'ETH',
-            //   nickname: 'Gnosis Chain',
-            //   rpcPrefs: {
-            //     blockExplorerUrl: 'https://gnosisscan.com',
-            //   },
-            // },
           },
         },
       },
