@@ -81,7 +81,12 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
-import { connectionChangeHandler } from '../../../util/navigation/navUtils';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../components/hooks/useMetrics';
+
+const { trackEvent } = useMetrics();
 
 const Stack = createStackNavigator();
 
@@ -133,7 +138,33 @@ const Main = (props) => {
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
-  const checkInfuraAvailability = async () => {
+  const connectionChangeHandler = () => {
+    try {
+      if (!state) return;
+      const { isConnected } = state;
+
+      // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
+      const debounceTimeout = setTimeout(() => {
+        if (connected && isConnected === false) {
+          navigation.navigate('OfflineModeView');
+        }
+      }, 3000);
+
+      // Clear timeout if connection stabilizes
+      if (isConnected === true) {
+        clearTimeout(debounceTimeout);
+      }
+
+      if (connected !== isConnected && isConnected !== null) {
+        setConnected(isConnected);
+      }
+    } catch (e) {
+      console.error('User dropped connection', e);
+      trackEvent(MetaMetricsEvents.CONNECTION_DROPPED);
+    }
+  };
+
+  const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
         const ethQuery = Engine.getGlobalEthQuery();
@@ -148,7 +179,13 @@ const Main = (props) => {
     } else {
       props.setInfuraAvailabilityNotBlocked();
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    props.navigation,
+    props.providerType,
+    props.setInfuraAvailabilityBlocked,
+    props.setInfuraAvailabilityNotBlocked,
+  ]);
 
   const handleAppStateChange = useCallback(
     (appState) => {
@@ -305,12 +342,7 @@ const Main = (props) => {
       });
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
-        connectionChangeHandler(
-          state.isConnected,
-          connected,
-          setConnected,
-          props.navigation,
-        ),
+        connectionChangeHandler,
       );
     }, 1000);
 
