@@ -289,12 +289,7 @@ const Main = (props) => {
             label: `${newNetwork?.name ?? strings('asset_details.network')} `,
             isBold: true,
           },
-          {
-            label:
-              currentNetworkValues.length > previousNetworkValues.length
-                ? strings('toast.network_added')
-                : strings('toast.network_deleted'),
-          },
+          { label: strings('toast.network_added') },
         ],
         networkImageSource: networkImage,
       });
