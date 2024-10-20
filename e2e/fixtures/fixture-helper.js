@@ -12,6 +12,7 @@ import { device } from 'detox';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
+
 // While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
 const getFixturesPort =
   typeof getFixturesServerPort === 'function'
