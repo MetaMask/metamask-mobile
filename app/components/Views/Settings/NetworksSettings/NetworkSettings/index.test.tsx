@@ -736,6 +736,22 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('warningRpcUrl')).toBe(undefined);
     });
 
+    it('should set warning for a duplicated RPC URL', async () => {
+      const instance = wrapper.instance();
+
+      // Test with a valid RPC URL
+      await instance.onRpcUrlChange(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+
+      expect(wrapper.state('warningRpcUrl')).toBe(
+        'This URL has already been added',
+      );
+    });
+
     it('should correctly add RPC URL through modal and update state', async () => {
       const instance = wrapper.instance();
 
