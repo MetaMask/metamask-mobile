@@ -1165,11 +1165,13 @@ export class NetworkSettings extends PureComponent {
     if (chainId === MAINNET) {
       // Allow 'Mainnet' or nickname for Ethereum Mainnet
       nameToUse =
-        name === nickname || nickname === MAINNET_NAME ? undefined : name;
+        // eslint-disable-next-line eqeqeq
+        name === nickname || nickname == MAINNET_NAME ? undefined : name;
     } else if (chainId === LINEA_MAINNET) {
       // Allow 'Linea Mainnet' or nickname for Linea Mainnet
       nameToUse =
-        name === nickname || nickname === LINEA_NAME ? undefined : name;
+        // eslint-disable-next-line eqeqeq
+        name === nickname || nickname == LINEA_NAME ? undefined : name;
     } else {
       // For other chains, check if name matches the nickname
       nameToUse = name === nickname ? undefined : name;

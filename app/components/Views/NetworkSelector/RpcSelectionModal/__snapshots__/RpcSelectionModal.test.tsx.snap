@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RpcSelectionModal should render correctly 1`] = `
+exports[`RpcSelectionModal should render correctly when visible 1`] = `
 <View
   onLayout={[Function]}
   style={

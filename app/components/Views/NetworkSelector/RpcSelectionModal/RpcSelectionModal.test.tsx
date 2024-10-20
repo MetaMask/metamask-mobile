@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 // Internal dependencies.
@@ -29,6 +30,23 @@ const MOCK_STORE_STATE = {
               decimals: 18,
             },
           },
+          [CHAIN_IDS.LINEA_MAINNET]: {
+            rpcEndpoints: [
+              {
+                url: 'https://linea.infura.io/v3/{infuraProjectId}',
+                networkClientId: 'lineaMainnet',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://lineascan.io'],
+            chainId: CHAIN_IDS.LINEA_MAINNET,
+            name: 'Linea Mainnet',
+            nativeCurrency: {
+              name: 'Linea Ether',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
         },
       },
     },
@@ -41,7 +59,6 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('react-native-safe-area-context', () => {
-  // using disting digits for mock rects to make sure they are not mixed up
   const inset = { top: 1, right: 2, bottom: 3, left: 4 };
   const frame = { width: 5, height: 6, x: 7, y: 8 };
   return {
@@ -68,7 +85,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('RpcSelectionModal', () => {
-  // Fully mock rpcMenuSheetRef to match the BottomSheetRef type
   const mockRpcMenuSheetRef = {
     current: {
       onOpenBottomSheet: jest.fn(),
@@ -101,10 +117,73 @@ describe('RpcSelectionModal', () => {
     },
   };
 
-  it('should render correctly', () => {
+  it('should render correctly when visible', () => {
     const { toJSON } = renderWithProvider(
       <RpcSelectionModal {...defaultProps} />,
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should not render when not visible', () => {
+    const { queryByText } = renderWithProvider(
+      <RpcSelectionModal
+        {...defaultProps}
+        showMultiRpcSelectModal={{
+          ...defaultProps.showMultiRpcSelectModal,
+          isVisible: false,
+        }}
+      />,
+    );
+    expect(queryByText('Mainnet')).toBeNull();
+  });
+
+  it('should display the correct network name for Ethereum Mainnet', () => {
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    expect(getByText('Mainnet')).toBeTruthy();
+  });
+
+  it('should display the correct network name for Linea Mainnet', () => {
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal
+        {...defaultProps}
+        showMultiRpcSelectModal={{
+          isVisible: true,
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+          networkName: 'Linea Mainnet',
+        }}
+      />,
+    );
+    expect(getByText('Linea Mainnet')).toBeTruthy();
+  });
+
+  it('should call onRpcSelect and closeRpcModal when an RPC is selected', () => {
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+
+    fireEvent.press(rpcUrlElement);
+
+    expect(defaultProps.onRpcSelect).toHaveBeenCalledWith(
+      'mainnet',
+      CHAIN_IDS.MAINNET,
+    );
+    expect(defaultProps.closeRpcModal).toHaveBeenCalled();
+  });
+
+  it('should handle no RPC endpoints gracefully', () => {
+    const { queryByText } = renderWithProvider(
+      <RpcSelectionModal
+        {...defaultProps}
+        showMultiRpcSelectModal={{
+          ...defaultProps.showMultiRpcSelectModal,
+          chainId: '0x2',
+        }}
+      />,
+    );
+
+    expect(queryByText('mainnet.infura.io')).toBeNull(); // Should not render any RPC URLs
   });
 });
