@@ -306,7 +306,7 @@ const Main = (props) => {
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler(
-          state,
+          state.isConnected,
           connected,
           setConnected,
           props.navigation,

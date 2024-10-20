@@ -33,7 +33,7 @@ export const useParams = <
 };
 
 export const connectionChangeHandler = (
-  state: { isConnected: boolean },
+  isConnected: boolean,
   connected: boolean,
   setConnected: (connected: boolean) => void,
   // TODO: Replace "any" with type
@@ -41,8 +41,7 @@ export const connectionChangeHandler = (
   navigation: any,
 ) => {
   try {
-    if (!state) return;
-    const { isConnected } = state;
+    if (isConnected === null) return;
 
     // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
     const debounceTimeout = setTimeout(() => {
