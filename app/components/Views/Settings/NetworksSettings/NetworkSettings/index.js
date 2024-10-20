@@ -35,7 +35,11 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
+import {
+  DEFAULT_MAINNET_CUSTOM_NAME,
+  PRIVATENETWORK,
+  RPC,
+} from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl, {
@@ -770,16 +774,6 @@ export class NetworkSettings extends PureComponent {
       return checkCustomNetworks;
     }
 
-    // Check default networks (assuming getAllNetworks and Networks are still valid for default networks)
-    const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
-    const checkDefaultNetworks = defaultNetworks.filter((item) =>
-      item.rpcEndpoints.some((endpoint) => endpoint.url === rpcUrl),
-    );
-
-    if (checkDefaultNetworks.length > 0) {
-      return checkDefaultNetworks;
-    }
-
     // If no network exists with the given RPC URL
     return [];
   };
@@ -965,7 +959,6 @@ export class NetworkSettings extends PureComponent {
    */
   validateRpcUrl = async (rpcUrl) => {
     const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
-    // TODO HERE ...
     const isRpcExists = await this.checkIfRpcUrlExists(rpcUrl);
 
     if (!isWebUri(rpcUrl)) {
@@ -1157,19 +1150,36 @@ export class NetworkSettings extends PureComponent {
    * Validates that name match with the chainId, setting a warningName if is invalid
    */
   validateName = (chainToMatch = null) => {
-    const { nickname, networkList } = this.state;
+    const { nickname, networkList, chainId } = this.state;
     const { useSafeChainsListValidation } = this.props;
+    const { MAINNET, LINEA_MAINNET } = CHAIN_IDS;
+    const MAINNET_NAME = 'Mainnet';
+    const LINEA_NAME = 'Linea Mainnet';
 
     if (!useSafeChainsListValidation) {
       return;
     }
 
-    const name = chainToMatch
-      ? chainToMatch?.name ?? null
-      : networkList?.name ?? null;
+    // Get the name either from chainToMatch or networkList
+    const name = chainToMatch?.name || networkList?.name || null;
 
-    const nameToUse = name === nickname ? undefined : name;
+    let nameToUse;
 
+    // Determine nameToUse based on chainId and nickname comparison
+    if (chainId === MAINNET) {
+      // Allow 'Mainnet' or nickname for Ethereum Mainnet
+      nameToUse =
+        name === nickname || nickname === MAINNET_NAME ? undefined : name;
+    } else if (chainId === LINEA_MAINNET) {
+      // Allow 'Linea Mainnet' or nickname for Linea Mainnet
+      nameToUse =
+        name === nickname || nickname === LINEA_NAME ? undefined : name;
+    } else {
+      // For other chains, check if name matches the nickname
+      nameToUse = name === nickname ? undefined : name;
+    }
+
+    // Update state with warningName
     this.setState({
       warningName: nameToUse,
     });

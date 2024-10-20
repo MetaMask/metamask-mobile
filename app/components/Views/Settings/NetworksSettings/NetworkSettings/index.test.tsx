@@ -730,7 +730,7 @@ describe('NetworkSettings', () => {
         'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
       );
       await instance.validateRpcUrl(
-        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID-2',
       );
 
       expect(wrapper.state('warningRpcUrl')).toBe(undefined);

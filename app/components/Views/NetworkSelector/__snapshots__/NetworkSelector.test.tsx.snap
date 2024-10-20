@@ -3409,7 +3409,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        BNB Chain
+                                        BNB Smart Chain Mainnet
                                       </Text>
                                     </View>
                                     <View
@@ -3868,7 +3868,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        zkSync Era Mainnet
+                                        zkSync Mainnet
                                       </Text>
                                     </View>
                                     <View
