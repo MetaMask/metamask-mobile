@@ -96,6 +96,18 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
+  {
+    chainId: toHex('33139'),
+    nickname: 'ApeChain Mainnet',
+    rpcUrl: `https://rpc.apechain.com/http`,
+    ticker: 'APE',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://apescan.io/',
+      imageUrl: 'APE_CHAIN',
+      imageSource: require('../../images/ape-chain.png'),
+    },
+  },
 ];
 
 /**
