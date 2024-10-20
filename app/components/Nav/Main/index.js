@@ -81,8 +81,7 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
-import { trackEvent } from '../../../components/UI/Ramp/hooks/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { connectionChangeHandler } from '../../../util/navigation/navUtils';
 
 const Stack = createStackNavigator();
 
@@ -133,32 +132,6 @@ const Main = (props) => {
       stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
-
-  const connectionChangeHandler = (state) => {
-    try {
-      if (!state) return;
-      const { isConnected } = state;
-
-      // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
-      const debounceTimeout = setTimeout(() => {
-        if (connected && isConnected === false) {
-          props.navigation.navigate('OfflineModeView');
-        }
-      }, 3000);
-
-      // Clear timeout if connection stabilizes
-      if (isConnected === true) {
-        clearTimeout(debounceTimeout);
-      }
-
-      if (connected !== isConnected && isConnected !== null) {
-        setConnected(isConnected);
-      }
-    } catch (e) {
-      console.error('User dropped connection', e);
-      trackEvent(MetaMetricsEvents.CONNECTION_DROPPED);
-    }
-  };
 
   const checkInfuraAvailability = async () => {
     if (props.providerType !== 'rpc') {
@@ -332,7 +305,12 @@ const Main = (props) => {
       });
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
-        connectionChangeHandler,
+        connectionChangeHandler(
+          state,
+          connected,
+          setConnected,
+          props.navigation,
+        ),
       );
     }, 1000);
 
