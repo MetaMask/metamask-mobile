@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -332,10 +332,6 @@
 		FE3C9A2458A1416290DEDAD4 /* branch.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = branch.json; path = ../branch.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		C8FB8D032CC26E2500198964 /* GoogleServices */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = GoogleServices; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -587,6 +583,13 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		C8FB8D032CC26E2500198964 /* GoogleServices */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = GoogleServices;
+			sourceTree = "<group>";
+		};
 		CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */ = {
 			isa = PBXGroup;
 			children = (
@@ -628,9 +631,6 @@
 			dependencies = (
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				C8FB8D032CC26E2500198964 /* GoogleServices */,
-			);
 			name = MetaMask;
 			productName = "Hello World";
 			productReference = 13B07F961A680F5B00A75B9A /* MetaMask.app */;
@@ -656,9 +656,6 @@
 			dependencies = (
 				2EF282552B0FF86900D7B4B1 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				C8FB8D032CC26E2500198964 /* GoogleServices */,
-			);
 			name = "MetaMask-Flask";
 			productName = "Hello World";
 			productReference = 2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */;
@@ -683,9 +680,6 @@
 			);
 			dependencies = (
 				B339FEFD289ABD70001B89FB /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				C8FB8D032CC26E2500198964 /* GoogleServices */,
 			);
 			name = "MetaMask-QA";
 			productName = "Hello World";
