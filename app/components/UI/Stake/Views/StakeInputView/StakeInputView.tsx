@@ -41,6 +41,10 @@ const StakeInputView = () => {
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
+    annualRewardsEth: annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+    isLoadingVaultData,
   } = useStakingInputHandlers(balanceWei);
 
   const navigateToLearnMoreModal = () => {
@@ -55,9 +59,19 @@ const StakeInputView = () => {
       params: {
         amountWei: amountWei.toString(),
         amountFiat: fiatAmount,
+        annualRewardsETH,
+        annualRewardsFiat,
+        annualRewardRate,
       },
     });
-  }, [amountWei, fiatAmount, navigation]);
+  }, [
+    navigation,
+    amountWei,
+    fiatAmount,
+    annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+  ]);
 
   const balanceText = strings('stake.balance');
 
@@ -101,6 +115,7 @@ const StakeInputView = () => {
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
           onIconPress={navigateToLearnMoreModal}
+          isLoading={isLoadingVaultData}
         />
       </View>
       <QuickAmounts

@@ -110,6 +110,8 @@ jest.mock('../../hooks/useVaultData', () => ({
     loading: false,
     error: null,
     refreshVaultData: jest.fn(),
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
   }),
 }));
 
@@ -146,7 +148,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(screen.getByText('2'));
 
-      expect(screen.getByText('0.05706 ETH')).toBeTruthy();
+      expect(screen.getByText('0.05 ETH')).toBeTruthy();
     });
   });
 
