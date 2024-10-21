@@ -86,8 +86,6 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 
-const { trackEvent } = useMetrics();
-
 const Stack = createStackNavigator();
 
 const createStyles = (colors) =>
@@ -114,6 +112,8 @@ const Main = (props) => {
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
+
+  const { trackEvent } = useMetrics();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler(props.navigation);
