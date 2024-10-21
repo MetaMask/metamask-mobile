@@ -5,7 +5,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 
-import { selectChainId } from '../../../../../../../selectors/networkController';
 import { useAppThemeFromContext } from '../../../../../../../util/theme';
 import EditGasFee1559 from '../../../../components/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../../components/EditGasFeeLegacyUpdate';
@@ -15,6 +14,7 @@ import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTra
 import { selectGasFeeControllerEstimateType } from '../../../../../../..//selectors/gasFeeController';
 import { RootState } from '../../../../../../../reducers';
 import { selectPrimaryCurrency } from '../../../../../../..//selectors/settings';
+import { useChainId } from '../../../../../../../selectors/hooks';
 
 const CustomGasModal = ({
   gasSelected,
@@ -36,7 +36,7 @@ const CustomGasModal = ({
   const transaction = useSelector((state: RootState) => state.transaction);
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
   );

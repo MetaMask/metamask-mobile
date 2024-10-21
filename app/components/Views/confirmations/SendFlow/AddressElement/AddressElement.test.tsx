@@ -24,11 +24,6 @@ jest.mock('../../../../../core/Engine', () => ({
           sendAsync: () => null,
         },
       })),
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-        },
-      }),
       state: {
         ...mockedNetworkControllerState,
       },
@@ -57,6 +52,7 @@ const renderComponent = (state: any) =>
       onAccountLongPress={() => null}
       onIconPress={() => null}
       testID="address-element"
+      chainId="0x1"
     />,
     { state },
   );

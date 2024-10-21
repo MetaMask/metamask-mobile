@@ -23,7 +23,6 @@ import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import {
   doENSReverseLookup,
@@ -36,6 +35,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useChainId } from '../../../selectors/hooks';
 
 const EditAccountName = () => {
   const { colors } = useTheme();
@@ -51,7 +51,7 @@ const EditAccountName = () => {
     ? toChecksumHexAddress(selectedInternalAccount.address)
     : undefined;
 
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
 
   const lookupEns = useCallback(async () => {
     if (selectedChecksummedAddress) {

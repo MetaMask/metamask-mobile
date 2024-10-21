@@ -20,10 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import Cell, {
   CellVariant,
@@ -36,6 +33,7 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
+import { useChainId } from '../../../selectors/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const networkImage = require('../../../images/networks1.png');
@@ -44,7 +42,7 @@ const MultiRpcModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const { trackEvent } = useMetrics();
   const { navigate } = useNavigation();
