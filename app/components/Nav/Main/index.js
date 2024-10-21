@@ -81,10 +81,7 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../components/hooks/useMetrics';
+import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 
 const Stack = createStackNavigator();
 
@@ -102,7 +99,6 @@ const createStyles = (colors) =>
   });
 
 const Main = (props) => {
-  const [connected, setConnected] = useState(true);
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
@@ -113,7 +109,10 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
-  const { trackEvent } = useMetrics();
+  const { connectionChangeHandler } = useConnectionHandler(
+    props.navigation,
+    true,
+  );
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler(props.navigation);
@@ -137,32 +136,6 @@ const Main = (props) => {
       stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
-
-  const connectionChangeHandler = (state) => {
-    try {
-      if (!state) return;
-      const { isConnected } = state;
-
-      // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
-      const debounceTimeout = setTimeout(() => {
-        if (connected && isConnected === false) {
-          props.navigation.navigate('OfflineModeView');
-        }
-      }, 3000);
-
-      // Clear timeout if connection stabilizes
-      if (isConnected === true) {
-        clearTimeout(debounceTimeout);
-      }
-
-      if (connected !== isConnected && isConnected !== null) {
-        setConnected(isConnected);
-      }
-    } catch (e) {
-      console.error('User dropped connection', e);
-      trackEvent(MetaMetricsEvents.CONNECTION_DROPPED);
-    }
-  };
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -352,7 +325,7 @@ const Main = (props) => {
         removeConnectionStatusListener.current();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connectionChangeHandler]);
 
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {

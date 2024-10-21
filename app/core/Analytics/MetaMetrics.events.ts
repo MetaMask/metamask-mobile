@@ -374,6 +374,7 @@ enum EVENT_NAME {
 
   // Connection
   CONNECTION_DROPPED = 'Connection dropped',
+  CONNECTION_RESTORED = 'Connection restored',
 }
 
 enum ACTIONS {
@@ -860,6 +861,7 @@ const events = {
 
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
+  CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
 };
 
 /**
