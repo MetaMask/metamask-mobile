@@ -9,14 +9,12 @@ import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Text, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
-import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
 import { PickerAccountProps } from './PickerAccount.types';
 import styleSheet from './PickerAccount.styles';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
 
 const PickerAccount: React.ForwardRefRenderFunction<
   TouchableOpacity,
@@ -56,15 +54,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
         >
           {accountName}
         </Text>
-        {accountTypeLabel && (
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.accountNameLabelText}
-            testID={AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL}
-          >
-            {strings(accountTypeLabel)}
-          </Text>
-        )}
         {showAddress && (
           <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>
             {shortenedAddress}
