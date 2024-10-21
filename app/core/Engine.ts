@@ -981,6 +981,10 @@ class Engine {
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts:
           accountsController.listAccounts.bind(accountsController),
+        findNetworkClientIdByChainId:
+          networkController.findNetworkClientIdByChainId.bind(
+            networkController,
+          ),
       }),
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
