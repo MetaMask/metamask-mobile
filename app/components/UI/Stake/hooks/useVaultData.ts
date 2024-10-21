@@ -4,6 +4,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { VaultData } from '@metamask/stake-sdk';
 import { useStakeContext } from './useStakeContext';
+import { limitToMaximumDecimalPlaces } from '../../../../util/number';
 
 const useVaultData = () => {
   const chainId = useSelector(selectChainId);
@@ -12,7 +13,6 @@ const useVaultData = () => {
   const [vaultData, setVaultData] = useState({} as VaultData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0); // `refreshKey` is used to manually trigger a refetch
 
   useEffect(() => {
     const fetchVaultData = async () => {
@@ -24,8 +24,6 @@ const useVaultData = () => {
         }
 
         const numericChainId = hexToNumber(chainId);
-
-        // Directly calling the stakingApiService to fetch vault data
         const vaultDataResponse = await stakingApiService.getVaultData(
           numericChainId,
         );
@@ -39,18 +37,23 @@ const useVaultData = () => {
     };
 
     fetchVaultData();
-  }, [chainId, stakingApiService, refreshKey]);
+  }, [chainId, stakingApiService]);
 
-  // Function to manually refresh vault data
-  const refreshVaultData = () => {
-    setRefreshKey((prevKey) => prevKey + 1); // Increment `refreshKey` to trigger refetch
-  };
+  const apy = vaultData?.apy || '0';
+  const annualRewardRatePercentage = apy ? parseFloat(apy) : 0;
+  const annualRewardRateDecimal = annualRewardRatePercentage / 100;
+
+  const annualRewardRate = `${limitToMaximumDecimalPlaces(
+    annualRewardRatePercentage,
+    1,
+  )}%`;
 
   return {
     vaultData,
-    loading,
+    isLoadingVaultData: loading,
     error,
-    refreshVaultData,
+    annualRewardRate,
+    annualRewardRateDecimal,
   };
 };
 
