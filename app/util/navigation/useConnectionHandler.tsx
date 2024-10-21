@@ -4,6 +4,8 @@ import {
   MetaMetricsEvents,
 } from '../../components/hooks/useMetrics';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useConnectionHandler = (navigation: any) => {
   const connectedRef = useRef(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
