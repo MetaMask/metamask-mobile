@@ -65,12 +65,21 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       }
     }
   >
-    <IconView
-      name="Copy"
+    <Component
       onPress={[Function]}
-      size="24"
+      style={
+        {
+          "paddingHorizontal": 6,
+        }
+      }
       testID="copy-icon"
-    />
+    >
+      <Icon
+        color="#6a737d"
+        name="Copy"
+        size="24"
+      />
+    </Component>
   </View>
 </View>
 `;
