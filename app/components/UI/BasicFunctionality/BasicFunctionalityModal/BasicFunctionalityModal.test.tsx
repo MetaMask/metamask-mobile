@@ -4,7 +4,6 @@ import React from 'react';
 // Internal dependencies.
 import BasicFunctionalityModal from './BasicFunctionalityModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
 
 /**
  * @typedef {import('../../../../reducers').RootState} RootState
@@ -57,7 +56,7 @@ jest.mock('@react-navigation/native', () => {
 describe('BasicFunctionalityModal', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <BasicFunctionalityModal navigation={useNavigation()} />,
+      <BasicFunctionalityModal route={{ params: { caller: 'test' } }} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
