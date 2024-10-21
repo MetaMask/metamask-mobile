@@ -973,6 +973,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                         >
                                           <View
+                                            style={
+                                              {
+                                                "marginBottom": 0,
+                                              }
+                                            }
                                             testID="approve-network-modal"
                                           >
                                             <View
