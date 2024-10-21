@@ -1,5 +1,5 @@
 import {
-  AccountTrackerState,
+  AccountTrackerControllerState,
   CurrencyRateState,
   NftDetectionController,
   NftControllerState,
@@ -27,7 +27,7 @@ import { SnapController } from '@metamask/snaps-controllers';
 export interface EngineState {
   engine: {
     backgroundState: {
-      AccountTrackerController: AccountTrackerState;
+      AccountTrackerController: AccountTrackerControllerState;
       AddressBookController: AddressBookControllerState;
       AssetsContractController: BaseState;
       NftController: NftControllerState;
