@@ -95,7 +95,7 @@ export const TokenListItem = ({
       currentCurrency,
     );
 
-  const pricePercentChange1d = itemAddress
+  const pricePercentChange1d = itemAddress?.startsWith('0x')
     ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
     : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
