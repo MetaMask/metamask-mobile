@@ -1013,9 +1013,7 @@ function SwapsQuotesView({
             CHAIN_IDS.LINEA_SEPOLIA,
           ].includes(chainId)
         ) {
-          Logger.log(
-            'Delaying submitting trade tx to make Linea confirmation more likely',
-          );
+          Logger.log('Delaying submitting trade tx to make Linea confirmation more likely',);
           const waitPromise = new Promise((resolve) =>
             setTimeout(resolve, 5000),
           );
