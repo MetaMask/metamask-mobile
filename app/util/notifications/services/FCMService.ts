@@ -12,7 +12,6 @@ class FCMService {
   getFCMToken = async (): Promise<string | undefined> => {
     const fcmTokenLocal = await mmStorage.getLocal('metaMaskFcmToken');
     const token = fcmTokenLocal?.data || undefined;
-
     if (!token) {
       Logger.log('getFCMToken: No FCM token found');
     }
@@ -42,8 +41,7 @@ class FCMService {
   });
 
   listenForMessagesForeground = (): UnsubscribeFunc => messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-      Logger.log('A new FCM message arrived!', remoteMessage);
-
+    Logger.log('A new FCM message arrived in foreground', remoteMessage);
       await NotificationsService.displayNotification({
         channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         title: remoteMessage.notification?.title || strings('notifications.default_message_title'),
