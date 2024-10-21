@@ -150,9 +150,14 @@ class NotificationManager {
       }
 
       const pushData = {
+        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         title,
         body: message,
-        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+        data: {
+          ...data?.transaction,
+          action: 'tx',
+          id,
+        },
       };
 
       const extraData = { action: 'tx', id };
@@ -162,8 +167,7 @@ class NotificationManager {
       } else {
         pushData.userInfo = extraData;
       }
-
-      isNotificationsFeatureEnabled() && await NotificationsService.displayNotification(pushData);
+      await NotificationsService.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
