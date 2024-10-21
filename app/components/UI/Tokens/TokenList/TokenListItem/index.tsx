@@ -158,10 +158,12 @@ export const TokenListItem = ({
 
     if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-    if (CustomNetworkImgMapping[chainId]) {
+    const isValidChainId = (id: string): id is `0x${string}` =>
+      /^0x[0-9a-fA-F]+$/.test(id);
+
+    if (isValidChainId(chainId) && CustomNetworkImgMapping[chainId]) {
       return CustomNetworkImgMapping[chainId];
     }
-
     return ticker ? images[ticker] : undefined;
   };
 
