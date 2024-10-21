@@ -4320,12 +4320,22 @@
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/utils" "^9.1.0"
 
-"@metamask/approval-controller@^7.0.0", "@metamask/approval-controller@^7.0.1", "@metamask/approval-controller@^7.0.2":
+"@metamask/approval-controller@^7.0.0", "@metamask/approval-controller@^7.0.2":
   version "7.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.0.2.tgz#bf46090fb900a5687b93978fb93eb3cf61d39a56"
   integrity sha512-cjCXpdxQ1IzmNrfTtw0MpYcBDklzvWcyRz5AutvlBaLafrWh2FDQZFvofd/rO49DdrvAxEQHUt6GXE9aFjCFTQ==
   dependencies:
     "@metamask/base-controller" "^6.0.2"
+    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/utils" "^9.1.0"
+    nanoid "^3.1.31"
+
+"@metamask/approval-controller@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.0.tgz#34b07bc4eaf6938b15f9d915c6885d4a5c0a5205"
+  integrity sha512-dhqUeX8wMzW88U+Vgr7oKf0Vouol10ncB3lxmvWyC1VZJhSOdO3VUkn0tH1lzt3ybxYVMOkPaB3gfdksfnNRyA==
+  dependencies:
+    "@metamask/base-controller" "^7.0.1"
     "@metamask/rpc-errors" "^6.3.1"
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
@@ -5324,16 +5334,18 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@^19.1.0":
-  version "19.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-19.1.0.tgz#47c7435f51d3273fb5a0373f4ebdcfccb6d490a9"
-  integrity sha512-1rDKxV7HYoKZjBbqkeWLk3TLJJcl8cRgAkPTG8jMRIp7eYW2vUxo5nsiaJlBBHDV/fbjR12SbiawMjj93zD2DA==
+"@metamask/signature-controller@npm:@metamask-previews/signature-controller@20.0.0-preview-557a8fcb":
+  version "20.0.0-preview-557a8fcb"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/signature-controller/-/signature-controller-20.0.0-preview-557a8fcb.tgz#9990edf2ec70fd792419e44f4faac8f75a04e6bd"
+  integrity sha512-eVjhilEBuPPn5ewCj6hHpNbn0Ksah2w7pKeaucsTdxM2YTtlEoPFFuCAveydtsqUS/WgHf0RidHSHpNtIXyc7g==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
     "@metamask/controller-utils" "^11.3.0"
-    "@metamask/message-manager" "^10.1.1"
+    "@metamask/eth-sig-util" "^7.0.1"
     "@metamask/utils" "^9.1.0"
+    jsonschema "^1.2.4"
     lodash "^4.17.21"
+    uuid "^8.3.2"
 
 "@metamask/slip44@3.1.0", "@metamask/slip44@^3.1.0":
   version "3.1.0"
