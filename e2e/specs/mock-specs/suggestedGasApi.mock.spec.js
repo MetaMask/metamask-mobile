@@ -25,9 +25,11 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
-    mockServer = await startMockServer([
-      mockEvents.suggestedGasApiErrorResponse
-    ]);
+    mockServer = await startMockServer({
+      GET: {
+        suggestedGasApiErrorResponse: mockEvents.GET.suggestedGasApiErrorResponse,
+      }
+    });
   });
 
   // Stop the server after all tests, ensuring that we handle any errors gracefully

@@ -4,7 +4,7 @@ export const suggestedGasApiResponses = {
     status: 500,
     message: 'Internal Server Error',
   },
-  okayResponse: {
+  success: {
     status: 200,
     low: {
       suggestedMaxPriorityFeePerGas: "1",
