@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
-import { formatAddress, safeToChecksumAddress } from '../../../../util/address';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import {
@@ -72,13 +72,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const tokenDetails: TokenDetails = asset.isETH
     ? {
-        contractAddress: formatAddress(zeroAddress(), 'short'),
+        contractAddress: zeroAddress(),
         tokenDecimal: 18,
         tokenList: '',
       }
     : {
-        contractAddress:
-          formatAddress(tokenContractAddress as string, 'short') || null,
+        contractAddress: tokenContractAddress || null,
         tokenDecimal: tokenMetadata?.decimals || null,
         tokenList: tokenMetadata?.aggregators.join(', ') || null,
       };
