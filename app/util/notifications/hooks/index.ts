@@ -1,14 +1,20 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { useSelector } from 'react-redux';
 import {
   isNotificationsFeatureEnabled,
+  TRIGGER_TYPES,
+  Notification,
 } from '../../../util/notifications';
 
 import FCMService from '../services/FCMService';
+import NotificationsService from '../services/NotificationService';
 import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { Linking } from 'react-native';
+import { NavigationContainerRef } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
-const useNotificationHandler = () => {
+const useNotificationHandler = (navigation: NavigationContainerRef) => {
   /**
    * Handles the action based on the type of notification (sent from the backend & following Notification types) that is opened
    * @param notification - The notification that is opened
@@ -18,12 +24,43 @@ const useNotificationHandler = () => {
     selectIsMetamaskNotificationsEnabled,
   );
 
+  const handleNotificationCallback = useCallback(
+    async (notification: Notification) => {
+      if (!notification) {
+        return;
+      }
+      if (
+        notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+        notification.data.externalLink
+      ) {
+        Linking.openURL(notification.data.externalLink.externalLinkUrl);
+      } else {
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      }
+    },
+    [navigation],
+  );
+
   const notificationEnabled = isNotificationsFeatureEnabled() && isNotificationEnabled;
 
   useEffect(() => {
     if (!notificationEnabled) return;
+
+    // Firebase Cloud Messaging
     FCMService.registerAppWithFCM();
     FCMService.saveFCMToken();
+    FCMService.getFCMToken();
+
+    // Notifee
+    NotificationsService.onBackgroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handleNotificationCallback,
+        }),
+    );
+
     const unsubscribeRegisterTokenRefreshListener = FCMService.registerTokenRefreshListener();
     const unsubscribeForegroundEvent = FCMService.listenForMessagesForeground();
 
@@ -31,7 +68,7 @@ const useNotificationHandler = () => {
         unsubscribeForegroundEvent();
         unsubscribeRegisterTokenRefreshListener();
     };
-  }, [notificationEnabled]);
+  }, [handleNotificationCallback, notificationEnabled]);
 };
 
 export default useNotificationHandler;
