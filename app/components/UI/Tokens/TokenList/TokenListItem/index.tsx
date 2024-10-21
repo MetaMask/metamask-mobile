@@ -48,7 +48,7 @@ import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../StakeButton';
 import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
-import useIsStakingSupportedChain from '../../../Stake/hooks/useStakingChain';
+import useStakingChain from '../../../Stake/hooks/useStakingChain';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -152,7 +152,7 @@ export const TokenListItem = ({
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
-  const { isStakingSupportedChain } = useIsStakingSupportedChain();
+  const { isStakingSupportedChain } = useStakingChain();
 
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
