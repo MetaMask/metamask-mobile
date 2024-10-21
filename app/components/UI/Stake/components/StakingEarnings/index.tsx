@@ -3,41 +3,40 @@ import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './StakingEarnings.styles';
 import {
   IconColor,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import useTooltipModal from '../../../../components/hooks/useTooltipModal';
-import { strings } from '../../../../../locales/i18n';
-import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
+import { strings } from '../../../../../../locales/i18n';
+import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import useStakingChain from '../../hooks/useStakingChain';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import useStakingEarnings from '../../hooks/useStakingEarnings';
+import usePooledStakes from '../../hooks/usePooledStakes';
 
-// TODO: Remove mock data when connecting component to backend.
-const MOCK_DATA = {
-  ANNUAL_EARNING_RATE: '2.6%',
-  LIFETIME_REWARDS: {
-    FIAT: '$2',
-    ETH: '0.02151 ETH',
-  },
-  EST_ANNUAL_EARNINGS: {
-    FIAT: '$15.93',
-    ETH: '0.0131 ETH',
-  },
-};
-
-const StakingEarnings = () => {
-  // TODO: Remove mock data when connecting component to backend.
-  const { ANNUAL_EARNING_RATE, LIFETIME_REWARDS, EST_ANNUAL_EARNINGS } =
-    MOCK_DATA;
-
+const StakingEarningsContent = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { openTooltipModal } = useTooltipModal();
+
+  const { hasStakedPositions } = usePooledStakes();
+
+  const {
+    annualRewardRate,
+    lifetimeRewardsETH,
+    lifetimeRewardsFiat,
+    estimatedAnnualEarningsETH,
+    estimatedAnnualEarningsFiat,
+    isLoadingEarningsData,
+  } = useStakingEarnings();
 
   const onNavigateToTooltipModal = () =>
     openTooltipModal(
@@ -45,7 +44,19 @@ const StakingEarnings = () => {
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
-  if (!isPooledStakingFeatureEnabled()) return <></>;
+  const { isEligible, isLoadingEligibility } = useStakingEligibility();
+
+  const { isStakingSupportedChain } = useStakingChain();
+
+  const isLoadingData = isLoadingEligibility || isLoadingEarningsData;
+  if (
+    !isPooledStakingFeatureEnabled() ||
+    !isEligible ||
+    !isStakingSupportedChain ||
+    !hasStakedPositions ||
+    isLoadingData
+  )
+    return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>
@@ -74,7 +85,7 @@ const StakingEarnings = () => {
             />
           </View>
           <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            {ANNUAL_EARNING_RATE}
+            {annualRewardRate}
           </Text>
         </View>
         <View style={styles.keyValueRow}>
@@ -87,12 +98,12 @@ const StakingEarnings = () => {
             </Text>
           </View>
           <View style={styles.keyValueSecondaryText}>
-            <Text variant={TextVariant.BodyMD}>{LIFETIME_REWARDS.FIAT}</Text>
+            <Text variant={TextVariant.BodyMD}>{lifetimeRewardsFiat}</Text>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
             >
-              {LIFETIME_REWARDS.ETH}
+              {lifetimeRewardsETH}
             </Text>
           </View>
         </View>
@@ -106,12 +117,14 @@ const StakingEarnings = () => {
             </Text>
           </View>
           <View style={styles.keyValueSecondaryText}>
-            <Text variant={TextVariant.BodyMD}>{EST_ANNUAL_EARNINGS.FIAT}</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {estimatedAnnualEarningsFiat}
+            </Text>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
             >
-              {EST_ANNUAL_EARNINGS.ETH}
+              {estimatedAnnualEarningsETH}
             </Text>
           </View>
         </View>
@@ -119,5 +132,11 @@ const StakingEarnings = () => {
     </View>
   );
 };
+
+export const StakingEarnings = () => (
+  <StakeSDKProvider>
+    <StakingEarningsContent />
+  </StakeSDKProvider>
+);
 
 export default StakingEarnings;

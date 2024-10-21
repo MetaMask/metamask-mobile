@@ -15,6 +15,7 @@ import {
   renderFiat,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
+import useVaultData from './useVaultData';
 
 const useStakingInputHandlers = (balance: BN) => {
   const [amountEth, setAmountEth] = useState('0');
@@ -32,7 +33,8 @@ const useStakingInputHandlers = (balance: BN) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
-  const annualRewardRate = '0.026'; //TODO: Replace with actual value: STAKE-806
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
+    useVaultData();
 
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
@@ -113,27 +115,42 @@ const useStakingInputHandlers = (balance: BN) => {
     [balance, conversionRate],
   );
 
+  const annualRewardsEth = useMemo(
+    () =>
+      limitToMaximumDecimalPlaces(
+        parseFloat(amountEth) * annualRewardRateDecimal,
+        5,
+      ),
+    [amountEth, annualRewardRateDecimal],
+  );
+
+  const annualRewardsFiat = useMemo(
+    () =>
+      renderFiat(
+        parseFloat(fiatAmount) * annualRewardRateDecimal,
+        currentCurrency,
+        2,
+      ),
+    [fiatAmount, annualRewardRateDecimal, currentCurrency],
+  );
+
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
-      // Limiting the decimal places to keep it consistent with other eth values in the input screen
-      const ethRewards = limitToMaximumDecimalPlaces(
-        parseFloat(amountEth) * parseFloat(annualRewardRate),
-        5,
-      );
       if (isEth) {
-        setEstimatedAnnualRewards(`${ethRewards} ETH`);
+        setEstimatedAnnualRewards(`${annualRewardsEth} ETH`);
       } else {
-        const fiatRewards = renderFiat(
-          parseFloat(fiatAmount) * parseFloat(annualRewardRate),
-          currentCurrency,
-          2,
-        );
-        setEstimatedAnnualRewards(`${fiatRewards}`);
+        setEstimatedAnnualRewards(annualRewardsFiat);
       }
     } else {
-      setEstimatedAnnualRewards(`${Number(annualRewardRate) * 100}%`);
+      setEstimatedAnnualRewards(annualRewardRate);
     }
-  }, [isNonZeroAmount, amountEth, isEth, fiatAmount, currentCurrency]);
+  }, [
+    isNonZeroAmount,
+    isEth,
+    annualRewardsEth,
+    annualRewardsFiat,
+    annualRewardRate,
+  ]);
 
   return {
     amountEth,
@@ -153,6 +170,10 @@ const useStakingInputHandlers = (balance: BN) => {
     conversionRate,
     estimatedAnnualRewards,
     calculateEstimatedAnnualRewards,
+    annualRewardsEth,
+    annualRewardsFiat,
+    annualRewardRate,
+    isLoadingVaultData,
   };
 };
 
