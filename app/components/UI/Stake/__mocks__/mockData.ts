@@ -1,10 +1,6 @@
-import { TokenI } from '../../../../UI/Tokens/types';
-import {
-  GetStakesApiResponse,
-  GetVaultDataApiResponse,
-} from './StakingBalance.types';
+import type { PooledStakes, VaultData } from '@metamask/stake-sdk';
+import { TokenI } from '../../Tokens/types';
 
-// TODO: Replace mock data when connecting to backend.
 export const MOCK_STAKED_ETH_ASSET = {
   balance: '4.9999 ETH',
   balanceFiat: '$13,292.20',
@@ -12,13 +8,12 @@ export const MOCK_STAKED_ETH_ASSET = {
   symbol: 'ETH',
 } as TokenI;
 
-// TODO: Replace mock data when connecting to backend.
-export const MOCK_GET_POOLED_STAKES_API_RESPONSE: GetStakesApiResponse = {
+export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   accounts: [
     {
       account: '0x0123456789abcdef0123456789abcdef01234567',
       lifetimeRewards: '43927049303048',
-      assets: '17913326707142320',
+      assets: '5791332670714232000',
       exitRequests: [
         {
           // Unstaking
@@ -64,12 +59,30 @@ export const MOCK_GET_POOLED_STAKES_API_RESPONSE: GetStakesApiResponse = {
   exchangeRate: '1.010906701603882254',
 };
 
-// TODO: See if this data is available yet. If not, mock backend response.
-export const MOCK_GET_VAULT_RESPONSE: GetVaultDataApiResponse = {
+export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   apy: '2.853065141088762750393474836309926',
   capacity:
     '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456',
   feePercent: 1500,
   totalAssets: '7723070453364602130892',
   vaultAddress: '0x0a1b2c3d4e5f6a7b8c9dabecfd0123456789abcd',
+};
+
+export const MOCK_STAKING_EARNINGS_DATA = {
+  ANNUAL_EARNING_RATE: '2.6%',
+  LIFETIME_REWARDS: {
+    FIAT: '$2',
+    ETH: '0.02151 ETH',
+  },
+  EST_ANNUAL_EARNINGS: {
+    FIAT: '$15.93',
+    ETH: '0.0131 ETH',
+  },
+};
+
+export const MOCK_REWARD_DATA = {
+  REWARDS: {
+    ETH: '0.13 ETH',
+    FIAT: '$334.93',
+  },
 };

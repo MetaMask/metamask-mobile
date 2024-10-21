@@ -1,9 +1,9 @@
 import React from 'react';
 import StakingEarnings from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../locales/i18n';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 
-jest.mock('../../Stake/constants', () => ({
+jest.mock('../../constants', () => ({
   isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
@@ -18,6 +18,35 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useStakingEarnings', () => ({
+  __esModule: true,
+  default: () => ({
+    annualRewardRate: '2.6%',
+    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewardsFiat: '$5000',
+    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarningsFiat: '$5000',
+    isLoadingEarningsData: false,
+  }),
+}));
+
+jest.mock('../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    hasStakedPositions: true,
+  }),
+}));
 
 describe('Staking Earnings', () => {
   it('should render correctly', () => {

@@ -2,6 +2,7 @@ import {
   ChainId,
   PooledStakingContract,
   StakingType,
+  type StakingApiService,
 } from '@metamask/stake-sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -26,8 +27,17 @@ const mockPooledStakingContractService: PooledStakingContract = {
   estimateMulticallGas: jest.fn(),
 };
 
+const mockStakingApiService: Partial<StakingApiService> = {
+  getPooledStakes: jest.fn(),
+  getVaultData: jest.fn(),
+  getPooledStakingEligibility: jest.fn(),
+  fetchFromApi: jest.fn(),
+  baseUrl: 'http://mockApiUrl.com',
+};
+
 const mockSDK: Stake = {
-  sdkService: mockPooledStakingContractService,
+  stakingContract: mockPooledStakingContractService,
+  stakingApiService: mockStakingApiService as StakingApiService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };
@@ -44,8 +54,8 @@ describe('Stake Modals With Stake Sdk Provider', () => {
   };
   it('should render correctly stake screen with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeScreenStack(), {
       state: initialState,
@@ -57,8 +67,8 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
   it('should render correctly stake modal with stake sdk provider and resolve the stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeModalStack(), {
       state: initialState,
@@ -66,6 +76,5 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
     expect(toJSON()).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalledTimes(0);
-
   });
 });
