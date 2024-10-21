@@ -1,13 +1,16 @@
 import { NotificationTransactionTypes } from '../util/notifications';
-
 import NotificationManager, {
   constructTitleAndMessage,
 } from './NotificationManager';
 import { strings } from '../../locales/i18n';
 
+
 interface NavigationMock {
   navigate: jest.Mock;
 }
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 jest.unmock('./NotificationManager');
 
@@ -24,6 +27,7 @@ const removeNotificationById = jest.fn();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let notificationManager: any;
+
 
 describe('NotificationManager', () => {
   beforeEach(() => {
@@ -101,7 +105,7 @@ describe('NotificationManager', () => {
       'cancelled',
     ];
   selectedNotificationTypes.forEach((type) => {
-    it(`should construct title and message for ${type}`, () => {
+    it(`constructs title and message for ${type}`, () => {
       const { title, message } = constructTitleAndMessage({
         type: NotificationTransactionTypes[type],
       });
@@ -109,5 +113,13 @@ describe('NotificationManager', () => {
       expect(title).toBe(strings(`notifications.${type}_title`));
       expect(message).toBe(strings(`notifications.${type}_message`));
     });
+  });
+  it('constructs default title and message for unknown type', () => {
+    const { title, message } = constructTitleAndMessage({
+      type: 'unknown',
+    });
+
+    expect(title).toBe(strings('notifications.default_message_title'));
+    expect(message).toBe(strings('notifications.default_message_description'));
   });
 });

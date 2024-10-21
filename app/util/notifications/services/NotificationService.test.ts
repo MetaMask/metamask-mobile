@@ -173,4 +173,5 @@ describe('NotificationsService', () => {
 
     expect(notifee.displayNotification).toHaveBeenCalledWith(notification);
   });
+
 });

@@ -1,6 +1,7 @@
 import messaging from '@react-native-firebase/messaging';
 import FCMService from './FCMService';
 import { mmStorage } from '../settings';
+import Logger from '../../../util/Logger';
 
 jest.mock('../settings', () => ({
   mmStorage: {
@@ -34,9 +35,26 @@ describe('FCMService', () => {
     expect(token).toBe(mockToken);
   });
 
+  it('gets Logged if FCM token is not found', async () => {
+    const mockToken = undefined;
+    (mmStorage.getLocal as jest.Mock).mockResolvedValue({ data: mockToken });
+
+    await FCMService.getFCMToken();
+    expect(Logger.log).toHaveBeenCalledWith('getFCMToken: No FCM token found');
+  });
+
   it('saves FCM token', async () => {
     const mockToken = 'fcmToken';
-    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus);
+    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus.PROVISIONAL);
+    (messaging().getToken as jest.Mock).mockResolvedValue(mockToken);
+
+    await FCMService.saveFCMToken();
+    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', { data: mockToken });
+  });
+
+  it('saves FCM token if permissionStatus === messaging.AuthorizationStatus.AUTHORIZED', async () => {
+    const mockToken = 'fcmToken';
+    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus.AUTHORIZED);
     (messaging().getToken as jest.Mock).mockResolvedValue(mockToken);
 
     await FCMService.saveFCMToken();
