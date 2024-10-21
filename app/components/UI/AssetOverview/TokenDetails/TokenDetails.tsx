@@ -21,8 +21,8 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import StakingEarnings from '../StakingEarnings';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+import StakingEarnings from '../../Stake/components/StakingEarnings';
 
 export interface TokenDetails {
   contractAddress: string | null;
