@@ -4,13 +4,13 @@ import { useNavigation } from '@react-navigation/native';
 import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import AmountHeader from '../../components/Confirmation/AmountHeader/AmountHeader';
 import AccountHeaderCard from '../../components/Confirmation/AccountHeaderCard/AccountHeaderCard';
 import { strings } from '../../../../../../locales/i18n';
 import ConfirmationFooter from '../../components/Confirmation/ConfirmationFooter/ConfirmationFooter';
 import YouReceiveCard from '../../components/Confirmation/YouReceiveCard/YouReceiveCard';
 import UnstakingTimeCard from '../../components/Confirmation/UnstakeTimeCard/UnstakeTimeCard';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
+import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -31,7 +31,7 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   return (
     <View style={styles.mainContainer}>
       <View>
-        <AmountHeader
+        <TokenValueStack
           amountWei={route.params.amountWei}
           amountFiat={`$${route.params.amountFiat}`}
           tokenSymbol="ETH"
