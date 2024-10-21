@@ -99,7 +99,7 @@ describe('CollectibleContracts', () => {
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
-              [MOCK_ADDRESS]: {
+              [MOCK_ADDRESS.toLowerCase()]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -131,7 +131,7 @@ describe('CollectibleContracts', () => {
               },
             },
             allNftContracts: {
-              [MOCK_ADDRESS]: {
+              [MOCK_ADDRESS.toLowerCase()]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
