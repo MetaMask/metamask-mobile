@@ -90,7 +90,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
 };
 
 const mockSdkContext: Stake = {
-  sdkService: mockPooledStakingContractService,
+  stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };

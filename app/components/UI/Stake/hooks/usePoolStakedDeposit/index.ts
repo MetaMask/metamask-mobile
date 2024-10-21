@@ -1,4 +1,3 @@
-import { captureException } from '@sentry/react-native';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import {
   TransactionParams,
@@ -8,6 +7,7 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { addTransaction } from '../../../../../util/transaction-controller';
 import { formatEther } from 'ethers/lib/utils';
 import { useStakeContext } from '../useStakeContext';
+import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -68,21 +68,17 @@ const attemptDepositTransaction =
       });
     } catch (e) {
       const errorMessage = (e as Error).message;
-      captureException(
-        new Error(
-          `Failed to submit Pooled Staking transaction to transaction controller with message: ${errorMessage}`,
-        ),
-      );
+      trackErrorAsAnalytics('Pooled Staking Transaction Failed', errorMessage);
     }
   };
 
 const usePoolStakedDeposit = () => {
   const stakeContext = useStakeContext();
 
+  const stakingContract = stakeContext.stakingContract as PooledStakingContract;
+
   return {
-    attemptDepositTransaction: attemptDepositTransaction(
-      stakeContext.sdkService,
-    ),
+    attemptDepositTransaction: attemptDepositTransaction(stakingContract),
   };
 };
 
