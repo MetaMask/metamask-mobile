@@ -4,7 +4,11 @@ import UnstakeInputView from './UnstakeInputView';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
+import {
+  MOCK_GET_POOLED_STAKES_API_RESPONSE,
+  MOCK_GET_VAULT_RESPONSE,
+  MOCK_STAKED_ETH_ASSET,
+} from '../../__mocks__/mockData';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -50,6 +54,7 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
 }));
 
 const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
   __esModule: true,
@@ -67,7 +72,16 @@ jest.mock('../../hooks/useVaultData', () => ({
     vaultData: mockVaultData,
     loading: false,
     error: null,
-    refreshVaultData: jest.fn(),
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
+  }),
+}));
+
+jest.mock('../../hooks/useBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    stakedBalanceWei: mockPooledStakeData.assets,
+    stakedBalanceFiat: MOCK_STAKED_ETH_ASSET.balanceFiat,
   }),
 }));
 
@@ -104,7 +118,7 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('25%'));
 
-      expect(screen.getByText('1.14999')).toBeTruthy();
+      expect(screen.getByText('1.44783')).toBeTruthy();
     });
   });
 
@@ -119,13 +133,14 @@ describe('UnstakeInputView', () => {
       render(UnstakeInputView);
 
       fireEvent.press(screen.getByText('1'));
+
       expect(screen.getByText('Review')).toBeTruthy();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
       render(UnstakeInputView);
 
-      fireEvent.press(screen.getByText('6'));
+      fireEvent.press(screen.getByText('8'));
       expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
     });
   });
