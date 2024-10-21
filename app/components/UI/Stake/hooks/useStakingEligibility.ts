@@ -11,7 +11,6 @@ const useStakingEligibility = () => {
   const [isEligible, setIsEligible] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0); // `refreshKey` is used to manually trigger a refetch
 
   useEffect(() => {
     const fetchStakingEligibility = async () => {
@@ -37,18 +36,12 @@ const useStakingEligibility = () => {
     };
 
     fetchStakingEligibility();
-  }, [selectedAddress, refreshKey, stakingApiService]);
-
-  // Function to manually refresh eligibility data
-  const refreshPooledStakingEligibility = () => {
-    setRefreshKey((prevKey) => prevKey + 1); // Increment `refreshKey` to trigger refetch
-  };
+  }, [selectedAddress, stakingApiService]);
 
   return {
     isEligible,
-    loading,
+    isLoadingEligibility: loading,
     error,
-    refreshPooledStakingEligibility,
   };
 };
 
