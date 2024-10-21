@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import {
-  AccountTrackerState,
+  AccountTrackerControllerState,
   AccountInformation,
 } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
@@ -13,12 +13,12 @@ const selectAccountTrackerControllerState = (state: RootState) =>
 
 export const selectAccounts = createDeepEqualSelector(
   selectAccountTrackerControllerState,
-  (accountTrackerControllerState: AccountTrackerState) =>
+  (accountTrackerControllerState: AccountTrackerControllerState) =>
     accountTrackerControllerState.accounts,
 );
 export const selectAccountsByChainId = createSelector(
   selectAccountTrackerControllerState,
-  (accountTrackerControllerState: AccountTrackerState) =>
+  (accountTrackerControllerState: AccountTrackerControllerState) =>
     accountTrackerControllerState.accountsByChainId,
 );
 export const selectAccountsLength = createSelector(

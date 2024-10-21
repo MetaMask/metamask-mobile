@@ -19,6 +19,7 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
+import { useStakeContext } from '../../hooks/useStakeContext';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -43,6 +44,9 @@ const StakeInputView = () => {
     estimatedAnnualRewards,
   } = useStakingInputHandlers(balanceWei);
 
+
+  const { sdkService } = useStakeContext();
+  
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
@@ -50,8 +54,15 @@ const StakeInputView = () => {
   };
 
   const handleStakePress = useCallback(() => {
-    // TODO: Display the Review bottom sheet: STAKE-824
-  }, []);
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE_CONFIRMATION,
+      params: {
+        amountWei: amountWei.toString(),
+        amountFiat: fiatAmount,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amountWei, fiatAmount, navigation, sdkService]);
 
   const balanceText = strings('stake.balance');
 
@@ -66,7 +77,11 @@ const StakeInputView = () => {
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   useEffect(() => {
-    navigation.setOptions(getStakingNavbar(title, navigation, theme.colors));
+    navigation.setOptions(
+      getStakingNavbar(title, navigation, theme.colors, {
+        hasBackButton: false,
+      }),
+    );
   }, [navigation, theme.colors, title]);
 
   useEffect(() => {
