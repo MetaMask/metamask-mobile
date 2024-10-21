@@ -3,7 +3,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 import { selectChainId } from '../../../../selectors/networkController';
 import { isSupportedChain } from '@metamask/stake-sdk';
 
-const useIsStakingSupportedChain = () => {
+const useStakingChain = () => {
   const chainId = useSelector(selectChainId);
 
   const isStakingSupportedChain = isSupportedChain(getDecimalChainId(chainId));
@@ -13,4 +13,4 @@ const useIsStakingSupportedChain = () => {
   };
 };
 
-export default useIsStakingSupportedChain;
+export default useStakingChain;
