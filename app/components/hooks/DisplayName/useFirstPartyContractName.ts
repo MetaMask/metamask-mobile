@@ -1,8 +1,6 @@
-import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
-import { selectChainId } from '../../../selectors/networkController';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
-
+import { useChainId } from '../../../selectors/hooks';
 export interface UseFirstPartyContractNameRequest {
   chainId?: Hex;
   value: string;
@@ -11,7 +9,7 @@ export interface UseFirstPartyContractNameRequest {
 export function useFirstPartyContractNames(
   requests: UseFirstPartyContractNameRequest[],
 ): (string | null)[] {
-  const currentChainId = useSelector(selectChainId);
+  const currentChainId = useChainId();
 
   return requests.map((request) => {
     const chainId = request.chainId ?? currentChainId;
