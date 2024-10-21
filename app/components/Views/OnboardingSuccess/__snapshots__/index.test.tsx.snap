@@ -194,6 +194,7 @@ Change these at any time.
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

@@ -4,9 +4,8 @@ import React from 'react';
 // Internal dependencies.
 import OnboardingSuccess from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectProviderConfig, ProviderConfig } from '../../../selectors/networkController';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -29,19 +28,34 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockProviderConfig = {
+const mockProviderConfig: ProviderConfig = {
   type: 'mainnet',
-  chainId: '1',
+  chainId: '0x1',
+  ticker: '',
+  rpcUrl: '',
+  nickname: undefined
 };
 
 describe('OnboardingSuccess', () => {
   it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
+    (useSelector as jest.Mock).mockImplementation((selector: typeof selectProviderConfig) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
-    const { toJSON } = renderWithProvider(
-      <OnboardingSuccess navigation={useNavigation()} />,
+    const mockOnDone = jest.fn();
+    const { getByTestId, toJSON } = renderWithProvider(
+      <OnboardingSuccess onDone={mockOnDone} backedUpSRP={false} noSRP={false} />,
     );
+
+    // Snapshot test
     expect(toJSON()).toMatchSnapshot();
+
+    const doneButton = getByTestId('onboarding-success-done-button');
+    expect(doneButton).toBeTruthy();
+
+    // Simulate button press
+    doneButton.props.onPress();
+
+    // Check if mockOnDone was called
+    expect(mockOnDone).toHaveBeenCalledTimes(1);
   });
 });
