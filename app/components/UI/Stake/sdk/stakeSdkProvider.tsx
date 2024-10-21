@@ -2,53 +2,72 @@ import {
   StakingType,
   StakeSdk,
   PooledStakingContract,
+  type StakingApiService,
 } from '@metamask/stake-sdk';
-import React, { useState, createContext, useMemo } from 'react';
-import { getProviderByChainId } from '../../../../util/notifications';
-import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
-import { hexToDecimal } from '../../../../util/conversions';
-import { noop } from 'lodash';
+import Logger from '../../../../util/Logger';
+import React, {
+  useState,
+  useEffect,
+  createContext,
+  useMemo,
+  PropsWithChildren,
+} from 'react';
+
+export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
 export interface Stake {
-  sdkService: PooledStakingContract; // to do : facade it for other services implementation
+  sdkError?: Error;
+  stakingContract?: PooledStakingContract;
+  stakingApiService?: StakingApiService;
   sdkType?: StakingType;
   setSdkType: (stakeType: StakingType) => void;
 }
 
-const initialSdkService = StakeSdk.create({ stakingType: StakingType.POOLED });
+export const StakeContext = StakeSdk.create({ stakingType: StakingType.POOLED });
 
-export const StakeContext = createContext<Stake>({
-  sdkType: initialSdkService.sdkConfig.stakingType,
-  sdkService: initialSdkService.pooledStakingContract,
-  setSdkType: noop,
-});
+export interface StakeProviderProps {
+  stakingType?: StakingType;
+}
+export const StakeSDKProvider: React.FC<
+  PropsWithChildren<StakeProviderProps>
+> = ({ children }) => {
+  const [stakingContract, setStakingContract] =
+    useState<PooledStakingContract>();
+  const [stakingApiService, setStakingApiService] =
+    useState<StakingApiService>();
 
-export const StakeSDKProvider: React.FC = ({ children }) => {
+  const [sdkError, setSdkError] = useState<Error>();
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
 
-  const chainId = useSelector(selectChainId);
-
-  const sdkService = useMemo(() => {
-    const provider = getProviderByChainId(chainId);
-
-    const sdk = StakeSdk.create({
-      chainId: parseInt(hexToDecimal(chainId).toString()),
-      stakingType: sdkType,
-    });
-
-    sdk.pooledStakingContract.connectSignerOrProvider(provider);
-
-    return sdk.pooledStakingContract;
-  }, [chainId, sdkType]);
+  useEffect(() => {
+    (async () => {
+      try {
+        setStakingApiService(SDK.stakingApiService);
+        if (sdkType === StakingType?.POOLED) {
+          setStakingContract(SDK.pooledStakingContract);
+        } else {
+          const notImplementedError = new Error(
+            `StakeSDKProvider SDK.StakingType ${sdkType} not implemented yet`,
+          );
+          Logger.error(notImplementedError);
+          setSdkError(notImplementedError);
+        }
+      } catch (error) {
+        Logger.error(error as Error, `StakeSDKProvider SDK.service failed`);
+        setSdkError(error as Error);
+      }
+    })();
+  }, [sdkType]);
 
   const stakeContextValue = useMemo(
     (): Stake => ({
-      sdkService,
+      sdkError,
+      stakingContract,
       sdkType,
       setSdkType,
+      stakingApiService,
     }),
-    [sdkService, sdkType, setSdkType],
+    [sdkError, stakingContract, sdkType, stakingApiService],
   );
 
   return (
