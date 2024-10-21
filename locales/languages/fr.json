@@ -375,6 +375,10 @@
     "accept": "J’accepte",
     "cancel": "Non, merci"
   },
+  "multi_rpc_migration_modal": {
+    "description": "Nous prenons désormais en charge plusieurs RPC pour un même réseau. Votre RPC le plus récent a été sélectionné par défaut afin de résoudre les problèmes liés à des informations contradictoires",
+    "accept": "Accepter"
+  },
   "nft_details": {
     "bought_for": "Acheté pour",
     "highest_floor_price": "Prix plancher le plus élevé",
@@ -497,7 +501,7 @@
     "address": "Adresse du contrat de jeton",
     "decimal": "Le nombre de décimales du jeton",
     "network": "Réseau",
-    "network_fee": "Network fee",
+    "network_fee": "Frais de réseau",
     "lists": "Listes de jetons ",
     "hide_cta": "Masquer le jeton",
     "options": {
@@ -650,6 +654,7 @@
     "receive": "RECEVOIR"
   },
   "accounts": {
+    "snap_account_tag": "Snaps (Bêta)",
     "create_new_account": "Créer un nouveau compte",
     "import_account": "Importer un compte",
     "connect_hardware": "Connecter un portefeuille matériel",
@@ -686,7 +691,7 @@
     "suggest_transactions": "Proposer des transactions à approuver",
     "disconnect": "Déconnexion",
     "disconnect_all": "Tout déconnecter",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "Si vous vous déconnectez de {{dappUrl}}, vous devrez reconnecter vos comptes et réseaux pour utiliser à nouveau ce site.",
     "disconnect_all_accounts": "Déconnecter tous les comptes",
     "deceptive_site_ahead": "Site trompeur à venir",
     "deceptive_site_desc": "Le site que vous essayez de visiter n’est pas sécurisé. Les pirates peuvent vous inciter à agir de façon risquée.",
@@ -700,9 +705,13 @@
   "toast": {
     "connected_and_active": "connecté et actif.",
     "now_active": "maintenant actif.",
+    "network_added": "a été ajouté avec succès",
     "revoked": "révoqué.",
     "revoked_all": "Tous les comptes ont été révoqués.",
     "accounts_connected": "comptes connectés.",
+    "account_connected": "account connected.",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnected": "déconnecté.",
     "disconnected_all": "Tous les comptes ont été déconnectés.",
     "disconnected_from": "Déconnecté de {{dappHostName}}",
@@ -740,6 +749,10 @@
   "app_settings": {
     "enabling_notifications": "Activation des notifications…",
     "disabling_notifications": "Désactivation des notifications…",
+    "reset_notifications_title": "Réinitialiser les notifications",
+    "reset_notifications_description": "La réinitialisation des notifications entrainera la suppression des clés de stockage des notifications et de l’historique des notifications. Êtes-vous sûr(e) de vouloir continuer ?",
+    "reset_notifications": "Réinitialiser les notifications",
+    "reset_notifications_success": "La clé de stockage des notifications a été supprimée/recréée et l’historique des notifications a été réinitialisé.",
     "enabling_profile_sync": "Activation de la synchronisation des profils…",
     "disabling_profile_sync": "Désactivation de la synchronisation des profils…",
     "notifications_dismiss_modal": "Annuler",
@@ -780,6 +793,7 @@
     "save_rpc_url": "ENREGISTRER",
     "invalid_rpc_prefix": "Les URI nécessitent le préfixe HTTPS approprié",
     "invalid_rpc_url": "URL RPC non valide",
+    "invalid_block_explorer_url": "L’URL de l’explorateur de blocs est invalide",
     "sync": "SYNCHRONISER",
     "clear_approved_dapps": "EFFACER LES ÐAPPS APPROUVÉES",
     "clear_browser_history": "EFFACER L’HISTORIQUE DU NAVIGATEUR",
@@ -855,10 +869,13 @@
     "networks_default_title": "Réseau par défaut",
     "network_delete": "Si vous supprimez ce réseau, vous devrez l’ajouter à nouveau pour voir vos actifs sur ce réseau",
     "networks_default_cta": "Utiliser ce réseau",
+    "add_rpc_url": "Ajouter l’URL de l’appel de procédure à distance (RPC)",
+    "add_block_explorer_url": "Ajouter l’URL de l’explorateur de blocs",
     "networks_desc": "Ajouter et modifier des réseaux RPC personnalisés",
     "network_name_label": "Nom du réseau",
     "network_name_placeholder": "Nom du réseau (facultatif)",
     "network_rpc_url_label": "URL RPC",
+    "network_rpc_name_label": "Nom du RPC",
     "network_rpc_placeholder": "Nouveau réseau RPC",
     "network_chain_id_label": "ID de chaîne",
     "network_chain_id_placeholder": "ID de chaîne",
@@ -924,7 +941,7 @@
     "invalid_number_range": "Numéro non valide. Saisissez un nombre compris entre 1 et %{maxSafeChainId}.",
     "hide_zero_balance_tokens_title": "Masquer les jetons sans solde",
     "hide_zero_balance_tokens_desc": "Empêche l’affichage des jetons sans solde dans votre liste de jetons.",
-    "token_detection_title": "Détection avancée de jetons",
+    "token_detection_title": "Détection automatique des jetons",
     "token_detection_description": "Nous utilisons des API tierces pour détecter et afficher les nouveaux jetons envoyés à votre portefeuille. Désactivez cette option si vous ne souhaitez pas que l’application récupère les données de ces services.",
     "theme_button_text": "Changer le thème",
     "theme_title": "Thème ({{theme}})",
@@ -1036,7 +1053,7 @@
           "snap_getBip32PublicKey": "Afficher votre clé publique pour {{protocol}}",
           "snap_getBip44Entropy": "Gérer vos comptes et vos actifs {{protocol}}",
           "snap_getEntropy": "Dériver des clés arbitraires uniques à ce Snap",
-          "endowment:keyring": "dotation:porte-clés",
+          "endowment:keyring": "Autoriser les demandes d’ajout et de gestion de comptes Ethereum",
           "wallet_snap": "Se connecter à {{otherSnapName}}",
           "endowment:webassembly": "Prise en charge de WebAssembly",
           "endowment:ethereum-provider": "Accéder au fournisseur d’Ethereum",
@@ -1044,7 +1061,8 @@
           "snap_getLocale": "Afficher votre langue préférée",
           "endowment:caveat:transaction-origin": "Voir l’origine des sites web qui proposent des transactions",
           "endowment:extend-runtime": "Étendre la durée d’exécution",
-          "snap_dialog": "Afficher des boîtes de dialogue personnalisées"
+          "snap_dialog": "Afficher des boîtes de dialogue personnalisées",
+          "snap_manageAccounts": "Ajouter et gérer des comptes Ethereum"
         }
       }
     },
@@ -1067,9 +1085,9 @@
     "aes_crypto_test_form_title": "AES Crypto - Formulaire de test",
     "aes_crypto_test_form_description": "Section exclusivement développée pour les tests de bout en bout. Si vous la voyez dans votre application, veuillez le signaler au service d’assistance de MetaMask.",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "Options pour les développeurs",
+      "generate_trace_test": "Générer un test de traçabilité",
+      "generate_trace_test_desc": "Générer une trace du test en mode développeur de Sentry."
     }
   },
   "aes_crypto_test_form": {
@@ -1327,7 +1345,7 @@
     "transaction_id": "ID de transaction",
     "alert": "ALERTE",
     "amount": "Montant",
-    "details": "Details",
+    "details": "Détails",
     "next": "Suivant",
     "back": "Retour",
     "confirm": "Confirmer",
@@ -1449,7 +1467,7 @@
     "invalid_recipient": "Destinataire non valide",
     "invalid_recipient_description": "Vérifiez l’adresse et assurez-vous qu’elle est valide",
     "swap_tokens": "Échanger des jetons",
-    "fromWithColon": "From:"
+    "fromWithColon": "De :"
   },
   "custom_gas": {
     "total": "Total",
@@ -1736,7 +1754,7 @@
     "continue": "Continuer",
     "cancel": "Annuler",
     "approve": "Approuver",
-    "update": "Update",
+    "update": "Mettre à jour",
     "edit_network_details": "Modifier les détails du réseau",
     "malicious_network_warning": "Un fournisseur de réseau malveillant peut mentir quant à l’état de la blockchain et enregistrer votre activité sur le réseau. N’ajoutez que des réseaux personnalisés auxquels vous faites confiance.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1762,12 @@
     "additional_network_information_title": "Informations supplémentaires sur les réseaux",
     "network_warning_desc": "Cette connexion réseau est assurée par des tiers. Elle peut être moins fiable ou permettre à des tiers de suivre l’activité des utilisateurs.",
     "additonial_network_information_desc": "Certains de ces réseaux dépendent de services tiers. Ils peuvent être moins fiables ou permettre à des tiers de suivre l’activité des utilisateurs.",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "Connecter plus de réseaux",
     "learn_more": "En savoir plus",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Changer de réseau",
     "switch": "Changer",
-    "select_all": "Select all",
+    "select_all": "Tout sélectionner",
     "new_network": "Nouveau réseau ajouté",
     "network_name": "Réseau {{networkName}}",
     "network_added": " est maintenant disponible dans le sélecteur de réseau.",
@@ -1767,18 +1785,18 @@
     "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète.",
     "network_deprecated_title": "Ce réseau est obsolète",
     "network_deprecated_description": "Le réseau auquel vous essayez de vous connecter n’est plus pris en charge par Metamask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Modifier les réseaux"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
+    "title_this_site_wants_to": "Ce site veut :",
+    "title_dapp_url_wants_to": "{{dappUrl}} veut :",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} est autorisé à :",
+    "use_enabled_networks": "Utiliser les réseaux que vous avez activés",
+    "wants_to_see_your_accounts": "Consulter vos comptes et suggérer des transactions",
+    "requesting_for": "Demande de ",
+    "manage_permissions": "Gérer les autorisations",
+    "edit": "Modifier",
+    "cancel": "Annuler"
   },
   "select": {
     "cancel": "Annuler",
@@ -2042,8 +2060,9 @@
     "back_to_safety": "Retour à la sécurité"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "Expiration",
+    "no_date": "Inconnu",
+    "yesterday": "Hier",
     "staked": "Staké",
     "received": "Reçu",
     "unstaked": "Déstaké",
@@ -2119,8 +2138,8 @@
     "success_withdrawal_title": "Retrait effectué !",
     "error_title": "Oups ! Nous avons rencontré un problème :/",
     "received_title": "Vous avez reçu {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "default_message_title": "Notification de nouvelle transaction",
+    "default_message_description": "Appuyez pour voir cette transaction",
     "received_payment_title": "Paiement instantané reçu",
     "pending_message": "En attente de confirmation",
     "pending_deposit_message": "En attente de réalisation du dépôt",
@@ -2136,12 +2155,12 @@
     "cancelled_message": "Appuyez pour voir cette transaction",
     "received_message": "Appuyez pour voir cette transaction",
     "received_payment_message": "Vous avez reçu {{amount}} DAI",
-    "prompt_title": "Receive Push Notifications",
+    "prompt_title": "Recevoir des notifications push",
     "notifications_enabled_error_title": "Quelque chose a mal tourné",
     "notifications_enabled_error_desc": "Nous n’avons pas pu activer les notifications. Veuillez réessayer plus tard.",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "Activez les notifications dans les paramètres pour recevoir des notifications sur l’activité du portefeuille et autres événements importants.",
+    "prompt_ok": "Activer",
+    "prompt_cancel": "Peut-être plus tard",
     "wc_connected_title": "Connecté à {{title}}",
     "wc_signed_title": "Signé",
     "wc_sent_tx_title": "Transaction envoyée",
@@ -2154,6 +2173,7 @@
     "wallet": "Portefeuille",
     "web3": "Web3",
     "staking_provider": "Fournisseur de services de staking",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "Rien à voir ici",
       "message": "C’est ici qu’apparaitront les notifications vous informant qu’une activité a été détectée dans votre portefeuille. "
@@ -2915,7 +2935,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Frais de gaz estimés",
-    "network_fee": "Network fee",
+    "network_fee": "Frais de réseau",
     "max_fee": "Frais maximums",
     "total": "Total",
     "max_amount": "Montant maximal",
@@ -3155,7 +3175,7 @@
     "ledger_reminder_message_step_four": "4. La localisation est activée avec l’autorisation d’utiliser la localisation précise",
     "ledger_reminder_message_step_four_Androidv12plus": "4. L’option « Appareils à proximité » est activée",
     "ledger_reminder_message_step_five": "5. L’option « Ne pas déranger » doit être désactivée",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Activez la « signature aveugle » sur votre appareil Ledger.",
     "available_devices": "Appareils disponibles",
     "retry": "Réessayer",
     "continue": "Continuer",
@@ -3186,15 +3206,17 @@
     "how_to_install_eth_webview_title": "Comment installer l’application Ethereum",
     "nonce_too_low": "Nonce trop court",
     "nonce_too_low_error": "Le nonce défini est trop court",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "Sélectionner un compte",
+    "select_hd_path": "Sélectionner le chemin HD",
+    "select_hd_path_description": "Si vous ne voyez pas les comptes auxquels vous vous attendez, essayez de changer le chemin HD ou le réseau sélectionné.",
     "ledger_live_path": "Ledger Live",
-    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "ledger_legacy_path": "Hérité (MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44 (par exemple : MetaMask, Trezor)",
+    "ledger_legacy_label": " (hérité)",
+    "blind_sign_error": "Erreur de signature aveugle",
+    "blind_sign_error_message": "La signature aveugle n’est pas activée sur votre appareil Ledger. Veuillez l’activer dans les paramètres.",
+    "user_reject_transaction": "User rejected the transaction",
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
   },
   "account_actions": {
     "edit_name": "Modifier le nom du compte",
@@ -3249,20 +3271,77 @@
   },
   "stake": {
     "stake": "Staker",
-    "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "stake_eth": "Staker des ETH",
+    "unstake_eth": "Déstaker des ETH",
+    "staked_balance": "Solde staké",
+    "staked_ethereum": "Ethereum staké",
+    "unstake": "Déstaker",
+    "stake_more": "Staker plus",
+    "claim": "Réclamer",
+    "your_earnings": "Vos revenus",
+    "annual_rate": "Taux annuel",
+    "lifetime_rewards": "Récompenses obtenues à ce jour",
+    "estimated_annual_earnings": "Estimation des revenus annuels",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "Infobulle sur le taux annuel"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
-    "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "estimated_annual_rewards": "Estimation des récompenses annuelles",
+    "metamask_pool": "Pool MetaMask",
+    "enter_amount": "Saisissez le montant",
+    "review": "Examiner",
+    "not_enough_eth": "Pas assez d’ETH",
+    "balance": "Solde",
+    "stake_eth_and_earn": "Dégagez un revenu en stakant des ETH",
+    "stake_any_amount_of_eth": "Stakez n’importe quelle quantité d’ETH",
+    "no_minimum_required": "Aucun minimum requis.",
+    "earn_eth_rewards": "Obtenez des ETH en récompense",
+    "earn_eth_rewards_description": "Commencez à dégager des bénéfices dès que vous stakez. Les récompenses s’accumulent automatiquement.",
+    "flexible_unstaking": "Déstaking flexible",
+    "flexible_unstaking_description": "Déstakez à tout moment. Les demandes sont généralement traitées dans les 11 jours.",
+    "disclaimer": "Le staking comporte des risques et peut entrainer la perte de fonds. De plus, les récompenses liées au staking ne sont pas garanties.",
+    "learn_more": "En savoir plus",
+    "got_it": "D’accord",
+    "your_balance": "Votre solde",
+    "stake_your_eth_cta": {
+      "base": "Stakez vos ETH avec le pool MetaMask et gagnez",
+      "annually": "par an.",
+      "learn_more_with_period": "En savoir plus."
+    },
+    "day": {
+      "zero": "",
+      "one": "jour",
+      "other": "jours"
+    },
+    "hour": {
+      "zero": "",
+      "one": "heure",
+      "other": "heures"
+    },
+    "minute": {
+      "zero": "",
+      "one": "minute",
+      "other": "minutes"
+    },
+    "banner_text": {
+      "has_claimable_eth": "Vous pouvez réclamer {{amountEth}} ETH qui seront déposés immédiatement dans votre portefeuille.",
+      "unstaking_in_progress": {
+        "base": "{{amountEth}} ETH sont en train d'être déstakés. Revenez dans",
+        "and": "et",
+        "to_claim_it": "pour les réclamer.",
+        "default": "{{amountEth}} ETH sont en train d'être déstakés. Revenez plus tard pour les réclamer."
+      },
+      "geo_blocked": "Vous vous trouvez dans une région où l’unstaking ou le staking n’est pas autorisé.",
+      "approximately": "environ"
+    },
+    "unstake_input_banner_description": "En moyenne, il faut moins de 3 jours pour que les ETH déstakés puissent être réclamés, mais cela peut prendre parfois jusqu’à 11 jours.",
+    "max": "Max",
+    "staking_from": "Staking à partir de",
+    "interacting_with": "Interagissant avec",
+    "12_hours": "12 heures",
+    "terms_of_service": "Conditions de service",
+    "risk_disclosure": "Informations sur les risques encourus",
+    "cancel": "Annuler",
+    "confirm": "Confirmer"
   },
   "default_settings": {
     "title": "Votre portefeuille est prêt",
@@ -3272,7 +3351,7 @@
     "default_settings": "Paramètres par défaut",
     "done": "Terminé",
     "basic_functionality": "Fonctionnalité de base",
-    "manage_networks": "Gérer les réseaux",
+    "manage_networks": "Choisissez votre réseau",
     "manage_networks_body": "Nous utilisons Infura comme fournisseur d’appel de procédure à distance (APD) pour offrir l’accès le plus fiable et le plus privé possible aux données Ethereum. Vous pouvez choisir votre propre fournisseur d’APD, mais rappelez-vous qu’il aura besoin d’accéder à votre adresse IP et à l’adresse de votre portefeuille Ethereum pour effectuer des transactions. Lisez notre ",
     "manage_networks_body2": " pour en savoir plus sur la façon dont Infura traite les données.",
     "functionality_body": "MetaMask offre des fonctionnalités de base telles que l’affichage des détails des jetons et des paramètres de gaz par le biais de services Internet. Lorsque vous utilisez des services Internet, votre adresse IP est partagée avec le fournisseur de ces services, dans ce cas MetaMask. C’est la même chose que lorsque vous visitez un site web. MetaMask conserve ces données temporairement et ne les vend jamais. Vous pouvez utiliser un VPN ou désactiver ces services, mais cela peut affecter votre expérience avec MetaMask. Lisez notre ",
@@ -3286,9 +3365,17 @@
       "buttons": {
         "cancel": "Annuler",
         "turn_on": "Activer",
-        "turn_off": "Désactiver"
+        "turn_off": "Désactiver",
+        "reset": "Réinitialiser"
       }
-    }
+    },
+    "drawer_general_title": "Général",
+    "drawer_general_title_desc": "Synchronisez les paramètres entre différents appareils, sélectionnez les préférences réseau et suivez les données relatives aux jetons",
+    "drawer_assets_title": "Actifs",
+    "drawer_assets_desc": "Détection automatique des jetons dans votre portefeuille, affichage des NFT et mise à jour du solde de plusieurs comptes",
+    "drawer_security_title": "Sécurité",
+    "drawer_security_desc": "Réduisez le risque de rejoindre des réseaux dangereux et protégez vos comptes",
+    "network_details_check_desc": "MetaMask utilise un service tiers appelé chainid.network pour afficher des détails précis et standardisés concernant les réseaux. Vous réduisez ainsi le risque de vous connecter à un réseau malveillant ou au mauvais réseau. En utilisant cette fonctionnalité, vous exposez votre adresse IP à chainid.network."
   },
   "simulation_details": {
     "failed": "Une erreur s’est produite lors du chargement de l’estimation.",
@@ -3312,13 +3399,43 @@
   },
   "common": {
     "please_wait": "Veuillez patienter",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "Cela vous déconnectera de {{dappUrl}}",
+    "disconnect": "Déconnecter"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "Taux de récompense",
+      "tooltip": "Augmentation annuelle prévue de la valeur de votre stake, basée sur le taux de récompense au cours de la semaine écoulée."
+    },
+    "estimated_gas_fee": {
+      "title": "Frais de gaz estimés",
+      "gas_recipient": "Les frais de gaz sont payés aux mineurs de cryptomonnaies qui traitent les transactions sur le réseau Ethereum. MetaMask ne tire aucun profit des frais de gaz.",
+      "gas_fluctuation": "Les frais de gaz sont estimés et fluctueront selon le flux du trafic réseau et la complexité de la transaction.",
+      "gas_learn_more": "En savoir plus sur les frais de gaz"
+    },
+    "reward_frequency": {
+      "title": "Fréquence des récompenses",
+      "tooltip": "Votre solde staké est mis à jour toutes les 12 heures pour tenir compte des nouvelles récompenses."
+    }
+  },
+  "confirm": {
+    "reject": "Rejeter",
+    "confirm": "Confirmer",
+    "title": {
+      "signature": "Demande de signature"
+    },
+    "request_from": "Demande de",
+    "message": "Message",
+    "personal_sign_tooltip": "Ce site demande votre signature",
+    "details": "Détails",
+    "account": "Compte",
+    "balance": "Solde",
+    "network": "Réseau",
+    "rpc_url": "URL de l’appel de procédure à distance (RPC)",
+    "simulation": {
+      "title": "Changements estimés",
+      "personal_sign_info": "Vous êtes en train de vous connecter à un site. Aucun changement ne devrait être apporté à votre compte.",
+      "tooltip": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information."
     }
   }
 }
