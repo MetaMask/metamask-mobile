@@ -19,13 +19,14 @@ import { View } from 'react-native';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
+import useBalance from '../../hooks/useBalance';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const stakeBalance = '4599964000000000000'; //TODO: Replace with actual balance - STAKE-806
+  const { stakedBalanceWei } = useBalance();
 
   const {
     isEth,
@@ -40,10 +41,13 @@ const UnstakeInputView = () => {
     handleAmountPress,
     handleKeypadChange,
     conversionRate,
-  } = useStakingInputHandlers(new BN(stakeBalance));
+  } = useStakingInputHandlers(new BN(stakedBalanceWei));
 
-  const stakeBalanceInEth = renderFromWei(stakeBalance, 5);
-  const stakeBalanceFiatNumber = weiToFiatNumber(stakeBalance, conversionRate);
+  const stakeBalanceInEth = renderFromWei(stakedBalanceWei, 5);
+  const stakeBalanceFiatNumber = weiToFiatNumber(
+    stakedBalanceWei,
+    conversionRate,
+  );
 
   const stakedBalanceText = strings('stake.staked_balance');
   const stakedBalanceValue = isEth
