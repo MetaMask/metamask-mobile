@@ -56,6 +56,7 @@ const PermissionsSummary = ({
   isRenderedAsBottomSheet = true,
   isDisconnectAllShown = true,
   isNetworkSwitch = false,
+  accountAddresses = [],
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
@@ -163,6 +164,33 @@ const PermissionsSummary = ({
     });
   }, [navigate, currentPageInformation?.url]);
 
+  const getAccountLabel = useCallback(() => {
+    if (isAlreadyConnected) {
+      if (accountAddresses.length === 0 && selectedAccount) {
+        return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
+      }
+      return accountAddresses.length === 1
+        ? `1 ${strings('accounts.account_connected')}`
+        : `${accountAddresses.length} ${strings(
+            'accounts.accounts_connected',
+          )}`;
+    }
+
+    if (
+      accountAddresses.length === 1 ||
+      (accountAddresses.length === 0 && selectedAccount)
+    ) {
+      return (
+        selectedAccount?.name &&
+        `${strings('permissions.requesting_for')}${selectedAccount?.name}`
+      );
+    }
+
+    return strings('permissions.requesting_for_accounts', {
+      numberOfAccounts: accountAddresses.length,
+    });
+  }, [accountAddresses, isAlreadyConnected, selectedAccount]);
+
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
@@ -177,31 +205,35 @@ const PermissionsSummary = ({
           />
           <View style={styles.accountPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMD}>
-              {strings('permissions.wants_to_see_your_accounts')}
+              {strings('permissions.see_your_accounts')}
             </TextComponent>
             <View style={styles.permissionRequestAccountInfo}>
               <View style={styles.permissionRequestAccountName}>
                 <TextComponent numberOfLines={1} ellipsizeMode="tail">
                   <TextComponent variant={TextVariant.BodySM}>
-                    {strings('permissions.requesting_for')}
-                  </TextComponent>
-                  <TextComponent variant={TextVariant.BodySMMedium}>
-                    {`${
-                      selectedAccount?.name ??
-                      strings('browser.undefined_account')
-                    }`}
+                    {getAccountLabel()}
                   </TextComponent>
                 </TextComponent>
               </View>
-              {selectedAccount?.address && (
-                <View style={styles.avatarGroup}>
-                  <Avatar
-                    size={AvatarSize.Xs}
-                    variant={AvatarVariant.Account}
-                    accountAddress={selectedAccount?.address}
+              <View style={styles.avatarGroup}>
+                {accountAddresses.length > 0 ? (
+                  <AvatarGroup
+                    avatarPropsList={accountAddresses.map((address) => ({
+                      variant: AvatarVariant.Account,
+                      accountAddress: address,
+                      size: AvatarSize.Xs,
+                    }))}
                   />
-                </View>
-              )}
+                ) : (
+                  selectedAccount?.address && (
+                    <Avatar
+                      size={AvatarSize.Xs}
+                      variant={AvatarVariant.Account}
+                      accountAddress={selectedAccount.address}
+                    />
+                  )
+                )}
+              </View>
             </View>
           </View>
           {renderEndAccessory()}
@@ -317,7 +349,7 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {strings('confirmation_modal.confirm_cta')}
+                {strings('accounts.connect')}
               </StyledButton>
             </View>
           )}
