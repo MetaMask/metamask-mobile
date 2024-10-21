@@ -13,7 +13,7 @@ export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
     {
       account: '0x0123456789abcdef0123456789abcdef01234567',
       lifetimeRewards: '43927049303048',
-      assets: '17913326707142320',
+      assets: '5791332670714232000',
       exitRequests: [
         {
           // Unstaking
@@ -66,4 +66,23 @@ export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   feePercent: 1500,
   totalAssets: '7723070453364602130892',
   vaultAddress: '0x0a1b2c3d4e5f6a7b8c9dabecfd0123456789abcd',
+};
+
+export const MOCK_STAKING_EARNINGS_DATA = {
+  ANNUAL_EARNING_RATE: '2.6%',
+  LIFETIME_REWARDS: {
+    FIAT: '$2',
+    ETH: '0.02151 ETH',
+  },
+  EST_ANNUAL_EARNINGS: {
+    FIAT: '$15.93',
+    ETH: '0.0131 ETH',
+  },
+};
+
+export const MOCK_REWARD_DATA = {
+  REWARDS: {
+    ETH: '0.13 ETH',
+    FIAT: '$334.93',
+  },
 };
