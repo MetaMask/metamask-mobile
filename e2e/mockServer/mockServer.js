@@ -28,20 +28,13 @@ export const startMockServer = async ({
 
     await mockServer.forUnmatchedRequest().thenPassThrough({
       beforeRequest: async ({ url, method }) => {
-        const parsedUrl = new URL(url);
-        const returnUrl = parsedUrl.searchParams.get('url') || url;
-    
-        // Replace 'localhost' with the Android local IP
-        const updatedUrl = returnUrl.replace('localhost', '127.0.0.1');
-    
-        // Log just the updated URL
-        console.log(`Updated URL: ${updatedUrl}`);
-    
+        const returnUrl = new URL(url).searchParams.get('url') || url;
+        const updatedUrl = device.getPlatform() === 'android' ? returnUrl.replace('localhost', '127.0.0.1') : returnUrl;
+
+        console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
         return { url: updatedUrl };
       },
     });
-    
-    
 
   return mockServer;
 };
