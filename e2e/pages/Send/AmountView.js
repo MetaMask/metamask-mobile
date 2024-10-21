@@ -6,6 +6,10 @@ import {
 } from '../../selectors/SendFlow/AmountView.selectors';
 
 class AmountView {
+  get currencySwitch() {
+    return Matchers.getElementByID(AmountViewSelectorsIDs.CURRENCY_SWITCH);
+  }
+
   get title() {
     return Matchers.getElementByText(AmountViewSelectorsText.SCREEN_TITLE);
   }
@@ -28,6 +32,10 @@ class AmountView {
     device.getPlatform() === 'android'
       ? await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount)
       : await Gestures.replaceTextInField(this.amountInputField, amount);
+  }
+
+  async tapCurrencySwitch() {
+    await Gestures.waitAndTap(this.currencySwitch);
   }
 }
 export default new AmountView();
