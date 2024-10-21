@@ -973,7 +973,7 @@ export class NetworkSettings extends PureComponent {
 
     if (isRpcExists.length > 0) {
       return this.setState({
-        warningRpcUrl: strings('app_settings.url_already_been_added'),
+        warningRpcUrl: strings('app_settings.invalid_rpc_url'),
       });
     }
 

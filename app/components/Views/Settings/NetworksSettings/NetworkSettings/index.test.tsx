@@ -753,9 +753,7 @@ describe('NetworkSettings', () => {
         'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
       );
 
-      expect(wrapper.state('warningRpcUrl')).toBe(
-        'This URL has already been added',
-      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
     });
 
     it('should correctly add RPC URL through modal and update state', async () => {
