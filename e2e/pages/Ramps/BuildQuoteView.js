@@ -12,7 +12,7 @@ class BuildQuoteView {
   }
 
   get cancelButton() {
-    return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON);
+    return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
   }
 
   async tapCancelButton() {
