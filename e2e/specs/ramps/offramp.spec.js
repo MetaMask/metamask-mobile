@@ -21,7 +21,20 @@ import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeAssets('OffRamp'), () => {
+const Regions = {
+  USA: 'United States of America',
+  CALIFORNIA: 'California',
+  FRANCE: 'France',
+  UK: 'United Kingdom',
+};
+
+const PaymentMethods = {
+  DEBIT_OR_CREDIT: 'Debit or Credit',
+  INSTANT_ACH_BANK_TRANSFER: 'Insant ACH Bank Transfer',
+  ACH_BANK_TRANSFER: 'ACH Bank Transfer',
+}
+
+describe(SmokeAssets('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -44,16 +57,16 @@ describe(SmokeAssets('OffRamp'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should select Region and Payment Method to see the Build Sell Quote screen', async () => {
+  it('should display Build Sell Quote based on selected Region and Payment', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
     await SelectRegionView.tapSelectRegionDropdown();
-    await SelectRegionView.tapRegionOption('United States of America');
-    await SelectRegionView.tapRegionOption('California');
+    await SelectRegionView.tapRegionOption(Regions.USA);
+    await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
     await SelectRegionView.tapContinueButton();
-    await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
+    await SelectPaymentMethodView.tapPaymentMethodOption(PaymentMethods.DEBIT_OR_CREDIT);
     await SelectPaymentMethodView.tapContinueButton();    
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
