@@ -26,10 +26,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectTicker } from '../../../selectors/networkController';
 import etherscanLink from '@metamask/etherscan-link';
 import {
   selectConversionRate,
@@ -47,11 +44,12 @@ import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
+import { useChainId } from '../../../selectors/hooks';
 
 const NftDetails = () => {
   const navigation = useNavigation();
   const { collectible } = useParams<NftDetailsParams>();
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
