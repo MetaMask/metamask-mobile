@@ -138,7 +138,7 @@ const Main = (props) => {
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
-  const connectionChangeHandler = () => {
+  const connectionChangeHandler = (state) => {
     try {
       if (!state) return;
       const { isConnected } = state;
@@ -146,7 +146,7 @@ const Main = (props) => {
       // Only navigate to OfflineModeView after a sustained offline period (e.g., 3 seconds)
       const debounceTimeout = setTimeout(() => {
         if (connected && isConnected === false) {
-          navigation.navigate('OfflineModeView');
+          props.navigation.navigate('OfflineModeView');
         }
       }, 3000);
 
