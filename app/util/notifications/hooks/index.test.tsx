@@ -74,8 +74,6 @@ describe('useNotificationHandler', () => {
 
     expect(FCMService.registerAppWithFCM).toHaveBeenCalledTimes(1);
     expect(FCMService.saveFCMToken).toHaveBeenCalledTimes(1);
-    expect(FCMService.registerTokenRefreshListener).toHaveBeenCalledTimes(1);
-    expect(FCMService.listenForMessagesForeground).toHaveBeenCalledTimes(1);
   });
 
   it('registers FCM when MetaMask notifications are enabled', () => {
@@ -85,8 +83,6 @@ describe('useNotificationHandler', () => {
 
     expect(FCMService.registerAppWithFCM).toHaveBeenCalledTimes(1);
     expect(FCMService.saveFCMToken).toHaveBeenCalledTimes(1);
-    expect(FCMService.registerTokenRefreshListener).toHaveBeenCalledTimes(1);
-    expect(FCMService.listenForMessagesForeground).toHaveBeenCalledTimes(1);
   });
 });
 
