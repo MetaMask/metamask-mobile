@@ -33,7 +33,6 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
-
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
