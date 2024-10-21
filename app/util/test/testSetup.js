@@ -379,8 +379,8 @@ jest.mock('@react-native-firebase/messaging', () => {
           unregisterDeviceForRemoteMessages: jest.fn(() =>
             Promise.resolve('unregistered'),
           ),
-          onMessage: jest.fn(() => Promise.resolve()),
-      onTokenRefresh: jest.fn(() => Promise.resolve()),
+          onMessage: jest.fn(),
+          onTokenRefresh: jest.fn(),
     };
   };
 
