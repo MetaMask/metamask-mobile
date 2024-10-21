@@ -20,21 +20,15 @@ class NetworkView {
   }
 
   get addNetworkButtonForm() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(NetworkListModalSelectorsIDs.ADD_BUTTON);
+    return Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON);
   }
 
   get addRpcDropDownButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC)
-      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
   }
 
   get addRpcButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON)
-      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
   }
 
   get noMatchingText() {
@@ -98,13 +92,9 @@ class NetworkView {
   }
 
   get rpcAddButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-        )
-      : Matchers.getElementByID(
-          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-        );
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
   }
 
   get blockExplorer() {

@@ -44,10 +44,7 @@ describe(Regression('Networks Search'), () => {
         }
 
         // delete avalanche network
-        const deleteButton = Matchers.getElementByID(
-          'delete-network-button-0xa86a',
-        );
-        await Gestures.waitAndTap(deleteButton);
+        await NetworkListModal.deleteNetwork();
 
         await TestHelpers.delay(2000);
         await NetworkListModal.tapDeleteButton();
