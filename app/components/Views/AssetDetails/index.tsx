@@ -31,10 +31,7 @@ import WarningMessage from '../confirmations/SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -47,6 +44,7 @@ import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { useChainId } from '../../../selectors/hooks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -116,7 +114,7 @@ const AssetDetails = (props: Props) => {
   const tokens = useSelector(selectTokens);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );

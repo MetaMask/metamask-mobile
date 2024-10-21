@@ -95,7 +95,7 @@ export const TokenListItem = ({
       currentCurrency,
     );
 
-  const pricePercentChange1d = itemAddress
+  const pricePercentChange1d = itemAddress?.startsWith('0x')
     ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
     : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
@@ -158,10 +158,12 @@ export const TokenListItem = ({
 
     if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-    if (CustomNetworkImgMapping[chainId]) {
+    const isValidChainId = (id: string): id is `0x${string}` =>
+      /^0x[0-9a-fA-F]+$/.test(id);
+
+    if (isValidChainId(chainId) && CustomNetworkImgMapping[chainId]) {
       return CustomNetworkImgMapping[chainId];
     }
-
     return ticker ? images[ticker] : undefined;
   };
 

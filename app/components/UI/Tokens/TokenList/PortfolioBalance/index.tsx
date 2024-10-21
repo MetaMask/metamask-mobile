@@ -10,7 +10,6 @@ import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  selectChainId,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -33,6 +32,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { useChainId } from '../../../../../selectors/hooks';
 
 export const PortfolioBalance = () => {
   const { colors } = useTheme();
@@ -42,7 +42,7 @@ export const PortfolioBalance = () => {
   const { trackEvent, isEnabled } = useMetrics();
 
   const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const ticker = useSelector(selectTicker);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
