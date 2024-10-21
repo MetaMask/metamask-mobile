@@ -709,9 +709,9 @@
     "revoked": "ανακλήθηκαν.",
     "revoked_all": "Όλοι οι λογαριασμοί ανακλήθηκαν.",
     "accounts_connected": "λογαριασμοί συνδεδεμένοι.",
-    "account_connected": "account connected.",
-    "accounts_disconnected": "accounts disconnected.",
-    "account_disconnected": "account disconnected.",
+    "account_connected": "συνδεδεμένος λογαριασμός.",
+    "accounts_disconnected": "συνδεδεμένοι λογαριασμοί.",
+    "account_disconnected": "ο λογαριασμός αποσυνδέθηκε.",
     "disconnected": "αποσυνδέθηκε.",
     "disconnected_all": "Όλοι οι λογαριασμοί αποσυνδέθηκαν.",
     "disconnected_from": "Αποσυνδέθηκε από το {{dappHostName}}",
@@ -2173,7 +2173,7 @@
     "wallet": "Πορτοφόλι",
     "web3": "Web3",
     "staking_provider": "Πάροχος πονταρίσματος",
-    "network_fee_not_available": "Network Fee not available",
+    "network_fee_not_available": "Η χρέωση του δικτύου δεν είναι διαθέσιμη",
     "empty": {
       "title": "Τίποτα το ιδιαίτερο εδώ",
       "message": "Εδώ μπορείτε να βρείτε ειδοποιήσεις μόλις παρατηρηθεί δραστηριότητα στο πορτοφόλι σας. "
@@ -3215,8 +3215,8 @@
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Σφάλμα τυφλής υπογραφής",
     "blind_sign_error_message": "Η τυφλή υπογραφή δεν είναι ενεργοποιημένη στη συσκευή σας Ledger. Ενεργοποιήστε την στις ρυθμίσεις.",
-    "user_reject_transaction": "User rejected the transaction",
-    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
+    "user_reject_transaction": "Ο χρήστης απέρριψε τη συναλλαγή",
+    "user_reject_transaction_message": "Ο χρήστης έχει απορρίψει τη συναλλαγή στη συσκευή Ledger."
   },
   "account_actions": {
     "edit_name": "Επεξεργασία ονόματος λογαριασμού",
