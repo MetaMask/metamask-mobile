@@ -71,7 +71,10 @@ class EngineService {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
       },
-      { name: 'AccountTrackerController' },
+      {
+        name: 'AccountTrackerController',
+        key: 'AccountTrackerController:stateChange',
+      },
       {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -92,7 +95,7 @@ class EngineService {
         name: 'TokenBalancesController',
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
-      { name: 'TokenRatesController' },
+      { name: 'TokenRatesController', key: 'TokenRatesController:stateChange' },
       {
         name: 'TransactionController',
         key: `${engine.context.TransactionController.name}:stateChange`,
