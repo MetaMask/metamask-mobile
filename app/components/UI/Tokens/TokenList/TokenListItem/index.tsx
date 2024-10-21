@@ -46,7 +46,7 @@ import { TokenI } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
-import { StakeButton } from '../StakeButton';
+import { StakeButton } from '../../../Stake/components/StakeButton';
 import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 
