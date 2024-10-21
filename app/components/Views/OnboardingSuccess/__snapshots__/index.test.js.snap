@@ -120,6 +120,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "flexDirection": "row",
+                "marginTop": 16,
               },
               {
                 "paddingTop": 10,
