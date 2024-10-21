@@ -67,7 +67,13 @@ describe('StakeConfirmationView', () => {
     const props: StakeConfirmationViewProps = {
       route: {
         key: '1',
-        params: { amountWei: '3210000000000000', amountFiat: '7.46' },
+        params: {
+          amountWei: '3210000000000000',
+          amountFiat: '7.46',
+          annualRewardRate: '2.5%',
+          annualRewardsETH: '2.5 ETH',
+          annualRewardsFiat: '$5000',
+        },
         name: 'params',
       },
     };

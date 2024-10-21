@@ -9,16 +9,8 @@ import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeade
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
-import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
 import { strings } from '../../../../../../locales/i18n';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
-
-const MOCK_REWARD_DATA = {
-  REWARDS: {
-    ETH: '0.13 ETH',
-    FIAT: '$334.93',
-  },
-};
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -47,9 +39,9 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
         <View style={styles.cardsContainer}>
           <AccountHeaderCard contractName={MOCK_STAKING_CONTRACT_NAME} />
           <RewardsCard
-            rewardRate={MOCK_GET_VAULT_RESPONSE.apy}
-            rewardsEth={MOCK_REWARD_DATA.REWARDS.ETH}
-            rewardsFiat={MOCK_REWARD_DATA.REWARDS.FIAT}
+            rewardRate={route.params.annualRewardRate}
+            rewardsEth={route.params.annualRewardsETH}
+            rewardsFiat={route.params.annualRewardsFiat}
           />
         </View>
       </View>
