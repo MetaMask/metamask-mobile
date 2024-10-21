@@ -22,7 +22,6 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { CommonActions } from '@react-navigation/native';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -135,19 +134,10 @@ class LockScreen extends PureComponent {
       // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
 
-      await trace(
-        {
-          name: TraceName.BiometricAuthentication,
-          op: TraceOperation.BiometricAuthentication,
-        },
-        async () => {
-          await Authentication.appTriggeredAuth({
-            bioStateMachineId,
-            disableAutoLogout: true,
-          });
-        },
-      );
-
+      await Authentication.appTriggeredAuth({
+        bioStateMachineId,
+        disableAutoLogout: true,
+      });
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
     } catch (error) {
