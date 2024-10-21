@@ -9,6 +9,7 @@ import FCMService from '../services/FCMService';
 import useNotificationHandler from './index';
 import initialRootState from '../../../util/test/initial-root-state';
 import * as Selectors from '../../../selectors/notifications';
+import { NavigationContainerRef } from '@react-navigation/native';
 
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(),
@@ -42,9 +43,14 @@ function arrangeStore() {
   return store;
 }
 
+const mockNavigate = jest.fn();
+const mockNavigation = {
+  navigate: mockNavigate,
+} as unknown as NavigationContainerRef;
+
 function arrangeHook() {
   const store = arrangeStore();
-  const hook = renderHook(() => useNotificationHandler(), {
+  const hook = renderHook(() => useNotificationHandler(mockNavigation), {
     wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
   });
 
