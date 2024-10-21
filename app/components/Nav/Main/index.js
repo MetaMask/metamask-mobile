@@ -109,10 +109,7 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
-  const { connectionChangeHandler } = useConnectionHandler(
-    props.navigation,
-    true,
-  );
+  const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler(props.navigation);
