@@ -70,23 +70,22 @@ export const TokenListFooter = ({
   return (
     <>
       {/* renderTokensDetectedSection */}
-      {isTokenDetectionEnabled ||
-        (detectedTokens?.length && (
-          <TouchableOpacity
-            style={styles.tokensDetectedButton}
-            onPress={showDetectedTokens}
+      {detectedTokens?.length !== 0 && isTokenDetectionEnabled && (
+        <TouchableOpacity
+          style={styles.tokensDetectedButton}
+          onPress={showDetectedTokens}
+        >
+          <Text
+            style={styles.tokensDetectedText}
+            testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON}
           >
-            <Text
-              style={styles.tokensDetectedText}
-              testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON}
-            >
-              {strings('wallet.tokens_detected_in_account', {
-                tokenCount: detectedTokens.length,
-                tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
-              })}
-            </Text>
-          </TouchableOpacity>
-        ))}
+            {strings('wallet.tokens_detected_in_account', {
+              tokenCount: detectedTokens.length,
+              tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
+            })}
+          </Text>
+        </TouchableOpacity>
+      )}
       {/* render buy button */}
       {isBuyableToken && (
         <View style={styles.buy}>
