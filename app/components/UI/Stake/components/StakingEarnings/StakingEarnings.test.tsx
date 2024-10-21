@@ -29,6 +29,25 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useStakingEarnings', () => ({
+  __esModule: true,
+  default: () => ({
+    annualRewardRate: '2.6%',
+    lifetimeRewardsETH: '2.5 ETH',
+    lifetimeRewardsFiat: '$5000',
+    estimatedAnnualEarningsETH: '2.5 ETH',
+    estimatedAnnualEarningsFiat: '$5000',
+    isLoadingEarningsData: false,
+  }),
+}));
+
+jest.mock('../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    hasStakedPositions: true,
+  }),
+}));
+
 describe('Staking Earnings', () => {
   it('should render correctly', () => {
     const { toJSON, getByText } = renderWithProvider(<StakingEarnings />);
