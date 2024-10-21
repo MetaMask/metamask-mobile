@@ -1,6 +1,6 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Logger from '../../../util/Logger';
-import NotificationsService from './NotificationService';
+import NotificationService from './NotificationService';
 import { ChannelId } from '../../../util/notifications/androidChannels';
 import { mmStorage } from '../settings';
 import { strings } from '../../../../locales/i18n';
@@ -42,7 +42,7 @@ class FCMService {
 
   listenForMessagesForeground = (): UnsubscribeFunc => messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
     Logger.log('A new FCM message arrived in foreground', remoteMessage);
-      await NotificationsService.displayNotification({
+      await NotificationService.displayNotification({
         channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         title: remoteMessage.notification?.title || strings('notifications.default_message_title'),
         body: remoteMessage.notification?.body || strings('notifications.default_message_description'),
@@ -53,7 +53,7 @@ class FCMService {
     messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
       Logger.log('A new FCM message arrived in background', remoteMessage);
 
-      await NotificationsService.displayNotification({
+      await NotificationService.displayNotification({
         channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         title: remoteMessage.notification?.title || strings('notifications.default_message_title'),
         body: remoteMessage.notification?.body || strings('notifications.default_message_description'),
