@@ -22,7 +22,6 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { useStakeContext } from '../../../../hooks/useStakeContext';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -31,9 +30,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
-  const { sdkService } = useStakeContext();
-
-  const { attemptDepositTransaction } = usePoolStakedDeposit(sdkService);
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
 
   const handleStake = async () => {
     if (!activeAccount?.address) return;
@@ -53,6 +50,15 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       },
       ({ transactionMeta }) => transactionMeta.id === transactionId,
     );
+
+    // Engine.controllerMessenger.subscribeOnceIf(
+    //   'TransactionController:transactionConfirmed',
+    //   () => {
+    // TODO: Call refreshPooledStakes();
+    // refreshPooledStakes();
+    //   },
+    //   (transactionMeta) => transactionMeta.id === transactionId,
+    // );
   };
 
   const handleConfirmation = () => {

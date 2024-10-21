@@ -4,9 +4,10 @@ import {
   TransactionParams,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { addTransaction } from '../../../../../util/transaction-controller';
 import { formatEther } from 'ethers/lib/utils';
+import { useStakeContext } from '../useStakeContext';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -63,8 +64,7 @@ const attemptDepositTransaction =
       // TODO: Add Stake/Unstake/Claim TransactionType to display contract method in confirmation screen.
       return addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        // TODO: Figure out what this value is supposed to be before v1 release.
-        origin: process.env.MM_FOX_CODE,
+        origin: ORIGIN_METAMASK,
       });
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -76,8 +76,14 @@ const attemptDepositTransaction =
     }
   };
 
-const usePoolStakedDeposit = (poolStakingContract: PooledStakingContract) => ({
-  attemptDepositTransaction: attemptDepositTransaction(poolStakingContract),
-});
+const usePoolStakedDeposit = () => {
+  const stakeContext = useStakeContext();
+
+  return {
+    attemptDepositTransaction: attemptDepositTransaction(
+      stakeContext.sdkService,
+    ),
+  };
+};
 
 export default usePoolStakedDeposit;

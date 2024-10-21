@@ -89,11 +89,15 @@ const mockPooledStakingContractService: PooledStakingContract = {
   estimateMulticallGas: jest.fn(),
 };
 
-const mockSDK: Stake = {
+const mockSdkContext: Stake = {
   sdkService: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };
+
+jest.mock('../useStakeContext', () => ({
+  useStakeContext: () => mockSdkContext,
+}));
 
 describe('usePoolStakedDeposit', () => {
   afterEach(() => {
@@ -106,12 +110,9 @@ describe('usePoolStakedDeposit', () => {
 
   describe('attemptDepositTransaction', () => {
     it('attempts to create and submit a staking deposit transaction', async () => {
-      const { result } = renderHookWithProvider(
-        () => usePoolStakedDeposit(mockSDK.sdkService),
-        {
-          state: mockInitialState,
-        },
-      );
+      const { result } = renderHookWithProvider(() => usePoolStakedDeposit(), {
+        state: mockInitialState,
+      });
 
       await result.current.attemptDepositTransaction(
         MOCK_DEPOSIT_VALUE_WEI,

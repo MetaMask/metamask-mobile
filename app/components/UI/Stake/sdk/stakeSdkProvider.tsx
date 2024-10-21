@@ -8,7 +8,6 @@ import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToDecimal } from '../../../../util/conversions';
-import { noop } from 'lodash';
 
 export interface Stake {
   sdkService: PooledStakingContract; // to do : facade it for other services implementation
@@ -16,13 +15,7 @@ export interface Stake {
   setSdkType: (stakeType: StakingType) => void;
 }
 
-const initialSdkService = StakeSdk.create({ stakingType: StakingType.POOLED });
-
-export const StakeContext = createContext<Stake>({
-  sdkType: initialSdkService.sdkConfig.stakingType,
-  sdkService: initialSdkService.pooledStakingContract,
-  setSdkType: noop,
-});
+export const StakeContext = createContext<Stake | undefined>(undefined);
 
 export const StakeSDKProvider: React.FC = ({ children }) => {
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
