@@ -106,7 +106,6 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
-
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
