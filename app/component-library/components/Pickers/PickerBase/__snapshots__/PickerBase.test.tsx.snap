@@ -2,7 +2,7 @@
 
 exports[`PickerBase should render correctly 1`] = `
 <TouchableOpacity
-  onPress={[Function]}
+  onPress={[MockFunction]}
   style={
     {
       "alignItems": "center",
@@ -15,7 +15,9 @@ exports[`PickerBase should render correctly 1`] = `
     }
   }
 >
-  <View />
+  <Text>
+    Test Content
+  </Text>
   <SvgMock
     color="#141618"
     height={20}
