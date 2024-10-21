@@ -12,7 +12,7 @@ class BuildQuoteView {
   }
 
   get cancelButton() {
-    return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON);
+    return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
   }
   
   async tapCancelButton() {
@@ -56,7 +56,7 @@ class BuildQuoteView {
       const numberButton = Matchers.getElementByText(amount[digit]);
       await Gestures.waitAndTap(numberButton);
     }
-    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON));
+    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON_TEXT));
   }
 
   async tapSelectedToken(token) {

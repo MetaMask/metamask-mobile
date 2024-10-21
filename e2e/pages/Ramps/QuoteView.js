@@ -1,14 +1,14 @@
 import Matchers from '../../utils/Matchers';
-import TestHelpers from '../../helpers';
+import Gestures from '../../utils/Gestures';
 import { QuoteSelectors } from '../../selectors/Ramps/Quote.selectors';
 
 class QuoteView {
   get selectAQuoteLabel() {
-    return Matchers.getElementByText(QuoteSelectors.SELECT_A_QUOTE);
+    return Matchers.getElementByText(QuoteSelectors.SELECT_A_QUOTE_TEXT);
   }
 
   async dismiss() {
-    await TestHelpers.swipeByText('Select a Quote', 'down', 'fast', 0.5);
+    await Gestures.swipe(this.selectAQuoteLabel, 'down', 'fast', 0.5);
   }
 }
 
