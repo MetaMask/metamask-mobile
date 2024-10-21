@@ -8,7 +8,7 @@ export const DEFAULT_MOCKSERVER_PORT = 8000;
 /**
  * Starts the mock server and sets up mock events.
  * 
- * @param {Object} events - The events to mock, organized by method.
+ * @param {Object} events - The events to mock, organised by method.
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
  * @returns {Promise} Resolves to the running mock server.
  */
@@ -24,20 +24,19 @@ export const startMockServer = async (events, port) => {
   for (const method in events) {
     const methodEvents = events[method];
 
-    // Loop through each event in methodEvents (which is an object, not an array)
-    for (const eventKey in methodEvents) {
-      const { urlEndpoint, response, requestBody } = methodEvents[eventKey];
+    // Log the HTTP method being mocked
+    console.log(`Setting up mock events for ${method} requests...`);
 
-      // Ensure response is defined
-      if (!response) {
-        console.log(`No response defined for ${urlEndpoint}`);
-        continue; // Skip this event if response is undefined
-      }
+    for (const { urlEndpoint, response, requestBody } of methodEvents) {
 
-      const responseCode = response.status || 200;
+      const responseCode = response?.status || 200;
 
-      console.log('Response status:', response.status);
+      console.log(`Mocking ${method} request to: ${urlEndpoint}`);
+      console.log(`Response status: ${responseCode}`);
       console.log('Response:', response);
+      if (requestBody){
+        console.log(`POST request body ${requestBody}`);
+      }
 
       // Handle GET requests
       if (method === 'GET') {
@@ -50,7 +49,7 @@ export const startMockServer = async (events, port) => {
       if (method === 'POST') {
         await mockServer.forPost('/proxy')
           .withQuery({ url: urlEndpoint })
-          .withJsonBody(requestBody || {}) // Use the requestBody from the event
+          .withJsonBody(requestBody || {})
           .thenReply(responseCode, JSON.stringify(response));
       }
     }
