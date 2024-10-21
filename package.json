@@ -130,7 +130,6 @@
     "socket.io-client/engine.io-client/ws": "^8.17.1",
     "micromatch": "4.0.8",
     "send": "0.19.0",
-    "ethereumjs-util/**/secp256k1": "3.8.1",
     "**/secp256k1": "4.0.4"
   },
   "dependencies": {
@@ -240,7 +239,7 @@
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.4",
     "ethereumjs-abi": "0.6.6",
-    "ethereumjs-util": "6.1.0",
+    "ethereumjs-util": "^6.2.1",
     "ethers": "^5.0.14",
     "ethjs-contract": "0.2.3",
     "ethjs-ens": "2.0.1",
@@ -536,7 +535,7 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
+      "ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
       "@storybook/addon-controls>@storybook/core-common>esbuild": false,
@@ -555,8 +554,6 @@
       "detox": true,
       "detox>bunyan>dtrace-provider": false,
       "eciesjs>secp256k1": true,
-      "ethereumjs-util>keccak": true,
-      "ethereumjs-util>secp256k1": true,
       "ethjs-query>babel-runtime>core-js": false,
       "ganache>@trufflesuite/bigint-buffer": false,
       "ganache>bufferutil": false,
