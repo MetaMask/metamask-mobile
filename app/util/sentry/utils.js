@@ -500,7 +500,7 @@ export function setupSentry() {
         metricsOptIn === AGREED
           ? [
               ...integrations,
-              new Sentry.ReactNativeTracing({
+              new Sentry.reactNativeTracingIntegration({
                 routingInstrumentation,
               }),
             ]
