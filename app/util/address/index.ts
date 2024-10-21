@@ -3,7 +3,6 @@ import {
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
 import punycode from 'punycode/punycode';
