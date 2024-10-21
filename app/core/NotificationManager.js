@@ -77,8 +77,8 @@ export const constructTitleAndMessage = (notification) => {
       });
       break;
     default:
-      title = notification.data.title || strings('notifications.default_message_title');
-      message = notification.data.shortDescription || strings('notifications.default_message_description');
+      title = notification?.data?.title || strings('notifications.default_message_title');
+      message = notification?.data?.shortDescription || strings('notifications.default_message_description');
       break;
   }
   return { title, message };
