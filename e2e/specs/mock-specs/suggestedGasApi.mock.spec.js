@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
 import { SmokeCore } from '../../tags.js';
@@ -16,30 +17,25 @@ import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
-// import { urls } from '../mock-data/mockUrlCollection.json';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
-import { mockEvents } from '../mock-data/mock-events.js';
+import { mockEvents } from '../../mockServer/mock-config/mock-events.js';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
-
     mockServer = await startMockServer([
-      mockEvents.suggestedGasApiErrorResponse,
+      mockEvents.suggestedGasApiErrorResponse
     ]);
   });
 
-  // Because we stop the server within the test, a try catch block here would stop the server if the test fails midway
+  // Stop the server after all tests, ensuring that we handle any errors gracefully
   afterAll(async () => {
     if (mockServer) {
-      try {
-        await stopMockServer();  // Stop the mock server if it's running
-      } catch (error) {
-        // eslint-disable-next-line no-console
+      await stopMockServer().catch((error) => {
         console.log('Mock server already stopped or encountered an error:', error);
-      }
+      });
     }
   });
 
