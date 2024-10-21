@@ -74,7 +74,7 @@ jest.mock('../../hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
     const stakeContext: Stake = {
       setSdkType: jest.fn(),
-      sdkService: mockPooledStakingContractService,
+      stakingContract: mockPooledStakingContractService,
     };
     return stakeContext;
   }),
