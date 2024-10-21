@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -11,7 +11,6 @@ import AssetElement from '../../../AssetElement';
 import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useSelector } from 'react-redux';
-import images from '../../../../../images/image-icons';
 import styleSheet from './StakingBalance.styles';
 import { View } from 'react-native';
 import StakingButtons from './StakingButtons/StakingButtons';
@@ -36,26 +35,42 @@ import {
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
-import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
-import useIsStakingSupportedChain from '../../hooks/useStakingChain';
+import useStakingChain from '../../hooks/useStakingChain';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import useVaultData from '../../hooks/useVaultData';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import type { TokenI } from '../../../Tokens/types';
+import useBalance from '../../hooks/useBalance';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { selectChainId } from '../../../../../selectors/networkController';
 
-const StakingBalanceContent = () => {
+export interface StakingBalanceProps {
+  asset: TokenI;
+}
+
+const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const chainId = useSelector(selectChainId);
   const networkName = useSelector(selectNetworkName);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
-  const { isStakingSupportedChain } = useIsStakingSupportedChain();
+  const { isStakingSupportedChain } = useStakingChain();
 
-  const { pooledStakesData, exchangeRate } = usePooledStakes();
+  const {
+    pooledStakesData,
+    exchangeRate,
+    hasStakedPositions,
+    hasEthToUnstake,
+    isLoadingPooledStakesData,
+  } = usePooledStakes();
   const { vaultData } = useVaultData();
   const annualRewardRate = vaultData?.apy || '';
 
-  const [hasStakedPositions] = useState(false);
+  const {
+    formattedStakedBalanceETH: stakedBalanceETH,
+    formattedStakedBalanceFiat: stakedBalanceFiat,
+  } = useBalance();
 
   const { unstakingRequests, claimableRequests } = useMemo(() => {
     const exitRequests = pooledStakesData?.exitRequests ?? [];
@@ -76,24 +91,24 @@ const StakingBalanceContent = () => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
-  if (!isStakingSupportedChain) {
+  if (!isStakingSupportedChain || isLoadingPooledStakesData) {
     return <></>;
   }
 
   return (
     <View>
-      {Boolean(MOCK_STAKED_ETH_ASSET.balance) && isEligibleForPooledStaking && (
+      {hasStakedPositions && isEligibleForPooledStaking && (
         <AssetElement
-          asset={MOCK_STAKED_ETH_ASSET}
-          mainBalance={MOCK_STAKED_ETH_ASSET.balance}
-          balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
+          asset={asset}
+          mainBalance={stakedBalanceETH}
+          balance={stakedBalanceFiat}
         >
           <BadgeWrapper
             style={styles.badgeWrapper}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={images.ETHEREUM}
+                imageSource={NetworkBadgeSource(chainId, asset.symbol)}
                 name={networkName}
               />
             }
@@ -101,7 +116,7 @@ const StakingBalanceContent = () => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           </BadgeWrapper>
           <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
-            {MOCK_STAKED_ETH_ASSET.name || MOCK_STAKED_ETH_ASSET.symbol}
+            {strings('stake.staked_ethereum')}
           </Text>
         </AssetElement>
       )}
@@ -153,7 +168,11 @@ const StakingBalanceContent = () => {
               />
             )}
 
-            <StakingButtons style={styles.buttonsContainer} />
+            <StakingButtons
+              style={styles.buttonsContainer}
+              hasEthToUnstake={hasEthToUnstake}
+              hasStakedPositions={hasStakedPositions}
+            />
           </>
         )}
       </View>
@@ -161,9 +180,9 @@ const StakingBalanceContent = () => {
   );
 };
 
-export const StakingBalance = () => (
+export const StakingBalance = ({ asset }: StakingBalanceProps) => (
   <StakeSDKProvider>
-    <StakingBalanceContent />
+    <StakingBalanceContent asset={asset} />
   </StakeSDKProvider>
 );
 
