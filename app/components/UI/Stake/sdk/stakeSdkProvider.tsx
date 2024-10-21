@@ -15,8 +15,7 @@ import React, {
 import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
-
-export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
+import { getDecimalChainId } from '../../../../util/networks';
 
 export interface Stake {
   sdkError?: Error;
@@ -47,6 +46,10 @@ export const StakeSDKProvider: React.FC<
   useEffect(() => {
     (async () => {
       try {
+        const SDK = StakeSdk.create({
+          stakingType: sdkType,
+          chainId: getDecimalChainId(chainId),
+        });
         setStakingApiService(SDK.stakingApiService);
         if (sdkType === StakingType?.POOLED) {
           const provider = getProviderByChainId(chainId);
