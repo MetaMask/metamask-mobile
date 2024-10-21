@@ -33,12 +33,8 @@ const useStakingInputHandlers = (balance: BN) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
-  const { vaultData } = useVaultData();
-
-  const annualRewardRatePercent = vaultData?.apy || '0';
-  const annualRewardRate = annualRewardRatePercent
-    ? parseFloat(annualRewardRatePercent) / 100
-    : 0;
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
+    useVaultData();
 
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
@@ -119,39 +115,41 @@ const useStakingInputHandlers = (balance: BN) => {
     [balance, conversionRate],
   );
 
+  const annualRewardsEth = useMemo(
+    () =>
+      limitToMaximumDecimalPlaces(
+        parseFloat(amountEth) * annualRewardRateDecimal,
+        5,
+      ),
+    [amountEth, annualRewardRateDecimal],
+  );
+
+  const annualRewardsFiat = useMemo(
+    () =>
+      renderFiat(
+        parseFloat(fiatAmount) * annualRewardRateDecimal,
+        currentCurrency,
+        2,
+      ),
+    [fiatAmount, annualRewardRateDecimal, currentCurrency],
+  );
+
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
-      // Limiting the decimal places to keep it consistent with other eth values in the input screen
-      const ethRewards = limitToMaximumDecimalPlaces(
-        parseFloat(amountEth) * annualRewardRate,
-        5,
-      );
       if (isEth) {
-        setEstimatedAnnualRewards(`${ethRewards} ETH`);
+        setEstimatedAnnualRewards(`${annualRewardsEth} ETH`);
       } else {
-        const fiatRewards = renderFiat(
-          parseFloat(fiatAmount) * annualRewardRate,
-          currentCurrency,
-          2,
-        );
-        setEstimatedAnnualRewards(`${fiatRewards}`);
+        setEstimatedAnnualRewards(annualRewardsFiat);
       }
     } else {
-      setEstimatedAnnualRewards(
-        `${limitToMaximumDecimalPlaces(
-          parseFloat(annualRewardRatePercent),
-          1,
-        )}%`,
-      );
+      setEstimatedAnnualRewards(annualRewardRate);
     }
   }, [
     isNonZeroAmount,
-    amountEth,
-    annualRewardRate,
     isEth,
-    fiatAmount,
-    currentCurrency,
-    annualRewardRatePercent,
+    annualRewardsEth,
+    annualRewardsFiat,
+    annualRewardRate,
   ]);
 
   return {
@@ -172,7 +170,10 @@ const useStakingInputHandlers = (balance: BN) => {
     conversionRate,
     estimatedAnnualRewards,
     calculateEstimatedAnnualRewards,
+    annualRewardsEth,
+    annualRewardsFiat,
     annualRewardRate,
+    isLoadingVaultData,
   };
 };
 
