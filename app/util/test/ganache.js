@@ -22,6 +22,7 @@ export default class Ganache {
     try {
       this._server = ganache.server(options);
       await this._server.listen(port);
+      console.log(`Ganache started on port ${port}`);
     } catch (error) {
       console.error(error);
       throw error;
@@ -59,5 +60,7 @@ export default class Ganache {
     }
     await this._server.close();
     this._server = undefined;
+    console.log(`Ganache server shutting down`);
+
   }
 }
