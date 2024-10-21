@@ -36,16 +36,32 @@ jest.mock('../../Stake/constants', () => ({
   isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
+  },
+}));
+
 describe('Stake Modals With Stake Sdk Provider', () => {
   const initialState = {
     engine: {
       backgroundState,
     },
   };
-  it('should render correctly stake screen with stake sdk provider and resolve the stake context', () => {
+  it('renders stake screen with stake sdk provider and resolved stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeScreenStack(), {
       state: initialState,
@@ -55,10 +71,10 @@ describe('Stake Modals With Stake Sdk Provider', () => {
     expect(useStakeContextSpy).toHaveBeenCalled();
   });
 
-  it('should render correctly stake modal with stake sdk provider and resolve the stake context', () => {
+  it('renders stake modal with stake sdk provider and resolved stake context', () => {
     const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
 
     const { toJSON } = renderWithProvider(StakeModalStack(), {
       state: initialState,
@@ -66,6 +82,5 @@ describe('Stake Modals With Stake Sdk Provider', () => {
 
     expect(toJSON()).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalledTimes(0);
-
   });
 });
