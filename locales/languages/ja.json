@@ -375,6 +375,10 @@
     "accept": "同意する",
     "cancel": "いいえ、結構です"
   },
+  "multi_rpc_migration_modal": {
+    "description": "1つのネットワークで複数のRPCがサポートされるようになりました。情報の矛盾を解決するため、最も最近のRPCがデフォルトのRPCとして選択されています",
+    "accept": "同意する"
+  },
   "nft_details": {
     "bought_for": "購入価格:",
     "highest_floor_price": "最高フロア価格",
@@ -497,7 +501,7 @@
     "address": "トークンコントラクトアドレス",
     "decimal": "トークンの小数桁数",
     "network": "ネットワーク",
-    "network_fee": "Network fee",
+    "network_fee": "ネットワーク手数料",
     "lists": "トークンリスト",
     "hide_cta": "トークンを非表示",
     "options": {
@@ -650,6 +654,7 @@
     "receive": "受取"
   },
   "accounts": {
+    "snap_account_tag": "Snap (ベータ)",
     "create_new_account": "新規アカウントの作成",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
@@ -686,7 +691,7 @@
     "suggest_transactions": "承認するトランザクションの提案",
     "disconnect": "接続解除",
     "disconnect_all": "すべて接続解除",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "{{dappUrl}}との接続を解除すると、このサイトをもう一度使用するには、アカウントとネットワークを接続しなおす必要があります。",
     "disconnect_all_accounts": "すべてのアカウントの接続を解除",
     "deceptive_site_ahead": "偽装サイトにアクセスしようとしています",
     "deceptive_site_desc": "アクセスしようとしているサイトは安全ではありません。攻撃者が危険な行為に誘導しようとする可能性があります。",
@@ -700,9 +705,13 @@
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
     "now_active": "有効になりました。",
+    "network_added": "が追加されました",
     "revoked": "取り消されました。",
     "revoked_all": "すべてのアカウントが取り消されました。",
     "accounts_connected": "アカウントが接続されました。",
+    "account_connected": "account connected.",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnected": "接続が解除されました。",
     "disconnected_all": "すべてのアカウントの接続が解除されました。",
     "disconnected_from": "{{dappHostName}}への接続を解除",
@@ -740,6 +749,10 @@
   "app_settings": {
     "enabling_notifications": "通知を有効にしています...",
     "disabling_notifications": "通知を無効にしています...",
+    "reset_notifications_title": "通知のリセット",
+    "reset_notifications_description": "通知をリセットすると、通知ストレージキーが削除され、通知履歴がすべてリセットされます。よろしいですか？",
+    "reset_notifications": "通知をリセット",
+    "reset_notifications_success": "通知ストレージキーが削除/再作成され、通知履歴がリセットされました。",
     "enabling_profile_sync": "プロファイルの同期を有効にしています...",
     "disabling_profile_sync": "プロファイルの同期を無効にしています...",
     "notifications_dismiss_modal": "閉じる",
@@ -780,6 +793,7 @@
     "save_rpc_url": "保存",
     "invalid_rpc_prefix": "URIには適切なHTTPSプレフィックスが必要です",
     "invalid_rpc_url": "無効なRPC URL",
+    "invalid_block_explorer_url": "無効なブロックエクスプローラーURL",
     "sync": "同期",
     "clear_approved_dapps": "承認済みのDAppを消去",
     "clear_browser_history": "ブラウザの履歴を消去",
@@ -855,10 +869,13 @@
     "networks_default_title": "デフォルトのネットワーク",
     "network_delete": "このネットワークを削除した場合、このネットワーク内の資産を見るには、再度ネットワークの追加が必要になります。",
     "networks_default_cta": "このネットワークを使用",
+    "add_rpc_url": "RPC URLを追加",
+    "add_block_explorer_url": "ブロックエクスプローラーURLを追加",
     "networks_desc": "カスタムRPCネットワークの追加と編集",
     "network_name_label": "ネットワーク名",
     "network_name_placeholder": "ネットワーク名 (オプション)",
     "network_rpc_url_label": "RPC URL",
+    "network_rpc_name_label": "RPC名",
     "network_rpc_placeholder": "新しいRPCネットワーク",
     "network_chain_id_label": "チェーンID",
     "network_chain_id_placeholder": "チェーンID",
@@ -924,7 +941,7 @@
     "invalid_number_range": "無効な数字です。1と%{maxSafeChainId}の間に数字を入力してください。",
     "hide_zero_balance_tokens_title": "残高がないトークンを非表示",
     "hide_zero_balance_tokens_desc": "トークンリストに残高がないトークンが表示されないようにします。",
-    "token_detection_title": "改善されたトークン検出",
+    "token_detection_title": "トークンの自動検出",
     "token_detection_description": "サードパーティーAPIを使用して、ウォレットに送られた新しいトークンを検出・表示します。アプリがこれらのサービスからデータを取得しないようにするには、オフにしてください。",
     "theme_button_text": "テーマを変更",
     "theme_title": "テーマ ({{theme}})",
@@ -1036,7 +1053,7 @@
           "snap_getBip32PublicKey": "{{protocol}}の公開鍵の表示",
           "snap_getBip44Entropy": "{{protocol}}アカウントとアセットのコントロール",
           "snap_getEntropy": "このSnapに固有の任意のキーの導出",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "イーサリアムアカウントの追加と制御の要求を許可する",
           "wallet_snap": "{{otherSnapName}}への接続",
           "endowment:webassembly": "WebAssemblyのサポート",
           "endowment:ethereum-provider": "イーサリアムプロバイダーへのアクセス",
@@ -1044,7 +1061,8 @@
           "snap_getLocale": "言語設定の表示",
           "endowment:caveat:transaction-origin": "トランザクションを提案しているWebサイトの提供元の確認",
           "endowment:extend-runtime": "ランタイムの延長",
-          "snap_dialog": "カスタムダイアログの表示"
+          "snap_dialog": "カスタムダイアログの表示",
+          "snap_manageAccounts": "イーサリアムアカウントの追加と制御"
         }
       }
     },
@@ -1067,9 +1085,9 @@
     "aes_crypto_test_form_title": "AES暗号化 - テストフォーム",
     "aes_crypto_test_form_description": "E2Eテスト専用に開発されたセクションです。このセクションがアプリに表示される場合は、MetaMaskサポートに報告してください。",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "開発者用オプション",
+      "generate_trace_test": "トレーステストを生成",
+      "generate_trace_test_desc": "開発者テスト用のSentryトレースを生成。"
     }
   },
   "aes_crypto_test_form": {
@@ -1327,7 +1345,7 @@
     "transaction_id": "トランザクションID",
     "alert": "アラート",
     "amount": "金額",
-    "details": "Details",
+    "details": "詳細",
     "next": "次へ",
     "back": "戻る",
     "confirm": "確定",
@@ -1449,7 +1467,7 @@
     "invalid_recipient": "無効な受取人",
     "invalid_recipient_description": "アドレスが有効であることを確認してください",
     "swap_tokens": "トークンをスワップ",
-    "fromWithColon": "From:"
+    "fromWithColon": "送金元:"
   },
   "custom_gas": {
     "total": "合計",
@@ -1736,7 +1754,7 @@
     "continue": "続行",
     "cancel": "キャンセル",
     "approve": "承認",
-    "update": "Update",
+    "update": "更新",
     "edit_network_details": "ネットワークの詳細を編集",
     "malicious_network_warning": "悪意のあるネットワーク プロバイダーは、ブロックチェーンのステータスを偽り、ユーザーのネットワークアクティビティを記録することがあります。信頼するカスタムネットワークのみを追加してください。",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1762,12 @@
     "additional_network_information_title": "その他のネットワーク情報",
     "network_warning_desc": "このネットワーク接続は第三者に依存しているため、信頼性が低い可能性、または第三者がアクティビティをトラッキングできる可能性があります。",
     "additonial_network_information_desc": "これらのネットワークの一部はサードパーティに依存しているため、接続の信頼性が低かったり、サードパーティによるアクティビティの追跡が可能になったりする可能性があります。",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "他のネットワークを接続する",
     "learn_more": "詳細",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "ネットワークに切り替える",
     "switch": "切り替える",
-    "select_all": "Select all",
+    "select_all": "すべて選択",
     "new_network": "新しいネットワークが追加されました",
     "network_name": "{{networkName}}ネットワーク",
     "network_added": "がネットワークセレクターで利用可能になりました。",
@@ -1767,18 +1785,18 @@
     "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。",
     "network_deprecated_title": "このネットワークはサポートされなくなりました",
     "network_deprecated_description": "接続しようとしているネットワークは現在MetaMaskによりサポートされていません。",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "ネットワークの編集"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
+    "title_this_site_wants_to": "このサイトが次のことを求めています:",
+    "title_dapp_url_wants_to": "{{dappUrl}}が次のことを求めています:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}}が次のことを承認しました:",
+    "use_enabled_networks": "有効なネットワークを使用する",
+    "wants_to_see_your_accounts": "アカウントを確認しトランザクションを提案する",
+    "requesting_for": "次の要求:",
+    "manage_permissions": "アクセス許可の管理",
+    "edit": "編集",
+    "cancel": "キャンセル"
   },
   "select": {
     "cancel": "キャンセル",
@@ -2042,8 +2060,9 @@
     "back_to_safety": "安全な場所に戻る"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "タイムアウト",
+    "no_date": "不明",
+    "yesterday": "昨日",
     "staked": "ステーキングしました",
     "received": "受け取りました",
     "unstaked": "ステーキングが解除されました",
@@ -2119,8 +2138,8 @@
     "success_withdrawal_title": "出金完了！",
     "error_title": "問題が発生しました  :/",
     "received_title": "{{amount}}{{assetType}}受け取りました",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "default_message_title": "新規トランザクション通知",
+    "default_message_description": "このトランザクションを表示するにはタップしてください",
     "received_payment_title": "インスタントペイメントを受け取りました",
     "pending_message": "承認待ち",
     "pending_deposit_message": "入金の完了待ち",
@@ -2136,12 +2155,12 @@
     "cancelled_message": "このトランザクションを表示するにはタップしてください",
     "received_message": "このトランザクションを表示するにはタップしてください",
     "received_payment_message": "{{amount}}DAI受け取りました",
-    "prompt_title": "Receive Push Notifications",
+    "prompt_title": "プッシュ通知の受取",
     "notifications_enabled_error_title": "問題が発生しました",
     "notifications_enabled_error_desc": "通知を有効にできませんでした。後ほどもう一度お試しください。",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "ウォレットのアクティビティなどに関する重要なアラートを取得するには、設定で通知をオンにします。",
+    "prompt_ok": "オンにする",
+    "prompt_cancel": "後で",
     "wc_connected_title": "{{title}}に接続されました",
     "wc_signed_title": "署名済み",
     "wc_sent_tx_title": "トランザクションが送信されました",
@@ -2154,6 +2173,7 @@
     "wallet": "ウォレット",
     "web3": "Web3",
     "staking_provider": "ステーキングプロバイダー",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "ここに表示する内容はありません",
       "message": "ウォレットにアクティビティがあると、ここに通知が表示されます。"
@@ -2915,7 +2935,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "ガス代の見積もり",
-    "network_fee": "Network fee",
+    "network_fee": "ネットワーク手数料",
     "max_fee": "最大手数料",
     "total": "合計",
     "max_amount": "最高額",
@@ -3155,7 +3175,7 @@
     "ledger_reminder_message_step_four": "4. 位置情報は有効で、正確な位置情報の使用がオンになっています",
     "ledger_reminder_message_step_four_Androidv12plus": "4. 近くのデバイスは有効です",
     "ledger_reminder_message_step_five": "5. サイレントモードがオフになっている必要があります",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Ledgerデバイスで「ブラインド署名」を有効にします。",
     "available_devices": "利用可能なデバイス",
     "retry": "再試行",
     "continue": "続行",
@@ -3186,15 +3206,17 @@
     "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法",
     "nonce_too_low": "ナンスが低すぎます",
     "nonce_too_low_error": "設定されたナンスが低すぎます",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "アカウントを選択します",
+    "select_hd_path": "HDパスを選択します",
+    "select_hd_path_description": "アカウントが見当たらない場合は、HDパスまたは現在選択されているネットワークを切り替えてみてください。",
     "ledger_live_path": "Ledger Live",
-    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "ledger_legacy_path": "レガシー (MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44 (例: MetaMask、Trezor)",
+    "ledger_legacy_label": " (レガシー)",
+    "blind_sign_error": "ブラインド署名エラー",
+    "blind_sign_error_message": "ご使用のLedgerデバイスでブラインド署名が有効になっていません。設定で有効にしてください。",
+    "user_reject_transaction": "User rejected the transaction",
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
   },
   "account_actions": {
     "edit_name": "アカウント名を編集",
@@ -3249,20 +3271,77 @@
   },
   "stake": {
     "stake": "ステーク",
-    "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "stake_eth": "ETHをステーキング",
+    "unstake_eth": "ETHのステーキングを解除",
+    "staked_balance": "ステーキング残高",
+    "staked_ethereum": "ステーキングしたイーサリアム",
+    "unstake": "ステーキングを解除",
+    "stake_more": "さらにステーキング",
+    "claim": "請求",
+    "your_earnings": "収益",
+    "annual_rate": "年率",
+    "lifetime_rewards": "生涯報酬",
+    "estimated_annual_earnings": "予想年間収益",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "年率ツールヒント"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_rewards": "予想年間報酬",
     "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "enter_amount": "金額を入力してください",
+    "review": "確認",
+    "not_enough_eth": "ETHが不足しています",
+    "balance": "残高",
+    "stake_eth_and_earn": "ETHをステーキングして収益を獲得",
+    "stake_any_amount_of_eth": "ETHをいくらでもステーキング可能",
+    "no_minimum_required": "最低要件なし。",
+    "earn_eth_rewards": "ETHの報酬を獲得",
+    "earn_eth_rewards_description": "ステーキングすればすぐに収益が得られます。報酬は自動的に複利で支払われます。",
+    "flexible_unstaking": "柔軟にステーキングを解除可能",
+    "flexible_unstaking_description": "いつでもステーキングを解除できます。処理には通常最長11日かかります。",
+    "disclaimer": "ステーキングは報酬を保証するものではなく、資金の喪失を含むリスクを伴います。",
+    "learn_more": "詳細",
+    "got_it": "了解",
+    "your_balance": "残高",
+    "stake_your_eth_cta": {
+      "base": "MetaMask PoolでETHをステーキングして収益を獲得",
+      "annually": "年間",
+      "learn_more_with_period": "詳細。"
+    },
+    "day": {
+      "zero": "",
+      "one": "日",
+      "other": "日"
+    },
+    "hour": {
+      "zero": "",
+      "one": "時間",
+      "other": "時間"
+    },
+    "minute": {
+      "zero": "",
+      "one": "分",
+      "other": "分"
+    },
+    "banner_text": {
+      "has_claimable_eth": "{{amountEth}} ETH請求できます。請求すると、ウォレットにETHが返金されます。",
+      "unstaking_in_progress": {
+        "base": "{{amountEth}} ETHのステーキングを解除しています。",
+        "and": "後に戻ってきて",
+        "to_claim_it": "請求してください。",
+        "default": "{{amountEth}} ETHのステーキングを解除しています。後で戻ってきて請求してください。"
+      },
+      "geo_blocked": "ステーキングの解除またはステーキングが許可されていない地域にいます。",
+      "approximately": "約"
+    },
+    "unstake_input_banner_description": "ステーキングが解除されたETHは平均的に3日未満で請求可能になりますが、最長11日かかる場合もあります。",
+    "max": "最大",
+    "staking_from": "ステーキング元",
+    "interacting_with": "相手",
+    "12_hours": "12時間",
+    "terms_of_service": "サービス規約",
+    "risk_disclosure": "リスクに関する開示事項",
+    "cancel": "キャンセル",
+    "confirm": "確定"
   },
   "default_settings": {
     "title": "ウォレットの準備ができました",
@@ -3272,7 +3351,7 @@
     "default_settings": "デフォルト設定",
     "done": "完了",
     "basic_functionality": "基本機能",
-    "manage_networks": "ネットワークの管理",
+    "manage_networks": "ネットワークを選択してください",
     "manage_networks_body": "当社では、遠隔手続き呼び出し (RPC) プロバイダーにInfuraを使用して、イーサリアムデータにできるだけ信頼性の高いプライベートな形でアクセスできるようにしています。独自のRPCをお選びいただくこともできますが、どのRPCもトランザクションを実行するために、ユーザーのIPアドレスとイーサリアムウォレットを取得する点にご注意ください。",
     "manage_networks_body2": "で、Infuraによるデータの取扱いに関する詳細をご覧ください。",
     "functionality_body": "MetaMaskは、インターネットサービスを通じてトークンの詳細やガス設定などの基本的な機能を提供します。インターネットサービスを使用すると、この場合はMetaMaskに、ユーザーのIPアドレスが共有されます。これは他のどのWebサイトにアクセスした場合も同様で、MetaMaskはこのデータを一時的に使用し、ユーザーのデータを販売することは一切ありません。VPNを使用したりこのようなサービスをオフにできますが、MetaMaskでのエクスペリエンスに影響を与える可能性があります。詳細は",
@@ -3286,9 +3365,17 @@
       "buttons": {
         "cancel": "キャンセル",
         "turn_on": "オンにする",
-        "turn_off": "オフにする"
+        "turn_off": "オフにする",
+        "reset": "リセット"
       }
-    }
+    },
+    "drawer_general_title": "一般",
+    "drawer_general_title_desc": "デバイス間で設定を同期して、ネットワーク設定を選択し、トークンデータを追跡します",
+    "drawer_assets_title": "アセット",
+    "drawer_assets_desc": "ウォレットのトークンを自動検出し、NFTを表示して、アカウント残高の最新情報を一括で取得します",
+    "drawer_security_title": "セキュリティ",
+    "drawer_security_desc": "安全ではないネットワークに参加してしまう可能性を減らし、アカウントを守ります",
+    "network_details_check_desc": "MetaMaskはchainid.networkというサードパーティサービスを利用して、正確かつ標準化されたネットワーク情報を表示しています。これにより、悪質なネットワークや正しくないネットワークに接続してしまう可能性が減ります。この機能を使用すると、ユーザーのIPアドレスがchainid.networkに公開されます。"
   },
   "simulation_details": {
     "failed": "予測結果の読み込み中にエラーが発生しました。",
@@ -3312,13 +3399,43 @@
   },
   "common": {
     "please_wait": "お待ちください",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "これにより{{dappUrl}}への接続が解除されます",
+    "disconnect": "接続解除"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "報酬率",
+      "tooltip": "ステークの価値の年間予想増加額です。この1週間の報酬率に基づいています。"
+    },
+    "estimated_gas_fee": {
+      "title": "ガス代見積もり",
+      "gas_recipient": "ガス代は、イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。MetaMaskはガス代から利益を得ません。",
+      "gas_fluctuation": "ガス代は、ネットワークトラフィックとトランザクションの複雑さに基づき見積もられ、変動します。",
+      "gas_learn_more": "ガス代に関する詳細"
+    },
+    "reward_frequency": {
+      "title": "報酬の頻度",
+      "tooltip": "ステーキングされた残高は、新しい報酬が反映されるように12時間ごとに更新されます。"
+    }
+  },
+  "confirm": {
+    "reject": "拒否",
+    "confirm": "確定",
+    "title": {
+      "signature": "署名要求"
+    },
+    "request_from": "要求元",
+    "message": "メッセージ",
+    "personal_sign_tooltip": "このサイトが署名を求めています",
+    "details": "詳細",
+    "account": "アカウント",
+    "balance": "残高",
+    "network": "ネットワーク",
+    "rpc_url": "RPC URL",
+    "simulation": {
+      "title": "予測される増減額",
+      "personal_sign_info": "サイトにサインインしようとしていて、予想されるアカウントの変更はありません。",
+      "tooltip": "予測される増減額は、このトランザクションを実行すると発生する可能性がある増減額です。これは単に予測に過ぎず、保証されたものではありません。"
     }
   }
 }

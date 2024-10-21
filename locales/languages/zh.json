@@ -375,6 +375,10 @@
     "accept": "我同意",
     "cancel": "不，谢谢"
   },
+  "multi_rpc_migration_modal": {
+    "description": "我们现在支持单个网络的多个 RPC（远程过程调用）。您最近的 RPC 已选为默认 RPC，以解决冲突信息。",
+    "accept": "接受"
+  },
   "nft_details": {
     "bought_for": "购买用于",
     "highest_floor_price": "最高底价",
@@ -497,7 +501,7 @@
     "address": "代币合约地址",
     "decimal": "代币小数位",
     "network": "网络",
-    "network_fee": "Network fee",
+    "network_fee": "网络费",
     "lists": "代币列表",
     "hide_cta": "隐藏代币",
     "options": {
@@ -650,6 +654,7 @@
     "receive": "接收"
   },
   "accounts": {
+    "snap_account_tag": "Snap（测试版）",
     "create_new_account": "创建新账户",
     "import_account": "导入账户",
     "connect_hardware": "连接硬件钱包",
@@ -686,7 +691,7 @@
     "suggest_transactions": "建议要批准的交易",
     "disconnect": "断开连接",
     "disconnect_all": "断开所有连接",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "如果您断开与 {{dappUrl}} 的连接，则需要重新连接您的账户和网络才能再次使用此网站。",
     "disconnect_all_accounts": "断开所有账户的连接",
     "deceptive_site_ahead": "前方为欺骗性网站",
     "deceptive_site_desc": "您尝试访问的网站并不安全。攻击者可能会诱使您做一些危险的事情",
@@ -700,9 +705,13 @@
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
     "now_active": "现处于活动状态。",
+    "network_added": "已成功添加",
     "revoked": "已撤销。",
     "revoked_all": "已撤销所有账户。",
     "accounts_connected": "账户已连接。",
+    "account_connected": "account connected.",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnected": "已断开连接。",
     "disconnected_all": "所有账户都已断开连接。",
     "disconnected_from": "已从 {{dappHostName}} 断开连接",
@@ -740,6 +749,10 @@
   "app_settings": {
     "enabling_notifications": "正在启用通知...",
     "disabling_notifications": "正在禁用通知...",
+    "reset_notifications_title": "重设通知",
+    "reset_notifications_description": "重设通知意味着您要删除通知存储密钥并重设所有通知历史记录。您确定要这样做吗？",
+    "reset_notifications": "重设通知",
+    "reset_notifications_success": "已删除/重新创建通知存储密钥，并重设通知历史记录。",
     "enabling_profile_sync": "正在启用配置文件同步...",
     "disabling_profile_sync": "正在禁用配置文件同步...",
     "notifications_dismiss_modal": "关闭",
@@ -780,6 +793,7 @@
     "save_rpc_url": "保存",
     "invalid_rpc_prefix": "URI 需要适当的 HTTPS 前缀",
     "invalid_rpc_url": "RPC URL 无效",
+    "invalid_block_explorer_url": "无效的区块浏览器 URL",
     "sync": "同步",
     "clear_approved_dapps": "清除已批准的去中心化应用",
     "clear_browser_history": "清除浏览器历史记录",
@@ -855,10 +869,13 @@
     "networks_default_title": "默认网络",
     "network_delete": "如果您删除此网络，则需要再次添加此网络才能查看您在其中的资产",
     "networks_default_cta": "使用此网络",
+    "add_rpc_url": "添加 RPC（远程过程调用）URL",
+    "add_block_explorer_url": "添加区块浏览器 URL",
     "networks_desc": "添加并编辑自定义 RPC 网络",
     "network_name_label": "网络名称",
     "network_name_placeholder": "网络名称（可选）",
     "network_rpc_url_label": "RPC URL",
+    "network_rpc_name_label": "RPC（远程过程调用）名称",
     "network_rpc_placeholder": "新 RPC 网络",
     "network_chain_id_label": "链 ID",
     "network_chain_id_placeholder": "链 ID（可选）",
@@ -924,7 +941,7 @@
     "invalid_number_range": "无效数字。输入1至%{maxSafeChainId}之间的数字",
     "hide_zero_balance_tokens_title": "隐藏没有余额的代币",
     "hide_zero_balance_tokens_desc": "防止没有余额的代币显示在您的代币列表中。",
-    "token_detection_title": "增强型代币检测",
+    "token_detection_title": "自动检测代币",
     "token_detection_description": "我们使用第三方 API 来检测和显示发送到您钱包的新代币。如果您不希望该应用程序从这些服务中获取数据，请关闭。",
     "theme_button_text": "改变主题",
     "theme_title": "主题（{{theme}})",
@@ -1036,7 +1053,7 @@
           "snap_getBip32PublicKey": "查看 {{protocol}} 的公钥",
           "snap_getBip44Entropy": "控制您的 {{protocol}} 账户和资产",
           "snap_getEntropy": "衍生特定于此 Snap 的随机密钥",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "允许添加和控制以太坊账户的请求",
           "wallet_snap": "连接 {{otherSnapName}}",
           "endowment:webassembly": "支持 WebAssembly",
           "endowment:ethereum-provider": "访问以太坊提供商",
@@ -1044,7 +1061,8 @@
           "snap_getLocale": "查看您的首选语言",
           "endowment:caveat:transaction-origin": "查看建议交易的网站来源",
           "endowment:extend-runtime": "延长运行时间",
-          "snap_dialog": "显示自定义对话"
+          "snap_dialog": "显示自定义对话",
+          "snap_manageAccounts": "添加并控制以太坊账户"
         }
       }
     },
@@ -1067,9 +1085,9 @@
     "aes_crypto_test_form_title": "AES 加密 - 测试表",
     "aes_crypto_test_form_description": "专为 E2E 测试开发的部分。如果这在您的应用程序中可见，请向 MetaMask 支持团队报告。",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "开发者选项",
+      "generate_trace_test": "生成跟踪测试",
+      "generate_trace_test_desc": "生成开发者测试哨兵跟踪。"
     }
   },
   "aes_crypto_test_form": {
@@ -1327,7 +1345,7 @@
     "transaction_id": "交易 ID",
     "alert": "警报",
     "amount": "数额",
-    "details": "Details",
+    "details": "详细信息",
     "next": "下一步",
     "back": "返回",
     "confirm": "确认",
@@ -1449,7 +1467,7 @@
     "invalid_recipient": "收件人无效",
     "invalid_recipient_description": "请检查地址，确保其为有效地址",
     "swap_tokens": "兑换代币",
-    "fromWithColon": "From:"
+    "fromWithColon": "自："
   },
   "custom_gas": {
     "total": "总计",
@@ -1736,7 +1754,7 @@
     "continue": "继续",
     "cancel": "取消",
     "approve": "批准",
-    "update": "Update",
+    "update": "更新",
     "edit_network_details": "编辑网络详情",
     "malicious_network_warning": "恶意网络提供商可能会谎报区块链的状态，并记录您的网络活动。仅添加您信任的自定义网络。",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1762,12 @@
     "additional_network_information_title": "其他网络信息",
     "network_warning_desc": "此网络连接依赖于第三方。这种连接可靠程度可能会较低，或会使第三方能够跟踪活动。",
     "additonial_network_information_desc": "这些网络中的其中一些依赖于第三方。此连接可能不太可靠，或使第三方可进行活动跟踪。",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "连接更多网络",
     "learn_more": "了解详情",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "切换到网络",
     "switch": "切换",
-    "select_all": "Select all",
+    "select_all": "全部选择",
     "new_network": "已添加新网络",
     "network_name": "{{networkName}}网络",
     "network_added": " 现已在网络选择工具中。",
@@ -1767,18 +1785,18 @@
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
     "network_deprecated_title": "该网络已弃用",
     "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "编辑网络"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
+    "title_this_site_wants_to": "此网站想要：",
+    "title_dapp_url_wants_to": "{{dappUrl}} 想要：",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} 已获得批准：",
+    "use_enabled_networks": "使用您启用的网络",
+    "wants_to_see_your_accounts": "查看您的账户并建议交易",
+    "requesting_for": "请求 ",
+    "manage_permissions": "管理权限",
+    "edit": "编辑",
+    "cancel": "取消"
   },
   "select": {
     "cancel": "取消",
@@ -2042,8 +2060,9 @@
     "back_to_safety": "返回以确保安全"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "超时",
+    "no_date": "未知",
+    "yesterday": "昨天",
     "staked": "已质押",
     "received": "已收到",
     "unstaked": "已解除质押",
@@ -2119,8 +2138,8 @@
     "success_withdrawal_title": "提取完成！",
     "error_title": "糟糕，出问题了:/",
     "received_title": "您已收到 {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "default_message_title": "新交易通知",
+    "default_message_description": "点按以查看此交易",
     "received_payment_title": "已收到即时付款",
     "pending_message": "正在等待确认",
     "pending_deposit_message": "正在等待保证金完成",
@@ -2136,12 +2155,12 @@
     "cancelled_message": "点按以查看此交易",
     "received_message": "点按以查看此交易",
     "received_payment_message": "您已收到 {{amount}} DAI",
-    "prompt_title": "Receive Push Notifications",
+    "prompt_title": "接收推送通知",
     "notifications_enabled_error_title": "出错了",
     "notifications_enabled_error_desc": "我们无法启用通知。请稍后再试。",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "从“设置”打开通知，以获取有关钱包等活动的重要提醒。",
+    "prompt_ok": "开启",
+    "prompt_cancel": "以后再说",
     "wc_connected_title": "已连接 {{title}}",
     "wc_signed_title": "已签名",
     "wc_sent_tx_title": "已发送交易",
@@ -2154,6 +2173,7 @@
     "wallet": "钱包",
     "web3": "Web3",
     "staking_provider": "质押提供商",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "此处无内容",
       "message": "当您的钱包有活动时，您可以在此处找到通知。"
@@ -2915,7 +2935,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "估算的燃料费",
-    "network_fee": "Network fee",
+    "network_fee": "网络费",
     "max_fee": "最大费用",
     "total": "共计",
     "max_amount": "最大金额",
@@ -3155,7 +3175,7 @@
     "ledger_reminder_message_step_four": "4. 使用下述精确定位后，定位已启用：",
     "ledger_reminder_message_step_four_Androidv12plus": "4. 附近设备已启用",
     "ledger_reminder_message_step_five": "5. 必须关闭请勿打扰",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. 在您的 Ledger 设备上启用“盲签”。",
     "available_devices": "可用设备",
     "retry": "重试",
     "continue": "继续",
@@ -3186,15 +3206,17 @@
     "how_to_install_eth_webview_title": "如何安装以太坊应用程序",
     "nonce_too_low": "唯一交易标识号安全性过低",
     "nonce_too_low_error": "设置的唯一交易标识号安全性过低",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "选择一个账户",
+    "select_hd_path": "选择 HD 路径",
+    "select_hd_path_description": "如果您没有看到期望的账户，请尝试切换 HD 路径或当前选定的网络。",
     "ledger_live_path": "Ledger Live",
     "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_bip44_path": "BIP44（例如 MetaMask、Trezor）",
     "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "blind_sign_error": "盲签错误",
+    "blind_sign_error_message": "您的 Ledger 设备上未启用盲签。请在设置中启用。",
+    "user_reject_transaction": "User rejected the transaction",
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
   },
   "account_actions": {
     "edit_name": "编辑账户名",
@@ -3249,20 +3271,77 @@
   },
   "stake": {
     "stake": "质押",
-    "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "stake_eth": "质押 ETH",
+    "unstake_eth": "解除质押 ETH",
+    "staked_balance": "质押余额",
+    "staked_ethereum": "已质押以太坊",
+    "unstake": "解除质押",
+    "stake_more": "质押更多",
+    "claim": "领取",
+    "your_earnings": "您的收入",
+    "annual_rate": "年回报率",
+    "lifetime_rewards": "终身奖励",
+    "estimated_annual_earnings": "预计年收入",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "年回报率工具提示"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_rewards": "预计年度奖励",
     "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "enter_amount": "输入金额",
+    "review": "审核",
+    "not_enough_eth": "ETH 不足",
+    "balance": "余额",
+    "stake_eth_and_earn": "质押 ETH 并赚取奖励",
+    "stake_any_amount_of_eth": "抵押任意金额的 ETH",
+    "no_minimum_required": "无最低要求。",
+    "earn_eth_rewards": "赚取 ETH 奖励",
+    "earn_eth_rewards_description": "质押后，即刻开始赚取奖励。奖励自动计算。",
+    "flexible_unstaking": "灵活解除质押",
+    "flexible_unstaking_description": "随时解除质押。通常需要最多 11 天的时间来处理。",
+    "disclaimer": "质押并不能保证回报，而且涉及包括资金损失在内的风险。",
+    "learn_more": "了解详情",
+    "got_it": "知道了",
+    "your_balance": "您的余额",
+    "stake_your_eth_cta": {
+      "base": "使用 MetaMask Pool 质押您的 ETH 并",
+      "annually": "每年赚取奖励。",
+      "learn_more_with_period": "了解更多。"
+    },
+    "day": {
+      "zero": "",
+      "one": "天",
+      "other": "天"
+    },
+    "hour": {
+      "zero": "",
+      "one": "小时",
+      "other": "小时"
+    },
+    "minute": {
+      "zero": "",
+      "one": "分钟",
+      "other": "分钟"
+    },
+    "banner_text": {
+      "has_claimable_eth": "您可以领取 {{amountEth}} ETH。领取后，ETH 将会存回您的钱包。",
+      "unstaking_in_progress": {
+        "base": "正在解除 {{amountEth}} ETH 质押。请返回",
+        "and": "并",
+        "to_claim_it": "领取。",
+        "default": "正在解除 {{amountEth}} ETH 质押。请稍后返回领取。"
+      },
+      "geo_blocked": "您所在的地区不允许解除质押或质押。",
+      "approximately": "大约"
+    },
+    "unstake_input_banner_description": "平均而言，不到 3 天时间即可领取解除质押的 ETH，但也可能最长需要 11 天的时间。",
+    "max": "最大",
+    "staking_from": "质押提供商",
+    "interacting_with": "正在与下述内容交互：",
+    "12_hours": "12 小时",
+    "terms_of_service": "服务条款",
+    "risk_disclosure": "风险披露",
+    "cancel": "取消",
+    "confirm": "确认"
   },
   "default_settings": {
     "title": "您的钱包已准备就绪",
@@ -3272,7 +3351,7 @@
     "default_settings": "默认设置",
     "done": "已完成",
     "basic_functionality": "基本功能",
-    "manage_networks": "管理网络",
+    "manage_networks": "选择您的网络",
     "manage_networks_body": "我们使用 Infura 作为我们的远程过程调用（RPC）提供商，以提供最可靠和最私密的以太坊数据访问。您可以选择自己的 RPC，但请谨记，任何 RPC 都可以接收您的 IP 地址和以太坊钱包以进行交易。请阅读我们的 ",
     "manage_networks_body2": " 以进一步了解 Infura 如何处理数据。",
     "functionality_body": "MetaMask 通过互联网服务提供代币详情和燃料设置等基本功能。当您使用互联网服务时，您的 IP 地址会共享，在本例中与 MetaMask 共享。这就像您访问任何网站一样。MetaMask 暂时使用这些数据，并且绝不会出卖您的数据。您可以使用 VPN 或关闭这些服务，但这可能会影响您的 MetaMask 体验。阅读我们的 ",
@@ -3286,9 +3365,17 @@
       "buttons": {
         "cancel": "取消",
         "turn_on": "开启",
-        "turn_off": "关闭"
+        "turn_off": "关闭",
+        "reset": "重设"
       }
-    }
+    },
+    "drawer_general_title": "综合",
+    "drawer_general_title_desc": "跨设备同步设置、选择网络首选项和跟踪代币数据",
+    "drawer_assets_title": "资产",
+    "drawer_assets_desc": "自动检测钱包中的代币，显示 NFT，并获取批量账户余额更新",
+    "drawer_security_title": "安全",
+    "drawer_security_desc": "减少您加入不安全网络的机会并保护您的账户",
+    "network_details_check_desc": "MetaMask 使用名为 chainid.network 的第三方服务来显示标准化网络的准确详细信息。这可减少您连接到恶意或不正确网络的机会。使用此功能时，chainid.network 可以看到您的 IP 地址。"
   },
   "simulation_details": {
     "failed": "加载估算时出错。",
@@ -3312,13 +3399,43 @@
   },
   "common": {
     "please_wait": "请稍候",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "这将断开您与 {{dappUrl}} 的连接",
+    "disconnect": "断开连接"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "奖励率",
+      "tooltip": "根据过去一周的奖励率，您的质押价值预计每年都会增加。"
+    },
+    "estimated_gas_fee": {
+      "title": "预估燃料费",
+      "gas_recipient": "燃料费支付给在以太坊网络上处理交易的加密矿工。MetaMask 不会从燃料费中获利。",
+      "gas_fluctuation": "燃料费是估算的，并将根据网络流量和交易复杂性而波动。",
+      "gas_learn_more": "了解更多有关燃料费的信息"
+    },
+    "reward_frequency": {
+      "title": "奖励频率",
+      "tooltip": "您的质押余额每 12 小时更新一次，以计入新的奖励。"
+    }
+  },
+  "confirm": {
+    "reject": "拒绝",
+    "confirm": "确认",
+    "title": {
+      "signature": "签名请求"
+    },
+    "request_from": "请求来自",
+    "message": "消息",
+    "personal_sign_tooltip": "此网站要求您签名",
+    "details": "详情",
+    "account": "账户",
+    "balance": "余额",
+    "network": "网络",
+    "rpc_url": "RPC（远程过程调用）URL",
+    "simulation": {
+      "title": "预计变化",
+      "personal_sign_info": "您正在登录某个网站，并且您的账户没有预期变化。",
+      "tooltip": "预期变化是指您完成该交易可能发生的变化。这只是预测，而不是保证。"
     }
   }
 }

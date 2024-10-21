@@ -1,5 +1,6 @@
 export const CaveatTypes = Object.freeze({
   restrictReturnedAccounts: 'restrictReturnedAccounts',
+  restrictNetworkSwitching: 'restrictNetworkSwitching',
 });
 
 export const RestrictedMethods = Object.freeze({

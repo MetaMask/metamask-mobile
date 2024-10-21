@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -27,6 +28,7 @@ import {
 } from '../../../../../util/notifications';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
   notification: Notification;
@@ -38,13 +40,22 @@ type NetworkFee = Awaited<ReturnType<ModalFieldNetworkFee['getNetworkFees']>>;
 
 function useNetworkFee({ getNetworkFees }: NetworkFeeFieldProps) {
   const [data, setData] = useState<NetworkFee | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
+    setIsLoading(true);
     getNetworkFees()
-      .then((result) => setData(result))
-      .catch(() => setData(undefined));
+      .then((result) => {
+        setData(result);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setData(undefined);
+      }).finally(() => {
+        setIsLoading(false);
+      });
   }, [getNetworkFees]);
 
-  return data;
+  return { data, isLoading };
 }
 
 function NetworkFeeLabelAndValue(props: {
@@ -73,15 +84,55 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   const { setIsCollapsed, isCollapsed, notification } = props;
   const { styles, theme } = useStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const networkFee = useNetworkFee(props);
+  const {data: networkFee, isLoading} = useNetworkFee(props);
   const { trackEvent } = useMetrics();
 
-  if (!networkFee) {
-    return null;
+  if (isLoading && !networkFee) {
+    return (
+      <View style={styles.row}>
+        <NetworkFeeFieldSkeleton />
+      </View>
+    );
   }
 
-  const collapsedIcon = isCollapsed ? IconName.ArrowDown : IconName.ArrowUp;
+  const renderNetworkFeeDetails = () => {
+  if (!networkFee) {
+    return (
+      <View style={styles.boxLeft}>
+        <Text variant={TextVariant.BodyLGMedium}>
+          {strings('notifications.network_fee_not_available')}
+        </Text>
+      </View>
+    );
+  }
+
   const ticker = CURRENCY_SYMBOL_BY_CHAIN_ID[networkFee.chainId];
+  const collapsedIcon = isCollapsed ? IconName.ArrowDown : IconName.ArrowUp;
+  return (
+    <>
+    <View style={styles.boxLeft}>
+    <Text variant={TextVariant.BodyLGMedium}>
+      {strings('asset_details.network_fee')}
+    </Text>
+
+    <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+      {networkFee.transactionFeeInEth} {ticker} ($
+      {networkFee.transactionFeeInUsd})
+    </Text>
+  </View>
+  <View style={styles.copyContainer}>
+    <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+      {strings('transaction.details')}
+    </Text>
+    <Icon
+      name={collapsedIcon}
+      size={IconSize.Md}
+      color={IconColor.Info}
+    />
+      </View>
+    </>
+  );
+  };
 
   const onPress = () => {
     setIsCollapsed(!isCollapsed);
@@ -109,31 +160,11 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
             backgroundColor={theme.colors.info.muted}
             iconColor={IconColor.Info}
           />
-
-          <View style={styles.boxLeft}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('asset_details.network_fee')}
-            </Text>
-
-            <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-              {networkFee.transactionFeeInEth} {ticker} ($
-              {networkFee.transactionFeeInUsd})
-            </Text>
-          </View>
-          <View style={styles.copyContainer}>
-            <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
-              {strings('transaction.details')}
-            </Text>
-            <Icon
-              name={collapsedIcon}
-              size={IconSize.Md}
-              color={IconColor.Info}
-            />
-          </View>
+          {renderNetworkFeeDetails()}
         </View>
       </TouchableOpacity>
 
-      {!isCollapsed && (
+      {!isCollapsed && networkFee && (
         <BottomSheet
           ref={sheetRef}
           shouldNavigateBack={false}

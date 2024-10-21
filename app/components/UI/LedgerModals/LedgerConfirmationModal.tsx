@@ -160,7 +160,10 @@ const LedgerConfirmationModal = ({
           });
           break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
-          onReject();
+          setErrorDetails({
+            title: strings('ledger.user_reject_transaction'),
+            subtitle: strings('ledger.user_reject_transaction_message'),
+          });
           break;
         case LedgerCommunicationErrors.LedgerHasPendingConfirmation:
           setErrorDetails({
@@ -275,7 +278,9 @@ const LedgerConfirmationModal = ({
             isRetryHide={
               ledgerError === LedgerCommunicationErrors.UnknownError ||
               ledgerError === LedgerCommunicationErrors.NonceTooLow ||
-              ledgerError === LedgerCommunicationErrors.NotSupported
+              ledgerError === LedgerCommunicationErrors.NotSupported ||
+              ledgerError === LedgerCommunicationErrors.BlindSignError ||
+              ledgerError === LedgerCommunicationErrors.UserRefusedConfirmation
             }
           />
         </View>

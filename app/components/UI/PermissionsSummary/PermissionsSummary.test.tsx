@@ -29,6 +29,24 @@ const mockInitialState = {
 };
 
 describe('PermissionsSummary', () => {
+  it('should render correctly for network switch', () => {
+    const { toJSON } = renderWithProvider(
+      <PermissionsSummary
+        currentPageInformation={{
+          currentEnsName: '',
+          icon: '',
+          url: 'https://app.uniswap.org/',
+        }}
+        customNetworkInformation={{
+          chainName: 'Sepolia',
+          chainId: '0x1',
+        }}
+        isNetworkSwitch
+      />,
+      { state: mockInitialState },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <PermissionsSummary

@@ -53,6 +53,8 @@ const AccountConnectMultiSelector = ({
   onBack,
   screenTitle,
   isRenderedAsBottomSheet = true,
+  showDisconnectAllButton = true,
+  onPrimaryActionButtonPress,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -205,7 +207,7 @@ const AccountConnectMultiSelector = ({
               variant={ButtonVariants.Primary}
               label={strings(
                 isMultichainVersion1Enabled
-                  ? 'app_settings.fiat_on_ramp.update'
+                  ? 'networks.update'
                   : 'accounts.connect_with_count',
                 {
                   countLabel: selectedAddresses.length
@@ -213,7 +215,15 @@ const AccountConnectMultiSelector = ({
                     : '',
                 },
               )}
-              onPress={() => onUserAction(USER_INTENT.Confirm)}
+              onPress={() => {
+                if (!isMultichainVersion1Enabled) {
+                  onUserAction(USER_INTENT.Confirm);
+                } else {
+                  onPrimaryActionButtonPress
+                    ? onPrimaryActionButtonPress()
+                    : onUserAction(USER_INTENT.Confirm);
+                }
+              }}
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
@@ -227,29 +237,31 @@ const AccountConnectMultiSelector = ({
             />
           )}
         </View>
-        {isMultichainVersion1Enabled && areNoAccountsSelected && (
-          <View style={styles.disconnectAllContainer}>
-            <View style={styles.helpTextContainer}>
-              <HelpText severity={HelpTextSeverity.Error}>
-                {strings('common.disconnect_you_from', {
-                  dappUrl: hostname,
-                })}
-              </HelpText>
+        {isMultichainVersion1Enabled &&
+          areNoAccountsSelected &&
+          showDisconnectAllButton && (
+            <View style={styles.disconnectAllContainer}>
+              <View style={styles.helpTextContainer}>
+                <HelpText severity={HelpTextSeverity.Error}>
+                  {strings('common.disconnect_you_from', {
+                    dappUrl: hostname,
+                  })}
+                </HelpText>
+              </View>
+              <View style={styles.disconnectAllButtonContainer}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('accounts.disconnect')}
+                  onPress={toggleRevokeAllAccountPermissionsModal}
+                  isDanger
+                  size={ButtonSize.Lg}
+                  style={{
+                    ...styles.button,
+                  }}
+                />
+              </View>
             </View>
-            <View style={styles.disconnectAllButtonContainer}>
-              <Button
-                variant={ButtonVariants.Primary}
-                label={strings('accounts.disconnect')}
-                onPress={toggleRevokeAllAccountPermissionsModal}
-                isDanger
-                size={ButtonSize.Lg}
-                style={{
-                  ...styles.button,
-                }}
-              />
-            </View>
-          </View>
-        )}
+          )}
       </View>
     );
   }, [
@@ -261,6 +273,8 @@ const AccountConnectMultiSelector = ({
     areNoAccountsSelected,
     hostname,
     toggleRevokeAllAccountPermissionsModal,
+    showDisconnectAllButton,
+    onPrimaryActionButtonPress,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
@@ -285,10 +299,13 @@ const AccountConnectMultiSelector = ({
             )}
             <Text style={styles.description}>
               {isMultichainVersion1Enabled
-                ? strings('accounts.select_accounts_description')
+                ? accounts?.length > 0 &&
+                  strings('accounts.select_accounts_description')
                 : strings('accounts.connect_description')}
             </Text>
-            {isMultichainVersion1Enabled && renderSelectAllCheckbox()}
+            {isMultichainVersion1Enabled &&
+              accounts?.length > 0 &&
+              renderSelectAllCheckbox()}
             {areAllAccountsSelected
               ? renderUnselectAllButton()
               : renderSelectAllButton()}

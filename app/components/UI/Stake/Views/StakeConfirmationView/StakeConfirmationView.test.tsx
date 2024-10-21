@@ -58,7 +58,7 @@ describe('StakeConfirmationView', () => {
     const props: StakeConfirmationViewProps = {
       route: {
         key: '1',
-        params: { wei: '3210000000000000', fiat: '7.46' },
+        params: { amountWei: '3210000000000000', amountFiat: '7.46' },
         name: 'params',
       },
     };

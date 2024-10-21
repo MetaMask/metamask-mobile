@@ -69,3 +69,14 @@ export const selectSelectedInternalAccountChecksummedAddress = createSelector(
     return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
   },
 );
+
+/**
+ * A memoized selector that returns the selected internal account address
+ */
+export const selectSelectedInternalAccountAddress = createSelector(
+  selectSelectedInternalAccount,
+  (account) => {
+    const selectedAddress = account?.address;
+    return selectedAddress || undefined;
+  },
+);

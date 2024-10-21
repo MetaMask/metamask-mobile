@@ -4,18 +4,22 @@ import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
-import AmountHeader from '../../components/Confirmation/AmountHeader/AmountHeader';
-import AccountHeaderCard from '../../components/Confirmation/AccountHeaderCard/AccountHeaderCard';
-import EstimatedGasCard from '../../components/Confirmation/EstimatedGasCard/EstimatedGasCard';
-import RewardsCard from '../../components/Confirmation/RewardsCard/RewardsCard';
-import ConfirmationFooter from '../../components/Confirmation/ConfirmationFooter/ConfirmationFooter';
-import {
-  MOCK_REWARD_DATA,
-  MOCK_STAKING_CONTRACT_NAME,
-  MOCK_STAKING_REVIEW_DATA,
-} from './StakeConfirmationMockData';
+import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
+import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
+import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
+import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
 import { strings } from '../../../../../../locales/i18n';
+
+const MOCK_REWARD_DATA = {
+  REWARDS: {
+    ETH: '0.13 ETH',
+    FIAT: '$334.93',
+  },
+};
+
+const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
 const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   const navigation = useNavigation();
@@ -34,23 +38,15 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   return (
     <View style={styles.mainContainer}>
       <View>
-        <AmountHeader
-          amountWei={route.params.wei}
-          amountFiat={`$${route.params.fiat}`}
+        <TokenValueStack
+          amountWei={route.params.amountWei}
+          amountFiat={`$${route.params.amountFiat}`}
           tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
-          <AccountHeaderCard
-            contractName={MOCK_STAKING_CONTRACT_NAME}
-            primaryLabel={strings('stake.staking_from')}
-            secondaryLabel={strings('stake.interacting_with')}
-          />
-          <EstimatedGasCard
-            gasCostEth={MOCK_STAKING_REVIEW_DATA.GAS_COST.ETH}
-            gasCostFiat={MOCK_STAKING_REVIEW_DATA.GAS_COST.FIAT}
-          />
+          <AccountHeaderCard contractName={MOCK_STAKING_CONTRACT_NAME} />
           <RewardsCard
-            rewardRate={MOCK_REWARD_DATA.REWARD_RATE}
+            rewardRate={MOCK_GET_VAULT_RESPONSE.apy}
             rewardsEth={MOCK_REWARD_DATA.REWARDS.ETH}
             rewardsFiat={MOCK_REWARD_DATA.REWARDS.FIAT}
           />

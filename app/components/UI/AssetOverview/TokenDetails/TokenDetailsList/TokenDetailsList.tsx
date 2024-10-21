@@ -17,6 +17,7 @@ import Icon, {
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { TokenDetails } from '../TokenDetails';
 import TokenDetailsListItem from '../TokenDetailsListItem';
+import { formatAddress } from '../../../../../util/address';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
@@ -62,7 +63,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
               onPress={copyAccountToClipboard}
             >
               <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
-                {tokenDetails.contractAddress}
+                {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
               <Icon
                 name={IconName.Copy}
