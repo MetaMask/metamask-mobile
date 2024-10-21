@@ -1497,7 +1497,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               ]
             }
           >
-            Confirm
+            Connect
           </Text>
         </TouchableOpacity>
       </View>
