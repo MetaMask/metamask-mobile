@@ -38,7 +38,7 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
@@ -121,7 +121,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const isOriginWalletConnect = wc2Metadata?.id && wc2Metadata?.id.length > 0;
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
@@ -138,7 +137,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
+
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
+
+  const isOriginWalletConnect = !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -174,9 +176,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
   ]);
 
-  const urlWithProtocol = (hostname && !isUUID(hostname))
-    ? prefixUrlWithProtocol(hostname)
-    : domainTitle;
+  const urlWithProtocol =
+    hostname && !isUUID(hostname)
+      ? prefixUrlWithProtocol(getHost(hostname))
+      : domainTitle;
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
@@ -236,15 +239,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     // walletconnect channelId format: app.name.org
     // sdk channelId format: uuid
     // inappbrowser channelId format: app.name.org but origin is set
-    if (channelIdOrHostname) {
-      if (sdkConnection) {
-        return SourceType.SDK;
-      }
+    if (isOriginWalletConnect) {
       return SourceType.WALLET_CONNECT;
     }
 
+    if (sdkConnection) {
+      return SourceType.SDK;
+    }
+
     return SourceType.IN_APP_BROWSER;
-  }, [sdkConnection, channelIdOrHostname]);
+  }, [isOriginWalletConnect, sdkConnection]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -341,7 +345,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
-
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
@@ -603,6 +606,11 @@ const AccountConnect = (props: AccountConnectProps) => {
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
         connection={sdkConnection}
         hostname={hostname}
+        onPrimaryActionButtonPress={
+          isMultichainVersion1Enabled
+            ? () => setScreen(AccountConnectScreens.SingleConnect)
+            : undefined
+        }
       />
     ),
     [
