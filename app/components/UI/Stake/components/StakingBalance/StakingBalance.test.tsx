@@ -8,6 +8,7 @@ import { Image } from 'react-native';
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
+  MOCK_STAKED_ETH_ASSET,
 } from '../../__mocks__/mockData';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
@@ -41,6 +42,11 @@ jest.mock('../../hooks/usePooledStakes', () => ({
     loading: false,
     error: null,
     refreshPooledStakes: jest.fn(),
+    hasStakedPositions: true,
+    hasEthToUnstake: true,
+    hasNeverStaked: false,
+    hasRewards: true,
+    hasRewardsOnly: false,
   }),
 }));
 
@@ -60,7 +66,16 @@ jest.mock('../../hooks/useVaultData', () => ({
     vaultData: mockVaultData,
     loading: false,
     error: null,
-    refreshVaultData: jest.fn(),
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
+  }),
+}));
+
+jest.mock('../../hooks/useBalance', () => ({
+  __esModule: true,
+  default: () => ({
+    stakedBalanceWei: MOCK_STAKED_ETH_ASSET.balance,
+    stakedBalanceFiat: MOCK_STAKED_ETH_ASSET.balanceFiat,
   }),
 }));
 
@@ -74,12 +89,16 @@ describe('StakingBalance', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<StakingBalance />);
+    const { toJSON } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('redirects to StakeInputView on stake button click', () => {
-    const { getByText } = renderWithProvider(<StakingBalance />);
+    const { getByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+    );
 
     fireEvent.press(getByText(strings('stake.stake_more')));
 
@@ -90,7 +109,9 @@ describe('StakingBalance', () => {
   });
 
   it('redirects to UnstakeInputView on unstake button click', () => {
-    const { getByText } = renderWithProvider(<StakingBalance />);
+    const { getByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+    );
 
     fireEvent.press(getByText(strings('stake.unstake')));
 
