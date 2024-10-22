@@ -31,7 +31,7 @@ module.exports = {
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: 'ios.qa',
+      app: process.env.CI ? 'ios.qa' :'ios.debug',
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",

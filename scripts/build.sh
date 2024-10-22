@@ -135,6 +135,7 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 }
 
 remapEnvVariableRelease() {
@@ -214,6 +215,7 @@ buildAndroidRun(){
 }
 
 buildAndroidRunQA(){
+	remapEnvVariableLocal
 	prebuild_android
 	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
@@ -550,6 +552,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+	remapEnvVariableLocal
   	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
