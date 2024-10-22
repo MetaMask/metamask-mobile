@@ -99,13 +99,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       marginHorizontal: 16,
       justifyContent: 'space-between',
-      marginVertical: 24,
-    },
-    fiatBalance: {
-      ...fontStyles.normal,
-      fontSize: 32,
-      lineHeight: 40,
-      fontWeight: '500',
+      paddingTop: 24,
     },
     portfolioLink: { marginLeft: 8 },
     bottomModal: {
@@ -144,6 +138,20 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.border.muted,
       alignSelf: 'center',
       marginTop: 4,
+    },
+    actionBarWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingTop: 8,
+    },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
     },
   });
 

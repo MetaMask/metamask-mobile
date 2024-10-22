@@ -3,7 +3,7 @@ import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
-  AccountTrackerState,
+  AccountTrackerControllerState,
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
@@ -19,7 +19,7 @@ import {
   TokenListState,
   TokenListStateChange,
   TokenRatesController,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensController,
   TokensControllerState,
   CodefiTokenPricesServiceV2,
@@ -233,7 +233,7 @@ import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
 import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
@@ -336,7 +336,7 @@ type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 export interface EngineState {
-  AccountTrackerController: AccountTrackerState;
+  AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
   NftController: NftControllerState;
@@ -347,7 +347,7 @@ export interface EngineState {
   PreferencesController: PreferencesState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
-  TokenRatesController: TokenRatesState;
+  TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsState;
@@ -522,11 +522,8 @@ class Engine {
       }),
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
-        // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
-        'personal_sign',
-        'eth_signTypedData',
-        'transaction',
-        'wallet_watchAsset',
+        ApprovalType.Transaction,
+        ApprovalType.WatchAsset,
       ],
     });
 
@@ -544,6 +541,11 @@ class Engine {
         useNftDetection: true, // set this to true to enable nft detection by default to new users
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        tokenSortConfig: {
+          key: 'tokenFiatAmount',
+          order: 'dsc',
+          sortCallback: 'stringNumeric',
+        },
         ...initialState.PreferencesController,
       },
     });
@@ -577,10 +579,36 @@ class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      // @ts-expect-error TODO: Resolve bump the assets controller version.
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
+
+    const defaultAccountsControllerState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    };
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController ?? defaultAccountsControllerState,
+    });
+
     const nftController = new NftController({
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
@@ -592,10 +620,13 @@ class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
 
@@ -631,38 +662,10 @@ class Engine {
       }),
       state: initialState.LoggingController,
     });
-    const accountsControllerMessenger: AccountsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'AccountsController',
-        allowedEvents: [
-          'SnapController:stateChange',
-          'KeyringController:accountRemoved',
-          'KeyringController:stateChange',
-        ],
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'KeyringController:getKeyringsByType',
-          'KeyringController:getKeyringForAccount',
-        ],
-      });
-
-    const defaultAccountsControllerState: AccountsControllerState = {
-      internalAccounts: {
-        accounts: {},
-        selectedAccount: '',
-      },
-    };
-
-    const accountsController = new AccountsController({
-      messenger: accountsControllerMessenger,
-      state: initialState.AccountsController ?? defaultAccountsControllerState,
-    });
     const tokensController = new TokensController({
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      selectedAddress: preferencesController.state.selectedAddress,
-      // @ts-expect-error TODO: Resolve provider type mismatch
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -671,11 +674,14 @@ class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           'NetworkController:getNetworkClientById',
+          'AccountsController:getAccount',
+          'AccountsController:getSelectedAccount',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
           'TokenListController:stateChange',
+          'AccountsController:selectedEvmAccountChange',
         ],
       }),
     });
@@ -950,20 +956,22 @@ class Engine {
     });
 
     const accountTrackerController = new AccountTrackerController({
-      onPreferencesStateChange,
-      getIdentities: () => preferencesController.state.identities,
-      getSelectedAddress: () => accountsController.getSelectedAccount().address,
-      getMultiAccountBalancesEnabled: () =>
-        preferencesController.state.isMultiAccountBalancesEnabled,
-      getCurrentChainId: () =>
-        toHexadecimal(
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId,
-        ),
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-      getNetworkClientById:
-        networkController.getNetworkClientById.bind(networkController),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AccountTrackerController',
+        allowedActions: [
+          'AccountsController:getSelectedAccount',
+          'AccountsController:listAccounts',
+          'PreferencesController:getState',
+          'NetworkController:getState',
+          'NetworkController:getNetworkClientById',
+        ],
+        allowedEvents: [
+          'AccountsController:selectedEvmAccountChange',
+          'AccountsController:selectedAccountChange',
+        ],
+      }),
+      state: initialState.AccountTrackerController ?? { accounts: {} },
     });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -986,6 +994,10 @@ class Engine {
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts:
           accountsController.listAccounts.bind(accountsController),
+        findNetworkClientIdByChainId:
+          networkController.findNetworkClientIdByChainId.bind(
+            networkController,
+          ),
       }),
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
@@ -1451,15 +1463,16 @@ class Engine {
             'TokenListController:getState',
             'TokensController:getState',
             'TokensController:addDetectedTokens',
+            'AccountsController:getAccount',
           ],
           allowedEvents: [
-            'AccountsController:selectedAccountChange',
             'KeyringController:lock',
             'KeyringController:unlock',
             'PreferencesController:stateChange',
             'NetworkController:networkDidChange',
             'TokenListController:stateChange',
             'TokensController:stateChange',
+            'AccountsController:selectedEvmAccountChange',
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1494,6 +1507,7 @@ class Engine {
             'NetworkController:getState',
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
+            'AccountsController:getSelectedAccount',
           ],
         }),
         disabled: false,
@@ -1508,7 +1522,7 @@ class Engine {
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
-          allowedActions: ['PreferencesController:getState'],
+          allowedActions: ['AccountsController:getSelectedAccount'],
           allowedEvents: ['TokensController:stateChange'],
         }),
         getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
@@ -1517,29 +1531,25 @@ class Engine {
         interval: 180000,
       }),
       new TokenRatesController({
-        onTokensStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `${tokensController.name}:stateChange`,
-            listener,
-          ),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        onPreferencesStateChange,
-        chainId: networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration.chainId,
-        ticker: networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration.ticker,
-        selectedAddress: preferencesController.state.selectedAddress,
+        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenRatesController',
+          allowedActions: [
+            'TokensController:getState',
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'AccountsController:getAccount',
+            'AccountsController:getSelectedAccount',
+          ],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'NetworkController:stateChange',
+            'AccountsController:selectedEvmAccountChange',
+          ],
+        }),
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-        getNetworkClientById:
-          networkController.getNetworkClientById.bind(networkController),
+        state: initialState.TokenRatesController || { marketData: {} },
       }),
       this.transactionController,
       this.smartTransactionsController,
@@ -1871,8 +1881,6 @@ class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    AccountTrackerController.configure({ provider });
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     AssetsContractController.configure({ provider });
 
     SwapsController.configure({
@@ -2090,7 +2098,7 @@ class Engine {
     NftController.reset();
 
     TokenBalancesController.reset();
-    TokenRatesController.update({ marketData: {} });
+    TokenRatesController.reset();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({

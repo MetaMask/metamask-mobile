@@ -9,7 +9,7 @@ exports[`Input should render correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "transparent",
+      "borderColor": "#0376c9",
       "borderWidth": 1,
       "color": "#141618",
       "fontFamily": "Euclid Circular B",
