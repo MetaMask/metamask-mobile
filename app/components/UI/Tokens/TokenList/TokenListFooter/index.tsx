@@ -28,16 +28,16 @@ import { TokenI } from '../../types';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
-  isAddTokenEnabled: boolean;
   goToAddToken: () => void;
   showDetectedTokens: () => void;
+  isAddTokenEnabled: boolean;
 }
 
 export const TokenListFooter = ({
   tokens,
-  isAddTokenEnabled,
   goToAddToken,
   showDetectedTokens,
+  isAddTokenEnabled,
 }: TokenListFooterProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -108,7 +108,7 @@ export const TokenListFooter = ({
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
         >
           <Text style={styles.centered}>
             <Text style={styles.emptyText}>
