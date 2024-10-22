@@ -5,6 +5,13 @@ import { ConfirmationFooterProps } from './ConfirmationFooter.types';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { FooterButtonGroupActions } from './FooterButtonGroup/FooterButtonGroup.types';
+import {
+  PooledStakingContract,
+  StakingType,
+  ChainId,
+} from '@metamask/stake-sdk';
+import { Contract } from 'ethers';
+import { Stake } from '../../../sdk/stakeSdkProvider';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';

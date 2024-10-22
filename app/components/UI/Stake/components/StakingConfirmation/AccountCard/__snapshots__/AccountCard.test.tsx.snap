@@ -510,50 +510,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-                testID="label"
-              >
-                Network
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "flex-end",
-              "flex": 1,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 8,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
+                  "gap": 8,
                 }
               }
             >
@@ -561,63 +518,52 @@ exports[`AccountCard render matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 8,
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 16,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 16,
                   }
                 }
               >
-                <View
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "MockImage",
+                    }
+                  }
                   style={
                     {
-                      "alignItems": "center",
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
                       "height": 16,
-                      "justifyContent": "center",
-                      "overflow": "hidden",
                       "width": 16,
                     }
                   }
-                >
-                  <Image
-                    onError={[Function]}
-                    resizeMode="contain"
-                    source={
-                      {
-                        "uri": "MockImage",
-                      }
-                    }
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    testID="network-avatar-image"
-                  />
-                </View>
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Ethereum Main Network
-                </Text>
+                  testID="network-avatar-image"
+                />
               </View>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Ethereum Main Network
+              </Text>
             </View>
           </View>
         </View>
       </View>
-    </TouchableOpacity>
-  </View>,
-  ",",
-]
+    </View>
+  </TouchableOpacity>
+</View>
 `;

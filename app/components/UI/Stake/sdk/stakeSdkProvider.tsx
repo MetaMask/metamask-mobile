@@ -59,7 +59,7 @@ export const StakeSDKProvider: React.FC<
     }
 
     const sdk = StakeSdk.create({
-      chainId: parseInt(hexToDecimal(chainId).toString()),
+      chainId: parseInt(hexToChainId(chainId).toString()),
       stakingType: sdkType,
     });
 

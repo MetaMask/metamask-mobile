@@ -5,7 +5,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#f2f4f6",
-      "height": "100%",
+      "flex": 1,
       "justifyContent": "space-between",
       "paddingHorizontal": 16,
       "paddingTop": 8,
@@ -225,7 +225,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
       style={
         {
           "gap": 8,
-          "paddingTop": 8,
+          "paddingTop": 16,
         }
       }
     >
@@ -863,18 +863,146 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <SvgMock
-                        color="#141618"
-                        height={16}
-                        name="Question"
+                      <View
                         style={
                           {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 8,
                             "height": 16,
+                            "overflow": "hidden",
                             "width": 16,
                           }
                         }
-                        width={16}
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "overflow": "hidden",
+                              },
+                              {
+                                "backgroundColor": "#1593F2",
+                                "borderRadius": 8,
+                                "height": 16,
+                                "width": 16,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <RNSVGSvgView
+                            bbHeight={16}
+                            bbWidth={16}
+                            focusable={false}
+                            height={16}
+                            style={
+                              [
+                                {
+                                  "backgroundColor": "transparent",
+                                  "borderWidth": 0,
+                                },
+                                {
+                                  "flex": 0,
+                                  "height": 16,
+                                  "width": 16,
+                                },
+                              ]
+                            }
+                            width={16}
+                          >
+                            <RNSVGGroup
+                              fill={
+                                {
+                                  "payload": 4278190080,
+                                  "type": 0,
+                                }
+                              }
+                            >
+                              <RNSVGRect
+                                fill={
+                                  {
+                                    "payload": 4280574177,
+                                    "type": 0,
+                                  }
+                                }
+                                height={16}
+                                matrix={
+                                  [
+                                    -0.14608302856241107,
+                                    0.9892723329629884,
+                                    -0.9892723329629884,
+                                    -0.14608302856241107,
+                                    18.877507984599454,
+                                    -1.41266974682138,
+                                  ]
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                                width={16}
+                                x={0}
+                                y={0}
+                              />
+                              <RNSVGRect
+                                fill={
+                                  {
+                                    "payload": 4294395137,
+                                    "type": 0,
+                                  }
+                                }
+                                height={16}
+                                matrix={
+                                  [
+                                    -0.02094241988335673,
+                                    -0.9997806834748455,
+                                    0.9997806834748455,
+                                    -0.02094241988335673,
+                                    -7.512435753557014,
+                                    20.161960644608932,
+                                  ]
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                                width={16}
+                                x={0}
+                                y={0}
+                              />
+                              <RNSVGRect
+                                fill={
+                                  {
+                                    "payload": 4294736640,
+                                    "type": 0,
+                                  }
+                                }
+                                height={16}
+                                matrix={
+                                  [
+                                    -0.458649554484315,
+                                    0.8886172326549487,
+                                    -0.8886172326549487,
+                                    -0.458649554484315,
+                                    14.2400072574634,
+                                    19.300266514976617,
+                                  ]
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                                width={16}
+                                x={0}
+                                y={0}
+                              />
+                            </RNSVGGroup>
+                          </RNSVGSvgView>
+                        </View>
+                      </View>
                       <View
                         accessible={false}
                         style={
@@ -1303,6 +1431,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1344,6 +1473,8 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        disabled={false}
+        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1376,7 +1507,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             }
           }
         >
-          Continue
+          Confirm
         </Text>
       </TouchableOpacity>
     </View>

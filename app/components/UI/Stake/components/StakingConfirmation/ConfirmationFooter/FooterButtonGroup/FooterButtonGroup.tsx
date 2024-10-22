@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -22,6 +22,7 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake/usePoolStakedUnstake';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
@@ -35,10 +36,61 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { refreshPooledStakes } = usePooledStakes();
 
+  const { attemptUnstakeTransaction } = usePoolStakedUnstake();
+
+  const [isSubmittedTransaction, setIsSubmittingTransaction] = useState(false);
+
   const handleStake = async () => {
     if (!activeAccount?.address) return;
 
+    setIsSubmittingTransaction(true);
+
     const txRes = await attemptDepositTransaction(
+      valueWei,
+      activeAccount.address,
+    );
+
+    const transactionId = txRes?.transactionMeta?.id;
+
+    // Listening for confirmation
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionSubmitted',
+      () => {
+        setIsSubmittingTransaction(false);
+        navigate(Routes.TRANSACTIONS_VIEW);
+      },
+      ({ transactionMeta }) => transactionMeta.id === transactionId,
+    );
+
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionFailed',
+      () => {
+        setIsSubmittingTransaction(false);
+      },
+      ({ transactionMeta }) => transactionMeta.id === transactionId,
+    );
+
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionRejected',
+      () => {
+        setIsSubmittingTransaction(false);
+      },
+      ({ transactionMeta }) => transactionMeta.id === transactionId,
+    );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+                                                 'TransactionController:transactionConfirmed',
+                                                 () => {
+                                                 refreshPooledStakes();
+                                                 },
+                                                 (transactionMeta) => transactionMeta.id === transactionId,
+                                                 );
+  };
+
+  const handleUnstake = async () => {
+    if (!activeAccount?.address) return;
+
+    const txRes = await attemptUnstakeTransaction(
       valueWei,
       activeAccount.address,
     );
@@ -53,18 +105,11 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       },
       ({ transactionMeta }) => transactionMeta.id === transactionId,
     );
-
-    Engine.controllerMessenger.subscribeOnceIf(
-      'TransactionController:transactionConfirmed',
-      () => {
-        refreshPooledStakes();
-      },
-      (transactionMeta) => transactionMeta.id === transactionId,
-    );
   };
 
   const handleConfirmation = () => {
     if (action === FooterButtonGroupActions.STAKE) return handleStake();
+    if (action === FooterButtonGroupActions.UNSTAKE) return handleUnstake();
   };
 
   return (
@@ -82,6 +127,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         onPress={() => {
           navigation.goBack();
         }}
+        disabled={isSubmittedTransaction}
       />
       <Button
         label={
@@ -94,6 +140,8 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         onPress={handleConfirmation}
+        disabled={isSubmittedTransaction}
+        loading={isSubmittedTransaction}
       />
     </View>
   );

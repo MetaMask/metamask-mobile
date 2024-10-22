@@ -58,6 +58,32 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
+const mockPooledStakingContractService: PooledStakingContract = {
+chainId: ChainId.ETHEREUM,
+connectSignerOrProvider: jest.fn(),
+contract: new Contract('0x0000000000000000000000000000000000000000', []),
+convertToShares: jest.fn(),
+encodeClaimExitedAssetsTransactionData: jest.fn(),
+encodeDepositTransactionData: jest.fn(),
+encodeEnterExitQueueTransactionData: jest.fn(),
+encodeMulticallTransactionData: jest.fn(),
+estimateClaimExitedAssetsGas: jest.fn(),
+estimateDepositGas: jest.fn(),
+estimateEnterExitQueueGas: jest.fn(),
+estimateMulticallGas: jest.fn(),
+};
+
+const mockSDK: Stake = {
+stakingContract: mockPooledStakingContractService,
+sdkType: StakingType.POOLED,
+setSdkType: jest.fn(),
+};
+
+jest.mock('../../hooks/useStakeContext', () => ({
+                                                __esModule: true,
+                                                useStakeContext: jest.fn(() => mockSDK),
+                                                }));
+
 describe('UnstakeConfirmationView', () => {
   it('render matches snapshot', () => {
     const props: UnstakeConfirmationViewProps = {
