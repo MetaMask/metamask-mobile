@@ -27,7 +27,7 @@ class FCMService {
       ) {
         const fcmToken = await messaging().getToken();
         if (fcmToken) {
-          mmStorage.saveLocal('metaMaskFcmToken', { data: fcmToken });
+          mmStorage.saveLocal('metaMaskFcmToken', fcmToken);
         }
       }
     } catch (error) {
@@ -37,7 +37,7 @@ class FCMService {
 
   registerTokenRefreshListener = () =>
     messaging().onTokenRefresh((fcmToken: string) => {
-      mmStorage.saveLocal('metaMaskFcmToken', { data: fcmToken });
+      mmStorage.saveLocal('metaMaskFcmToken', fcmToken);
   });
 
   listenForMessagesForeground = (): UnsubscribeFunc => messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
