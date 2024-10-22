@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   ChainId,
   PooledStakingContract,
@@ -5,11 +6,12 @@ import {
 } from '@metamask/stake-sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { Stake } from '../sdk/stakeSdkProvider';
+import { Stake, StakeSDKProvider } from '../sdk/stakeSdkProvider';
 // eslint-disable-next-line import/no-namespace
 import * as useStakeContextHook from '../hooks/useStakeContext';
 import { Contract } from '@ethersproject/contracts';
-import { StakeModalStack, StakeScreenStack } from '../routes';
+import { View } from 'react-native';
+import Text from '../../../../component-library/components/Texts/Text';
 
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
@@ -27,7 +29,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
 };
 
 const mockSDK: Stake = {
-  sdkService: mockPooledStakingContractService,
+  stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
 };
@@ -36,36 +38,56 @@ jest.mock('../../Stake/constants', () => ({
   isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
+  },
+}));
+
+const MockComponent = () => {
+  const stakeContext = useStakeContextHook.useStakeContext();
+
+  const stakeContractAddress = stakeContext.stakingContract?.contract.address;
+
+  return (
+    <View>
+      <Text>{stakeContractAddress}</Text>
+    </View>
+  );
+};
+
 describe('Stake Modals With Stake Sdk Provider', () => {
   const initialState = {
     engine: {
       backgroundState,
     },
   };
-  it('should render correctly stake screen with stake sdk provider and resolve the stake context', () => {
-    const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
 
-    const { toJSON } = renderWithProvider(StakeScreenStack(), {
-      state: initialState,
-    });
+  it('renders stake screen with stake sdk provider and resolved stake context', () => {
+    const useStakeContextSpy = jest
+      .spyOn(useStakeContextHook, 'useStakeContext')
+      .mockReturnValue(mockSDK);
+
+    const { toJSON } = renderWithProvider(
+      <StakeSDKProvider>
+        <MockComponent />
+      </StakeSDKProvider>,
+      {
+        state: initialState,
+      },
+    );
 
     expect(toJSON()).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalled();
-  });
-
-  it('should render correctly stake modal with stake sdk provider and resolve the stake context', () => {
-    const useStakeContextSpy = jest
-    .spyOn(useStakeContextHook, 'useStakeContext')
-    .mockReturnValue(mockSDK);
-
-    const { toJSON } = renderWithProvider(StakeModalStack(), {
-      state: initialState,
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-    expect(useStakeContextSpy).toHaveBeenCalledTimes(0);
-
   });
 });

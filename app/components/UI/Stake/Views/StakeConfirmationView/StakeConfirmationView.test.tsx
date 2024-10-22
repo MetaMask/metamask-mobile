@@ -53,6 +53,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/usePoolStakedDeposit', () => ({
+  __esModule: true,
+  default: () => ({
+    poolStakingContract: {},
+    estimateDepositGas: jest.fn(),
+    attemptDepositTransaction: jest.fn(),
+  }),
+}));
+
 describe('StakeConfirmationView', () => {
   it('render matches snapshot', () => {
     const props: StakeConfirmationViewProps = {
