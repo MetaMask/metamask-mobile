@@ -746,7 +746,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy test screenshots
           is_always_run: true
@@ -1004,7 +1004,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           run_if: .IsBuildFailed
