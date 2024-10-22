@@ -50,6 +50,7 @@ const useNotificationHandler = (navigation: NavigationContainerRef) => {
     FCMService.registerAppWithFCM();
     FCMService.saveFCMToken();
     FCMService.getFCMToken();
+    FCMService.listenForMessagesBackground();
 
     // Notifee
     NotificationsService.onBackgroundEvent(
