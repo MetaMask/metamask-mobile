@@ -7,37 +7,15 @@ import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakeConfirmationNavbar } from '../../../Navbar';
-import AmountHeader from '../../components/StakingConfirmation/AmountHeader/AmountHeader';
-import Card from '../../../../../component-library/components/Cards/Card';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
-import TagBase, {
-  TagSeverity,
-  TagShape,
-} from '../../../../../component-library/base-components/TagBase';
-import { renderFromWei } from '../../../../../util/number';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import ethLogo from '../../../../../images/ethereum.png';
-import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
+import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import EstimatedGasCard from '../../components/StakingConfirmation/EstimatedGasCard/EstimatedGasCard';
+import YouReceiveCard from '../../components/StakingConfirmation/YouReceiveCard/YouReceiveCard';
+import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
+import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
+import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
+import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
-
-const MOCK_UNSTAKE_DATA = {
-  wei: '4999820000000000000',
-  fiat: '12,881.64',
-};
+import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -208,7 +186,10 @@ const UnstakeConfirmationView = () => {
           <UnstakingTimeCard />
         </View>
       </View>
-      <ConfirmationFooter />
+      <ConfirmationFooter
+        valueWei={route.params.amountWei}
+        action={FooterButtonGroupActions.UNSTAKE}
+      />
     </View>
   );
 };

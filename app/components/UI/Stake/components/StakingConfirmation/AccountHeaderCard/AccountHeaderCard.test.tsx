@@ -7,8 +7,7 @@ import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { Provider } from 'react-redux';
 import { AccountHeaderCardProps } from './AccountHeaderCard.types';
-
-const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
+import { MOCK_STAKING_CONTRACT_NAME } from '../../../Views/StakeConfirmationView/StakeConfirmationMockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -54,6 +53,8 @@ describe('AccountHeaderCard', () => {
   it('render matches snapshot', () => {
     const props: AccountHeaderCardProps = {
       contractName: MOCK_STAKING_CONTRACT_NAME,
+      primaryLabel: strings('stake.staking_from'),
+      secondaryLabel: strings('stake.interacting_with'),
     };
 
     const { getByText, toJSON } = renderWithProvider(

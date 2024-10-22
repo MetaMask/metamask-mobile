@@ -38,8 +38,8 @@ const AccountHeaderCard = ({
             value={{
               label: (
                 <AccountTag
-                  accountAddress={account?.address}
-                  accountName={account.metadata.name}
+                  address={account?.address}
+                  name={account.metadata.name}
                 />
               ),
             }}
