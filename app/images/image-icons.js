@@ -11,6 +11,8 @@ import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
+import KAIA_MAINNET from './kaia.png';
+import KAIA_KAIROS_TESTNET from './kaia.png';
 
 export default {
   PALM,
@@ -27,4 +29,6 @@ export default {
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
+  'KAIA-MAINNET': KAIA_MAINNET,
+  'KAIA-KAIROS-TESTNET': KAIA_KAIROS_TESTNET
 };
