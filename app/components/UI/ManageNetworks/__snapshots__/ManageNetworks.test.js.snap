@@ -78,7 +78,7 @@ exports[`ManageNetworks should render correctly 1`] = `
         "flexDirection": "row",
         "height": 32,
         "marginVertical": 16,
-        "paddingHorizontal": 12,
+        "paddingHorizontal": 8,
       }
     }
     testID="accounts-connected-network-picker"
