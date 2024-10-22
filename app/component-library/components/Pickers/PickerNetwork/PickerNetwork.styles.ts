@@ -26,9 +26,9 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        height: 32,
+        height: 28,
         borderRadius: 16,
-        paddingHorizontal: 12,
+        paddingHorizontal: 8,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.background.alternative,
