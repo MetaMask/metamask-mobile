@@ -48,7 +48,7 @@ describe('lib', () => {
       ).not.toBe(undefined);
     });
 
-    it('throws an error if when using forked lib with a different number of iterations than expected', async () => {
+    it('throws an error when using forked lib with a different number of iterations than expected', async () => {
       const lib = getEncryptionLibrary('random-lib');
 
       await expect(
