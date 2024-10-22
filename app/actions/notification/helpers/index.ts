@@ -4,7 +4,6 @@ import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
 import { getAllUUIDs, mmStorage, Notification } from '../../../util/notifications';
 import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
-import Logger from '../../../util/Logger';
 
 export type MarkAsReadNotificationsParam = Pick<
   Notification,
