@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+
 // External dependencies.
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
@@ -42,6 +43,20 @@ describe('PickerNetwork', () => {
     expect(
       queryByTestId(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT),
     ).toBeNull();
+  });
+
+  it('shows network name when hideNetworkName is false', () => {
+    const { queryByTestId } = render(
+      <PickerNetwork
+        label={SAMPLE_PICKERNETWORK_PROPS.label}
+        imageSource={SAMPLE_PICKERNETWORK_PROPS.imageSource}
+        hideNetworkName={false}
+      />,
+    );
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT),
+    ).not.toBeNull();
   });
 
   it('calls onPress when pressed', () => {
