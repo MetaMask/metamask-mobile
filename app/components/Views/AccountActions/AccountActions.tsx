@@ -229,13 +229,12 @@ const AccountActions = () => {
           onPress: async () => {
             sheetRef.current?.onCloseBottomSheet(async () => {
               await removeSnapAccount();
-              await selectFirstAccount();
             });
           },
         },
       ],
     );
-  }, [removeSnapAccount, selectFirstAccount]);
+  }, [removeSnapAccount]);
   ///: END:ONLY_INCLUDE_IF
 
   /**
