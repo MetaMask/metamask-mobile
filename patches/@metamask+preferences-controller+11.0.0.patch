@@ -175,7 +175,7 @@ index 30e985c..9159301 100644
  _syncIdentities = new WeakSet();
  syncIdentities_fn = function(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
-index 7e3ba15..e230d09 100644
+index 7e3ba15..09a0ec5 100644
 --- a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 @@ -69,9 +69,10 @@ export type PreferencesState = {
@@ -286,7 +286,7 @@ index 7e3ba15..e230d09 100644
 +     *
 +     * @param tokenSortConfig - Object describing token sort configuration.
 +     */
-+    setTokenSortConfig(tokenSortConfig: { key: string; order: string; sortCallback: string }): void;
++    setTokenSortConfig(tokenSortConfig: Record<string, string>): void;
 +    /**
 +     * Toggle the balance and assets hidden setting.
 +     *
