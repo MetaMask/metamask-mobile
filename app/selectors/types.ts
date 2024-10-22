@@ -1,11 +1,11 @@
 import {
-  AccountTrackerState,
+  AccountTrackerControllerState,
   CurrencyRateState,
   NftDetectionController,
   NftControllerState,
   TokenDetectionController,
   TokenListState,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
@@ -27,7 +27,7 @@ import { SnapController } from '@metamask/snaps-controllers';
 export interface EngineState {
   engine: {
     backgroundState: {
-      AccountTrackerController: AccountTrackerState;
+      AccountTrackerController: AccountTrackerControllerState;
       AddressBookController: AddressBookControllerState;
       AssetsContractController: BaseState;
       NftController: NftControllerState;
@@ -39,7 +39,7 @@ export interface EngineState {
       PhishingController: PhishingControllerState;
       PPOMController: PPOMState;
       TokenBalancesController: TokenBalancesControllerState;
-      TokenRatesController: TokenRatesState;
+      TokenRatesController: TokenRatesControllerState;
       TransactionController: TransactionControllerState;
       SwapsController: SwapsController;
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
