@@ -107,7 +107,7 @@ index 7f87776..0100806 100644
            const {
              tokenId,
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-3GGCHDRG.js b/node_modules/@metamask/assets-controllers/dist/chunk-3GGCHDRG.js
-index 5a6e21d..5ed5ba6 100644
+index 5a6e21d..121d2db 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-3GGCHDRG.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-3GGCHDRG.js
 @@ -44,7 +44,7 @@ var getDefaultNftControllerState = () => ({
@@ -277,7 +277,7 @@ index 5a6e21d..5ed5ba6 100644
 +        ...collection || {},
 +        creator: collection?.creator || collectionInformation?.collections[0].creator,
 +        openseaVerificationStatus: collectionInformation?.collections[0].openseaVerificationStatus,
-+         contractDeployedAt: collectionInformation?.collections[0].contractDeployedAt,
++        contractDeployedAt: collectionInformation?.collections[0].contractDeployedAt,
 +        ownerCount: collectionInformation?.collections[0].ownerCount,
 +        topBid: collectionInformation?.collections[0].topBid
 +      }
