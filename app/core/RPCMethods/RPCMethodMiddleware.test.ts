@@ -1221,7 +1221,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [helloWorldMessage],
       };
-      const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
+      const expectedError = rpcErrors.internal('Missing signature parameter');
 
       const response = await callMiddleware({ middleware, request });
 
