@@ -495,6 +495,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
+      accountAddresses: checksummedPermittedAddresses,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
