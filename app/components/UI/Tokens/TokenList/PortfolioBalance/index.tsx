@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
@@ -15,6 +15,7 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectIsBalanceAndAssetsHidden } from '../../../../../selectors/preferencesController';
 import { RootState } from '../../../../../reducers';
 import { renderFiat } from '../../../../../util/number';
 import { isTestNet } from '../../../../../util/networks';
@@ -35,6 +36,7 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { strings } from '../../../../../../locales/i18n';
 
 export const PortfolioBalance = () => {
+  const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const balance = Engine.getTotalFiatAccountBalance();
@@ -49,6 +51,7 @@ export const PortfolioBalance = () => {
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
+  const isBalanceAndAssetsHidden = useSelector(selectIsBalanceAndAssetsHidden);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -108,25 +111,35 @@ export const PortfolioBalance = () => {
     });
   };
 
+  const toggleIsBalanceAndAssetsHidden = (value: boolean) => {
+    PreferencesController.setIsBalanceAndAssetsHidden(value);
+  };
+
   return (
     <View style={styles.portfolioBalance}>
-      <View>
-        <Text
-          testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-          variant={TextVariant.DisplayMD}
-        >
-          {fiatBalance}
-        </Text>
+      <TouchableOpacity
+        onPress={() =>
+          toggleIsBalanceAndAssetsHidden(!isBalanceAndAssetsHidden)
+        }
+      >
+        <View>
+          <Text
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            variant={TextVariant.DisplayMD}
+          >
+            {fiatBalance}
+          </Text>
 
-        {!isTestNet(chainId) ? (
-          <AggregatedPercentage
-            ethFiat={balance?.ethFiat}
-            tokenFiat={balance?.tokenFiat}
-            tokenFiat1dAgo={balance?.tokenFiat1dAgo}
-            ethFiat1dAgo={balance?.ethFiat1dAgo}
-          />
-        ) : null}
-      </View>
+          {!isTestNet(chainId) ? (
+            <AggregatedPercentage
+              ethFiat={balance?.ethFiat}
+              tokenFiat={balance?.tokenFiat}
+              tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+              ethFiat1dAgo={balance?.ethFiat1dAgo}
+            />
+          ) : null}
+        </View>
+      </TouchableOpacity>
       <Button
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Md}

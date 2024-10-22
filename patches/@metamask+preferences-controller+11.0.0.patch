@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
-index 30e985c..ec9db71 100644
+index 30e985c..d9e6ca8 100644
 --- a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
 +++ b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
 @@ -17,13 +17,18 @@ var metadata = {
@@ -19,7 +19,7 @@ index 30e985c..ec9db71 100644
 +  smartTransactionsOptInStatus: { persist: true, anonymous: true },
 +  useTransactionSimulations: { persist: true, anonymous: true },
 +  showMultiRpcModal: { persist: false, anonymous: false },
-+  tokenSortConfig: { persist: true, anonymous: false }
++  isBalanceAndAssetsHidden: { persist: true, anonymous: true },
  };
  var name = "PreferencesController";
  function getDefaultPreferencesState() {
@@ -32,7 +32,7 @@ index 30e985c..ec9db71 100644
      securityAlertsEnabled: false,
      selectedAddress: "",
      showIncomingTransactions: {
-@@ -64,7 +69,16 @@ function getDefaultPreferencesState() {
+@@ -64,7 +69,12 @@ function getDefaultPreferencesState() {
      },
      showTestNetworks: false,
      useNftDetection: false,
@@ -42,15 +42,11 @@ index 30e985c..ec9db71 100644
 +    smartTransactionsOptInStatus: false,
 +    useTransactionSimulations: true,
 +    showMultiRpcModal: false,
-+    tokenSortConfig: {
-+      key: "tokenFiatBalance",
-+      order: 'dsc',
-+      sortCallback: 'stringNumeric',
-+    }
++    isBalanceAndAssetsHidden: false,
    };
  }
  var _syncIdentities, syncIdentities_fn;
-@@ -213,9 +227,9 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -213,9 +223,9 @@ var PreferencesController = class extends _basecontroller.BaseController {
     * @param useNftDetection - Boolean indicating user preference on NFT detection.
     */
    setUseNftDetection(useNftDetection) {
@@ -62,7 +58,7 @@ index 30e985c..ec9db71 100644
        );
      }
      this.update((state) => {
-@@ -223,18 +237,33 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -223,18 +233,33 @@ var PreferencesController = class extends _basecontroller.BaseController {
      });
    }
    /**
@@ -101,7 +97,7 @@ index 30e985c..ec9db71 100644
    /**
     * Toggle the security alert enabled setting.
     *
-@@ -245,6 +274,43 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -245,6 +270,43 @@ var PreferencesController = class extends _basecontroller.BaseController {
        state.securityAlertsEnabled = securityAlertsEnabled;
      });
    }
@@ -145,25 +141,24 @@ index 30e985c..ec9db71 100644
    /**
     * A setter for the user preferences to enable/disable rpc methods.
     *
-@@ -307,6 +373,16 @@ var PreferencesController = class extends _basecontroller.BaseController {
+@@ -307,6 +369,15 @@ var PreferencesController = class extends _basecontroller.BaseController {
        });
      }
    }
++
 +  /**
-+   * Set the token sort configuration setting.
++   * A setter for the user hide balance and assets
 +   *
-+   * @param tokenSortConfig - Object describing token sort configuration.
++   * @param isBalanceAndAssetsHidden - true to hide balance and assets
 +   */
-+  setTokenSortConfig(tokenSortConfig) {
-+    this.update((state) => {
-+      state.tokenSortConfig = tokenSortConfig;
-+    });
++  setIsBalanceAndAssetsHidden(isBalanceAndAssetsHidden) {
++    this.update((state) => { state.isBalanceAndAssetsHidden = isBalanceAndAssetsHidden; });
 +  }
  };
  _syncIdentities = new WeakSet();
  syncIdentities_fn = function(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
-index 7e3ba15..552580d 100644
+index 7e3ba15..0f2a975 100644
 --- a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 @@ -69,9 +69,10 @@ export type PreferencesState = {
@@ -196,9 +191,9 @@ index 7e3ba15..552580d 100644
 +     */
 +    showMultiRpcModal: boolean;
 +    /**
-+     * Controls whether Multi rpc modal is displayed or not
++     * Controls whether balance and assets are hidden or not
 +     */
-+    tokenSortConfig: Record<string, string>;
++    isBalanceAndAssetsHidden: boolean;
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
@@ -218,7 +213,7 @@ index 7e3ba15..552580d 100644
 +    smartTransactionsOptInStatus: boolean;
 +    useTransactionSimulations: boolean;
 +    showMultiRpcModal: boolean;
-+    tokenSortConfig: Record<string, string>
++    isBalanceAndAssetsHidden: boolean;
  };
  /**
   * Controller that stores shared settings and exposes convenience methods
@@ -265,11 +260,11 @@ index 7e3ba15..552580d 100644
 +     */
 +    setShowMultiRpcModal(showMultiRpcModal: boolean): void;
 +    /**
-+     * Set the token sort configuration setting.
++     * Toggle the balance and assets hidden setting.
 +     *
-+     * @param tokenSortConfig - Object describing token sort configuration.
++     * @param isBalanceAndAssetsHidden - Boolean indicating user preference on hiding balance and assets.
 +     */
-+    setTokenSortConfig(tokenSortConfig: Record<string, string>): void
++    setIsBalanceAndAssetsHidden(isBalanceAndAssetsHidden: boolean): void;
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.ts.map

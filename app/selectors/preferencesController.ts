@@ -114,3 +114,9 @@ export const selectUseTransactionSimulations = createSelector(
       }
     ).useTransactionSimulations,
 );
+
+export const selectIsBalanceAndAssetsHidden = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.isBalanceAndAssetsHidden,
+);
