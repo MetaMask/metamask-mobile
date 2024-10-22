@@ -82,7 +82,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text variant={TextVariant.BodyLGMedium}>
         {' • '}
         <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {`${strings('stake.stake')} `}
+          {`${strings('stake.earn')} `}
         </Text>
       </Text>
       <Icon
