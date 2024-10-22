@@ -6,6 +6,8 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { View, TextInput, ScrollView } from 'react-native';
+import { NativeViewGestureHandler } from 'react-native-gesture-handler';
 import { Snap } from '@metamask/snaps-utils';
 import BottomSheet, {
   BottomSheetRef,
@@ -17,7 +19,6 @@ import { InternalAccount } from '@metamask/keyring-api';
 import BannerAlert from '../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { ScrollView, View, TextInput } from 'react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './KeyringSnapRemovalWarning.styles';
 import { strings } from '../../../../../locales/i18n';
@@ -153,6 +154,7 @@ export default function KeyringSnapRemovalWarning({
       onClose={onClose}
       shouldNavigateBack={false}
       testID={KEYRING_SNAP_REMOVAL_WARNING}
+      style={styles.bottomSheet}
     >
       <View style={styles.container}>
         <BottomSheetHeader>
@@ -168,54 +170,56 @@ export default function KeyringSnapRemovalWarning({
             'app_settings.snaps.snap_settings.remove_account_snap_warning.banner_title',
           )}
         />
-        {showConfirmation ? (
-          <>
-            <Text variant={TextVariant.BodyMD} style={styles.description}>
-              {`${strings(
-                'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_1',
-              )} `}
-              <Text variant={TextVariant.BodyMDBold}>
-                {snap.manifest.proposedName}
+          {showConfirmation ? (
+            <>
+              <Text variant={TextVariant.BodyMD} style={styles.description}>
+                {`${strings(
+                  'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_1',
+                )} `}
+                <Text variant={TextVariant.BodyMDBold}>
+                  {snap.manifest.proposedName}
+                </Text>
+                {` ${strings(
+                  'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_2',
+                )}`}
               </Text>
-              {` ${strings(
-                'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_account_snap_alert_description_2',
-              )}`}
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={confirmationInput}
-              onChangeText={handleConfirmationInputChange}
-              testID={KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT}
-            />
-            {error && (
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
+              <TextInput
+                style={styles.input}
+                value={confirmationInput}
+                onChangeText={handleConfirmationInputChange}
+                testID={KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT}
+              />
+              {error && (
+                <Text variant={TextVariant.BodySM} style={styles.errorText}>
+                  {strings(
+                    'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_snap_error',
+                    {
+                      snapName: snap.manifest.proposedName,
+                    },
+                  )}
+                </Text>
+              )}
+            </>
+          ) : (
+            <>
+              <Text variant={TextVariant.BodyMD} style={styles.description}>
                 {strings(
-                  'app_settings.snaps.snap_settings.remove_account_snap_warning.remove_snap_error',
-                  {
-                    snapName: snap.manifest.proposedName,
-                  },
+                  'app_settings.snaps.snap_settings.remove_account_snap_warning.description',
                 )}
               </Text>
-            )}
-          </>
-        ) : (
-          <>
-            <Text variant={TextVariant.BodyMD} style={styles.description}>
-              {strings(
-                'app_settings.snaps.snap_settings.remove_account_snap_warning.description',
-              )}
-            </Text>
-            <ScrollView style={styles.scrollView}>
-              {accountListItems}
-            </ScrollView>
-          </>
-        )}
-      </View>
-      <BottomSheetFooter
-        style={styles.buttonContainer}
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={buttonPropsArray}
-      />
+              <NativeViewGestureHandler disallowInterruption>
+              <ScrollView style={styles.scrollView}>
+                  {accountListItems}
+                </ScrollView>
+              </NativeViewGestureHandler>
+            </>
+          )}
+        </View>
+        <BottomSheetFooter
+          style={styles.buttonContainer}
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          buttonPropsArray={buttonPropsArray}
+        />
     </BottomSheet>
   );
 }

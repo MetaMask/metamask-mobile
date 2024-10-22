@@ -7,6 +7,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
+    bottomSheet: {
+      flex: 1,
+    },
     container: {
       paddingHorizontal: 16,
     },
