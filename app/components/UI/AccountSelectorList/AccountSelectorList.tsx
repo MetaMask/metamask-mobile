@@ -1,13 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import {
-  Alert,
-  ListRenderItem,
-  Platform,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Alert, ListRenderItem, Platform, View, ViewStyle } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -29,16 +22,12 @@ import {
   getLabelTextByAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies.
