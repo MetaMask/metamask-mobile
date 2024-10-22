@@ -47,18 +47,23 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   useEffect(() => {
-    let currentlyPermittedChains;
+    let currentlyPermittedChains: string[] = [];
     try {
-      currentlyPermittedChains = Engine.context.PermissionController.getCaveat(
+      const caveat = Engine.context.PermissionController.getCaveat(
         hostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
+      if (Array.isArray(caveat?.value)) {
+        currentlyPermittedChains = caveat.value.filter(
+          (item): item is string => typeof item === 'string',
+        );
+      }
     } catch (e) {
       // noop
     }
 
-    setSelectedChainIds(currentlyPermittedChains?.value || []);
+    setSelectedChainIds(currentlyPermittedChains);
   }, [hostname]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
