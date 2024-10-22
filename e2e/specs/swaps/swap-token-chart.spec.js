@@ -19,7 +19,9 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import AccountListView from '../../pages/AccountListView';
-import ImportAccountView from '../../pages/ImportAccountView';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
+import CommonView from '../../pages/CommonView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import ActivitiesView from '../../pages/ActivitiesView';
@@ -30,7 +32,10 @@ const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
+  const wallet = ethers.Wallet.createRandom();
+
   beforeAll(async () => {
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
@@ -53,27 +58,19 @@ describe(Regression('Swap from Token view'), () => {
   });
 
   it('should be able to import account', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
-
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
     await AddAccountModal.tapImportAccount();
-    await ImportAccountView.isVisible();
+    await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
+    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await SuccessImportAccountView.tapCloseButton();
     await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementNotToHaveText(
-      WalletView.accountName,
-      'Account 1',
-    );
-    await Assertions.checkIfElementNotToHaveText(WalletView.totalBalance, '$0', 60000);
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {

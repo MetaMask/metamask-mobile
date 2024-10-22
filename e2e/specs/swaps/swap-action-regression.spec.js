@@ -23,7 +23,9 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import AccountListView from '../../pages/AccountListView';
-import ImportAccountView from '../../pages/ImportAccountView';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
+import CommonView from '../../pages/CommonView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
@@ -68,17 +70,15 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
     await AddAccountModal.tapImportAccount();
-    await ImportAccountView.isVisible();
+    await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
+    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await SuccessImportAccountView.tapCloseButton();
     await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    // Wait for funds to become available
-    await TestHelpers.delay(10000);
   });
 
   it.each`
@@ -92,16 +92,17 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
       await TabBarComponent.tapWallet();
       await WalletView.tapNetworksButtonOnNavBar();
-      await TestHelpers.delay(1000);
+      await TestHelpers.delay(2000);
 
       if (network.providerConfig.nickname !== currentNetwork)
       {
+        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
         await NetworkEducationModal.tapGotItButton();
         await TestHelpers.delay(3000);
         currentNetwork = network.providerConfig.nickname;
       } else {
-        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, true);
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
       }
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
