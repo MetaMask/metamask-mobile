@@ -10,7 +10,6 @@ import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
-import StorageWrapper from './storage-wrapper';
 
 import thunk from 'redux-thunk';
 
