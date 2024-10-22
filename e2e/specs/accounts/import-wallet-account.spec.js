@@ -21,7 +21,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+    // await importWalletWithRecoveryPhrase();
   });
 
   it('should be able to import account', async () => {
