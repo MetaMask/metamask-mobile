@@ -2163,7 +2163,7 @@
       "label_swapped": "Swapped",
       "label_to": "To"
     },
-    "received_from": "Received from {{address}}",
+    "received_from": "Received {{amount}} {{ticker}} from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
     "erc1155_sent": "Sent NFT to {{address}}",
