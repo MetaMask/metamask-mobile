@@ -510,6 +510,19 @@ index 44804c8..911a6e6 100644
      if (this.state.preventPollingOnNetworkRestart) {
        this.clearingTokenListData();
      } else {
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
+index 8c506d9..d1ec2d2 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-NEXY7SE2.js
+@@ -182,7 +182,7 @@ async function fetchTokenContractExchangeRates({
+     (obj, [tokenAddress, tokenPrice]) => {
+       return {
+         ...obj,
+-        [_controllerutils.toChecksumHexAddress.call(void 0, tokenAddress)]: tokenPrice?.value
++        [_controllerutils.toChecksumHexAddress.call(void 0, tokenAddress)]: tokenPrice?.price
+       };
+     },
+     {}
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-QFDTOEYR.js b/node_modules/@metamask/assets-controllers/dist/chunk-QFDTOEYR.js
 index 5335fa5..0854306 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-QFDTOEYR.js
