@@ -38,7 +38,11 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import {
+  getHost,
+  getUrlObj,
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
@@ -97,6 +101,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
   );
+  const [confirmedAddresses, setConfirmedAddresses] =
+    useState<string[]>(selectedAddresses);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
@@ -140,7 +147,8 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
-  const isOriginWalletConnect = !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -564,9 +572,10 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
+      accountAddresses: confirmedAddresses,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol]);
+  }, [faviconSource, urlWithProtocol, confirmedAddresses]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
@@ -603,20 +612,25 @@ const AccountConnect = (props: AccountConnectProps) => {
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
-        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        onBack={() => {
+          setSelectedAddresses(confirmedAddresses);
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
         connection={sdkConnection}
         hostname={hostname}
-        onPrimaryActionButtonPress={
-          isMultichainVersion1Enabled
-            ? () => setScreen(AccountConnectScreens.SingleConnect)
-            : undefined
-        }
+        onPrimaryActionButtonPress={() => {
+          setConfirmedAddresses(selectedAddresses);
+          return isMultichainVersion1Enabled
+            ? setScreen(AccountConnectScreens.SingleConnect)
+            : undefined;
+        }}
       />
     ),
     [
       accounts,
       ensByAccountAddress,
       selectedAddresses,
+      confirmedAddresses,
       isLoading,
       faviconSource,
       secureIcon,

@@ -13,16 +13,57 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
+import usePoolStakedDeposit from '../../../../hooks/usePoolStakedDeposit';
+import Engine from '../../../../../../../core/Engine';
+import {
+  FooterButtonGroupActions,
+  FooterButtonGroupProps,
+} from './FooterButtonGroup.types';
+import Routes from '../../../../../../../constants/navigation/Routes';
 
-const FooterButtonGroup = () => {
+const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
-  const handleGoBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
+  const activeAccount = useSelector(selectSelectedInternalAccount);
+
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
+
+  const handleStake = async () => {
+    if (!activeAccount?.address) return;
+
+    const txRes = await attemptDepositTransaction(
+      valueWei,
+      activeAccount.address,
+    );
+
+    const transactionId = txRes?.transactionMeta?.id;
+
+    // Listening for confirmation
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionSubmitted',
+      () => {
+        navigate(Routes.TRANSACTIONS_VIEW);
+      },
+      ({ transactionMeta }) => transactionMeta.id === transactionId,
+    );
+
+    // Engine.controllerMessenger.subscribeOnceIf(
+    //   'TransactionController:transactionConfirmed',
+    //   () => {
+    // TODO: Call refreshPooledStakes();
+    // refreshPooledStakes();
+    //   },
+    //   (transactionMeta) => transactionMeta.id === transactionId,
+    // );
+  };
+
+  const handleConfirmation = () => {
+    if (action === FooterButtonGroupActions.STAKE) return handleStake();
+    // TODO: Add handler (STAKE-803)
   };
 
   return (
@@ -37,7 +78,7 @@ const FooterButtonGroup = () => {
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        onPress={handleGoBack}
+        onPress={() => navigate('Asset')}
       />
       <Button
         label={
@@ -49,8 +90,7 @@ const FooterButtonGroup = () => {
         variant={ButtonVariants.Primary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        // TODO: Replace with actual stake confirmation flow
-        onPress={handleGoBack}
+        onPress={handleConfirmation}
       />
     </View>
   );

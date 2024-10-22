@@ -48,7 +48,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import { colors as importedColors } from '../../../styles/common';
 import {
   ToastContext,
   ToastVariants,
@@ -81,6 +80,7 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 
 const Stack = createStackNavigator();
 
@@ -98,7 +98,6 @@ const createStyles = (colors) =>
   });
 
 const Main = (props) => {
-  const [connected, setConnected] = useState(true);
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
@@ -108,6 +107,8 @@ const Main = (props) => {
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
+
+  const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler(props.navigation);
@@ -131,21 +132,6 @@ const Main = (props) => {
       stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
-
-  const connectionChangeHandler = useCallback(
-    (state) => {
-      if (!state) return;
-      const { isConnected } = state;
-      // Show the modal once the status changes to offline
-      if (connected && isConnected === false) {
-        props.navigation.navigate('OfflineModeView');
-      }
-      if (connected !== isConnected && isConnected !== null) {
-        setConnected(isConnected);
-      }
-    },
-    [connected, setConnected, props.navigation],
-  );
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -335,7 +321,7 @@ const Main = (props) => {
         removeConnectionStatusListener.current();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connectionChangeHandler]);
 
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {
