@@ -4,6 +4,7 @@ import PaymentRequest from './index';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -46,16 +47,10 @@ const initialState = {
         },
       },
       AccountsController: {
-        selectedAddress: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
         internalAccounts: {
-          accounts: [
-            {
-              accountId: '1',
-              address: '0x0d8775f59023cbe76e541b6497bbed3cd21acbdc',
-              name: 'Internal Account 1',
-              balance: 100,
-            },
-          ],
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+          selectedAccount: {},
         },
       },
       TokenListController: {
