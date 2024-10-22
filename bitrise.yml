@@ -136,13 +136,13 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_assets_ios: {}
-      # - run_tag_smoke_assets_android: {}
-      # - run_tag_smoke_confirmations_ios: {}
-      # - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_assets_android: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
-      # - run_tag_smoke_core_ios: {}
-      # - run_tag_smoke_core_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
         - ios_e2e_build: {}
@@ -746,7 +746,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy test screenshots
           is_always_run: true
@@ -1004,7 +1004,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           run_if: .IsBuildFailed
