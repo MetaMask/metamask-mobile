@@ -55,7 +55,7 @@ describe(Regression('Custom RPC Tests'), () => {
     );
 
     await NetworkView.tapRpcDropDownButton();
-    await NetworkView.tapAddRpcButton();
+    // await NetworkView.tapAddRpcButton();
 
     await TestHelpers.delay(200);
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL

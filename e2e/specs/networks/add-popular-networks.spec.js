@@ -28,7 +28,7 @@ describe(Regression('Add all popular networks'), () => {
         await loginToApp();
 
         await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToBottomOfNetworkList();
+        // await NetworkListModal.scrollToBottomOfNetworkList();
 
         await Assertions.checkIfVisible(
           NetworkListModal.addPopularNetworkButton,
