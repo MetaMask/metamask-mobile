@@ -51,7 +51,7 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await SelectRegionView.tapRegionOption('California');
     await SelectRegionView.tapContinueButton();
     await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-    await SelectPaymentMethodView.tapContinueButton();    
+    await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
     await BuildQuoteView.tapCancelButton()
@@ -63,5 +63,4 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });
-
 });
