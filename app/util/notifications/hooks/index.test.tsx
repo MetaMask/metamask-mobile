@@ -1,6 +1,6 @@
 /* eslint-disable import/no-namespace */
 
-import { renderHook } from '@testing-library/react-hooks';
+import {  renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import React from 'react';
@@ -90,5 +90,12 @@ describe('useNotificationHandler', () => {
     expect(FCMService.registerAppWithFCM).toHaveBeenCalledTimes(1);
     expect(FCMService.saveFCMToken).toHaveBeenCalledTimes(1);
   });
-});
 
+  it('handleNotificationCallback does nothing when notification is undefined', () => {
+    arrangeMocks(true, true);
+
+    arrangeHook();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
