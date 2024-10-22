@@ -445,29 +445,25 @@ const NetworkVerificationInfo = ({
         {isMultichainVersion1Enabled &&
           isCustomNetwork &&
           renderCustomNetworkBanner()}
-        <View style={styles.textWarningContainer}>
-          <Text style={styles.textCentred}>
-            {isMultichainVersion1Enabled ? (
-              <Text>
-                {strings(
-                  'switch_custom_network.add_network_and_give_dapp_permission_warning',
-                  {
-                    dapp_origin: dappOrigin,
-                  },
-                )}
+        <Text style={styles.textCentred}>
+          {isMultichainVersion1Enabled ? (
+            <Text>
+              {strings(
+                'switch_custom_network.add_network_and_give_dapp_permission_warning',
+                {
+                  dapp_origin: dappOrigin,
+                },
+              )}
+            </Text>
+          ) : (
+            <>
+              {strings('add_custom_network.warning_subtext_new.1')}{' '}
+              <Text onPress={openHowToUseCustomNetworks}>
+                {strings('add_custom_network.warning_subtext_new.2')}
               </Text>
-            ) : (
-              <>
-                <Text>
-                  {strings('add_custom_network.warning_subtext_new.1')}{' '}
-                </Text>
-                <Text onPress={openHowToUseCustomNetworks}>
-                  {strings('add_custom_network.warning_subtext_new.2')}
-                </Text>
-              </>
-            )}
-          </Text>
-        </View>
+            </>
+          )}
+        </Text>
         {renderNetworkInfo()}
       </ScrollView>
       <BottomSheetFooter
