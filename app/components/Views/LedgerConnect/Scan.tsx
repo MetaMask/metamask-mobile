@@ -88,10 +88,10 @@ const Scan = ({
   useEffect(() => {
     // first device is selected by default
     if (devices?.length > 0) {
+      console.warn('devices', devices);
       onDeviceSelected(devices[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [devices]);
+  }, [devices, onDeviceSelected]);
 
   useEffect(() => {
     if (bluetoothPermissionError && !permissionErrorShown) {
@@ -202,6 +202,7 @@ const Scan = ({
             defaultValue={options[0]?.label}
             onValueChange={(deviceId: string) => {
               const currentDevice = devices.find((d) => d.id === deviceId);
+              if(!currentDevice) return;
               setSelectedDevice(currentDevice);
               onDeviceSelected(currentDevice);
             }}

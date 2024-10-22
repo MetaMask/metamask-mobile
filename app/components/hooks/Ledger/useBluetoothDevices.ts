@@ -45,10 +45,14 @@ const useBluetoothDevices = (
               const deviceFound = devices[e?.descriptor.id];
 
               if (e.type === 'add' && !deviceFound) {
-                setDevices((prevValues) => ({
-                  ...prevValues,
-                  [e.descriptor.id]: e.descriptor,
-                }));
+                console.warn('Devices', devices);
+                if(devices[e.descriptor.id] == null) {
+                  console.warn('new Device found', e.descriptor);
+                  setDevices((prevValues) => ({
+                    ...prevValues,
+                    [e.descriptor.id]: e.descriptor,
+                  }));
+                }
                 setDeviceScanError(false);
               }
             },
