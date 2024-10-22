@@ -222,7 +222,7 @@ exports[`Wallet should render correctly 1`] = `
                     }
                     testID="open-networks-text"
                   >
-                    Ethereum Main Network
+                    Mainnet
                   </Text>
                   <SvgMock
                     color="#141618"
