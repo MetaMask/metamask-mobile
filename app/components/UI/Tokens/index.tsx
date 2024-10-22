@@ -142,11 +142,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
-  const showSortControls = () => {
-    if (sortControlsActionSheet.current) {
-      sortControlsActionSheet.current.show();
-    }
-  };
+  const showSortControls = () => sortControlsActionSheet?.current?.show();
 
   const onRefresh = async () => {
     requestAnimationFrame(async () => {
