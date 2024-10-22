@@ -77,7 +77,7 @@ describe('FooterButtonGroup', () => {
     );
 
     expect(getByText(strings('stake.cancel'))).toBeDefined();
-    expect(getByText(strings('stake.confirm'))).toBeDefined();
+    expect(getByText(strings('stake.continue'))).toBeDefined();
 
     expect(toJSON()).toMatchSnapshot();
   });

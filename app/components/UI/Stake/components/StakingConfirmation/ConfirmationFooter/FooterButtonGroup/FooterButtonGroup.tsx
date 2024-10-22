@@ -87,7 +87,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       <Button
         label={
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
-            {strings('stake.confirm')}
+            {strings('stake.continue')}
           </Text>
         }
         style={styles.button}

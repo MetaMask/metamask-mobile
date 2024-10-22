@@ -3365,7 +3365,8 @@
     "terms_of_service": "Terms of service",
     "risk_disclosure": "Risk disclosure",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "continue": "Continue"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
