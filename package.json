@@ -178,7 +178,7 @@
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
     "@metamask/react-native-webview": "^14.0.4",
-    "@metamask/rpc-errors": "^6.2.1",
+    "@metamask/rpc-errors": "^7.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
     "@metamask/selected-network-controller": "^15.0.2",
