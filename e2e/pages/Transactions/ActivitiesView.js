@@ -21,11 +21,11 @@ class ActivitiesView {
   }
 
   get firstTransactionStatus() {
-    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.FIRST_ROW)
+    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.FIRST_ROW);
   }
 
   get secondTransactionStatus() {
-    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.SECOND_ROW)
+    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.SECOND_ROW);
   }
 
   generateSwapActivityLabel(sourceToken, destinationToken) {
