@@ -48,6 +48,22 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
+  },
+}));
+
 describe('Staking Earnings', () => {
   it('should render correctly', () => {
     const { toJSON, getByText } = renderWithProvider(<StakingEarnings />);

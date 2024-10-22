@@ -79,6 +79,22 @@ jest.mock('../../hooks/useBalance', () => ({
   }),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
+  },
+}));
+
 afterEach(() => {
   jest.clearAllMocks();
 });
