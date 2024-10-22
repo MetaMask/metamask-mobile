@@ -31,6 +31,7 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
+import { getNetworkImageSource } from '../../../../util/networks';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -103,7 +104,10 @@ const NetworkConnectMultiSelector = ({
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
       isSelected: false,
-      imageSource: '', // TODO not sure where to get image sources
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      imageSource: getNetworkImageSource({
+        chainId: network?.chainId,
+      }),
     }),
   );
 
@@ -142,7 +146,6 @@ const NetworkConnectMultiSelector = ({
       },
     });
   }, [navigate, urlWithProtocol, hostname]);
-
   const areAllNetworksSelected = networks
     .map(({ id }) => id)
     .every((id) => selectedChainIds?.includes(id));
