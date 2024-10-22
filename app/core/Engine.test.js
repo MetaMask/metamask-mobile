@@ -11,15 +11,6 @@ jest.mock('../store', () => ({
     getState: jest.fn(),
   },
 }));
-// jest.mock('@metamask/smart-transactions-controller', () => {
-//   return {
-//     SmartTransactionsController: jest.fn().mockImplementation(() => {
-//       return {
-//         onNetworkStateChange: jest.fn(),
-//       };
-//     }),
-//   };
-// });
 
 describe('Engine', () => {
   beforeEach(() => {

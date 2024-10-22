@@ -44,9 +44,8 @@ const StakeInputView = () => {
     estimatedAnnualRewards,
   } = useStakingInputHandlers(balanceWei);
 
-
   const { sdkService } = useStakeContext();
-  
+
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,

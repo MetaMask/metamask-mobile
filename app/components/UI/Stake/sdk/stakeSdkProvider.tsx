@@ -1,4 +1,8 @@
-import { StakingType, StakeSdk, PooledStakingContract } from '@metamask/stake-sdk';
+import {
+  StakingType,
+  StakeSdk,
+  PooledStakingContract,
+} from '@metamask/stake-sdk';
 import Logger from '../../../../util/Logger';
 import React, {
   useState,
@@ -11,11 +15,11 @@ import React, {
 export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
 export interface Stake {
-    sdkError?: Error;
-    sdkService?: PooledStakingContract; // to do : facade it for other services implementation
+  sdkError?: Error;
+  sdkService?: PooledStakingContract; // to do : facade it for other services implementation
 
-    sdkType?: StakingType;
-    setSdkType: (stakeType: StakingType) => void;
+  sdkType?: StakingType;
+  setSdkType: (stakeType: StakingType) => void;
 }
 
 export const StakeContext = createContext<Stake | undefined>(undefined);
@@ -23,9 +27,9 @@ export const StakeContext = createContext<Stake | undefined>(undefined);
 export interface StakeProviderProps {
   stakingType?: StakingType;
 }
-export const StakeSDKProvider: React.FC<PropsWithChildren<StakeProviderProps>> = ({
-  children,
-}) => {
+export const StakeSDKProvider: React.FC<
+  PropsWithChildren<StakeProviderProps>
+> = ({ children }) => {
   const [sdkService, setSdkService] = useState<PooledStakingContract>();
   const [sdkError, setSdkError] = useState<Error>();
   const [sdkType, setSdkType] = useState(StakingType.POOLED);
@@ -56,12 +60,7 @@ export const StakeSDKProvider: React.FC<PropsWithChildren<StakeProviderProps>> =
       sdkType,
       setSdkType,
     }),
-    [
-      sdkError,
-      sdkService,
-      sdkType,
-      setSdkType,
-    ],
+    [sdkError, sdkService, sdkType, setSdkType],
   );
   return (
     <StakeContext.Provider value={stakeContextValue}>

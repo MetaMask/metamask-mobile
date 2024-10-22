@@ -57,11 +57,11 @@ jest.mock('../../hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
     const stakeContext: Stake = {
       setSdkType: jest.fn(),
-      sdkService: undefined
-    }
-    return stakeContext
-  })
-}))
+      sdkService: undefined,
+    };
+    return stakeContext;
+  }),
+}));
 
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
