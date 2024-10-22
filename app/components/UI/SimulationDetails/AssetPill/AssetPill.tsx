@@ -64,7 +64,7 @@ const AssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
           preferContractSymbol
           testID="simulation-details-asset-pill-name"
           type={NameType.EthereumAddress}
-          value={asset.address as Hex}          
+          value={asset.address as Hex}
         />
       )}
     </View>

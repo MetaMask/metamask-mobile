@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FooterButtonGroup navigates to previous page when cancel button is pressed 1`] = `
+exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = `
 <View
   style={
     {
