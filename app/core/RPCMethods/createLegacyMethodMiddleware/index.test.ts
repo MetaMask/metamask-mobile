@@ -153,8 +153,8 @@ describe('createLegacyMethodMiddleware', () => {
     // Type assertion for the error not having cause object
     const errorData = response.error.data as { cause?: Error };
 
-    expect(response.error.message).toBe('test error');
     expect(errorData.cause?.message).toBe('test error');
+    expect(response.error.message).toBe('test error');
   });
 
   it('should handle errors thrown by the implementation', async () => {
@@ -173,8 +173,8 @@ describe('createLegacyMethodMiddleware', () => {
     // Type assertion for the error not having cause object
     const errorData = response.error.data as { cause?: Error };
 
-    expect(response.error.message).toBe('test error');
     expect(errorData.cause?.message).toBe('test error');
+    expect(response.error.message).toBe('test error');
   });
 
   it('should handle non-errors thrown by the implementation', async () => {

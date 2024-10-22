@@ -7,7 +7,7 @@ import type {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from '@metamask/utils';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { type JsonRpcError, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
@@ -1113,8 +1113,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
-      const expectedErrorCauseMessage = 'Failed to add transaction';
+      const expectedError = rpcErrors.internal('Failed to add transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -1122,9 +1121,9 @@ describe('getRpcMethodMiddleware', () => {
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
       );
-      // @ts-expect-error - TODO: This should type
-      expect((response as JsonRpcFailure).error.data.cause.message).toBe(
-        expectedErrorCauseMessage,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause.message).toBe(
+        expectedError.message,
       );
     });
 
@@ -1149,18 +1148,13 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
-      const expectedErrorCauseMessage = 'Failed to process transaction';
+      const expectedError = rpcErrors.internal('Failed to process transaction');
 
       const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
-      );
-      // @ts-expect-error - TODO: This should type
-      expect((response as JsonRpcFailure).error.data.cause.message).toBe(
-        expectedErrorCauseMessage,
       );
     });
   });
@@ -1248,7 +1242,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [undefined, helloWorldSignature] as JsonRpcParams,
       };
-      const expectedError = rpcErrors.internal('Internal JSON-RPC error.');
+      const expectedError = rpcErrors.internal('Missing data parameter');
 
       const response = await callMiddleware({ middleware, request });
 
