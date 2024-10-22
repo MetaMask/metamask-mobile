@@ -116,7 +116,7 @@ const createStoreAndPersistor = async (appStartTime: number) => {
         type: 'FETCH_FEATURE_FLAGS',
       });
 
-    await trace(
+    trace(
       {
         name: TraceName.EngineInitialization,
         op: TraceOperation.EngineInitialization,
