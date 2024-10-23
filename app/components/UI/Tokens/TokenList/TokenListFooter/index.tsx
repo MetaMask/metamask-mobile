@@ -28,16 +28,16 @@ import { useChainId } from '../../../../../selectors/hooks';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
-  isAddTokenEnabled: boolean;
   goToAddToken: () => void;
   showDetectedTokens: () => void;
+  isAddTokenEnabled: boolean;
 }
 
 export const TokenListFooter = ({
   tokens,
-  isAddTokenEnabled,
   goToAddToken,
   showDetectedTokens,
+  isAddTokenEnabled,
 }: TokenListFooterProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -88,7 +88,9 @@ export const TokenListFooter = ({
       {isBuyableToken && (
         <View style={styles.buy}>
           <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
-            {strings('wallet.add_to_get_started')}
+            {strings('wallet.token_is_needed_to_continue', {
+              tokenSymbol: mainToken.symbol,
+            })}
           </Text>
           <Button
             variant={ButtonVariants.Primary}
@@ -96,7 +98,7 @@ export const TokenListFooter = ({
             width={ButtonWidthTypes.Full}
             style={styles.buyButton}
             onPress={goToBuy}
-            label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+            label={strings('wallet.next')}
           />
         </View>
       )}
@@ -106,7 +108,7 @@ export const TokenListFooter = ({
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
         >
           <Text style={styles.centered}>
             <Text style={styles.emptyText}>
