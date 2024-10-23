@@ -22,8 +22,11 @@ import { useChainId } from '../../../../selectors/hooks';
 interface TokenListProps {
   tokens: TokenI[];
   refreshing: boolean;
+  isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
+  goToAddToken: () => void;
+  setIsAddTokenEnabled: (arg: boolean) => void;
 }
 
 interface TokenListNavigationParamList {
@@ -34,8 +37,11 @@ interface TokenListNavigationParamList {
 export const TokenList = ({
   tokens,
   refreshing,
+  isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
+  goToAddToken,
+  setIsAddTokenEnabled,
 }: TokenListProps) => {
   const navigation =
     useNavigation<
@@ -48,19 +54,8 @@ export const TokenList = ({
   const detectedTokens = useSelector(selectDetectedTokens);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
-  const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   const styles = createStyles(colors);
-
-  const goToAddToken = () => {
-    setIsAddTokenEnabled(false);
-    navigation.push('AddAsset', { assetType: 'token' });
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
-    });
-    setIsAddTokenEnabled(true);
-  };
 
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
@@ -90,9 +85,9 @@ export const TokenList = ({
       ListFooterComponent={
         <TokenListFooter
           tokens={tokens}
-          isAddTokenEnabled={isAddTokenEnabled}
           goToAddToken={goToAddToken}
           showDetectedTokens={showDetectedTokens}
+          isAddTokenEnabled={isAddTokenEnabled}
         />
       }
       refreshControl={

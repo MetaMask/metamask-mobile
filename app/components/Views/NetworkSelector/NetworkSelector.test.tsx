@@ -185,6 +185,20 @@ describe('Network Selector', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly when network UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('shows popular networks when UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    const popularNetworksTitle = getByText('Additional networks');
+    expect(popularNetworksTitle).toBeTruthy();
+  });
+
   it('changes network when another network cell is pressed', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
@@ -386,5 +400,63 @@ describe('Network Selector', () => {
       const rpcOption = getByText('polygon-mainnet.infura.io/v3');
       fireEvent.press(rpcOption);
     });
+  });
+
+  it('filters networks correctly when searching', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByPlaceholderText, queryByText } = renderComponent(initialState);
+
+    const searchInput = getByPlaceholderText('Search');
+
+    // Simulate entering a search term
+    fireEvent.changeText(searchInput, 'Polygon');
+
+    // Polygon should appear, but others should not
+    expect(queryByText('Polygon Mainnet')).toBeTruthy();
+    expect(queryByText('Avalanche Mainnet C-Chain')).toBeNull();
+
+    // Clear search and check if all networks appear
+    fireEvent.changeText(searchInput, '');
+    expect(queryByText('Polygon Mainnet')).toBeTruthy();
+    expect(queryByText('Avalanche Mainnet C-Chain')).toBeTruthy();
+  });
+
+  it('shows popular networks when network UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    // Check that the additional networks section is rendered
+    const popularNetworksTitle = getByText('Additional networks');
+    expect(popularNetworksTitle).toBeTruthy();
+  });
+
+  it('opens the multi-RPC selection modal correctly', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    const polygonCell = getByText('Polygon Mainnet');
+
+    // Open the modal
+    fireEvent.press(polygonCell);
+    await waitFor(() => {
+      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
+      expect(rpcOption).toBeTruthy();
+    });
+  });
+
+  it('toggles test networks visibility when switch is used', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByTestId } = renderComponent(initialState);
+    const testNetworksSwitch = getByTestId(
+      NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
+    );
+
+    // Toggle the switch on
+    fireEvent(testNetworksSwitch, 'onValueChange', true);
+    expect(setShowTestNetworksSpy).toBeCalledWith(true);
+
+    // Toggle the switch off
+    fireEvent(testNetworksSwitch, 'onValueChange', false);
+    expect(setShowTestNetworksSpy).toBeCalledWith(false);
   });
 });
