@@ -36,6 +36,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -150,7 +151,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const showFilterControls = () => filterControlsActionSheet?.current?.show(); // TODO: BottomSheet
-  const showSortControls = () => sortControlsActionSheet?.current?.show();
+  const showSortControls = () => {
+    navigation.navigate(...createTokensBottomSheetNavDetails({}));
+  };
 
   const onRefresh = async () => {
     requestAnimationFrame(async () => {
@@ -222,28 +225,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const onSortControlsActionSheetPress = (index: number) => {
-    const { PreferencesController } = Engine.context;
-    switch (index) {
-      case 0:
-        PreferencesController.setTokenSortConfig({
-          key: 'tokenFiatAmount',
-          order: 'dsc',
-          sortCallback: 'stringNumeric',
-        });
-        break;
-      case 1:
-        PreferencesController.setTokenSortConfig({
-          key: 'symbol',
-          sortCallback: 'alphaNumeric',
-          order: 'asc',
-        });
-        break;
-      default:
-        break;
-    }
-  };
-
   const onFilterControlsActionSheetPress = (index: number) => {
     const { PreferencesController } = Engine.context;
     switch (index) {
@@ -291,8 +272,20 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             style={styles.controlButton}
           />
         </ScrollView>
+        <ButtonBase
+          label={strings('wallet.sort_by')}
+          onPress={showSortControls}
+          endIconName={IconName.ArrowDown}
+          style={styles.controlButton}
+        />
+        <ButtonBase
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          label={strings('wallet.import')}
+          onPress={goToAddToken}
+          startIconName={IconName.Add}
+          style={styles.controlButton}
+        />
       </View>
-
       {tokensList && (
         <TokenList
           tokens={tokensList}
@@ -311,17 +304,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
-      />
-      <ActionSheet
-        ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={strings('wallet.sort_by')}
-        options={[
-          strings('wallet.declining_balance', { currency: currentCurrency }),
-          strings('wallet.alphabetically'),
-          'Cancel',
-        ]}
-        cancelButtonIndex={2}
-        onPress={onSortControlsActionSheetPress}
       />
       <ActionSheet
         ref={filterControlsActionSheet as LegacyRef<typeof ActionSheet>}

@@ -10,7 +10,6 @@ import BottomSheetDialog from './BottomSheetDialog';
 import { BottomSheetDialogRef } from './BottomSheetDialog.types';
 
 jest.mock('react-native-safe-area-context', () => {
-  // using disting digits for mock rects to make sure they are not mixed up
   const inset = { top: 1, right: 2, bottom: 3, left: 4 };
   const frame = { width: 5, height: 6, x: 7, y: 8 };
   return {
@@ -94,5 +93,4 @@ describe('BottomSheetDialog', () => {
 
     expect(onCloseMock).toHaveBeenCalled();
   });
-  //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 });

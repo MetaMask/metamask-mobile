@@ -9,6 +9,14 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    bottomSheetWrapper: {
+      alignItems: 'flex-start',
+    },
+    bottomSheetTitle: {
+      alignSelf: 'center',
+      paddingTop: 16,
+      paddingBottom: 16,
+    },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',

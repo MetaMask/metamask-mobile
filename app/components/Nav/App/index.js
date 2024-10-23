@@ -58,6 +58,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import TokenSortBottomSheet from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -421,6 +422,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
       component={NetworkSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TOKEN_SORT}
+      component={TokenSortBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
