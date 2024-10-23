@@ -52,7 +52,6 @@ import {
   isMainNet,
 } from '../../../util/networks';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -313,7 +312,6 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const chainId = useSelector(selectChainId);
   const name = useSelector(selectNetworkName);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
