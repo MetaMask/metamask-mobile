@@ -16,7 +16,7 @@ import {
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+import { Notification } from '../../../../util/notifications';
 import {
   useListNotifications,
   useMarkNotificationAsRead,
@@ -86,9 +86,9 @@ function NotificationsListItem(props: NotificationsListItemProps) {
       trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
         notification_id: item.id,
         notification_type: item.type,
-        ...(item.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-          ? { chain_id: item?.chain_id }
-          : {}),
+        ...('chain_id' in item && {
+          chain_id: item.chain_id,
+        }),
         previously_read: item.isRead,
       });
     },
@@ -97,7 +97,7 @@ function NotificationsListItem(props: NotificationsListItemProps) {
 
   const menuItemState = useMemo(() => {
     const notificationState =
-      NotificationComponentState[props.notification.type];
+      NotificationComponentState[props.notification.type as keyof typeof NotificationComponentState];
     return notificationState.createMenuItem(props.notification);
   }, [props.notification]);
 

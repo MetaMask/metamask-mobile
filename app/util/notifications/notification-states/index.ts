@@ -8,7 +8,7 @@ import SwapCompletedState from './swap-completed/swap-completed';
 import LidoWithdrawalRequestedState from './lido-withdrawal-requested/lido-withdrawal-requested';
 import LidoStakeReadyToBeWithdrawnState from './lido-stake-ready-to-be-withdrawn/lido-stake-ready-to-be-withdrawn';
 import { NotificationState } from './types/NotificationState';
-import { TRIGGER_TYPES } from '../constants';
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/dist/NotificationServicesController/constants/notification-schema.cjs';
 
 /**
  * Each notification component has a specific shape it follows.
@@ -59,6 +59,9 @@ export const hasNotificationComponents = (
   t: TRIGGER_TYPES,
 ): t is keyof typeof NotificationComponentState =>
   t in NotificationComponentState;
-
-export const hasNotificationModal = (t: TRIGGER_TYPES) =>
-  !!NotificationComponentState[t]?.createModalDetails;
+export const hasNotificationModal = (t: TRIGGER_TYPES): boolean => {
+  if (hasNotificationComponents(t)) {
+    return !!NotificationComponentState[t]?.createModalDetails;
+  }
+  return false;
+};

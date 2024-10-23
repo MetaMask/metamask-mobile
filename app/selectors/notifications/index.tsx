@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import { TRIGGER_TYPES } from '../../util/notifications';
+import { Notification, TRIGGER_TYPES } from '../../util/notifications';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
@@ -99,14 +99,14 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification) => !notification.isRead).length,
+    ).filter((notification: Notification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification) => notification.isRead).length,
+    ).filter((notification: Notification) => notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
@@ -114,7 +114,7 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter(
-      (notification) =>
+      (notification: Notification) =>
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
     ).length,
