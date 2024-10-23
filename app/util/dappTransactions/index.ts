@@ -139,7 +139,7 @@ const getTokenBalance = async (
   } catch (e) {
     // Don't validate balance if error
   }
-}
+};
 
 /**
  * Validates asset (ERC20) transaction amount
