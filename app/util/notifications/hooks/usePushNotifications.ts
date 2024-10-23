@@ -26,7 +26,7 @@ export function usePushNotifications() {
         const userStorage: UserStorage = mmStorage.getLocal('pnUserStorage');
         if (state) {
           const fcmToken = mmStorage.getLocal('metaMaskFcmToken');
-          errorMessage = await enablePushNotifications(userStorage, fcmToken);
+          errorMessage = await enablePushNotifications(userStorage, fcmToken?.data);
         } else {
           errorMessage = await disablePushNotifications(userStorage);
         }
