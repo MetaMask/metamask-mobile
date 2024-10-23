@@ -11,11 +11,11 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
-import styleSheet from './AccountHeaderCard.styles';
+import styleSheet from './AccountCard.styles';
 import images from '../../../../../../images/image-icons';
 import AccountTag from '../AccountTag/AccountTag';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
-import { AccountHeaderCardProps } from './AccountHeaderCard.types';
+import { AccountHeaderCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
 
 const AccountHeaderCard = ({
@@ -38,8 +38,8 @@ const AccountHeaderCard = ({
             value={{
               label: (
                 <AccountTag
-                  address={account?.address}
-                  name={account.metadata.name}
+                  accountAddress={account?.address}
+                  accountName={account.metadata.name}
                 />
               ),
             }}

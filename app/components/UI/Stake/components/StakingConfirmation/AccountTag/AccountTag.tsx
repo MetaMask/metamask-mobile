@@ -11,8 +11,8 @@ import Avatar, {
 import { AccountTagProps } from './AccountTag.types';
 
 const AccountTag = ({
-  address,
-  name,
+  accountAddress,
+  accountName,
   useBlockieIcon = false,
 }: AccountTagProps) => (
   <TagBase
@@ -20,7 +20,7 @@ const AccountTag = ({
       <Avatar
         variant={AvatarVariant.Account}
         size={AvatarSize.Xs}
-        accountAddress={address}
+        accountAddress={accountAddress}
         type={
           useBlockieIcon
             ? AvatarAccountType.Blockies
@@ -31,7 +31,7 @@ const AccountTag = ({
     shape={TagShape.Pill}
     severity={TagSeverity.Info}
   >
-    {name ?? address}
+    {accountName ?? accountAddress}
   </TagBase>
 );
 

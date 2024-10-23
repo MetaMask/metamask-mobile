@@ -5,7 +5,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
-import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
+import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
@@ -37,7 +37,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
-          <AccountHeaderCard
+          <AccountCard
             contractName={MOCK_STAKING_CONTRACT_NAME}
             primaryLabel={strings('stake.staking_from')}
             secondaryLabel={strings('stake.interacting_with')}

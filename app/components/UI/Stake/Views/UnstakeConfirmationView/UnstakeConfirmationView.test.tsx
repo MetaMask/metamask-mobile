@@ -2,10 +2,8 @@ import React from 'react';
 import UnstakeConfirmationView from './UnstakeConfirmationView';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Image } from 'react-native';
-import { Provider } from 'react-redux';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import configureMockStore from 'redux-mock-store';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 
 const MOCK_ADDRESS_1 = '0x0';
@@ -16,8 +14,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-const mockStore = configureMockStore();
-
 const mockInitialState = {
   settings: {},
   engine: {
@@ -27,7 +23,6 @@ const mockInitialState = {
     },
   },
 };
-const store = mockStore(mockInitialState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -63,6 +58,13 @@ jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    refreshPooledStakes: jest.fn(),
+  }),
+}));
+
 describe('UnstakeConfirmationView', () => {
   it('render matches snapshot', () => {
     const props: UnstakeConfirmationViewProps = {
@@ -77,9 +79,8 @@ describe('UnstakeConfirmationView', () => {
     };
 
     const { toJSON } = renderWithProvider(
-      <Provider store={store}>
-        <UnstakeConfirmationView {...props} />
-      </Provider>,
+      <UnstakeConfirmationView {...props} />,
+      { state: mockInitialState },
     );
 
     expect(toJSON()).toMatchSnapshot();

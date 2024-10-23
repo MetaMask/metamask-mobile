@@ -1,13 +1,14 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import AccountHeaderCard from './AccountHeaderCard';
+import AccountHeaderCard from './AccountCard';
 import { strings } from '../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { Provider } from 'react-redux';
-import { AccountHeaderCardProps } from './AccountHeaderCard.types';
-import { MOCK_STAKING_CONTRACT_NAME } from '../../../Views/StakeConfirmationView/StakeConfirmationMockData';
+import { AccountHeaderCardProps } from './AccountCard.types';
+
+const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
