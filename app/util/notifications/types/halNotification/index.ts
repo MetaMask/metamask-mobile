@@ -1,6 +1,9 @@
-import type { TRIGGER_TYPES } from '../../constants/triggers';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import type { components } from './schema';
 import type { Compute } from '../type-utils';
+
+type TRIGGER_TYPES =
+  NotificationServicesController.Constants.TRIGGER_TYPES;
 
 export type Data_MetamaskSwapCompleted =
   components['schemas']['Data_MetamaskSwapCompleted'];

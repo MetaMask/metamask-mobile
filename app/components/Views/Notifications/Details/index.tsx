@@ -48,9 +48,9 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   }, [notification, markNotificationAsRead]);
 
   const state =
-    NotificationComponentState[notification?.type]?.createModalDetails?.(
-      notification,
-    );
+    NotificationComponentState[notification.type]?.createModalDetails?.(
+        notification,
+      );
 
   const HeaderLeft = useCallback(
     () => (

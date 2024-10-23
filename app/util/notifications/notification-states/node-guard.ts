@@ -1,4 +1,4 @@
-import { TRIGGER_TYPES } from '../constants';
+import { TRIGGER_TYPES } from '../constants/triggers';
 import { Notification } from '../types';
 
 /**
