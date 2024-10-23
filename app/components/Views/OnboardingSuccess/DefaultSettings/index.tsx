@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Linking } from 'react-native';
+import { ScrollView, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import { useStyles } from '../../../../component-library/hooks';
@@ -23,14 +23,16 @@ const DefaultSettings = () => {
   };
 
   return (
-    <ScrollView style={styles.root}>
-      <Text variant={TextVariant.BodyMD}>
-        {strings('default_settings.description')}
-        <Text color={TextColor.Info} onPress={handleLink}>
-          {' '}
-          {strings('default_settings.learn_more_about_privacy')}
+    <ScrollView style={styles.scrollRoot}>
+      <View style={styles.textContainer}>
+        <Text variant={TextVariant.BodyMD}>
+          {strings('default_settings.description')}
+          <Text color={TextColor.Info} onPress={handleLink}>
+            {' '}
+            {strings('default_settings.learn_more_about_privacy')}
+          </Text>
         </Text>
-      </Text>
+      </View>
       <SettingsDrawer
         title={strings('default_settings.drawer_general_title')}
         description={strings('default_settings.drawer_general_title_desc')}
