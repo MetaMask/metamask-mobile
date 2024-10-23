@@ -4,13 +4,13 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { selectChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { isBridgeUrl } from '../../../../util/url';
+import { useChainId } from '../../../../selectors/hooks';
 
 /**
  * Returns a function that is used to navigate to the MetaMask Bridges webpage.
@@ -18,7 +18,7 @@ import { isBridgeUrl } from '../../../../util/url';
  * @returns A function that can be used to navigate to the existing Bridges page in the browser. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export default function useGoToBridge(location: string) {
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);

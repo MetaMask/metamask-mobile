@@ -1,6 +1,5 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useCallback, useEffect } from 'react';
-import { selectChainId } from '../../../selectors/networkController';
 import { AppState } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
@@ -11,12 +10,13 @@ import {
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
+import { useChainId } from '../../../selectors/hooks';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
 function SwapLiveness() {
   const isLive = useSelector(swapsLivenessSelector);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const dispatch = useDispatch();
   const setLiveness = useCallback(
     (_chainId, featureFlags) => {
