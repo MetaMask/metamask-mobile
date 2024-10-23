@@ -77,7 +77,6 @@ const useAddressBalance = (
     if (!address) {
       return;
     }
-    let fromAccBalance;
 
     if (
       !asset ||
@@ -94,7 +93,7 @@ const useAddressBalance = (
         return;
       }
       if (selectedAddress === address && contractBalances[contractAddress]) {
-        fromAccBalance = `${renderFromTokenMinimalUnit(
+        const fromAccBalance = `${renderFromTokenMinimalUnit(
           contractBalances[contractAddress]
             ? contractBalances[contractAddress]
             : '0',
@@ -105,15 +104,15 @@ const useAddressBalance = (
         (async () => {
           try {
             const { AssetsContractController } = Engine.context;
-            fromAccBalance = await AssetsContractController.getERC20BalanceOf(
+            const fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,
             );
-            fromAccBalance = `${renderFromTokenMinimalUnit(
+            const addrBalance = `${renderFromTokenMinimalUnit(
               fromAccBalance || '0',
               decimals,
             )} ${symbol}`;
-            setAddressBalance(fromAccBalance);
+            setAddressBalance(addrBalance);
           } catch (exp) {
             console.error(`Error in trying to fetch token balance - ${exp}`);
           }
