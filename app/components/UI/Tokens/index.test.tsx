@@ -188,6 +188,7 @@ describe('Tokens', () => {
     fireEvent.press(getByText('Ethereum'));
     expect(mockNavigate).toHaveBeenCalledWith('Asset', {
       ...initialState.engine.backgroundState.TokensController.tokens[0],
+      tokenFiatAmount: NaN,
     });
   });
 
