@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { Observable, Observer, Subscription } from 'rxjs';
-import { Device } from 'react-native-ble-plx';
-import { DeviceModel } from '@ledgerhq/devices';
 
 export interface BluetoothDevice {
   id: string;
@@ -26,7 +24,7 @@ export interface BluetoothInterface {
 export interface ObservableType {
   type: string,
   descriptor: BluetoothDevice,
-  deviceModel: DeviceModel,
+  deviceModel: never,
 }
 
 const useBluetoothDevices = (
@@ -68,12 +66,10 @@ const useBluetoothDevices = (
         const deviceFound = devices[btDevice.id];
 
         if (event.type === 'add' && !deviceFound) {
-          setDevices((prevValues) => {
-            return {
+          setDevices((prevValues) => ({
               ...prevValues,
               [btDevice.id]: btDevice,
-            };
-          });
+            }));
           setDeviceScanError(false);
         }
       }
