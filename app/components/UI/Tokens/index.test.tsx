@@ -54,6 +54,7 @@ const initialState = {
             iconUrl: '',
           },
         ],
+        detectedTokens: [],
       },
       TokenRatesController: {
         marketData: {
@@ -185,6 +186,7 @@ describe('Tokens', () => {
         backgroundState: {
           ...backgroundState,
           TokensController: {
+            detectedTokens: [],
             tokens: [
               {
                 name: 'Link',
