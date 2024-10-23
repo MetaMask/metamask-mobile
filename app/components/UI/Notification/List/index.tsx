@@ -97,7 +97,10 @@ function NotificationsListItem(props: NotificationsListItemProps) {
 
   const menuItemState = useMemo(() => {
     const notificationState =
-      NotificationComponentState[props.notification.type];
+      props.notification.type &&
+      hasNotificationComponents(props.notification.type)
+        ? NotificationComponentState[props.notification.type]
+        : undefined;
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 

@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import {
   useListNotifications,
   useCreateNotifications,
@@ -13,7 +14,7 @@ import {
   useMarkNotificationAsRead,
   useDeleteNotificationsStorageKey,
 } from './useNotifications';
-import { TRIGGER_TYPES } from '../constants';
+
 import createMockStore from 'redux-mock-store';
 import initialRootState from '../../../util/test/initial-root-state';
 import * as Selectors from '../../../selectors/notifications';
@@ -23,6 +24,8 @@ import {
   createMockNotificationEthReceived,
   createMockNotificationEthSent,
 } from '../../../components/UI/Notification/__mocks__/mock_notifications';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);

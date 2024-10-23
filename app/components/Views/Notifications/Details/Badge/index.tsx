@@ -1,16 +1,19 @@
 import React from 'react';
 import { ImageSourcePropType } from 'react-native';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
-import { TRIGGER_TYPES } from '../../../../../util/notifications';
 import NetworkMainAssetLogo from '../../../../UI/NetworkMainAssetLogo';
 
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { NotificationDetailStyles } from '../styles';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 
 interface NotificationBadgeProps {
   notificationType: TRIGGER_TYPES;

@@ -1,5 +1,7 @@
-import { TRIGGER_TYPES } from '@metamask/notification-services-controller/dist/NotificationServicesController/index.cjs';
-export { TRIGGER_TYPES };
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 
 export enum ChainId {
   ETHEREUM = 1,

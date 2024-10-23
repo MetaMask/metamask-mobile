@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-import { Notification, TRIGGER_TYPES } from '../../util/notifications';
+import { Notification } from '../../util/notifications';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
@@ -9,6 +9,8 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
 type NotificationServicesState =
   NotificationServicesController.NotificationServicesControllerState;

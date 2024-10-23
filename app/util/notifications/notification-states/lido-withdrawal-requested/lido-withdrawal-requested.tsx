@@ -1,8 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
@@ -13,8 +13,10 @@ import {
 } from '../../methods/common';
 import { getTokenAmount } from '../token-amounts';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type LidoWithdrawalRequestedNotification =
-  ExtractedNotification<TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED>;
+  ExtractedNotification<NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED>;
 
 const isLidoWithdrawalRequestedNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED,

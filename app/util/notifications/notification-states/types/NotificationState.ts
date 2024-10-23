@@ -1,7 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import { NotificationMenuItem } from './NotificationMenuItem';
 import { NotificationModalDetails } from './NotificationModalDetails';
-import { TRIGGER_TYPES } from '../../constants/triggers';
+
 import { ExtractedNotification } from '../node-guard';
 import { Notification } from '../../../../util/notifications';
 
@@ -11,18 +12,21 @@ export interface NotificationState<T extends Notification = Notification> {
   createModalDetails?: (n: T) => NotificationModalDetails;
 }
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
+
 type ERC20Notification = ExtractedNotification<
-  TRIGGER_TYPES.ERC20_RECEIVED | TRIGGER_TYPES.ERC20_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ERC20_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ERC20_SENT
 >;
 type ERC721Notification = ExtractedNotification<
-  TRIGGER_TYPES.ERC721_RECEIVED | TRIGGER_TYPES.ERC721_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ERC721_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ERC721_SENT
 >;
 
 type ERC1155Notification = ExtractedNotification<
-  TRIGGER_TYPES.ERC1155_RECEIVED | TRIGGER_TYPES.ERC1155_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ERC1155_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ERC1155_SENT
 >;
 type NativeSentReceiveNotification = ExtractedNotification<
-  TRIGGER_TYPES.ETH_RECEIVED | TRIGGER_TYPES.ETH_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ETH_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ETH_SENT
 >;
 
 type INotification =

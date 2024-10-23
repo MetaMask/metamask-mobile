@@ -1,9 +1,9 @@
 import { useCallback, useEffect } from 'react';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 
 import { useSelector } from 'react-redux';
 import {
   isNotificationsFeatureEnabled,
-  TRIGGER_TYPES,
   Notification,
 } from '../../../util/notifications';
 
@@ -13,6 +13,8 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notific
 import { Linking } from 'react-native';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
 const useNotificationHandler = (navigation: NavigationContainerRef) => {
   /**

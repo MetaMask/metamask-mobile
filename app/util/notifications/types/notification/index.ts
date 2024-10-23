@@ -1,7 +1,6 @@
 import { NotificationServicesController } from '@metamask/notification-services-controller';
 import type { FC } from 'react';
-import { TRIGGER_TYPES } from '../../constants';
-
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 /**
  * The shape of a "generic" notification.
  * Other than the fields listed below, tt will also contain:
@@ -123,10 +122,10 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-  | 'lido_stake_completed'
-  | 'rocketpool_stake_completed'
-  | 'rocketpool_unstake_completed'
-  | 'lido_withdrawal_completed',
+  | NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',

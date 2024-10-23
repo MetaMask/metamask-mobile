@@ -11,7 +11,7 @@ import { NotificationServicesController } from '@metamask/notification-services-
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
-import { TRIGGER_TYPES } from '../constants';
+
 import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
@@ -24,6 +24,7 @@ dayjs.extend(isYesterday);
 dayjs.extend(localeData);
 dayjs.extend(relativeTime);
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 const { UI } = NotificationServicesController;
 
 export const USER_STORAGE_VERSION_KEY: unique symbol = 'v' as never;
