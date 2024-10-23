@@ -24,13 +24,6 @@ const mockInitialState = {
   },
 };
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
-}));
-
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
 Image.getSize = jest.fn((_uri, success) => {
