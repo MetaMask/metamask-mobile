@@ -177,6 +177,7 @@ describe('Tokens', () => {
     mockNavigate.mockClear();
     mockPush.mockClear();
   });
+
   it('should render correctly', () => {
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
@@ -184,7 +185,6 @@ describe('Tokens', () => {
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
-    // ETH and BAT should display
 
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
@@ -204,7 +204,6 @@ describe('Tokens', () => {
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
     expect(getByText('Link')).toBeDefined();
-    // All three should display
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -301,8 +300,6 @@ describe('Tokens', () => {
   it('should refresh tokens and call necessary controllers', async () => {
     const { getByTestId } = renderComponent(initialState);
 
-    // fireEvent.press(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER));
-    // Simulate a scroll event
     fireEvent.scroll(
       getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
@@ -314,7 +311,6 @@ describe('Tokens', () => {
       },
     );
 
-    // Simulate the refresh control being triggered
     fireEvent(
       getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       'refresh',
@@ -342,7 +338,7 @@ describe('Tokens', () => {
   it('triggers bottom sheet when sort controls are pressed', async () => {
     const { getByText } = renderComponent(initialState);
 
-    await fireEvent.press(getByText('Sort by')); // Long press to trigger remove
+    await fireEvent.press(getByText('Sort by'));
 
     await waitFor(() => {
       expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});

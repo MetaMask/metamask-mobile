@@ -6,7 +6,6 @@ import Engine from '../../../../core/Engine';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 
-// Mock useSelector and useTheme
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -24,9 +23,9 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
+  const reactNavigationModule = jest.requireActual('@react-navigation/native');
   return {
-    ...actualNav,
+    ...reactNavigationModule,
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
@@ -34,7 +33,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('react-native-safe-area-context', () => {
-  // using disting digits for mock rects to make sure they are not mixed up
+  // copied from BottomSheetDialog.test.tsx
   const inset = { top: 1, right: 2, bottom: 3, left: 4 };
   const frame = { width: 5, height: 6, x: 7, y: 8 };
   return {
