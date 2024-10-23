@@ -421,6 +421,8 @@ class FixtureBuilder {
               pendingApprovalCount: 0,
               approvalFlows: [],
             },
+            NotificationServicesController: {},
+            UserStorageController: {},
           },
         },
         privacy: {
