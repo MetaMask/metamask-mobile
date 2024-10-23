@@ -42,7 +42,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             onPress={onBuy}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
-            testID={TokenOverviewSelectorsIDs.BUY_BUTTON}
+            actionID={TokenOverviewSelectorsIDs.BUY_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.buy_button')}
@@ -58,7 +58,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             onPress={goToSwaps}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
-            testID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
+            actionID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
@@ -73,7 +73,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           onPress={goToBridge}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
-          testID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
+          actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.bridge')}
@@ -86,7 +86,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           onPress={onSend}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
-          testID={TokenOverviewSelectorsIDs.SEND_BUTTON}
+          actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
@@ -99,7 +99,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           onPress={onReceive}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
-          testID={TokenOverviewSelectorsIDs.RECEIVE_BUTTON}
+          actionID={TokenOverviewSelectorsIDs.RECEIVE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}
