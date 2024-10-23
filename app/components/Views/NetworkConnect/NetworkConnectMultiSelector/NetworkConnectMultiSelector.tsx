@@ -40,6 +40,10 @@ const NetworkConnectMultiSelector = ({
   hostname,
   onBack,
   isRenderedAsBottomSheet = true,
+  onNetworksSelected,
+  initialChainId,
+  selectedChainIds: propSelectedChainIds,
+  isInitializedWithPermittedChains = true,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -47,6 +51,14 @@ const NetworkConnectMultiSelector = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   useEffect(() => {
+    if (propSelectedChainIds && !isInitializedWithPermittedChains) {
+      setSelectedChainIds(propSelectedChainIds);
+    }
+  }, [propSelectedChainIds, isInitializedWithPermittedChains]);
+
+  useEffect(() => {
+    if (!isInitializedWithPermittedChains) return;
+
     let currentlyPermittedChains: string[] = [];
     try {
       const caveat = Engine.context.PermissionController.getCaveat(
@@ -63,46 +75,56 @@ const NetworkConnectMultiSelector = ({
       // noop
     }
 
+    if (currentlyPermittedChains.length === 0 && initialChainId) {
+      currentlyPermittedChains = [initialChainId];
+    }
+
     setSelectedChainIds(currentlyPermittedChains);
-  }, [hostname]);
+  }, [hostname, isInitializedWithPermittedChains, initialChainId]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
-    let hasPermittedChains = false;
-    try {
-      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-      );
-    } catch {
-      // noop
-    }
-    if (hasPermittedChains) {
-      Engine.context.PermissionController.updateCaveat(
-        hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-        selectedChainIds,
-      );
+    if (onNetworksSelected) {
+      onNetworksSelected(selectedChainIds);
     } else {
-      Engine.context.PermissionController.grantPermissionsIncremental({
-        subject: {
-          origin: hostname,
-        },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              {
-                type: CaveatTypes.restrictNetworkSwitching,
-                value: selectedChainIds,
-              },
-            ],
+      let hasPermittedChains = false;
+      try {
+        hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+      } catch {
+        // noop
+      }
+
+      if (hasPermittedChains) {
+        Engine.context.PermissionController.updateCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+          selectedChainIds,
+        );
+      } else {
+        Engine.context.PermissionController.grantPermissionsIncremental({
+          subject: {
+            origin: hostname,
           },
-        },
-      });
+          approvedPermissions: {
+            [PermissionKeys.permittedChains]: {
+              caveats: [
+                {
+                  type: CaveatTypes.restrictNetworkSwitching,
+                  value: selectedChainIds,
+                },
+              ],
+            },
+          },
+        });
+      }
+      onUserAction(USER_INTENT.Confirm);
     }
-    onUserAction(USER_INTENT.Confirm);
-  }, [selectedChainIds, hostname, onUserAction]);
+  }, [selectedChainIds, hostname, onUserAction, onNetworksSelected]);
+
   const networks = Object.entries(networkConfigurations).map(
     ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
