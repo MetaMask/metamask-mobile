@@ -41,25 +41,21 @@ cd metamask-mobile
 
 **Firebase Messaging Setup**
 
-Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` or `GoogleService-Info.plist` file in the `android/app` or `ios/GoogleServices` directory `.env` files (`.ios.env`, `.js.env`, `.android.env`), adding `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` variable depending on the environment you are running the app (ios/android).
+Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` file in the `android/app` or `GoogleService-Info.plist` file in the `ios` directory. In case you don't have FCM account, you can use `./android/app/google-services-example.json` for Android or `./ios/GoogleServices/GoogleService-Info-example.plist` for iOS and follow the steps below to populate the correct environment variables in the `.env` files (`.ios.env`, `.js.env`, `.android.env`), adding `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` variable depending on the environment you are running the app (ios/android).
 
 The value you should provide to `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` is the base64 encoded version of your Firebase project config file, which can be generated as follows:
 
 **For Android**
 ```bash
-echo "export GOOGLE_SERVICES_B64=\"$(base64 -w0 -i ./android/app/google-services-example.json)\"" | tee -a .js.env .ios.env .android.env
+echo "export GOOGLE_SERVICES_B64_ANDROID=\"$(base64 -w0 -i ./android/app/google-services-example.json)\"" | tee -a .js.env .android.env
 ```
 **For iOS**
 ```bash
-base64 -i ./ios/GoogleServices/GoogleService-Info-example.plist
+echo "export GOOGLE_SERVICES_B64_IOS=\"$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info-example.plist)\"" | tee -a .js.env .ios.env
 ```
 
-Copy the result to your clipboard and paste it in the `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` variable in the `.env` file you are running the app.
-
 > [!CAUTION]
-> In case you don't provide your own Firebase project config file, you will face the error `No matching client found for package name 'io.metamask'`.
-
-You can make usage of a mock file at `android/app/google-services-example.json` or `ios/GoogleServices/GoogleService-Info-example.plist`, following the same steps above from the root of the project.
+> In case you don't provide your own Firebase project config file or run the steps above, you will face the error `No matching client found for package name 'io.metamask'`.
 
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 
