@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useContext, useEffect, useRef } from 'react';
-import { Dimensions, Platform, View } from 'react-native';
+import { Dimensions, Platform, View, Text } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -48,7 +48,7 @@ const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
-export const Browser = (props) => {
+const Browser = (props) => {
   const {
     route,
     navigation,
@@ -338,12 +338,14 @@ export const Browser = (props) => {
   const tab = tabs.find((tab) => tab.id === activeTabId);
   const isShowingTabs = route.params?.showTabs;
 
+  console.log(tabs);
+
   return (
     <View
       style={baseStyles.flexGrow}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
-      <BrowserTab
+      {tab ? <BrowserTab
         id={tab.id}
         activeTab={activeTabId}
         key={`tab_${tab.id}`}
@@ -352,7 +354,7 @@ export const Browser = (props) => {
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
-      />
+      /> : null}
       {isShowingTabs ? (
         <Tabs
           tabs={tabs}

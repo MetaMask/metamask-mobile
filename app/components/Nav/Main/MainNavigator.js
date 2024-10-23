@@ -531,14 +531,13 @@ const HomeTabs = () => {
           <Tab.Screen
             name={Routes.MODAL.WALLET_ACTIONS}
             options={options.actions}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
             component={BrowserFlow}
           />
-
+          <Tab.Screen
+            name={Routes.BROWSER_VIEW}
+            options={options.browser}
+            component={WalletTabModalFlow}
+          />
           <Tab.Screen
             name={Routes.SETTINGS_VIEW}
             options={options.settings}
@@ -789,6 +788,7 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsModeView}
     />
+    <Stack.Screen name={Routes.BROWSER.HOME} component={BrowserFlow} />
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
     <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
     <Stack.Screen
