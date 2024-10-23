@@ -18,6 +18,7 @@ import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
 import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 // Extend dayjs with the plugins
 dayjs.extend(isYesterday);
 dayjs.extend(localeData);
@@ -542,4 +543,17 @@ export function getAllUUIDs(userStorage: UserStorage): string[] {
     mapTrigger: triggerToId,
   });
   return uuids;
+}
+
+export function parseNotification(remoteMessage: FirebaseMessagingTypes.RemoteMessage) {
+  const notification = remoteMessage.data?.data;
+  const parsedNotification = typeof notification === 'string' ? JSON.parse(notification) : notification;
+
+  const notificationData = {
+    type: parsedNotification?.type || parsedNotification?.data?.kind,
+    transaction: parsedNotification?.data,
+    duration: 5000,
+  };
+
+  return notificationData;
 }
