@@ -24,7 +24,7 @@ const TokenSortBottomSheet = () => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const onSortControlsActionSheetPress = (index: number) => {
+  const onSortControlsBottomSheetPress = (index: number) => {
     const { PreferencesController } = Engine.context;
     switch (index) {
       case 0:
@@ -66,14 +66,14 @@ const TokenSortBottomSheet = () => {
               ] ?? currentCurrency,
           })}
           isSelected={tokenSortConfig.key === 'tokenFiatAmount'}
-          onPress={() => onSortControlsActionSheetPress(0)}
+          onPress={() => onSortControlsBottomSheetPress(0)}
         />
         <Cell
           testID={WalletViewSelectorsIDs.SORT_ALPHABETICAL}
           variant={CellVariant.Select}
           title={strings('wallet.alphabetically')}
           isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}
-          onPress={() => onSortControlsActionSheetPress(1)}
+          onPress={() => onSortControlsBottomSheetPress(1)}
         />
       </View>
     </BottomSheet>
