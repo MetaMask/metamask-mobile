@@ -1,27 +1,28 @@
-import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
-import styleSheet from './StakeConfirmationView.styles';
+import { strings } from '../../../../../../locales/i18n';
+import YouReceiveCard from '../../components/StakingConfirmation/YouReceiveCard/YouReceiveCard';
+import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
+import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
 import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
-import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
-import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
-import { strings } from '../../../../../../locales/i18n';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
-const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
-  const navigation = useNavigation();
-
+const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     navigation.setOptions(
-      getStakingNavbar(strings('stake.stake'), navigation, theme.colors, {
+      getStakingNavbar(strings('stake.unstake'), navigation, theme.colors, {
         backgroundColor: theme.colors.background.alternative,
         hasCancelButton: false,
       }),
@@ -37,24 +38,24 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
+          <YouReceiveCard
+            amountWei={route.params.amountWei}
+            amountFiat={route.params.amountFiat}
+          />
           <AccountCard
             contractName={MOCK_STAKING_CONTRACT_NAME}
-            primaryLabel={strings('stake.staking_from')}
+            primaryLabel={strings('stake.unstaking_to')}
             secondaryLabel={strings('stake.interacting_with')}
           />
-          <RewardsCard
-            rewardRate={route.params.annualRewardRate}
-            rewardsEth={route.params.annualRewardsETH}
-            rewardsFiat={route.params.annualRewardsFiat}
-          />
+          <UnstakingTimeCard />
         </View>
       </View>
       <ConfirmationFooter
         valueWei={route.params.amountWei}
-        action={FooterButtonGroupActions.STAKE}
+        action={FooterButtonGroupActions.UNSTAKE}
       />
     </View>
   );
 };
 
-export default StakeConfirmationView;
+export default UnstakeConfirmationView;
