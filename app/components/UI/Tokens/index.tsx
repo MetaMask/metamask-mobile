@@ -20,9 +20,6 @@ import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   selectTokenNetworkFilter,
@@ -37,6 +34,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -75,7 +73,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -149,17 +147,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
-  const showSortControls = () => {
-    if (sortControlsActionSheet.current) {
-      sortControlsActionSheet.current.show();
-    }
-  };
-
-  const showFilterControls = () => {
-    if (filterControlsActionSheet.current) {
-      filterControlsActionSheet.current.show();
-    }
-  };
+  const showFilterControls = () => filterControlsActionSheet?.current?.show(); // TODO: BottomSheet
+  const showSortControls = () => sortControlsActionSheet?.current?.show();
 
   const onRefresh = async () => {
     requestAnimationFrame(async () => {
@@ -198,13 +187,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           tokenSymbol: symbol,
         }),
       });
-      trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'assets_list',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: [`${symbol} - ${tokenAddress}`],
-        chain_id: getDecimalChainId(chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+          .addProperties({
+            location: 'assets_list',
+            token_standard: 'ERC20',
+            asset_type: 'token',
+            tokens: [`${symbol} - ${tokenAddress}`],
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
     } catch (err) {
       Logger.log(err, 'Wallet: Failed to hide token!');
     }
@@ -213,10 +206,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
     navigation.push('AddAsset', { assetType: 'token' });
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'manual',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
     setIsAddTokenEnabled(true);
   };
 
@@ -232,27 +229,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           order: 'dsc',
           sortCallback: 'stringNumeric',
         });
-        return 'tokenFiatAmount_dsc';
+        break;
       case 1:
         PreferencesController.setTokenSortConfig({
           key: 'symbol',
           sortCallback: 'alphaNumeric',
           order: 'asc',
         });
-        return 'symbol_asc';
-      default:
-        break;
-    }
-  };
-
-  const onFilterControlsActionSheetPress = (index: number) => {
-    const { PreferencesController } = Engine.context;
-    switch (index) {
-      case 0:
-        PreferencesController.setTokenNetworkFilter({});
-        break;
-      case 1:
-        PreferencesController.setTokenNetworkFilter({ [chainId]: true });
         break;
       default:
         break;
@@ -265,29 +248,26 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        <Button
-          variant={ButtonVariants.Primary}
+        <ButtonBase
           label={
             tokenNetworkFilter[chainId] ? 'Current Network' : 'All Networks'
           }
           onPress={showFilterControls}
           endIconName={IconName.ArrowDown}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
-        <Button
-          variant={ButtonVariants.Primary}
+        <ButtonBase
           label={strings('wallet.sort_by')}
           onPress={showSortControls}
           endIconName={IconName.ArrowDown}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
-        <Button
+        <ButtonBase
           testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-          variant={ButtonVariants.Primary}
           label={strings('wallet.import')}
           onPress={goToAddToken}
           startIconName={IconName.Add}
-          style={styles.sortButton}
+          style={styles.controlButton}
         />
       </View>
 
@@ -312,7 +292,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       />
       <ActionSheet
         ref={sortControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={'Sort by'}
+        title={strings('wallet.sort_by')}
         options={[
           strings('wallet.declining_balance', { currency: currentCurrency }),
           strings('wallet.alphabetically'),
@@ -323,10 +303,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       />
       <ActionSheet
         ref={filterControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={'Filter By'}
+        title={'Filter'}
         options={['All Networks', 'Current Network', 'Cancel']}
         cancelButtonIndex={2}
-        onPress={onFilterControlsActionSheetPress}
+        onPress={onSortControlsActionSheetPress}
       />
     </View>
   );

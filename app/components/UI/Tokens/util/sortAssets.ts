@@ -20,7 +20,7 @@ export interface SortingCallbacksT {
 const sortingCallbacks: SortingCallbacksT = {
   numeric: (a: number, b: number) => a - b,
   stringNumeric: (a: string, b: string) =>
-    parseFloat(parseFloat(a).toFixed(5)) - parseFloat(parseFloat(b).toFixed(5)),
+    parseFloat((parseFloat(a) - parseFloat(b)).toFixed(5)),
   alphaNumeric: (a: string, b: string) => a.localeCompare(b),
   date: (a: Date, b: Date) => a.getTime() - b.getTime(),
 };

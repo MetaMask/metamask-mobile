@@ -147,12 +147,11 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 16,
       paddingTop: 8,
     },
-    sortButton: {
+    controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       borderStyle: 'solid',
       borderWidth: 1,
-      text: colors.text.default,
     },
   });
 

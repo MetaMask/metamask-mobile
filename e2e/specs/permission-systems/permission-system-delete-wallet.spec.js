@@ -102,6 +102,7 @@ describe(
           await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+          await NetworkListModal.scrollToBottomOfNetworkList();
           await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
         },
       );

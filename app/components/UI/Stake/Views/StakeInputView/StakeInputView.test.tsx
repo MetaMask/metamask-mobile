@@ -5,6 +5,9 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { BN } from 'ethereumjs-util';
+import { Stake } from '../../sdk/stakeSdkProvider';
+import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import { Contract } from 'ethers';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -51,6 +54,32 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
 }));
 
 const mockBalanceBN = new BN('1500000000000000000');
+
+const mockPooledStakingContractService: PooledStakingContract = {
+  chainId: ChainId.ETHEREUM,
+  connectSignerOrProvider: jest.fn(),
+  contract: new Contract('0x0000000000000000000000000000000000000000', []),
+  convertToShares: jest.fn(),
+  encodeClaimExitedAssetsTransactionData: jest.fn(),
+  encodeDepositTransactionData: jest.fn(),
+  encodeEnterExitQueueTransactionData: jest.fn(),
+  encodeMulticallTransactionData: jest.fn(),
+  estimateClaimExitedAssetsGas: jest.fn(),
+  estimateDepositGas: jest.fn(),
+  estimateEnterExitQueueGas: jest.fn(),
+  estimateMulticallGas: jest.fn(),
+};
+
+jest.mock('../../hooks/useStakeContext.ts', () => ({
+  useStakeContext: jest.fn(() => {
+    const stakeContext: Stake = {
+      setSdkType: jest.fn(),
+      stakingContract: mockPooledStakingContractService,
+    };
+    return stakeContext;
+  }),
+}));
+
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
