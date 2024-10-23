@@ -1830,6 +1830,7 @@
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
     "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "n_networks_connect": "{{numberOfNetworks}} networks connected ",
     "see_your_accounts": "See your accounts and suggest transactions",
     "connected_to": "Connected to ",
     "manage_permissions": "Manage Permissions",

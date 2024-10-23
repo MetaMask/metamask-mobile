@@ -24,7 +24,6 @@ import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { SAMPLE_AVATARGROUP_PROPS } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -57,6 +56,7 @@ const PermissionsSummary = ({
   isDisconnectAllShown = true,
   isNetworkSwitch = false,
   accountAddresses = [],
+  networkAvatars = [],
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
@@ -280,11 +280,26 @@ const PermissionsSummary = ({
                 </>
               )}
               {!isNetworkSwitch && (
-                <View style={styles.avatarGroup}>
-                  <AvatarGroup
-                    avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
-                  />
-                </View>
+                <>
+                  <View style={styles.permissionRequestNetworkName}>
+                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                      <TextComponent variant={TextVariant.BodySM}>
+                        {strings('permissions.n_networks_connect', {
+                          numberOfNetworks: networkAvatars.length,
+                        })}
+                      </TextComponent>
+                    </TextComponent>
+                  </View>
+                  <View style={styles.avatarGroup}>
+                    <AvatarGroup
+                      // @ts-expect-error - AvatarGroup is not typed
+                      avatarPropsList={networkAvatars.map((avatar) => ({
+                        ...avatar,
+                        variant: AvatarVariant.Network,
+                      }))}
+                    />
+                  </View>
+                </>
               )}
             </View>
           </View>
