@@ -1,7 +1,6 @@
 import Client, { SingleEthereumTypes } from '@walletconnect/se-sdk';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { isStrictHexString, type Hex } from '@metamask/utils';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
@@ -313,7 +312,7 @@ class WalletConnect2Session {
     chainId,
     accounts,
   }: {
-    chainId: Hex;
+    chainId: number;
     accounts?: string[];
   }) => {
     try {
@@ -344,12 +343,12 @@ class WalletConnect2Session {
         }
       }
 
-      if (!isStrictHexString(chainId) || chainId === '0x0') {
+      if (chainId === 0) {
         DevLogger.log(
           `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
         // overwrite chainId with actual value.
-        chainId = selectChainId(store.getState());
+        chainId = parseInt(selectChainId(store.getState()));
         DevLogger.log(
           `WC2::updateSession overwrite invalid chain Id with selectedChainId=${chainId}`,
         );
@@ -357,7 +356,7 @@ class WalletConnect2Session {
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        chainId: parseInt(chainId, 16),
+        chainId,
         accounts,
       });
     } catch (err) {

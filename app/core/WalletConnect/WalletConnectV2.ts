@@ -172,12 +172,13 @@ export class WC2Manager {
             DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
           }
 
+          const nChainId = parseInt(chainId, 16);
           DevLogger.log(
-            `WC2::init updateSession session=${sessionKey} chainId=${chainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
+            `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
             approvedAccounts,
           );
           await this.sessions[sessionKey].updateSession({
-            chainId,
+            chainId: nChainId,
             accounts: approvedAccounts,
           });
         } catch (err) {

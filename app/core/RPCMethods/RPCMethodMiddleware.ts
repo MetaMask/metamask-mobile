@@ -16,7 +16,6 @@ import {
   permissionRpcMethods,
 } from '@metamask/permission-controller';
 import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
-import type { Hex } from '@metamask/utils';
 import { polyfillGasPrice } from './utils';
 import {
   processOriginThrottlingRejection,
@@ -113,7 +112,7 @@ export const checkActiveAccountAndChainId = async ({
   isWalletConnect,
 }: {
   address?: string;
-  chainId?: Hex;
+  chainId?: number;
   channelId?: string;
   hostname: string;
   isWalletConnect: boolean;
@@ -225,7 +224,7 @@ const generateRawSignature = async ({
   title: { current: string };
   icon: { current: string | undefined };
   analytics: { [key: string]: string | boolean };
-  chainId: Hex;
+  chainId: number;
   isMMSDK: boolean;
   channelId?: string;
   getSource: () => string;
@@ -522,7 +521,7 @@ export const getRpcMethodMiddleware = ({
             chainId,
           }: {
             from?: string;
-            chainId?: Hex;
+            chainId?: number;
           }) => {
             // TODO this needs to be modified for per dapp selected network
             await checkActiveAccountAndChainId({

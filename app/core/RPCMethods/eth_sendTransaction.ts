@@ -1,5 +1,4 @@
 import type {
-  Hex,
   Json,
   JsonRpcParams,
   JsonRpcRequest,
@@ -55,7 +54,7 @@ const hasProperty = <
 
 interface SendArgs {
   from: string;
-  chainId?: Hex;
+  chainId?: number;
 }
 
 /**
@@ -99,9 +98,13 @@ async function eth_sendTransaction({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }
+  // TODO: Normalize chainId to Hex string
+  const nChainId = typeof req.params[0].chainId === 'number'
+    ? req.params[0].chainId
+    : parseInt(req.params[0].chainId || '0x0', 16);
   await validateAccountAndChainId({
     from: req.params[0].from,
-    chainId: req.params[0].chainId,
+    chainId: nChainId,
   });
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
