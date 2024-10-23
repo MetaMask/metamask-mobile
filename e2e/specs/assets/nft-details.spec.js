@@ -54,7 +54,7 @@ describe(SmokeAssets('NFT Details page'), () => {
         await Assertions.checkIfVisible(
           WalletView.nftInWallet(TEST_DAPP_CONTRACT),
         );
-        // await WalletView.tapOnNftName();
+        await WalletView.tapOnNftName();
 
         await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
         await Assertions.checkIfTextIsDisplayed(

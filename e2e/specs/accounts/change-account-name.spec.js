@@ -50,7 +50,7 @@ describe(Regression('Change Account Name'), () => {
       EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
       NEW_ACCOUNT_NAME,
     );
-    // await EditAccountNameView.tapSave();
+    await EditAccountNameView.tapSave();
 
     // Verify updated name
     await Assertions.checkIfElementToHaveText(
