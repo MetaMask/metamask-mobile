@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { Observable, Observer, Subscription } from 'rxjs';
+import { Device } from 'react-native-ble-plx';
+import { DeviceModel } from '@ledgerhq/devices';
 
 export interface BluetoothDevice {
   id: string;
@@ -20,48 +23,36 @@ export interface BluetoothInterface {
   close(): void;
 }
 
+export interface ObservableType {
+  type: string,
+  descriptor: BluetoothDevice,
+  deviceModel: DeviceModel,
+}
+
 const useBluetoothDevices = (
   hasBluetoothPermissions: boolean,
   bluetoothOn: boolean,
 ) => {
   const [devices, setDevices] = useState<Record<string, BluetoothDevice>>({});
   const [deviceScanError, setDeviceScanError] = useState<boolean>(false);
+  const [event, setEvent] = useState<ObservableType>();
 
   // Initiate scanning and pairing if bluetooth is enabled
   useEffect(() => {
     let subscription: Subscription;
 
     if (hasBluetoothPermissions && bluetoothOn) {
-      import('@ledgerhq/react-native-hw-transport-ble').then(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (bluetoothInterface: any) => {
-          subscription = new Observable(
-            bluetoothInterface.default.listen,
-          ).subscribe({
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            next: (e: any) => {
-              const deviceFound = devices[e?.descriptor.id];
-
-              if (e.type === 'add' && !deviceFound) {
-                console.warn('Devices', devices);
-                if(devices[e.descriptor.id] == null) {
-                  console.warn('new Device found', e.descriptor);
-                  setDevices((prevValues) => ({
-                    ...prevValues,
-                    [e.descriptor.id]: e.descriptor,
-                  }));
-                }
-                setDeviceScanError(false);
-              }
-            },
-            error: (_error) => {
-              setDeviceScanError(true);
-            },
-          });
+      subscription = new Observable(TransportBLE.listen).subscribe({
+        next: (e: ObservableType) => {
+          setEvent(e);
         },
-      );
+        error: (_error) => {
+          setDeviceScanError(true);
+        },
+        complete: () => {
+          console.warn('complete');
+        }
+      });
     }
 
     return () => {
@@ -69,6 +60,25 @@ const useBluetoothDevices = (
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBluetoothPermissions, bluetoothOn]);
+
+  useEffect(() =>{
+    if (event) {
+      if (event?.descriptor) {
+        const btDevice = event.descriptor;
+        const deviceFound = devices[btDevice.id];
+
+        if (event.type === 'add' && !deviceFound) {
+          setDevices((prevValues) => {
+            return {
+              ...prevValues,
+              [btDevice.id]: btDevice,
+            };
+          });
+          setDeviceScanError(false);
+        }
+      }
+    }
+  }, [event, devices]);
 
   return {
     deviceScanError,

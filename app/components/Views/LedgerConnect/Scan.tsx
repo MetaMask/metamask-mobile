@@ -86,12 +86,12 @@ const Scan = ({
   ]);
 
   useEffect(() => {
-    // first device is selected by default
-    if (devices?.length > 0) {
-      console.warn('devices', devices);
+    // first device is selected by default if not selectedDevice is set
+    if (devices?.length > 0 && !selectedDevice) {
+      setSelectedDevice(devices[0]);
       onDeviceSelected(devices[0]);
     }
-  }, [devices, onDeviceSelected]);
+  }, [devices, onDeviceSelected, selectedDevice]);
 
   useEffect(() => {
     if (bluetoothPermissionError && !permissionErrorShown) {
