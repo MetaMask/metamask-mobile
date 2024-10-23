@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountHeaderCard render matches snapshot 1`] = `
+exports[`AccountCard render matches snapshot 1`] = `
 [
   <View>
     <TouchableOpacity
