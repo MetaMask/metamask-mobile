@@ -52,7 +52,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
 
         // Input acceptable value
         await AmountView.typeInTransactionAmount('0.00004');
-        await AmountView.tapNextButton();
+        // await AmountView.tapNextButton();
 
         // Check that we are on the confirm view
         await Assertions.checkIfVisible(
