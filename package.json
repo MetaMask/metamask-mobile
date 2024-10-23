@@ -242,8 +242,8 @@
     "eth-json-rpc-filters": "^6.0.1",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.4",
-    "ethereumjs-abi": "0.6.6",
-    "ethereumjs-util": "6.1.0",
+    "ethereumjs-abi": "^0.6.8",
+    "ethereumjs-util": "^6.2.0",
     "ethers": "^5.0.14",
     "ethjs-ens": "2.0.1",
     "eventemitter2": "^6.4.9",
@@ -575,7 +575,8 @@
       "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
       "detox>ws>utf-8-validate": false,
       "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
-      "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false
+      "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
+      "ethereumjs-util>ethereum-cryptography>keccak": true
     }
   },
   "packageManager": "yarn@1.22.22"
