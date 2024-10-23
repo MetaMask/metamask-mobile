@@ -4,7 +4,6 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { VaultData } from '@metamask/stake-sdk';
 import { useStakeContext } from './useStakeContext';
-import { limitToMaximumDecimalPlaces } from '../../../../util/number';
 
 const useVaultData = () => {
   const chainId = useSelector(selectChainId);
@@ -43,10 +42,10 @@ const useVaultData = () => {
   const annualRewardRatePercentage = apy ? parseFloat(apy) : 0;
   const annualRewardRateDecimal = annualRewardRatePercentage / 100;
 
-  const annualRewardRate = `${limitToMaximumDecimalPlaces(
-    annualRewardRatePercentage,
-    1,
-  )}%`;
+  const annualRewardRate =
+    annualRewardRatePercentage === 0
+      ? '0%'
+      : `${annualRewardRatePercentage.toFixed(1)}%`;
 
   return {
     vaultData,
