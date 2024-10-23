@@ -5,7 +5,6 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
 import BN4 from 'bnjs4';
-import { lt } from '../lodash';
 import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 
 interface opts {
