@@ -9,6 +9,8 @@ ignores:
   - 'babel-plugin-inline-import'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
   - cockatiel
+  # Force intended major version of @types/bn.js used by TypeScript
+  - '@types/bn.js'
 
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
