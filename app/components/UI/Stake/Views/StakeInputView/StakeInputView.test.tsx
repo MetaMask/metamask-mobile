@@ -4,7 +4,7 @@ import StakeInputView from './StakeInputView';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { BN } from 'ethereumjs-util';
+import BN5 from 'bnjs5';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
@@ -54,7 +54,7 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
-const mockBalanceBN = new BN('1500000000000000000');
+const mockBalanceBN = new BN5('1500000000000000000');
 
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
