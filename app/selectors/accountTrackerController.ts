@@ -16,7 +16,7 @@ export const selectAccounts = createDeepEqualSelector(
   (accountTrackerControllerState: AccountTrackerControllerState) =>
     accountTrackerControllerState.accounts,
 );
-export const selectAccountsByChainId = createSelector(
+export const selectAccountsByChainId = createDeepEqualSelector(
   selectAccountTrackerControllerState,
   (accountTrackerControllerState: AccountTrackerControllerState) =>
     accountTrackerControllerState.accountsByChainId,
