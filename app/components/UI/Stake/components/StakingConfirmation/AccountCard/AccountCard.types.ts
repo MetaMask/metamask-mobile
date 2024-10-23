@@ -1,4 +1,4 @@
-export interface AccountHeaderCardProps {
+export interface AccountCardProps {
   contractName: string;
   primaryLabel: string;
   secondaryLabel: string;

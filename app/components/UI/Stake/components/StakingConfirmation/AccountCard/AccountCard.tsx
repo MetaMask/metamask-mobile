@@ -15,14 +15,14 @@ import styleSheet from './AccountCard.styles';
 import images from '../../../../../../images/image-icons';
 import AccountTag from '../AccountTag/AccountTag';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
-import { AccountHeaderCardProps } from './AccountCard.types';
+import { AccountCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
 
 const AccountHeaderCard = ({
   contractName,
   primaryLabel,
   secondaryLabel,
-}: AccountHeaderCardProps) => {
+}: AccountCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const account = useSelector(selectSelectedInternalAccount);

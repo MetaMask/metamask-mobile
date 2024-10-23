@@ -1,12 +1,12 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import AccountHeaderCard from './AccountCard';
+import AccountCard from './AccountCard';
 import { strings } from '../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { Provider } from 'react-redux';
-import { AccountHeaderCardProps } from './AccountCard.types';
+import { AccountCardProps } from './AccountCard.types';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -50,9 +50,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-describe('AccountHeaderCard', () => {
+describe('AccountCard', () => {
   it('render matches snapshot', () => {
-    const props: AccountHeaderCardProps = {
+    const props: AccountCardProps = {
       contractName: MOCK_STAKING_CONTRACT_NAME,
       primaryLabel: strings('stake.staking_from'),
       secondaryLabel: strings('stake.interacting_with'),
@@ -60,7 +60,7 @@ describe('AccountHeaderCard', () => {
 
     const { getByText, toJSON } = renderWithProvider(
       <Provider store={store}>
-        <AccountHeaderCard {...props} />,
+        <AccountCard {...props} />,
       </Provider>,
     );
 
