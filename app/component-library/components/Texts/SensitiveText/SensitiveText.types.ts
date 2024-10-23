@@ -5,9 +5,10 @@ import { TextProps } from '../Text/Text.types';
  * SensitiveText length options.
  */
 export const SensitiveTextLength = {
-  Short: '7',
+  Short: '6',
   Medium: '9',
-  Long: '13',
+  Long: '12',
+  ExtraLong: '20',
 } as const;
 
 /**
