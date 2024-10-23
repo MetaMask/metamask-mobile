@@ -71,7 +71,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const chainId = useSelector(selectChainId);
@@ -183,13 +183,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           tokenSymbol: symbol,
         }),
       });
-      trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'assets_list',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: [`${symbol} - ${tokenAddress}`],
-        chain_id: getDecimalChainId(chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+          .addProperties({
+            location: 'assets_list',
+            token_standard: 'ERC20',
+            asset_type: 'token',
+            tokens: [`${symbol} - ${tokenAddress}`],
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
     } catch (err) {
       Logger.log(err, 'Wallet: Failed to hide token!');
     }
@@ -198,10 +202,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
     navigation.push('AddAsset', { assetType: 'token' });
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'manual',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
     setIsAddTokenEnabled(true);
   };
 
