@@ -3,23 +3,22 @@
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
-
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 import NotificationsService from '../util/notifications/services/NotificationService';
 
 import {
   NotificationTransactionTypes,
-  isNotificationsFeatureEnabled,
   ChannelId,
 } from '../util/notifications';
 
-import { safeToChecksumAddress } from '../util/address';
+import { safeToChecksumAddress, formatAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId, selectTicker } from '../selectors/networkController';
 import { store } from '../store';
 import { useSelector } from 'react-redux';
 import { getTicker } from '../../app/util/transactions';
+
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -63,6 +62,14 @@ export const constructTitleAndMessage = (notification) => {
       title = strings('notifications.cancelled_title');
       message = strings('notifications.cancelled_message');
       break;
+      case NotificationTransactionTypes.eth_received:
+        title = strings('notifications.default_message_title');
+        message = strings('notifications.received_from', {
+          amount: notification.transaction.amount.usd,
+          ticker: 'USD',
+          address: formatAddress(notification.transaction.from, 'short'),
+        });
+        break;
     case NotificationTransactionTypes.received:
       title = strings('notifications.received_title', {
         amount: notification.transaction.amount,
