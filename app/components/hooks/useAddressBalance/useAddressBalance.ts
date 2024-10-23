@@ -1,6 +1,7 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
 import { getTicker } from '../../../util/transactions';
@@ -109,7 +110,8 @@ const useAddressBalance = (
               address,
             );
             const addrBalance = `${renderFromTokenMinimalUnit(
-              fromAccBalance || '0',
+              // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
+              new BN4(fromAccBalance?.toString() || '0x0', 16),
               decimals,
             )} ${symbol}`;
             setAddressBalance(addrBalance);
