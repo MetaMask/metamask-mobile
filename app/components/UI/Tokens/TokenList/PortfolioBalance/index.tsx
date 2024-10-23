@@ -30,7 +30,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -111,6 +114,27 @@ export const PortfolioBalance = () => {
     });
   };
 
+  const renderAggregatedPercentage = () => {
+    if (isTestNet(chainId)) {
+      return null;
+    }
+
+    if (isBalanceAndAssetsHidden) {
+      // TODO: Waiting on sensitive text component to be merged to
+      // to update this to use the new component
+      return null;
+    }
+
+    return (
+      <AggregatedPercentage
+        ethFiat={balance?.ethFiat}
+        tokenFiat={balance?.tokenFiat}
+        tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+        ethFiat1dAgo={balance?.ethFiat1dAgo}
+      />
+    );
+  };
+
   const toggleIsBalanceAndAssetsHidden = (value: boolean) => {
     PreferencesController.setIsBalanceAndAssetsHidden(value);
   };
@@ -123,21 +147,22 @@ export const PortfolioBalance = () => {
         }
       >
         <View>
-          <Text
-            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayMD}
-          >
-            {fiatBalance}
-          </Text>
-
-          {!isTestNet(chainId) ? (
-            <AggregatedPercentage
-              ethFiat={balance?.ethFiat}
-              tokenFiat={balance?.tokenFiat}
-              tokenFiat1dAgo={balance?.tokenFiat1dAgo}
-              ethFiat1dAgo={balance?.ethFiat1dAgo}
+          <View style={styles.balanceContainer}>
+            <Text
+              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+              variant={TextVariant.DisplayMD}
+            >
+              {fiatBalance}
+            </Text>
+            <Icon
+              style={styles.privacyIcon}
+              name={isBalanceAndAssetsHidden ? IconName.EyeSlash : IconName.Eye}
+              size={IconSize.Md}
+              color={colors.text.muted}
             />
-          ) : null}
+          </View>
+
+          {renderAggregatedPercentage()}
         </View>
       </TouchableOpacity>
       <Button

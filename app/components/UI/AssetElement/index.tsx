@@ -23,6 +23,7 @@ interface AssetElementProps {
   onLongPress?: ((asset: TokenI) => void) | null;
   balance?: string;
   mainBalance?: string | null;
+  isBalanceAndAssetsHidden: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -63,6 +64,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   mainBalance = null,
   onPress,
   onLongPress,
+  isBalanceAndAssetsHidden,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -75,6 +77,8 @@ const AssetElement: React.FC<AssetElementProps> = ({
     onLongPress?.(asset);
   };
 
+  // TODO: Use the SensitiveText component when it's available
+  // when isBalanceAndAssetsHidden is true, we should hide the balance and the fiat
   return (
     <TouchableOpacity
       onPress={handleOnPress}
@@ -88,7 +92,8 @@ const AssetElement: React.FC<AssetElementProps> = ({
         {balance && (
           <Text
             variant={
-              asset?.hasBalanceError || asset.balanceFiat === TOKEN_RATE_UNDEFINED
+              asset?.hasBalanceError ||
+              asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
                 : TextVariant.BodyLGMedium
             }
