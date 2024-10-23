@@ -254,14 +254,7 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const {
-    data: attributes,
-    name,
-    parentContext,
-    startTime,
-    tags,
-    op,
-  } = request;
+  const { data: attributes, name, parentContext, startTime, op } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
