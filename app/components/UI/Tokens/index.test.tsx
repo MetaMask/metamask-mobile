@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { fireEvent, waitFor, screen } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -340,7 +340,7 @@ describe('Tokens', () => {
   });
 
   it('triggers bottom sheet when sort controls are pressed', async () => {
-    const { getByText, findByText } = renderComponent(initialState);
+    const { getByText } = renderComponent(initialState);
 
     await fireEvent.press(getByText('Sort by')); // Long press to trigger remove
 
