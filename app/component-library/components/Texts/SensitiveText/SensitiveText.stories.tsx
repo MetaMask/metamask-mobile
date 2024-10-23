@@ -6,7 +6,7 @@ import { TextVariant, TextColor } from '../Text/Text.types';
 
 // Internal dependencies
 import SensitiveText from './SensitiveText';
-import { SensitiveTextProps, SensitiveLengths } from './SensitiveText.types';
+import { SensitiveTextProps, SensitiveTextLength } from './SensitiveText.types';
 
 const SensitiveTextMeta = {
   title: 'Component Library / Texts',
@@ -16,7 +16,7 @@ const SensitiveTextMeta = {
       control: 'boolean',
     },
     length: {
-      options: SensitiveLengths,
+      options: SensitiveTextLength,
       control: {
         type: 'select',
       },
@@ -43,7 +43,7 @@ export default SensitiveTextMeta;
 export const SensitiveTextExample = {
   args: {
     isHidden: false,
-    length: SensitiveLengths.Short,
+    length: SensitiveTextLength.Short,
     variant: TextVariant.BodyMD,
     color: TextColor.Default,
     children: 'Sensitive Information',
@@ -58,17 +58,19 @@ export const SensitiveTextVariants = (
     <SensitiveText
       {...args}
       isHidden={false}
-      length={SensitiveLengths.Short}
+      length={SensitiveTextLength.Short}
       variant={TextVariant.DisplayMD}
       color={TextColor.Alternative}
     >
       Visible Sensitive Text
     </SensitiveText>
-    {Object.values(SensitiveLengths).map((length) => (
+    {Object.values(SensitiveTextLength).map((length) => (
       <SensitiveText
         key={length}
         {...args}
-        length={length as SensitiveLengths}
+        length={
+          length as (typeof SensitiveTextLength)[keyof typeof SensitiveTextLength]
+        }
         isHidden
       >
         {`Hidden (${length})`}
