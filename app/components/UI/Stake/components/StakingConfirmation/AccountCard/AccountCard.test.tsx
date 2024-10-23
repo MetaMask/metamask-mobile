@@ -5,13 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { AccountCardProps } from './AccountCard.types';
-import {
-  PooledStakingContract,
-  ChainId,
-  StakingType,
-} from '@metamask/stake-sdk';
-import { Contract } from 'ethers';
-import { Stake } from '../../../sdk/stakeSdkProvider';
+import { MOCK_POOL_STAKING_SDK } from '../../../__mocks__/mockData';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -52,30 +46,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockPooledStakingContractService: PooledStakingContract = {
-  chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: jest.fn(),
-  contract: new Contract('0x0000000000000000000000000000000000000000', []),
-  convertToShares: jest.fn(),
-  encodeClaimExitedAssetsTransactionData: jest.fn(),
-  encodeDepositTransactionData: jest.fn(),
-  encodeEnterExitQueueTransactionData: jest.fn(),
-  encodeMulticallTransactionData: jest.fn(),
-  estimateClaimExitedAssetsGas: jest.fn(),
-  estimateDepositGas: jest.fn(),
-  estimateEnterExitQueueGas: jest.fn(),
-  estimateMulticallGas: jest.fn(),
-};
-
-const mockSDK: Stake = {
-  stakingContract: mockPooledStakingContractService,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
-};
-
 jest.mock('../../../hooks/useStakeContext', () => ({
   __esModule: true,
-  useStakeContext: jest.fn(() => mockSDK),
+  useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
 describe('AccountCard', () => {

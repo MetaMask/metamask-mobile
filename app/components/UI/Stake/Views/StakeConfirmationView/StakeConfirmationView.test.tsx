@@ -7,13 +7,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
-import {
-  PooledStakingContract,
-  StakingType,
-  ChainId,
-} from '@metamask/stake-sdk';
-import { Contract } from 'ethers';
-import { Stake } from '../../sdk/stakeSdkProvider';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -67,38 +61,17 @@ jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   }),
 }));
 
-const mockPooledStakingContractService: PooledStakingContract = {
-  chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: jest.fn(),
-  contract: new Contract('0x0000000000000000000000000000000000000000', []),
-  convertToShares: jest.fn(),
-  encodeClaimExitedAssetsTransactionData: jest.fn(),
-  encodeDepositTransactionData: jest.fn(),
-  encodeEnterExitQueueTransactionData: jest.fn(),
-  encodeMulticallTransactionData: jest.fn(),
-  estimateClaimExitedAssetsGas: jest.fn(),
-  estimateDepositGas: jest.fn(),
-  estimateEnterExitQueueGas: jest.fn(),
-  estimateMulticallGas: jest.fn(),
-};
-
-const mockSDK: Stake = {
-  stakingContract: mockPooledStakingContractService,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
-};
-
 jest.mock('../../hooks/useStakeContext', () => ({
   __esModule: true,
-  useStakeContext: jest.fn(() => mockSDK),
+  useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
 jest.mock('../../hooks/usePooledStakes', () => ({
-                                                __esModule: true,
-                                                default: () => ({
-                                                                refreshPooledStakes: jest.fn(),
-                                                                }),
-                                                }));
+  __esModule: true,
+  default: () => ({
+    refreshPooledStakes: jest.fn(),
+  }),
+}));
 
 describe('StakeConfirmationView', () => {
   it('render matches snapshot', () => {

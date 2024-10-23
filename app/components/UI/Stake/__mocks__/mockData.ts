@@ -1,5 +1,12 @@
-import type { PooledStakes, VaultData } from '@metamask/stake-sdk';
+import {
+  ChainId,
+  StakingType,
+  type PooledStakes,
+  type VaultData,
+} from '@metamask/stake-sdk';
 import { TokenI } from '../../Tokens/types';
+import { Contract } from 'ethers';
+import { Stake } from '../sdk/stakeSdkProvider';
 
 export const MOCK_STAKED_ETH_ASSET = {
   balance: '4.9999 ETH',
@@ -85,4 +92,25 @@ export const MOCK_REWARD_DATA = {
     ETH: '0.13 ETH',
     FIAT: '$334.93',
   },
+};
+
+const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
+  chainId: ChainId.ETHEREUM,
+  connectSignerOrProvider: jest.fn(),
+  contract: new Contract('0x0000000000000000000000000000000000000000', []),
+  convertToShares: jest.fn(),
+  encodeClaimExitedAssetsTransactionData: jest.fn(),
+  encodeDepositTransactionData: jest.fn(),
+  encodeEnterExitQueueTransactionData: jest.fn(),
+  encodeMulticallTransactionData: jest.fn(),
+  estimateClaimExitedAssetsGas: jest.fn(),
+  estimateDepositGas: jest.fn(),
+  estimateEnterExitQueueGas: jest.fn(),
+  estimateMulticallGas: jest.fn(),
+};
+
+export const MOCK_POOL_STAKING_SDK: Stake = {
+  stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
+  sdkType: StakingType.POOLED,
+  setSdkType: jest.fn(),
 };

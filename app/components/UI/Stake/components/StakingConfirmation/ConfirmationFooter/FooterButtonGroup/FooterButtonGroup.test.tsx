@@ -9,21 +9,15 @@ import {
 } from './FooterButtonGroup.types';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import {
-  PooledStakingContract,
-  StakingType,
-  ChainId,
-} from '@metamask/stake-sdk';
-import { Contract } from 'ethers';
-import { Stake } from '../../../../sdk/stakeSdkProvider';
+import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
-const MOCK_ADDRESS_2 = '0x1';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
 ]);
+
+const mockSubscribeOnceIf = jest.fn();
 
 const mockInitialState = {
   settings: {},
@@ -31,6 +25,9 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      controllerMessenger: {
+        subscribeOnceIf: mockSubscribeOnceIf,
+      },
     },
   },
 };
@@ -51,29 +48,25 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockPooledStakingContractService: PooledStakingContract = {
-  chainId: ChainId.ETHEREUM,
-  connectSignerOrProvider: jest.fn(),
-  contract: new Contract('0x0000000000000000000000000000000000000000', []),
-  convertToShares: jest.fn(),
-  encodeClaimExitedAssetsTransactionData: jest.fn(),
-  encodeDepositTransactionData: jest.fn(),
-  encodeEnterExitQueueTransactionData: jest.fn(),
-  encodeMulticallTransactionData: jest.fn(),
-  estimateClaimExitedAssetsGas: jest.fn(),
-  estimateDepositGas: jest.fn(),
-  estimateEnterExitQueueGas: jest.fn(),
-  estimateMulticallGas: jest.fn(),
-};
-
-const mockSDK: Stake = {
-  stakingContract: mockPooledStakingContractService,
-  sdkType: StakingType.POOLED,
-  setSdkType: jest.fn(),
-};
-
 jest.mock('../../../../hooks/useStakeContext', () => ({
-  useStakeContext: () => mockSDK,
+  useStakeContext: () => MOCK_POOL_STAKING_SDK,
+}));
+
+const mockAttemptDepositTransaction = jest.fn();
+const mockAttemptUnstakeTransaction = jest.fn();
+
+jest.mock('../../../../hooks/usePoolStakedDeposit', () => ({
+  __esModule: true,
+  default: () => ({
+    attemptDepositTransaction: mockAttemptDepositTransaction,
+  }),
+}));
+
+jest.mock('../../../../hooks/usePoolStakedUnstake', () => ({
+  __esModule: true,
+  default: () => ({
+    attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
+  }),
 }));
 
 describe('FooterButtonGroup', () => {
@@ -117,5 +110,37 @@ describe('FooterButtonGroup', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it.todo('confirms stake when confirm button is pressed');
+  it('attempts stake transaction on continue click', () => {
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.STAKE,
+    };
+
+    const { getByText, toJSON } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(mockAttemptDepositTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('attempts unstake transaction on continue click', () => {
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.UNSTAKE,
+    };
+
+    const { getByText, toJSON } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(mockAttemptUnstakeTransaction).toHaveBeenCalledTimes(1);
+  });
 });

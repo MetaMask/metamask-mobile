@@ -1,4 +1,3 @@
-// TODO: Add Tests
 import { PooledStakingContract, ChainId } from '@metamask/stake-sdk';
 import { useStakeContext } from '../useStakeContext';
 import {
@@ -25,7 +24,7 @@ const generateUnstakeTxParams = (
 const attemptUnstakeTransaction =
   (pooledStakingContract: PooledStakingContract) =>
   // Note: receiver is the user address attempting to unstake.
-  async (valueWei: string, receiver: string) => {
+  async (valueWei: string, receiver: string, gasBufferPct: number = 30) => {
     try {
       const shares = await pooledStakingContract.convertToShares(valueWei);
 
@@ -38,7 +37,7 @@ const attemptUnstakeTransaction =
         await pooledStakingContract.encodeEnterExitQueueTransactionData(
           shares,
           receiver,
-          { gasLimit, gasBufferPct: 30 },
+          { gasLimit, gasBufferPct },
         );
 
       const txParams = generateUnstakeTxParams(

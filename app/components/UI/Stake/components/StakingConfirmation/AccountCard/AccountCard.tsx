@@ -6,7 +6,6 @@ import KeyValueRow from '../../../../../../component-library/components-temp/Key
 import Avatar, {
   AvatarVariant,
   AvatarSize,
-  AvatarAccountType,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
@@ -21,7 +20,7 @@ import { useStakeContext } from '../../../hooks/useStakeContext';
 import ContractTag from '../ContractTag/ContractTag';
 import { RootState } from '../../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
-const AccountHeaderCard = ({
+const AccountCard = ({
   contractName,
   primaryLabel,
   secondaryLabel,
@@ -93,4 +92,4 @@ const AccountHeaderCard = ({
   );
 };
 
-export default AccountHeaderCard;
+export default AccountCard;

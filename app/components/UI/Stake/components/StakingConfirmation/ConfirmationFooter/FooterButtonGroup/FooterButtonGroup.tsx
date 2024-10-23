@@ -22,7 +22,7 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake/usePoolStakedUnstake';
+import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
