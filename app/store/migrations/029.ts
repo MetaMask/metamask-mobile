@@ -2,8 +2,7 @@ import { toHex } from '@metamask/controller-utils';
 import { Hex, hasProperty, isObject } from '@metamask/utils';
 import { regex } from '../../../app/util/regex';
 
-//@ts-expect-error - This error is expected, but ethereumjs-util exports this function
-import { isHexString } from 'ethereumjs-util';
+import { isHexString } from '@ethereumjs/util';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
@@ -466,7 +465,7 @@ export default async function migrate(stateAsync: unknown) {
   if (Array.isArray(transactionControllerState.transactions)) {
     transactionControllerState.transactions.forEach(
       (transaction: TransactionParams, index: number) => {
-        if (transaction && !isHexString(transaction.chainId)) {
+        if (transaction && !isHexString(transaction.chainId || '')) {
           if (
             Array.isArray(transactionControllerState.transactions) &&
             isObject(transactionControllerState.transactions[index])

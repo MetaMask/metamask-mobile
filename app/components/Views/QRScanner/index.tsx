@@ -4,7 +4,7 @@
 'use strict';
 import { useNavigation } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidAddress } from '@ethereumjs/util';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
 import Text, {

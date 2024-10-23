@@ -3,7 +3,7 @@
 /* eslint-disable import/no-namespace */
 import createMockStore from 'redux-mock-store';
 import { act, renderHook } from '@testing-library/react-hooks';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from '@ethereumjs/util';
 import React from 'react';
 import { Provider } from 'react-redux';
 import { updateAccountState } from '../../../core/redux/slices/notifications';

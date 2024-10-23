@@ -1,6 +1,7 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
 import { getTicker } from '../../../util/transactions';
@@ -77,7 +78,6 @@ const useAddressBalance = (
     if (!address) {
       return;
     }
-    let fromAccBalance;
 
     if (
       !asset ||
@@ -94,7 +94,7 @@ const useAddressBalance = (
         return;
       }
       if (selectedAddress === address && contractBalances[contractAddress]) {
-        fromAccBalance = `${renderFromTokenMinimalUnit(
+        const fromAccBalance = `${renderFromTokenMinimalUnit(
           contractBalances[contractAddress]
             ? contractBalances[contractAddress]
             : '0',
@@ -105,15 +105,16 @@ const useAddressBalance = (
         (async () => {
           try {
             const { AssetsContractController } = Engine.context;
-            fromAccBalance = await AssetsContractController.getERC20BalanceOf(
+            const fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,
             );
-            fromAccBalance = `${renderFromTokenMinimalUnit(
-              fromAccBalance || '0',
+            const addrBalance = `${renderFromTokenMinimalUnit(
+              // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
+              new BN4(fromAccBalance?.toString() || '0x0', 16),
               decimals,
             )} ${symbol}`;
-            setAddressBalance(fromAccBalance);
+            setAddressBalance(addrBalance);
           } catch (exp) {
             console.error(`Error in trying to fetch token balance - ${exp}`);
           }

@@ -4,8 +4,7 @@ import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';
 import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
-import { BN } from 'ethereumjs-util';
-import { lt } from '../lodash';
+import BN4 from 'bnjs4';
 import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 
 interface opts {
@@ -25,8 +24,8 @@ interface Transaction {
   data: string;
   ensRecipient: string | undefined;
   from: string;
-  gas: BN;
-  gasPrice: BN;
+  gas: BN4;
+  gasPrice: BN4;
   id: string;
   nonce: string | undefined;
   origin: string;
@@ -97,7 +96,7 @@ export const estimateGas = async (
  * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
  */
 export const validateEtherAmount = (
-  value: BN,
+  value: BN4,
   from: string,
   allowEmpty = true,
 ): string | undefined => {
@@ -122,14 +121,15 @@ interface ContractBalances {
  * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
  */
 export const validateTokenAmount = async (
-  value: BN,
-  gas: BN,
+  value: BN4,
+  gas: BN4,
   from: string,
   selectedAsset: SelectedAsset,
   selectedAddress: string,
   contractBalances: ContractBalances,
   allowEmpty = true,
 ): Promise<string | undefined> => {
+  console.error('HELLO', { value, contractBalances, allowEmpty });
   if (!allowEmpty) {
     const checksummedFrom = safeToChecksumAddress(from) || '';
 
@@ -146,31 +146,33 @@ export const validateTokenAmount = async (
     }
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
-    let contractBalanceForAddress: BN | undefined | number;
+    let contractBalanceForAddress: BN4 | undefined;
     if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
       );
+      console.error('FOO', { contractBalanceForAddress });
     } else {
       try {
         const { AssetsContractController } = Engine.context;
-        contractBalanceForAddress =
-          await AssetsContractController.getERC20BalanceOf(
+        contractBalanceForAddress = new BN4(
+          (await AssetsContractController.getERC20BalanceOf(
             selectedAsset.address,
             checksummedFrom,
-          );
+          )).toString(16));
+          console.error('BAR', { contractBalanceForAddress });
       } catch (e) {
+        console.error('BARCATCH', { e });
         // Don't validate balance if error
       }
     }
-    if (value && !isBN(value)) return strings('transaction.invalid_amount');
-    const validateAssetAmount =
-      contractBalanceForAddress &&
-      lt(
-        contractBalanceForAddress as unknown as number,
-        value as unknown as number,
-      );
-    if (validateAssetAmount) return strings('transaction.insufficient');
+    if (value && !isBN(value)) {
+      return strings('transaction.invalid_amount');
+    }
+    console.error('ZUP', { contractBalanceForAddress, value });
+    if (contractBalanceForAddress?.lt(value)) {
+      return strings('transaction.insufficient');
+    }
   }
 };
 
@@ -216,10 +218,10 @@ export const validateAmount = async (
   const { value, from, gas, selectedAsset } = transaction;
 
   const validations: Validations = {
-    ETH: () => validateEtherAmount(value as unknown as BN, from, allowEmpty),
+    ETH: () => validateEtherAmount(value as unknown as BN4, from, allowEmpty),
     ERC20: async () =>
       await validateTokenAmount(
-        value as unknown as BN,
+        value as unknown as BN4,
         gas,
         from,
         selectedAsset,
@@ -276,8 +278,8 @@ type setTransactionObjectType = (
  * @param {function} setTransactionObject - Sets any attribute in transaction object
  */
 export const handleGasFeeSelection = (
-  gasLimit: BN,
-  gasPrice: BN,
+  gasLimit: BN4,
+  gasPrice: BN4,
   setTransactionObject: setTransactionObjectType,
 ): void => {
   const transactionObject = {
@@ -297,5 +299,5 @@ export const handleGetGasLimit = async (
 ): Promise<void> => {
   if (!Object.keys(transaction.selectedAsset).length) return;
   const { gas } = await estimateGas({}, transaction);
-  setTransactionObject({ gas: hexToBN(gas) as BN });
+  setTransactionObject({ gas: hexToBN(gas) as BN4 });
 };
