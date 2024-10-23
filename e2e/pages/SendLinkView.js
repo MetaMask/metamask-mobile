@@ -1,34 +1,42 @@
-import TestHelpers from '../helpers';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 import { SendLinkViewSelectorsIDs } from '../selectors/SendLinkView.selectors';
 
-export default class SendLinkView {
-  static async tapQRCodeButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        SendLinkViewSelectorsIDs.QR_CODE_BUTTON,
-      );
-    } else {
-      await TestHelpers.tap(SendLinkViewSelectorsIDs.QR_CODE_BUTTON);
-    }
+class SendLinkView {
+  get container() {
+    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CONTAINER_ID);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(SendLinkViewSelectorsIDs.CONTAINER_ID);
+  get qrModal() {
+    return Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_MODAL);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(SendLinkViewSelectorsIDs.CONTAINER_ID);
+  get qrCloseButton() {
+    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON);
   }
-  static async tapCloseSendLinkButton() {
-    await TestHelpers.tap(SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON);
+
+  get closeSendLinkButton() {
+    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON);
+  }
+
+  get qrCodeButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(SendLinkViewSelectorsIDs.QR_CODE_BUTTON)
+      : Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_CODE_BUTTON);
+  }
+
+  async tapQRCodeButton() {
+    await Gestures.waitAndTap(this.qrCodeButton);
+  }
+
+  async tapCloseSendLinkButton() {
+    await Gestures.waitAndTap(this.closeSendLinkButton);
   }
 
   // QR Modal
-  static async tapQRCodeCloseButton() {
-    await TestHelpers.tap(SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON);
-  }
-
-  static async isQRModalVisible() {
-    await TestHelpers.checkIfVisible(SendLinkViewSelectorsIDs.QR_MODAL);
+  async tapQRCodeCloseButton() {
+    await Gestures.waitAndTap(this.qrCloseButton);
   }
 }
+
+export default new SendLinkView();

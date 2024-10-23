@@ -63,12 +63,12 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should request DAI amount', async () => {
     await RequestPaymentView.typeInTokenAmount(5.5);
-    await SendLinkView.isVisible();
+    await Assertions.checkIfVisible(SendLinkView.container);
   });
 
   it('should see DAI request QR code', async () => {
     await SendLinkView.tapQRCodeButton();
-    await SendLinkView.isQRModalVisible();
+    await Assertions.checkIfVisible(SendLinkView.qrModal);
   });
 
   it('should close request', async () => {
