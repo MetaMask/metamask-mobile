@@ -41,7 +41,7 @@ const StakeInputView = () => {
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
-    annualRewardsEth: annualRewardsETH,
+    annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,

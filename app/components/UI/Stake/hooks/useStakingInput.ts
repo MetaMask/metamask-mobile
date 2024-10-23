@@ -115,12 +115,12 @@ const useStakingInputHandlers = (balance: BN) => {
     [balance, conversionRate],
   );
 
-  const annualRewardsEth = useMemo(
+  const annualRewardsETH = useMemo(
     () =>
-      limitToMaximumDecimalPlaces(
+      `${limitToMaximumDecimalPlaces(
         parseFloat(amountEth) * annualRewardRateDecimal,
         5,
-      ),
+      )} ETH`,
     [amountEth, annualRewardRateDecimal],
   );
 
@@ -137,7 +137,7 @@ const useStakingInputHandlers = (balance: BN) => {
   const calculateEstimatedAnnualRewards = useCallback(() => {
     if (isNonZeroAmount) {
       if (isEth) {
-        setEstimatedAnnualRewards(`${annualRewardsEth} ETH`);
+        setEstimatedAnnualRewards(annualRewardsETH);
       } else {
         setEstimatedAnnualRewards(annualRewardsFiat);
       }
@@ -147,7 +147,7 @@ const useStakingInputHandlers = (balance: BN) => {
   }, [
     isNonZeroAmount,
     isEth,
-    annualRewardsEth,
+    annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
   ]);
@@ -170,7 +170,7 @@ const useStakingInputHandlers = (balance: BN) => {
     conversionRate,
     estimatedAnnualRewards,
     calculateEstimatedAnnualRewards,
-    annualRewardsEth,
+    annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,
