@@ -56,13 +56,9 @@ exports[`StakeInputView render matches snapshot 1`] = `
               {
                 "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": null,
                 "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
@@ -106,96 +102,26 @@ exports[`StakeInputView render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
-                  "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
-                }
-              }
-            >
-              <View />
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
+                  "marginHorizontal": 16,
                   "opacity": 1,
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <Text
+                accessibilityRole="text"
                 style={
                   {
-                    "alignItems": "center",
-                    "flex": 1,
-                    "justifyContent": "center",
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 18,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
                   }
                 }
               >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  Stake ETH
-                </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                Stake ETH
+              </Text>
             </View>
             <View
               collapsable={false}
@@ -651,7 +577,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  2.6%
+                                  2.5%
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
