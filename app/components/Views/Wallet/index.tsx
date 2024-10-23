@@ -108,6 +108,7 @@ import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountS
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
