@@ -34,7 +34,7 @@ describe('SensitiveText', () => {
       <SensitiveText {...testProps} isHidden />,
     );
     expect(queryByText('Sensitive Information')).toBeNull();
-    expect(getByText('******')).toBeTruthy();
+    expect(getByText('••••••')).toBeTruthy();
   });
 
   it('should render the correct number of asterisks for different lengths', () => {
@@ -45,7 +45,7 @@ describe('SensitiveText', () => {
         length={SensitiveTextLength.Short}
       />,
     );
-    expect(getShort('******')).toBeTruthy();
+    expect(getShort('••••••')).toBeTruthy();
 
     const { getByText: getMedium } = render(
       <SensitiveText
@@ -54,7 +54,7 @@ describe('SensitiveText', () => {
         length={SensitiveTextLength.Medium}
       />,
     );
-    expect(getMedium('*********')).toBeTruthy();
+    expect(getMedium('•••••••••')).toBeTruthy();
 
     const { getByText: getLong } = render(
       <SensitiveText
@@ -63,7 +63,7 @@ describe('SensitiveText', () => {
         length={SensitiveTextLength.Long}
       />,
     );
-    expect(getLong('************')).toBeTruthy();
+    expect(getLong('••••••••••••')).toBeTruthy();
 
     const { getByText: getExtraLong } = render(
       <SensitiveText
@@ -72,7 +72,7 @@ describe('SensitiveText', () => {
         length={SensitiveTextLength.ExtraLong}
       />,
     );
-    expect(getExtraLong('********************')).toBeTruthy();
+    expect(getExtraLong('••••••••••••••••••••')).toBeTruthy();
   });
 
   it('should apply the correct text color', () => {
@@ -87,7 +87,7 @@ describe('SensitiveText', () => {
       const { getByText } = render(
         <SensitiveText {...testProps} isHidden length={value} />,
       );
-      expect(getByText('*'.repeat(Number(value)))).toBeTruthy();
+      expect(getByText('•'.repeat(Number(value)))).toBeTruthy();
     });
   });
 
@@ -95,14 +95,14 @@ describe('SensitiveText', () => {
     const { getByText } = render(
       <SensitiveText {...testProps} isHidden length="15" />,
     );
-    expect(getByText('***************')).toBeTruthy();
+    expect(getByText('•••••••••••••••')).toBeTruthy();
   });
 
   it('should fall back to Short length for invalid custom length', () => {
     const { getByText } = render(
       <SensitiveText {...testProps} isHidden length="invalid" />,
     );
-    expect(getByText('******')).toBeTruthy();
+    expect(getByText('••••••')).toBeTruthy();
   });
 
   it('should log a warning for invalid custom length', () => {

@@ -30,7 +30,7 @@ const SensitiveText: React.FC<SensitiveTextProps> = ({
   }
 
   const fallback = useMemo(
-    () => '*'.repeat(getFallbackLength(length)),
+    () => '•'.repeat(getFallbackLength(length)),
     [length, getFallbackLength],
   );
   return <Text {...props}>{isHidden ? fallback : children}</Text>;
