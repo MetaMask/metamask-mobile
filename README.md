@@ -47,7 +47,7 @@ The value you should provide to `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICE
 
 **For Android**
 ```bash
-base64 -i ./android/app/google-services-example.json
+echo "export GOOGLE_SERVICES_B64=\"$(base64 -w0 -i ./android/app/google-services-example.json)\"" | tee -a .js.env .ios.env .android.env
 ```
 **For iOS**
 ```bash
