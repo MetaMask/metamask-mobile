@@ -3396,7 +3396,11 @@
     "risk_disclosure": "Risk disclosure",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "continue": "Continue"
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3471,6 +3475,10 @@
     "reward_frequency": {
       "title": "Reward frequency",
       "tooltip": "Your staked balance updates every 12 hours to account for new rewards."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

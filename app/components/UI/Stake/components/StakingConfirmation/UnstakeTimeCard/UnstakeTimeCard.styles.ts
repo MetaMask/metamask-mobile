@@ -2,11 +2,10 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    content: {
-      paddingHorizontal: 32,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      paddingBottom: 16,
+    card: {
+      borderWidth: 0,
+      borderRadius: 8,
+      gap: 16,
     },
   });
 
