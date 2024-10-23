@@ -8,7 +8,7 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/wallet/WalletView';
-import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
+import EnableAutomaticSecurityChecksView from '../../pages/modals/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/LoginView';
@@ -58,7 +58,7 @@ describe(
 
     it('Should dismiss Automatic Security checks screen', async () => {
       await TestHelpers.delay(3500);
-      await EnableAutomaticSecurityChecksView.isVisible();
+      await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
       await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
