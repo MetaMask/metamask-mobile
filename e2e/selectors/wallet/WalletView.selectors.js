@@ -27,6 +27,9 @@ export const WalletViewSelectorsIDs = {
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
   COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
   IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
+  SORT_DECLINING_BALANCE: 'sort-declining-balance',
+  SORT_ALPHABETICAL: 'sort-alphabetical',
+  SORT_BY: 'sort-by',
 };
 
 export const WalletViewSelectorsText = {

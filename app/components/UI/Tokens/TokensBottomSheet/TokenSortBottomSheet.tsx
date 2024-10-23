@@ -15,6 +15,7 @@ import currencySymbols from '../../../../util/currency-symbols.json';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const TokenSortBottomSheet = () => {
   const { colors } = useTheme();
@@ -48,10 +49,15 @@ const TokenSortBottomSheet = () => {
   return (
     <BottomSheet shouldNavigateBack>
       <View style={styles.bottomSheetWrapper}>
-        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-          Sort By
+        <Text
+          testID={WalletViewSelectorsIDs.SORT_BY}
+          variant={TextVariant.HeadingMD}
+          style={styles.bottomSheetTitle}
+        >
+          {strings('wallet.sort_by')}
         </Text>
         <Cell
+          testID={WalletViewSelectorsIDs.SORT_DECLINING_BALANCE}
           variant={CellVariant.Select}
           title={strings('wallet.declining_balance', {
             currency:
@@ -63,6 +69,7 @@ const TokenSortBottomSheet = () => {
           onPress={() => onSortControlsActionSheetPress(0)}
         />
         <Cell
+          testID={WalletViewSelectorsIDs.SORT_ALPHABETICAL}
           variant={CellVariant.Select}
           title={strings('wallet.alphabetically')}
           isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}

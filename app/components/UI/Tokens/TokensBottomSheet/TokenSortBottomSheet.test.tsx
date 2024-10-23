@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -67,17 +68,23 @@ describe('TokenSortBottomSheet', () => {
   });
 
   it('renders correctly with the default sort option selected', () => {
-    const { getByText } = render(<TokenSortBottomSheet />);
+    const { getByText, queryByTestId } = render(<TokenSortBottomSheet />);
 
-    expect(getByText('Sort By')).toBeTruthy();
-    expect(getByText('Declining balance (USD high-low)')).toBeTruthy();
-    expect(getByText('Alphabetically (A-Z)')).toBeTruthy();
+    expect(queryByTestId(WalletViewSelectorsIDs.SORT_BY)).toBeTruthy();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+    ).toBeTruthy();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
+    ).toBeTruthy();
   });
 
   it('triggers PreferencesController to sort by token fiat amount when first cell is pressed', async () => {
-    const { getByText } = render(<TokenSortBottomSheet />);
+    const { queryByTestId } = render(<TokenSortBottomSheet />);
 
-    fireEvent.press(getByText('Declining balance (USD high-low)'));
+    fireEvent.press(
+      queryByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+    );
 
     await waitFor(() => {
       expect(
@@ -91,9 +98,9 @@ describe('TokenSortBottomSheet', () => {
   });
 
   it('triggers PreferencesController to sort alphabetically when the second cell is pressed', async () => {
-    const { getByText } = render(<TokenSortBottomSheet />);
+    const { queryByTestId } = render(<TokenSortBottomSheet />);
 
-    fireEvent.press(getByText('Alphabetically (A-Z)'));
+    fireEvent.press(queryByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
 
     await waitFor(() => {
       expect(
@@ -114,8 +121,10 @@ describe('TokenSortBottomSheet', () => {
       return null;
     });
 
-    const { getByText } = render(<TokenSortBottomSheet />);
+    const { queryByTestId } = render(<TokenSortBottomSheet />);
 
-    expect(getByText('Alphabetically (A-Z)')).toBeTruthy();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
+    ).toBeTruthy();
   });
 });
