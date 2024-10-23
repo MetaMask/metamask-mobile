@@ -152,6 +152,8 @@ const createStyles = (colors: Colors) =>
       borderColor: colors.border.default,
       borderStyle: 'solid',
       borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
     },
   });
 
