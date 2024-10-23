@@ -38,9 +38,11 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
 
-  const { isEligible } = useStakingEligibility();
+  const { isEligible, refreshPooledStakingEligibility } =
+    useStakingEligibility();
 
-  const onStakeButtonPress = () => {
+  const onStakeButtonPress = async () => {
+    await refreshPooledStakingEligibility();
     if (isPooledStakingFeatureEnabled() && isEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     } else {
