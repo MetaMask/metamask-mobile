@@ -19,7 +19,6 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
-import { useStakeContext } from '../../hooks/useStakeContext';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -42,11 +41,12 @@ const StakeInputView = () => {
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
+    annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+    isLoadingVaultData,
   } = useStakingInputHandlers(balanceWei);
 
-
-  const { sdkService } = useStakeContext();
-  
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
@@ -59,10 +59,19 @@ const StakeInputView = () => {
       params: {
         amountWei: amountWei.toString(),
         amountFiat: fiatAmount,
+        annualRewardsETH,
+        annualRewardsFiat,
+        annualRewardRate,
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountWei, fiatAmount, navigation, sdkService]);
+  }, [
+    navigation,
+    amountWei,
+    fiatAmount,
+    annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+  ]);
 
   const balanceText = strings('stake.balance');
 
@@ -106,6 +115,7 @@ const StakeInputView = () => {
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
           onIconPress={navigateToLearnMoreModal}
+          isLoading={isLoadingVaultData}
         />
       </View>
       <QuickAmounts

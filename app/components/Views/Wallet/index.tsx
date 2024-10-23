@@ -52,6 +52,7 @@ import {
   isMainNet,
 } from '../../../util/networks';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -105,6 +106,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -306,8 +308,10 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const chainId = useSelector(selectChainId);
+  const name = useSelector(selectNetworkName);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);

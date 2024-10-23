@@ -240,22 +240,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       }
                     }
                   >
-                    Requesting for 
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "letterSpacing": 0,
-                        "lineHeight": 20,
-                      }
-                    }
-                  >
-                    Account 2
+                    Connected to  Account 2
                   </Text>
                 </Text>
               </View>
@@ -1018,7 +1003,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               ]
             }
           >
-            Confirm
+            Connect
           </Text>
         </TouchableOpacity>
       </View>
@@ -1512,7 +1497,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               ]
             }
           >
-            Confirm
+            Connect
           </Text>
         </TouchableOpacity>
       </View>

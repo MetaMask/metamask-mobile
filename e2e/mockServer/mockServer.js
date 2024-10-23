@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
+import { defaultMockPort } from './mockUrlCollection';
 import portfinder from 'portfinder';
 
 const mockServer = getLocal();
@@ -55,15 +56,15 @@ export const startMockServer = async (events, port) => {
     }
   }
 
-  await mockServer.forUnmatchedRequest().thenPassThrough({
-    beforeRequest: async ({ url }) => {
-      const returnUrl = new URL(url).searchParams.get('url') || url;
-      const updatedUrl = device.getPlatform() === 'android' ? returnUrl.replace('localhost', '127.0.0.1') : returnUrl;
+    await mockServer.forUnmatchedRequest().thenPassThrough({
+      beforeRequest: async ({ url, method }) => {
+        const returnUrl = new URL(url).searchParams.get('url') || url;
+        const updatedUrl = device.getPlatform() === 'android' ? returnUrl.replace('localhost', '127.0.0.1') : returnUrl;
 
-      console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
-      return { url: updatedUrl };
-    },
-  });
+        console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
+        return { url: updatedUrl };
+      },
+    });
 
   return mockServer;
 };

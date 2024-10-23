@@ -498,20 +498,25 @@ const HomeTabs = () => {
     }
   }, []);
 
+  const renderTabBar = ({ state, descriptors, navigation }) => {
+    if (isKeyboardHidden) {
+      return (
+        <TabBar
+          state={state}
+          descriptors={descriptors}
+          navigation={navigation}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
-          tabBar={({ state, descriptors, navigation }) =>
-            isKeyboardHidden ? (
-              <TabBar
-                state={state}
-                descriptors={descriptors}
-                navigation={navigation}
-              />
-            ) : null
-          }
+          tabBar={renderTabBar}
         >
           <Tab.Screen
             name={Routes.WALLET.HOME}

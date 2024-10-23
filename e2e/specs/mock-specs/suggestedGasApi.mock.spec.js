@@ -32,12 +32,12 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
     });
   });
 
-  // Stop the server after all tests, ensuring that we handle any errors gracefully
   afterAll(async () => {
-    if (mockServer) {
-      await stopMockServer().catch((error) => {
-        console.log('Mock server already stopped or encountered an error:', error);
-      });
+    try {
+      await stopMockServer();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('Mock server already stopped or encountered an error:', error);
     }
   });
 
@@ -75,7 +75,7 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
         await AmountView.tapNextButton();
         await TransactionConfirmView.tapEstimatedGasLink(1);
         await Assertions.checkIfVisible(
-          TransactionConfirmView.editPriorityModal,
+          TransactionConfirmView.editPriorityLegacyModal,
         );
         await stopMockServer(); //stop mock server to reinstate suggested gas api service
         await Assertions.checkIfVisible(
