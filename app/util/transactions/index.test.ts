@@ -1082,7 +1082,7 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 });
 
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
-  const transaction = { to: '0xContractAddress' };
+  const transaction = { to: '0xdeadbeef' };
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
