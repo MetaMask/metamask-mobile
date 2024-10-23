@@ -11,12 +11,26 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Engine from '../../../core/Engine';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn(() => Promise.resolve()),
+    },
+    CurrencyRateController: {
+      startPollingByNetworkClientId: jest.fn(() => Promise.resolve()),
+    },
+    TokenRatesController: {
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -259,11 +273,7 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
 
-<<<<<<< HEAD
-  it('navigates to Portfolio Stake url when stake button is pressed', () => {
-=======
   it('navigates to Stake Input screen when stake button is pressed and user is not eligible', async () => {
->>>>>>> main
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
@@ -278,10 +288,23 @@ describe('Tokens', () => {
     });
   });
 
-  it('should refresh tokens and call necessary controllers', async () => {
+  it.only('should refresh tokens and call necessary controllers', async () => {
     const { getByTestId } = renderComponent(initialState);
 
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER));
+    // fireEvent.press(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER));
+    // Simulate a scroll event
+    fireEvent.scroll(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER), {
+      nativeEvent: {
+        contentOffset: { y: 100 }, // Simulate scroll offset
+        contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
+        layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
+      },
+    });
+
+    // Simulate the refresh control being triggered
+    fireEvent(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER), 'refresh', {
+      refreshing: true,
+    });
 
     await waitFor(() => {
       expect(
