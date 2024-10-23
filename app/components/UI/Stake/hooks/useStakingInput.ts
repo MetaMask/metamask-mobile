@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -17,15 +17,15 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import useVaultData from './useVaultData';
 
-const useStakingInputHandlers = (balance: BN) => {
+const useStakingInputHandlers = (balance: BN4) => {
   const [amountEth, setAmountEth] = useState('0');
-  const [amountWei, setAmountWei] = useState<BN>(new BN(0));
+  const [amountWei, setAmountWei] = useState<BN4>(new BN4(0));
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 
-  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN(0)), [amountWei]);
+  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN4(0)), [amountWei]);
   const isOverMaximum = useMemo(() => {
-    const additionalFundsRequired = amountWei.sub(balance || new BN(0));
-    return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
+    const additionalFundsRequired = amountWei.sub(balance || new BN4(0));
+    return isNonZeroAmount && additionalFundsRequired.gt(new BN4(0));
   }, [amountWei, balance, isNonZeroAmount]);
 
   const [fiatAmount, setFiatAmount] = useState('0');
@@ -92,7 +92,7 @@ const useStakingInputHandlers = (balance: BN) => {
     ({ value }: { value: number }) => {
       if (!balance) return;
       const percentage = value * 100;
-      const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
+      const amountPercentage = balance.mul(new BN4(percentage)).div(new BN4(100));
 
       const newAmountString = fromTokenMinimalUnitString(
         amountPercentage.toString(10),
