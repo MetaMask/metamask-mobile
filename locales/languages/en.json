@@ -437,7 +437,13 @@
       "cancel_cta": "Cancel",
       "confirm_cta": "Confirm"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
     "no_nfts_yet": "No NFTs yet",
@@ -712,6 +718,10 @@
     "site_permission_to": "This site has permission to:",
     "address_balance_activity_permission": "See address, account balance, and activity",
     "suggest_transactions": "Suggest transactions to approve",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Disconnect",
     "disconnect_all": "Disconnect all",
     "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
@@ -729,9 +739,13 @@
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "network_added": "was successfully added",
+    "network_deleted": "was successfully deleted",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
+    "account_connected": "account connected.",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnected": "disconnected.",
     "disconnected_all": "All accounts disconnected.",
     "disconnected_from": "Disconnected from {{dappHostName}}",
@@ -937,7 +951,7 @@
     "data_collection_title": "Data collection for marketing",
     "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
-    "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Get incoming transactions",
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -1244,6 +1258,7 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
@@ -1399,6 +1414,10 @@
     "insufficient_amount": "You need {{amount}} more {{tokenSymbol}} to complete this transaction.",
     "buy_more_eth": "Buy more ETH",
     "buy_more": "Buy more",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Go to faucet",
     "get_ether": "Get Ether for the {{networkName}} network.",
     "insufficient_tokens": "Insufficient {{token}}",
@@ -1446,7 +1465,7 @@
     "asset": "Asset",
     "balance": "Balance",
     "token_id": "Token ID",
-    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees. Buy some {{ticker}} or deposit from another account.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Send",
     "confirm_with_qr_hardware": "Confirm with hardware wallet",
     "confirm_with_ledger_hardware": "Confirm with Ledger",
@@ -1814,6 +1833,9 @@
     "use_enabled_networks": "Use your enabled networks",
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "Manage Permissions",
     "edit": "Edit",
     "cancel": "Cancel"
@@ -2193,6 +2215,7 @@
     "wallet": "Wallet",
     "web3": "Web3",
     "staking_provider": "Staking Provider",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
@@ -2412,6 +2435,7 @@
     "All": "All",
     "Buy": "Buy",
     "Sell": "Sell",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Purchased",
     "Sold": "Sold",
     "empty_buy_orders_list": "You don't have any buy orders",
@@ -2678,8 +2702,7 @@
     "you_need": "You need",
     "more_to_complete": "more to complete this swap.",
     "more_gas_to_complete": "more for gas to complete this swap.",
-    "buy_more_eth": "Buy more ETH.",
-    "buy_more": "Buy more {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Check your rate before proceeding",
     "market_price_unavailable": "Market price is unavailable and price impact is therefore unknown. Please verify that you are comfortable with the amount of tokens you will receive before swapping.",
     "price_difference": "Price difference of {{amount}}",
@@ -3233,7 +3256,9 @@
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
+    "user_reject_transaction": "User rejected the transaction",
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3288,6 +3313,7 @@
   },
   "stake": {
     "stake": "Stake",
+    "earn": "Earn",
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
     "staked_balance": "Staked balance",
@@ -3358,7 +3384,12 @@
     "terms_of_service": "Terms of service",
     "risk_disclosure": "Risk disclosure",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3433,6 +3464,10 @@
     "reward_frequency": {
       "title": "Reward frequency",
       "tooltip": "Your staked balance updates every 12 hours to account for new rewards."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {
