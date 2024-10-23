@@ -1,14 +1,43 @@
-// external dependencies
+// External dependencies.
 import { TextProps } from '../Text/Text.types';
 
-export enum SensitiveLengths {
-  Short = 7,
-  Medium = 9,
-  Long = 13,
-}
+/**
+ * SensitiveText length options.
+ */
+export const SensitiveTextLength = {
+  Short: '7',
+  Medium: '9',
+  Long: '13',
+} as const;
 
+/**
+ * Type for SensitiveTextLength values.
+ */
+export type SensitiveTextLengthType =
+  (typeof SensitiveTextLength)[keyof typeof SensitiveTextLength];
+
+/**
+ * Type for custom length values.
+ */
+export type CustomLength = string;
+
+/**
+ * SensitiveText component props.
+ */
 export interface SensitiveTextProps extends TextProps {
-  isHidden: boolean;
-  length: SensitiveLengths;
+  /**
+   * Boolean to determine whether the text should be hidden or visible.
+   * @default false
+   */
+  isHidden?: boolean;
+  /**
+   * Determines the length of the hidden text (number of asterisks).
+   * Can be a predefined SensitiveTextLength or a custom string number.
+   * @default SensitiveTextLength.Short
+   */
+  length?: SensitiveTextLengthType | CustomLength;
+  /**
+   * The text content to be displayed or hidden.
+   */
   children: string;
 }

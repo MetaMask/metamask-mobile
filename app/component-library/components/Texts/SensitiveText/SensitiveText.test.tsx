@@ -7,13 +7,13 @@ import { mockTheme } from '../../../../util/theme';
 
 // Internal dependencies
 import SensitiveText from './SensitiveText';
-import { SensitiveLengths } from './SensitiveText.types';
+import { SensitiveTextLength } from './SensitiveText.types';
 import { TextVariant, TextColor } from '../Text/Text.types';
 
 describe('SensitiveText', () => {
   const testProps = {
     isHidden: false,
-    length: SensitiveLengths.Short,
+    length: SensitiveTextLength.Short,
     variant: TextVariant.BodyMD,
     color: TextColor.Default,
     children: 'Sensitive Information',
@@ -39,7 +39,11 @@ describe('SensitiveText', () => {
 
   it('should render the correct number of asterisks for different lengths', () => {
     const { getByText: getShort } = render(
-      <SensitiveText {...testProps} isHidden length={SensitiveLengths.Short} />,
+      <SensitiveText
+        {...testProps}
+        isHidden
+        length={SensitiveTextLength.Short}
+      />,
     );
     expect(getShort('*******')).toBeTruthy();
 
@@ -47,13 +51,17 @@ describe('SensitiveText', () => {
       <SensitiveText
         {...testProps}
         isHidden
-        length={SensitiveLengths.Medium}
+        length={SensitiveTextLength.Medium}
       />,
     );
     expect(getMedium('*********')).toBeTruthy();
 
     const { getByText: getLong } = render(
-      <SensitiveText {...testProps} isHidden length={SensitiveLengths.Long} />,
+      <SensitiveText
+        {...testProps}
+        isHidden
+        length={SensitiveTextLength.Long}
+      />,
     );
     expect(getLong('*************')).toBeTruthy();
   });
@@ -64,5 +72,35 @@ describe('SensitiveText', () => {
     );
     const textElement = getByText('Sensitive Information');
     expect(textElement.props.style.color).toBe(mockTheme.colors.text.default);
+  });
+
+  it('should handle custom length', () => {
+    const { getByText } = render(
+      <SensitiveText {...testProps} isHidden length="10" />,
+    );
+    expect(getByText('**********')).toBeTruthy();
+  });
+
+  it('should fall back to Short length for invalid custom length', () => {
+    const { getByText } = render(
+      <SensitiveText {...testProps} isHidden length="invalid" />,
+    );
+    expect(getByText('*******')).toBeTruthy();
+  });
+
+  it('should fall back to Short length for non-numeric custom length', () => {
+    const { getByText } = render(
+      <SensitiveText {...testProps} isHidden length="abc" />,
+    );
+    expect(getByText('*******')).toBeTruthy();
+  });
+
+  it('should log a warning for invalid custom length', () => {
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    render(<SensitiveText {...testProps} isHidden length="abc" />);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Invalid length provided: abc. Falling back to Short.',
+    );
+    consoleSpy.mockRestore();
   });
 });

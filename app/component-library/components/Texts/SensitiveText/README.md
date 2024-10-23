@@ -12,15 +12,15 @@ Boolean to determine whether the text should be hidden or visible.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | Yes                                                     | -                                                      |
+| boolean                                             | Yes                                                     | false                                                  |
 
 ### `length`
 
-Enum to determine the length of the hidden text (number of asterisks).
+Determines the length of the hidden text (number of asterisks). Can be a predefined SensitiveTextLength or a custom string number.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [SensitiveLengths](./SensitiveText.types.ts#L3)     | No                                                      | SensitiveLengths.Short                                 |
+| [SensitiveTextLengthType](./SensitiveText.types.ts#L14) \| [CustomLength](./SensitiveText.types.ts#L19) | No   | SensitiveTextLength.Short                              |
 
 ### `children`
 
@@ -33,17 +33,24 @@ The text content to be displayed or hidden.
 ## Usage
 
 ```javascript
-// Replace import with relative path.
 import SensitiveText from 'app/component-library/components/Texts/SensitiveText';
 import { TextVariant } from 'app/component-library/components/Texts/Text';
-import { SensitiveLengths } from 'app/component-library/components/Texts/SensitiveText/SensitiveText.types';
+import { SensitiveTextLength } from 'app/component-library/components/Texts/SensitiveText/SensitiveText.types';
 
 <SensitiveText
   isHidden={true}
-  length={SensitiveLengths.Medium}
+  length={SensitiveTextLength.Medium}
   variant={TextVariant.BodyMD}
 >
   Sensitive Information
+</SensitiveText>
+
+<SensitiveText
+  isHidden={true}
+  length="15"
+  variant={TextVariant.BodyMD}
+>
+  Custom Length Hidden Text
 </SensitiveText>
 ```
 
