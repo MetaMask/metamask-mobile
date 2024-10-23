@@ -32,7 +32,7 @@ const PaymentMethods = {
   DEBIT_OR_CREDIT: 'Debit or Credit',
   INSTANT_ACH_BANK_TRANSFER: 'Insant ACH Bank Transfer',
   ACH_BANK_TRANSFER: 'ACH Bank Transfer',
-}
+};
 
 describe(SmokeAssets('Off-Ramp'), () => {
   beforeAll(async () => {
@@ -67,7 +67,7 @@ describe(SmokeAssets('Off-Ramp'), () => {
     await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
     await SelectRegionView.tapContinueButton();
     await SelectPaymentMethodView.tapPaymentMethodOption(PaymentMethods.DEBIT_OR_CREDIT);
-    await SelectPaymentMethodView.tapContinueButton();    
+    await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });
