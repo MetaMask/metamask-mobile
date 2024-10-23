@@ -11,7 +11,6 @@ import {
   hexToBN,
   renderFiat,
   renderFromWei,
-  toHexadecimal,
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
@@ -27,7 +26,7 @@ const useBalance = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const rawAccountBalance = selectedAddress
-    ? accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance
+    ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';
 
   const balance = useMemo(
