@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React from 'react';
+import React, { ComponentProps } from 'react';
 
 // Internal dependencies.
 import { default as PickerNetworkComponent } from './PickerNetwork';
@@ -13,14 +13,16 @@ const PickerNetworkMeta = {
       control: { type: 'text' },
       defaultValue: SAMPLE_PICKERNETWORK_PROPS.label,
     },
+    hideNetworkName: {
+      control: { type: 'boolean' },
+      defaultValue: false,
+    },
   },
 };
 export default PickerNetworkMeta;
 
 export const PickerNetwork = {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (args: any) => (
+  render: (args: ComponentProps<typeof PickerNetworkComponent>) => (
     <PickerNetworkComponent
       {...args}
       imageSource={SAMPLE_PICKERNETWORK_PROPS.imageSource}
