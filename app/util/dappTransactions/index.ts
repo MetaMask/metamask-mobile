@@ -151,6 +151,7 @@ export const validateTokenAmount = async (
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
       );
+      console.error('FOO', { contractBalanceForAddress });
     } else {
       try {
         const { AssetsContractController } = Engine.context;
@@ -159,13 +160,16 @@ export const validateTokenAmount = async (
             selectedAsset.address,
             checksummedFrom,
           )).toString(16));
+          console.error('BAR', { contractBalanceForAddress });
       } catch (e) {
+        console.error('BARCATCH', { e });
         // Don't validate balance if error
       }
     }
     if (value && !isBN(value)) {
       return strings('transaction.invalid_amount');
     }
+    console.error('ZUP', { contractBalanceForAddress, value });
     if (contractBalanceForAddress && contractBalanceForAddress.lt(value)) {
       return strings('transaction.insufficient');
     }
