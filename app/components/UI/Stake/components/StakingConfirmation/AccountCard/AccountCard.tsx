@@ -11,14 +11,18 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
-import styleSheet from './AccountHeaderCard.styles';
+import styleSheet from './AccountCard.styles';
 import images from '../../../../../../images/image-icons';
 import AccountTag from '../AccountTag/AccountTag';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
-import { AccountHeaderCardProps } from './AccountHeaderCard.types';
+import { AccountCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
 
-const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
+const AccountHeaderCard = ({
+  contractName,
+  primaryLabel,
+  secondaryLabel,
+}: AccountCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const account = useSelector(selectSelectedInternalAccount);
@@ -30,7 +34,7 @@ const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
       <Card style={styles.cardGroupTop} disabled>
         {account && (
           <KeyValueRow
-            field={{ label: { text: strings('stake.staking_from') } }}
+            field={{ label: { text: primaryLabel } }}
             value={{
               label: (
                 <AccountTag
@@ -43,7 +47,7 @@ const AccountHeaderCard = ({ contractName }: AccountHeaderCardProps) => {
         )}
         <KeyValueRow
           field={{
-            label: { text: strings('stake.interacting_with') },
+            label: { text: secondaryLabel },
           }}
           value={{
             label: <ContractTag contractName={contractName} />,
