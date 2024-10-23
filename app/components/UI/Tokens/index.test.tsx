@@ -18,6 +18,17 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
     },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
   },
 }));
 
@@ -104,6 +115,20 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../UI/Stake/constants', () => ({
+  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isEligible: false,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  })),
+}));
 
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
@@ -232,16 +257,19 @@ describe('Tokens', () => {
 
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
-  it('navigates to Portfolio Stake url when stake button is pressed', () => {
+
+  it('navigates to Stake Input screen when stake button is pressed and user is not eligible', async () => {
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        params: {
+          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+          timestamp: 123,
+        },
+        screen: Routes.BROWSER.VIEW,
+      });
     });
   });
 });
