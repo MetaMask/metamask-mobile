@@ -1,4 +1,5 @@
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
+import BN5 from 'bnjs5';
 
 import {
   addCurrencySymbol,
@@ -39,7 +40,7 @@ import {
 
 describe('Number utils :: BNToHex', () => {
   it('BNToHex', () => {
-    expect(BNToHex(new BN('1337'))).toEqual('0x539');
+    expect(BNToHex(new BN5('1337'))).toEqual('0x539');
   });
 });
 
@@ -53,7 +54,7 @@ describe('Number utils :: fromWei', () => {
   });
 
   it('fromWei using BN number', () => {
-    expect(fromWei(new BN('1337'))).toEqual('0.000000000000001337');
+    expect(fromWei(new BN4('1337'))).toEqual('0.000000000000001337');
   });
 });
 
@@ -87,19 +88,19 @@ describe('Number utils :: toWei', () => {
     expect(() => toWei('1.337e-15')).toThrow(Error);
   });
 
-  // bn.js do not support decimals, so tests here only cover integers
+  // bnjs4 do not support decimals, so tests here only cover integers
   it('toWei using BN number', () => {
-    expect(toWei(new BN(1337)).toString()).toEqual('1337000000000000000000');
+    expect(toWei(new BN4(1337)).toString()).toEqual('1337000000000000000000');
 
     // Tests for expected limitations of BN.js
 
     // BN.js do not support decimals
-    expect(toWei(new BN(1.337e-15)).toString()).toEqual('0');
+    expect(toWei(new BN4(1.337e-15)).toString()).toEqual('0');
     // BN.js do not support such big numbers
-    expect(() => toWei(new BN(1.337e18))).toThrow(Error);
-    expect(() => toWei(new BN(1337000000000000000))).toThrow(Error);
+    expect(() => toWei(new BN4(1.337e18))).toThrow(Error);
+    expect(() => toWei(new BN4(1337000000000000000))).toThrow(Error);
     // For some reason this returns 8338418000000000000000000 wei
-    expect(toWei(new BN('1.337e18'))).not.toEqual(
+    expect(toWei(new BN4('1.337e18'))).not.toEqual(
       '1337000000000000000000000000000000000',
     );
   });
@@ -119,9 +120,9 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
   });
 
   it('fromTokenMinimalUnit using BN number', () => {
-    expect(fromTokenMinimalUnit(new BN('1337'), 6)).toEqual('0.001337');
-    expect(fromTokenMinimalUnit(new BN('1337'), 0)).toEqual('1337');
-    expect(fromTokenMinimalUnit(new BN('1337'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('1337'), 6)).toEqual('0.001337');
+    expect(fromTokenMinimalUnit(new BN4('1337'), 0)).toEqual('1337');
+    expect(fromTokenMinimalUnit(new BN4('1337'), 18)).toEqual(
       '0.000000000000001337',
     );
   });
@@ -134,24 +135,24 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
   });
 
   it('rounds number by default', () => {
-    expect(fromTokenMinimalUnit(new BN('1000000000000000000'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('1000000000000000000'), 18)).toEqual(
       '1',
     );
-    expect(fromTokenMinimalUnit(new BN('10000000000000000000'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('10000000000000000000'), 18)).toEqual(
       '10',
     );
-    expect(fromTokenMinimalUnit(new BN('100000000000000000000'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('100000000000000000000'), 18)).toEqual(
       '100',
     );
-    expect(fromTokenMinimalUnit(new BN('1000000000000000000000'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('1000000000000000000000'), 18)).toEqual(
       '1000',
     );
-    expect(fromTokenMinimalUnit(new BN('10000000000000000000000'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('10000000000000000000000'), 18)).toEqual(
       '10000',
     );
 
     // test decimal greater than 30,000
-    expect(fromTokenMinimalUnit(new BN('50000000000000000000000'), 18)).toEqual(
+    expect(fromTokenMinimalUnit(new BN4('50000000000000000000000'), 18)).toEqual(
       '49999.999999999995805696',
     );
 
@@ -163,24 +164,24 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
 
   it('does not round number if isRounding is false', () => {
     expect(
-      fromTokenMinimalUnit(new BN('1000000000000000000'), 18, false),
+      fromTokenMinimalUnit(new BN4('1000000000000000000'), 18, false),
     ).toEqual('1');
     expect(
-      fromTokenMinimalUnit(new BN('10000000000000000000'), 18, false),
+      fromTokenMinimalUnit(new BN4('10000000000000000000'), 18, false),
     ).toEqual('10');
     expect(
-      fromTokenMinimalUnit(new BN('100000000000000000000'), 18, false),
+      fromTokenMinimalUnit(new BN4('100000000000000000000'), 18, false),
     ).toEqual('100');
     expect(
-      fromTokenMinimalUnit(new BN('1000000000000000000000'), 18, false),
+      fromTokenMinimalUnit(new BN4('1000000000000000000000'), 18, false),
     ).toEqual('1000');
     expect(
-      fromTokenMinimalUnit(new BN('10000000000000000000000'), 18, false),
+      fromTokenMinimalUnit(new BN4('10000000000000000000000'), 18, false),
     ).toEqual('10000');
 
     // test decimal greater than 30,000
     expect(
-      fromTokenMinimalUnit(new BN('50000000000000000000000'), 18, false),
+      fromTokenMinimalUnit(new BN4('50000000000000000000000'), 18, false),
     ).toEqual('50000');
 
     // test decimal less than 1e-14
@@ -281,67 +282,67 @@ describe('Number utils :: fromTokenMinimalUnitString', () => {
   });
 
   it('fromTokenMinimalUnitString using BN number', () => {
-    expect(fromTokenMinimalUnitString(new BN('1337').toString(10), 6)).toEqual(
+    expect(fromTokenMinimalUnitString(new BN4('1337').toString(10), 6)).toEqual(
       '0.001337',
     );
-    expect(fromTokenMinimalUnitString(new BN('1337').toString(10), 0)).toEqual(
+    expect(fromTokenMinimalUnitString(new BN4('1337').toString(10), 0)).toEqual(
       '1337',
     );
-    expect(fromTokenMinimalUnitString(new BN('1337').toString(10), 18)).toEqual(
+    expect(fromTokenMinimalUnitString(new BN4('1337').toString(10), 18)).toEqual(
       '0.000000000000001337',
     );
-    expect(fromTokenMinimalUnitString(new BN('123456').toString(), 5)).toEqual(
+    expect(fromTokenMinimalUnitString(new BN4('123456').toString(), 5)).toEqual(
       '1.23456',
     );
-    expect(fromTokenMinimalUnitString(new BN('123456').toString(), 5)).toEqual(
+    expect(fromTokenMinimalUnitString(new BN4('123456').toString(), 5)).toEqual(
       '1.23456',
     );
     expect(
-      fromTokenMinimalUnitString(new BN('1234560000000000000').toString(), 18),
+      fromTokenMinimalUnitString(new BN4('1234560000000000000').toString(), 18),
     ).toEqual('1.23456');
     expect(
-      fromTokenMinimalUnitString(new BN('1000000000000000000').toString(), 18),
+      fromTokenMinimalUnitString(new BN4('1000000000000000000').toString(), 18),
     ).toEqual('1');
-    expect(fromTokenMinimalUnitString(new BN('1').toString(), 18)).toEqual(
+    expect(fromTokenMinimalUnitString(new BN4('1').toString(), 18)).toEqual(
       '0.000000000000000001',
     );
-    expect(fromTokenMinimalUnitString(new BN('0').toString(), 18)).toEqual('0');
+    expect(fromTokenMinimalUnitString(new BN4('0').toString(), 18)).toEqual('0');
     expect(
-      fromTokenMinimalUnitString(new BN('123456789').toString(), 5),
+      fromTokenMinimalUnitString(new BN4('123456789').toString(), 5),
     ).toEqual('1234.56789');
     expect(
       fromTokenMinimalUnitString(
-        new BN('1234567890000000000987654321').toString(),
+        new BN4('1234567890000000000987654321').toString(),
         18,
       ),
     ).toEqual('1234567890.000000000987654321');
     expect(
       fromTokenMinimalUnitString(
-        new BN('10000000000000000000000000000001').toString(),
+        new BN4('10000000000000000000000000000001').toString(),
         18,
       ),
     ).toEqual('10000000000000.000000000000000001');
     expect(
       fromTokenMinimalUnitString(
-        new BN('10000000000000000000000000000000').toString(),
+        new BN4('10000000000000000000000000000000').toString(),
         18,
       ),
     ).toEqual('10000000000000');
     expect(
-      fromTokenMinimalUnitString(new BN('3900229504248293869').toString(), 18),
+      fromTokenMinimalUnitString(new BN4('3900229504248293869').toString(), 18),
     ).toEqual('3.900229504248293869');
     expect(
       fromTokenMinimalUnitString(
-        new BN('92836465327282987373728723').toString(),
+        new BN4('92836465327282987373728723').toString(),
         18,
       ),
     ).toEqual('92836465.327282987373728723');
     expect(
-      fromTokenMinimalUnitString(new BN('6123512631253').toString(), 16),
+      fromTokenMinimalUnitString(new BN4('6123512631253').toString(), 16),
     ).toEqual('0.0006123512631253');
     expect(
       fromTokenMinimalUnitString(
-        new BN('92836465327282987373728723').toString(),
+        new BN4('92836465327282987373728723').toString(),
         0,
       ),
     ).toEqual('92836465327282987373728723');
@@ -350,20 +351,20 @@ describe('Number utils :: fromTokenMinimalUnitString', () => {
 
 describe('Number utils :: toTokenMinimalUnit', () => {
   it('toTokenMinimalUnit using number', () => {
-    expect(toTokenMinimalUnit(1337, 6)).toEqual(new BN('1337000000', 10));
-    expect(toTokenMinimalUnit(1337, 0)).toEqual(new BN('1337'));
-    expect(toTokenMinimalUnit(1337.1, 1)).toEqual(new BN('13371'));
+    expect(toTokenMinimalUnit(1337, 6)).toEqual(new BN4('1337000000', 10));
+    expect(toTokenMinimalUnit(1337, 0)).toEqual(new BN4('1337'));
+    expect(toTokenMinimalUnit(1337.1, 1)).toEqual(new BN4('13371'));
   });
 
   it('toTokenMinimalUnit using string', () => {
-    expect(toTokenMinimalUnit('1337', 6)).toEqual(new BN('1337000000'));
-    expect(toTokenMinimalUnit('1337', 0)).toEqual(new BN('1337'));
-    expect(toTokenMinimalUnit('1337.1', 2)).toEqual(new BN('133710'));
+    expect(toTokenMinimalUnit('1337', 6)).toEqual(new BN4('1337000000'));
+    expect(toTokenMinimalUnit('1337', 0)).toEqual(new BN4('1337'));
+    expect(toTokenMinimalUnit('1337.1', 2)).toEqual(new BN4('133710'));
   });
 
   it('toTokenMinimalUnit using BN number', () => {
-    expect(toTokenMinimalUnit(new BN('1337'), 0)).toEqual(new BN('1337'));
-    expect(toTokenMinimalUnit(new BN('1337'), 6)).toEqual(new BN('1337000000'));
+    expect(toTokenMinimalUnit(new BN4('1337'), 0)).toEqual(new BN4('1337'));
+    expect(toTokenMinimalUnit(new BN4('1337'), 6)).toEqual(new BN4('1337000000'));
   });
 
   it('toTokenMinimalUnit using invalid inputs', () => {
@@ -389,10 +390,10 @@ describe('Number utils :: renderFromTokenMinimalUnit', () => {
   });
 
   it('renderFromTokenMinimalUnit using BN number', () => {
-    expect(renderFromTokenMinimalUnit(new BN('1337'), 0)).toEqual('1337');
-    expect(renderFromTokenMinimalUnit(new BN('1337'), 6)).toEqual('0.00134');
-    expect(renderFromTokenMinimalUnit(new BN('1337'), 10)).toEqual('< 0.00001');
-    expect(renderFromTokenMinimalUnit(new BN('0'), 10)).toEqual('0');
+    expect(renderFromTokenMinimalUnit(new BN4('1337'), 0)).toEqual('1337');
+    expect(renderFromTokenMinimalUnit(new BN4('1337'), 6)).toEqual('0.00134');
+    expect(renderFromTokenMinimalUnit(new BN4('1337'), 10)).toEqual('< 0.00001');
+    expect(renderFromTokenMinimalUnit(new BN4('0'), 10)).toEqual('0');
   });
 });
 
@@ -410,9 +411,9 @@ describe('Number utils :: renderFromWei', () => {
   });
 
   it('renderFromWei using BN number', () => {
-    expect(renderFromWei(new BN('133700000000000000'))).toEqual('0.1337');
-    expect(renderFromWei(new BN('1337'))).toEqual('< 0.00001');
-    expect(renderFromWei(new BN('0'))).toEqual('0');
+    expect(renderFromWei(new BN4('133700000000000000'))).toEqual('0.1337');
+    expect(renderFromWei(new BN4('1337'))).toEqual('< 0.00001');
+    expect(renderFromWei(new BN4('0'))).toEqual('0');
   });
 });
 
@@ -478,9 +479,9 @@ describe('Number utils :: localizeLargeNumber', () => {
 
 describe('Number utils :: calcTokenValueToSend', () => {
   it('calcTokenValueToSend', () => {
-    expect(calcTokenValueToSend(new BN(1337), 0)).toEqual('539');
-    expect(calcTokenValueToSend(new BN(1337), 9)).toEqual('1374b68fa00');
-    expect(calcTokenValueToSend(new BN(1337), 18)).toEqual(
+    expect(calcTokenValueToSend(new BN4(1337), 0)).toEqual('539');
+    expect(calcTokenValueToSend(new BN4(1337), 9)).toEqual('1374b68fa00');
+    expect(calcTokenValueToSend(new BN4(1337), 18)).toEqual(
       '487a9a304539440000',
     );
   });
@@ -491,7 +492,7 @@ describe('Number utils :: hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
   });
   it('should handle non string values', () => {
-    const newBN = new BN(1);
+    const newBN = new BN4(1);
     expect(hexToBN(newBN)).toBe(newBN);
   });
 });
@@ -500,7 +501,7 @@ describe('Number utils :: isBN', () => {
   it('isBN', () => {
     const notABN = '0x539';
     expect(isBN(notABN)).toEqual(false);
-    expect(isBN(new BN(1337))).toEqual(true);
+    expect(isBN(new BN4(1337))).toEqual(true);
   });
 });
 
@@ -697,7 +698,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('1650000007.7');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('1650000007');
+    const expected: any = new BN4('1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -710,7 +711,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN(1650000007.7);
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('1650000007');
+    const expected: any = new BN4('1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -723,7 +724,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('16500');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('16500');
+    const expected: any = new BN4('16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -736,7 +737,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN(16500);
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('16500');
+    const expected: any = new BN4('16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -749,7 +750,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('-1650000007.7');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('-1650000007');
+    const expected: any = new BN4('-1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -762,7 +763,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN(-1650000007.7);
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('-1650000007');
+    const expected: any = new BN4('-1650000007');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -775,7 +776,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('-16500');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('-16500');
+    const expected: any = new BN4('-16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -788,7 +789,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN(-16500);
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('-16500');
+    const expected: any = new BN4('-16500');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -801,7 +802,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('75BCD15');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('123456789');
+    const expected: any = new BN4('123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -814,7 +815,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('0x75BCD15');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('123456789');
+    const expected: any = new BN4('123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -827,7 +828,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('-75BCD15');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('-123456789');
+    const expected: any = new BN4('-123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -840,7 +841,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('-0x75BCD15');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('-123456789');
+    const expected: any = new BN4('-123456789');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -853,7 +854,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('0');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('0');
+    const expected: any = new BN4('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -866,7 +867,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('0x0');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('0');
+    const expected: any = new BN4('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -879,7 +880,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN('0xNaN');
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('0');
+    const expected: any = new BN4('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -892,7 +893,7 @@ describe('Number utils :: safeNumberToBN', () => {
     const result: any = safeNumberToBN(NaN);
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expected: any = new BN('0');
+    const expected: any = new BN4('0');
     expect(result.words[0]).toEqual(expected.words[0]);
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
@@ -1053,7 +1054,7 @@ describe('Number utils :: formatValueToMatchTokenDecimals', () => {
 
 describe('Number utils :: safeBNToHex', () => {
   it('returns hex string', () => {
-    expect(safeBNToHex(new BN('255'))).toBe('0xff');
+    expect(safeBNToHex(new BN4('255'))).toBe('0xff');
   });
 
   it.each([undefined, null])(

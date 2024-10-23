@@ -60,7 +60,6 @@ import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../../util/collectibles-transfer';
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
-import { BN } from 'ethereumjs-util';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../../UI/NetworkMainAssetLogo';
@@ -893,7 +892,7 @@ class Amount extends PureComponent {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
       const realMaxValue = balanceBN.sub(estimatedTotalGas);
       const maxValue =
-        balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
+        balanceBN.isZero() || realMaxValue.isNeg() ? hexToBN('0x0') : realMaxValue;
       if (internalPrimaryCurrencyIsCrypto) {
         input = fromWei(maxValue);
       } else {

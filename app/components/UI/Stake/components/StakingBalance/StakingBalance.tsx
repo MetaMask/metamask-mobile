@@ -24,7 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import bn from 'bignumber.js';
 import {
   CommonPercentageInputUnits,
@@ -82,8 +82,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       renderFromWei(
         claimableRequests.reduce(
           (acc, { claimedAssets }) =>
-            claimedAssets ? acc.add(new BN(claimedAssets)) : acc,
-          new BN(0),
+            claimedAssets ? acc.add(new BN4(claimedAssets)) : acc,
+          new BN4(0),
         ),
       ),
     [claimableRequests],
