@@ -8,6 +8,7 @@ import { BN } from 'ethereumjs-util';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
+import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -89,6 +90,31 @@ jest.mock('../../hooks/useBalance', () => ({
   }),
 }));
 
+const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+// Mock hooks
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useVaultData', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultData: mockVaultData,
+    loading: false,
+    error: null,
+    refreshVaultData: jest.fn(),
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
+  }),
+}));
+
 describe('StakeInputView', () => {
   it('render matches snapshot', () => {
     render(StakeInputView);
@@ -122,7 +148,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(screen.getByText('2'));
 
-      expect(screen.getByText('0.052 ETH')).toBeTruthy();
+      expect(screen.getByText('0.05 ETH')).toBeTruthy();
     });
   });
 

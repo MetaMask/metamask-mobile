@@ -989,7 +989,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  2.8%
+                  2.5%
                 </Text>
               </View>
             </View>
@@ -1100,7 +1100,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                     }
                   >
-                    $334.93
+                    $5000
                   </Text>
                   <Text
                     accessibilityRole="text"
@@ -1115,7 +1115,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                     }
                   >
-                    0.13 ETH
+                    2.5 ETH
                   </Text>
                 </View>
               </View>
@@ -1415,7 +1415,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             }
           }
         >
-          Confirm
+          Continue
         </Text>
       </TouchableOpacity>
     </View>

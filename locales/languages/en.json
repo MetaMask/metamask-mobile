@@ -951,7 +951,7 @@
     "data_collection_title": "Data collection for marketing",
     "data_collection_description": "We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).",
     "batch_balance_requests_title": "Batch account balance requests",
-    "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Get incoming transactions",
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -3313,6 +3313,7 @@
   },
   "stake": {
     "stake": "Stake",
+    "earn": "Earn",
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
     "staked_balance": "Staked balance",
@@ -3383,7 +3384,12 @@
     "terms_of_service": "Terms of service",
     "risk_disclosure": "Risk disclosure",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3458,6 +3464,10 @@
     "reward_frequency": {
       "title": "Reward frequency",
       "tooltip": "Your staked balance updates every 12 hours to account for new rewards."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {
