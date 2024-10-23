@@ -22,15 +22,18 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import usePooledStakes from '../../../../hooks/usePooledStakes';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
+  const { navigate } = navigation;
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const { refreshPooledStakes } = usePooledStakes();
 
   const handleStake = async () => {
     if (!activeAccount?.address) return;
@@ -51,19 +54,17 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       ({ transactionMeta }) => transactionMeta.id === transactionId,
     );
 
-    // Engine.controllerMessenger.subscribeOnceIf(
-    //   'TransactionController:transactionConfirmed',
-    //   () => {
-    // TODO: Call refreshPooledStakes();
-    // refreshPooledStakes();
-    //   },
-    //   (transactionMeta) => transactionMeta.id === transactionId,
-    // );
+    Engine.controllerMessenger.subscribeOnceIf(
+      'TransactionController:transactionConfirmed',
+      () => {
+        refreshPooledStakes();
+      },
+      (transactionMeta) => transactionMeta.id === transactionId,
+    );
   };
 
   const handleConfirmation = () => {
     if (action === FooterButtonGroupActions.STAKE) return handleStake();
-    // TODO: Add handler (STAKE-803)
   };
 
   return (
@@ -78,12 +79,14 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        onPress={() => navigate('Asset')}
+        onPress={() => {
+          navigation.goBack();
+        }}
       />
       <Button
         label={
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
-            {strings('stake.confirm')}
+            {strings('stake.continue')}
           </Text>
         }
         style={styles.button}
