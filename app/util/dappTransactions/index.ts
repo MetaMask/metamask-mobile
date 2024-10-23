@@ -146,7 +146,7 @@ export const validateTokenAmount = async (
     }
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
-    let contractBalanceForAddress: BN4 | undefined | number;
+    let contractBalanceForAddress: BN4 | undefined;
     if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
@@ -158,19 +158,17 @@ export const validateTokenAmount = async (
           (await AssetsContractController.getERC20BalanceOf(
             selectedAsset.address,
             checksummedFrom,
-          )).toString());
+          )).toString(16));
       } catch (e) {
         // Don't validate balance if error
       }
     }
-    if (value && !isBN(value)) return strings('transaction.invalid_amount');
-    const validateAssetAmount =
-      contractBalanceForAddress &&
-      lt(
-        contractBalanceForAddress as unknown as number,
-        value as unknown as number,
-      );
-    if (validateAssetAmount) return strings('transaction.insufficient');
+    if (value && !isBN(value)) {
+      return strings('transaction.invalid_amount');
+    }
+    if (contractBalanceForAddress && contractBalanceForAddress.lt(value)) {
+      return strings('transaction.insufficient');
+    }
   }
 };
 
