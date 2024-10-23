@@ -312,8 +312,9 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const name = useSelector(selectNetworkName);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);

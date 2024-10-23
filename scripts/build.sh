@@ -215,6 +215,7 @@ buildAndroidRun(){
 }
 
 buildAndroidRunQA(){
+	remapEnvVariableLocal
 	prebuild_android
 	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
@@ -551,6 +552,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+	remapEnvVariableLocal
   	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
