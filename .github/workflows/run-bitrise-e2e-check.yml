@@ -5,7 +5,6 @@ on:
     types: [edited, deleted]
   pull_request:
     types: [opened, reopened, labeled, unlabeled, synchronize]
-
 env:
   E2E_LABEL: 'Run Smoke E2E'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
