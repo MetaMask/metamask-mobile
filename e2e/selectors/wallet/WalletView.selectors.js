@@ -19,6 +19,7 @@ export const WalletViewSelectorsIDs = {
   ACCOUNT_NAME_LABEL_INPUT: 'account-label-text-input',
   ACCOUNT_NAME_LABEL_TEXT: 'account-label',
   TOKENS_CONTAINER: 'tokens',
+  TOKENS_CONTAINER_LIST: 'token-list',
   ACCOUNT_OVERVIEW: 'account-overview',
   ACCOUNT_ACTIONS: 'main-wallet-account-actions',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',

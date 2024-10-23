@@ -293,18 +293,25 @@ describe('Tokens', () => {
 
     // fireEvent.press(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER));
     // Simulate a scroll event
-    fireEvent.scroll(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER), {
-      nativeEvent: {
-        contentOffset: { y: 100 }, // Simulate scroll offset
-        contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
-        layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
+    fireEvent.scroll(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        nativeEvent: {
+          contentOffset: { y: 100 }, // Simulate scroll offset
+          contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
+          layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
+        },
       },
-    });
+    );
 
     // Simulate the refresh control being triggered
-    fireEvent(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER), 'refresh', {
-      refreshing: true,
-    });
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      {
+        refreshing: true,
+      },
+    );
 
     await waitFor(() => {
       expect(
