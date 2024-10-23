@@ -10,7 +10,6 @@ import { useTheme } from '../../../../../util/theme';
 import { TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
-  selectChainId,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -54,6 +53,7 @@ interface TokenListItemProps {
   showScamWarningModal: boolean;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
+  chainId: string;
 }
 
 export const TokenListItem = ({
@@ -61,13 +61,13 @@ export const TokenListItem = ({
   showScamWarningModal,
   showRemoveMenu,
   setShowScamWarningModal,
+  chainId,
 }: TokenListItemProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { data: tokenBalances } = useTokenBalancesController();
 
   const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -95,7 +95,7 @@ export const TokenListItem = ({
       currentCurrency,
     );
 
-  const pricePercentChange1d = itemAddress
+  const pricePercentChange1d = itemAddress?.startsWith('0x')
     ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
     : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
@@ -158,10 +158,12 @@ export const TokenListItem = ({
 
     if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-    if (CustomNetworkImgMapping[chainId]) {
+    const isValidChainId = (id: string): id is `0x${string}` =>
+      /^0x[0-9a-fA-F]+$/.test(id);
+
+    if (isValidChainId(chainId) && CustomNetworkImgMapping[chainId]) {
       return CustomNetworkImgMapping[chainId];
     }
-
     return ticker ? images[ticker] : undefined;
   };
 

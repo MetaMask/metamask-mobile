@@ -23,8 +23,8 @@ import {
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
 import { TokenI } from '../../types';
+import { useChainId } from '../../../../../selectors/hooks';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
@@ -46,8 +46,8 @@ export const TokenListFooter = ({
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const detectedTokens = useSelector(selectDetectedTokens);
+  const chainId = useChainId();
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const chainId = useSelector(selectChainId);
 
   const styles = createStyles(colors);
 

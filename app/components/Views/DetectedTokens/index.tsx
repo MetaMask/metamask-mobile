@@ -20,15 +20,13 @@ import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
-import {
-  selectChainId,
-  selectNetworkClientId,
-} from '../../../selectors/networkController';
+import { selectNetworkClientId } from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
+import { useChainId } from '../../../selectors/hooks';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,7 +77,7 @@ const DetectedTokens = () => {
   const { trackEvent } = useMetrics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
-  const chainId = useSelector(selectChainId);
+  const chainId = useChainId();
   const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},

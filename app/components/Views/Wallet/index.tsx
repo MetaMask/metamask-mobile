@@ -52,7 +52,6 @@ import {
   isMainNet,
 } from '../../../util/networks';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -106,6 +105,8 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
+import { useChainId } from '../../../selectors/hooks';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -180,6 +181,10 @@ const Wallet = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   /**
+   * Selected chain id (with potential support for per-dapp selected chain)
+   */
+  const chainId = useChainId();
+  /**
    * Object containing the balance of the current selected account
    */
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
@@ -216,7 +221,7 @@ const Wallet = ({
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-  const prevChainId = usePrevious(providerConfig.chainId);
+  const prevChainId = usePrevious(chainId);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -307,7 +312,6 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const chainId = useSelector(selectChainId);
   const name = useSelector(selectNetworkName);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
@@ -327,9 +331,9 @@ const Wallet = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
     trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: getDecimalChainId(chainId),
     });
-  }, [navigate, providerConfig.chainId, trackEvent]);
+  }, [navigate, chainId, trackEvent]);
 
   const isNetworkDuplicated = Object.values(networkConfigurations).some(
     (networkConfiguration) =>
@@ -339,7 +343,7 @@ const Wallet = ({
   );
 
   const checkNftAutoDetectionModal = useCallback(() => {
-    const isOnMainnet = isMainNet(providerConfig.chainId);
+    const isOnMainnet = isMainNet(chainId);
     if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
@@ -350,7 +354,7 @@ const Wallet = ({
     dispatch,
     isNFTAutoDetectionModalViewed,
     navigation,
-    providerConfig.chainId,
+    chainId,
     useNftDetection,
   ]);
 
@@ -383,14 +387,11 @@ const Wallet = ({
    */
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
-      providerConfig.chainId,
+      chainId,
       networkOnboardingState,
     );
 
-    if (
-      wizardStep > 0 ||
-      (!networkOnboarded && prevChainId !== providerConfig.chainId)
-    ) {
+    if (wizardStep > 0 || (!networkOnboarded && prevChainId !== chainId)) {
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
@@ -404,7 +405,7 @@ const Wallet = ({
         ).isZero();
         const shouldShowStxOptInModal =
           await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
+            chainId,
             providerConfig.rpcUrl,
             accountHasZeroBalance,
           );
@@ -427,7 +428,7 @@ const Wallet = ({
   }, [
     wizardStep,
     navigation,
-    providerConfig.chainId,
+    chainId,
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
@@ -443,7 +444,7 @@ const Wallet = ({
       });
     },
     /* eslint-disable-next-line */
-    [navigation, providerConfig.chainId],
+    [navigation, chainId],
   );
 
   useLayoutEffect(() => {
