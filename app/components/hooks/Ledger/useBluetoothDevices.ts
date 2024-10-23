@@ -21,7 +21,7 @@ export interface BluetoothInterface {
   close(): void;
 }
 
-export interface ObservableType {
+export interface ObservableEventType {
   type: string,
   descriptor: BluetoothDevice,
   deviceModel: never,
@@ -33,7 +33,7 @@ const useBluetoothDevices = (
 ) => {
   const [devices, setDevices] = useState<Record<string, BluetoothDevice>>({});
   const [deviceScanError, setDeviceScanError] = useState<boolean>(false);
-  const [event, setEvent] = useState<ObservableType>();
+  const [observableEvent, setObservableEvent] = useState<ObservableEventType>();
 
   // Initiate scanning and pairing if bluetooth is enabled
   useEffect(() => {
@@ -41,8 +41,8 @@ const useBluetoothDevices = (
 
     if (hasBluetoothPermissions && bluetoothOn) {
       subscription = new Observable(TransportBLE.listen).subscribe({
-        next: (e: ObservableType) => {
-          setEvent(e);
+        next: (e: ObservableEventType) => {
+          setObservableEvent(e);
         },
         error: (_error) => {
           setDeviceScanError(true);
@@ -60,12 +60,12 @@ const useBluetoothDevices = (
   }, [hasBluetoothPermissions, bluetoothOn]);
 
   useEffect(() =>{
-    if (event) {
-      if (event?.descriptor) {
-        const btDevice = event.descriptor;
+    if (observableEvent) {
+      if (observableEvent?.descriptor) {
+        const btDevice = observableEvent.descriptor;
         const deviceFound = devices[btDevice.id];
 
-        if (event.type === 'add' && !deviceFound) {
+        if (observableEvent.type === 'add' && !deviceFound) {
           setDevices((prevValues) => ({
               ...prevValues,
               [btDevice.id]: btDevice,
@@ -74,7 +74,7 @@ const useBluetoothDevices = (
         }
       }
     }
-  }, [event, devices]);
+  }, [observableEvent, devices]);
 
   return {
     deviceScanError,
