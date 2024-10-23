@@ -1305,7 +1305,7 @@ class Engine {
       const notificationServicesPushController =
       new NotificationServicesPushController.Controller({
         messenger: notificationServicesPushControllerMessenger,
-        state: initialState.NotificationServicesPushController,
+        state: initialState.NotificationServicesPushController || { fcmToken: '' },
         env: {
           apiKey: process.env.FIREBASE_API_KEY ?? '',
           authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
@@ -1320,8 +1320,8 @@ class Engine {
           isPushEnabled: true,
           platform: 'mobile',
           // TODO: Implement optionability for push notification handlers depending of the platform. Mobile uses native handlers based on the FCM/Notifee SDK.
-          onPushNotificationReceived: () => Promise.resolve(true),
-          onPushNotificationClicked: () => Promise.resolve(true),
+          onPushNotificationReceived: () => Promise.resolve(undefined),
+          onPushNotificationClicked: () => Promise.resolve(undefined),
         },
       });
     ///: END:ONLY_INCLUDE_IF
