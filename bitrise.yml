@@ -754,7 +754,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: E2E_Android_Failure_Screenshots
+            - zip_name: E2E_Android_Failure_Artifacts
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -1012,7 +1012,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Screenshots'
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
   start_e2e_tests:
     steps:
       - build-router-start@0:
