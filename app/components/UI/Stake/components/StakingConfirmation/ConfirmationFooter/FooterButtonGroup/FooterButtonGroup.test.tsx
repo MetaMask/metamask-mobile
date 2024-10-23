@@ -96,7 +96,7 @@ describe('FooterButtonGroup', () => {
 
     fireEvent.press(getByText(strings('stake.cancel')));
 
-    expect(mockGoBack).toHaveBeenCalledTimes(2);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
 
     expect(toJSON()).toMatchSnapshot();
   });

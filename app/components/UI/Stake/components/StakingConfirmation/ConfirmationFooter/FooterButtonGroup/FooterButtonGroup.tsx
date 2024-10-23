@@ -81,7 +81,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         size={ButtonSize.Lg}
         onPress={() => {
           navigation.goBack();
-          navigation.goBack();
         }}
       />
       <Button
