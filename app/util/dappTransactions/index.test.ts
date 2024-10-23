@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN from 'bnjs4';
 
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
