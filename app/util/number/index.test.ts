@@ -1,4 +1,4 @@
-import BN from 'bn.js';
+import BN from 'bnjs4';
 
 import {
   addCurrencySymbol,
@@ -87,7 +87,7 @@ describe('Number utils :: toWei', () => {
     expect(() => toWei('1.337e-15')).toThrow(Error);
   });
 
-  // bn.js do not support decimals, so tests here only cover integers
+  // bnjs4 do not support decimals, so tests here only cover integers
   it('toWei using BN number', () => {
     expect(toWei(new BN(1337)).toString()).toEqual('1337000000000000000000');
 

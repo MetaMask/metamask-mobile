@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type BN from 'bn.js';
+import type BN from 'bnjs4';
 import { useRampSDK } from '../sdk';
 import parseAmount from '../utils/parseAmount';
 import { toTokenMinimalUnit } from '../../../../util/number';

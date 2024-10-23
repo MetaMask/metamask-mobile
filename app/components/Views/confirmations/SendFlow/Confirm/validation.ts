@@ -4,7 +4,7 @@ import {
   decodeTransferData,
 } from '../../../../../util/transactions';
 import { strings } from '../../../../../../locales/i18n';
-import type BN from 'bn.js';
+import type BN from 'bnjs4';
 
 interface SelectedAsset {
   address: string;

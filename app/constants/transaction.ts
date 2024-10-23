@@ -1,4 +1,4 @@
-import BN from 'bn.js';
+import BN from 'bnjs4';
 
 // Transaction Status
 export const TX_UNAPPROVED = 'unapproved';

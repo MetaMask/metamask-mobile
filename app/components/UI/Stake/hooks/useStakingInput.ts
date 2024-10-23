@@ -1,4 +1,4 @@
-import BN from 'bn.js';
+import BN from 'bnjs4';
 import { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
