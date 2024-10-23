@@ -5,17 +5,13 @@ import { stripHexPrefix } from '@ethereumjs/util';
 import BN from 'bnjs4';
 import { utils as ethersUtils } from 'ethers';
 import convert from '@metamask/ethjs-unit';
-import {
-  BNToHex,
-  hexToBN as controllerHexToBN,
-} from '@metamask/controller-utils';
+import { add0x, remove0x } from '@metamask/utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
-export { BNToHex };
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -32,7 +28,19 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 export const hexToBN = (inputHex) =>
   typeof inputHex !== 'string'
     ? new BN(inputHex, 16)
-    : controllerHexToBN(inputHex);
+    : (inputHex ? new BN(remove0x(inputHex), 16) : new BN(0));
+
+/**
+ * Converts a BN object to a hex string with a '0x' prefix.
+ *
+ * @param inputBn - BN instance to convert to a hex string.
+ * @returns A '0x'-prefixed hex string.
+ */
+// TODO: Either fix this lint violation or explain why it's necessary to ignore.
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export function BNToHex(inputBn) {
+  return add0x(inputBn.toString(16));
+}
 
 // Setter Maps
 const toBigNumber = {
