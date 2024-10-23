@@ -4642,6 +4642,18 @@
     ethereum-cryptography "^2.1.2"
     tweetnacl "^1.0.3"
 
+"@metamask/eth-sig-util@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-8.0.0.tgz#6310d93cd1101cab3cc6bc2a1ff526290ed2695b"
+  integrity sha512-IwE6aoxUL39IhmsAgE4nk+OZbNo+ThFZRNsUjE1pjdEa4MFpWzm1Rue4zJ5DMy1oUyZBi/aiCLMhdMnjl2bh2Q==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/abi-utils" "^2.0.4"
+    "@metamask/utils" "^9.0.0"
+    "@scure/base" "~1.1.3"
+    ethereum-cryptography "^2.1.2"
+    tweetnacl "^1.0.3"
+
 "@metamask/eth-simple-keyring@^6.0.5":
   version "6.0.5"
   resolved "https://registry.yarnpkg.com/@metamask/eth-simple-keyring/-/eth-simple-keyring-6.0.5.tgz#3e2f783092f9d873740e43852880216192802290"
@@ -5324,14 +5336,14 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@npm:@metamask-previews/signature-controller@20.0.0-preview-557a8fcb":
-  version "20.0.0-preview-557a8fcb"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/signature-controller/-/signature-controller-20.0.0-preview-557a8fcb.tgz#9990edf2ec70fd792419e44f4faac8f75a04e6bd"
-  integrity sha512-eVjhilEBuPPn5ewCj6hHpNbn0Ksah2w7pKeaucsTdxM2YTtlEoPFFuCAveydtsqUS/WgHf0RidHSHpNtIXyc7g==
+"@metamask/signature-controller@^20.1.0":
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-20.1.0.tgz#b2ab41ec6eb191f9b21a74bf636d2b8e34d590e0"
+  integrity sha512-29pYdr9Q5YB5tGrYLEkpCh3l41W5Otg87cQ+cRf7Je0xGo34VdrIHNv6MJQcEgng5qTmR0tG3Hq23nPyZo8rSw==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
     "@metamask/controller-utils" "^11.3.0"
-    "@metamask/eth-sig-util" "^7.0.1"
+    "@metamask/eth-sig-util" "^8.0.0"
     "@metamask/utils" "^9.1.0"
     jsonschema "^1.2.4"
     lodash "^4.17.21"
