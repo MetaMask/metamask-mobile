@@ -119,7 +119,13 @@ const createStoreAndPersistor = async () => {
 };
 
 (async () => {
-  await createStoreAndPersistor();
+  await trace(
+    {
+      name: TraceName.UIStartup,
+      op: TraceOperation.UIStartup,
+    },
+    async () => await createStoreAndPersistor(),
+  );
 })();
 
 export { store, persistor };
