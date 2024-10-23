@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -12,6 +12,16 @@ import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+
+jest.mock('../../../core/NotificationManager', () => ({
+  showSimpleNotification: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock the createTokensBottomSheetNavDetails function with an implementation
+jest.mock('./TokensBottomSheet', () => ({
+  createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
@@ -288,7 +298,7 @@ describe('Tokens', () => {
     });
   });
 
-  it.only('should refresh tokens and call necessary controllers', async () => {
+  it('should refresh tokens and call necessary controllers', async () => {
     const { getByTestId } = renderComponent(initialState);
 
     // fireEvent.press(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER));
@@ -326,6 +336,16 @@ describe('Tokens', () => {
       expect(
         Engine.context.TokenRatesController.updateExchangeRates,
       ).toHaveBeenCalled();
+    });
+  });
+
+  it('triggers bottom sheet when sort controls are pressed', async () => {
+    const { getByText, findByText } = renderComponent(initialState);
+
+    await fireEvent.press(getByText('Sort by')); // Long press to trigger remove
+
+    await waitFor(() => {
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
     });
   });
 });
