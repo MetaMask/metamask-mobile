@@ -360,8 +360,8 @@ enum EVENT_NAME {
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
   // Transactions
-// Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).  
-TRANSACTION_FINALIZED = 'Transaction Finalized',  
+  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
+  TRANSACTION_FINALIZED = 'Transaction Finalized',
 
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
@@ -848,9 +848,7 @@ const events = {
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
   // Transactions
-  TRANSACTION_FINALIZED: generateOpt(
-    EVENT_NAME.TRANSACTION_FINALIZED,
-  ),
+  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,

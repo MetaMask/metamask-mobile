@@ -254,6 +254,8 @@ import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../util/smart-transactions';
 import { trace } from '../util/trace';
+import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import { JsonMap } from './Analytics/MetaMetrics.types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1401,13 +1403,12 @@ class Engine {
       },
     ) => {
       MetaMetrics.getInstance().trackEvent(
-        {
+        MetricsEventBuilder.createEventBuilder({
           category: params.event,
-        },
-        {
-          properties: params.properties,
-          sensitiveProperties: params.sensitiveProperties,
-        },
+        })
+          .addProperties(params.properties || {})
+          .addSensitiveProperties(params.sensitiveProperties || {})
+          .build(),
       );
     };
     this.smartTransactionsController = new SmartTransactionsController({
@@ -1745,7 +1746,6 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
-    this.transactionController.clearUnapprovedTransactions();
     this._addTransactionControllerListeners();
 
     Engine.instance = this;
@@ -1754,7 +1754,7 @@ class Engine {
   // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
   _handleTransactionFinalizedEvent = async (
     transactionEventPayload: TransactionEventPayload,
-    properties: object,
+    properties: JsonMap,
   ) => {
     const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
       store.getState(),
@@ -1764,8 +1764,11 @@ class Engine {
       !transactionEventPayload.transactionMeta
     ) {
       MetaMetrics.getInstance().trackEvent(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-        { ...properties },
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TRANSACTION_FINALIZED,
+        )
+          .addProperties(properties)
+          .build(),
       );
       return;
     }
@@ -1780,11 +1783,12 @@ class Engine {
         this.controllerMessenger,
       );
     MetaMetrics.getInstance().trackEvent(
-      MetaMetricsEvents.TRANSACTION_FINALIZED,
-      {
-        ...smartTransactionMetricsProperties,
-        ...properties,
-      },
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties(smartTransactionMetricsProperties)
+        .addProperties(properties)
+        .build(),
     );
   };
 
