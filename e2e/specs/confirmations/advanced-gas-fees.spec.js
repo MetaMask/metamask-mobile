@@ -14,20 +14,42 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
-import { AmountViewSelectorsText } from '../../selectors/SendFlow/AmountView.selectors';
+import {
+  startMockServer,
+  stopMockServer
+} from '../../mockServer/mockServer';
+import { urls } from '../../mockServer/mockUrlCollection.json';
+import responseBody from '../../mockServer/data/suggestedGasApiGanacheResponseBody.json';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
+  let mockServer;
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
+
+    mockServer = await startMockServer({ // Configure mock server
+      mockUrl: urls.suggestedGasApiGanache,
+      responseCode: 200,
+      responseBody
+    });
+
+  });
+
+  afterAll(async () => {
+    try {
+      await stopMockServer();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('Mock server already stopped or encountered an error:', error);
+    }
   });
 
   it('should edit priority gas settings and send ETH', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withSepoliaNetwork().build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
       },
@@ -46,9 +68,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();
         // Check that we are on the amount view
-        await Assertions.checkIfTextIsDisplayed(
-          AmountViewSelectorsText.SCREEN_TITLE,
-        );
+        await Assertions.checkIfVisible(AmountView.title);
 
         // Input acceptable value
         await AmountView.typeInTransactionAmount('0.00004');

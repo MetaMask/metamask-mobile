@@ -57,7 +57,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.tapRpcDropDownButton();
     await NetworkView.tapAddRpcButton();
 
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(200);
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
@@ -65,19 +65,21 @@ describe(Regression('Custom RPC Tests'), () => {
 
     await NetworkView.tapAddRpcButton();
 
-    await NetworkView.typeInChainId(
-      CustomNetworks.Gnosis.providerConfig.chainId,
-    );
-    await NetworkView.tapChainIDLabel(); // Focus outside of text input field
     await NetworkView.typeInNetworkSymbol(
       `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
     );
 
+    await NetworkView.typeInChainId(
+      CustomNetworks.Gnosis.providerConfig.chainId,
+    );
+
+    await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+
     if (device.getPlatform() === 'ios') {
       await NetworkView.tapChainIDLabel(); // Focus outside of text input field
       await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-      await NetworkView.tapRpcNetworkAddButton();
     }
+    await NetworkView.tapRpcNetworkAddButton();
   });
 
   it('should switch to Gnosis network', async () => {
@@ -176,8 +178,7 @@ describe(Regression('Custom RPC Tests'), () => {
     }
 
     // delete Gnosis network
-    const deleteButton = Matchers.getElementByID('delete-network-button-0x64');
-    await Gestures.waitAndTap(deleteButton);
+    await NetworkListModal.deleteNetwork();
 
     await TestHelpers.delay(200);
 

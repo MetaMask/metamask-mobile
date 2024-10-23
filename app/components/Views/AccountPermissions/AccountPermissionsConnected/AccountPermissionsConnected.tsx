@@ -181,7 +181,7 @@ const AccountPermissionsConnected = ({
         )}
         {!isMultichainVersion1Enabled && (
           <PickerNetwork
-            label={networkName}
+            label={providerConfig?.nickname || networkName}
             imageSource={networkImageSource}
             onPress={switchNetwork}
             style={styles.networkPicker}

@@ -1,10 +1,17 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { AmountViewSelectorsIDs } from '../../selectors/SendFlow/AmountView.selectors';
+import {
+  AmountViewSelectorsIDs,
+  AmountViewSelectorsText
+} from '../../selectors/SendFlow/AmountView.selectors';
 
 class AmountView {
   get currencySwitch() {
     return Matchers.getElementByID(AmountViewSelectorsIDs.CURRENCY_SWITCH);
+  }
+
+  get title() {
+    return Matchers.getElementByText(AmountViewSelectorsText.SCREEN_TITLE);
   }
 
   get nextButton() {
