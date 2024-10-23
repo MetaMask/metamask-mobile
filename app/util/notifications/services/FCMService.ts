@@ -1,9 +1,8 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Logger from '../../../util/Logger';
-import NotificationService from './NotificationService';
-import { ChannelId } from '../../../util/notifications/androidChannels';
 import { mmStorage } from '../settings';
-import { strings } from '../../../../locales/i18n';
+import NotificationManager from '../../../core/NotificationManager';
+import { parseNotification } from '../methods';
 
 type UnsubscribeFunc = () => void
 
@@ -27,7 +26,7 @@ class FCMService {
       ) {
         const fcmToken = await messaging().getToken();
         if (fcmToken) {
-          mmStorage.saveLocal('metaMaskFcmToken', fcmToken);
+          mmStorage.saveLocal('metaMaskFcmToken', { data: fcmToken });
         }
       }
     } catch (error) {
@@ -37,27 +36,18 @@ class FCMService {
 
   registerTokenRefreshListener = () =>
     messaging().onTokenRefresh((fcmToken: string) => {
-      mmStorage.saveLocal('metaMaskFcmToken', fcmToken);
+      mmStorage.saveLocal('metaMaskFcmToken', { data: fcmToken });
   });
 
   listenForMessagesForeground = (): UnsubscribeFunc => messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-    Logger.log('A new FCM message arrived in foreground', remoteMessage);
-      await NotificationService.displayNotification({
-        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
-        title: remoteMessage.notification?.title || strings('notifications.default_message_title'),
-        body: remoteMessage.notification?.body || strings('notifications.default_message_description'),
-      });
-    });
+    const notificationData = parseNotification(remoteMessage);
+    NotificationManager.onMessageReceived(notificationData);
+  });
 
   listenForMessagesBackground = (): void => {
     messaging().setBackgroundMessageHandler(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-      Logger.log('A new FCM message arrived in background', remoteMessage);
-
-      await NotificationService.displayNotification({
-        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
-        title: remoteMessage.notification?.title || strings('notifications.default_message_title'),
-        body: remoteMessage.notification?.body || strings('notifications.default_message_description'),
-      });
+      const notificationData = parseNotification(remoteMessage);
+      NotificationManager.onMessageReceived(notificationData);
     });
   };
 

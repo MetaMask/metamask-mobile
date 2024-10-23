@@ -29,7 +29,7 @@ describe('FCMService', () => {
 
   it('gets FCM token', async () => {
     const mockToken = 'test-token';
-    (mmStorage.getLocal as jest.Mock).mockResolvedValue(mockToken);
+    (mmStorage.getLocal as jest.Mock).mockResolvedValue({ data: mockToken });
 
     const token = await FCMService.getFCMToken();
     expect(token).toBe(mockToken);
@@ -37,7 +37,7 @@ describe('FCMService', () => {
 
   it('gets Logged if FCM token is not found', async () => {
     const mockToken = undefined;
-    (mmStorage.getLocal as jest.Mock).mockResolvedValue(mockToken);
+    (mmStorage.getLocal as jest.Mock).mockResolvedValue({ data: mockToken });
 
     await FCMService.getFCMToken();
     expect(Logger.log).toHaveBeenCalledWith('getFCMToken: No FCM token found');
@@ -46,10 +46,10 @@ describe('FCMService', () => {
   it('saves FCM token', async () => {
     const mockToken = 'fcmToken';
     (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus.PROVISIONAL);
-    (messaging().getToken as jest.Mock).mockResolvedValue(mockToken);
+    (messaging().getToken as jest.Mock).mockResolvedValue({ data: mockToken });
 
     await FCMService.saveFCMToken();
-    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', mockToken);
+    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', { data: mockToken });
   });
 
   it('saves FCM token if permissionStatus === messaging.AuthorizationStatus.AUTHORIZED', async () => {
@@ -58,6 +58,6 @@ describe('FCMService', () => {
     (messaging().getToken as jest.Mock).mockResolvedValue(mockToken);
 
     await FCMService.saveFCMToken();
-    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', mockToken);
+    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', { data: mockToken });
   });
 });
