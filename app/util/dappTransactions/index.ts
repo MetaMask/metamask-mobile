@@ -1,3 +1,4 @@
+import { remove0x } from '@metamask/utils';
 import { isBN, hexToBN } from '../number';
 import { safeToChecksumAddress } from '../address';
 import Engine from '../../core/Engine';
@@ -5,7 +6,6 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
 import BN4 from 'bnjs4';
-import { lt } from '../lodash';
 import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 
 interface opts {
@@ -115,6 +115,32 @@ interface ContractBalances {
   [key: string]: string;
 }
 
+const getTokenBalance = async (
+  from: string,
+  selectedAsset: SelectedAsset,
+  selectedAddress: string,
+  contractBalances: ContractBalances,
+): Promise<BN4 | undefined> => {
+  const checksummedFrom = safeToChecksumAddress(from) || '';
+  if (selectedAddress === from && contractBalances[selectedAsset.address]) {
+    return hexToBN(
+      remove0x(contractBalances[selectedAsset.address].toString()),
+    );
+  }
+  try {
+    const { AssetsContractController } = Engine.context;
+    // TODO: Roundtrip string conversion can be removed when bn.js v4 is superseded with v5
+    const contractBalanceForAddress = await AssetsContractController.getERC20BalanceOf(
+        selectedAsset.address,
+        checksummedFrom,
+      );
+    const contractBalanceForAddressBN = hexToBN(contractBalanceForAddress.toString(16));
+    return contractBalanceForAddressBN;
+  } catch (e) {
+    // Don't validate balance if error
+  }
+}
+
 /**
  * Validates asset (ERC20) transaction amount
  *
@@ -131,7 +157,6 @@ export const validateTokenAmount = async (
   allowEmpty = true,
 ): Promise<string | undefined> => {
   if (!allowEmpty) {
-    const checksummedFrom = safeToChecksumAddress(from) || '';
 
     if (!value) {
       return strings('transaction.invalid_amount');
@@ -144,33 +169,15 @@ export const validateTokenAmount = async (
     if (!from) {
       return strings('transaction.invalid_from_address');
     }
-    // If user trying to send a token that doesn't own, validate balance querying contract
-    // If it fails, skip validation
-    let contractBalanceForAddress: BN4 | undefined | number;
-    if (selectedAddress === from && contractBalances[selectedAsset.address]) {
-      contractBalanceForAddress = hexToBN(
-        contractBalances[selectedAsset.address].toString(),
-      );
-    } else {
-      try {
-        const { AssetsContractController } = Engine.context;
-        contractBalanceForAddress = new BN4(
-          (await AssetsContractController.getERC20BalanceOf(
-            selectedAsset.address,
-            checksummedFrom,
-          )).toString());
-      } catch (e) {
-        // Don't validate balance if error
-      }
+
+    if (value && !isBN(value)) {
+      return strings('transaction.invalid_amount');
     }
-    if (value && !isBN(value)) return strings('transaction.invalid_amount');
-    const validateAssetAmount =
-      contractBalanceForAddress &&
-      lt(
-        contractBalanceForAddress as unknown as number,
-        value as unknown as number,
-      );
-    if (validateAssetAmount) return strings('transaction.insufficient');
+
+    const contractBalanceForAddress = await getTokenBalance(from, selectedAsset, selectedAddress, contractBalances);
+    if (contractBalanceForAddress?.lt(value)) {
+      return strings('transaction.insufficient');
+    }
   }
 };
 
