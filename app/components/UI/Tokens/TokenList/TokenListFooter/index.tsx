@@ -25,6 +25,7 @@ import {
 import { getDecimalChainId } from '../../../../../util/networks';
 import { TokenI } from '../../types';
 import { useChainId } from '../../../../../selectors/hooks';
+import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
@@ -46,6 +47,7 @@ export const TokenListFooter = ({
 
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useChainId();
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 
   const styles = createStyles(colors);
 
@@ -68,7 +70,7 @@ export const TokenListFooter = ({
   return (
     <>
       {/* renderTokensDetectedSection */}
-      {detectedTokens && (
+      {detectedTokens?.length !== 0 && isTokenDetectionEnabled && (
         <TouchableOpacity
           style={styles.tokensDetectedButton}
           onPress={showDetectedTokens}
