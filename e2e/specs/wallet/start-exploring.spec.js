@@ -15,7 +15,6 @@ import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
 const PASSWORD = '12345678';
-// test test test
 describe(SmokeCore('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
