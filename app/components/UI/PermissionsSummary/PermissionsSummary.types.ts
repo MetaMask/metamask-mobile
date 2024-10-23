@@ -21,4 +21,5 @@ export interface PermissionsSummaryProps {
     chainName: string;
     chainId: string;
   };
+  accountAddresses?: string[];
 }

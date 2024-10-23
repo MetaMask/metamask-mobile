@@ -107,6 +107,7 @@ import { useListNotifications } from '../../../util/notifications/hooks/useNotif
 import { useAccountName } from '../../hooks/useAccountName';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { isObject } from 'lodash';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
