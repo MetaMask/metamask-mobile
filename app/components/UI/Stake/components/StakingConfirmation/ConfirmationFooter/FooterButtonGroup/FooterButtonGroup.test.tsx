@@ -72,18 +72,8 @@ const mockSDK: Stake = {
   setSdkType: jest.fn(),
 };
 
-jest.mock('../../../../hooks/usePoolStakedDeposit', () => ({
-  __esModule: true,
-  default: () => ({
-    attemptDepositTransaction: jest.fn(),
-  }),
-}));
-
-jest.mock('../../../../hooks/usePooledStakes', () => ({
-  __esModule: true,
-  default: () => ({
-    refreshPooledStakes: jest.fn(),
-  }),
+jest.mock('../../../../hooks/useStakeContext', () => ({
+  useStakeContext: () => mockSDK,
 }));
 
 describe('FooterButtonGroup', () => {

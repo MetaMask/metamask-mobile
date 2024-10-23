@@ -41,20 +41,29 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/usePoolStakedDeposit', () => ({
-  __esModule: true,
-  default: () => ({
-    poolStakingContract: {},
-    estimateDepositGas: jest.fn(),
-    attemptDepositTransaction: jest.fn(),
-  }),
-}));
+const mockPooledStakingContractService: PooledStakingContract = {
+  chainId: ChainId.ETHEREUM,
+  connectSignerOrProvider: jest.fn(),
+  contract: new Contract('0x0000000000000000000000000000000000000000', []),
+  convertToShares: jest.fn(),
+  encodeClaimExitedAssetsTransactionData: jest.fn(),
+  encodeDepositTransactionData: jest.fn(),
+  encodeEnterExitQueueTransactionData: jest.fn(),
+  encodeMulticallTransactionData: jest.fn(),
+  estimateClaimExitedAssetsGas: jest.fn(),
+  estimateDepositGas: jest.fn(),
+  estimateEnterExitQueueGas: jest.fn(),
+  estimateMulticallGas: jest.fn(),
+};
 
-jest.mock('../../../hooks/usePooledStakes', () => ({
-  __esModule: true,
-  default: () => ({
-    refreshPooledStakes: jest.fn(),
-  }),
+const mockSDK: Stake = {
+  stakingContract: mockPooledStakingContractService,
+  sdkType: StakingType.POOLED,
+  setSdkType: jest.fn(),
+};
+
+jest.mock('../../../hooks/useStakeContext', () => ({
+  useStakeContext: () => mockSDK,
 }));
 
 describe('ConfirmationFooter', () => {

@@ -5,7 +5,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { AccountCardProps } from './AccountCard.types';
-import { MOCK_STAKING_CONTRACT_NAME } from '../../../Views/StakeConfirmationView/StakeConfirmationMockData';
 import {
   PooledStakingContract,
   ChainId,
@@ -13,6 +12,8 @@ import {
 } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
 import { Stake } from '../../../sdk/stakeSdkProvider';
+
+const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';

@@ -5,7 +5,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#f2f4f6",
-      "flex": 1,
+      "height": "100%",
       "justifyContent": "space-between",
       "paddingHorizontal": 16,
       "paddingTop": 8,
@@ -225,7 +225,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
       style={
         {
           "gap": 8,
-          "paddingTop": 16,
+          "paddingTop": 8,
         }
       }
     >
@@ -1507,7 +1507,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             }
           }
         >
-          Confirm
+          Continue
         </Text>
       </TouchableOpacity>
     </View>
