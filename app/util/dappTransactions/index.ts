@@ -170,7 +170,7 @@ export const validateTokenAmount = async (
       return strings('transaction.invalid_amount');
     }
     console.error('ZUP', { contractBalanceForAddress, value });
-    if (contractBalanceForAddress && contractBalanceForAddress.lt(value)) {
+    if (contractBalanceForAddress?.lt(value)) {
       return strings('transaction.insufficient');
     }
   }
