@@ -130,6 +130,7 @@ export const validateTokenAmount = async (
   contractBalances: ContractBalances,
   allowEmpty = true,
 ): Promise<string | undefined> => {
+  console.error('HELLO', { value, contractBalances, allowEmpty });
   if (!allowEmpty) {
     const checksummedFrom = safeToChecksumAddress(from) || '';
 
