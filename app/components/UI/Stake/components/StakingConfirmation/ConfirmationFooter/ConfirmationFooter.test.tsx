@@ -43,6 +43,13 @@ jest.mock('../../../hooks/usePoolStakedDeposit', () => ({
   }),
 }));
 
+jest.mock('../../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    refreshPooledStakes: jest.fn(),
+  }),
+}));
+
 describe('ConfirmationFooter', () => {
   it('render matches snapshot', () => {
     const props: ConfirmationFooterProps = {

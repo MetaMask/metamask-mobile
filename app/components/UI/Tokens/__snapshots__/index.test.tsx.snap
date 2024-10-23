@@ -844,7 +844,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -2148,7 +2148,7 @@ exports[`Tokens should render correctly 1`] = `
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -3470,7 +3470,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
