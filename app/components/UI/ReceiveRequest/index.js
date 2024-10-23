@@ -23,10 +23,7 @@ import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
@@ -271,7 +268,6 @@ ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
-  ticker: selectTicker(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
