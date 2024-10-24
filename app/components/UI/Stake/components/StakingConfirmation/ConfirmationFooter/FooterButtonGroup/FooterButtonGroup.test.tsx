@@ -9,14 +9,15 @@ import {
 } from './FooterButtonGroup.types';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
-const MOCK_ADDRESS_2 = '0x1';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
 ]);
+
+const mockSubscribeOnceIf = jest.fn();
 
 const mockInitialState = {
   settings: {},
@@ -24,6 +25,9 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      controllerMessenger: {
+        subscribeOnceIf: mockSubscribeOnceIf,
+      },
     },
   },
 };
@@ -44,12 +48,31 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../hooks/useStakeContext', () => ({
+  useStakeContext: () => MOCK_POOL_STAKING_SDK,
+}));
+
+const mockAttemptDepositTransaction = jest.fn();
+const mockAttemptUnstakeTransaction = jest.fn();
+
 jest.mock('../../../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
   default: () => ({
-    poolStakingContract: {},
-    estimateDepositGas: jest.fn(),
-    attemptDepositTransaction: jest.fn(),
+    attemptDepositTransaction: mockAttemptDepositTransaction,
+  }),
+}));
+
+jest.mock('../../../../hooks/usePoolStakedUnstake', () => ({
+  __esModule: true,
+  default: () => ({
+    attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
+  }),
+}));
+
+jest.mock('../../../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    refreshPooledStakes: jest.fn(),
   }),
 }));
 
@@ -70,7 +93,7 @@ describe('FooterButtonGroup', () => {
     );
 
     expect(getByText(strings('stake.cancel'))).toBeDefined();
-    expect(getByText(strings('stake.confirm'))).toBeDefined();
+    expect(getByText(strings('stake.continue'))).toBeDefined();
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -89,11 +112,42 @@ describe('FooterButtonGroup', () => {
 
     fireEvent.press(getByText(strings('stake.cancel')));
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith('Asset');
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
 
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it.todo('confirms stake when confirm button is pressed');
+  it('attempts stake transaction on continue click', () => {
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.STAKE,
+    };
+
+    const { getByText, toJSON } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(mockAttemptDepositTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('attempts unstake transaction on continue click', () => {
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.UNSTAKE,
+    };
+
+    const { getByText, toJSON } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(mockAttemptUnstakeTransaction).toHaveBeenCalledTimes(1);
+  });
 });

@@ -321,6 +321,7 @@
     "domains": {}
   },
   "SignatureController": {
+    "signatureRequests": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
     "unapprovedPersonalMsgCount": 0,

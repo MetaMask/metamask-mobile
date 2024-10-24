@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -22,48 +22,92 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
+import usePooledStakes from '../../../../hooks/usePooledStakes';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
+  const { navigate } = navigation;
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const { refreshPooledStakes } = usePooledStakes();
 
-  const handleStake = async () => {
-    if (!activeAccount?.address) return;
+  const { attemptUnstakeTransaction } = usePoolStakedUnstake();
 
-    const txRes = await attemptDepositTransaction(
-      valueWei,
-      activeAccount.address,
-    );
+  const [didSubmitTransaction, setDidSubmitTransaction] = useState(false);
 
-    const transactionId = txRes?.transactionMeta?.id;
+  const listenForTransactionEvents = useCallback(
+    (transactionId?: string) => {
+      if (!transactionId) return;
 
-    // Listening for confirmation
-    Engine.controllerMessenger.subscribeOnceIf(
-      'TransactionController:transactionSubmitted',
-      () => {
-        navigate(Routes.TRANSACTIONS_VIEW);
-      },
-      ({ transactionMeta }) => transactionMeta.id === transactionId,
-    );
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionSubmitted',
+        () => {
+          setDidSubmitTransaction(false);
+          navigate(Routes.TRANSACTIONS_VIEW);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
 
-    // Engine.controllerMessenger.subscribeOnceIf(
-    //   'TransactionController:transactionConfirmed',
-    //   () => {
-    // TODO: Call refreshPooledStakes();
-    // refreshPooledStakes();
-    //   },
-    //   (transactionMeta) => transactionMeta.id === transactionId,
-    // );
-  };
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          setDidSubmitTransaction(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
 
-  const handleConfirmation = () => {
-    if (action === FooterButtonGroupActions.STAKE) return handleStake();
-    // TODO: Add handler (STAKE-803)
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionRejected',
+        () => {
+          setDidSubmitTransaction(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          refreshPooledStakes();
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+    },
+    [navigate, refreshPooledStakes],
+  );
+
+  const handleConfirmation = async () => {
+    try {
+      if (!activeAccount?.address) return;
+
+      setDidSubmitTransaction(true);
+
+      let transactionId: string | undefined;
+
+      if (action === FooterButtonGroupActions.STAKE) {
+        const txRes = await attemptDepositTransaction(
+          valueWei,
+          activeAccount.address,
+        );
+        transactionId = txRes?.transactionMeta?.id;
+      }
+
+      if (action === FooterButtonGroupActions.UNSTAKE) {
+        const txRes = await attemptUnstakeTransaction(
+          valueWei,
+          activeAccount.address,
+        );
+        transactionId = txRes?.transactionMeta?.id;
+      }
+
+      listenForTransactionEvents(transactionId);
+    } catch (e) {
+      setDidSubmitTransaction(false);
+    }
   };
 
   return (
@@ -78,12 +122,15 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        onPress={() => navigate('Asset')}
+        onPress={() => {
+          navigation.goBack();
+        }}
+        disabled={didSubmitTransaction}
       />
       <Button
         label={
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
-            {strings('stake.confirm')}
+            {strings('stake.continue')}
           </Text>
         }
         style={styles.button}
@@ -91,6 +138,8 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         onPress={handleConfirmation}
+        disabled={didSubmitTransaction}
+        loading={didSubmitTransaction}
       />
     </View>
   );
