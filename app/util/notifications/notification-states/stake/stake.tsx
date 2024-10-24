@@ -1,8 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
@@ -15,11 +15,13 @@ import {
 import { ModalField } from '../types/NotificationModalDetails';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type StakeNotification = ExtractedNotification<
-  | TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
-  | TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
-  | TRIGGER_TYPES.LIDO_STAKE_COMPLETED
-  | TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED
 >;
 const isStakeNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED,

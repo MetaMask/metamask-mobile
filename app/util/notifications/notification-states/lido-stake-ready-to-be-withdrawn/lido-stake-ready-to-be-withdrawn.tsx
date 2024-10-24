@@ -1,8 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
@@ -12,8 +12,10 @@ import {
   getNotificationBadge,
 } from '../../methods/common';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type LidoReadyWithDrawnNotification =
-  ExtractedNotification<TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN>;
+  ExtractedNotification<NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN>;
 
 const isLidoReadyWithDrawnNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN,

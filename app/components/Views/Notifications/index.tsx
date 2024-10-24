@@ -1,12 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
-import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
+import { sortNotifications } from '../../../util/notifications';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
 import Button, {
   ButtonVariants,

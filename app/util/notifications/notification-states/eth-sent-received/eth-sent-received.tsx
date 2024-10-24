@@ -1,8 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import {
@@ -18,8 +18,10 @@ import {
 } from '../../methods/common';
 import { formatAddress } from '../../../address';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type NativeSentReceiveNotification = ExtractedNotification<
-  TRIGGER_TYPES.ETH_RECEIVED | TRIGGER_TYPES.ETH_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ETH_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ETH_SENT
 >;
 const isNativeTokenNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.ETH_RECEIVED,

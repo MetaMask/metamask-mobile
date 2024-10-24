@@ -3,14 +3,14 @@ import { TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Notification } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
-
+import type { ModalField as ModalFieldProps } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+import { hasNotificationComponents, NotificationComponentState } from '../../../../util/notifications/notification-states';
 import Header from './Title';
 import { createStyles } from './styles';
 import ModalField from './Fields';
@@ -48,9 +48,12 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   }, [notification, markNotificationAsRead]);
 
   const state =
-    NotificationComponentState[notification?.type]?.createModalDetails?.(
-      notification,
-    );
+    notification?.type &&
+    hasNotificationComponents(notification.type)
+      ? NotificationComponentState[notification.type]?.createModalDetails?.(
+          notification,
+        )
+      : undefined;
 
   const HeaderLeft = useCallback(
     () => (
@@ -93,7 +96,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
         {state.header && <ModalHeader modalHeader={state.header} />}
 
         {/* Modal Fields */}
-        {state.fields.map((field, idx) => (
+        {state.fields.map((field: ModalFieldProps, idx: number) => (
           <ModalField
             key={idx}
             modalField={field}

@@ -1,8 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
@@ -14,8 +14,10 @@ import {
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type SwapCompletedNotification =
-  ExtractedNotification<TRIGGER_TYPES.METAMASK_SWAP_COMPLETED>;
+  ExtractedNotification<NotificationServicesController.Constants.TRIGGER_TYPES.METAMASK_SWAP_COMPLETED>;
 
 const isSwapCompletedNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.METAMASK_SWAP_COMPLETED,

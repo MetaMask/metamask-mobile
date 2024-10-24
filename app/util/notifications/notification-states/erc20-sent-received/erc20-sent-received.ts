@@ -1,8 +1,8 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import {
@@ -19,8 +19,10 @@ import {
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 import { formatAddress } from '../../../address';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type ERC20Notification = ExtractedNotification<
-  TRIGGER_TYPES.ERC20_RECEIVED | TRIGGER_TYPES.ERC20_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ERC20_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ERC20_SENT
 >;
 
 const isERC20Notification = isOfTypeNodeGuard([

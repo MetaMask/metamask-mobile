@@ -1,3 +1,4 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import {
   selectIsProfileSyncingEnabled,
   selectIsProfileSyncingUpdateLoading,
@@ -22,7 +23,8 @@ import {
   MOCK_USER_STORAGE_CONTROLLER,
   MOCK_NOTIFICATION_SERVICES_CONTROLLER,
 } from './testUtils';
-import { TRIGGER_TYPES } from '../../util/notifications';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
 describe('Notification Selectors', () => {
   const mockState = {

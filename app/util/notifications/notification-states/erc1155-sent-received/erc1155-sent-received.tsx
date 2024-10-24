@@ -1,9 +1,10 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
 import { strings } from '../../../../../locales/i18n';
 import {
   ModalFieldType,
   ModalFooterType,
   ModalHeaderType,
-  TRIGGER_TYPES,
 } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import {
@@ -19,8 +20,10 @@ import {
 import { ModalField } from '../types/NotificationModalDetails';
 import { formatAddress } from '../../../address';
 
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
 type ERC1155Notification = ExtractedNotification<
-  TRIGGER_TYPES.ERC1155_RECEIVED | TRIGGER_TYPES.ERC1155_SENT
+NotificationServicesController.Constants.TRIGGER_TYPES.ERC1155_RECEIVED | NotificationServicesController.Constants.TRIGGER_TYPES.ERC1155_SENT
 >;
 const isERC1155Notification = isOfTypeNodeGuard([
   TRIGGER_TYPES.ERC1155_RECEIVED,
