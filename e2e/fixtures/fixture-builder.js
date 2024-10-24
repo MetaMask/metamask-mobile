@@ -707,12 +707,12 @@ class FixtureBuilder {
       chainId: providerConfig.chainId,
       rpcEndpoints: [
         {
-         networkClientId: newNetworkClientId,
-         url: providerConfig.rpcUrl,
-         type: providerConfig.type,
-         name: providerConfig.nickname,
+          networkClientId: newNetworkClientId,
+          url: providerConfig.rpcUrl,
+          type: providerConfig.type,
+          name: providerConfig.nickname,
         },
-     ],
+      ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
       name: providerConfig.nickname,
@@ -720,7 +720,8 @@ class FixtureBuilder {
     };
 
     // Add the new network configuration to the object
-    networkController.networkConfigurationsByChainId[providerConfig.chainId] = networkConfig;
+    networkController.networkConfigurationsByChainId[providerConfig.chainId] =
+      networkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;

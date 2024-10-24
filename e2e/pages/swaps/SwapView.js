@@ -35,12 +35,23 @@ class SwapView {
     return title;
   }
 
+  // Function to check if the button is enabled
+  async isButtonEnabled(element) {
+    const attributes = await element.getAttributes();
+    return attributes.enabled === true; // Check if enabled is true
+  }
+
   async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
+    const swapsSliderElement = await this.swipeToSwapButton;
+    const delay = 500; // Delay in milliseconds
 
-    // Swipe could happen at the same time when gas fees are falshing
-    // and that's when the swipe button becomes disabled
-    // that's the need to retry
+    // Wait until the button is enabled before performing swipe actions
+    while (!(await this.isButtonEnabled(swapsSliderElement))) {
+      await TestHelpers.delay(delay); // Wait for the specified delay
+    }
+
+    // Once enabled, perform the swipe actions
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
@@ -58,7 +69,7 @@ class SwapView {
 
   async tapIUnderstandPriceWarning() {
     try {
-      await Gestures.waitAndTap(this.iUnderstandLabel, 1000);
+      await Gestures.waitAndTap(this.iUnderstandLabel, 3000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);
