@@ -69,7 +69,6 @@ import {
 } from '../../../core/Transaction/TransactionError';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
   speedUpTransaction,
   updateIncomingTransactions,
@@ -855,7 +854,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper} testID={TOKEN_OVERVIEW_TXN_SCREEN}>
+        <View style={styles.wrapper}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}
