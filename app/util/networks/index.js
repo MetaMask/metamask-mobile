@@ -32,7 +32,11 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import { PopularList, UnpopularNetworkList } from './customNetworks';
+import {
+  PopularList,
+  UnpopularNetworkList,
+  CustomNetworkImgMapping,
+} from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -284,7 +288,7 @@ export function hasBlockExplorer(key) {
   return key.toLowerCase() !== RPC;
 }
 
-export function isprivateConnection(hostname) {
+export function isPrivateConnection(hostname) {
   return hostname === 'localhost' || regex.localNetwork.test(hostname);
 }
 
@@ -301,22 +305,20 @@ export function toggleUseSafeChainsListValidation(value) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTargetUrl
+ * @param {string} providerRpcTarget
  * @param {object} networkConfigurations
  */
-export function findBlockExplorerForRpc(
-  rpcTargetUrl = undefined,
-  networkConfigurations,
-) {
+export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
   const networkConfiguration = Object.values(networkConfigurations).find(
-    ({ rpcUrl }) => compareRpcUrls(rpcUrl, rpcTargetUrl),
+    ({ rpcEndpoints }) => rpcEndpoints?.some(({ url }) => url === rpcTargetUrl),
   );
+
   if (networkConfiguration) {
-    return (
-      networkConfiguration.rpcPrefs &&
-      networkConfiguration.rpcPrefs.blockExplorerUrl
-    );
+    return networkConfiguration?.blockExplorerUrls[
+      networkConfiguration?.defaultBlockExplorerUrlIndex
+    ];
   }
+
   return undefined;
 }
 
@@ -405,6 +407,10 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
   let name = strings('network_information.unknown_network');
   if (providerConfig.nickname) {
     name = providerConfig.nickname;
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.MAINNET) {
+    name = 'Ethereum Main Network';
+  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET) {
+    name = 'Linea Main Network';
   } else {
     const networkType = providerConfig.type;
     name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
@@ -422,20 +428,16 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
-  const isDefaultEthMainnet = isDefaultMainnet(networkType);
-  const isLineaMainnetNetwork = isLineaMainnet(networkType);
 
-  if (defaultNetwork && isDefaultEthMainnet) {
-    return defaultNetwork.imageSource;
-  }
-
-  if (defaultNetwork && isLineaMainnetNetwork) {
+  if (defaultNetwork) {
     return defaultNetwork.imageSource;
   }
 
   const unpopularNetwork = UnpopularNetworkList.find(
     (networkConfig) => networkConfig.chainId === chainId,
   );
+
+  const customNetworkImg = CustomNetworkImgMapping[chainId];
 
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
@@ -444,6 +446,9 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
   const network = unpopularNetwork || popularNetwork;
   if (network) {
     return network.rpcPrefs.imageSource;
+  }
+  if (customNetworkImg) {
+    return customNetworkImg;
   }
   return getTestNetImage(networkType);
 };
@@ -581,3 +586,6 @@ export const deprecatedGetNetworkId = async () => {
 
 export const isMultichainVersion1Enabled =
   process.env.MM_MULTICHAIN_V1_ENABLED === '1';
+
+export const isChainPermissionsFeatureEnabled =
+  process.env.MM_CHAIN_PERMISSIONS === '1';

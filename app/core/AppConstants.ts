@@ -12,8 +12,8 @@ export default {
   DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
-  IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
-  IPNS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipns/',
+  IPFS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipfs/',
+  IPNS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipns/',
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
@@ -129,6 +129,7 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -171,8 +172,6 @@ export default {
     WC: 'WalletConnect',
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
-    SDK_ANDROID: 'MetaMask-SDK-Android',
-    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
@@ -214,7 +213,7 @@ export default {
     'config-api.metamask.io/featureFlags',
   ],
   FEATURE_FLAGS_API: {
-    BASE_URL: 'https://client-config.api.cx.metamask.io/',
+    BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
   },
 } as const;

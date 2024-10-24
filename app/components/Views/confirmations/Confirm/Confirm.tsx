@@ -1,27 +1,31 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import BottomModal from '../../../../components/UI/BottomModal';
-import { useTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
+import BottomModal from '../components/UI/BottomModal';
+import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import Footer from '../components/Confirm/Footer';
+import Info from '../components/Confirm/Info';
 import Title from '../components/Confirm/Title';
 import useConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
-import createStyles from './style';
+import styleSheet from './Confirm.styles';
 
 const Confirm = () => {
-  const { colors } = useTheme();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
+  const { styles } = useStyles(styleSheet, {});
 
   if (!isRedesignedEnabled) {
     return null;
   }
 
-  const styles = createStyles(colors);
-
   return (
     <BottomModal>
       <View style={styles.container}>
-        <Title />
+        <View>
+          <Title />
+          <AccountNetworkInfo />
+          <Info />
+        </View>
         <Footer />
       </View>
     </BottomModal>
