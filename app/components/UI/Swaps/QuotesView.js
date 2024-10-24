@@ -1709,16 +1709,12 @@ function SwapsQuotesView({
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
           <View style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
-              {`${strings('swaps.you_need')} `}
               <Text reset bold>
                 {!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
                   ? `${renderFromTokenMinimalUnit(
                       missingTokenBalance,
                       sourceToken.decimals,
-                    )} ${
-                      sourceToken.symbol
-                      // eslint-disable-next-line no-mixed-spaces-and-tabs
-                    } `
+                    )} ${sourceToken.symbol} `
                   : `${renderFromWei(missingEthBalance)} ${getTicker(ticker)} `}
               </Text>
               {!hasEnoughTokenBalance
@@ -1727,7 +1723,7 @@ function SwapsQuotesView({
               {(isSwapsNativeAsset(sourceToken) ||
                 (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
                 <Text link underline small onPress={buyEth}>
-                  {strings('swaps.buy_more', { ticker: getTicker(ticker) })}
+                  {strings('swaps.token_marketplace')}
                 </Text>
               )}
             </Alert>

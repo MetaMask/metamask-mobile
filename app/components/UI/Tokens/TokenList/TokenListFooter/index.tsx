@@ -88,7 +88,9 @@ export const TokenListFooter = ({
       {isBuyableToken && (
         <View style={styles.buy}>
           <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
-            {strings('wallet.add_to_get_started')}
+            {strings('wallet.token_is_needed_to_continue', {
+              tokenSymbol: mainToken.symbol,
+            })}
           </Text>
           <Button
             variant={ButtonVariants.Primary}
@@ -96,7 +98,7 @@ export const TokenListFooter = ({
             width={ButtonWidthTypes.Full}
             style={styles.buyButton}
             onPress={goToBuy}
-            label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+            label={strings('wallet.next')}
           />
         </View>
       )}
