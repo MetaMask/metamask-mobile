@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Platform, View } from 'react-native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
@@ -40,18 +40,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onReceive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-
   const canSignTransactions = useSelector(selectCanSignTransactions);
-
-  const walletActionProps = useMemo(
-    () => ({
-      iconStyle: styles.icon,
-      containerStyle: styles.containerStyle,
-      iconSize: AvatarSize.Lg,
-      disabled: !canSignTransactions,
-    }),
-    [canSignTransactions, styles.containerStyle, styles.icon],
-  );
 
   return (
     <View style={styles.activitiesButton}>
@@ -60,7 +49,10 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           <WalletAction
             iconName={IconName.Add}
             onPress={onBuy}
-            {...walletActionProps}
+            iconStyle={styles.icon}
+            containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
             {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
           />
           <Text variant={TextVariant.BodyMD}>
@@ -73,7 +65,10 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           <WalletAction
             iconName={IconName.SwapHorizontal}
             onPress={goToSwaps}
-            {...walletActionProps}
+            iconStyle={styles.icon}
+            containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
             {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
           />
           <Text variant={TextVariant.BodyMD}>
@@ -85,7 +80,10 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <WalletAction
           iconName={IconName.Bridge}
           onPress={goToBridge}
-          {...walletActionProps}
+          iconStyle={styles.icon}
+          containerStyle={styles.containerStyle}
+          iconSize={AvatarSize.Lg}
+          disabled={!canSignTransactions}
           {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
         />
         <Text variant={TextVariant.BodyMD}>
@@ -96,7 +94,10 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <WalletAction
           iconName={IconName.Arrow2Upright}
           onPress={onSend}
-          {...walletActionProps}
+          iconStyle={styles.icon}
+          containerStyle={styles.containerStyle}
+          iconSize={AvatarSize.Lg}
+          disabled={!canSignTransactions}
           {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
         />
         <Text variant={TextVariant.BodyMD}>
@@ -107,7 +108,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <WalletAction
           iconName={IconName.QrCode}
           onPress={onReceive}
-          {...walletActionProps}
+          iconStyle={styles.icon}
+          containerStyle={styles.containerStyle}
+          iconSize={AvatarSize.Lg}
           disabled={false}
           {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
         />
