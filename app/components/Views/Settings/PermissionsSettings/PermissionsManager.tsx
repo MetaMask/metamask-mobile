@@ -65,6 +65,7 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   >([]);
   const subjects = useSelector(
     (state: RootState) =>
+      // @ts-expect-error subject is not typed yet
       state.engine.backgroundState.PermissionController.subjects,
   );
 
