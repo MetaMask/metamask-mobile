@@ -6,15 +6,6 @@
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES"
       buildArchitectures = "Automatic">
-      <PreActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;# Type a script or drag a script file from your workspace to insert its path&#10;&#10;if [ ! -z &quot;$GOOGLE_SERVICES_B64_IOS&quot; ]; then&#10;    echo -n $GOOGLE_SERVICES_B64_IOS | base64 -d &gt; ./ios/GoogleService-Info.plist&#10;    echo &quot;GoogleService-Info.plist has been created successfully.&quot;&#10;  else&#10;    echo &quot;GOOGLE_SERVICES_B64_IOS is not set in the .env file.&quot;&#10;    exit 1&#10;  fi&#10;">
-            </ActionContent>
-         </ExecutionAction>
-      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
