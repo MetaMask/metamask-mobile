@@ -115,8 +115,8 @@ export const selectUseTransactionSimulations = createSelector(
     ).useTransactionSimulations,
 );
 
-export const selectIsBalanceAndAssetsHidden = createSelector(
+export const selectPrivacyMode = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.isBalanceAndAssetsHidden,
+    preferencesControllerState.privacyMode,
 );

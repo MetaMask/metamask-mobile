@@ -157,7 +157,7 @@
     "featureFlags": {},
     "identities": {},
     "ipfsGateway": "https://gateway.pinata.cloud/ipfs/",
-    "isBalanceAndAssetsHidden": false,
+    "privacyMode": false,
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,

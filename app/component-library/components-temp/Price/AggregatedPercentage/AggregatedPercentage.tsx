@@ -1,8 +1,9 @@
 import React from 'react';
-import Text, {
+import {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import SensitiveText from '../../../../component-library/components/Texts/SensitiveText';
 import { View } from 'react-native';
 import { renderFiat } from '../../../../util/number';
 import { useSelector } from 'react-redux';
@@ -25,11 +26,13 @@ const AggregatedPercentage = ({
   tokenFiat,
   tokenFiat1dAgo,
   ethFiat1dAgo,
+  privacyMode,
 }: {
   ethFiat: number;
   tokenFiat: number;
   tokenFiat1dAgo: number;
   ethFiat1dAgo: number;
+  privacyMode: boolean;
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -46,12 +49,16 @@ const AggregatedPercentage = ({
 
   let percentageTextColor = TextColor.Default;
 
-  if (percentageChange === 0) {
-    percentageTextColor = TextColor.Default;
-  } else if (percentageChange > 0) {
-    percentageTextColor = TextColor.Success;
+  if (!privacyMode) {
+    if (percentageChange === 0) {
+      percentageTextColor = TextColor.Default;
+    } else if (percentageChange > 0) {
+      percentageTextColor = TextColor.Success;
+    } else {
+      percentageTextColor = TextColor.Error;
+    }
   } else {
-    percentageTextColor = TextColor.Error;
+    percentageTextColor = TextColor.Alternative;
   }
 
   const formattedPercentage = isValidAmount(percentageChange)
@@ -70,12 +77,22 @@ const AggregatedPercentage = ({
 
   return (
     <View style={styles.wrapper}>
-      <Text color={percentageTextColor} variant={TextVariant.BodyMDMedium}>
+      <SensitiveText
+        isHidden={privacyMode}
+        length="10"
+        color={percentageTextColor}
+        variant={TextVariant.BodyMDMedium}
+      >
         {formattedValuePrice}
-      </Text>
-      <Text color={percentageTextColor} variant={TextVariant.BodyMDMedium}>
+      </SensitiveText>
+      <SensitiveText
+        isHidden={privacyMode}
+        length="10"
+        color={percentageTextColor}
+        variant={TextVariant.BodyMDMedium}
+      >
         {formattedPercentage}
-      </Text>
+      </SensitiveText>
     </View>
   );
 };

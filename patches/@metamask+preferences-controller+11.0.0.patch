@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
-index 30e985c..9159301 100644
+index 30e985c..8dabed3 100644
 --- a/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
 +++ b/node_modules/@metamask/preferences-controller/dist/chunk-FSWGV6H6.js
 @@ -17,13 +17,19 @@ var metadata = {
@@ -20,7 +20,7 @@ index 30e985c..9159301 100644
 +  useTransactionSimulations: { persist: true, anonymous: true },
 +  showMultiRpcModal: { persist: false, anonymous: false },
 +  tokenSortConfig: { persist: true, anonymous: false },
-+  isBalanceAndAssetsHidden: { persist: true, anonymous: true },
++  privacyMode: { persist: true, anonymous: true },
  };
  var name = "PreferencesController";
  function getDefaultPreferencesState() {
@@ -48,7 +48,7 @@ index 30e985c..9159301 100644
 +        order: 'dsc',
 +        sortCallback: 'stringNumeric',
 +    },
-+    isBalanceAndAssetsHidden: false,
++    privacyMode: false,
    };
  }
  var _syncIdentities, syncIdentities_fn;
@@ -166,16 +166,16 @@ index 30e985c..9159301 100644
 +  /**
 +   * A setter for the user hide balance and assets
 +   *
-+   * @param isBalanceAndAssetsHidden - true to hide balance and assets
++   * @param privacyMode - true to hide balance and assets
 +   */
-+  setIsBalanceAndAssetsHidden(isBalanceAndAssetsHidden) {
-+    this.update((state) => { state.isBalanceAndAssetsHidden = isBalanceAndAssetsHidden; });
++  setPrivacyMode(privacyMode) {
++    this.update((state) => { state.privacyMode = privacyMode; });
 +  }
  };
  _syncIdentities = new WeakSet();
  syncIdentities_fn = function(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
-index 7e3ba15..09a0ec5 100644
+index 7e3ba15..dda7eb7 100644
 --- a/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/types/PreferencesController.d.ts
 @@ -69,9 +69,10 @@ export type PreferencesState = {
@@ -214,7 +214,7 @@ index 7e3ba15..09a0ec5 100644
 +    /**
 +     * Controls whether balance and assets are hidden or not
 +     */
-+    isBalanceAndAssetsHidden: boolean;
++    privacyMode: boolean;
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
@@ -235,7 +235,7 @@ index 7e3ba15..09a0ec5 100644
 +    useTransactionSimulations: boolean;
 +    showMultiRpcModal: boolean;
 +    tokenSortConfig: Record<string, string>;
-+    isBalanceAndAssetsHidden: boolean;
++    privacyMode: boolean;
  };
  /**
   * Controller that stores shared settings and exposes convenience methods
@@ -290,9 +290,9 @@ index 7e3ba15..09a0ec5 100644
 +    /**
 +     * Toggle the balance and assets hidden setting.
 +     *
-+     * @param isBalanceAndAssetsHidden - Boolean indicating user preference on hiding balance and assets.
++     * @param privacyMode - Boolean indicating user preference on hiding balance and assets.
 +     */
-+    setIsBalanceAndAssetsHidden(isBalanceAndAssetsHidden: boolean): void;
++    setPrivacyMode(privacyMode: boolean): void;
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.ts.map

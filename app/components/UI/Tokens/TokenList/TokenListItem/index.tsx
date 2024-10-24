@@ -20,7 +20,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
-import { selectIsBalanceAndAssetsHidden } from '../../../../../selectors/preferencesController';
 import { RootState } from '../../../../../reducers';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
@@ -56,7 +55,7 @@ interface TokenListItemProps {
   showScamWarningModal: boolean;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
-  isBalanceAndAssetsHidden: boolean;
+  privacyMode: boolean;
 }
 
 export const TokenListItem = ({
@@ -64,7 +63,7 @@ export const TokenListItem = ({
   showScamWarningModal,
   showRemoveMenu,
   setShowScamWarningModal,
-  isBalanceAndAssetsHidden,
+  privacyMode,
 }: TokenListItemProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -185,7 +184,7 @@ export const TokenListItem = ({
       asset={asset}
       balance={secondaryBalance}
       mainBalance={mainBalance}
-      isBalanceAndAssetsHidden={isBalanceAndAssetsHidden}
+      privacyMode={privacyMode}
     >
       <BadgeWrapper
         badgeElement={

@@ -15,7 +15,7 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { selectIsBalanceAndAssetsHidden } from '../../../../../selectors/preferencesController';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { RootState } from '../../../../../reducers';
 import { renderFiat } from '../../../../../util/number';
 import { isTestNet } from '../../../../../util/networks';
@@ -26,9 +26,10 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
 import Icon, {
   IconSize,
@@ -54,7 +55,7 @@ export const PortfolioBalance = () => {
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
-  const isBalanceAndAssetsHidden = useSelector(selectIsBalanceAndAssetsHidden);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -119,14 +120,9 @@ export const PortfolioBalance = () => {
       return null;
     }
 
-    if (isBalanceAndAssetsHidden) {
-      // TODO: Waiting on sensitive text component to be merged to
-      // to update this to use the new component
-      return null;
-    }
-
     return (
       <AggregatedPercentage
+        privacyMode={privacyMode}
         ethFiat={balance?.ethFiat}
         tokenFiat={balance?.tokenFiat}
         tokenFiat1dAgo={balance?.tokenFiat1dAgo}
@@ -136,35 +132,36 @@ export const PortfolioBalance = () => {
   };
 
   const toggleIsBalanceAndAssetsHidden = (value: boolean) => {
-    PreferencesController.setIsBalanceAndAssetsHidden(value);
+    PreferencesController.setPrivacyMode(value);
   };
 
   return (
     <View style={styles.portfolioBalance}>
-      <TouchableOpacity
-        onPress={() =>
-          toggleIsBalanceAndAssetsHidden(!isBalanceAndAssetsHidden)
-        }
-      >
-        <View>
+      <View>
+        <TouchableOpacity
+          onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+        >
           <View style={styles.balanceContainer}>
-            <Text
+            <SensitiveText
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
               testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
               variant={TextVariant.DisplayMD}
             >
               {fiatBalance}
-            </Text>
+            </SensitiveText>
+
             <Icon
               style={styles.privacyIcon}
-              name={isBalanceAndAssetsHidden ? IconName.EyeSlash : IconName.Eye}
+              name={privacyMode ? IconName.EyeSlash : IconName.Eye}
               size={IconSize.Md}
               color={colors.text.muted}
             />
           </View>
 
           {renderAggregatedPercentage()}
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
       <Button
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Md}

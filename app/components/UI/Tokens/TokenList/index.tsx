@@ -11,7 +11,7 @@ import { useTheme } from '../../../../util/theme';
 import { createDetectedTokensNavDetails } from '../../../Views/DetectedTokens';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectDetectedTokens } from '../../../../selectors/tokensController';
-import { selectIsBalanceAndAssetsHidden } from '../../../../selectors/preferencesController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../util/networks';
 import createStyles from '../styles';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -53,7 +53,7 @@ export const TokenList = ({
 
   const chainId = useSelector(selectChainId);
   const detectedTokens = useSelector(selectDetectedTokens);
-  const isBalanceAndAssetsHidden = useSelector(selectIsBalanceAndAssetsHidden);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
@@ -80,7 +80,7 @@ export const TokenList = ({
           showRemoveMenu={showRemoveMenu}
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
-          isBalanceAndAssetsHidden={isBalanceAndAssetsHidden}
+          privacyMode={privacyMode}
         />
       )}
       keyExtractor={(_, index) => index.toString()}
