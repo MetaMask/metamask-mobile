@@ -199,7 +199,8 @@
       "key": "tokenFiatAmount",
       "order": "dsc",
       "sortCallback": "stringNumeric"
-    }
+    },
+    "tokenNetworkFilter": {}
   },
   "TokenBalancesController": {
     "contractBalances": {}

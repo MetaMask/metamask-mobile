@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -21,7 +21,10 @@ import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { selectTokenSortConfig } from '../../../selectors/preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectTokenSortConfig,
+} from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -31,8 +34,9 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -74,6 +78,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const hideZeroBalanceTokens = useSelector(
@@ -83,8 +88,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
+  const networkName = useSelector(selectNetworkName);
 
   const actionSheet = useRef<typeof ActionSheet>();
+  const filterControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -142,6 +149,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
+  const showFilterControls = () => filterControlsActionSheet?.current?.show(); // TODO: BottomSheet
   const showSortControls = () => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   };
@@ -216,12 +224,54 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
+  const onFilterControlsActionSheetPress = (index: number) => {
+    const { PreferencesController } = Engine.context;
+    switch (index) {
+      case 0:
+        PreferencesController.setTokenNetworkFilter({});
+        break;
+      case 1:
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <ButtonBase
+            label={
+              tokenNetworkFilter[chainId]
+                ? networkName ?? 'Current Network'
+                : 'All Networks'
+            }
+            onPress={showFilterControls}
+            endIconName={IconName.ArrowDown}
+            style={styles.controlButton}
+          />
+          <ButtonBase
+            testID={WalletViewSelectorsIDs.SORT_BY}
+            label={strings('wallet.sort_by')}
+            onPress={showSortControls}
+            endIconName={IconName.ArrowDown}
+            style={styles.controlButton}
+          />
+          <ButtonBase
+            testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+            label={strings('wallet.import')}
+            onPress={goToAddToken}
+            startIconName={IconName.Add}
+            style={styles.controlButton}
+          />
+        </ScrollView>
         <ButtonBase
           label={strings('wallet.sort_by')}
           onPress={showSortControls}
@@ -229,7 +279,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           style={styles.controlButton}
         />
         <ButtonBase
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON_LINK}
           label={strings('wallet.import')}
           onPress={goToAddToken}
           startIconName={IconName.Add}
@@ -254,6 +304,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
+      />
+      <ActionSheet
+        ref={filterControlsActionSheet as LegacyRef<typeof ActionSheet>}
+        title={'Filter'}
+        options={['All Networks', 'Current Network', 'Cancel']}
+        cancelButtonIndex={2}
+        onPress={onFilterControlsActionSheetPress}
       />
     </View>
   );

@@ -47,6 +47,12 @@ export const selectTokenSortConfig = createSelector(
     preferencesControllerState.tokenSortConfig,
 );
 
+export const selectTokenNetworkFilter = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenNetworkFilter,
+);
+
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(
   selectPreferencesControllerState,
