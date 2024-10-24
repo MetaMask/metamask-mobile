@@ -53,6 +53,13 @@ jest.mock('../../../../hooks/usePoolStakedDeposit', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    refreshPooledStakes: jest.fn(),
+  }),
+}));
+
 describe('FooterButtonGroup', () => {
   beforeEach(() => {
     jest.resetAllMocks();
@@ -70,7 +77,7 @@ describe('FooterButtonGroup', () => {
     );
 
     expect(getByText(strings('stake.cancel'))).toBeDefined();
-    expect(getByText(strings('stake.confirm'))).toBeDefined();
+    expect(getByText(strings('stake.continue'))).toBeDefined();
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -89,8 +96,7 @@ describe('FooterButtonGroup', () => {
 
     fireEvent.press(getByText(strings('stake.cancel')));
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith('Asset');
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
 
     expect(toJSON()).toMatchSnapshot();
   });
