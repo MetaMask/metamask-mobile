@@ -50,7 +50,7 @@ class NetworkListModal {
     return Matchers.getElementByID('delete-network-button');
   }
 
-  async getCustomNetwork(network, custom) {
+  async getCustomNetwork(network, custom = false) {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
