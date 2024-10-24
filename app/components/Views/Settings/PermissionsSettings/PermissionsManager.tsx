@@ -89,14 +89,15 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
         inAppBrowserSubjects.push(value);
       }
     });
-
     const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
       inAppBrowserSubjects.map((subject) => ({
         dappLogoUrl: '',
         dappHostName: subject.origin,
         numberOfAccountPermissions:
           subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
-        numberOfNetworkPermissions: 0,
+        numberOfNetworkPermissions:
+          subject.permissions?.['endowment:permitted-chains']?.caveats?.[0]
+            ?.value?.length ?? 0,
         permissionSource: PermissionSource.MetaMaskBrowser,
       }));
 
