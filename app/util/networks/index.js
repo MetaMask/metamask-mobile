@@ -579,5 +579,5 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isMutichainVersion1Enabled =
+export const isMultichainVersion1Enabled =
   process.env.MM_MULTICHAIN_V1_ENABLED === '1';

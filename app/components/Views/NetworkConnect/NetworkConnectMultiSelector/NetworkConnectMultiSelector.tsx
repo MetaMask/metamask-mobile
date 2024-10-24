@@ -34,8 +34,9 @@ const NetworkConnectMultiSelector = ({
   urlWithProtocol,
   hostname,
   onBack,
+  isRenderedAsBottomSheet = true,
 }: NetworkConnectMultiSelectorProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
 

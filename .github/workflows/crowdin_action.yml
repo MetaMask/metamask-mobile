@@ -10,8 +10,6 @@ on:
       - main
   schedule:
     - cron: "0 */12 * * *"
-  merge_group:
-    types: [checks_requested]
 
 jobs:
   synchronize-with-crowdin:

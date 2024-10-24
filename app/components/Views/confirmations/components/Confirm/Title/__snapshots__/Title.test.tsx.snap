@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Title should match snapshot for personal sign 1`] = `
+<View
+  style={
+    {
+      "marginBottom": 10,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+      }
+    }
+  >
+    Signature request
+  </Text>
+</View>
+`;

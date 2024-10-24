@@ -31,15 +31,18 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../../selectors/notifications';
 
-import {
-  requestPushNotificationsPermission,
-  asyncAlert,
-} from '../../../../util/notifications';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import Routes from '../../../../constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
+
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
+
 import SessionHeader from './sectionHeader';
 import {
   useDisableNotifications,
@@ -54,7 +57,6 @@ import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { AuthorizationStatus } from '@notifee/react-native';
 
 interface MainNotificationSettingsProps extends Props {
   toggleNotificationsEnabled: () => void;
@@ -187,18 +189,17 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       disableNotifications();
       setUiNotificationStatus(false);
     } else {
-      const nativeNotificationStatus = await requestPushNotificationsPermission(
-        asyncAlert,
-      );
+      const { permission } = await NotificationsService.getAllPermissions(false);
+      if (permission !== 'authorized') {
+        return;
+      }
 
-      if (nativeNotificationStatus?.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
         /**
          * Although this is an async function, we are dispatching an action (firing & forget)
          * to emulate optimistic UI.
          */
         enableNotifications();
         setUiNotificationStatus(true);
-      }
     }
     trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
       settings_type: 'notifications',
@@ -231,6 +232,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const goToLearnMore = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
   };
+
+  const onPressResetNotifications = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.RESET_NOTIFICATIONS,
+    });
+  },[navigation]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -275,6 +282,16 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     ],
   );
 
+  const renderResetNotificationsBtn = useCallback(() => (
+        <Button
+          variant={ButtonVariants.Primary}
+          label={strings('app_settings.reset_notifications')}
+          size={ButtonSize.Md}
+          onPress={onPressResetNotifications}
+          style={styles.button}
+        />
+    ), [onPressResetNotifications, styles.button]);
+
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings
@@ -314,6 +331,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
 
           {renderAccounts()}
+          {renderResetNotificationsBtn()}
         </>
       )}
       <SwitchLoadingModal

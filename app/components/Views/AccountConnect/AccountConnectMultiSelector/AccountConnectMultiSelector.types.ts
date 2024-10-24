@@ -31,4 +31,5 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   onBack: () => void;
   connection?: ConnectionProps;
   screenTitle?: string;
+  isRenderedAsBottomSheet?: boolean;
 }

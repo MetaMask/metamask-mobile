@@ -79,7 +79,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
       >
         <Text
           color={TextColor.Primary}
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodySMMedium}
           testID={WalletViewSelectorsIDs.ACCOUNT_ADDRESS}
         >
           {selectedInternalAccount
