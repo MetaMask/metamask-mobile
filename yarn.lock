@@ -5348,10 +5348,10 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@^20.1.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-20.1.0.tgz#b2ab41ec6eb191f9b21a74bf636d2b8e34d590e0"
-  integrity sha512-29pYdr9Q5YB5tGrYLEkpCh3l41W5Otg87cQ+cRf7Je0xGo34VdrIHNv6MJQcEgng5qTmR0tG3Hq23nPyZo8rSw==
+"@metamask/signature-controller@npm:@metamask-previews/signature-controller@20.1.0-preview-c77aebdb":
+  version "20.1.0-preview-c77aebdb"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/signature-controller/-/signature-controller-20.1.0-preview-c77aebdb.tgz#57f8551914d268391120b2d0ed7dd04441e393ca"
+  integrity sha512-LMTPLMxfWpWJ4DHlTxbVpa9pBDNaWmM3yP13P34QNJMTolqifXuXf7PXfyPh43Kgrw6bK1W377BSmYNGrLI1Pg==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
     "@metamask/controller-utils" "^11.3.0"
