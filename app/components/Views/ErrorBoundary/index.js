@@ -1,12 +1,15 @@
-import React, { Component, useCallback, useEffect } from 'react';
+import React, { Component } from 'react';
 import {
   Text,
   TouchableOpacity,
   View,
   StyleSheet,
-  Image,
   Linking,
   Alert,
+  Platform,
+  Modal,
+  KeyboardAvoidingView,
+  DevSettings,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
@@ -14,24 +17,30 @@ import { captureSentryFeedback } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
+import CLIcon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import EvilIcon from 'react-native-vector-icons/EvilIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import CLText, {
-  TextColor,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
 } from '../../../components/hooks/useMetrics';
-
-// eslint-disable-next-line import/no-commonjs
-const metamaskErrorImage = require('../../../images/metamask-error.png');
+import AppConstants from '../../../core/AppConstants';
+import { useSelector } from 'react-redux';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -64,14 +73,14 @@ const createStyles = (colors) =>
       textAlign: 'center',
       ...fontStyles.normal,
     },
-    errorContainer: {
+    errorMessageContainer: {
       backgroundColor: colors.error.muted,
       borderRadius: 8,
       marginTop: 10,
       padding: 10,
     },
     error: {
-      color: 'red',
+      color: colors.error.default,
       padding: 8,
       fontSize: 14,
       lineHeight: 20,
@@ -86,10 +95,69 @@ const createStyles = (colors) =>
       padding: 12,
       paddingHorizontal: 34,
     },
+    blueButton: {
+      marginTop: 24,
+      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
+    },
     buttonText: {
       color: colors.primary.default,
       textAlign: 'center',
       ...fontStyles.normal,
+    },
+    blueButtonText: {
+      color: colors.background.default,
+      textAlign: 'center',
+      ...fontStyles.normal,
+    },
+    submitButton: {
+      width: '45%',
+      backgroundColor: colors.primary.default,
+      marginTop: 24,
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
+    },
+    cancelButton: {
+      width: '45%',
+      marginTop: 24,
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
+    },
+    buttonsContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    modalButtonsWrapper: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'flex-end',
+      bottom: 24,
+      paddingHorizontal: 10,
+    },
+    feedbackInput: {
+      borderColor: colors.primary.default,
+      minHeight: 175,
+      minWidth: '100%',
+      alignSelf: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+      marginTop: 20,
     },
     textContainer: {
       marginTop: 24,
@@ -116,208 +184,208 @@ const createStyles = (colors) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
+    keyboardViewContainer: { flex: 1, justifyContent: 'flex-end' },
+    modalWrapper: { flex: 1, justifyContent: 'space-between' },
+    modalTopContainer: { flex: 1, paddingTop: '20%', paddingHorizontal: 16 },
+    closeIconWrapper: {
+      position: 'absolute',
+      right: 0,
+      top: 2,
+      bottom: 0,
+    },
+    modalTitleWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modalTitleText: { paddingTop: 0 },
+    errorBoxTitle: { fontWeight: '600' },
+    contentContainer: {
+      justifyContent: 'space-between',
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    errorContentWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+    },
+    row: { flexDirection: 'row' },
+    copyText: {
+      color: colors.primary.default,
+      fontSize: 14,
+      paddingLeft: 5,
+      fontWeight: '500',
+    },
+    infoBanner: { marginBottom: 20 },
+    hitSlop: { top: 50, right: 50, bottom: 50, left: 50 },
   });
-
-const UserFeedbackSection = ({ styles, sentryId }) => {
-  /**
-   * Prompt bug report form
-   */
-  const promptBugReport = () => {
-    Alert.prompt(
-      strings('error_screen.bug_report_prompt_title'),
-      strings('error_screen.bug_report_prompt_description'),
-      [
-        { text: strings('error_screen.cancel'), style: 'cancel' },
-        {
-          text: strings('error_screen.send'),
-          onPress: (comments = '') => {
-            // Send Sentry feedback
-            captureSentryFeedback({ sentryId, comments }); // FRANK: This is the function that sends the feedback to sentry
-            Alert.alert(strings('error_screen.bug_report_thanks'));
-          },
-        },
-      ],
-    );
-  };
-
-  return (
-    <Text style={[styles.reportStep, styles.text]}>
-      <Icon name="bug" size={14} />
-      {'  '}
-      {strings('error_screen.submit_ticket_8')}{' '}
-      <Text onPress={promptBugReport} style={styles.link}>
-        {strings('error_screen.submit_ticket_6')}
-      </Text>{' '}
-      {strings('error_screen.submit_ticket_9')}
-    </Text>
-  );
-};
-
-UserFeedbackSection.propTypes = {
-  styles: PropTypes.object,
-  sentryId: PropTypes.string,
-};
 
 export const Fallback = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  // https://support.metamask.io/
-  const handleWhatHappened = () => {
-    console.log('Nav to what happened screen');
-  };
-  const handleContactSupport = () => {
-    console.log('Contact support: https://support.metamask.io/');
-  };
-  const handleTryAgain = () => {
-    console.log('Try again!');
-  };
-  const handleRedesign = () => {
-    const redesign = true;
-    return (
-      <View
-        style={{
-          justifyContent: 'space-between',
-          flex: 1,
-          paddingHorizontal: 16,
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Info}
-            title={strings('wallet.banner.title')}
-            style={{ marginBottom: 20 }}
-            description={
-              <CLText
-                color={TextColor.Info}
-                onPress={() => console.log('pressed')}
-              >
-                {strings('wallet.banner.link')}
-              </CLText>
-            }
-          />
-          <BannerAlert
-            severity={BannerAlertSeverity.Warning}
-            title={strings('wallet.banner.title')}
-            description={
-              <CLText
-                color={TextColor.Info}
-                onPress={() => console.log('pressed')}
-              >
-                {strings('wallet.banner.link')}
-              </CLText>
-            }
-          />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 20,
-            }}
-          >
-            <Text style={{ fontWeight: '600' }}>Error messsage:</Text>
-            <TouchableOpacity
-              style={{ flexDirection: 'row' }}
-              onPress={props.copyErrorToClipboard}
-            >
-              <Text style={[styles.text, { fontWeight: '500' }]}>
-                <Icon name="copy" size={14} color={colors.primary.default} />
-                {'  '}
-                <Text style={styles.link}>
-                  {strings('error_screen.submit_ticket_3')}
-                </Text>{' '}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.errorContainer}>
-            <Text style={styles.error}>{props.errorMessage}</Text>
-          </View>
-        </View>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-          }}
-        >
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.primary.default }]}
-            onPress={handleWhatHappened}
-          >
-            <Text style={[styles.buttonText, { color: 'white' }]}>
-              Describe what happened
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleContactSupport}
-          >
-            <Text style={styles.buttonText}>Contact support</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
-            <Text style={styles.buttonText}>Try again</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [feedback, setFeedback] = React.useState('');
+  const dataCollectionForMarketing = useSelector(
+    (state) => state.security.dataCollectionForMarketing,
+  );
+
+  const toggleModal = () => setModalVisible((visible) => !visible);
+  const handleContactSupport = () =>
+    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
+  const handleTryAgain = () => DevSettings.reload();
+
+  const handleSubmit = () => {
+    captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
+    Alert.alert(strings('error_screen.bug_report_thanks'));
   };
 
   return (
-    <ScrollView contentContainerStyle={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        {/* <Image source={metamaskErrorImage} style={styles.errorImage} /> */}
-        <Icon name="warning" size={20} color="orange" />
+        <Icon name="warning" size={30} color="orange" />
         <Text style={styles.title}>{strings('error_screen.title')}</Text>
       </View>
-      {handleRedesign()}
-
-      {/* <View style={styles.textContainer}>
-        <Text style={styles.text}>
-          <Text>{strings('error_screen.submit_ticket_1')}</Text>
-        </Text>
-        <View style={styles.reportTextContainer}>
-          <Text style={styles.text}>
-            <Icon name="mobile-phone" size={20} />
-            {'  '}
-            {strings('error_screen.submit_ticket_2')}
-          </Text>
-
-          <Text style={[styles.reportStep, styles.text]}>
-            <Icon name="copy" size={14} />
-            {'  '}
-            <Text onPress={props.copyErrorToClipboard} style={styles.link}>
-              {strings('error_screen.submit_ticket_3')}
-            </Text>{' '}
-            {strings('error_screen.submit_ticket_4')}
-          </Text>
-
-          <Text style={[styles.reportStep, styles.text]}>
-            <Icon name="send-o" size={14} />
-            {'  '}
-            {strings('error_screen.submit_ticket_5')}{' '}
-            <Text onPress={props.openTicket} style={styles.link}>
-              {strings('error_screen.submit_ticket_6')}
-            </Text>{' '}
-            {strings('error_screen.submit_ticket_7')}
-          </Text>
-          <UserFeedbackSection styles={styles} sentryId={props.sentryId} />
+      <View style={styles.contentContainer}>
+        <View style={styles.container}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            style={styles.infoBanner}
+            description={<CLText>{strings('error_screen.subtitle')}</CLText>}
+          />
+          <BannerAlert
+            severity={BannerAlertSeverity.Warning}
+            description={
+              <Text style={styles.text}>
+                {strings('error_screen.save_seedphrase_1')}{' '}
+                <Text onPress={props.showExportSeedphrase} style={styles.link}>
+                  {strings('error_screen.save_seedphrase_2')}
+                </Text>{' '}
+                {strings('error_screen.save_seedphrase_3')}
+              </Text>
+            }
+          />
+          <View style={styles.errorContentWrapper}>
+            <Text style={styles.errorBoxTitle}>
+              {strings('error_screen.error_message')}
+            </Text>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={props.copyErrorToClipboard}
+            >
+              <CLIcon
+                name={IconName.Copy}
+                size={IconSize.Sm}
+                color={IconColor.Primary}
+              />
+              <Text style={styles.copyText}>
+                {strings('error_screen.copy')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.errorMessageContainer}>
+            <Text style={styles.error}>{props.errorMessage}</Text>
+          </View>
         </View>
-        <Text style={styles.text}>
-          {strings('error_screen.save_seedphrase_1')}{' '}
-          <Text onPress={props.showExportSeedphrase} style={styles.link}>
-            {strings('error_screen.save_seedphrase_2')}
-          </Text>{' '}
-          {strings('error_screen.save_seedphrase_3')}
-        </Text>
-      </View> */}
+        <View style={styles.buttonsContainer}>
+          {dataCollectionForMarketing && (
+            <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
+              <Text style={styles.blueButtonText}>
+                {strings('error_screen.describe')}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={
+              dataCollectionForMarketing ? styles.button : styles.blueButton
+            }
+            onPress={handleContactSupport}
+          >
+            <Text
+              style={
+                dataCollectionForMarketing
+                  ? styles.buttonText
+                  : styles.blueButtonText
+              }
+            >
+              {strings('error_screen.contact_support')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
+            <Text style={styles.buttonText}>
+              {strings('error_screen.try_again')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={toggleModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardViewContainer}
+        >
+          <View style={styles.modalWrapper}>
+            <View style={styles.modalTopContainer}>
+              <View style={styles.modalTitleWrapper}>
+                <CLText
+                  onPress={toggleModal}
+                  variant={TextVariant.HeadingMD}
+                  style={styles.modalTitleText}
+                >
+                  {strings('error_screen.modal_title')}
+                </CLText>
+                <TouchableOpacity
+                  onPress={toggleModal}
+                  style={styles.closeIconWrapper}
+                  hitSlop={styles.hitSlop}
+                >
+                  <EvilIcon name="close" size={24} />
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                autoFocus
+                value={feedback}
+                onChangeText={setFeedback}
+                placeholder={strings('error_screen.modal_placeholder')}
+                style={styles.feedbackInput}
+                multiline
+                numberOfLines={10}
+              />
+            </View>
+            <View style={styles.modalButtonsWrapper}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={toggleModal}
+              >
+                <Text style={styles.buttonText}>
+                  {strings('error_screen.cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={!feedback}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={[styles.submitButton, { opacity: feedback ? 1 : 0.5 }]}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.blueButtonText}>
+                  {strings('error_screen.submit')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 };
 
 Fallback.propTypes = {
   errorMessage: PropTypes.string,
-  resetError: PropTypes.func,
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
-  openTicket: PropTypes.func,
   sentryId: PropTypes.string,
 };
 
