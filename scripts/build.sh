@@ -173,6 +173,17 @@ prebuild(){
 
 prebuild_ios(){
 	prebuild
+
+  # Create GoogleService-Info.plist file to be used by the Firebase services.
+  # Check if GOOGLE_SERVICES_B64_IOS is set
+  if [ ! -z "$GOOGLE_SERVICES_B64_IOS" ]; then
+    echo -n $GOOGLE_SERVICES_B64_IOS | base64 -d > ./ios/GoogleService-Info.plist
+    echo "GoogleService-Info.plist has been created successfully."
+  else
+    echo "GOOGLE_SERVICES_B64_IOS is not set in the .env file."
+    exit 1
+  fi
+
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "" > ios/debug.xcconfig
@@ -190,13 +201,13 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
- #Create google-services.json file to be used by the Firebase services.
-  # Check if GOOGLE_SERVICES_B64 is set
-  if [ ! -z "$GOOGLE_SERVICES_B64" ]; then
-    echo -n $GOOGLE_SERVICES_B64 | base64 -d > ./android/app/google-services.json
+  # Create google-services.json file to be used by the Firebase services.
+  # Check if GOOGLE_SERVICES_B64_ANDROID is set
+  if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
+    echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
     echo "google-services.json has been created successfully."
   else
-    echo "GOOGLE_SERVICES_B64 is not set in the .env file."
+    echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
     exit 1
   fi
 
