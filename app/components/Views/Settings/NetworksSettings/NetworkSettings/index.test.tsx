@@ -8,6 +8,7 @@ import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../../../util/test/network';
+// eslint-disable-next-line import/no-namespace
 import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
