@@ -49,7 +49,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isMainNet,
 } from '../../../util/networks';
 import {
   selectChainId,
