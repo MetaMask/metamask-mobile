@@ -15,6 +15,7 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 import usePooledStakes from './usePooledStakes';
+import { BN } from 'ethereumjs-util';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -50,8 +51,8 @@ const useBalance = () => {
   );
 
   const { pooledStakesData } = usePooledStakes();
-  const assets = pooledStakesData.assets ?? 0;
-
+  const assets = pooledStakesData.assets ? new BN(pooledStakesData.assets) : new BN(0);
+  
   const formattedStakedBalanceETH = useMemo(
     () => `${renderFromWei(assets)} ETH`,
     [assets],
