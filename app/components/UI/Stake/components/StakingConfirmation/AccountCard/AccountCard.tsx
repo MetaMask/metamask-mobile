@@ -16,9 +16,11 @@ import images from '../../../../../../images/image-icons';
 import AccountTag from '../AccountTag/AccountTag';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { AccountCardProps } from './AccountCard.types';
+import { useStakeContext } from '../../../hooks/useStakeContext';
 import ContractTag from '../ContractTag/ContractTag';
+import { RootState } from '../../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
-const AccountHeaderCard = ({
+const AccountCard = ({
   contractName,
   primaryLabel,
   secondaryLabel,
@@ -28,6 +30,12 @@ const AccountHeaderCard = ({
   const account = useSelector(selectSelectedInternalAccount);
 
   const networkName = useSelector(selectNetworkName);
+
+  const useBlockieIcon = useSelector(
+    (state: RootState) => state.settings.useBlockieIcon,
+  );
+
+  const { stakingContract } = useStakeContext();
 
   return (
     <View>
@@ -40,6 +48,7 @@ const AccountHeaderCard = ({
                 <AccountTag
                   accountAddress={account?.address}
                   accountName={account.metadata.name}
+                  useBlockieIcon={useBlockieIcon}
                 />
               ),
             }}
@@ -50,7 +59,15 @@ const AccountHeaderCard = ({
             label: { text: secondaryLabel },
           }}
           value={{
-            label: <ContractTag contractName={contractName} />,
+            label: (
+              <ContractTag
+                contractAddress={
+                  stakingContract?.contract.address ?? contractName
+                }
+                contractName={contractName}
+                useBlockieIcon={useBlockieIcon}
+              />
+            ),
           }}
         />
       </Card>
@@ -75,4 +92,4 @@ const AccountHeaderCard = ({
   );
 };
 
-export default AccountHeaderCard;
+export default AccountCard;
