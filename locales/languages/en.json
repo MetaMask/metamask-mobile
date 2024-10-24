@@ -729,6 +729,7 @@
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "network_added": "was successfully added",
+    "network_deleted": "was successfully deleted",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
@@ -3233,7 +3234,9 @@
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
+    "user_reject_transaction": "User rejected the transaction",
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
   },
   "account_actions": {
     "edit_name": "Edit account name",
