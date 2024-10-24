@@ -51,8 +51,11 @@ const useBalance = () => {
   );
 
   const { pooledStakesData } = usePooledStakes();
-  const assets = new BN(pooledStakesData.assets);
-  
+  const assets = useMemo(
+    () => new BN(pooledStakesData.assets),
+    [pooledStakesData],
+  );
+
   const formattedStakedBalanceETH = useMemo(
     () => `${renderFromWei(assets)} ETH`,
     [assets],
