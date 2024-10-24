@@ -90,6 +90,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       rpcEndpoints: [{ url: 'https://goerli.infura.io/v3/{infuraProjectId}' }],
     },
   },
+  networkOnboardedState: { '0x1': true, '0xe708': true },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
   matchedChainNetwork: {
     safeChainsList: [
@@ -1535,6 +1536,171 @@ describe('NetworkSettings', () => {
         endpointChainId: '0xInvalidHex',
         message: 'Failed to convert endpoint chain ID to decimal',
       });
+    });
+  });
+
+  describe('addRpcUrl', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let instance: any;
+
+    beforeEach(() => {
+      instance = wrapper.instance();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      // Mocking dependent methods
+      jest.spyOn(instance, 'disabledByChainId').mockReturnValue(false);
+      jest.spyOn(instance, 'disabledBySymbol').mockReturnValue(false);
+      jest
+        .spyOn(instance, 'checkIfNetworkNotExistsByChainId')
+        .mockResolvedValue([]);
+      jest.spyOn(instance, 'checkIfNetworkExists').mockResolvedValue(false);
+      jest.spyOn(instance, 'validateChainIdOnSubmit').mockResolvedValue(true);
+      jest.spyOn(instance, 'handleNetworkUpdate').mockResolvedValue({});
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should add RPC URL correctly', async () => {
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rpcUrl: 'http://localhost:8545',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Localhost',
+        }),
+      );
+    });
+
+    it('should return early if CTA is disabled by enableAction', async () => {
+      wrapper.setState({ enableAction: false });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should return early if CTA is disabled by chainId', async () => {
+      instance.disabledByChainId.mockReturnValue(true);
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should return early if CTA is disabled by symbol', async () => {
+      instance.disabledBySymbol.mockReturnValue(true);
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should not proceed if validateChainIdOnSubmit fails', async () => {
+      instance.validateChainIdOnSubmit.mockResolvedValue(false);
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should check if network already exists in add mode', async () => {
+      wrapper.setState({ addMode: true, chainId: '0x1', enableAction: true });
+
+      await instance.addRpcUrl();
+
+      expect(instance.checkIfNetworkNotExistsByChainId).toHaveBeenCalledWith(
+        '0x1',
+      );
+      expect(instance.checkIfNetworkExists).not.toHaveBeenCalled();
+    });
+
+    it('should check if network exists in edit mode', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+
+      wrapper.setState({
+        chainId: '0x1',
+        editable: false,
+        rpcUrl: 'http://localhost:8545',
+        enableAction: true,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.checkIfNetworkExists).toHaveBeenCalledWith(
+        'http://localhost:8545',
+      );
+      expect(instance.checkIfNetworkNotExistsByChainId).not.toHaveBeenCalled();
+    });
+
+    it('should handle custom mainnet condition', async () => {
+      wrapper.setProps({
+        route: {
+          params: {
+            isCustomMainnet: true,
+          },
+        },
+      });
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCustomMainnet: true,
+          showNetworkOnboarding: false,
+        }),
+      );
+    });
+
+    it('should handle network switch pop to wallet condition', async () => {
+      wrapper.setProps({
+        route: {
+          params: {
+            shouldNetworkSwitchPopToWallet: false,
+          },
+        },
+      });
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          shouldNetworkSwitchPopToWallet: false,
+        }),
+      );
     });
   });
 });
