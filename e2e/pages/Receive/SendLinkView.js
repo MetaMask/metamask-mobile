@@ -1,6 +1,6 @@
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
-import { SendLinkViewSelectorsIDs } from '../selectors/SendLinkView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { SendLinkViewSelectorsIDs } from '../../selectors/SendLinkView.selectors';
 
 class SendLinkView {
   get container() {
@@ -9,10 +9,6 @@ class SendLinkView {
 
   get qrModal() {
     return Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_MODAL);
-  }
-
-  get qrCloseButton() {
-    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON);
   }
 
   get closeSendLinkButton() {
@@ -31,11 +27,6 @@ class SendLinkView {
 
   async tapCloseSendLinkButton() {
     await Gestures.waitAndTap(this.closeSendLinkButton);
-  }
-
-  // QR Modal
-  async tapQRCodeCloseButton() {
-    await Gestures.waitAndTap(this.qrCloseButton);
   }
 }
 
