@@ -143,16 +143,19 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     );
   }, [navigation, colors]);
 
-  const goToPermissionsDetails = useCallback(() => {
-    navigation.navigate('AccountPermissionsAsFullScreen', {
-      hostInfo: {
-        metadata: {
-          origin: 'https://app.uniswap.org/',
+  const goToPermissionsDetails = useCallback(
+    (permissionItem: PermissionListItemViewModel) => {
+      navigation.navigate('AccountPermissionsAsFullScreen', {
+        hostInfo: {
+          metadata: {
+            origin: permissionItem.dappHostName,
+          },
         },
-      },
-      isRenderedAsBottomSheet: false,
-    });
-  }, [navigation]);
+        isRenderedAsBottomSheet: false,
+      });
+    },
+    [navigation],
+  );
 
   const renderPermissions = useCallback(
     () => (
@@ -163,7 +166,9 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
               <PermissionItem
                 key={`${index}`}
                 item={permissionItem}
-                onPress={goToPermissionsDetails}
+                onPress={() => {
+                  goToPermissionsDetails(permissionItem);
+                }}
               />
             ))}
         </ScrollView>
