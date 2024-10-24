@@ -258,6 +258,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             style={styles.controlButton}
           />
           <ButtonBase
+            testID={WalletViewSelectorsIDs.SORT_BY}
             label={strings('wallet.sort_by')}
             onPress={showSortControls}
             endIconName={IconName.ArrowDown}
@@ -278,7 +279,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           style={styles.controlButton}
         />
         <ButtonBase
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON_LINK}
           label={strings('wallet.import')}
           onPress={goToAddToken}
           startIconName={IconName.Add}

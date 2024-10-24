@@ -402,6 +402,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="sort-by"
                             >
                               <Text
                                 accessibilityRole="none"
@@ -561,7 +562,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="import-token-button"
+                          testID="import-token-button-link"
                         >
                           <SvgMock
                             color="#141618"
@@ -1812,6 +1813,7 @@ exports[`Tokens should render correctly 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="sort-by"
                             >
                               <Text
                                 accessibilityRole="none"
@@ -1971,7 +1973,7 @@ exports[`Tokens should render correctly 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="import-token-button"
+                          testID="import-token-button-link"
                         >
                           <SvgMock
                             color="#141618"
@@ -3222,6 +3224,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="sort-by"
                             >
                               <Text
                                 accessibilityRole="none"
@@ -3381,7 +3384,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="import-token-button"
+                          testID="import-token-button-link"
                         >
                           <SvgMock
                             color="#141618"

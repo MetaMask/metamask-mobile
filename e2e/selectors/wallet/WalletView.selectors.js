@@ -12,6 +12,7 @@ export const WalletViewSelectorsIDs = {
   STAKE_BUTTON: 'stake-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
   IMPORT_TOKEN_BUTTON: 'import-token-button',
+  IMPORT_TOKEN_BUTTON_LINK: 'import-token-button-link',
   NAVBAR_NETWORK_BUTTON: 'open-networks-button',
   NAVBAR_NETWORK_TEXT: 'open-networks-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
