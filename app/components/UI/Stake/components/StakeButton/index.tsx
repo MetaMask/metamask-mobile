@@ -1,14 +1,11 @@
 import React from 'react';
-import { TokenI, BrowserTab } from '../../types';
+import { TokenI, BrowserTab } from '../../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
+import { isPooledStakingFeatureEnabled } from '../../constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { Pressable } from 'react-native';
@@ -18,7 +15,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useTheme } from '../../../../../util/theme';
-import createStyles from '../../styles';
+import createStyles from '../../../Tokens/styles';
 import Icon, {
   IconColor,
   IconName,
@@ -26,12 +23,13 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../reducers';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 
 interface StakeButtonProps {
   asset: TokenI;
 }
-
-export const StakeButton = ({ asset }: StakeButtonProps) => {
+const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -40,8 +38,12 @@ export const StakeButton = ({ asset }: StakeButtonProps) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
 
-  const onStakeButtonPress = () => {
-    if (isPooledStakingFeatureEnabled()) {
+  const { isEligible, refreshPooledStakingEligibility } =
+    useStakingEligibility();
+
+  const onStakeButtonPress = async () => {
+    await refreshPooledStakingEligibility();
+    if (isPooledStakingFeatureEnabled() && isEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     } else {
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
@@ -82,7 +84,7 @@ export const StakeButton = ({ asset }: StakeButtonProps) => {
       <Text variant={TextVariant.BodyLGMedium}>
         {' • '}
         <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {`${strings('stake.stake')} `}
+          {`${strings('stake.earn')} `}
         </Text>
       </Text>
       <Icon
@@ -93,3 +95,11 @@ export const StakeButton = ({ asset }: StakeButtonProps) => {
     </Pressable>
   );
 };
+
+export const StakeButton = (props: StakeButtonProps) => (
+  <StakeSDKProvider>
+    <StakeButtonContent {...props} />
+  </StakeSDKProvider>
+);
+
+export default StakeButton;
