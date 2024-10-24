@@ -18,6 +18,17 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
     },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
   },
 }));
 
@@ -54,6 +65,7 @@ const initialState = {
             iconUrl: '',
           },
         ],
+        detectedTokens: [],
       },
       TokenRatesController: {
         marketData: {
@@ -103,6 +115,20 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../UI/Stake/constants', () => ({
+  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isEligible: false,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  })),
+}));
 
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
@@ -163,6 +189,7 @@ describe('Tokens', () => {
     fireEvent.press(getByText('Ethereum'));
     expect(mockNavigate).toHaveBeenCalledWith('Asset', {
       ...initialState.engine.backgroundState.TokensController.tokens[0],
+      tokenFiatAmount: NaN,
     });
   });
 
@@ -178,38 +205,13 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
-  it('fiat balance must be defined', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toBeDefined();
-  });
-  it('portfolio button should render correctly', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON)).toBeDefined();
-  });
-  it('navigates to Portfolio url when portfolio button is pressed', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    const expectedUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile&metricsEnabled=false&marketingEnabled=${initialState.security.dataCollectionForMarketing}`;
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: expectedUrl,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
-    });
-  });
   it('should display unable to find conversion rate', async () => {
     const state = {
       engine: {
         backgroundState: {
           ...backgroundState,
           TokensController: {
+            detectedTokens: [],
             tokens: [
               {
                 name: 'Link',
@@ -255,16 +257,19 @@ describe('Tokens', () => {
 
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
-  it('navigates to Portfolio Stake url when stake button is pressed', () => {
+
+  it('navigates to Stake Input screen when stake button is pressed and user is not eligible', async () => {
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        params: {
+          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+          timestamp: 123,
+        },
+        screen: Routes.BROWSER.VIEW,
+      });
     });
   });
 });

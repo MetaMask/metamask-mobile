@@ -1,11 +1,14 @@
 import React from 'react';
 import { shallow } from 'enzyme';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { NetworkSettings } from './'; // Import the undecorated component
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { mockNetworkState } from '../../../../../util/test/network';
+import Engine from '../../../../../core/Engine';
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -22,20 +25,67 @@ const initialState = {
   networkOnboarded: {
     networkOnboardedState: { '1': true },
   },
+  NetworkController: {
+    ...mockNetworkState({
+      chainId: '0x1',
+      id: 'mainnet',
+      nickname: 'Ethereum Mainnet',
+      ticker: 'ETH',
+      blockExplorerUrl: 'https://goerli.lineascan.build',
+    }),
+  },
 };
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      setProviderType: jest.fn(),
+      setActiveNetwork: jest.fn(),
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      removeNetwork: jest.fn(),
+      updateNetwork: jest.fn(),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(),
+    },
+  },
+}));
 
 const store = mockStore(initialState);
 
 const SAMPLE_NETWORKSETTINGS_PROPS = {
   route: { params: {} },
-  networkConfigurations: {
-    chainId: '0x1',
+  providerConfig: {
     rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-    nickname: 'Ethereum mainnet',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://etherscan.io',
+  },
+  networkConfigurations: {
+    '0x1': {
+      blockExplorerUrls: ['https://etherscan.io'],
+      chainId: '0x1',
+      defaultRpcEndpointIndex: 0,
+      name: 'Ethereum mainnet',
+      nativeCurrency: 'ETH',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mainnet',
+          type: 'Custom',
+          url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+        },
+      ],
     },
-    ticker: 'ETH',
+
+    '0x5': {
+      chainId: '0x5',
+      name: 'Goerli',
+      rpcEndpoints: [{ url: 'https://goerli.infura.io/v3/{infuraProjectId}' }],
+    },
   },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
   matchedChainNetwork: {
@@ -43,6 +93,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       {
         name: 'Ethereum Mainnet',
         chain: 'ETH',
+        chainId: 1,
         icon: 'ethereum',
         rpc: [
           'https://mainnet.infura.io/v3/${INFURA_API_KEY}',
@@ -79,7 +130,6 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
         },
         infoURL: 'https://ethereum.org',
         shortName: 'eth',
-        chainId: 1,
         networkId: 1,
         slip44: 60,
         ens: {
@@ -104,6 +154,17 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
             standard: 'EIP3091',
           },
         ],
+      },
+      {
+        name: 'Polygon',
+        chain: 'MATIC',
+        chainId: 137,
+        faucets: [],
+        nativeCurrency: {
+          name: 'Polygon',
+          symbol: 'MATIC',
+          decimals: 18,
+        },
       },
     ],
   },
@@ -165,38 +226,57 @@ describe('NetworkSettings', () => {
     expect(isNetworkUiRedesignEnabled()).toBe(false);
   });
 
-  it('should return an empty string if the mainnet configuration is not found', () => {
-    const newProps = {
-      ...SAMPLE_NETWORKSETTINGS_PROPS,
+  it('should update state and call getCurrentState on RPC URL change', async () => {
+    const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+      route: {
+        params: {
+          network: 'mainnet',
+        },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
       networkConfigurations: {
-        '4': {
-          chainId: '4',
-          rpcUrl: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
+        '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
+          chainId: '0x1',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'Infura',
+              url: 'https://mainnet.infura.io/v3/',
+            },
+          ],
+          name: 'Ethereum Main Network',
+          nativeCurrency: 'ETH',
         },
       },
     };
 
-    wrapper = shallow(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wrapper2: any = shallow(
       <Provider store={store}>
-        <NetworkSettings {...newProps} />
+        <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
       </Provider>,
     )
       .find(NetworkSettings)
       .dive();
 
-    const instance = wrapper.instance();
-    const rpcUrl = instance.getCustomMainnetRPCURL();
-    expect(rpcUrl).toBe('');
-  });
-  it('should update state and call getCurrentState on RPC URL change', async () => {
     const getCurrentStateSpy = jest.spyOn(
-      wrapper.instance(),
+      wrapper2.instance(),
       'getCurrentState',
     );
 
-    await wrapper.instance().onRpcUrlChange('http://localhost:8545');
+    wrapper2.setState({
+      chainId: '0x1',
+    });
 
-    expect(wrapper.state('rpcUrl')).toBe('http://localhost:8545');
+    await wrapper2.instance().onRpcUrlChange('http://localhost:8545');
+    expect(wrapper2.state('rpcUrl')).toBe('http://localhost:8545');
     expect(getCurrentStateSpy).toHaveBeenCalled();
   });
 
@@ -214,13 +294,19 @@ describe('NetworkSettings', () => {
       },
       networkConfigurations: {
         '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
           chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-          },
-          ticker: 'ETH',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'Infura',
+              url: 'https://mainnet.infura.io/v3/',
+            },
+          ],
+          name: 'Ethereum Main Network',
+          nativeCurrency: 'ETH',
         },
       },
     };
@@ -254,13 +340,19 @@ describe('NetworkSettings', () => {
       },
       networkConfigurations: {
         '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
           chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-          },
-          ticker: 'ETH',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+          name: 'Ethereum Main Custom',
+          nativeCurrency: 'ETH',
         },
       },
     };
@@ -298,13 +390,19 @@ describe('NetworkSettings', () => {
       },
       networkConfigurations: {
         '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
           chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
-          nickname: 'Ethereum mainnet',
-          rpcPrefs: {
-            blockExplorerUrl: 'https://etherscan.io',
-          },
-          ticker: 'ETH',
+          rpcEndpoints: [
+            {
+              url: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Custom,
+              name: 'Ethereum mainnet',
+            },
+          ],
+          name: 'Ethereum mainnet',
+          nativeCurrency: 'ETH',
         },
       },
     };
@@ -391,7 +489,46 @@ describe('NetworkSettings', () => {
     expect(wrapper.state('validatedChainId')).toBe(true);
   });
 
+  it('should add RPC URL correctly to POL for polygon', async () => {
+    wrapper.setState({ rpcUrl: 'http://localhost:8545', chainId: '0x89' });
+
+    await wrapper.instance().validateRpcAndChainId();
+
+    expect(wrapper.state('validatedRpcURL')).toBe(true);
+    expect(wrapper.state('validatedChainId')).toBe(true);
+  });
+
+  // here
   it('should update state and call getCurrentState on block explorer URL change', async () => {
+    const newProps = {
+      ...SAMPLE_NETWORKSETTINGS_PROPS,
+      networkConfigurations: {
+        '0x1': {
+          chainId: '0x1',
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          rpcEndpoints: [
+            {
+              url: 'https://rinkeby.infura.io/v3/YOUR-PROJECT-ID',
+              type: RpcEndpointType.Infura,
+            },
+          ],
+        },
+      },
+    };
+
+    wrapper = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...newProps} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+
+    wrapper.setState({
+      chainId: '0x1',
+    });
+
     const getCurrentStateSpy = jest.spyOn(
       wrapper.instance(),
       'getCurrentState',
@@ -519,6 +656,703 @@ describe('NetworkSettings', () => {
       expect(instanceTest.getDecimalChainId('0x7fffffffffffffff')).toBe(
         '9223372036854776000',
       );
+    });
+  });
+
+  describe('NetworkSettings additional tests', () => {
+    beforeEach(() => {
+      wrapper = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should validate chain ID format and set warning if invalid', async () => {
+      const instance = wrapper.instance();
+
+      // Test with an invalid chainId format
+      await instance.onChainIDChange('invalidChainId');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(
+        "Invalid number. Enter a decimal or '0x'-prefixed hexadecimal number.",
+      );
+    });
+
+    it('should validate chain ID correctly if valid', async () => {
+      const instance = wrapper.instance();
+
+      // Test with a valid chainId
+      await instance.onChainIDChange('0x1');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(undefined);
+    });
+
+    it('should toggle the modal for RPC form correctly', () => {
+      const instance = wrapper.instance();
+
+      instance.openAddRpcForm();
+      expect(wrapper.state('showAddRpcForm').isVisible).toBe(true);
+
+      instance.closeAddRpcForm();
+      expect(wrapper.state('showAddRpcForm').isVisible).toBe(false);
+    });
+
+    it('should toggle the modal for Block Explorer form correctly', () => {
+      const instance = wrapper.instance();
+
+      instance.openAddBlockExplorerForm();
+      expect(wrapper.state('showAddBlockExplorerForm').isVisible).toBe(true);
+
+      instance.closeAddBlockExplorerRpcForm();
+      expect(wrapper.state('showAddBlockExplorerForm').isVisible).toBe(false);
+    });
+
+    it('should validate RPC URL and set a warning if the format is invalid', async () => {
+      const instance = wrapper.instance();
+
+      // Test with an invalid RPC URL
+      await instance.onRpcUrlChange('invalidUrl');
+      await instance.validateRpcUrl('invalidUrl');
+
+      expect(wrapper.state('warningRpcUrl')).toBe(
+        'URIs require the appropriate HTTPS prefix',
+      );
+    });
+
+    it('should not set warning for a valid RPC URL', async () => {
+      const instance = wrapper.instance();
+
+      // Test with a valid RPC URL
+      await instance.onRpcUrlChange(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID-2',
+      );
+
+      expect(wrapper.state('warningRpcUrl')).toBe(undefined);
+    });
+
+    it('should set warning for a duplicated RPC URL', async () => {
+      const instance = wrapper.instance();
+
+      // Test with a valid RPC URL
+      await instance.onRpcUrlChange(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+    });
+
+    it('should correctly add RPC URL through modal and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Open RPC form modal and add a new RPC URL
+      instance.openAddRpcForm();
+      await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+      expect(wrapper.state('rpcUrls').length).toBe(1);
+      expect(wrapper.state('rpcUrls')[0].url).toBe('https://new-rpc-url.com');
+      expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
+    });
+
+    it('should correctly add Block Explorer URL through modal and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Open Block Explorer form modal and add a new URL
+      instance.openAddBlockExplorerForm();
+      await instance.onBlockExplorerItemAdd('https://new-blockexplorer.com');
+
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://new-blockexplorer.com',
+      );
+    });
+
+    it('should call validateRpcAndChainId when chainId and rpcUrl are set', async () => {
+      const instance = wrapper.instance();
+      const validateRpcAndChainIdSpy = jest.spyOn(
+        instance,
+        'validateRpcAndChainId',
+      );
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+      });
+
+      await instance.validateRpcAndChainId();
+
+      expect(validateRpcAndChainIdSpy).toHaveBeenCalled();
+    });
+
+    it('should correctly delete an RPC URL and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Add and then delete an RPC URL
+      await instance.onRpcItemAdd('https://to-delete-url.com', 'RPC to delete');
+      expect(wrapper.state('rpcUrls').length).toBe(1);
+
+      await instance.onRpcUrlDelete('https://to-delete-url.com');
+      expect(wrapper.state('rpcUrls').length).toBe(0);
+    });
+
+    it('should correctly delete a Block Explorer URL and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Add and then delete a Block Explorer URL
+      await instance.onBlockExplorerItemAdd(
+        'https://to-delete-blockexplorer.com',
+      );
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+
+      await instance.onBlockExplorerUrlDelete(
+        'https://to-delete-blockexplorer.com',
+      );
+      expect(wrapper.state('blockExplorerUrls').length).toBe(0);
+    });
+
+    it('should call the navigation method to go back when removeRpcUrl is called', () => {
+      const instance = wrapper.instance();
+      wrapper.setState({
+        rpcUrl: 'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      });
+      instance.removeRpcUrl();
+
+      expect(SAMPLE_NETWORKSETTINGS_PROPS.navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('should disable action button when form is incomplete', async () => {
+      const instance = wrapper.instance();
+
+      // Set incomplete form state
+      wrapper.setState({
+        rpcUrl: '',
+        chainId: '',
+        nickname: '',
+      });
+
+      await instance.addRpcUrl();
+
+      // The action button should be disabled
+      expect(wrapper.state('enableAction')).toBe(false);
+    });
+
+    it('should enable action button when form is complete', async () => {
+      const instance = wrapper.instance();
+
+      // Set complete form state
+      wrapper.setState({
+        rpcUrls: [
+          { url: 'http://localhost:8545', type: 'custom', name: 'test' },
+        ],
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        nickname: 'Localhost',
+        ticker: 'ETH',
+      });
+
+      await instance.getCurrentState();
+
+      // The action button should be enabled
+      expect(wrapper.state('enableAction')).toBe(true);
+    });
+
+    it('should validateChainId and set appropriate error messages for invalid chainId formats', async () => {
+      const instance = wrapper.instance();
+
+      // Set an invalid chain ID
+      await instance.onChainIDChange('0xinvalid');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(
+        'Invalid hexadecimal number.',
+      );
+    });
+
+    it('should handle valid chainId conversion and updating state correctly', async () => {
+      const instance = wrapper.instance();
+
+      await instance.onChainIDChange('0x1');
+      await instance.validateChainId();
+
+      expect(wrapper.state('warningChainId')).toBe(undefined);
+    });
+
+    it('should call getCurrentState when onNicknameChange is triggered', async () => {
+      const instance = wrapper.instance();
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      await instance.onNicknameChange('New Nickname');
+
+      expect(wrapper.state('nickname')).toBe('New Nickname');
+      expect(getCurrentStateSpy).toHaveBeenCalled();
+    });
+
+    it('should not call getCurrentState', async () => {
+      const instance = wrapper.instance();
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      await instance.onBlockExplorerItemAdd('');
+
+      expect(getCurrentStateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should set blockExplorerState', async () => {
+      const instance = wrapper.instance();
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      await instance.onBlockExplorerItemAdd('https://etherscan.io');
+
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(getCurrentStateSpy).toHaveBeenCalled();
+    });
+
+    it('should not validate the symbol if useSafeChainsListValidation is false', async () => {
+      const instance = wrapper.instance();
+
+      const validSymbol = 'ETH';
+
+      await instance.validateSymbol(validSymbol);
+
+      expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
+    });
+
+    it('should validateChainIdOnSubmit', async () => {
+      const instance = wrapper.instance();
+
+      const validChainId = '0x38';
+
+      await instance.validateChainIdOnSubmit(
+        validChainId,
+        validChainId,
+        'https://bsc-dataseed.binance.org/',
+      );
+
+      expect(instance.state.warningChainId).toBeUndefined();
+    });
+
+    it('should set a warning when chainId is not valid', async () => {
+      const instance = wrapper.instance();
+
+      const validChainId = '0xInvalidChainId';
+
+      await instance.validateChainIdOnSubmit(validChainId);
+
+      expect(instance.state.warningChainId).toBe(
+        'Could not fetch chain ID. Is your RPC URL correct?',
+      );
+    });
+
+    it('should return without updating warningName when useSafeChainsListValidation is false', () => {
+      const instance = wrapper.instance();
+
+      instance.props.useSafeChainsListValidation = false; // Disable validation
+
+      instance.validateName();
+
+      // Make sure warningName wasn't updated
+      expect(instance.state.warningName).toBeUndefined();
+    });
+
+    it('should set warningName to undefined if chainToMatch name is the same as nickname', () => {
+      const instance = wrapper.instance();
+
+      const chainToMatch = { name: 'Test Network' };
+
+      instance.validateName(chainToMatch);
+
+      expect(instance.state.warningName).toBeUndefined();
+    });
+
+    it('should set warningName to undefined when networkList name is the same as nickname', () => {
+      const instance = wrapper.instance();
+
+      instance.setState({
+        networkList: {
+          name: 'Test Network', // same as nickname
+        },
+      });
+
+      instance.validateName();
+
+      expect(instance.state.warningName).toBeUndefined();
+    });
+
+    it('should update rpcUrl, set validatedRpcURL to false, and call validation methods', async () => {
+      const instance = wrapper.instance();
+
+      const validateNameSpy = jest.spyOn(instance, 'validateName');
+      const validateChainIdSpy = jest.spyOn(instance, 'validateChainId');
+      const validateSymbolSpy = jest.spyOn(instance, 'validateSymbol');
+      const getCurrentStateSpy = jest.spyOn(instance, 'getCurrentState');
+
+      // Mock initial state
+      instance.setState({
+        addMode: true,
+      });
+
+      // Call the function
+      await instance.onRpcUrlChangeWithName(
+        'https://example.com',
+        'Test Network',
+        'Custom',
+      );
+
+      // Assert that state was updated
+      expect(wrapper.state('rpcUrl')).toBe('https://example.com');
+      expect(wrapper.state('validatedRpcURL')).toBe(false);
+      expect(wrapper.state('rpcName')).toBe('Test Network');
+      expect(wrapper.state('warningRpcUrl')).toBeUndefined();
+      expect(wrapper.state('warningChainId')).toBeUndefined();
+      expect(wrapper.state('warningSymbol')).toBeUndefined();
+      expect(wrapper.state('warningName')).toBeUndefined();
+
+      // Assert that the validation methods were called
+      expect(validateNameSpy).toHaveBeenCalled();
+      expect(validateChainIdSpy).toHaveBeenCalled();
+      expect(validateSymbolSpy).toHaveBeenCalled();
+      expect(getCurrentStateSpy).toHaveBeenCalled();
+    });
+
+    it('should set rpcName to type if name is not provided', async () => {
+      const instance = wrapper.instance();
+
+      await instance.onRpcUrlChangeWithName(
+        'https://example.com',
+        null,
+        'Custom',
+      );
+
+      expect(wrapper.state('rpcName')).toBe('Custom');
+    });
+
+    it('should not call validateChainId if addMode is false', async () => {
+      const instance = wrapper.instance();
+
+      const validateChainIdSpy = jest.spyOn(instance, 'validateChainId');
+
+      // Set addMode to false
+      instance.setState({
+        addMode: false,
+      });
+
+      await instance.onRpcUrlChangeWithName(
+        'https://example.com',
+        'Test Network',
+        'Custom',
+      );
+
+      // ValidateChainId should not be called
+      expect(validateChainIdSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('NetworkSettings componentDidMount', () => {
+    it('should correctly initialize state when networkTypeOrRpcUrl is provided', () => {
+      const SAMPLE_NETWORKSETTINGS_PROPS_2 = {
+        route: {
+          params: {
+            network: 'mainnet',
+          },
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+        networkConfigurations: {
+          '0x1': {
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            defaultRpcEndpointIndex: 0,
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Infura',
+                url: 'https://mainnet.infura.io/v3/',
+              },
+            ],
+            name: 'Ethereum Main Network',
+            nativeCurrency: 'ETH',
+          },
+        },
+      };
+
+      // Reinitialize the component with new props
+      const wrapper2 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_2} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance2 = wrapper2.instance();
+
+      // Simulate component mounting
+      instance2.componentDidMount?.();
+
+      // Check if state was initialized correctly
+      expect(wrapper2.state('blockExplorerUrl')).toBe('https://etherscan.io');
+      expect(wrapper2.state('nickname')).toBe('Ethereum Main Network');
+      expect(wrapper2.state('chainId')).toBe('0x1');
+      expect(wrapper2.state('rpcUrl')).toBe('https://mainnet.infura.io/v3/');
+    });
+
+    it('should set addMode to true if no networkTypeOrRpcUrl is provided', () => {
+      const SAMPLE_NETWORKSETTINGS_PROPS_3 = {
+        route: {
+          params: {},
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+      };
+
+      // Reinitialize the component without networkTypeOrRpcUrl
+      const wrapper3 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_3} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance3 = wrapper3.instance();
+
+      // Simulate component mounting
+      instance3.componentDidMount?.();
+
+      // Check if state was initialized with addMode set to true
+      expect(wrapper3.state('addMode')).toBe(true);
+    });
+
+    it('should handle cases where the network is custom', () => {
+      const SAMPLE_NETWORKSETTINGS_PROPS_4 = {
+        route: {
+          params: { network: 'https://custom-network.io' },
+        },
+        navigation: {
+          setOptions: jest.fn(),
+          navigate: jest.fn(),
+          goBack: jest.fn(),
+        },
+        networkConfigurations: {
+          '0x123': {
+            blockExplorerUrls: ['https://custom-explorer.io'],
+            chainId: '0x123',
+            defaultRpcEndpointIndex: 0,
+            rpcEndpoints: [
+              {
+                url: 'https://custom-network.io',
+                type: RpcEndpointType.Custom,
+              },
+            ],
+            name: 'Custom Network',
+            nativeCurrency: 'CUST',
+          },
+        },
+      };
+
+      // Reinitialize the component with custom network
+      const wrapper4 = shallow(
+        <Provider store={store}>
+          <NetworkSettings {...SAMPLE_NETWORKSETTINGS_PROPS_4} />
+        </Provider>,
+      )
+        .find(NetworkSettings)
+        .dive();
+
+      const instance4 = wrapper4.instance();
+
+      // Simulate component mounting
+      instance4.componentDidMount?.();
+
+      // Check if state was initialized correctly for the custom network
+      expect(wrapper4.state('nickname')).toBe('Custom Network');
+      expect(wrapper4.state('chainId')).toBe('0x123');
+      expect(wrapper4.state('rpcUrl')).toBe('https://custom-network.io');
+    });
+
+    it('should call validateRpcAndChainId when matchedChainNetwork changes', () => {
+      const instance = wrapper.instance();
+
+      const validateRpcAndChainIdSpy = jest.spyOn(
+        wrapper.instance(),
+        'validateRpcAndChainId',
+      );
+      const updateNavBarSpy = jest.spyOn(wrapper.instance(), 'updateNavBar');
+
+      const prevProps = {
+        matchedChainNetwork: {
+          id: 'network1',
+        },
+      };
+
+      // Simulate a prop change
+      wrapper.setProps({
+        matchedChainNetwork: {
+          id: 'network2',
+        },
+      });
+
+      instance.componentDidUpdate(prevProps);
+
+      expect(updateNavBarSpy).toHaveBeenCalled();
+      expect(validateRpcAndChainIdSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('NetworkSettings - handleNetworkUpdate', () => {
+    const mockNavigation = {
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+    };
+
+    const SAMPLE_PROPS = {
+      route: {
+        params: {
+          network: 'mainnet',
+        },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
+      networkConfigurations: {
+        '0x1': {
+          blockExplorerUrls: ['https://etherscan.io'],
+          defaultBlockExplorerUrlIndex: 0,
+          defaultRpcEndpointIndex: 0,
+          chainId: '0x1',
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+              type: 'Infura',
+              url: 'https://mainnet.infura.io/v3/',
+            },
+          ],
+          name: 'Ethereum Main Network',
+          nativeCurrency: 'ETH',
+        },
+      },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wrapper4: any = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...SAMPLE_PROPS} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should update the network if the network exists', async () => {
+      const instance = wrapper4.instance();
+
+      await instance.handleNetworkUpdate({
+        rpcUrl: 'http://localhost:8080',
+        rpcUrls: [{ url: 'http://localhost:8080', type: 'custom', name: '' }],
+        blockExplorerUrls: ['https://etherscan.io'],
+        isNetworkExists: [],
+        chainId: '0x1',
+        navigation: mockNavigation,
+      });
+
+      expect(
+        Engine.context.NetworkController.updateNetwork,
+      ).toHaveBeenCalledWith(
+        '0x1', // chainId
+        expect.objectContaining({
+          blockExplorerUrls: ['https://etherscan.io'],
+          chainId: '0x1',
+          defaultBlockExplorerUrlIndex: undefined,
+          defaultRpcEndpointIndex: 0,
+          name: undefined,
+          nativeCurrency: undefined,
+          rpcEndpoints: [
+            { name: '', type: 'custom', url: 'http://localhost:8080' },
+          ],
+        }),
+        { replacementSelectedRpcEndpointIndex: 0 },
+      );
+    });
+  });
+
+  describe('checkIfRpcUrlExists', () => {
+    // Mock network configurations
+    const networkConfigurations = {
+      '0x1': {
+        chainId: '0x1',
+        name: 'Mainnet',
+        rpcEndpoints: [
+          { url: 'https://mainnet.infura.io/v3/{infuraProjectId}' },
+        ],
+      },
+      '0x5': {
+        chainId: '0x5',
+        name: 'Goerli',
+        rpcEndpoints: [
+          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
+        ],
+      },
+    };
+
+    it('should return matching custom network if RPC URL exists in networkConfigurations', async () => {
+      const rpcUrl = 'https://goerli.infura.io/v3/{infuraProjectId}';
+      const instance = wrapper.instance();
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([networkConfigurations['0x5']]);
+    });
+
+    it('should return an empty array if the RPC URL does not exist', async () => {
+      const rpcUrl = 'https://random.network.io';
+      const instance = wrapper.instance();
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return multiple networks if multiple RPC URLs match', async () => {
+      const instance = wrapper.instance();
+
+      // Add another endpoint with the same RPC URL
+      instance.props.networkConfigurations['0x2'] = {
+        chainId: '0x2',
+        name: 'Another Network',
+        rpcEndpoints: [
+          { url: 'https://goerli.infura.io/v3/{infuraProjectId}' },
+        ],
+      };
+
+      const rpcUrl = 'https://goerli.infura.io/v3/{infuraProjectId}';
+      const result = await instance.checkIfRpcUrlExists(rpcUrl);
+
+      expect(result).toEqual([
+        networkConfigurations['0x5'],
+        instance.props.networkConfigurations['0x2'],
+      ]);
     });
   });
 });

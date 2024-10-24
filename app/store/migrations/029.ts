@@ -4,7 +4,6 @@ import { regex } from '../../../app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
-import { NetworkState } from '@metamask/network-controller';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
@@ -14,11 +13,28 @@ import {
 import {
   Nft,
   NftContract,
-  NftState,
+  NftControllerState,
   TokenListState,
-  TokenRatesState,
-  TokensState,
+  TokenRatesControllerState,
+  TokensControllerState,
 } from '@metamask/assets-controllers';
+
+interface NetworkState {
+  selectedNetworkClientId: string;
+  networkConfigurations: Record<
+    string,
+    {
+      id: string;
+      rpcUrl: string;
+      chainId: string;
+      ticker: string;
+      nickname: string;
+      rpcPrefs: {
+        blockExplorerUrl: string;
+      };
+    }
+  >;
+}
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -313,7 +329,7 @@ export default async function migrate(stateAsync: unknown) {
 
   const nftControllerState = state?.engine?.backgroundState?.NftController;
   const newNftControllerState = state?.engine?.backgroundState
-    ?.NftController as NftState;
+    ?.NftController as NftControllerState;
 
   if (!isObject(nftControllerState)) {
     captureException(
@@ -514,7 +530,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokenRatesControllerState =
     state?.engine?.backgroundState?.TokenRatesController;
   const newTokenRatesControllerState = state?.engine?.backgroundState
-    ?.TokenRatesController as TokenRatesState;
+    ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
     captureException(
@@ -557,7 +573,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokensControllerState =
     state?.engine?.backgroundState?.TokensController;
   const newTokensControllerState = state?.engine?.backgroundState
-    ?.TokensController as TokensState;
+    ?.TokensController as TokensControllerState;
 
   if (!isObject(tokensControllerState)) {
     captureException(

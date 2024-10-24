@@ -57,7 +57,7 @@ describe(
           await TabBarComponent.tapSettings();
           await SettingsView.tapLock();
           await SettingsView.tapYesAlertButton();
-          await LoginView.isVisible();
+          await Assertions.checkIfVisible(LoginView.container);
 
           // should tap reset wallet button
           await LoginView.tapResetWalletButton();
@@ -102,6 +102,7 @@ describe(
           await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+          await NetworkListModal.scrollToBottomOfNetworkList();
           await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
         },
       );

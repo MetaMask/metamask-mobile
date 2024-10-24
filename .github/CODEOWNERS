@@ -4,12 +4,15 @@
 *                                    @MetaMask/mobile-devs
 
 # Design System Team
-app/component-library/               @MetaMask/design-system-engineers @MetaMask/mobile-platform
+app/component-library/               @MetaMask/design-system-engineers
 
 # Platform Team
 patches/                             @MetaMask/mobile-platform
 app/core/Engine.ts                   @MetaMask/mobile-platform
 app/core/Engine.test.js              @MetaMask/mobile-platform
+app/core/Analytics/                  @MetaMask/mobile-platform
+app/util/metrics/                    @MetaMask/mobile-platform
+app/components/hooks/useMetrics/     @MetaMask/mobile-platform
 
 # Supply Chain Team
 bitrise.yml                          @MetaMask/supply-chain @MetaMask/mobile-platform
