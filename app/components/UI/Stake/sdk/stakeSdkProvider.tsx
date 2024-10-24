@@ -4,7 +4,6 @@ import {
   PooledStakingContract,
   type StakingApiService,
   isSupportedChain,
-  ChainId,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -15,10 +14,7 @@ import React, {
 import { getProviderByChainId } from '../../../../util/notifications';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
-import { hexToDecimal } from '../../../../util/conversions';
-
-const hexToChainId = (hex: `0x${string}`): ChainId =>
-  hexToDecimal(hex).toString() as unknown as ChainId;
+import { getDecimalChainId } from '../../../../util/networks';
 
 export const SDK = StakeSdk.create({ stakingType: StakingType.POOLED });
 
@@ -42,7 +38,7 @@ export const StakeSDKProvider: React.FC<
   const chainId = useSelector(selectChainId);
 
   const sdkService = useMemo(() => {
-    if (!chainId || !isSupportedChain(hexToChainId(chainId))) {
+    if (!chainId || !isSupportedChain(getDecimalChainId(chainId))) {
       console.error(
         'Failed to initialize Staking SDK Service: chainId unsupported',
       );
@@ -59,7 +55,7 @@ export const StakeSDKProvider: React.FC<
     }
 
     const sdk = StakeSdk.create({
-      chainId: parseInt(hexToChainId(chainId).toString()),
+      chainId: getDecimalChainId(chainId),
       stakingType: sdkType,
     });
 

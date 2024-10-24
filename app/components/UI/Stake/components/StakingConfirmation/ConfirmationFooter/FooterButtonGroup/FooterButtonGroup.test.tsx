@@ -69,6 +69,13 @@ jest.mock('../../../../hooks/usePoolStakedUnstake', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    refreshPooledStakes: jest.fn(),
+  }),
+}));
+
 describe('FooterButtonGroup', () => {
   beforeEach(() => {
     jest.resetAllMocks();
