@@ -1,4 +1,4 @@
-import { zeroAddress } from 'ethereumjs-util';
+import { zeroAddress } from '@ethereumjs/util';
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
