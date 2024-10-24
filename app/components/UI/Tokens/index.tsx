@@ -91,7 +91,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const networkName = useSelector(selectNetworkName);
 
   const actionSheet = useRef<typeof ActionSheet>();
-  const sortControlsActionSheet = useRef<typeof ActionSheet>();
   const filterControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
