@@ -7,7 +7,7 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 export const PopularList = [
   {
     chainId: toHex('43114'),
-    nickname: 'Avalanche Mainnet C-Chain',
+    nickname: 'Avalanche C-Chain',
     rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'AVAX',
     rpcPrefs: {
@@ -29,7 +29,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('56'),
-    nickname: 'BNB Chain',
+    nickname: 'BNB Smart Chain Mainnet',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
     ticker: 'BNB',
     warning: true,
@@ -53,7 +53,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('10'),
-    nickname: 'Optimism',
+    nickname: 'OP Mainnet',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
     rpcPrefs: {
@@ -86,7 +86,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('324'),
-    nickname: 'zkSync Era Mainnet',
+    nickname: 'zkSync Mainnet',
     rpcUrl: `https://mainnet.era.zksync.io`,
     ticker: 'ETH',
     warning: true,
@@ -133,4 +133,5 @@ export const UnpopularNetworkList = [
 export const CustomNetworkImgMapping: Record<`0x${string}`, string> = {
   '0xe': require('../../images/flare-mainnet.png'), // Flare Mainnet
   '0x13': require('../../images/songbird.png'), // Songbird Testnet
+  '0x659': require('../../images/gravity.png'), // Gravity Alpha Mainnet
 };

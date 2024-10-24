@@ -375,6 +375,10 @@
     "accept": "Συμφωνώ",
     "cancel": "Όχι, ευχαριστώ"
   },
+  "multi_rpc_migration_modal": {
+    "description": "Υποστηρίζουμε πλέον πολλαπλά RPC για ένα ενιαίο δίκτυο. Το πιο πρόσφατο RPC σας έχει επιλεχθεί ως το προεπιλεγμένο για την επίλυση αντικρουόμενων πληροφοριών",
+    "accept": "Αποδοχή"
+  },
   "nft_details": {
     "bought_for": "Αγοράστηκε για",
     "highest_floor_price": "Υψηλότερη κατώτατη τιμή",
@@ -497,7 +501,7 @@
     "address": "Διεύθυνση συμβολαίου token",
     "decimal": "Δεκαδικά Ψηφία token",
     "network": "Δίκτυο",
-    "network_fee": "Network fee",
+    "network_fee": "Τέλη δικτύου",
     "lists": "Λίστες Token",
     "hide_cta": "Απόκρυψη token",
     "options": {
@@ -650,6 +654,7 @@
     "receive": "ΛΗΨΗ"
   },
   "accounts": {
+    "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Δημιουργία νέου λογαριασμού",
     "import_account": "Εισαγωγή λογαριασμού",
     "connect_hardware": "Σύνδεση πορτοφολιού υλικού",
@@ -686,7 +691,7 @@
     "suggest_transactions": "Προτείνει συναλλαγές προς έγκριση",
     "disconnect": "Αποσύνδεση",
     "disconnect_all": "Αποσύνδεση όλων",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "Εάν αποσυνδεθείτε από το {{dappUrl}}, θα πρέπει να επανασυνδέσετε τους λογαριασμούς και τα δίκτυά σας για να χρησιμοποιήσετε ξανά αυτόν τον ιστότοπο.",
     "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
     "deceptive_site_ahead": "Παραπλανητικός ιστότοπος εν όψει",
     "deceptive_site_desc": "Ο ιστότοπος που προσπαθείτε να επισκεφθείτε δεν είναι ασφαλής. Οι εισβολείς μπορεί να σας εξαπατήσουν για να κάνουν κάτι επικίνδυνο.",
@@ -700,9 +705,13 @@
   "toast": {
     "connected_and_active": "συνδεδεμένοι και ενεργοί.",
     "now_active": "τώρα ενεργοί.",
+    "network_added": "προστέθηκε με επιτυχία",
     "revoked": "ανακλήθηκαν.",
     "revoked_all": "Όλοι οι λογαριασμοί ανακλήθηκαν.",
     "accounts_connected": "λογαριασμοί συνδεδεμένοι.",
+    "account_connected": "account connected.",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnected": "αποσυνδέθηκε.",
     "disconnected_all": "Όλοι οι λογαριασμοί αποσυνδέθηκαν.",
     "disconnected_from": "Αποσυνδέθηκε από το {{dappHostName}}",
@@ -740,6 +749,10 @@
   "app_settings": {
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
     "disabling_notifications": "Απενεργοποίηση ειδοποιήσεων...",
+    "reset_notifications_title": "Επαναφορά ειδοποιήσεων",
+    "reset_notifications_description": "Η επαναφορά των ειδοποιήσεων σημαίνει ότι διαγράφετε τα κλειδιά αποθήκευσης ειδοποιήσεων και επαναφέρετε όλο το ιστορικό ειδοποιήσεων. Είστε σίγουροι ότι θέλετε να προχωρήσετε;",
+    "reset_notifications": "Επαναφορά ειδοποιήσεων",
+    "reset_notifications_success": "Διαγραφή/δημιουργία εκ νέου κλειδιού αποθήκευσης ειδοποιήσεων και επαναφορά ιστορικού ειδοποιήσεων.",
     "enabling_profile_sync": "Ενεργοποίηση συγχρονισμού του προφίλ...",
     "disabling_profile_sync": "Απενεργοποίηση συγχρονισμού του προφίλ...",
     "notifications_dismiss_modal": "Απόρριψη",
@@ -780,6 +793,7 @@
     "save_rpc_url": "ΑΠΟΘΗΚΕΥΣΗ",
     "invalid_rpc_prefix": "Οι διευθύνσεις URL απαιτούν το κατάλληλο πρόθεμα HTTPS",
     "invalid_rpc_url": "Μη έγκυρη διεύθυνση URL του RPC",
+    "invalid_block_explorer_url": "Μη έγκυρη διεύθυνση URL του Block Explorer",
     "sync": "ΣΥΓΧΡΟΝΙΣΜΟΣ",
     "clear_approved_dapps": "ΕΚΚΑΘΑΡΙΣΗ ΕΓΚΕΚΡΙΜΕΝΩΝ ΑΠΟΚΕΝΤΡΩΜΕΝΩΝ ΕΦΑΡΜΟΓΩΝ",
     "clear_browser_history": "ΕΚΚΑΘΑΡΙΣΗ ΤΟΥ ΙΣΤΟΡΙΚΟΥ ΤΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ ΠΕΡΙΗΓΗΣΗΣ",
@@ -855,10 +869,13 @@
     "networks_default_title": "Προεπιλεγμένο Δίκτυο",
     "network_delete": "Εάν διαγράψετε αυτό το δίκτυο, θα πρέπει να το προσθέσετε ξανά για να δείτε τα περιουσιακά σας στοιχεία σε αυτό το δίκτυο",
     "networks_default_cta": "Χρήση αυτού του δικτύου",
+    "add_rpc_url": "Προσθήκη διεύθυνσης URL του RPC",
+    "add_block_explorer_url": "Προσθήκη διεύθυνσης URL του Block Explorer",
     "networks_desc": "Προσθέστε και επεξεργαστείτε προσαρμοσμένα δίκτυα RPC",
     "network_name_label": "Όνομα Δικτύου",
     "network_name_placeholder": "Όνομα Δικτύου (προαιρετικό)",
     "network_rpc_url_label": "Διεύθυνση Url του RPC",
+    "network_rpc_name_label": "Όνομα του RPC",
     "network_rpc_placeholder": "Νέο Δίκτυο RPC",
     "network_chain_id_label": "Αναγνωριστικό αλυσίδας",
     "network_chain_id_placeholder": "Αναγνωριστικό αλυσίδας",
@@ -924,7 +941,7 @@
     "invalid_number_range": "Μη έγκυρος αριθμός. Εισαγάγετε έναν αριθμό μεταξύ 1 και %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Απόκρυψη Tokens Χωρίς Υπόλοιπο",
     "hide_zero_balance_tokens_desc": "Αποτρέπει την εμφάνιση των tokens χωρίς υπόλοιπο στην λίστα των tokens σας.",
-    "token_detection_title": "Βελτιωμένος Εντοπισμός Token",
+    "token_detection_title": "Αυτόματη ανίχνευση tokens",
     "token_detection_description": "Χρησιμοποιούμε API τρίτων για τον εντοπισμό και την εμφάνιση νέων tokens που αποστέλλονται στο πορτοφόλι σας. Απενεργοποιήστε το εάν δεν θέλετε η εφαρμογή να αντλεί δεδομένα από αυτές τις υπηρεσίες.",
     "theme_button_text": "Αλλαγή Θέματος",
     "theme_title": "Θέμα ({{theme}})",
@@ -1036,7 +1053,7 @@
           "snap_getBip32PublicKey": "Δείτε το δημόσιο κλειδί σας για {{protocol}}",
           "snap_getBip44Entropy": "Ελέγξτε τους λογαριασμούς {{protocol}} και τα περιουσιακά σας στοιχεία",
           "snap_getEntropy": "Παραγωγή τυχαίων κλειδιών μοναδικών σε αυτό το snap",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Να επιτρέπονται τα αιτήματα για την προσθήκη και τον έλεγχο λογαριασμών του Ethereum",
           "wallet_snap": "Σύνδεση με {{otherSnapName}}",
           "endowment:webassembly": "Υποστήριξη για WebAssembly",
           "endowment:ethereum-provider": "Πρόσβαση στον πάροχο Ethereum",
@@ -1044,7 +1061,8 @@
           "snap_getLocale": "Δείτε την προτιμώμενη γλώσσα σας",
           "endowment:caveat:transaction-origin": "Δείτε την προέλευση των ιστότοπων που προτείνουν συναλλαγές",
           "endowment:extend-runtime": "Επέκταση του χρόνου εκτέλεσης",
-          "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων"
+          "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων",
+          "snap_manageAccounts": "Προσθήκη και έλεγχος λογαριασμών του Ethereum"
         }
       }
     },
@@ -1067,9 +1085,9 @@
     "aes_crypto_test_form_title": "AES Crypto - Φόρμα δοκιμών",
     "aes_crypto_test_form_description": "Το τμήμα αναπτύχθηκε αποκλειστικά για δοκιμές E2E. Εάν αυτό είναι ορατό στην εφαρμογή σας, αναφέρετέ το στην υποστήριξη του MetaMask.",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "Επιλογές προγραμματιστών",
+      "generate_trace_test": "Δημιουργία δοκιμής παρακολούθησης",
+      "generate_trace_test_desc": "Δημιουργία παρακολούθησης για το Developer Test Sentry."
     }
   },
   "aes_crypto_test_form": {
@@ -1327,7 +1345,7 @@
     "transaction_id": "Αναγνωριστικό συναλλαγής",
     "alert": "ΕΙΔΟΠΟΙΗΣΗ",
     "amount": "Ποσό",
-    "details": "Details",
+    "details": "Λεπτομέρειες",
     "next": "Επόμενο",
     "back": "Πίσω",
     "confirm": "Επιβεβαιωση",
@@ -1449,7 +1467,7 @@
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
     "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη",
     "swap_tokens": "Ανταλλαγή tokens",
-    "fromWithColon": "From:"
+    "fromWithColon": "Από:"
   },
   "custom_gas": {
     "total": "Σύνολο",
@@ -1736,7 +1754,7 @@
     "continue": "Συνέχεια",
     "cancel": "Άκυρο",
     "approve": "Έγκριση",
-    "update": "Update",
+    "update": "Ενημέρωση",
     "edit_network_details": "Επεξεργασία λεπτομερειών δικτύου",
     "malicious_network_warning": "Ένας κακόβουλος πάροχος δικτύου μπορεί να πει ψέματα για την κατάσταση του blockchain και να καταγράψει τη δραστηριότητα του δικτύου σας. Να προσθέτετε μόνο προσαρμοσμένα δίκτυα που εμπιστεύεστε.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1762,12 @@
     "additional_network_information_title": "Πρόσθετες πληροφορίες δικτύων",
     "network_warning_desc": "Αυτή η σύνδεση δικτύου βασίζεται σε τρίτους. H σύνδεση ενδέχεται να είναι λιγότερο αξιόπιστη ή να επιτρέπει σε τρίτους να παρακολουθούν τη δραστηριότητα.",
     "additonial_network_information_desc": "Ορισμένα από αυτά τα δίκτυα βασίζονται σε τρίτους. Οι συνδέσεις μπορεί να είναι λιγότερο αξιόπιστες ή να επιτρέπουν σε τρίτους να παρακολουθούν τη δραστηριότητα.",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "Σύνδεση περισσότερων δικτύων",
     "learn_more": "Μάθετε περισσότερα",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Εναλλαγή σε δίκτυο",
     "switch": "Αλλαγή",
-    "select_all": "Select all",
+    "select_all": "Επιλογή όλων",
     "new_network": "Προστέθηκε νέο δίκτυο",
     "network_name": "Το Δίκτυο {{networkName}}",
     "network_added": " είναι τώρα διαθέσιμο στην επιλογή δικτύου.",
@@ -1767,18 +1785,18 @@
     "deprecated_goerli": "Λόγω των αλλαγών στο πρωτόκολλο του δοκιμαστικού δίκτυου Ethereum: Goerli μπορεί να μην λειτουργεί τόσο αξιόπιστα και θα καταργηθεί σύντομα.",
     "network_deprecated_title": "Αυτό το δίκτυο έχει καταργηθεί",
     "network_deprecated_description": "Το δίκτυο στο οποίο προσπαθείτε να συνδεθείτε δεν υποστηρίζεται πλέον από το Metamask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Επεξεργασία δικτύων"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
+    "title_this_site_wants_to": "Αυτός ο ιστότοπος θέλει να:",
+    "title_dapp_url_wants_to": "Το {{dappUrl}} θέλει να:",
+    "title_dapp_url_has_approval_to": "Το {{dappUrl}} έχει έγκριση για:",
+    "use_enabled_networks": "Χρησιμοποιήστε τα ενεργοποιημένα δίκτυά σας",
+    "wants_to_see_your_accounts": "Δείτε τους λογαριασμούς σας και προτείνετε συναλλαγές",
+    "requesting_for": "Ζητήθηκε για ",
+    "manage_permissions": "Διαχείριση αδειών",
+    "edit": "Επεξεργασία",
+    "cancel": "Ακύρωση"
   },
   "select": {
     "cancel": "Άκυρο",
@@ -2042,8 +2060,9 @@
     "back_to_safety": "Πίσω στην ασφάλεια"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "Χρονικό όριο",
+    "no_date": "Άγνωστο",
+    "yesterday": "Χθες",
     "staked": "Ποντάρισμα",
     "received": "Ελήφθη",
     "unstaked": "Ακύρωση πονταρίσματος",
@@ -2119,8 +2138,8 @@
     "success_withdrawal_title": "Η ανάληψη ολοκληρώθηκε!",
     "error_title": "Ωχ, κάτι πήγε στραβά :/",
     "received_title": "Λάβατε {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "default_message_title": "Ειδοποίηση νέας συναλλαγής",
+    "default_message_description": "Πατήστε για να δείτε αυτή τη συναλλαγή",
     "received_payment_title": "Ελήφθη άμεση πληρωμή",
     "pending_message": "Αναμονή για επιβεβαίωση",
     "pending_deposit_message": "Αναμονή για την ολοκλήρωση της κατάθεσης",
@@ -2136,12 +2155,12 @@
     "cancelled_message": "Πατήστε για να δείτε τη συναλλαγή",
     "received_message": "Πατήστε για να δείτε τη συναλλαγή",
     "received_payment_message": "Λάβατε {{amount}} DAI",
-    "prompt_title": "Receive Push Notifications",
+    "prompt_title": "Λαμβάνετε ειδοποιήσεις ώθησης",
     "notifications_enabled_error_title": "Κάτι πήγε στραβά",
     "notifications_enabled_error_desc": "Δεν μπορέσαμε να ενεργοποιήσουμε τις ειδοποιήσεις. Προσπαθήστε ξανά αργότερα.",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "Ενεργοποιήστε τις ειδοποιήσεις από τις Ρυθμίσεις για να λαμβάνετε σημαντικές ειδοποιήσεις σχετικά με τη δραστηριότητα του πορτοφολιού σας και άλλα.",
+    "prompt_ok": "Ενεργοποίηση",
+    "prompt_cancel": "Ίσως αργότερα",
     "wc_connected_title": "Συνδέθηκε σε {{title}}",
     "wc_signed_title": "Υπογεγραμμένο",
     "wc_sent_tx_title": "Απεσταλμένη συναλλαγή",
@@ -2154,6 +2173,7 @@
     "wallet": "Πορτοφόλι",
     "web3": "Web3",
     "staking_provider": "Πάροχος πονταρίσματος",
+    "network_fee_not_available": "Network Fee not available",
     "empty": {
       "title": "Τίποτα το ιδιαίτερο εδώ",
       "message": "Εδώ μπορείτε να βρείτε ειδοποιήσεις μόλις παρατηρηθεί δραστηριότητα στο πορτοφόλι σας. "
@@ -2915,7 +2935,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Εκτιμώμενο τέλος συναλλαγής",
-    "network_fee": "Network fee",
+    "network_fee": "Τέλη δικτύου",
     "max_fee": "Μέγιστο τέλος συναλλαγής",
     "total": "Σύνολο",
     "max_amount": "Μέγιστο ποσό",
@@ -3155,7 +3175,7 @@
     "ledger_reminder_message_step_four": "4. Η τοποθεσία είναι ενεργοποιημένη με τη χρήση ακριβούς τοποθεσίας στο",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Οι κοντινές συσκευές είναι ενεργοποιημένες",
     "ledger_reminder_message_step_five": "5. Η λειτουργία \"Μην ενοχλείτε\" πρέπει να είναι απενεργοποιημένη",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Ενεργοποιήστε την \"τυφλή υπογραφή\" στη συσκευή σας Ledger.",
     "available_devices": "Διαθέσιμες συσκευές",
     "retry": "Επανάληψη",
     "continue": "Συνέχεια",
@@ -3186,15 +3206,17 @@
     "how_to_install_eth_webview_title": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum",
     "nonce_too_low": "Πολύ χαμηλό nonce",
     "nonce_too_low_error": "Το καθορισμένο nonce είναι πολύ χαμηλό",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "Επιλέξτε έναν λογαριασμό",
+    "select_hd_path": "Επιλέξτε Διαδρομή HD",
+    "select_hd_path_description": "Αν δεν βλέπετε τους λογαριασμούς που επιθυμείτε, δοκιμάστε να αλλάξετε τη διαδρομή HD ή το τρέχον επιλεγμένο δίκτυο.",
     "ledger_live_path": "Ledger Live",
-    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_legacy_path": "Legacy (MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44 (π.χ. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "blind_sign_error": "Σφάλμα τυφλής υπογραφής",
+    "blind_sign_error_message": "Η τυφλή υπογραφή δεν είναι ενεργοποιημένη στη συσκευή σας Ledger. Ενεργοποιήστε την στις ρυθμίσεις.",
+    "user_reject_transaction": "User rejected the transaction",
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
   },
   "account_actions": {
     "edit_name": "Επεξεργασία ονόματος λογαριασμού",
@@ -3249,20 +3271,77 @@
   },
   "stake": {
     "stake": "Stake",
-    "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "stake_eth": "Ποντάρισμα σε ETH",
+    "unstake_eth": "Ακύρωση πονταρίσματος σε ETH",
+    "staked_balance": "Υπόλοιπο πονταρίσματος",
+    "staked_ethereum": "Πραγματοποιήθηκε ποντάρισμα σε Ethereum",
+    "unstake": "Ακύρωση πονταρίσματος",
+    "stake_more": "Περισσότερα πονταρίσματα",
+    "claim": "Διεκδίκηση",
+    "your_earnings": "Τα κέρδη σας",
+    "annual_rate": "Ετήσιο επιτόκιο",
+    "lifetime_rewards": "Ανταμοιβές εφ' όρου ζωής",
+    "estimated_annual_earnings": "Εκτιμώμενα ετήσια κέρδη",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "Εργαλεία ετήσιων επιτοκίων"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_rewards": "Εκτιμώμενες ετήσιες ανταμοιβές",
     "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "enter_amount": "Εισαγωγή ποσού",
+    "review": "Επανέλεγχος",
+    "not_enough_eth": "Δεν έχετε αρκετά ETH",
+    "balance": "Υπόλοιπο",
+    "stake_eth_and_earn": "Ποντάρετε σε ETH και κερδίστε",
+    "stake_any_amount_of_eth": "Ποντάρετε οποιοδήποτε ποσό σε ETH",
+    "no_minimum_required": "Δεν απαιτείται ελάχιστο ποσό.",
+    "earn_eth_rewards": "Κερδίστε ανταμοιβές σε ETH",
+    "earn_eth_rewards_description": "Ξεκινήστε να κερδίζετε μόλις βάλετε το ποντάρισμα. Οι ανταμοιβές προκύπτουν αυτόματα.",
+    "flexible_unstaking": "Ευέλικτη ακύρωση πονταρίσματος",
+    "flexible_unstaking_description": "Ακύρωση πονταρίσματος ανά πάσα στιγμή. Συνήθως η διαδικασία διαρκεί έως και 11 ημέρες.",
+    "disclaimer": "Το ποντάρισμα δεν εγγυάται ανταμοιβές και ενέχει κινδύνους, όπως απώλεια κεφαλαίων.",
+    "learn_more": "Μάθετε περισσότερα",
+    "got_it": "Το κατάλαβα",
+    "your_balance": "Το υπόλοιπό σας",
+    "stake_your_eth_cta": {
+      "base": "Ποντάρετε σε ETH με το MetaMask Pool και κερδίστε",
+      "annually": "ετησίως.",
+      "learn_more_with_period": "Μάθετε περισσότερα."
+    },
+    "day": {
+      "zero": "",
+      "one": "ημέρα",
+      "other": "ημέρες"
+    },
+    "hour": {
+      "zero": "",
+      "one": "ώρα",
+      "other": "ώρες"
+    },
+    "minute": {
+      "zero": "",
+      "one": "λεπτό",
+      "other": "λεπτά"
+    },
+    "banner_text": {
+      "has_claimable_eth": "Μπορείτε να διεκδικήσετε {{amountEth}} ETH. Μόλις τα διεκδικήσετε, θα λάβετε τα ETH πίσω στο πορτοφόλι σας.",
+      "unstaking_in_progress": {
+        "base": "Ακύρωση πονταρίσματος {{amountEth}} ETH σε εξέλιξη. Ελάτε ξανά σε",
+        "and": "και",
+        "to_claim_it": "για να τα διεκδικήσετε.",
+        "default": "Ακύρωση πονταρίσματος {{amountEth}} ETH σε εξέλιξη. Ελάτε αργότερα για να τα διεκδικήσετε."
+      },
+      "geo_blocked": "Βρίσκεστε σε περιοχή όπου δεν επιτρέπεται η ακύρωση πονταρίσματος ή το ποντάρισμα.",
+      "approximately": "περίπου"
+    },
+    "unstake_input_banner_description": "Κατά μέσο όρο, χρειάζονται λιγότερες από 3 ημέρες για να είναι δυνατή η διεκδίκηση από την ακύρωση του πονταρίσματος σε ETH, αλλά μπορεί να χρειαστούν έως και 11 ημέρες.",
+    "max": "Μέγ",
+    "staking_from": "Ποντάρισμα από",
+    "interacting_with": "Αλληλεπίδραση με",
+    "12_hours": "12 ώρες",
+    "terms_of_service": "Όροι παροχής υπηρεσιών",
+    "risk_disclosure": "Γνωστοποίηση κινδύνων",
+    "cancel": "Ακύρωση",
+    "confirm": "Επιβεβαίωση"
   },
   "default_settings": {
     "title": "Το πορτοφόλι σας είναι έτοιμο",
@@ -3272,7 +3351,7 @@
     "default_settings": "Προεπιλεγμένες Ρυθμίσεις",
     "done": "Τέλος",
     "basic_functionality": "Βασικές λειτουργίες",
-    "manage_networks": "Διαχείριση δικτύων",
+    "manage_networks": "Επιλέξτε το δίκτυό σας",
     "manage_networks_body": "Χρησιμοποιούμε το Infura ως πάροχο κλήσεων απομακρυσμένης διαδικασίας (RPC) για να προσφέρουμε την πιο αξιόπιστη και ιδιωτική πρόσβαση στα δεδομένα του Ethereum που διαθέτουμε. Μπορείτε να επιλέξετε το δικό σας RPC, αλλά να θυμάστε ότι οποιοδήποτε RPC θα λαμβάνει τη διεύθυνση IP και το πορτοφόλι σας στο Ethereum για να πραγματοποιεί συναλλαγές. Διαβάστε το ",
     "manage_networks_body2": " για να μάθετε περισσότερα σχετικά με τον τρόπο με τον οποίο η Infura χειρίζεται τα δεδομένα.",
     "functionality_body": "Το MetaMask παρέχει βασικές λειτουργίες, όπως λεπτομέρειες για τα tokens και ρυθμίσεις τελών συναλλαγών μέσω υπηρεσιών διαδικτύου. Όταν χρησιμοποιείτε υπηρεσίες διαδικτύου, η διεύθυνση IP σας κοινοποιείται, σε αυτή την περίπτωση με το MetaMask. Αυτό συμβαίνει ακριβώς όπως όταν επισκέπτεστε οποιονδήποτε ιστότοπο. Το MetaMask χρησιμοποιεί αυτά τα δεδομένα προσωρινά και δεν πωλεί ποτέ τα δεδομένα σας. Μπορείτε να χρησιμοποιήσετε ένα VPN ή να απενεργοποιήσετε αυτές τις υπηρεσίες, αλλά αυτό μπορεί να επηρεάσει την εμπειρία σας στο MetaMask. Διαβάστε την ",
@@ -3286,9 +3365,17 @@
       "buttons": {
         "cancel": "Άκυρο",
         "turn_on": "Ενεργοποίηση",
-        "turn_off": "Απενεργοποίηση"
+        "turn_off": "Απενεργοποίηση",
+        "reset": "Επαναφορά"
       }
-    }
+    },
+    "drawer_general_title": "Γενικά",
+    "drawer_general_title_desc": "Συγχρονισμός ρυθμίσεων σε όλες τις συσκευές, επιλογή προτιμήσεων δικτύου και παρακολούθηση δεδομένων των tokens",
+    "drawer_assets_title": "Περιουσιακά στοιχεία",
+    "drawer_assets_desc": "Αυτόματος εντοπισμός των tokens στο πορτοφόλι σας, εμφάνιση NFT και ομαδοποιημένες ενημερώσεις υπολοίπων λογαριασμών",
+    "drawer_security_title": "Ασφάλεια",
+    "drawer_security_desc": "Μειώστε τις πιθανότητες σύνδεσης σε μη ασφαλή δίκτυα και προστατέψτε τους λογαριασμούς σας",
+    "network_details_check_desc": "Το MetaMask χρησιμοποιεί μια υπηρεσία τρίτων που ονομάζεται chainid.network για να εμφανίζει ακριβείς και τυποποιημένες λεπτομέρειες δικτύων. Αυτό μειώνει τις πιθανότητες σύνδεσης σε κακόβουλο ή λανθασμένο δίκτυο. Όταν χρησιμοποιείτε αυτή τη λειτουργία, η διεύθυνση IP σας εκτίθεται στο chainid.network."
   },
   "simulation_details": {
     "failed": "Προέκυψε ένα σφάλμα κατά τη φόρτωση της εκτίμησής σας.",
@@ -3312,13 +3399,43 @@
   },
   "common": {
     "please_wait": "Παρακαλώ περιμένετε",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "Αυτό θα σας αποσυνδέσει από το {{dappUrl}}",
+    "disconnect": "Αποσύνδεση"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "Ποσοστό ανταμοιβών",
+      "tooltip": "Αναμενόμενη ετήσια αύξηση της αξίας του πονταρίσματός σας, με βάση το ποσοστό ανταμοιβών κατά την τελευταία εβδομάδα."
+    },
+    "estimated_gas_fee": {
+      "title": "Εκτιμώμενα τέλη συναλλαγών",
+      "gas_recipient": "Τα τέλη συναλλαγών καταβάλλονται σε λογισμικό κρυπτονομισμάτων που επεξεργάζεται τις συναλλαγές στο δίκτυο Ethereum. Το Metamask δεν επωφελείται από τα τέλη συναλλαγών.",
+      "gas_fluctuation": "Τα τέλη συναλλαγών είναι κατ' εκτίμηση και αυξομειώνονται ανάλογα με την κίνηση του δικτύου και την πολυπλοκότητα των συναλλαγών.",
+      "gas_learn_more": "Μάθετε περισσότερα για τα τέλη συναλλαγών"
+    },
+    "reward_frequency": {
+      "title": "Συχνότητα ανταμοιβών",
+      "tooltip": "Το υπόλοιπο των πονταρισμάτων σας ενημερώνεται κάθε 12 ώρες για να ληφθούν υπόψη οι νέες ανταμοιβές."
+    }
+  },
+  "confirm": {
+    "reject": "Απόρριψη",
+    "confirm": "Επιβεβαίωση",
+    "title": {
+      "signature": "Αίτημα υπογραφής"
+    },
+    "request_from": "Ζητήθηκε από",
+    "message": "Μήνυμα",
+    "personal_sign_tooltip": "Αυτός ο ιστότοπος ζητάει την υπογραφή σας",
+    "details": "Λεπτομέρειες",
+    "account": "Λογαριασμός",
+    "balance": "Υπόλοιπο",
+    "network": "Δίκτυο",
+    "rpc_url": "Διεύθυνση URL του RPC",
+    "simulation": {
+      "title": "Εκτιμώμενες αλλαγές",
+      "personal_sign_info": "Συνδέεστε σε έναν ιστότοπο και δεν προβλέπονται αλλαγές στον λογαριασμό σας.",
+      "tooltip": "Οι εκτιμώμενες αλλαγές είναι αυτό που μπορεί να συμβεί αν προχωρήσετε σε αυτή τη συναλλαγή. Πρόκειται απλώς για μια πρόβλεψη, δεν αποτελεί εγγύηση."
     }
   }
 }
