@@ -135,6 +135,7 @@ import Engine from '../../../core/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -583,7 +584,15 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          await Authentication.appTriggeredAuth();
+          await trace(
+            {
+              name: TraceName.BiometricAuthentication,
+              op: TraceOperation.BiometricAuthentication,
+            },
+            async () => {
+              await Authentication.appTriggeredAuth();
+            },
+          );
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
