@@ -983,6 +983,7 @@ export function getWalletNavbarOptions(
   function openQRScanner() {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
+      origin: 'QR code scanner icon',
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
