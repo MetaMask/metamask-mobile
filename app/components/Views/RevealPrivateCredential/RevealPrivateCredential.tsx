@@ -108,8 +108,6 @@ const RevealPrivateCredential = ({
     selectSelectedInternalAccountChecksummedAddress,
   );
 
-  const selectedAddress =
-    route?.params?.selectedAccount?.address || checkSummedAddress;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
@@ -122,6 +120,8 @@ const RevealPrivateCredential = ({
   const styles = createStyles(theme);
 
   const credentialSlug = credentialName || route?.params.credentialName;
+  const selectedAddress =
+    route?.params?.selectedAccount?.address || checkSummedAddress;
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {

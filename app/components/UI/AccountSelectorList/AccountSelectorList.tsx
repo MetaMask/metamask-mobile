@@ -166,6 +166,9 @@ const AccountSelectorList = ({
         (accountData: InternalAccount) =>
           accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
       );
+
+      if (!account) return;
+
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ACCOUNT_ACTIONS,
         params: { selectedAccount: account },
