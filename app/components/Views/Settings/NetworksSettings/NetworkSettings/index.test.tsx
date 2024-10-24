@@ -1396,4 +1396,28 @@ describe('NetworkSettings', () => {
       ]);
     });
   });
+
+  describe('templateInfuraRpc', () => {
+    it('should not replace anything if {infuraProjectId} is not in endpoint', () => {
+      const instance = wrapper.instance();
+
+      const endpoint = 'https://mainnet.infura.io/v3/someOtherId';
+      const result = instance.templateInfuraRpc(endpoint);
+      expect(result).toBe('https://mainnet.infura.io/v3/someOtherId');
+    });
+
+    it('should replace {infuraProjectId} with an empty string if infuraProjectId is undefined', () => {
+      const instance = wrapper.instance();
+      const endpoint = 'https://mainnet.infura.io/v3/{infuraProjectId}';
+      const result = instance.templateInfuraRpc(endpoint);
+      expect(result).toBe('https://mainnet.infura.io/v3/');
+    });
+
+    it('should return the original endpoint if it does not end with {infuraProjectId}', () => {
+      const instance = wrapper.instance();
+      const endpoint = 'https://mainnet.infura.io/v3/anotherProjectId';
+      const result = instance.templateInfuraRpc(endpoint);
+      expect(result).toBe(endpoint);
+    });
+  });
 });
