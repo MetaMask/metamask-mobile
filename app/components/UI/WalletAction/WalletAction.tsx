@@ -29,9 +29,7 @@ const WalletAction = ({
 }: WalletActionProps) => {
   const actionStrings = actionType ? walletActionDetails[actionType] : null;
   const actionTitle = actionStrings?.title ?? '';
-  const actionDescription = disabled
-    ? actionStrings?.disabledDescription
-    : actionStrings?.description;
+  const actionDescription = actionStrings?.description;
   const { colors } = lightTheme;
   const { styles } = useStyles(styleSheet, {});
 
@@ -43,22 +41,9 @@ const WalletAction = ({
     [disabled, colors, iconStyle],
   );
 
-  const titleStyle = useMemo(
-    () => (disabled ? { color: colors.text.muted } : undefined),
-    [disabled, colors],
-  );
-
-  const descriptionStyle = useMemo(
-    () => [
-      styles.descriptionLabel,
-      disabled ? { color: colors.text.muted } : undefined,
-    ],
-    [styles, disabled, colors],
-  );
-
   return (
     <TouchableOpacity
-      style={{ ...styles.base, ...containerStyle }}
+      style={[styles.base, containerStyle, disabled && styles.disabled]}
       onPress={onPress}
       testID={actionID}
       disabled={disabled}
@@ -72,10 +57,8 @@ const WalletAction = ({
         iconColor={colors.background.default}
       />
       <View>
-        <Text variant={TextVariant.BodyLGMedium} style={titleStyle}>
-          {actionTitle}
-        </Text>
-        <Text variant={TextVariant.BodyMD} style={descriptionStyle}>
+        <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
+        <Text variant={TextVariant.BodyMD} style={styles.descriptionLabel}>
           {actionDescription}
         </Text>
       </View>
