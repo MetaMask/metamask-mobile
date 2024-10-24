@@ -760,6 +760,49 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
     });
 
+    it('should set a warning if the RPC URL format is invalid', async () => {
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl('invalidUrl');
+      expect(wrapper.state('warningRpcUrl')).toBe(
+        'URIs require the appropriate HTTPS prefix',
+      );
+    });
+
+    it('should set a warning for a duplicated RPC URL', async () => {
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+    });
+
+    it('should set a warning if the RPC URL already exists in networkConfigurations and UI redesign is disabled', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+      expect(wrapper.state('validatedRpcURL')).toBe(true);
+    });
+
+    it('should set a warning if the RPC URL exists and UI redesign is enabled', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+      expect(wrapper.state('validatedRpcURL')).toBe(true);
+    });
+
     it('should correctly add RPC URL through modal and update state', async () => {
       const instance = wrapper.instance();
 
@@ -930,7 +973,7 @@ describe('NetworkSettings', () => {
     it('should handle valid chainId conversion and updating state correctly', async () => {
       const instance = wrapper.instance();
 
-      await instance.onChainIDChange('0x1');
+      await instance.onChainIDChange('0x2');
       await instance.validateChainId();
 
       expect(wrapper.state('warningChainId')).toBe(undefined);
@@ -1701,6 +1744,73 @@ describe('NetworkSettings', () => {
           shouldNetworkSwitchPopToWallet: false,
         }),
       );
+    });
+  });
+
+  describe('checkIfNetworkExists', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let instance: any;
+
+    beforeEach(() => {
+      instance = wrapper.instance();
+
+      jest.spyOn(instance, 'setState');
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks(); // Clear all spies after each test
+    });
+
+    it('should return custom network if rpcUrl exists in networkConfigurations and UI redesign is disabled', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+
+      const rpcUrl = 'http://localhost:8545';
+
+      // Mocking props
+      wrapper.setProps({
+        networkConfigurations: {
+          customNetwork1: { rpcUrl },
+        },
+      });
+
+      const result = await instance.checkIfNetworkExists(rpcUrl);
+
+      expect(result).toEqual([{ rpcUrl }]);
+      expect(instance.setState).toHaveBeenCalledWith({
+        warningRpcUrl: 'This network has already been added.',
+      });
+    });
+
+    it('should return custom network if rpcUrl exists in networkConfigurations and UI redesign is enabled', async () => {
+      const rpcUrl = 'http://localhost:8545';
+
+      // Mocking props and enabling network UI redesign
+      wrapper.setProps({
+        networkConfigurations: {
+          customNetwork1: { rpcUrl },
+        },
+      });
+
+      const result = await instance.checkIfNetworkExists(rpcUrl);
+
+      expect(result).toEqual([{ rpcUrl }]);
+      expect(instance.setState).not.toHaveBeenCalled(); // Should not set warning when redesign is enabled
+    });
+
+    it('should return an empty array if rpcUrl does not exist in any networks', async () => {
+      const rpcUrl = 'https://nonexistent.rpc.url';
+
+      // Mocking props
+      wrapper.setProps({
+        networkConfigurations: {
+          customNetwork1: { rpcUrl: 'http://localhost:8545' },
+        },
+      });
+
+      const result = await instance.checkIfNetworkExists(rpcUrl);
+
+      expect(result).toEqual([]);
     });
   });
 });
