@@ -3,9 +3,8 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     networkItemContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 14,
     },
     networkAvatar: {
       marginHorizontal: 10,
