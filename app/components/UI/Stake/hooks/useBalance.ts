@@ -51,7 +51,7 @@ const useBalance = () => {
   );
 
   const { pooledStakesData } = usePooledStakes();
-  const assets = pooledStakesData.assets ? new BN(pooledStakesData.assets) : new BN(0);
+  const assets = new BN(pooledStakesData.assets);
   
   const formattedStakedBalanceETH = useMemo(
     () => `${renderFromWei(assets)} ETH`,
@@ -73,7 +73,7 @@ const useBalance = () => {
     balanceFiat,
     balanceWei,
     balanceFiatNumber,
-    stakedBalanceWei: assets,
+    stakedBalanceWei: pooledStakesData.assets ?? '0',
     formattedStakedBalanceETH,
     stakedBalanceFiatNumber,
     formattedStakedBalanceFiat,
