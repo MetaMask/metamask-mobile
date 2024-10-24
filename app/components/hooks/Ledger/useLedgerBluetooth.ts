@@ -85,7 +85,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
         const BluetoothTransport: any = await import(
           '@ledgerhq/react-native-hw-transport-ble'
         );
-        console.error('during setupBluetooth: deviceId', deviceId);
         transportRef.current = await BluetoothTransport.default.open(deviceId);
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,7 +249,6 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
     isAppLaunchConfirmationNeeded,
     ledgerLogicToRun: async (func) => {
       // Reset error
-      console.warn('ledgerLogicToRun deviceID', deviceId);
       setLedgerError(undefined);
       // Add code block as last item in stack
       workflowSteps.current.push(() =>
