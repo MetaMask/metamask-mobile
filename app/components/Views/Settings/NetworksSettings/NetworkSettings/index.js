@@ -454,6 +454,7 @@ export class NetworkSettings extends PureComponent {
     editable: undefined,
     addMode: false,
     warningRpcUrl: undefined,
+    warningBlockExplorerUrl: undefined,
     warningChainId: undefined,
     warningSymbol: undefined,
     validatedRpcURL: true,
