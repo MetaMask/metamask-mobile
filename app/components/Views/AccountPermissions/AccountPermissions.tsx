@@ -54,10 +54,17 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
+import {
+  isMultichainVersion1Enabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -104,6 +111,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [networkAvatars, setNetworkAvatars] = useState<
+    ({ name: string; imageSource: string } | null)[]
+  >([]);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(initialScreen);
@@ -116,6 +128,62 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
+    USER_INTENT.None,
+  );
+
+  useEffect(() => {
+    let currentlyPermittedChains: string[] = [];
+    try {
+      const caveat = Engine.context.PermissionController.getCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      if (Array.isArray(caveat?.value)) {
+        currentlyPermittedChains = caveat.value.filter(
+          (item): item is string => typeof item === 'string',
+        );
+      }
+    } catch (e) {
+      // noop
+    }
+
+    const networks = Object.entries(networkConfigurations).map(
+      ([key, network]: [string, NetworkConfiguration]) => ({
+        id: key,
+        name: network.name,
+        rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+        isSelected: false,
+        chainId: network?.chainId,
+        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        imageSource: getNetworkImageSource({
+          chainId: network?.chainId,
+        }),
+      }),
+    );
+
+    const theNetworkAvatars: ({ name: string; imageSource: string } | null)[] =
+      currentlyPermittedChains.map((selectedId) => {
+        const network = networks.find(({ id }) => id === selectedId);
+        if (network) {
+          return {
+            name: network.name,
+            imageSource: network.imageSource as string,
+            variant: AvatarVariant.Network,
+          };
+        }
+        return null;
+      });
+
+    if (
+      [USER_INTENT.None, USER_INTENT.Confirm].includes(
+        networkSelectorUserIntent,
+      )
+    ) {
+      setNetworkAvatars(theNetworkAvatars);
+    }
+  }, [hostname, networkConfigurations, networkSelectorUserIntent]);
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
@@ -371,8 +439,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   useEffect(() => {
-    if (userIntent === USER_INTENT.None) return;
+    if (networkSelectorUserIntent === USER_INTENT.Confirm) {
+      setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
+      setNetworkSelectorUserIntent(USER_INTENT.None);
+    }
+  }, [networkSelectorUserIntent, hideSheet]);
 
+  useEffect(() => {
+    if (userIntent === USER_INTENT.None) return;
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
@@ -488,6 +562,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: checksummedPermittedAddresses,
+      networkAvatars,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -498,6 +573,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     navigation,
     permittedAccountsByHostname,
     setSelectedAddresses,
+    networkAvatars,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -587,7 +663,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <NetworkConnectMultiSelector
         onSelectNetworkIds={setSelectedAddresses}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
+        onUserAction={setNetworkSelectorUserIntent}
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
@@ -598,7 +674,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ),
     [
       isLoading,
-      setUserIntent,
+      setNetworkSelectorUserIntent,
       urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,
