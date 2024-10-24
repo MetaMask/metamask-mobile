@@ -202,7 +202,6 @@ const Scan = ({
             defaultValue={options[0]?.label}
             onValueChange={(deviceId: string) => {
               const currentDevice = devices.find((d) => d.id === deviceId);
-              if(!currentDevice) return;
               setSelectedDevice(currentDevice);
               onDeviceSelected(currentDevice);
             }}
