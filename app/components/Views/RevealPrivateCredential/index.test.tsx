@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { InternalAccount } from '@metamask/keyring-api';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -43,8 +44,10 @@ describe('RevealPrivateCredential', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
-            credentialName: undefined,
+            credentialName: '',
           },
         }}
         navigation={null}
@@ -59,6 +62,8 @@ describe('RevealPrivateCredential', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: SRP_CREDENTIAL,
           },
@@ -76,6 +81,8 @@ describe('RevealPrivateCredential', () => {
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: PRIV_KEY_CREDENTIAL,
           },
@@ -92,6 +99,8 @@ describe('RevealPrivateCredential', () => {
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: SRP_CREDENTIAL,
           },
@@ -115,6 +124,8 @@ describe('RevealPrivateCredential', () => {
     const { getByPlaceholderText, getByTestId } = renderWithProviders(
       <RevealPrivateCredential
         route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
           params: {
             credentialName: SRP_CREDENTIAL,
           },
@@ -132,5 +143,54 @@ describe('RevealPrivateCredential', () => {
         getByTestId(RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID),
       ).toBeTruthy();
     });
+  });
+
+  it('renders with a custom selectedAddress', async () => {
+    const mockInternalAccount: InternalAccount = {
+      type: 'eip155:eoa',
+      id: 'unique-account-id-1',
+      address: '0x1234567890123456789012345678901234567890',
+      options: {
+        someOption: 'optionValue',
+        anotherOption: 42,
+      },
+      methods: [
+        'personal_sign',
+        'eth_sign',
+        'eth_signTransaction',
+        'eth_sendTransaction',
+      ],
+      metadata: {
+        name: 'Test Account',
+        importTime: Date.now(),
+        keyring: {
+          type: 'HD Key Tree',
+        },
+        nameLastUpdatedAt: Date.now(),
+        snap: {
+          id: 'npm:@metamask/test-snap',
+          name: 'Test Snap',
+          enabled: true,
+        },
+        lastSelected: Date.now(),
+      },
+    };
+
+    const { toJSON } = renderWithProviders(
+      <RevealPrivateCredential
+        route={{
+          key: 'RevealPrivateCredential',
+          name: 'RevealPrivateCredential',
+          params: {
+            credentialName: PRIV_KEY_CREDENTIAL,
+            selectedAccount: mockInternalAccount,
+          },
+        }}
+        navigation={null}
+        cancel={() => null}
+        credentialName={PRIV_KEY_CREDENTIAL}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });
