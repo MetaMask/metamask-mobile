@@ -417,7 +417,7 @@ class AccountOverview extends PureComponent {
                         variant={TextVariant.BodySMBold}
                         style={styles.tagText}
                       >
-                        {strings(accountLabelTag)}
+                        {accountLabelTag}
                       </Text>
                     </View>
                   )}
