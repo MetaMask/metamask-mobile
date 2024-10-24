@@ -56,8 +56,6 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
   default: () => ({
-    poolStakingContract: {},
-    estimateDepositGas: jest.fn(),
     attemptDepositTransaction: jest.fn(),
   }),
 }));
