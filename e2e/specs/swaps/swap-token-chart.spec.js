@@ -71,6 +71,7 @@ describe(Regression('Swap from Token view'), () => {
     await SuccessImportAccountView.tapCloseButton();
     await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
+    await TestHelpers.delay(2000);
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {

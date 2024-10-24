@@ -79,6 +79,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await SuccessImportAccountView.tapCloseButton();
     await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
+    await TestHelpers.delay(2000);
   });
 
   it.each`
