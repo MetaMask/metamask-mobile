@@ -88,7 +88,6 @@ const attemptSingleClaimTransaction = async (
   });
 };
 
-// TODO: Add tests
 const attemptPoolStakedClaimTransaction =
   (poolStakingContract: PooledStakingContract) =>
   async (activeAccountAddress: string, pooledStakesData: PooledStake) => {
