@@ -41,9 +41,15 @@ const WalletAction = ({
     [disabled, colors, iconStyle],
   );
 
+  const touchableStyles = [
+    styles.base,
+    containerStyle,
+    disabled && styles.disabled,
+  ];
+
   return (
     <TouchableOpacity
-      style={[styles.base, containerStyle, disabled && styles.disabled]}
+      style={touchableStyles}
       onPress={onPress}
       testID={actionID}
       disabled={disabled}
