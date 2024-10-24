@@ -1,19 +1,16 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import {
-  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
-  ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
-} from './testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
+import { EnableAutomaticSecurityChecksIDs } from '../../e2e/selectors/Modals/EnableAutomaticSecurityChecks.selectors';
 
 class EnableAutomaticSecurityChecksScreen {
   get noThanksButton() {
     return Selectors.getXpathElementByResourceId(
-      ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
+      EnableAutomaticSecurityChecksIDs.NO_THANKS_BUTTON,
     );
   }
   get enableAutomaticSecurityChecksScreen() {
     return Selectors.getElementByPlatform(
-      ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
+      EnableAutomaticSecurityChecksIDs.CONTAINER,
     );
   }
 

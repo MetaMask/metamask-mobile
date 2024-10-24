@@ -17,7 +17,11 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button, { ButtonSize, ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -55,9 +59,19 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import TextField, { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
 import Label from '../../../component-library/components/Form/Label';
-import HelpText, { HelpTextSeverity } from '../../../component-library/components/Form/HelpText';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../component-library/components/Form/HelpText';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -107,7 +121,7 @@ const createStyles = (colors) =>
     },
     footer: {
       marginVertical: 40,
-      alignItems: 'center'
+      alignItems: 'center',
     },
     goBack: {
       marginVertical: 14,
@@ -237,6 +251,10 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
+    trace({
+      name: TraceName.LoginToPasswordEntry,
+      op: TraceOperation.LoginToPasswordEntry,
+    });
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -360,7 +378,15 @@ class Login extends PureComponent {
     );
 
     try {
-      await Authentication.userEntryAuth(password, authType);
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.AuthenticateUser,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       Keyboard.dismiss();
 
@@ -428,7 +454,15 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await Authentication.appTriggeredAuth();
+      await trace(
+        {
+          name: TraceName.BiometricAuthentication,
+          op: TraceOperation.BiometricAuthentication,
+        },
+        async () => {
+          await Authentication.appTriggeredAuth();
+        },
+      );
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -447,6 +481,7 @@ class Login extends PureComponent {
   };
 
   triggerLogIn = () => {
+    endTrace({ name: TraceName.LoginToPasswordEntry });
     this.onLogin();
   };
 
@@ -529,10 +564,7 @@ class Login extends PureComponent {
                 )}
               </TouchableOpacity>
 
-              <Text
-                style={styles.title}
-                testID={LoginViewSelectors.TITLE_ID}
-              >
+              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
@@ -582,19 +614,22 @@ class Login extends PureComponent {
                 style={styles.ctaWrapper}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
-
-                <Button variant={ButtonVariants.Primary}
+                <Button
+                  variant={ButtonVariants.Primary}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
                   onPress={this.triggerLogIn}
-                  label={this.state.loading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('login.unlock_button')
-                  )}/>
+                  label={
+                    this.state.loading ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={colors.primary.inverse}
+                      />
+                    ) : (
+                      strings('login.unlock_button')
+                    )
+                  }
+                />
               </View>
 
               <View style={styles.footer}>

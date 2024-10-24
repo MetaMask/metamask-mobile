@@ -6,6 +6,7 @@ const styleSheet = () =>
       paddingHorizontal: 32,
       flexDirection: 'row',
       justifyContent: 'center',
+      paddingBottom: 16,
     },
   });
 

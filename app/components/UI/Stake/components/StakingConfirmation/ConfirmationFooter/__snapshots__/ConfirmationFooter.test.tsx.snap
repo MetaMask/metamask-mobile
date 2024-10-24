@@ -154,7 +154,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           }
         }
       >
-        Confirm
+        Continue
       </Text>
     </TouchableOpacity>
   </View>

@@ -5,6 +5,7 @@ import LearnMoreModal from '../components/LearnMoreModal';
 import Routes from '../../../../constants/navigation/Routes';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
+import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -30,6 +31,10 @@ const StakeScreenStack = () => (
         name={Routes.STAKING.STAKE_CONFIRMATION}
         component={StakeConfirmationView}
       />
+                                <Stack.Screen
+                                name={Routes.STAKING.UNSTAKE_CONFIRMATION}
+                                component={UnstakeConfirmationView}
+                                />
     </Stack.Navigator>
   </StakeSDKProvider>
 );
