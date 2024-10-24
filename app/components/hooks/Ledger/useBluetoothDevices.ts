@@ -47,9 +47,6 @@ const useBluetoothDevices = (
         error: (_error) => {
           setDeviceScanError(true);
         },
-        complete: () => {
-          console.warn('complete');
-        }
       });
     }
 
@@ -60,8 +57,7 @@ const useBluetoothDevices = (
   }, [hasBluetoothPermissions, bluetoothOn]);
 
   useEffect(() =>{
-    if (observableEvent) {
-      if (observableEvent?.descriptor) {
+    if (observableEvent?.descriptor) {
         const btDevice = observableEvent.descriptor;
         const deviceFound = devices[btDevice.id];
 
@@ -72,7 +68,6 @@ const useBluetoothDevices = (
             }));
           setDeviceScanError(false);
         }
-      }
     }
   }, [observableEvent, devices]);
 
