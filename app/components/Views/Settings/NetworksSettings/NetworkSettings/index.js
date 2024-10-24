@@ -2239,11 +2239,9 @@ export class NetworkSettings extends PureComponent {
                 {blockExplorerUrl &&
                   (!isUrl(blockExplorerUrl) ||
                     blockExplorerUrls.includes(blockExplorerUrlForm)) && (
-                    <View>
-                      <Text style={styles.warningText}>
-                        {strings('app_settings.invalid_block_explorer_url')}
-                      </Text>
-                    </View>
+                    <Text style={styles.warningText}>
+                      {strings('app_settings.invalid_block_explorer_url')}
+                    </Text>
                   )}
 
                 <View style={styles.addRpcNameButton}>
