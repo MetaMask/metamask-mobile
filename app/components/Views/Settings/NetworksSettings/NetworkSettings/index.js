@@ -715,7 +715,11 @@ export class NetworkSettings extends PureComponent {
       // in an error message in the form.
       if (!formChainId.startsWith('0x')) {
         try {
-          endpointChainId = new BigNumber(endpointChainId, 16).toString(10);
+          const endpointChainIdNumber = new BigNumber(endpointChainId, 16);
+          if (endpointChainIdNumber.isNaN()) {
+            throw new Error('Invalid endpointChainId');
+          }
+          endpointChainId = endpointChainIdNumber.toString(10);
         } catch (err) {
           Logger.error(err, {
             endpointChainId,

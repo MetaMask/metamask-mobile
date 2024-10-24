@@ -8,6 +8,8 @@ import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../../../util/test/network';
+import * as jsonRequest from '../../../../../util/jsonRpcRequest';
+import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 
 // Mock the entire module
@@ -1418,6 +1420,120 @@ describe('NetworkSettings', () => {
       const endpoint = 'https://mainnet.infura.io/v3/anotherProjectId';
       const result = instance.templateInfuraRpc(endpoint);
       expect(result).toBe(endpoint);
+    });
+  });
+
+  describe('validateChainIdOnSubmit', () => {
+    beforeEach(() => {
+      // Spying on the methods we want to mock
+      jest.spyOn(Logger, 'error'); // Spy on Logger.error
+      jest.spyOn(jsonRequest, 'jsonRpcRequest'); // Spy on jsonRpcRequest directly
+    });
+    afterEach(() => {
+      jest.resetAllMocks(); // Clean up mocks after each test
+    });
+
+    it('should validate chainId when parsedChainId matches endpoint chainId', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue('0x38');
+
+      const validChainId = '0x38';
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        validChainId,
+        validChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBeUndefined();
+      expect(jsonRequest.jsonRpcRequest).toHaveBeenCalledWith(
+        'https://bsc-dataseed.binance.org/',
+        'eth_chainId',
+      );
+    });
+
+    it('should set a warning when chainId is invalid (RPC error)', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockRejectedValue(
+        new Error('RPC error'),
+      );
+
+      const invalidChainId = '0xInvalidChainId';
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        invalidChainId,
+        invalidChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBe(
+        'Could not fetch chain ID. Is your RPC URL correct?',
+      );
+      expect(Logger.error).toHaveBeenCalled(); // Ensures the error is logged
+    });
+
+    it('should set a warning when parsedChainId does not match endpoint chainId', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue('0x39');
+
+      const validChainId = '0x38';
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        validChainId,
+        validChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBe(
+        'The endpoint returned a different chain ID: 0x39',
+      );
+    });
+
+    it('should convert endpointChainId to decimal if formChainId is decimal and not hexadecimal', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue('0x38');
+
+      const decimalChainId = '56'; // Decimal chain ID
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        decimalChainId,
+        decimalChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBe(
+        'The endpoint returned a different chain ID: 56',
+      );
+    });
+
+    it('should log error if the conversion from hexadecimal to decimal fails', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue(
+        '0xInvalidHex',
+      );
+
+      const decimalChainId = 'test'; // Invalid decimal chain ID
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        decimalChainId,
+        decimalChainId,
+        rpcUrl,
+      );
+
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        endpointChainId: '0xInvalidHex',
+        message: 'Failed to convert endpoint chain ID to decimal',
+      });
     });
   });
 });
