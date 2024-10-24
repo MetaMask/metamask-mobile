@@ -746,7 +746,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy test screenshots
           is_always_run: true
@@ -754,7 +754,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: E2E_Android_Failure_Screenshots
+            - zip_name: E2E_Android_Failure_Artifacts
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -1004,7 +1004,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           run_if: .IsBuildFailed
@@ -1012,7 +1012,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Screenshots'
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -1553,7 +1553,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.12.2
+      NODE_VERSION: 20.14.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22

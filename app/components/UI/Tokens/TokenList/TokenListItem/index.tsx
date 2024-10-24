@@ -47,8 +47,9 @@ import { TokenI } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
-import { StakeButton } from '../StakeButton';
+import { StakeButton } from '../../../Stake/components/StakeButton';
 import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
+import useStakingChain from '../../../Stake/hooks/useStakingChain';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -154,6 +155,8 @@ export const TokenListItem = ({
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
+  const { isStakingSupportedChain } = useStakingChain();
+
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
@@ -215,7 +218,9 @@ export const TokenListItem = ({
             {asset.name || asset.symbol}
           </Text>
           {/** Add button link to Portfolio Stake if token is mainnet ETH */}
-          {asset.isETH && isMainnet && <StakeButton asset={asset} />}
+          {asset.isETH && isStakingSupportedChain && (
+            <StakeButton asset={asset} />
+          )}
         </View>
         {!isTestNet(chainId) ? (
           <PercentageChange value={pricePercentChange1d} />
