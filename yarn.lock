@@ -4537,13 +4537,13 @@
     "@metamask/utils" "^9.2.1"
     ethereum-cryptography "^2.1.2"
 
-"@metamask/eth-json-rpc-filters@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-filters/-/eth-json-rpc-filters-8.0.0.tgz#fd0ca224dc198e270e142c1f2007e05cacb5f16a"
-  integrity sha512-kDwSoas8gYWtN79AO4vvyKvaL8bIMstpuwZdsWTSc1goBFTOJEscCD6zUX+MOQFnQohFoC512mNeA5tPLRV46A==
+"@metamask/eth-json-rpc-filters@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-filters/-/eth-json-rpc-filters-9.0.0.tgz#9efe770d12f7d1d8289d9f2ed601911c642c31b9"
+  integrity sha512-mn3clrrNF1zl3E729IgNHV9ia6wvRl+eRwc98e38GM+Se2EcDqBvx1oa9e3oo6BTlqmzzIwdeTvF4/jHU1CDWQ==
   dependencies:
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/json-rpc-engine" "^10.0.0"
     "@metamask/safe-event-emitter" "^3.0.0"
     async-mutex "^0.5.0"
     pify "^5.0.0"
