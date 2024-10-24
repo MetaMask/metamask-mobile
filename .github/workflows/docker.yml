@@ -42,3 +42,9 @@ jobs:
             bash -c 'yarn && yarn setup --build-ios'
             # restore ownership for cleanup
             sudo chown -R "$(id -u):$(id -g)" .
+      - name: Test anvil
+        run: |
+          docker run \
+            --rm \
+            metamask-mobile-builder:latest \
+            anvil --version
