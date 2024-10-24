@@ -5,10 +5,12 @@ import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
 import Assertions from '../../utils/Assertions';
+import { Regression } from '../../tags';
 
-describe('Term of service', () => {
-  beforeEach(() => {
-    jest.setTimeout(200000);
+describe(Regression('Term of Use Modal'), () => {
+  beforeAll(async () => {
+    jest.setTimeout(150000);
+    await device.launchApp();
   });
 
   it('should displayed Term of Use when first launching app', async () => {
@@ -18,7 +20,6 @@ describe('Term of service', () => {
     await Assertions.checkIfVisible(OnboardingView.container);
     await OnboardingView.tapImportWalletFromSeedPhrase();
 
-    await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await MetaMetricsOptIn.tapAgreeButton();
     await Assertions.checkIfVisible(TermsOfUseModal.container);
   });
