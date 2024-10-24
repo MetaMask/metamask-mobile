@@ -143,14 +143,6 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
 
-  const walletActionBaseProps = useMemo(
-    () => ({
-      iconSize: AvatarSize.Md,
-      disabled: !canSignTransactions,
-    }),
-    [canSignTransactions],
-  );
-
   const sendIconStyle = useMemo(
     () => ({
       transform: [{ rotate: '-45deg' }],
@@ -169,7 +161,8 @@ const WalletActions = () => {
             onPress={onBuy}
             actionID={WalletActionsModalSelectorsIDs.BUY_BUTTON}
             iconStyle={styles.icon}
-            {...walletActionBaseProps}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
           />
         )}
         {isNetworkRampSupported && (
@@ -179,7 +172,8 @@ const WalletActions = () => {
             onPress={onSell}
             actionID={WalletActionsModalSelectorsIDs.SELL_BUTTON}
             iconStyle={styles.icon}
-            {...walletActionBaseProps}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
           />
         )}
         {AppConstants.SWAPS.ACTIVE &&
@@ -191,7 +185,8 @@ const WalletActions = () => {
               onPress={goToSwaps}
               actionID={WalletActionsModalSelectorsIDs.SWAP_BUTTON}
               iconStyle={styles.icon}
-              {...walletActionBaseProps}
+              iconSize={AvatarSize.Md}
+              disabled={!canSignTransactions}
             />
           )}
         {isBridgeAllowed(chainId) && (
@@ -201,7 +196,8 @@ const WalletActions = () => {
             onPress={goToBridge}
             actionID={WalletActionsModalSelectorsIDs.BRIDGE_BUTTON}
             iconStyle={styles.icon}
-            {...walletActionBaseProps}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
           />
         )}
         <WalletAction
@@ -210,7 +206,8 @@ const WalletActions = () => {
           onPress={onSend}
           iconStyle={sendIconStyle}
           actionID={WalletActionsModalSelectorsIDs.SEND_BUTTON}
-          {...walletActionBaseProps}
+          iconSize={AvatarSize.Md}
+          disabled={!canSignTransactions}
         />
         <WalletAction
           actionType={WalletActionType.Receive}
@@ -218,7 +215,7 @@ const WalletActions = () => {
           onPress={onReceive}
           actionID={WalletActionsModalSelectorsIDs.RECEIVE_BUTTON}
           iconStyle={styles.icon}
-          {...walletActionBaseProps}
+          iconSize={AvatarSize.Md}
           disabled={false}
         />
       </View>
