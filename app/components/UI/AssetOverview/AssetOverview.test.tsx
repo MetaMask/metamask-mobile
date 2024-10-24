@@ -1,6 +1,6 @@
 import React from 'react';
 import AssetOverview from './AssetOverview';
-import { zeroAddress } from 'ethereumjs-util';
+import { zeroAddress } from '@ethereumjs/util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { NetworkController } from '@metamask/network-controller';

@@ -2,7 +2,7 @@ import { toHex } from '@metamask/controller-utils';
 import { Hex, hasProperty, isObject } from '@metamask/utils';
 import { regex } from '../../../app/util/regex';
 
-import { isHexString } from 'ethereumjs-util';
+import { isHexString } from '@ethereumjs/util';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {

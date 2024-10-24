@@ -10,7 +10,7 @@ import {
   TOKEN_NOT_VALID,
 } from '../../constants/error';
 import { selectChainId } from '../../selectors/networkController';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidAddress } from '@ethereumjs/util';
 import { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 

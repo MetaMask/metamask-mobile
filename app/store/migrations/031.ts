@@ -1,3 +1,4 @@
+import { isHexString } from '@ethereumjs/util';
 import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import {
@@ -6,7 +7,6 @@ import {
   TokensControllerState,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import { isHexString } from 'ethereumjs-util';
 
 /**
  * This migration is to address the users that were impacted by the tokens missing on their wallet

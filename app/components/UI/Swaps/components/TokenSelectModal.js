@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidAddress } from '@ethereumjs/util';
 
 import Device from '../../../../util/device';
 import {

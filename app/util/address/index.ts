@@ -4,7 +4,7 @@ import {
   addHexPrefix,
   isValidChecksumAddress,
   isHexPrefixed,
-} from 'ethereumjs-util';
+} from '@ethereumjs/util';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
@@ -342,7 +342,7 @@ export function safeToChecksumAddress(address: string) {
 
 /**
  * Validates that the input is a hex address. This utility method is a thin
- * wrapper around ethereumjs-util.isValidAddress, with the exception that it
+ * wrapper around @ethereumjs/util.isValidAddress, with the exception that it
  * does not throw an error when provided values that are not hex strings. In
  * addition, and by default, this method will return true for hex strings that
  * meet the length requirement of a hex address, but are not prefixed with `0x`
