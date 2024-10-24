@@ -14,6 +14,7 @@ import {
   resemblesAddress,
   getKeyringByAddress,
   getLabelTextByAddress,
+  isSnapAccount,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -377,5 +378,16 @@ describe('resemblesAddress', () => {
   });
   it('should return true if address resemble an eth address', () => {
     expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
+  });
+});
+describe('isSnapAccount,', () => {
+  it('should return true if account is of type Snap Keyring', () => {
+    expect(isSnapAccount(snapAddress)).toBeTruthy();
+  });
+
+  it('should return false if account is not of type Snap Keyring', () => {
+    expect(
+      isSnapAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBeFalsy();
   });
 });

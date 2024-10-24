@@ -11,6 +11,7 @@ import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
+import GRAVITY from './gravity.png';
 
 export default {
   PALM,
@@ -27,4 +28,5 @@ export default {
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
+  G: GRAVITY,
 };

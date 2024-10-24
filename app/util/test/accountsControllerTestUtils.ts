@@ -59,6 +59,37 @@ export function createMockInternalAccount(
   };
 }
 
+export function createMockSnapInternalAccount(
+  address: string,
+  nickname: string,
+): InternalAccount {
+  return {
+    address,
+    id: createMockUuidFromAddress(address),
+    metadata: {
+      name: nickname,
+      importTime: 1684232000456,
+      keyring: {
+        type: 'Snap Keyring',
+      },
+      snap: {
+        id: 'npm:@metamask/snap-simple-keyring-snap',
+        name: 'MetaMask Simple Snap Keyring',
+        enabled: true,
+      },
+    },
+    options: {},
+    methods: [
+      EthMethod.PersonalSign,
+      EthMethod.SignTransaction,
+      EthMethod.SignTypedDataV1,
+      EthMethod.SignTypedDataV3,
+      EthMethod.SignTypedDataV4,
+    ],
+    type: 'eip155:eoa',
+  };
+}
+
 // Mock checksummed addresses
 export const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 export const MOCK_ADDRESS_2 = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
