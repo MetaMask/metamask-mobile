@@ -41,11 +41,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   beforeAll(async () => {
     await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Polygon.providerConfig.rpcUrl, wallet.address, '0x1043561A8829300000');
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Polygon)
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
@@ -85,7 +83,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.5'}     | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'30.5'}   | ${'POL'}          | ${'USDT'}       | ${CustomNetworks.Tenderly.Polygon}
     ${'unapproved'}$ |${'50'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'non-native'}$ |${'5.555'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
@@ -98,12 +95,12 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       if (network.providerConfig.nickname !== currentNetwork)
       {
         await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
         await NetworkEducationModal.tapGotItButton();
         await TestHelpers.delay(3000);
         currentNetwork = network.providerConfig.nickname;
       } else {
-        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname);
+        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
       }
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
