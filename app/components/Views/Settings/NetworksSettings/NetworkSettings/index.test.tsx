@@ -781,6 +781,47 @@ describe('NetworkSettings', () => {
       );
     });
 
+    it('should not add an empty Block Explorer URL and should return early', async () => {
+      const instance = wrapper.instance();
+
+      // Initially, blockExplorerUrls should be empty
+      expect(wrapper.state('blockExplorerUrls').length).toBe(0);
+
+      // Open Block Explorer form modal and attempt to add an empty URL
+      instance.openAddBlockExplorerForm();
+      await instance.onBlockExplorerItemAdd('');
+
+      // Ensure the state is not updated with the empty URL
+      expect(wrapper.state('blockExplorerUrls').length).toBe(0);
+      expect(wrapper.state('blockExplorerUrl')).toBeUndefined();
+    });
+
+    it('should not add an existing Block Explorer URL and should return early', async () => {
+      const instance = wrapper.instance();
+
+      // Set initial state with an existing block explorer URL
+      await instance.setState({
+        blockExplorerUrls: ['https://existing-blockexplorer.com'],
+      });
+
+      // Ensure the initial state contains the existing URL
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://existing-blockexplorer.com',
+      );
+
+      // Attempt to add the same URL again
+      await instance.onBlockExplorerItemAdd(
+        'https://existing-blockexplorer.com',
+      );
+
+      // Ensure the state remains unchanged and no duplicate is added
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://existing-blockexplorer.com',
+      );
+    });
+
     it('should call validateRpcAndChainId when chainId and rpcUrl are set', async () => {
       const instance = wrapper.instance();
       const validateRpcAndChainIdSpy = jest.spyOn(
