@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
-import { defaultMockPort } from './mockUrlCollection';
 import portfinder from 'portfinder';
 
 const mockServer = getLocal();
@@ -21,16 +20,12 @@ export const startMockServer = async (events, port) => {
 
   await mockServer.forGet('/health-check').thenReply(200, 'Mock server is running');
 
-  // Loop through the events based on HTTP methods
   for (const method in events) {
     const methodEvents = events[method];
 
-    // Log the HTTP method being mocked
     console.log(`Setting up mock events for ${method} requests...`);
 
-    for (const { urlEndpoint, response, requestBody } of methodEvents) {
-
-      const responseCode = response?.status || 200;
+    for (const { urlEndpoint, response, requestBody, responseCode } of methodEvents) {
 
       console.log(`Mocking ${method} request to: ${urlEndpoint}`);
       console.log(`Response status: ${responseCode}`);
@@ -39,14 +34,12 @@ export const startMockServer = async (events, port) => {
         console.log(`POST request body ${requestBody}`);
       }
 
-      // Handle GET requests
       if (method === 'GET') {
         await mockServer.forGet('/proxy')
           .withQuery({ url: urlEndpoint })
           .thenReply(responseCode, JSON.stringify(response));
       }
 
-      // Handle POST requests
       if (method === 'POST') {
         await mockServer.forPost('/proxy')
           .withQuery({ url: urlEndpoint })
@@ -56,15 +49,15 @@ export const startMockServer = async (events, port) => {
     }
   }
 
-    await mockServer.forUnmatchedRequest().thenPassThrough({
-      beforeRequest: async ({ url, method }) => {
-        const returnUrl = new URL(url).searchParams.get('url') || url;
-        const updatedUrl = device.getPlatform() === 'android' ? returnUrl.replace('localhost', '127.0.0.1') : returnUrl;
+  await mockServer.forUnmatchedRequest().thenPassThrough({
+    beforeRequest: async ({ url, method }) => {
+      const returnUrl = new URL(url).searchParams.get('url') || url;
+      const updatedUrl = device.getPlatform() === 'android' ? returnUrl.replace('localhost', '127.0.0.1') : returnUrl;
 
-        console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
-        return { url: updatedUrl };
-      },
-    });
+      console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
+      return { url: updatedUrl };
+    },
+  });
 
   return mockServer;
 };

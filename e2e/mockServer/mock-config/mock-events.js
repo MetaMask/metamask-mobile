@@ -1,14 +1,16 @@
-import { suggestedGasApiResponses } from '../mock-responses/mockResponses.json';
+import { suggestedGasApiResponses, suggestedGasFeesApiGanache } from '../mock-responses/mockResponses.json';
 
 export const mockEvents = {
   GET: {
-    suggestedGasApiErrorResponse: {
+    suggestedGasFeesMainNetError: {
       urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1/suggestedGasFees',
       response: suggestedGasApiResponses.error, // Ensure this exists
+      responseCode: 500
     },
-    suggestedGasApiSuccessResponse: {
-      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1/suggestedGasFees',
-      response: suggestedGasApiResponses.success,
+    suggestedGasFeesApiGanache: {
+      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
+      response: suggestedGasFeesApiGanache,
+      responseCode: 200
     },
   },
   POST: {

@@ -27,7 +27,7 @@ describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when E
     await TestHelpers.reverseServerPort();
     mockServer = await startMockServer({
       GET: [
-        mockEvents.GET.suggestedGasApiErrorResponse,
+        mockEvents.GET.suggestedGasFeesMainNetError,
       ],
     });
   });
