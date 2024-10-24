@@ -382,7 +382,7 @@ describe('resemblesAddress', () => {
 });
 describe('isSnapAccount,', () => {
   it('should return true if account is of type Snap Keyring', () => {
-    expect(isSnapAccount(snapAddress)).toBeTruthy();
+    expect(isSnapAccount(mockSnapAddress1)).toBeTruthy();
   });
 
   it('should return false if account is not of type Snap Keyring', () => {
