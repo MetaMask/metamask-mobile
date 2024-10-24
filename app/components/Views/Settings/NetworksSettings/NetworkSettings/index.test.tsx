@@ -8,6 +8,9 @@ import { ThemeContext, mockTheme } from '../../../../../../app/util/theme';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../../../util/test/network';
+// eslint-disable-next-line import/no-namespace
+import * as jsonRequest from '../../../../../util/jsonRpcRequest';
+import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 
 // Mock the entire module
@@ -87,6 +90,7 @@ const SAMPLE_NETWORKSETTINGS_PROPS = {
       rpcEndpoints: [{ url: 'https://goerli.infura.io/v3/{infuraProjectId}' }],
     },
   },
+  networkOnboardedState: { '0x1': true, '0xe708': true },
   navigation: { setOptions: jest.fn(), navigate: jest.fn(), goBack: jest.fn() },
   matchedChainNetwork: {
     safeChainsList: [
@@ -756,6 +760,49 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
     });
 
+    it('should set a warning if the RPC URL format is invalid', async () => {
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl('invalidUrl');
+      expect(wrapper.state('warningRpcUrl')).toBe(
+        'URIs require the appropriate HTTPS prefix',
+      );
+    });
+
+    it('should set a warning for a duplicated RPC URL', async () => {
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+    });
+
+    it('should set a warning if the RPC URL already exists in networkConfigurations and UI redesign is disabled', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+      expect(wrapper.state('validatedRpcURL')).toBe(true);
+    });
+
+    it('should set a warning if the RPC URL exists and UI redesign is enabled', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const instance = wrapper.instance();
+
+      await instance.validateRpcUrl(
+        'https://mainnet.infura.io/v3/YOUR-PROJECT-ID',
+      );
+      expect(wrapper.state('warningRpcUrl')).toBe('Invalid RPC URL');
+      expect(wrapper.state('validatedRpcURL')).toBe(true);
+    });
+
     it('should correctly add RPC URL through modal and update state', async () => {
       const instance = wrapper.instance();
 
@@ -778,6 +825,47 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('blockExplorerUrls').length).toBe(1);
       expect(wrapper.state('blockExplorerUrls')[0]).toBe(
         'https://new-blockexplorer.com',
+      );
+    });
+
+    it('should not add an empty Block Explorer URL and should return early', async () => {
+      const instance = wrapper.instance();
+
+      // Initially, blockExplorerUrls should be empty
+      expect(wrapper.state('blockExplorerUrls').length).toBe(0);
+
+      // Open Block Explorer form modal and attempt to add an empty URL
+      instance.openAddBlockExplorerForm();
+      await instance.onBlockExplorerItemAdd('');
+
+      // Ensure the state is not updated with the empty URL
+      expect(wrapper.state('blockExplorerUrls').length).toBe(0);
+      expect(wrapper.state('blockExplorerUrl')).toBeUndefined();
+    });
+
+    it('should not add an existing Block Explorer URL and should return early', async () => {
+      const instance = wrapper.instance();
+
+      // Set initial state with an existing block explorer URL
+      await instance.setState({
+        blockExplorerUrls: ['https://existing-blockexplorer.com'],
+      });
+
+      // Ensure the initial state contains the existing URL
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://existing-blockexplorer.com',
+      );
+
+      // Attempt to add the same URL again
+      await instance.onBlockExplorerItemAdd(
+        'https://existing-blockexplorer.com',
+      );
+
+      // Ensure the state remains unchanged and no duplicate is added
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://existing-blockexplorer.com',
       );
     });
 
@@ -885,7 +973,7 @@ describe('NetworkSettings', () => {
     it('should handle valid chainId conversion and updating state correctly', async () => {
       const instance = wrapper.instance();
 
-      await instance.onChainIDChange('0x1');
+      await instance.onChainIDChange('0x2');
       await instance.validateChainId();
 
       expect(wrapper.state('warningChainId')).toBe(undefined);
@@ -1353,6 +1441,376 @@ describe('NetworkSettings', () => {
         networkConfigurations['0x5'],
         instance.props.networkConfigurations['0x2'],
       ]);
+    });
+  });
+
+  describe('templateInfuraRpc', () => {
+    it('should not replace anything if {infuraProjectId} is not in endpoint', () => {
+      const instance = wrapper.instance();
+
+      const endpoint = 'https://mainnet.infura.io/v3/someOtherId';
+      const result = instance.templateInfuraRpc(endpoint);
+      expect(result).toBe('https://mainnet.infura.io/v3/someOtherId');
+    });
+
+    it('should replace {infuraProjectId} with an empty string if infuraProjectId is undefined', () => {
+      const instance = wrapper.instance();
+      const endpoint = 'https://mainnet.infura.io/v3/{infuraProjectId}';
+      const result = instance.templateInfuraRpc(endpoint);
+      expect(result).toBe('https://mainnet.infura.io/v3/');
+    });
+
+    it('should return the original endpoint if it does not end with {infuraProjectId}', () => {
+      const instance = wrapper.instance();
+      const endpoint = 'https://mainnet.infura.io/v3/anotherProjectId';
+      const result = instance.templateInfuraRpc(endpoint);
+      expect(result).toBe(endpoint);
+    });
+  });
+
+  describe('validateChainIdOnSubmit', () => {
+    beforeEach(() => {
+      // Spying on the methods we want to mock
+      jest.spyOn(Logger, 'error'); // Spy on Logger.error
+      jest.spyOn(jsonRequest, 'jsonRpcRequest'); // Spy on jsonRpcRequest directly
+    });
+    afterEach(() => {
+      jest.resetAllMocks(); // Clean up mocks after each test
+    });
+
+    it('should validate chainId when parsedChainId matches endpoint chainId', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue('0x38');
+
+      const validChainId = '0x38';
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        validChainId,
+        validChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBeUndefined();
+      expect(jsonRequest.jsonRpcRequest).toHaveBeenCalledWith(
+        'https://bsc-dataseed.binance.org/',
+        'eth_chainId',
+      );
+    });
+
+    it('should set a warning when chainId is invalid (RPC error)', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockRejectedValue(
+        new Error('RPC error'),
+      );
+
+      const invalidChainId = '0xInvalidChainId';
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        invalidChainId,
+        invalidChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBe(
+        'Could not fetch chain ID. Is your RPC URL correct?',
+      );
+      expect(Logger.error).toHaveBeenCalled(); // Ensures the error is logged
+    });
+
+    it('should set a warning when parsedChainId does not match endpoint chainId', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue('0x39');
+
+      const validChainId = '0x38';
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        validChainId,
+        validChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBe(
+        'The endpoint returned a different chain ID: 0x39',
+      );
+    });
+
+    it('should convert endpointChainId to decimal if formChainId is decimal and not hexadecimal', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue('0x38');
+
+      const decimalChainId = '56'; // Decimal chain ID
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        decimalChainId,
+        decimalChainId,
+        rpcUrl,
+      );
+
+      expect(instance.state.warningChainId).toBe(
+        'The endpoint returned a different chain ID: 56',
+      );
+    });
+
+    it('should log error if the conversion from hexadecimal to decimal fails', async () => {
+      const instance = wrapper.instance();
+
+      (jsonRequest.jsonRpcRequest as jest.Mock).mockResolvedValue(
+        '0xInvalidHex',
+      );
+
+      const decimalChainId = 'test'; // Invalid decimal chain ID
+      const rpcUrl = 'https://bsc-dataseed.binance.org/';
+
+      await instance.validateChainIdOnSubmit(
+        decimalChainId,
+        decimalChainId,
+        rpcUrl,
+      );
+
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        endpointChainId: '0xInvalidHex',
+        message: 'Failed to convert endpoint chain ID to decimal',
+      });
+    });
+  });
+
+  describe('addRpcUrl', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let instance: any;
+
+    beforeEach(() => {
+      instance = wrapper.instance();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      // Mocking dependent methods
+      jest.spyOn(instance, 'disabledByChainId').mockReturnValue(false);
+      jest.spyOn(instance, 'disabledBySymbol').mockReturnValue(false);
+      jest
+        .spyOn(instance, 'checkIfNetworkNotExistsByChainId')
+        .mockResolvedValue([]);
+      jest.spyOn(instance, 'checkIfNetworkExists').mockResolvedValue(false);
+      jest.spyOn(instance, 'validateChainIdOnSubmit').mockResolvedValue(true);
+      jest.spyOn(instance, 'handleNetworkUpdate').mockResolvedValue({});
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should add RPC URL correctly', async () => {
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rpcUrl: 'http://localhost:8545',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Localhost',
+        }),
+      );
+    });
+
+    it('should return early if CTA is disabled by enableAction', async () => {
+      wrapper.setState({ enableAction: false });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should return early if CTA is disabled by chainId', async () => {
+      instance.disabledByChainId.mockReturnValue(true);
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should return early if CTA is disabled by symbol', async () => {
+      instance.disabledBySymbol.mockReturnValue(true);
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should not proceed if validateChainIdOnSubmit fails', async () => {
+      instance.validateChainIdOnSubmit.mockResolvedValue(false);
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should check if network already exists in add mode', async () => {
+      wrapper.setState({ addMode: true, chainId: '0x1', enableAction: true });
+
+      await instance.addRpcUrl();
+
+      expect(instance.checkIfNetworkNotExistsByChainId).toHaveBeenCalledWith(
+        '0x1',
+      );
+      expect(instance.checkIfNetworkExists).not.toHaveBeenCalled();
+    });
+
+    it('should check if network exists in edit mode', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+
+      wrapper.setState({
+        chainId: '0x1',
+        editable: false,
+        rpcUrl: 'http://localhost:8545',
+        enableAction: true,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.checkIfNetworkExists).toHaveBeenCalledWith(
+        'http://localhost:8545',
+      );
+      expect(instance.checkIfNetworkNotExistsByChainId).not.toHaveBeenCalled();
+    });
+
+    it('should handle custom mainnet condition', async () => {
+      wrapper.setProps({
+        route: {
+          params: {
+            isCustomMainnet: true,
+          },
+        },
+      });
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCustomMainnet: true,
+          showNetworkOnboarding: false,
+        }),
+      );
+    });
+
+    it('should handle network switch pop to wallet condition', async () => {
+      wrapper.setProps({
+        route: {
+          params: {
+            shouldNetworkSwitchPopToWallet: false,
+          },
+        },
+      });
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+        addMode: true,
+        editable: false,
+      });
+
+      await instance.addRpcUrl();
+
+      expect(instance.handleNetworkUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          shouldNetworkSwitchPopToWallet: false,
+        }),
+      );
+    });
+  });
+
+  describe('checkIfNetworkExists', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let instance: any;
+
+    beforeEach(() => {
+      instance = wrapper.instance();
+
+      jest.spyOn(instance, 'setState');
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks(); // Clear all spies after each test
+    });
+
+    it('should return custom network if rpcUrl exists in networkConfigurations and UI redesign is disabled', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+
+      const rpcUrl = 'http://localhost:8545';
+
+      // Mocking props
+      wrapper.setProps({
+        networkConfigurations: {
+          customNetwork1: { rpcUrl },
+        },
+      });
+
+      const result = await instance.checkIfNetworkExists(rpcUrl);
+
+      expect(result).toEqual([{ rpcUrl }]);
+      expect(instance.setState).toHaveBeenCalledWith({
+        warningRpcUrl: 'This network has already been added.',
+      });
+    });
+
+    it('should return custom network if rpcUrl exists in networkConfigurations and UI redesign is enabled', async () => {
+      const rpcUrl = 'http://localhost:8545';
+
+      // Mocking props and enabling network UI redesign
+      wrapper.setProps({
+        networkConfigurations: {
+          customNetwork1: { rpcUrl },
+        },
+      });
+
+      const result = await instance.checkIfNetworkExists(rpcUrl);
+
+      expect(result).toEqual([{ rpcUrl }]);
+      expect(instance.setState).not.toHaveBeenCalled(); // Should not set warning when redesign is enabled
+    });
+
+    it('should return an empty array if rpcUrl does not exist in any networks', async () => {
+      const rpcUrl = 'https://nonexistent.rpc.url';
+
+      // Mocking props
+      wrapper.setProps({
+        networkConfigurations: {
+          customNetwork1: { rpcUrl: 'http://localhost:8545' },
+        },
+      });
+
+      const result = await instance.checkIfNetworkExists(rpcUrl);
+
+      expect(result).toEqual([]);
     });
   });
 });
