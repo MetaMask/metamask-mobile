@@ -179,7 +179,7 @@ class Asset extends PureComponent {
     this.props.selectedInternalAccount?.address,
   );
 
-  updateNavBar = (contentOffset = 0) => {
+  updateNavBar = () => {
     const { navigation, route, chainId, rpcUrl, networkConfigurations } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -198,7 +198,6 @@ class Asset extends PureComponent {
         route.params?.symbol ?? '',
         false,
         navigation,
-        colors,
         shouldShowMoreOptionsInNavBar
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -210,7 +209,6 @@ class Asset extends PureComponent {
               })
           : undefined,
         true,
-        contentOffset,
       ),
     );
   };

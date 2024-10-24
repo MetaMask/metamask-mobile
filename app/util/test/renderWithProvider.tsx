@@ -10,7 +10,9 @@ import {
   render,
   renderHook,
   RenderHookOptions,
+  RenderOptions,
 } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
@@ -99,4 +101,11 @@ export function renderHookWithProvider<Result, Props>(
   );
 
   return renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>);
+}
+
+export function renderWithSafeAreaProvider(
+  children: React.ReactElement,
+  options?: RenderOptions,
+) {
+  return render(<SafeAreaProvider>{children}</SafeAreaProvider>, options);
 }
