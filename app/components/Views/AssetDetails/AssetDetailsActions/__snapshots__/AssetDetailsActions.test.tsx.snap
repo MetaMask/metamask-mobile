@@ -24,14 +24,26 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-buy-button"
     >
@@ -67,7 +79,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9fa6ae",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -80,13 +92,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "0": {
-                "color": "#6a737d",
-              },
-              "1": {
-                "color": "#9fa6ae",
-              },
-              "color": "#141618",
+              "color": "#6a737d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -126,14 +132,26 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-swap-button"
     >
@@ -169,7 +187,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9fa6ae",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -182,13 +200,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "0": {
-                "color": "#6a737d",
-              },
-              "1": {
-                "color": "#9fa6ae",
-              },
-              "color": "#141618",
+              "color": "#6a737d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -228,14 +240,26 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-bridge-button"
     >
@@ -271,7 +295,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9fa6ae",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -284,13 +308,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "0": {
-                "color": "#6a737d",
-              },
-              "1": {
-                "color": "#9fa6ae",
-              },
-              "color": "#141618",
+              "color": "#6a737d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -330,14 +348,26 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-send-button"
     >
@@ -373,7 +403,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9fa6ae",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -386,13 +416,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "0": {
-                "color": "#6a737d",
-              },
-              "1": {
-                "color": "#9fa6ae",
-              },
-              "color": "#141618",
+              "color": "#6a737d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -432,14 +456,24 @@ exports[`AssetDetailsActions should render correctly 1`] = `
       disabled={false}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          false,
+        ]
       }
       testID="token-receive-button"
     >
@@ -488,11 +522,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "0": {
-                "color": "#6a737d",
-              },
-              "1": undefined,
-              "color": "#141618",
+              "color": "#6a737d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",

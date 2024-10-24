@@ -393,14 +393,24 @@ exports[`AssetOverview should render correctly 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            {
-              "alignItems": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "paddingTop": 16,
-              "paddingVertical": 2,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
           }
           testID="token-buy-button"
         >
@@ -449,11 +459,7 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "0": {
-                    "color": "#6a737d",
-                  },
-                  "1": undefined,
-                  "color": "#141618",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -493,14 +499,24 @@ exports[`AssetOverview should render correctly 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            {
-              "alignItems": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "paddingTop": 16,
-              "paddingVertical": 2,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
           }
           testID="token-swap-button"
         >
@@ -549,11 +565,7 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "0": {
-                    "color": "#6a737d",
-                  },
-                  "1": undefined,
-                  "color": "#141618",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -593,14 +605,24 @@ exports[`AssetOverview should render correctly 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            {
-              "alignItems": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "paddingTop": 16,
-              "paddingVertical": 2,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
           }
           testID="token-bridge-button"
         >
@@ -649,11 +671,7 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "0": {
-                    "color": "#6a737d",
-                  },
-                  "1": undefined,
-                  "color": "#141618",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -693,14 +711,24 @@ exports[`AssetOverview should render correctly 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            {
-              "alignItems": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "paddingTop": 16,
-              "paddingVertical": 2,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
           }
           testID="token-send-button"
         >
@@ -749,11 +777,7 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "0": {
-                    "color": "#6a737d",
-                  },
-                  "1": undefined,
-                  "color": "#141618",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -793,14 +817,24 @@ exports[`AssetOverview should render correctly 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            {
-              "alignItems": "flex-start",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "paddingTop": 16,
-              "paddingVertical": 2,
-              "width": "100%",
-            }
+            [
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingVertical": 16,
+                "width": "100%",
+              },
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingTop": 16,
+                "paddingVertical": 2,
+                "width": "100%",
+              },
+              false,
+            ]
           }
           testID="token-receive-button"
         >
@@ -849,11 +883,7 @@ exports[`AssetOverview should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "0": {
-                    "color": "#6a737d",
-                  },
-                  "1": undefined,
-                  "color": "#141618",
+                  "color": "#6a737d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
