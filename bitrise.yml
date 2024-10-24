@@ -1542,13 +1542,13 @@ app:
       VERSION_NAME: 7.32.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1464
+      VERSION_NUMBER: 1450
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.32.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1464
+      FLASK_VERSION_NUMBER: 1450
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
