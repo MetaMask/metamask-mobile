@@ -1027,6 +1027,8 @@ workflows:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   build_android_release:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     before_run:
       - code_setup
     after_run:
@@ -1270,6 +1272,7 @@ workflows:
   build_ios_release:
     envs:
       - NO_FLIPPER: '1'
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     before_run:
       - code_setup
     after_run:
