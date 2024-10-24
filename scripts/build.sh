@@ -299,9 +299,6 @@ generateArchivePackages() {
 buildIosRelease(){
   	remapEnvVariableRelease
 
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
-
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -425,8 +422,6 @@ buildAndroidRelease(){
 		adb uninstall io.metamask || true
 	fi
 
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_android
 
 	# GENERATE APK
