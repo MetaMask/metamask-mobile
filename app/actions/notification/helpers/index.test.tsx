@@ -1,5 +1,5 @@
 // Import necessary libraries and modules
-import { signIn } from '.';
+import { signIn, signOut, enableNotificationServices, disableNotificationServices } from '.';
 import Engine from '../../../core/Engine';
 
 jest.mock('../../../core/Engine', () => ({
@@ -7,12 +7,18 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
       performSignIn: jest.fn(),
+      performSignOut: jest.fn(),
       getSessionProfile: jest.fn(),
     },
+    NotificationServicesController: {
+      enableMetamaskNotifications:jest.fn(),
+      disableNotificationServices:jest.fn(),
+      checkAccountsPresence: jest.fn(),
+    }
   },
 }));
 
-describe('signIn', () => {
+describe('Notification Helpers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -25,6 +31,33 @@ describe('signIn', () => {
 
     expect(Engine.context.AuthenticationController.performSignIn).toHaveBeenCalled();
     expect(Engine.context.AuthenticationController.getSessionProfile).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('signs out successfully', async () => {
+    (Engine.context.AuthenticationController.performSignOut as jest.Mock).mockResolvedValue(undefined);
+
+    const result = await signOut();
+
+    expect(Engine.context.AuthenticationController.performSignOut).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('enables notification services successfully', async () => {
+    (Engine.context.NotificationServicesController.enableMetamaskNotifications as jest.Mock).mockResolvedValue(undefined);
+
+    const result = await enableNotificationServices();
+
+    expect(Engine.context.NotificationServicesController.enableMetamaskNotifications).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('disables notification services successfully', async () => {
+    (Engine.context.NotificationServicesController.disableNotificationServices as jest.Mock).mockResolvedValue(undefined);
+
+    const result = await disableNotificationServices();
+
+    expect(Engine.context.NotificationServicesController.disableNotificationServices).toHaveBeenCalled();
     expect(result).toBeUndefined();
   });
 });
