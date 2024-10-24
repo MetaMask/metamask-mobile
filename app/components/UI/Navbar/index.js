@@ -910,6 +910,7 @@ export function getOfflineModalNavbar() {
 /**
  * Function that returns the navigation options for the wallet screen.
  *
+ * @param {Object} accountActionsRef - The ref object for the account actions
  * @param {string} selectedAddress - The currently selected Ethereum address
  * @param {string} accountName - The name of the currently selected account
  * @param {string} accountAvatarType - The type of avatar for the currently selected account
