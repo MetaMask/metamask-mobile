@@ -11,7 +11,7 @@ export interface SecurityAlertsAPIRequest {
 }
 
 export function isSecurityAlertsAPIEnabled() {
-  return process.env.SECURITY_ALERTS_API_ENABLED === 'true';
+  return process.env.MM_SECURITY_ALERTS_API_ENABLED === 'true';
 }
 
 export async function validateWithSecurityAlertsAPI(
