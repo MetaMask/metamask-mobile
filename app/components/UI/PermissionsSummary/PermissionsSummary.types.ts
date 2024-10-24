@@ -22,4 +22,5 @@ export interface PermissionsSummaryProps {
     chainId: string;
   };
   accountAddresses?: string[];
+  networkAvatars?: ({ name: string; imageSource: string } | null)[];
 }
