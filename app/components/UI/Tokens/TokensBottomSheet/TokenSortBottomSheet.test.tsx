@@ -68,7 +68,7 @@ describe('TokenSortBottomSheet', () => {
   });
 
   it('renders correctly with the default sort option selected', () => {
-    const { getByText, queryByTestId } = render(<TokenSortBottomSheet />);
+    const { queryByTestId } = render(<TokenSortBottomSheet />);
 
     expect(queryByTestId(WalletViewSelectorsIDs.SORT_BY)).toBeTruthy();
     expect(
