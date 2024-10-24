@@ -330,7 +330,7 @@ describe('captureSentryFeedback', () => {
         hideZeroBalanceTokens: false,
         lockTime: 30000,
         primaryCurrency: 'ETH',
-        searchEngine: 'DuckDuckGo',
+        searchEngine: 'Google',
         useBlockieIcon: true,
       },
       alert: {
