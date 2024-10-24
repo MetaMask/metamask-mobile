@@ -3,12 +3,11 @@ import { get } from 'lodash';
 export type SortOrder = 'asc' | 'dsc';
 export interface SortCriteria {
   key: string;
-  order?: 'asc' | 'dsc';
-  sortCallback: SortCallbackKeys;
+  order: string;
+  sortCallback: string;
 }
 
 export type SortingType = number | string | Date;
-type SortCallbackKeys = keyof SortingCallbacksT;
 
 export interface SortingCallbacksT {
   numeric: (a: number, b: number) => number;
@@ -20,7 +19,8 @@ export interface SortingCallbacksT {
 // All sortingCallbacks should be asc order, sortAssets function handles asc/dsc
 const sortingCallbacks: SortingCallbacksT = {
   numeric: (a: number, b: number) => a - b,
-  stringNumeric: (a: string, b: string) => parseInt(a, 10) - parseInt(b, 10),
+  stringNumeric: (a: string, b: string) =>
+    parseFloat((parseFloat(a) - parseFloat(b)).toFixed(5)),
   alphaNumeric: (a: string, b: string) => a.localeCompare(b),
   date: (a: Date, b: Date) => a.getTime() - b.getTime(),
 };
@@ -30,7 +30,10 @@ function getNestedValue<T>(obj: T, keyPath: string): SortingType {
   return get(obj, keyPath) as SortingType;
 }
 
-export function sortAssets<T>(array: T[], criteria: SortCriteria): T[] {
+export function sortAssets<T>(
+  array: T[],
+  criteria: Record<string, string>,
+): T[] {
   const { key, order = 'asc', sortCallback } = criteria;
 
   return [...array].sort((a, b) => {
