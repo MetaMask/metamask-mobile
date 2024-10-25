@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
 import { SmokeCore } from '../../tags.js';
@@ -6,7 +7,7 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal.js';
 import SendView from '../../pages/Send/SendView.js';
 import AmountView from '../../pages/Send/AmountView.js';
 import TransactionConfirmView from '../../pages/Send/TransactionConfirmView.js';
-import { startMockServer, stopMockServer } from '../../mockServer/mockServer.js';
+import { startMockServer, stopMockServer } from '../../mockServer/mock-server.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import Assertions from '../../utils/Assertions.js';
 import AccountListView from '../../pages/AccountListView.js';
@@ -16,19 +17,18 @@ import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import TestHelpers from '../../helpers.js';
-import { urls } from '../../mockServer/mockUrlCollection.json';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
+import { mockEvents } from '../../mockServer/mock-config/mock-events.js';
 
 describe(SmokeCore('Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down'), () => {
   let mockServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
-
-    mockServer = await startMockServer({ // Configure mock server
-      mockUrl: urls.suggestedGasApiMainnet,
-      responseCode: 500,
-      responseBody: { error: 'Internal server error' },
+    mockServer = await startMockServer({
+      GET: [
+        mockEvents.GET.suggestedGasFeesMainNetError,
+      ],
     });
   });
 
