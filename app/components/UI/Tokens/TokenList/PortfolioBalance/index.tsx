@@ -165,16 +165,18 @@ export const PortfolioBalance = () => {
           {renderAggregatedPercentage()}
         </TouchableOpacity>
       </View>
-      <Button
-        variant={ButtonVariants.Secondary}
-        size={ButtonSize.Md}
-        width={ButtonWidthTypes.Full}
-        style={styles.buyButton}
-        onPress={onOpenPortfolio}
-        label={strings('asset_overview.portfolio_button')}
-        testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
-        endIconName={IconName.Export}
-      />
+      <View style={styles.portfolioButtonContainer}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
+          onPress={onOpenPortfolio}
+          label={strings('asset_overview.portfolio_button')}
+          testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
+          endIconName={IconName.Export}
+        />
+      </View>
     </View>
   );
 };

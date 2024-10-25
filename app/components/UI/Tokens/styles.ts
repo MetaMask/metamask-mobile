@@ -160,6 +160,10 @@ const createStyles = (colors: Colors) =>
     privacyIcon: {
       marginLeft: 8,
     },
+    portfolioButtonContainer: {
+      // width: '100%',
+      alignItems: 'center',
+    },
   });
 
 export default createStyles;
