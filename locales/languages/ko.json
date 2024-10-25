@@ -437,7 +437,13 @@
       "cancel_cta": "취소",
       "confirm_cta": "컨펌"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "암호화폐를 추가하여 시작하세요",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "{{asset}} 구매",
     "no_tokens": "토큰이 없습니다!",
     "no_nfts_yet": "아직 NFT가 없습니다",
@@ -666,6 +672,8 @@
     "yes_remove_it": "네. 제거하겠습니다",
     "remove_hardware_account": "하드웨어 계정 제거",
     "remove_hw_account_alert_description": "이 하드웨어 지갑 계정을 제거하시겠습니까? 이 계정을 MetaMask 모바일에서 다시 사용하려면 하드웨어 지갑에 다시 동기화해야 합니다.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "제거",
     "remove_account_alert_cancel_btn": "취소",
     "accounts_title": "계정",
@@ -689,6 +697,10 @@
     "site_permission_to": "이 사이트가 보유한 권한:",
     "address_balance_activity_permission": "주소, 계정 잔액, 활동 보기",
     "suggest_transactions": "승인할 트랜잭션 추천",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "연결 해제",
     "disconnect_all": "모두 연결 해제",
     "reconnect_notice": "{{dappUrl}}에서 연결을 해제하면, 이 사이트를 다시 사용하기 위해 계정과 네트워크를 다시 연결해야 합니다.",
@@ -706,6 +718,7 @@
     "connected_and_active": "연결되어 활성화됨.",
     "now_active": "지금 활성화됨.",
     "network_added": "(을)를 성공적으로 추가했습니다",
+    "network_deleted": "was successfully deleted",
     "revoked": "취소됨.",
     "revoked_all": "모든 계정이 취소되었습니다.",
     "accounts_connected": "계정이 연결되었습니다.",
@@ -917,7 +930,7 @@
     "data_collection_title": "마케팅 목적의 데이터 수집",
     "data_collection_description": "당사는 MetaMetrics를 사용하여 사용자가 마케팅 커뮤니케이션과 어떻게 상호 작용하는지 파악합니다. 관련 뉴스(예: 제품 기능 및 기타 자료)를 공유할 수 있습니다.",
     "batch_balance_requests_title": "일괄 계정 잔액 요청",
-    "batch_balance_requests_description": "모든 계정을 일괄 처리하여 잔액을 신속하게 표시하도록 Infura에 요청합니다. 이 기능을 끄면 활성 계정에 대한 잔액만 요청합니다. 일부 디앱은 지갑을 연결하지 않으면 작동하지 않습니다.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "들어오는 트랜잭션 가져오기",
     "third_party_description": "타사 API(Etherscan)는 과거의 들어오는 트랜잭션을 표시하는 데 사용됩니다. 해당 서비스에서 데이터를 가져오는 것을 원하지 않으시면 기능을 끄세요.",
     "metametrics_opt_out": "MetaMetrics 수신 거부",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Snap 제거",
         "remove_snap_section_description": "이렇게 하면 Snap과 데이터가 삭제되고 허용된 권한이 취소됩니다.",
-        "remove_button_label": "{{snapName}} 제거"
+        "remove_button_label": "{{snapName}} 제거",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "{{date}}에 설치됨",
         "install_origin": "Origin 설치",
         "enabled": "활성화됨",
         "version": "버전"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "{{date}}에 승인됨",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "보내기",
     "buy_button": "구매",
+    "token_marketplace": "Token marketplace",
     "sell_button": "매도",
     "receive_button": "받기",
     "portfolio_button": "포트폴리오",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "이 트랜잭션을 계속 진행하려면 {{amount}}만큼의 {{tokenSymbol}}토큰이 더 필요합니다.",
     "buy_more_eth": "ETH 추가 구매",
     "buy_more": "추가 구매",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "포시트로 이동하기",
     "get_ether": "{{networkName}} 네트워크를 위해 에테르를 추가하세요.",
     "insufficient_tokens": "{{token}} 부족",
@@ -1426,7 +1460,7 @@
     "asset": "자산",
     "balance": "잔고",
     "token_id": "토큰 ID",
-    "not_enough_for_gas": "트랜잭션 수수료 지불이 필요한 {{ticker}} 0건 있습니다. 추가로 {{ticker}}(을)를 구매하거나 다른 계정에 예금하세요.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "보내기",
     "confirm_with_qr_hardware": "하드웨어 지갑으로 컨펌",
     "confirm_with_ledger_hardware": "Ledger로 확인",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "활성화된 네트워크 사용",
     "wants_to_see_your_accounts": "계정 보기 및 트랜잭션 제안",
     "requesting_for": "요청 중: ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "권한 관리",
     "edit": "편집",
     "cancel": "취소"
@@ -2393,6 +2430,7 @@
     "All": "전부",
     "Buy": "매수",
     "Sell": "매도",
+    "token_marketplace": "Token marketplace",
     "Purchased": "매수함",
     "Sold": "매도함",
     "empty_buy_orders_list": "매수 주문이 없습니다",
@@ -2659,8 +2697,7 @@
     "you_need": "회원님에게는",
     "more_to_complete": "스와프를 완료하기 위해 더 많은 양이 필요합니다.",
     "more_gas_to_complete": "스와프를 완료하기 위해 가스가 더 필요합니다.",
-    "buy_more_eth": "ETH 추가 구매.",
-    "buy_more": "{{ticker}}(을)를 추가 구매하세요.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "계속 진행하기 전에 환율을 확인하세요",
     "market_price_unavailable": "시장 가격은 확인이 불가하며 때문에 가격 영향은 파악할 수 없습니다. 스와프 전에 받게 될 토큰 수량에 문제가 없는지 확인하세요.",
     "price_difference": "{{amount}}의 가격 차이",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "스테이크",
+    "earn": "Earn",
     "stake_eth": "ETH 스테이크",
     "unstake_eth": "ETH 언스테이크",
     "staked_balance": "스테이킹 잔액",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "이용약관",
     "risk_disclosure": "위험 고지",
     "cancel": "취소",
-    "confirm": "컨펌"
+    "confirm": "컨펌",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "지갑이 준비되었습니다",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "보상 빈도",
       "tooltip": "스테이킹 잔액은 새로운 보상을 반영하여 12시간마다 계정에 업데이트됩니다."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

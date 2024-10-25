@@ -437,7 +437,13 @@
       "cancel_cta": "Kanselahin",
       "confirm_cta": "Kumpirmahin"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Bumili ng {{asset}}",
     "no_tokens": "Wala kang anumang token!",
     "no_nfts_yet": "Wala pang mga NFT",
@@ -666,6 +672,8 @@
     "yes_remove_it": "Oo, alisin ito",
     "remove_hardware_account": "Alisin ang account ng hardware",
     "remove_hw_account_alert_description": "Sigurado ka bang gusto mong alisin ang account ng wallet na hardware na ito? Kailangan mong i-resync ang iyong wallet na hardware kung gusto mo uling gamitin ang account na ito sa MetaMask Mobile.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Alisin",
     "remove_account_alert_cancel_btn": "Huwag na",
     "accounts_title": "Mga Account",
@@ -689,6 +697,10 @@
     "site_permission_to": "Ang site na ito ay may pahintulot na:",
     "address_balance_activity_permission": "Tingnan ang address, balanse ng account, at aktibidad",
     "suggest_transactions": "Magmungkahi ng mga transaksyong aaprubahan",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Idiskonekta",
     "disconnect_all": "Idiskonekta ang lahat",
     "reconnect_notice": "Kapag nag-diskonekta ka sa {{dappUrl}}, kakailanganin mong muling ikonekta ang mga account at network mo para magamit muli ang site na ito.",
@@ -706,6 +718,7 @@
     "connected_and_active": "konektado at aktibo.",
     "now_active": "aktibo ngayon.",
     "network_added": "matagumpay na naidagdag",
+    "network_deleted": "was successfully deleted",
     "revoked": "binawi.",
     "revoked_all": "Ang lahat ng account ay binawi.",
     "accounts_connected": "mga account na konektado.",
@@ -917,7 +930,7 @@
     "data_collection_title": "Koleksyon ng data para sa marketing",
     "data_collection_description": "Gagamitin namin ang MetaMetrics upang matutunan paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "batch_balance_requests_title": "Maramihang kahilingan sa balanse ng account",
-    "batch_balance_requests_description": "Bina-batch namin ang mga account at nagtatanong sa Infura para maipakita nang mabilis ang iyong mga balanse. Kung io-off mo ito, mga aktibong account lang ang itatanong. Hindi gagana ang ilang dApp maliban kung ikokonekta mo ang iyong wallet.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Makuha ang mga papasok na transaksyon",
     "third_party_description": "Ang mga third party AP (Etherscan) ay ginagamit para ipakita ang iyong mga papasok na transakyon sa history. I-off kung ayaw mong i-pull namin ang data mula sa mga serbisyong iyon.",
     "metametrics_opt_out": "Pag-opt out sa MetaMetrics",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Alisin ang Snap",
         "remove_snap_section_description": "Idi-delete ng aksyong ito ang snap, ang data nito, at ang mga ipinagkaloob na pahintulot nito.",
-        "remove_button_label": "Alisin ang {{snapName}}"
+        "remove_button_label": "Alisin ang {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Na-install noong {{date}}",
         "install_origin": "I-install ang Pinagmulan",
         "enabled": "Pinagana",
         "version": "Bersyon"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Inaprubahan noong {{date}}",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "Magpadala",
     "buy_button": "Bumili",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Magbenta",
     "receive_button": "Tumanggap",
     "portfolio_button": "Portfolio",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "Kailangan mo ng {{amount}} pa {{tokenSymbol}} para makumpleto ang transaksyong ito.",
     "buy_more_eth": "Bumili pa ng ETH",
     "buy_more": "Bumili pa",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Pumunta sa faucet",
     "get_ether": "Makakuha ng Ether para sa {{networkName}} network.",
     "insufficient_tokens": "Hindi sapat ang {{token}}",
@@ -1426,7 +1460,7 @@
     "asset": "Asset",
     "balance": "Balanse",
     "token_id": "ID ng Token",
-    "not_enough_for_gas": "Mayroon kang 0 {{ticker}} sa iyong account para bayaran ang mga transaksyon. Bumili ng {{ticker}} o magdeposito mula sa ibang account.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Magpadala",
     "confirm_with_qr_hardware": "Kumpirmahin gamit ang wallet na hardware",
     "confirm_with_ledger_hardware": "Kumpirmahin gamit ang Ledger",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "Gamitin ang iyong mga naka-enable na network",
     "wants_to_see_your_accounts": "Tingnan ang mga account mo at magmungkahi ng mga transaksyon",
     "requesting_for": "Humihiling para sa ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "Pamahalaan ang mga Pahintulot",
     "edit": "I-edit",
     "cancel": "Kanselahin"
@@ -2393,6 +2430,7 @@
     "All": "Lahat",
     "Buy": "Bumili",
     "Sell": "Magbenta",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Binili",
     "Sold": "Binenta",
     "empty_buy_orders_list": "Wala kang anumang mga order na bumili",
@@ -2659,8 +2697,7 @@
     "you_need": "Kailangan mo ng",
     "more_to_complete": "higit pa para makumpleto ang pag-swap na ito.",
     "more_gas_to_complete": "higit pa para sa gas para makumpleto ang pag-swap na ito.",
-    "buy_more_eth": "Bumili pa ng ETH.",
-    "buy_more": "Bumili pa ng {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Tingnan ang iyong rate bago magpatuloy",
     "market_price_unavailable": "Hindi available ang presyo sa market at hindi batid ang epekto ng presyo. Paki-verify na kumportable ka sa dami ng mga token na matatanggap mo bago mag-swap.",
     "price_difference": "Kaibahan sa presyo na {{amount}}",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "Mag-stake",
+    "earn": "Earn",
     "stake_eth": "Mag-stake ng ETH",
     "unstake_eth": "Mag-unstake ng ETH",
     "staked_balance": "Balanse ng naka-stake",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "Mga Tuntunin ng serbisyo",
     "risk_disclosure": "Pagpapahayag ng panganib",
     "cancel": "Kanselahin",
-    "confirm": "Kumpirmahin"
+    "confirm": "Kumpirmahin",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Handa na ang iyong Wallet",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "Dalas ng reward",
       "tooltip": "Ang balanse ng iyong naka-stake ay nag-a-update tuwing ika-12 oras para kwentahin ang mga bagong reward."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

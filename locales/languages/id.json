@@ -437,7 +437,13 @@
       "cancel_cta": "Batal",
       "confirm_cta": "Konfirmasikan"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Tambahkan kripto untuk memulai",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
     "no_nfts_yet": "Belum ada NFT",
@@ -666,6 +672,8 @@
     "yes_remove_it": "Ya, hapus",
     "remove_hardware_account": "Hapus akun perangkat keras",
     "remove_hw_account_alert_description": "Yakin ingin menghapus akun dompet perangkat keras ini? Anda harus menyinkronkan ulang dompet perangkat keras jika ingin menggunakan akun ini lagi dengan MetaMask Mobile.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Hapus",
     "remove_account_alert_cancel_btn": "Abaikan",
     "accounts_title": "Akun",
@@ -689,6 +697,10 @@
     "site_permission_to": "Situs ini memiliki izin untuk:",
     "address_balance_activity_permission": "Melihat alamat, saldo akun, dan aktivitas",
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Memutus koneksi",
     "disconnect_all": "Putuskan semua koneksi",
     "reconnect_notice": "Jika Anda memutus koneksi dari {{dappUrl}}, Anda harus menghubungkan kembali akun dan jaringan agar dapat menggunakan situs ini lagi.",
@@ -706,6 +718,7 @@
     "connected_and_active": "terhubung dan aktif.",
     "now_active": "sekarang aktif.",
     "network_added": "berhasil ditambahkan",
+    "network_deleted": "was successfully deleted",
     "revoked": "dicabut.",
     "revoked_all": "Semua akun dicabut.",
     "accounts_connected": "akun terhubung.",
@@ -917,7 +930,7 @@
     "data_collection_title": "Pengumpulan data untuk pemasaran",
     "data_collection_description": "Kami akan menggunakan MetaMetrics untuk mempelajari cara Anda berinteraksi dengan komunikasi pemasaran kami. Kami mungkin akan membagikan berita yang relevan (seperti fitur produk dan materi lainnya).",
     "batch_balance_requests_title": "Kelompokkan permintaan saldo akun",
-    "batch_balance_requests_description": "Kami mengelompokkan akun dan meminta Infura untuk menunjukkan saldo Anda secara responsif. Jika Anda menonaktifkannya, hanya akun aktif yang akan diminta. Beberapa aplikasi terdesentralisasi (dApp) tidak akan berfungsi kecuali dompet Anda terhubung.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Dapatkan transaksi masuk",
     "third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami mengambil data dari layanan tersebut.",
     "metametrics_opt_out": "Pilih keluar dari MetaMetrics",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Hapus Snap",
         "remove_snap_section_description": "Tindakan ini akan menghapus Snap, datanya, serta izin yang diberikan.",
-        "remove_button_label": "Hapus {{snapName}}"
+        "remove_button_label": "Hapus {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Diinstal pada {{date}}",
         "install_origin": "Instal Asal",
         "enabled": "Diaktifkan",
         "version": "Versi"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Disetujui pada {{date}}",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "Kirim",
     "buy_button": "Beli",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Jual",
     "receive_button": "Terima",
     "portfolio_button": "Portofolio",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "Anda memerlukan {{amount}} {{tokenSymbol}} lagi untuk menyelesaikan transaksi ini.",
     "buy_more_eth": "Beli lebih banyak ETH",
     "buy_more": "Beli lebih banyak",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Kunjungi faucet",
     "get_ether": "Dapatkan Ether untuk jaringan {{networkName}}.",
     "insufficient_tokens": "{{token}} tidak cukup",
@@ -1426,7 +1460,7 @@
     "asset": "Aset",
     "balance": "Saldo",
     "token_id": "ID Token",
-    "not_enough_for_gas": "Anda memiliki 0 {{ticker}} di akun Anda untuk membayar biaya transaksi. Beli {{ticker}} atau setor dari rekening lain.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Kirim",
     "confirm_with_qr_hardware": "Konfirmasikan dengan dompet perangkat keras",
     "confirm_with_ledger_hardware": "Konfirmasikan dengan Ledger",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "Menggunakan jaringan aktif",
     "wants_to_see_your_accounts": "Melihat akun Anda dan menyarankan transaksi",
     "requesting_for": "Meminta untuk ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "Kelola Izin",
     "edit": "Edit",
     "cancel": "Batal"
@@ -2393,6 +2430,7 @@
     "All": "Semua",
     "Buy": "Beli",
     "Sell": "Jual",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Dibeli",
     "Sold": "Terjual",
     "empty_buy_orders_list": "Anda tidak memiliki pesanan pembelian",
@@ -2659,8 +2697,7 @@
     "you_need": "Anda memerlukan",
     "more_to_complete": "lebih banyak untuk menyelesaikan pertukaran ini.",
     "more_gas_to_complete": "lebih banyak gas untuk menyelesaikan pertukaran ini.",
-    "buy_more_eth": "Beli lebih banyak ETH.",
-    "buy_more": "Beli lebih banyak {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Periksa tarif Anda sebelum melanjutkan",
     "market_price_unavailable": "Harga pasar tidak tersedia sehingga dampak harga tidak diketahui. Harap verifikasikan bahwa Anda merasa nyaman dengan jumlah token yang akan Anda terima sebelum menukar.",
     "price_difference": "Selisih harga {{amount}}",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "Stake",
+    "earn": "Earn",
     "stake_eth": "Stake ETH",
     "unstake_eth": "Batalkan stake ETH",
     "staked_balance": "Saldo yang di-stake",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "Ketentuan layanan",
     "risk_disclosure": "Pengungkapan risiko",
     "cancel": "Batal",
-    "confirm": "Konfirmasikan"
+    "confirm": "Konfirmasikan",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Dompet Anda sudah siap",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "Frekuensi reward",
       "tooltip": "Saldo yang di-stake diperbarui setiap 12 jam untuk memperhitungkan reward baru."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

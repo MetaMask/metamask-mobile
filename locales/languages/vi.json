@@ -437,7 +437,13 @@
       "cancel_cta": "Hủy",
       "confirm_cta": "Xác nhận"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có token nào!",
     "no_nfts_yet": "Chưa có NFT",
@@ -666,6 +672,8 @@
     "yes_remove_it": "Có, hãy gỡ bỏ nó",
     "remove_hardware_account": "Xóa tài khoản ví cứng",
     "remove_hw_account_alert_description": "Bạn có chắc chắn muốn xóa tài khoản ví cứng này không? Bạn sẽ phải đồng bộ lại ví cứng của mình nếu muốn sử dụng lại tài khoản này với MetaMask Di động.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Xóa",
     "remove_account_alert_cancel_btn": "Bỏ qua",
     "accounts_title": "Tài khoản",
@@ -689,6 +697,10 @@
     "site_permission_to": "Trang web này có quyền:",
     "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
     "suggest_transactions": "Đề xuất các giao dịch cần chấp thuận",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Ngắt kết nối",
     "disconnect_all": "Ngắt kết nối tất cả",
     "reconnect_notice": "Nếu bạn ngắt kết nối khỏi {{dappUrl}}, bạn sẽ cần kết nối lại tài khoản và mạng của bạn để sử dụng lại trang web này.",
@@ -706,6 +718,7 @@
     "connected_and_active": "đã được kết nối và đang hoạt động.",
     "now_active": "đang hoạt động.",
     "network_added": "đã được thêm thành công",
+    "network_deleted": "was successfully deleted",
     "revoked": "đã bị thu hồi.",
     "revoked_all": "Tất cả tài khoản đã bị thu hồi.",
     "accounts_connected": "tài khoản đã được kết nối.",
@@ -917,7 +930,7 @@
     "data_collection_title": "Thu thập dữ liệu cho mục đích tiếp thị",
     "data_collection_description": "Chúng tôi sẽ sử dụng MetaMetrics để tìm hiểu cách bạn tương tác với các thông tin tiếp thị. Chúng tôi có thể chia sẻ tin tức liên quan (chẳng hạn như tính năng sản phẩm và các tài liệu khác).",
     "batch_balance_requests_title": "Xử lý hàng loạt yêu cầu số dư tài khoản",
-    "batch_balance_requests_description": "Chúng tôi xử lý hàng loạt tài khoản và truy vấn Infura để hiển thị các số dư của bạn một cách nhanh chóng. Nếu bạn tắt tính năng này, chỉ những tài khoản đang hoạt động mới được truy vấn. Một số dApp sẽ không hoạt động trừ khi bạn kết nối với ví của mình.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Nhận các giao dịch chuyển đến",
     "third_party_description": "API của bên thứ ba (Etherscan) được sử dụng để hiển thị các giao dịch chuyển đến của bạn trong phần lịch sử. Hãy tắt nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
     "metametrics_opt_out": "Chọn không tham gia MetaMetrics",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Xóa Snap",
         "remove_snap_section_description": "Hành động này sẽ xóa Snap, cũng như dữ liệu và các quyền đã cấp của Snap đó.",
-        "remove_button_label": "Xóa {{snapName}}"
+        "remove_button_label": "Xóa {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Đã cài đặt vào {{date}}",
         "install_origin": "Nguồn cài đặt",
         "enabled": "Đã bật",
         "version": "Phiên bản"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Đã duyệt vào {{date}}",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Bán",
     "receive_button": "Nhận",
     "portfolio_button": "Danh mục đầu tư",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "Bạn cần thêm {{amount}} {{tokenSymbol}} để hoàn tất giao dịch này.",
     "buy_more_eth": "Mua thêm ETH",
     "buy_more": "Mua thêm",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Đến vòi",
     "get_ether": "Nhận Ether cho mạng {{networkName}}.",
     "insufficient_tokens": "Không đủ {{token}}",
@@ -1426,7 +1460,7 @@
     "asset": "Tài sản",
     "balance": "Số dư",
     "token_id": "ID của token",
-    "not_enough_for_gas": "Bạn có 0 {{ticker}} trong tài khoản để trả phí giao dịch. Mua {{ticker}} hoặc nạp từ tài khoản khác.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Gửi",
     "confirm_with_qr_hardware": "Xác nhận bằng ví cứng",
     "confirm_with_ledger_hardware": "Xác nhận bằng Ledger",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "Sử dụng mạng đã kích hoạt của bạn",
     "wants_to_see_your_accounts": "Xem tài khoản của bạn và đề xuất giao dịch",
     "requesting_for": "Yêu cầu cho ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "Quản lý quyền",
     "edit": "Chỉnh sửa",
     "cancel": "Hủy"
@@ -2393,6 +2430,7 @@
     "All": "Tất cả",
     "Buy": "Mua",
     "Sell": "Bán",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Đã mua",
     "Sold": "Đã bán",
     "empty_buy_orders_list": "Bạn không có bất kỳ lệnh mua nào",
@@ -2659,8 +2697,7 @@
     "you_need": "Bạn cần thêm",
     "more_to_complete": "để hoàn thành giao dịch hoán đổi này.",
     "more_gas_to_complete": "phí gas để hoàn thành giao dịch hoán đổi này.",
-    "buy_more_eth": "Mua thêm ETH.",
-    "buy_more": "Mua thêm {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Kiểm tra tỷ giá trước khi tiếp tục",
     "market_price_unavailable": "Giá thị trường không có sẵn và do đó không thể xác định mức tác động giá. Vui lòng xác minh rằng bạn cảm thấy thoải mái với số lượng token bạn sẽ nhận được trước khi hoán đổi.",
     "price_difference": "Mức chênh lệch giá là {{amount}}",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "Ký gửi",
+    "earn": "Earn",
     "stake_eth": "Ký gửi ETH",
     "unstake_eth": "Hủy ký gửi ETH",
     "staked_balance": "Số dư đã ký gửi",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "Điều khoản dịch vụ",
     "risk_disclosure": "Thông báo về tính rủi ro",
     "cancel": "Hủy",
-    "confirm": "Xác nhận"
+    "confirm": "Xác nhận",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Ví của bạn đã sẵn sàng",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "Tần suất phần thưởng",
       "tooltip": "Số dư đã ký gửi của bạn sẽ được cập nhật 12 giờ một lần để tính toán phần thưởng mới."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

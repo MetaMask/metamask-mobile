@@ -437,7 +437,13 @@
       "cancel_cta": "Отмена",
       "confirm_cta": "Подтвердить"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Добавьте криптовалюту, чтобы начать",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
     "no_nfts_yet": "Пока нет NFT",
@@ -666,6 +672,8 @@
     "yes_remove_it": "Да, удалить",
     "remove_hardware_account": "Удалить аппаратный счет",
     "remove_hw_account_alert_description": "Уверены, что хотите удалить этот счет аппаратного кошелька? Вам придется повторно синхронизировать свой аппаратный кошелек, если вы захотите снова использовать этот счет с MetaMask Mobile.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Удалить",
     "remove_account_alert_cancel_btn": "Неважно",
     "accounts_title": "Счета",
@@ -689,6 +697,10 @@
     "site_permission_to": "У этого сайта есть следующие разрешения:",
     "address_balance_activity_permission": "Просмотр адреса, баланса счета и активности",
     "suggest_transactions": "Предлагать транзакции для одобрения",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Отключиться",
     "disconnect_all": "Отключить все",
     "reconnect_notice": "Если вы отключитесь от {{dappUrl}}, вам придется повторно подключить свои счета и сети, чтобы снова использовать этот сайт.",
@@ -706,6 +718,7 @@
     "connected_and_active": "подключен и активен.",
     "now_active": "сейчас активен.",
     "network_added": "успешно добавлена",
+    "network_deleted": "was successfully deleted",
     "revoked": "отозван.",
     "revoked_all": "Все счета отозваны.",
     "accounts_connected": "счета подключены.",
@@ -917,7 +930,7 @@
     "data_collection_title": "Сбор данных для маркетинга",
     "data_collection_description": "Мы будем использовать MetaMetrics, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем делиться соответствующими новостями (например, новостями о функциях продукта и другими материалами).",
     "batch_balance_requests_title": "Пакетные запросы баланса счета",
-    "batch_balance_requests_description": "Мы создаем пакет счетов и запрашиваем Infura, чтобы оперативно отображать ваши балансы. Если вы отключите это, запрос будет отправляться только в отношении активных счетов. Некоторые dApps не будут работать, пока вы не подключите свой кошелек.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Получить входящие транзакции",
     "third_party_description": "Сторонние API (Etherscan) используются для отображения входящих транзакций в истории. Отключите, если не хотите, чтобы мы извлекали данные из этих служб.",
     "metametrics_opt_out": "Отказ от MetaMetrics",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Удалить snap",
         "remove_snap_section_description": "Это действие приведет к удалению snap, его данных и предоставленных ему разрешений.",
-        "remove_button_label": "Удалить {{snapName}}"
+        "remove_button_label": "Удалить {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Установлен {{date}}",
         "install_origin": "Источник установки",
         "enabled": "Включен",
         "version": "Версия"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Одобрен {{date}}",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "Отправить",
     "buy_button": "Купить",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Продать",
     "receive_button": "Получить",
     "portfolio_button": "Portfolio",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "Вам нужно еще {{amount}} {{tokenSymbol}} для выполнения этой транзакции.",
     "buy_more_eth": "Купите больше ETH",
     "buy_more": "Купить еще",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Перейти к крану",
     "get_ether": "Получите эфир для сети {{networkName}}.",
     "insufficient_tokens": "Недостаточно {{token}}",
@@ -1426,7 +1460,7 @@
     "asset": "Актив",
     "balance": "Баланс",
     "token_id": "ID токена",
-    "not_enough_for_gas": "На вашем счете 0 {{ticker}} для оплаты комиссии за транзакцию. Купите немного {{ticker}} или внесите депозит с другого счета.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Отправить",
     "confirm_with_qr_hardware": "Подтвердить с помощью аппаратного кошелька",
     "confirm_with_ledger_hardware": "Подтвердить с помощь Ledger",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "Использовать ваши активные сети",
     "wants_to_see_your_accounts": "Просматривать ваши счета и предлагать транзакции",
     "requesting_for": "Запрашивается для ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "Управление разрешениями",
     "edit": "Изменить",
     "cancel": "Отмена"
@@ -2393,6 +2430,7 @@
     "All": "Все",
     "Buy": "Купить",
     "Sell": "Продать",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Куплено",
     "Sold": "Продано",
     "empty_buy_orders_list": "У вас нет ордеров на покупку",
@@ -2659,8 +2697,7 @@
     "you_need": "Вам необходимо больше",
     "more_to_complete": "для выполнения этого свопа.",
     "more_gas_to_complete": "больше для газа для выполнения этого свопа.",
-    "buy_more_eth": "Купите больше ETH.",
-    "buy_more": "Купите больше {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Проверьте свой тариф, прежде чем продолжить",
     "market_price_unavailable": "Рыночная цена недоступна, поэтому влияние на цену неизвестно. Перед свопом убедитесь, что вас устраивает количество токенов, которое вы получите.",
     "price_difference": "Разница в цене {{amount}}",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "Выполнить стейкинг",
+    "earn": "Earn",
     "stake_eth": "Выполнить стейкинг ETH",
     "unstake_eth": "Отменить стейкинг ETH",
     "staked_balance": "Баланс стейкинга",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "Условия обслуживания",
     "risk_disclosure": "Заявление о рисках",
     "cancel": "Отмена",
-    "confirm": "Подтвердить"
+    "confirm": "Подтвердить",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Ваш кошелек готов",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "Частота вознаграждений",
       "tooltip": "Ваш баланс стейкинга обновляется каждые 12 часов для учета новых вознаграждений."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {
