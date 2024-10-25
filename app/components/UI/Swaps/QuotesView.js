@@ -56,7 +56,6 @@ import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
 import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
-import SliderButton from '../SliderButton';
 
 import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
@@ -459,8 +458,6 @@ function SwapsQuotesView({
 
   const [customGasEstimate, setCustomGasEstimate] = useState(null);
   const [customGasLimit, setCustomGasLimit] = useState(null);
-
-  const [isSwiping, setIsSwiping] = useState(false);
 
   // TODO: use this variable in the future when calculating savings
   const [isSaving] = useState(false);
@@ -1720,7 +1717,6 @@ function SwapsQuotesView({
       contentContainerStyle={styles.screen}
       style={styles.container}
       keyboardShouldPersistTaps="handled"
-      scrollEnabled={!isSwiping}
     >
       <View style={styles.topBar}>
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
@@ -2155,7 +2151,7 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap}>
+        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap || isAnimating}>
           {strings('swaps.swap')}
         </StyledButton>
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
