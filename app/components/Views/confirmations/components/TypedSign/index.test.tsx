@@ -24,33 +24,43 @@ const mockMetrics = {
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
-jest.mock('../../../../../core/Engine', () => ({
-  acceptPendingApproval: jest.fn(),
-  rejectPendingApproval: jest.fn(),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    acceptPendingApproval: jest.fn(),
+    rejectPendingApproval: jest.fn(),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+        getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
+        getOrAddQRKeyring: jest.fn(),
       },
-      getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getOrAddQRKeyring: jest.fn(),
-    },
-    SignatureController: {
-      hub: {
-        on: jest.fn(),
-        removeListener: jest.fn(),
+      SignatureController: {
+        hub: {
+          on: jest.fn(),
+          removeListener: jest.fn(),
+        },
+      },
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
-    PreferencesController: {
-      state: {
-        securityAlertsEnabled: true,
-      },
+    controllerMessenger: {
+      subscribe: jest.fn(),
     },
-  },
-  controllerMessenger: {
-    subscribe: jest.fn(),
-  },
-}));
+  };
+});
 
 jest.mock('../../../../../core/NotificationManager');
 

@@ -12,19 +12,29 @@ import { RootState } from '../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { mockNetworkState } from '../../../util/test/network';
 
-jest.mock('../../../core/Engine', () => ({
-  resetState: jest.fn(),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    resetState: jest.fn(),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+        createNewVaultAndKeychain: () => jest.fn(),
+        setLocked: () => jest.fn(),
+        getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
       },
-      createNewVaultAndKeychain: () => jest.fn(),
-      setLocked: () => jest.fn(),
-      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
     },
-  },
-}));
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
