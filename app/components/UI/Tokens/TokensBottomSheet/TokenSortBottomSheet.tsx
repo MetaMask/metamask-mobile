@@ -63,7 +63,7 @@ const TokenSortBottomSheet = () => {
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >
-          <Text style={{ width: '100%' }}>
+          <Text style={styles.bottomSheetText}>
             {strings('wallet.declining_balance', {
               currency:
                 currencySymbols[
@@ -80,7 +80,7 @@ const TokenSortBottomSheet = () => {
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >
-          <Text style={{ width: '100%' }}>
+          <Text style={styles.bottomSheetText}>
             {strings('wallet.alphabetically')}
           </Text>
         </ListItemSelect>
