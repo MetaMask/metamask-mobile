@@ -28,7 +28,7 @@ const attemptMultiCallClaimTransaction = async (
     await poolStakingContract.encodeMulticallTransactionData(
       multiCallData,
       activeAccountAddress,
-      { gasLimit, gasBufferPct: 30 }, // 30% buffer
+      { gasLimit },
     );
 
   const txParams = generateClaimTxParams(
@@ -70,7 +70,6 @@ const attemptSingleClaimTransaction = async (
       activeAccountAddress,
       {
         gasLimit,
-        gasBufferPct: 30, // 30% buffer
       },
     );
 

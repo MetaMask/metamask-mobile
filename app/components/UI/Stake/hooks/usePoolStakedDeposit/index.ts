@@ -30,7 +30,6 @@ const attemptDepositTransaction =
   async (
     depositValueWei: string,
     receiver: string, // the address that can claim exited ETH
-    gasBufferPercentage: number = 30, // 30% Buffer
     referrer: string = ZERO_ADDRESS, // any address to track referrals or deposits from different interfaces (can use zero address if not needed)
   ) => {
     try {
@@ -47,7 +46,6 @@ const attemptDepositTransaction =
           referrer,
           {
             gasLimit,
-            gasBufferPct: gasBufferPercentage,
           },
         );
 
