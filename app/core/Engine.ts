@@ -253,6 +253,7 @@ import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import { isProduction } from '../util/environment';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1218,7 +1219,7 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       env: {
-        isAccountSyncingEnabled: true,
+        isAccountSyncingEnabled: !isProduction(),
       },
       config: {
         accountSyncing: {
@@ -1357,7 +1358,7 @@ class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-            showIncomingTransactions?.[currentHexChainId],
+              showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1708,7 +1709,7 @@ class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-          NetworkStatus.Available &&
+            NetworkStatus.Available &&
           networkController.getNetworkClientById(
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId !== currentChainId
@@ -1733,9 +1734,10 @@ class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${networkController.getNetworkClientById(
-              networkController?.state.selectedNetworkClientId,
-            ).configuration.chainId
+            `Network ID not changed, current chainId: ${
+              networkController.getNetworkClientById(
+                networkController?.state.selectedNetworkClientId,
+              ).configuration.chainId
             }`,
           );
         }
@@ -1864,7 +1866,7 @@ class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-        selectSelectedInternalAccountChecksummedAddress
+          selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
         ethFiat = weiToFiatNumber(
@@ -1896,9 +1898,9 @@ class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address],
-                  item.decimals,
-                )
+                    tokenBalances[item.address],
+                    item.decimals,
+                  )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -1951,7 +1953,6 @@ class Engine {
     }
     return snapKeyring;
   };
-
 
   /**
    * Removes an account from state / storage.
@@ -2329,6 +2330,6 @@ export default {
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);
-  }
+  },
   ///: END:ONLY_INCLUDE_IF
 };
