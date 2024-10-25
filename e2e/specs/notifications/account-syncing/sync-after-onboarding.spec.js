@@ -1,8 +1,9 @@
+import { SDK } from '@metamask/profile-sync-controller';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
   NOTIFICATIONS_TEAM_STORAGE_KEY,
-} from '../constants';
+} from '../utils/constants';
 import {
   startMockServer,
   stopMockServer,
@@ -13,8 +14,7 @@ import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListView from '../../../pages/AccountListView';
 import Assertions from '../../../utils/Assertions';
-import { SDK } from '@metamask/profile-sync-controller';
-import { mockNotificationServices } from '../mocks';
+import { mockNotificationServices } from '../utils/mocks';
 
 describe('Account syncing', () => {
   it('retrieves all previously synced accounts', async () => {

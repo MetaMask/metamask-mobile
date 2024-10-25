@@ -1,4 +1,7 @@
-import { CompletedRequest, Mockttp } from 'mockttp';
+import {
+  determineIfFeatureEntryFromURL,
+  getDecodedProxiedURL,
+} from '../helpers';
 
 // TODO: Export user storage schema from @metamask/profile-sync-controller
 export const pathRegexps = {
@@ -10,32 +13,10 @@ export const pathRegexps = {
     /https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/notifications/u,
 };
 
-type UserStorageResponseData = { HashedKey: string; Data: string };
-
-const determineIfFeatureEntryFromURL = (url: string) => {
-  const decodedUrl = decodeURIComponent(url);
-  return (
-    decodedUrl.substring(decodedUrl.lastIndexOf('userstorage') + 12).split('/')
-      .length === 2
-  );
-};
-
-const getDecodedProxiedURL = (url: string) =>
-  decodeURIComponent(String(new URL(url).searchParams.get('url')));
-
 export class UserStorageMockttpController {
-  paths: Map<
-    keyof typeof pathRegexps,
-    {
-      response: UserStorageResponseData[];
-    }
-  > = new Map();
+  paths = new Map();
 
-  readonly onGet = async (
-    path: keyof typeof pathRegexps,
-    request: Pick<CompletedRequest, 'url'>,
-    statusCode: number = 200,
-  ) => {
+  async onGet(path, request, statusCode = 200) {
     const internalPathData = this.paths.get(path);
 
     if (!internalPathData) {
@@ -69,26 +50,18 @@ export class UserStorageMockttpController {
       statusCode,
       json,
     };
-  };
+  }
 
-  readonly onPut = async (
-    path: keyof typeof pathRegexps,
-    request: Pick<CompletedRequest, 'url' | 'body'>,
-    statusCode: number = 204,
-  ) => {
+  async onPut(path, request, statusCode = 204) {
     const isFeatureEntry = determineIfFeatureEntryFromURL(request.url);
 
-    const data = (await request.body.getJson()) as {
-      data: string | { [key: string]: string };
-    };
+    const data = await request.body.getJson();
 
     const newOrUpdatedSingleOrBatchEntries =
       isFeatureEntry && typeof data?.data === 'string'
         ? [
             {
-              HashedKey: getDecodedProxiedURL(request.url)
-                .split('/')
-                .pop() as string,
+              HashedKey: getDecodedProxiedURL(request.url).split('/').pop(),
               Data: data?.data,
             },
           ]
@@ -118,10 +91,7 @@ export class UserStorageMockttpController {
       } else {
         this.paths.set(path, {
           ...internalPathData,
-          response: [
-            ...(internalPathData?.response || []),
-            entry as { HashedKey: string; Data: string },
-          ],
+          response: [...(internalPathData?.response || []), entry],
         });
       }
     });
@@ -129,13 +99,9 @@ export class UserStorageMockttpController {
     return {
       statusCode,
     };
-  };
+  }
 
-  readonly onDelete = async (
-    path: keyof typeof pathRegexps,
-    request: Pick<CompletedRequest, 'url'>,
-    statusCode: number = 204,
-  ) => {
+  async onDelete(path, request, statusCode = 204) {
     const internalPathData = this.paths.get(path);
 
     if (!internalPathData) {
@@ -165,25 +131,16 @@ export class UserStorageMockttpController {
     return {
       statusCode,
     };
-  };
+  }
 
-  setupPath = (
-    path: keyof typeof pathRegexps,
-    server: Mockttp,
-    overrides?: {
-      getResponse?: UserStorageResponseData[];
-      getStatusCode?: number;
-      putStatusCode?: number;
-      deleteStatusCode?: number;
-    },
-  ) => {
+  async setupPath(path, server, overrides) {
     const previouslySetupPath = this.paths.get(path);
 
     this.paths.set(path, {
       response: overrides?.getResponse || previouslySetupPath?.response || [],
     });
 
-    server
+    await server
       .forGet('/proxy')
       .matching((request) =>
         pathRegexps[path].test(getDecodedProxiedURL(request.url)),
@@ -192,7 +149,7 @@ export class UserStorageMockttpController {
       .thenCallback((request) =>
         this.onGet(path, request, overrides?.getStatusCode),
       );
-    server
+    await server
       .forPut('/proxy')
       .matching((request) =>
         pathRegexps[path].test(getDecodedProxiedURL(request.url)),
@@ -201,7 +158,7 @@ export class UserStorageMockttpController {
       .thenCallback((request) =>
         this.onPut(path, request, overrides?.putStatusCode),
       );
-    server
+    await server
       .forDelete('/proxy')
       .matching((request) =>
         pathRegexps[path].test(getDecodedProxiedURL(request.url)),
@@ -210,5 +167,5 @@ export class UserStorageMockttpController {
       .thenCallback((request) =>
         this.onDelete(path, request, overrides?.deleteStatusCode),
       );
-  };
+  }
 }

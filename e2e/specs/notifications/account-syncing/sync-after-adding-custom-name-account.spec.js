@@ -1,8 +1,9 @@
+import { SDK } from '@metamask/profile-sync-controller';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
   NOTIFICATIONS_TEAM_STORAGE_KEY,
-} from '../constants';
+} from '../utils/constants';
 import {
   startMockServer,
   stopMockServer,
@@ -13,13 +14,12 @@ import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListView from '../../../pages/AccountListView';
 import Assertions from '../../../utils/Assertions';
-import { SDK } from '@metamask/profile-sync-controller';
 import AddAccountModal from '../../../pages/modals/AddAccountModal';
 import AccountActionsModal from '../../../pages/modals/AccountActionsModal';
 import EditAccountNameView from '../../../pages/EditAccountNameView';
 import Gestures from '../../../utils/Gestures';
 import EditAccountNameSelectorIDs from '../../../selectors/EditAccountName.selectors';
-import { mockNotificationServices } from '../mocks';
+import { mockNotificationServices } from '../utils/mocks';
 
 describe('Account syncing', () => {
   const NEW_ACCOUNT_NAME = 'My third account';
@@ -75,7 +75,7 @@ describe('Account syncing', () => {
 
     await WalletView.tapMainWalletAccountActions();
     await AccountActionsModal.tapEditAccount();
-    await Gestures.clearField(EditAccountNameView.accountNameInput());
+    await Gestures.clearField(EditAccountNameView.accountNameInput);
     await TestHelpers.typeTextAndHideKeyboard(
       EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
       NEW_ACCOUNT_NAME,

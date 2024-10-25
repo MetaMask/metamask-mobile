@@ -1,19 +1,19 @@
-import * as mockttp from 'mockttp';
+import { getLocal } from 'mockttp';
 import { UserStorageMockttpController } from './userStorageMockttpController';
 
 describe('UserStorageMockttpController', () => {
-  let mockServer: mockttp.Mockttp;
+  let mockServer;
 
   const baseUrl =
     'http://localhost/proxy?url=https://user-storage.api.cx.metamask.io/api/v1/userstorage';
 
   describe('mimics user storage behaviour', () => {
-    mockServer = mockttp.getLocal({ cors: true });
+    mockServer = getLocal({ cors: true });
 
     it('handles GET requests that have empty response', async () => {
       const controller = new UserStorageMockttpController();
 
-      controller.setupPath('accounts', mockServer);
+      await controller.setupPath('accounts', mockServer);
 
       const request = await controller.onGet('accounts', {
         url: `${baseUrl}/accounts`,
@@ -37,7 +37,7 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
@@ -63,7 +63,7 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
@@ -89,7 +89,7 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
@@ -120,7 +120,7 @@ describe('UserStorageMockttpController', () => {
         Data: 'data3',
       };
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
@@ -130,7 +130,7 @@ describe('UserStorageMockttpController', () => {
           getJson: async () => ({
             data: mockedAddedData.Data,
           }),
-        } as unknown as mockttp.CompletedBody,
+        },
       });
 
       expect(putRequest.statusCode).toEqual(204);
@@ -162,7 +162,7 @@ describe('UserStorageMockttpController', () => {
         Data: 'data3',
       };
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
@@ -172,7 +172,7 @@ describe('UserStorageMockttpController', () => {
           getJson: async () => ({
             data: mockedUpdatedData.Data,
           }),
-        } as unknown as mockttp.CompletedBody,
+        },
       });
 
       expect(putRequest.statusCode).toEqual(204);
@@ -211,11 +211,11 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
-      const putData = {} as { [key: string]: string };
+      const putData = {};
       mockedUpdatedData.forEach((entry) => {
         putData[entry.HashedKey] = entry.Data;
       });
@@ -226,7 +226,7 @@ describe('UserStorageMockttpController', () => {
           getJson: async () => ({
             data: putData,
           }),
-        } as unknown as mockttp.CompletedBody,
+        },
       });
 
       expect(putRequest.statusCode).toEqual(204);
@@ -253,7 +253,7 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 
@@ -285,7 +285,7 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath('accounts', mockServer, {
+      await controller.setupPath('accounts', mockServer, {
         getResponse: mockedData,
       });
 

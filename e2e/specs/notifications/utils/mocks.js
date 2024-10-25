@@ -3,7 +3,8 @@ import {
   NotificationServicesController,
   NotificationServicesPushController,
 } from '@metamask/notification-services-controller';
-import { UserStorageMockttpController } from '../../utils/user-storage/userStorageMockttpController';
+import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
+import { getDecodedProxiedURL } from './helpers';
 
 const AuthMocks = AuthenticationController.Mocks;
 const NotificationMocks = NotificationServicesController.Mocks;
@@ -71,9 +72,7 @@ function mockAPICall(server, response) {
 
   requestRuleBuilder
     ?.matching((request) => {
-      const url = decodeURIComponent(
-        String(new URL(request.url).searchParams.get('url')),
-      );
+      const url = getDecodedProxiedURL(request.url);
 
       return url.includes(String(response.url));
     })
