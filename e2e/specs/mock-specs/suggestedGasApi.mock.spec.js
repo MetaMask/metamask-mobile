@@ -7,7 +7,7 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal.js';
 import SendView from '../../pages/Send/SendView.js';
 import AmountView from '../../pages/Send/AmountView.js';
 import TransactionConfirmView from '../../pages/Send/TransactionConfirmView.js';
-import { startMockServer, stopMockServer } from '../../mockServer/mockServer.js';
+import { startMockServer, stopMockServer } from '../../mockServer/mock-server.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import Assertions from '../../utils/Assertions.js';
 import AccountListView from '../../pages/AccountListView.js';
