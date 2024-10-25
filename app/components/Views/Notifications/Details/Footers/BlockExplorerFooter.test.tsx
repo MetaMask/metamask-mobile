@@ -1,5 +1,4 @@
 import React from 'react';
-import { Linking } from 'react-native';
 
 import { render } from '@testing-library/react-native';
 import BlockExplorerFooter from './BlockExplorerFooter';
