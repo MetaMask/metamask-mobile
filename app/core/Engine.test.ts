@@ -1,11 +1,29 @@
-import Engine from './Engine';
+import Engine, {
+  Engine as EngineClass,
+  EngineState,
+  TransactionEventPayload,
+} from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../util/test/network';
+import MetaMetrics from './Analytics/MetaMetrics';
+import { store } from '../store';
+import { MetaMetricsEvents } from './Analytics';
+import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
+import { MarketDataDetails } from '../components/UI/Tokens';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { RootState } from '../reducers';
+import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
 jest.unmock('./Engine');
-jest.mock('../store', () => ({ store: { getState: jest.fn(() => ({})) } }));
+jest.mock('../store', () => ({
+  store: { getState: jest.fn(() => ({ engine: {} })) },
+}));
+jest.mock('../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
+}));
 
 describe('Engine', () => {
   it('should expose an API', () => {
@@ -66,19 +84,30 @@ describe('Engine', () => {
   });
 
   describe('getTotalFiatAccountBalance', () => {
-    let engine;
+    let engine: EngineClass;
     afterEach(() => engine?.destroyEngineInstance());
 
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
-    const chainId = '0x1';
+    const chainId: Hex = '0x1';
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
+    const ethBalance = 1;
 
-    const state = {
+    const state: Partial<EngineState> = {
       AccountsController: createMockAccountsControllerState(
         [selectedAddress],
         selectedAddress,
       ),
+      AccountTrackerController: {
+        accountsByChainId: {
+          [chainId]: {
+            [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
+          },
+        },
+        accounts: {
+          [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
+        },
+      },
       NetworkController: {
         state: {
           ...mockNetworkState({
@@ -86,14 +115,21 @@ describe('Engine', () => {
             id: '0x1',
             nickname: 'mainnet',
             ticker: 'ETH',
-            type: 'infura',
+            type: RpcEndpointType.Infura,
           }),
         },
-      },
+        // TODO(dbrans): Investigate why the shape of the NetworkController state in this
+        // test is {state: NetworkState} instead of just NetworkState.
+      } as unknown as NetworkState,
       CurrencyRateController: {
         currencyRates: {
-          [ticker]: { conversionRate: ethConversionRate },
+          [ticker]: {
+            conversionRate: ethConversionRate,
+            conversionDate: 0,
+            usdConversionRate: ethConversionRate,
+          },
         },
+        currentCurrency: ticker,
       },
     };
 
@@ -109,24 +145,16 @@ describe('Engine', () => {
     });
 
     it('calculates when theres only ETH', () => {
-      const ethBalance = 1; // 1 ETH
       const ethPricePercentChange1d = 5; // up 5%
 
       engine = Engine.init({
         ...state,
-        AccountTrackerController: {
-          accountsByChainId: {
-            [chainId]: {
-              [selectedAddress]: { balance: ethBalance * 1e18 },
-            },
-          },
-        },
         TokenRatesController: {
           marketData: {
             [chainId]: {
               [zeroAddress()]: {
                 pricePercentChange1d: ethPricePercentChange1d,
-              },
+              } as MarketDataDetails,
             },
           },
         },
@@ -144,7 +172,6 @@ describe('Engine', () => {
     });
 
     it('calculates when there are ETH and tokens', () => {
-      const ethBalance = 1;
       const ethPricePercentChange1d = 5;
 
       const tokens = [
@@ -164,18 +191,18 @@ describe('Engine', () => {
 
       engine = Engine.init({
         ...state,
-        AccountTrackerController: {
-          accountsByChainId: {
-            [chainId]: {
-              [selectedAddress]: { balance: ethBalance * 1e18 },
-            },
-          },
-        },
         TokensController: {
           tokens: tokens.map((token) => ({
             address: token.address,
             balance: token.balance,
+            decimals: 18,
+            symbol: 'TEST',
           })),
+          ignoredTokens: [],
+          detectedTokens: [],
+          allTokens: {},
+          allIgnoredTokens: {},
+          allDetectedTokens: {},
         },
         TokenRatesController: {
           marketData: {
@@ -203,7 +230,7 @@ describe('Engine', () => {
       const ethFiat = ethBalance * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
-          const value = token.balance * token.price * ethConversionRate;
+          const value = Number(token.price) * token.balance * ethConversionRate;
           return [
             fiat + value,
             fiat1d + value / (1 + token.pricePercentChange1d / 100),
@@ -218,6 +245,140 @@ describe('Engine', () => {
         tokenFiat,
         tokenFiat1dAgo,
       });
+    });
+  });
+});
+
+describe('Transaction event handlers', () => {
+  let engine: EngineClass;
+
+  beforeEach(() => {
+    engine = Engine.init({});
+    jest.spyOn(MetaMetrics.getInstance(), 'trackEvent').mockImplementation();
+    jest.spyOn(store, 'getState').mockReturnValue({} as RootState);
+  });
+
+  afterEach(() => {
+    engine?.destroyEngineInstance();
+    jest.clearAllMocks();
+  });
+
+  describe('_handleTransactionFinalizedEvent', () => {
+    it('should track event with basic properties when smart transactions are disabled', async () => {
+      const properties = { status: 'confirmed' };
+      const transactionEventPayload: TransactionEventPayload = {
+        transactionMeta: { hash: '0x123' } as TransactionMeta,
+      };
+
+      await engine._handleTransactionFinalizedEvent(
+        transactionEventPayload,
+        properties,
+      );
+
+      const expectedEvent = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties(properties)
+        .build();
+
+      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+        expectedEvent,
+      );
+    });
+
+    it('should not process smart transaction metrics if transactionMeta is missing', async () => {
+      const properties = { status: 'failed' };
+      const transactionEventPayload = {} as TransactionEventPayload;
+
+      await engine._handleTransactionFinalizedEvent(
+        transactionEventPayload,
+        properties,
+      );
+
+      const expectedEvent = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties(properties)
+        .build();
+
+      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+        expectedEvent,
+      );
+    });
+  });
+
+  describe('Transaction status handlers', () => {
+    it('should handle dropped transactions', async () => {
+      const transactionEventPayload: TransactionEventPayload = {
+        transactionMeta: { hash: '0x123' } as TransactionMeta,
+      };
+
+      await engine._handleTransactionDropped(transactionEventPayload);
+
+      const expectedEvent = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties({ status: 'dropped' })
+        .build();
+
+      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+        expectedEvent,
+      );
+    });
+
+    it('should handle confirmed transactions', async () => {
+      const transactionMeta = { hash: '0x123' } as TransactionMeta;
+
+      await engine._handleTransactionConfirmed(transactionMeta);
+
+      const expectedEvent = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties({ status: 'confirmed' })
+        .build();
+
+      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+        expectedEvent,
+      );
+    });
+
+    it('should handle failed transactions', async () => {
+      const transactionEventPayload: TransactionEventPayload = {
+        transactionMeta: { hash: '0x123' } as TransactionMeta,
+      };
+
+      await engine._handleTransactionFailed(transactionEventPayload);
+
+      const expectedEvent = MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties({ status: 'failed' })
+        .build();
+
+      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+        expectedEvent,
+      );
+    });
+  });
+
+  describe('_addTransactionControllerListeners', () => {
+    it('should subscribe to transaction events', () => {
+      jest.spyOn(engine.controllerMessenger, 'subscribe');
+
+      engine._addTransactionControllerListeners();
+
+      expect(engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'TransactionController:transactionDropped',
+        engine._handleTransactionDropped,
+      );
+      expect(engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'TransactionController:transactionConfirmed',
+        engine._handleTransactionConfirmed,
+      );
+      expect(engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
+        'TransactionController:transactionFailed',
+        engine._handleTransactionFailed,
+      );
     });
   });
 });

@@ -439,7 +439,7 @@ export type ControllerMessenger = ExtendedControllerMessenger<
   GlobalEvents
 >;
 
-interface TransactionEventPayload {
+export interface TransactionEventPayload {
   transactionMeta: TransactionMeta;
   actionId?: string;
   error?: string;
@@ -449,7 +449,7 @@ interface TransactionEventPayload {
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
-class Engine {
+export class Engine {
   /**
    * The global Engine singleton
    */
@@ -1337,7 +1337,7 @@ class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-            showIncomingTransactions?.[currentHexChainId],
+              showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1687,7 +1687,7 @@ class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-          NetworkStatus.Available &&
+            NetworkStatus.Available &&
           networkController.getNetworkClientById(
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId !== currentChainId
@@ -1712,9 +1712,10 @@ class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${networkController.getNetworkClientById(
-              networkController?.state.selectedNetworkClientId,
-            ).configuration.chainId
+            `Network ID not changed, current chainId: ${
+              networkController.getNetworkClientById(
+                networkController?.state.selectedNetworkClientId,
+              ).configuration.chainId
             }`,
           );
         }
@@ -1930,7 +1931,7 @@ class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-        selectSelectedInternalAccountChecksummedAddress
+          selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
         ethFiat = weiToFiatNumber(
@@ -1962,9 +1963,9 @@ class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address],
-                  item.decimals,
-                )
+                    tokenBalances[item.address],
+                    item.decimals,
+                  )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2017,7 +2018,6 @@ class Engine {
     }
     return snapKeyring;
   };
-
 
   /**
    * Removes an account from state / storage.
@@ -2352,7 +2352,7 @@ export default {
     instance = null;
   },
 
-  init(state: Record<string, never> | undefined, keyringState = null) {
+  init(state: Partial<EngineState> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
@@ -2395,6 +2395,6 @@ export default {
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);
-  }
+  },
   ///: END:ONLY_INCLUDE_IF
 };
