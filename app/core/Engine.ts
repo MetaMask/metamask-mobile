@@ -766,20 +766,6 @@ class Engine {
     additionalKeyrings.push(ledgerKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-    /**
-     * Removes an account from state / storage.
-     *
-     * @param {string} address - A hex address
-     */
-    const removeAccount = async (address: string) => {
-      // Remove all associated permissions
-      await removeAccountsFromPermissions([address]);
-      // Remove account from the keyring
-      await this.keyringController.removeAccount(address as Hex);
-      return address;
-    };
-
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapKeyringBuilder',
       allowedActions: [
@@ -813,7 +799,7 @@ class Engine {
         snapKeyringBuildMessenger,
         getSnapController,
         persistAndUpdateAccounts,
-        (address) => removeAccount(address),
+        (address) => this.removeAccount(address),
       ),
     );
 
@@ -1371,7 +1357,7 @@ class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
+            showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1722,7 +1708,7 @@ class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
+          NetworkStatus.Available &&
           networkController.getNetworkClientById(
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId !== currentChainId
@@ -1747,10 +1733,9 @@ class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${
-              networkController.getNetworkClientById(
-                networkController?.state.selectedNetworkClientId,
-              ).configuration.chainId
+            `Network ID not changed, current chainId: ${networkController.getNetworkClientById(
+              networkController?.state.selectedNetworkClientId,
+            ).configuration.chainId
             }`,
           );
         }
@@ -1879,7 +1864,7 @@ class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountChecksummedAddress
+        selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
         ethFiat = weiToFiatNumber(
@@ -1911,9 +1896,9 @@ class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -1965,6 +1950,20 @@ class Engine {
       );
     }
     return snapKeyring;
+  };
+
+
+  /**
+   * Removes an account from state / storage.
+   *
+   * @param {string} address - A hex address
+   */
+  removeAccount = async (address: string) => {
+    // Remove all associated permissions
+    await removeAccountsFromPermissions([address]);
+    // Remove account from the keyring
+    await this.keyringController.removeAccount(address as Hex);
+    return address;
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -2322,4 +2321,14 @@ export default {
     assertEngineExists(instance);
     return instance.getGlobalEthQuery();
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  getSnapKeyring: () => {
+    assertEngineExists(instance);
+    return instance.getSnapKeyring();
+  },
+  removeAccount: async (address: string) => {
+    assertEngineExists(instance);
+    return await instance.removeAccount(address);
+  }
+  ///: END:ONLY_INCLUDE_IF
 };

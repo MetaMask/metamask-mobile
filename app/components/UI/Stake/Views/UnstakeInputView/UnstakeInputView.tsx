@@ -20,6 +20,7 @@ import useStakingInputHandlers from '../../hooks/useStakingInput';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
 import useBalance from '../../hooks/useBalance';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
@@ -33,6 +34,7 @@ const UnstakeInputView = () => {
     currentCurrency,
     isNonZeroAmount,
     amountEth,
+    amountWei,
     fiatAmount,
     isOverMaximum,
     handleCurrencySwitch,
@@ -69,8 +71,14 @@ const UnstakeInputView = () => {
   }, [navigation, theme.colors, title]);
 
   const handleUnstakePress = useCallback(() => {
-    // TODO: Display the Review bottom sheet: STAKE-841
-  }, []);
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+      params: {
+        amountWei: amountWei.toString(),
+        amountFiat: fiatAmount,
+      },
+    });
+  }, [amountWei, fiatAmount, navigation]);
 
   return (
     <ScreenLayout style={styles.container}>

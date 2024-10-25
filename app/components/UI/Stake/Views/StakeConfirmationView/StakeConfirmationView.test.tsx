@@ -7,6 +7,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -56,10 +57,13 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
   default: () => ({
-    poolStakingContract: {},
-    estimateDepositGas: jest.fn(),
     attemptDepositTransaction: jest.fn(),
   }),
+}));
+
+jest.mock('../../hooks/useStakeContext', () => ({
+  __esModule: true,
+  useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
 jest.mock('../../hooks/usePooledStakes', () => ({
