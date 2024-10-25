@@ -18,11 +18,8 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+import Button from '@metamask/react-native-button';
+import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -67,13 +64,6 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
-import Label from '../../../component-library/components/Form/Label';
-import HelpText, {
-  HelpTextSeverity,
-} from '../../../component-library/components/Form/HelpText';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -123,7 +113,6 @@ const createStyles = (colors) =>
     },
     footer: {
       marginVertical: 40,
-      alignItems: 'center',
     },
     goBack: {
       marginVertical: 14,
@@ -623,22 +612,16 @@ class Login extends PureComponent {
                 style={styles.ctaWrapper}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
-                <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  onPress={this.triggerLogIn}
-                  label={
-                    this.state.loading ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={colors.primary.inverse}
-                      />
-                    ) : (
-                      strings('login.unlock_button')
-                    )
-                  }
-                />
+                <StyledButton type={'confirm'} onPress={this.triggerLogIn}>
+                  {this.state.loading ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={colors.primary.inverse}
+                    />
+                  ) : (
+                    strings('login.unlock_button')
+                  )}
+                </StyledButton>
               </View>
 
               <View style={styles.footer}>
