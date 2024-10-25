@@ -24,7 +24,7 @@ import { SubjectType } from '@metamask/permission-controller';
 const ObjectMultiplex = require('@metamask/object-multiplex');
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+const { providerAsMiddleware } = require('eth-json-rpc-middleware');
 const pump = require('pump');
 
 interface ISnapBridgeProps {
