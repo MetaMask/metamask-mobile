@@ -2155,24 +2155,9 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <SliderButton
-          incompleteText={
-            <Text style={styles.sliderButtonText}>
-              {`${strings('swaps.swipe_to')} `}
-              <Text reset bold>
-                {strings('swaps.swap')}
-              </Text>
-            </Text>
-          }
-          onSwipeChange={setIsSwiping}
-          completeText={
-            <Text style={styles.sliderButtonText}>
-              {strings('swaps.completed_swap')}
-            </Text>
-          }
-          disabled={unableToSwap || isAnimating}
-          onComplete={handleCompleteSwap}
-        />
+        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap}>
+          {strings('swaps.swap')}
+        </StyledButton>
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
           <Text link centered>
             {strings('swaps.terms_of_service')}
