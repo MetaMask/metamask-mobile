@@ -1,54 +1,66 @@
 import {
-  withFixtures,
-  defaultGanacheOptions,
-  startFixtureServer,
-  loadFixture,
-} from '../../../fixtures/fixture-helper';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { mockNotificationServices } from '../mocks';
-import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
+  NOTIFICATIONS_TEAM_STORAGE_KEY,
 } from '../constants';
 import {
   startMockServer,
   stopMockServer,
 } from '../../../mockServer/mockServer';
-import { UserStorageMockttpController } from '../../../utils/user-storage/userStorageMockttpController';
 import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
-import FixtureServer from '../../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../../fixtures/utils';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListView from '../../../pages/AccountListView';
+import Assertions from '../../../utils/Assertions';
+import { SDK } from '@metamask/profile-sync-controller';
+import { mockNotificationServices } from '../mocks';
 
 describe('Account syncing', () => {
   it('retrieves all previously synced accounts', async () => {
-    // const fixtureServer = new FixtureServer();
-    const userStorageMockttpController = new UserStorageMockttpController();
+    const decryptedAccountNames = await Promise.all(
+      accountsSyncMockResponse.map(async (response) => {
+        const decryptedAccountName = await SDK.Encryption.decryptString(
+          response.Data,
+          NOTIFICATIONS_TEAM_STORAGE_KEY,
+        );
+        return JSON.parse(decryptedAccountName).n;
+      }),
+    );
 
-    // await TestHelpers.reverseServerPort();
-    // const fixture = new FixtureBuilder().withGanacheNetwork().build();
-    // await startFixtureServer(fixtureServer);
-    // await loadFixture(fixtureServer, { fixture });
+    const mockServer = await startMockServer({
+      mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
+    });
 
-    // const mockServer = await startMockServer({
-    //   // Configure mock server
-    //   mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
-    // });
+    const { userStorageMockttpControllerInstance } =
+      await mockNotificationServices(mockServer);
 
-    // userStorageMockttpController.setupPath('accounts', mockServer, {
-    //   getResponse: accountsSyncMockResponse,
-    // });
-
-    // mockNotificationServices(mockServer, userStorageMockttpController);
+    userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
+      getResponse: accountsSyncMockResponse,
+    });
 
     jest.setTimeout(200000);
+    await TestHelpers.reverseServerPort();
 
-    await device.launchApp();
+    await device.launchApp({
+      newInstance: true,
+      delete: true,
+    });
 
     await importWalletWithRecoveryPhrase(
       NOTIFICATIONS_TEAM_SEED_PHRASE,
       NOTIFICATIONS_TEAM_PASSWORD,
     );
+
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListView.accountList);
+
+    for (const accountName of decryptedAccountNames) {
+      await Assertions.checkIfVisible(
+        element(by.text(accountName).and(by.id('cellbase-avatar-title'))),
+      );
+    }
+
+    await stopMockServer();
   });
 });

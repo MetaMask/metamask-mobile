@@ -1,4 +1,3 @@
-import { Mockttp, RequestRuleBuilder } from 'mockttp';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   NotificationServicesController,
@@ -16,25 +15,19 @@ const PushMocks = NotificationServicesPushController.Mocks;
  * @param server - server obj used to mock our endpoints
  * @param userStorageMockttpController - optional controller to mock user storage endpoints
  */
-export async function mockNotificationServices(
-  server,
-  userStorageMockttpController,
-) {
+export async function mockNotificationServices(server) {
   // Auth
   mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
   mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
   mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
 
   // Storage
-  if (!userStorageMockttpController?.paths.get('accounts')) {
-    new UserStorageMockttpController().setupPath('accounts', server);
-  }
-  if (!userStorageMockttpController?.paths.get('networks')) {
-    new UserStorageMockttpController().setupPath('networks', server);
-  }
-  if (!userStorageMockttpController?.paths.get('notifications')) {
-    new UserStorageMockttpController().setupPath('notifications', server);
-  }
+  const userStorageMockttpControllerInstance =
+    new UserStorageMockttpController();
+
+  userStorageMockttpControllerInstance.setupPath('accounts', server);
+  userStorageMockttpControllerInstance.setupPath('networks', server);
+  userStorageMockttpControllerInstance.setupPath('notifications', server);
 
   // Notifications
   mockAPICall(server, NotificationMocks.getMockFeatureAnnouncementResponse());
@@ -51,29 +44,41 @@ export async function mockNotificationServices(
   mockAPICall(server, PushMocks.getMockUpdatePushNotificationLinksResponse());
   mockAPICall(server, PushMocks.getMockCreateFCMRegistrationTokenResponse());
   mockAPICall(server, PushMocks.getMockDeleteFCMRegistrationTokenResponse());
+
+  return {
+    userStorageMockttpControllerInstance,
+  };
 }
 
 function mockAPICall(server, response) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
-    requestRuleBuilder = server.forGet(response.url);
+    requestRuleBuilder = server.forGet('/proxy');
   }
 
   if (response.requestMethod === 'POST') {
-    requestRuleBuilder = server.forPost(response.url);
+    requestRuleBuilder = server.forPost('/proxy');
   }
 
   if (response.requestMethod === 'PUT') {
-    requestRuleBuilder = server.forPut(response.url);
+    requestRuleBuilder = server.forPut('/proxy');
   }
 
   if (response.requestMethod === 'DELETE') {
-    requestRuleBuilder = server.forDelete(response.url);
+    requestRuleBuilder = server.forDelete('/proxy');
   }
 
-  requestRuleBuilder?.thenCallback(() => ({
-    statusCode: 200,
-    json: response.response,
-  }));
+  requestRuleBuilder
+    ?.matching((request) => {
+      const url = decodeURIComponent(
+        String(new URL(request.url).searchParams.get('url')),
+      );
+
+      return url.includes(String(response.url));
+    })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: response.response,
+    }));
 }

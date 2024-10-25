@@ -2,6 +2,8 @@
 import { getLocal } from 'mockttp';
 import { defaultMockPort } from './mockUrlCollection';
 import portfinder from 'portfinder';
+import { mockNotificationServices } from '../specs/notifications/mocks';
+import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 const mockServer = getLocal();
 
@@ -10,6 +12,9 @@ export const startMockServer = async ({
   responseCode = 500,
   responseBody = {},
   port = defaultMockPort,
+  // overrides = {
+  //   userStorageMockttpController: new UserStorageMockttpController(),
+  // },
 }) => {
   if (!mockUrl) throw new Error('The mockUrl parameter is required');
   await portfinder.setBasePort(port);
@@ -26,15 +31,24 @@ export const startMockServer = async ({
     .withQuery({ url: mockUrl })
     .thenReply(responseCode, JSON.stringify(responseBody));
 
-    await mockServer.forUnmatchedRequest().thenPassThrough({
-      beforeRequest: async ({ url, method }) => {
-        const returnUrl = new URL(url).searchParams.get('url') || url;
-        const updatedUrl = device.getPlatform() === 'android' ? returnUrl.replace('localhost', '127.0.0.1') : returnUrl;
+  // // Mock all notifications related services (Auth, UserStorage, Notifications, Push Notifications, Profile syncing)
+  // await mockNotificationServices(
+  //   mockServer,
+  //   overrides?.userStorageMockttpController,
+  // );
 
-        console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
-        return { url: updatedUrl };
-      },
-    });
+  await mockServer.forUnmatchedRequest().thenPassThrough({
+    beforeRequest: async ({ url, method }) => {
+      const returnUrl = new URL(url).searchParams.get('url') || url;
+      const updatedUrl =
+        device.getPlatform() === 'android'
+          ? returnUrl.replace('localhost', '127.0.0.1')
+          : returnUrl;
+
+      console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
+      return { url: updatedUrl };
+    },
+  });
 
   return mockServer;
 };
