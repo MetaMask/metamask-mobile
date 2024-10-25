@@ -38,6 +38,7 @@ import Icon, {
 import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 
 export const PortfolioBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -140,6 +141,7 @@ export const PortfolioBalance = () => {
       <View>
         <TouchableOpacity
           onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+          testID="balance-container"
         >
           <View style={styles.balanceContainer}>
             <SensitiveText
@@ -156,6 +158,7 @@ export const PortfolioBalance = () => {
               name={privacyMode ? IconName.EyeSlash : IconName.Eye}
               size={IconSize.Md}
               color={colors.text.muted}
+              testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
             />
           </View>
 

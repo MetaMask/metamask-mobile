@@ -10,6 +10,10 @@ import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import styleSheet from './AggregatedPercentage.styles';
 import { useStyles } from '../../../hooks';
+import {
+  FORMATTED_VALUE_PRICE_TEST_ID,
+  FORMATTED_PERCENTAGE_TEST_ID,
+} from './AggregatedPercentage.constants';
 
 export interface AggregatedPercentageProps {
   ethFiat: number;
@@ -26,13 +30,13 @@ const AggregatedPercentage = ({
   tokenFiat,
   tokenFiat1dAgo,
   ethFiat1dAgo,
-  privacyMode,
+  privacyMode = false,
 }: {
   ethFiat: number;
   tokenFiat: number;
   tokenFiat1dAgo: number;
   ethFiat1dAgo: number;
-  privacyMode: boolean;
+  privacyMode?: boolean;
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -82,6 +86,7 @@ const AggregatedPercentage = ({
         length="10"
         color={percentageTextColor}
         variant={TextVariant.BodyMDMedium}
+        testID={FORMATTED_VALUE_PRICE_TEST_ID}
       >
         {formattedValuePrice}
       </SensitiveText>
@@ -90,6 +95,7 @@ const AggregatedPercentage = ({
         length="10"
         color={percentageTextColor}
         variant={TextVariant.BodyMDMedium}
+        testID={FORMATTED_PERCENTAGE_TEST_ID}
       >
         {formattedPercentage}
       </SensitiveText>
