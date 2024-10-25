@@ -1,22 +1,15 @@
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import WalletAction from '../../../../components/UI/WalletAction';
 import { strings } from '../../../../../locales/i18n';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import {
-  TOKEN_OVERVIEW_BRIDGE_BUTTON,
-  TOKEN_OVERVIEW_BUY_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_SWAP_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 
@@ -53,7 +46,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
             disabled={!canSignTransactions}
-            {...generateTestId(Platform, TOKEN_OVERVIEW_BUY_BUTTON)}
+            actionID={TokenOverviewSelectorsIDs.BUY_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.buy_button')}
@@ -69,7 +62,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
             disabled={!canSignTransactions}
-            {...generateTestId(Platform, TOKEN_OVERVIEW_SWAP_BUTTON)}
+            actionID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
@@ -84,7 +77,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           containerStyle={styles.containerStyle}
           iconSize={AvatarSize.Lg}
           disabled={!canSignTransactions}
-          {...generateTestId(Platform, TOKEN_OVERVIEW_BRIDGE_BUTTON)}
+          actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.bridge')}
@@ -98,7 +91,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           containerStyle={styles.containerStyle}
           iconSize={AvatarSize.Lg}
           disabled={!canSignTransactions}
-          {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
+          actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
@@ -112,7 +105,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           containerStyle={styles.containerStyle}
           iconSize={AvatarSize.Lg}
           disabled={false}
-          {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
+          actionID={TokenOverviewSelectorsIDs.RECEIVE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}

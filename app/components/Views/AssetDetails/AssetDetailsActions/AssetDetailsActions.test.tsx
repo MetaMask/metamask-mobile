@@ -2,13 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
-import {
-  TOKEN_OVERVIEW_BRIDGE_BUTTON,
-  TOKEN_OVERVIEW_BUY_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_SWAP_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -65,7 +59,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_BUY_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockOnBuy).toHaveBeenCalled();
   });
 
@@ -75,7 +69,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_SWAP_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
     expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
@@ -85,7 +79,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_BRIDGE_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON));
     expect(mockGoToBridge).toHaveBeenCalled();
   });
 
@@ -95,7 +89,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_SEND_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON));
     expect(mockOnSend).toHaveBeenCalled();
   });
 
@@ -105,7 +99,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_RECEIVE_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON));
     expect(mockOnReceive).toHaveBeenCalled();
   });
 
@@ -152,10 +146,10 @@ describe('AssetDetailsActions', () => {
     );
 
     const buttons = [
-      TOKEN_OVERVIEW_BUY_BUTTON,
-      TOKEN_OVERVIEW_SWAP_BUTTON,
-      TOKEN_OVERVIEW_BRIDGE_BUTTON,
-      TOKEN_OVERVIEW_SEND_BUTTON,
+      TokenOverviewSelectorsIDs.BUY_BUTTON,
+      TokenOverviewSelectorsIDs.SWAP_BUTTON,
+      TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
+      TokenOverviewSelectorsIDs.SEND_BUTTON,
     ];
 
     buttons.forEach((buttonTestId) => {
@@ -163,8 +157,8 @@ describe('AssetDetailsActions', () => {
     });
 
     // The receive button should always be enabled
-    expect(getByTestId(TOKEN_OVERVIEW_RECEIVE_BUTTON).props.disabled).toBe(
-      false,
-    );
+    expect(
+      getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON).props.disabled,
+    ).toBe(false);
   });
 });
