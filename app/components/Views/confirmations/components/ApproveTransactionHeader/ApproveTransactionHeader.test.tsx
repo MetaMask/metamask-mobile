@@ -21,18 +21,28 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      addToken: () => undefined,
-    },
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    context: {
+      TokensController: {
+        addToken: () => undefined,
+      },
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
-  },
-}));
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
