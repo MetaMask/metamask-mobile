@@ -137,6 +137,7 @@ exports[`CustomGasModal should render correctly 1`] = `
               "paddingTop": 24,
             }
           }
+          testID="edit-priority-legacy-screen"
         >
           <RCTScrollView
             style={

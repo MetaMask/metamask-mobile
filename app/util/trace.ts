@@ -32,7 +32,7 @@ export enum TraceName {
   CreateStore = 'Create Store',
   CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
   StorageRehydration = 'Storage Rehydration',
-  UIStartup = 'Custom UIStartup',
+  UIStartup = 'UIStartup',
 }
 
 export enum TraceOperation {

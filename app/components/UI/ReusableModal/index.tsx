@@ -47,7 +47,17 @@ import {
 export type { ReusableModalRef } from './ReusableModal.types';
 
 const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
-  ({ children, onDismiss, isInteractable = true, style, ...props }, ref) => {
+  (
+    {
+      children,
+      onDismiss,
+      isInteractable = true,
+      shouldGoBack = true,
+      style,
+      ...props
+    },
+    ref,
+  ) => {
     const postCallback = useRef<ReusableModalPostCallback>();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {});
@@ -66,10 +76,12 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
-      navigation.goBack();
+      if (shouldGoBack) {
+        navigation.goBack();
+      }
       onDismiss?.(!!postCallback.current);
       postCallback.current?.();
-    }, [navigation, onDismiss]);
+    }, [navigation, onDismiss, shouldGoBack]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,

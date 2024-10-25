@@ -215,6 +215,7 @@ buildAndroidRun(){
 }
 
 buildAndroidRunQA(){
+	remapEnvVariableLocal
 	prebuild_android
 	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
@@ -299,7 +300,7 @@ buildIosRelease(){
   	remapEnvVariableRelease
 
 	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
@@ -425,7 +426,7 @@ buildAndroidRelease(){
 	fi
 
 	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
 	# GENERATE APK
@@ -551,6 +552,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+	remapEnvVariableLocal
   	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all

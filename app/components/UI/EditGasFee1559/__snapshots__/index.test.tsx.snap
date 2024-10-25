@@ -47,7 +47,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               black={true}
               bold={true}
             >
-              Edit priority
+              <Component />
             </Text>
             <Icon
               allowFontScaling={false}
@@ -57,6 +57,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             />
           </View>
         </View>
+        <Component />
+        <Component />
         <FadeAnimationView
           style={
             {
@@ -133,25 +135,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <View>
               <HorizontalSelector
                 onPress={[Function]}
-                options={
-                  [
-                    {
-                      "label": [Function],
-                      "name": "low",
-                      "topLabel": false,
-                    },
-                    {
-                      "label": [Function],
-                      "name": "medium",
-                      "topLabel": false,
-                    },
-                    {
-                      "label": [Function],
-                      "name": "high",
-                      "topLabel": false,
-                    },
-                  ]
-                }
+                options={[Function]}
               />
             </View>
             <View
