@@ -4,9 +4,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MOCK_NOTIFICATIONS from '../__mocks__/mock_notifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
+
 const navigationMock = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
+
 
 describe('NotificationsList', () => {
   it('should render correctly', () => {
@@ -22,3 +24,5 @@ describe('NotificationsList', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 });
+
+
