@@ -53,30 +53,39 @@ jest.mock('../../../util/address', () => ({
 }));
 const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      addToken: () => undefined,
-    },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: [
-              '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-              '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
-              '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
-            ],
-          },
-        ],
+jest.mock('../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    context: {
+      TokensController: {
+        addToken: () => undefined,
       },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: [
+                '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+                '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
+                '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
+              ],
+            },
+          ],
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
+      AssetsContractController: {
+        getERC20BalanceOf: mockGetERC20BalanceOf,
+      } as Partial<AssetsContractController> as AssetsContractController,
     },
-    AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    AssetsContractController: {
-      getERC20BalanceOf: mockGetERC20BalanceOf,
-    } as Partial<AssetsContractController> as AssetsContractController,
-  },
-}));
+  };
+});
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
