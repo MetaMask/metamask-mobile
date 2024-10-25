@@ -19,14 +19,11 @@ import {
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
-import images from 'images/image-icons';
 import styleSheet from './index.styles';
 import {
   INCOMING_TRANSACTIONS,
   INCOMING_LINEA_MAINNET_TOGGLE,
   INCOMING_MAINNET_TOGGLE,
-  MAINNET_SECONDARY_TEXT,
-  LINEA_MAINNET_SECONDARY_TEXT,
 } from './index.constants';
 import { NetworksI } from './index.types';
 import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
@@ -38,6 +35,7 @@ const IncomingTransactionsSettings = () => {
   const showIncomingTransactionsNetworks = useSelector(
     selectShowIncomingTransactionNetworks,
   );
+
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const supportedNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
@@ -52,36 +50,6 @@ const IncomingTransactionsSettings = () => {
     );
   };
 
-  const renderMainnet = () => {
-    const { name: mainnetName, chainId } = Networks.mainnet;
-    return (
-      <NetworkCell
-        name={mainnetName}
-        chainId={chainId as EtherscanSupportedHexChainId}
-        imageSource={images.ETHEREUM}
-        secondaryText={MAINNET_SECONDARY_TEXT}
-        showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
-        toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
-        testID={INCOMING_MAINNET_TOGGLE}
-      />
-    );
-  };
-
-  const renderLineaMainnet = () => {
-    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
-    return (
-      <NetworkCell
-        name={lineaMainnetName}
-        chainId={chainId as EtherscanSupportedHexChainId}
-        imageSource={images['LINEA-MAINNET']}
-        secondaryText={LINEA_MAINNET_SECONDARY_TEXT}
-        showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
-        toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
-        testID={INCOMING_LINEA_MAINNET_TOGGLE}
-      />
-    );
-  };
-
   const renderRpcNetworks = () =>
     Object.values(networkConfigurations).map(
       ({ name: nickname, rpcEndpoints, chainId, defaultRpcEndpointIndex }) => {
@@ -89,6 +57,14 @@ const IncomingTransactionsSettings = () => {
         if (!chainId || !Object.keys(supportedNetworks).includes(chainId))
           return null;
         const { name } = { name: nickname || rpcUrl };
+
+        let testId = '';
+        if (name === 'Mainnet') {
+          testId = INCOMING_MAINNET_TOGGLE;
+        } else if (name === 'Linea Mainnet') {
+          testId = INCOMING_LINEA_MAINNET_TOGGLE;
+        }
+
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
         const secondaryText =
@@ -102,6 +78,7 @@ const IncomingTransactionsSettings = () => {
             secondaryText={secondaryText}
             showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
             toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
+            testID={testId}
           />
         );
       },
@@ -142,8 +119,6 @@ const IncomingTransactionsSettings = () => {
         {strings('app_settings.incoming_transactions_content')}
       </Text>
       <View style={styles.transactionsContainer}>
-        {renderMainnet()}
-        {renderLineaMainnet()}
         {renderRpcNetworks()}
         {showTestNetworks && renderOtherNetworks()}
       </View>
