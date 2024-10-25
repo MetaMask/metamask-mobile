@@ -98,7 +98,7 @@ describe(Regression('Swap from Token view'), () => {
     //Wait for Swap to complete
     await SwapView.swapCompleteLabel('ETH', 'DAI');
     await device.enableSynchronization();
-    await TestHelpers.delay(5000);
+    await TestHelpers.delay(10000);
     await TokenOverview.isVisible();
     await TokenOverview.tapBackButton();
 
