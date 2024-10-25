@@ -437,7 +437,13 @@
       "cancel_cta": "Cancelar",
       "confirm_cta": "Confirmar"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Adicione criptomoedas para começar",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
     "no_nfts_yet": "Nenhum NFT até agora",
@@ -666,6 +672,8 @@
     "yes_remove_it": "Sim, remover",
     "remove_hardware_account": "Remover conta de hardware",
     "remove_hw_account_alert_description": "Tem certeza de que deseja remover esta conta de carteira de hardware? Você terá que ressincronizar sua carteira de hardware se quiser usar esta conta novamente com o MetaMask para celular.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remover",
     "remove_account_alert_cancel_btn": "Desistir",
     "accounts_title": "Contas",
@@ -689,6 +697,10 @@
     "site_permission_to": "Este site tem permissão para:",
     "address_balance_activity_permission": "Visualizar endereço, saldo em conta e atividade",
     "suggest_transactions": "Sugerir transações para aprovar",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Desconectar",
     "disconnect_all": "Desconectar todas",
     "reconnect_notice": "Se você se desconectar de {{dappUrl}}, precisará reconectar suas contas e redes para usar este site de novo.",
@@ -706,6 +718,7 @@
     "connected_and_active": "conectada e ativa.",
     "now_active": "agora ativa.",
     "network_added": "foi adicionada com sucesso",
+    "network_deleted": "was successfully deleted",
     "revoked": "revogada.",
     "revoked_all": "Todas as contas revogadas.",
     "accounts_connected": "contas conectadas.",
@@ -917,7 +930,7 @@
     "data_collection_title": "Coleta de dados para marketing",
     "data_collection_description": "Usaremos o MetaMetrics para saber como você interage com nossas comunicações de marketing. Poderemos compartilhar novidades relevantes (como recursos de produtos e outros materiais).",
     "batch_balance_requests_title": "Agrupar solicitações de saldo de contas",
-    "batch_balance_requests_description": "Agrupamos as contas e consultamos a Infura para exibir seus saldos de forma responsiva. Se isso for desativado, somente contas ativas serão consultadas. Alguns dapps só funcionam se você conecta a sua carteira.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Receba transações de entrada",
     "third_party_description": "APIs de terceiros (Etherscan) são usadas para exibir suas transações de entrada no histórico. Desative essa opção caso não queira que extraiamos dados desses serviços.",
     "metametrics_opt_out": "Sair da MetaMetrics",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Remover Snap",
         "remove_snap_section_description": "Esta ação excluirá o Snap, seus dados e suas permissões.",
-        "remove_button_label": "Remover {{snapName}}"
+        "remove_button_label": "Remover {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Instalado em {{date}}",
         "install_origin": "Origem da Instalação",
         "enabled": "Ativado",
         "version": "Versão"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Aprovada em {{date}}",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "Enviar",
     "buy_button": "Comprar",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Vender",
     "receive_button": "Receber",
     "portfolio_button": "Portfólio",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "Você precisa de mais {{amount}} {{tokenSymbol}} para completar essa transação.",
     "buy_more_eth": "Comprar mais ETH",
     "buy_more": "Comprar mais",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Ir à torneira",
     "get_ether": "Adquira Ether para a rede {{networkName}}.",
     "insufficient_tokens": "{{token}} insuficiente.",
@@ -1426,7 +1460,7 @@
     "asset": "Ativo",
     "balance": "Saldo",
     "token_id": "ID do token",
-    "not_enough_for_gas": "Você tem 0 {{ticker}} na sua conta para pagar as taxas de transação. Compre {{ticker}} ou deposite de outra conta.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Enviar",
     "confirm_with_qr_hardware": "Confirmar com carteira de hardware",
     "confirm_with_ledger_hardware": "Confirmar com o Ledger",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "Usar suas redes habilitadas",
     "wants_to_see_your_accounts": "Ver suas contas e sugerir transações",
     "requesting_for": "Solicitando para ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "Gerenciar permissões",
     "edit": "Editar",
     "cancel": "Cancelar"
@@ -2393,6 +2430,7 @@
     "All": "Tudo",
     "Buy": "Comprar",
     "Sell": "Vender",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Comprados",
     "Sold": "Vendidos",
     "empty_buy_orders_list": "Você não tem ordens de compra",
@@ -2659,8 +2697,7 @@
     "you_need": "Você precisa de mais",
     "more_to_complete": "para fazer essa troca.",
     "more_gas_to_complete": "para o gás para fazer essa troca.",
-    "buy_more_eth": "Comprar mais ETH.",
-    "buy_more": "Comprar mais {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Verifique o preço antes de prosseguir",
     "market_price_unavailable": "O preço de mercado está indisponível, e, portanto, o impacto do preço é desconhecido. Antes de trocar, confirme se você está confortável com a quantidade de tokens que receberá.",
     "price_difference": "Diferença de preço de {{amount}}",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "Stake",
+    "earn": "Earn",
     "stake_eth": "Fazer staking de ETH",
     "unstake_eth": "Retirar ETH do staking",
     "staked_balance": "Saldo em staking",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "Termos de serviço",
     "risk_disclosure": "Divulgação de riscos",
     "cancel": "Cancelar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Sua carteira está pronta",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "Frequência de recompensas",
       "tooltip": "Seu saldo em staking é atualizado a cada 12 horas para contabilizar novas recompensas."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

@@ -437,7 +437,13 @@
       "cancel_cta": "İptal",
       "confirm_cta": "Onayla"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Başlamak için kripto ekleyin",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "{{asset}} satın alın",
     "no_tokens": "Tokeniniz yok!",
     "no_nfts_yet": "Henüz NFT yok",
@@ -666,6 +672,8 @@
     "yes_remove_it": "Evet, kaldır",
     "remove_hardware_account": "Donanım hesabını kaldır",
     "remove_hw_account_alert_description": "Bu donanım cüzdanı hesabını kaldırmak istediğinizden emin misiniz? MetaMask Mobil ile bu hesabı tekrar kullanmak istiyorsanız donanım cüzdanınızı tekrar senkronize etmeniz gerekecek.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Kaldır",
     "remove_account_alert_cancel_btn": "Boş ver",
     "accounts_title": "Hesaplar",
@@ -689,6 +697,10 @@
     "site_permission_to": "Bu sitenin şunları yapmaya izni vardır:",
     "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
     "suggest_transactions": "Onaylanacak işlemleri önerme",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "Bağlantıyı kes",
     "disconnect_all": "Tümünün bağlantısını kes",
     "reconnect_notice": "{{dappUrl}} bağlantınızı keserseniz bu siteyi tekrar kullanabilmek için hesaplarınızı ve ağlarınızı tekrar bağlamanız gerekecek.",
@@ -706,6 +718,7 @@
     "connected_and_active": "bağlandı ve aktif.",
     "now_active": "şimdi aktif.",
     "network_added": "başarılı bir şekilde eklendi",
+    "network_deleted": "was successfully deleted",
     "revoked": "iptal edildi.",
     "revoked_all": "Tüm hesaplar iptal edildi.",
     "accounts_connected": "hesap bağlandı.",
@@ -917,7 +930,7 @@
     "data_collection_title": "Pazarlama amacıyla veri toplama",
     "data_collection_description": "MetaMetrics'i, pazarlama iletişimlerimizle nasıl etkileşimde bulunduğunuzu öğrenmek için kullanacağız. İlgili haberleri (ürün özellikleri ve diğer materyaller gibi) paylaşabiliriz.",
     "batch_balance_requests_title": "Toplu hesap bakiyesi talepleri",
-    "batch_balance_requests_description": "Hesapları toplarız ve bakiyelerinizi göstermek için Infura'yı sorgularız. Bunu kapattığınız takdirde sadece aktif hesaplar sorgulanır. Bazı merkeziyetsiz uygulamalar siz cüzdanınızı bağlamadığınız sürece çalışmaz.",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "Gelen işlemleri al",
     "third_party_description": "Geçmişteki gelen işlemlerini göstermek için Üçüncü taraf API'ler (Etherscan) kullanılır. Bu hizmetlerden veri çekmemizi istemiyorsanız bunu kapatın.",
     "metametrics_opt_out": "MetaMetrics'ten Ayrıl",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Snap'i kaldır",
         "remove_snap_section_description": "Bu eylem snap'i, verilerini ve verilen izinlerini siler.",
-        "remove_button_label": "{{snapName}} adlı snap'i kaldır"
+        "remove_button_label": "{{snapName}} adlı snap'i kaldır",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "{{date}} tarihinde yüklendi",
         "install_origin": "Kökeni yükle",
         "enabled": "Etkinleştirildi",
         "version": "Sürüm"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "{{date}} tarihinde onaylandı",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "Gönder",
     "buy_button": "Satın Al",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Sat",
     "receive_button": "Al",
     "portfolio_button": "Portföy",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "Bu işlemi tamamlamak için {{amount}}{{tokenSymbol}} daha gerekiyor.",
     "buy_more_eth": "Daha fazla ETH satın al",
     "buy_more": "Daha Fazla Satın Al",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Musluğa git",
     "get_ether": "{{networkName}} ağı için Ether al.",
     "insufficient_tokens": "{{token}} yetersiz",
@@ -1426,7 +1460,7 @@
     "asset": "Varlık",
     "balance": "Bakiye",
     "token_id": "Token Kimliği",
-    "not_enough_for_gas": "Hesabınızda işlem ücretlerini ödemek için 0 {{ticker}} bulunuyor. Bir miktar {{ticker}} satın alın veya başka bir hesaptan yatırın.",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "Gönder",
     "confirm_with_qr_hardware": "Donanım cüzdanı ile onayla",
     "confirm_with_ledger_hardware": "Ledger ile onayla",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "Etkin ağlarınızı kullanmak",
     "wants_to_see_your_accounts": "Hesaplarınızı görmek ve işlem önermek",
     "requesting_for": "Talep: ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "İzinleri Yönet",
     "edit": "Düzenle",
     "cancel": "İptal"
@@ -2393,6 +2430,7 @@
     "All": "Tümü",
     "Buy": "Al",
     "Sell": "Sat",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Satın Alındı",
     "Sold": "Satıldı",
     "empty_buy_orders_list": "Hiç al emriniz yok",
@@ -2659,8 +2697,7 @@
     "you_need": "Bu swap işlemini tamamlamak için",
     "more_to_complete": "daha fazlasına ihtiyacınız var.",
     "more_gas_to_complete": "gaz için daha fazlasına ihtiyacınız var.",
-    "buy_more_eth": "Daha fazla ETH satın al.",
-    "buy_more": "Daha fazla {{ticker}} satın al.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "İlerlemeden önce oranını kontrol et",
     "market_price_unavailable": "Piyasa fiyatı mevcut değil ve fiyat etkisi bu nedenle bilinmiyor. Swap gerçekleştirmeden önce lütfen alacağınız token miktarı konusunda rahat olduğunuzu doğrulayın.",
     "price_difference": "{{amount}} fiyat farkı",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "Pay",
+    "earn": "Earn",
     "stake_eth": "ETH Stake Et",
     "unstake_eth": "ETH Unstake Et",
     "staked_balance": "Stake edilen bakiye",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "Hizmet şartları",
     "risk_disclosure": "Risk açıklaması",
     "cancel": "İptal",
-    "confirm": "Onayla"
+    "confirm": "Onayla",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "Cüzdanınız hazır",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "Ödül sıklığı",
       "tooltip": "Stake edilen bakiyeniz yeni ödülleri belirlemek için 12 saatte bir güncellenir."
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

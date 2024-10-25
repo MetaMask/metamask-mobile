@@ -437,7 +437,13 @@
       "cancel_cta": "रद्द करें",
       "confirm_cta": "पुष्टि करें"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "{{asset}} खरीदें",
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
     "no_nfts_yet": "अभी तक कोई NFT नहीं है",
@@ -666,6 +672,8 @@
     "yes_remove_it": "हां, इसे हटा दें",
     "remove_hardware_account": "हार्डवेयर अकाउंट हटाएं",
     "remove_hw_account_alert_description": "क्या आप वाकई इस हार्डवेयर वॉलेट अकाउंट को हटाना चाहते हैं? यदि आप MetaMask मोबाइल के साथ इस अकाउंट का दोबारा उपयोग करना चाहते हैं तो आपको अपने हार्डवेयर वॉलेट को फिर से सिंक करना होगा।",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "हटाएं",
     "remove_account_alert_cancel_btn": "कोई बात नहीं",
     "accounts_title": "खाता",
@@ -689,6 +697,10 @@
     "site_permission_to": "इस साइट को यह अनुमति है कि:",
     "address_balance_activity_permission": "पता, अकाउंट बैलेंस और गतिविधि को देखना",
     "suggest_transactions": "स्वीकृत करने के लिए लेनदेन का सुझाव देना",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "डिसकनेक्ट करें",
     "disconnect_all": "सभी को डिस्कनेक्ट करें",
     "reconnect_notice": "यदि आप {{dappUrl}} से डिस्कनेक्ट हो जाते हैं, तो आपको इस साइट का दोबारा उपयोग करने के लिए अपने अकाउंट्स और नेटवर्क को फिर से कनेक्ट करना होगा।",
@@ -706,6 +718,7 @@
     "connected_and_active": "कनेक्ट किया हुआ और सक्रिय।",
     "now_active": "अब सक्रिय है",
     "network_added": "सफलतापूर्वक जोड़ा गया",
+    "network_deleted": "was successfully deleted",
     "revoked": "निरस्त किया हुआ।",
     "revoked_all": "सभी खाते निरस्त कर दिए गए।",
     "accounts_connected": "खाते कनेक्ट किए गए।",
@@ -917,7 +930,7 @@
     "data_collection_title": "मार्केटिंग के लिए डेटा संग्रह",
     "data_collection_description": "आप हमारे मार्केटिंग कम्यूनिकेशन्स के साथ कैसे इंटरैक्ट करते हैं, यह जानने के लिए हम MetaMetrics का उपयोग करेंगे। हम प्रासंगिक समाचार (जैसे प्रॉडक्ट फीचर्स और अन्य सामग्री) साझा कर सकते हैं।",
     "batch_balance_requests_title": "बैच खाता बैलेन्स रिक्वेस्ट",
-    "batch_balance_requests_description": "हम खातों को बैच करते हैं और तुरंत शेष राशि देखने के लिए Infura से पूछताछ करते हैं। यदि आप इसे बंद कर देते हैं, तो केवल सक्रिय खातों के बारे में पूछताछ की जाएगी। कुछ डीऐप्स वॉलेट कनेक्शन के बिना काम नहीं करेंगे।",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "आवक लेन-देन पाएं",
     "third_party_description": "इतिहास में आपकी आवक लेन-देन प्रदर्शित करने के लिए तीसरे पक्ष API (Etherscan) का उपयोग होता है।  बंद कर दें यदि आप नहीं चाहते कि हम उन सेवाओं से डेटा अलग करें।",
     "metametrics_opt_out": "MetaMetrics ऑप्ट-आउट",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Snap हटाएं",
         "remove_snap_section_description": "ये कदम Snap और उसके डेटा को और उसके द्वारा दी गई अनुमतियों को हटा देगा।",
-        "remove_button_label": "{{snapName}} हटाएं"
+        "remove_button_label": "{{snapName}} हटाएं",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "{{date}} को इंस्टॉल किया गया",
         "install_origin": "ओरिजिन इंस्टॉल करें",
         "enabled": "चालू किया गया",
         "version": "वर्शन"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "{{date}} को एप्रूव किया गया",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "भेजें",
     "buy_button": "खरीदें",
+    "token_marketplace": "Token marketplace",
     "sell_button": "बेचें",
     "receive_button": "प्राप्त करें",
     "portfolio_button": "पोर्टफोलियो",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "इस लेन-देन को पूरा करने के लिए आपको {{amount}} ज्यादा {{tokenSymbol}} की जरुरत है।",
     "buy_more_eth": "ज्यादा ETH खरीदें",
     "buy_more": "अधिक खरीदें",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "फॉसेट पर जाएं",
     "get_ether": "{{networkName}} नेटवर्क के लिए Ether प्राप्त करें।",
     "insufficient_tokens": "अपर्याप्त {{token}}",
@@ -1426,7 +1460,7 @@
     "asset": "संपत्ति",
     "balance": "बैलेंस",
     "token_id": "टोकन ID",
-    "not_enough_for_gas": "लेन-देन के शुल्क के भुगतान के लिए आपके पास 0 {{ticker}} आपके अकाउंट में है। कुछ {{ticker}} खरीदें या दूसरे अकाउंट में जमा करें।",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "भेजें",
     "confirm_with_qr_hardware": "हार्डवेयर वॉलेट से कन्फर्म करें",
     "confirm_with_ledger_hardware": "Ledger से कन्फर्म करें",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "आपके चालू नेटवर्क का उपयोग करना",
     "wants_to_see_your_accounts": "आपके अकाउंट को देखकर ट्रांसेक्शन का सुझाव देना",
     "requesting_for": "के लिए अनुरोध कर रहे हैं ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "अनुमतियाँ प्रबंधित करें",
     "edit": "बदलें",
     "cancel": "कैंसिल करें"
@@ -2393,6 +2430,7 @@
     "All": "सभी",
     "Buy": "खरीदें",
     "Sell": "बेचें",
+    "token_marketplace": "Token marketplace",
     "Purchased": "खरीदा गया",
     "Sold": "बेचा गया",
     "empty_buy_orders_list": "आपके पास कोई खरीद की ऑर्डर नहीं है",
@@ -2659,8 +2697,7 @@
     "you_need": "आपको जरुरत है",
     "more_to_complete": "ज्यादा ताकि इस स्वैप को पूरा करें",
     "more_gas_to_complete": "गैस के लिए ज्यादा ताकि इस स्वैप को पूरा करें।",
-    "buy_more_eth": "ज्यादा ETH खरीदें।",
-    "buy_more": "ज्यादा {{ticker}} खरीदें।",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "आगे बढ़ने से पहले अपने दर जांच लें",
     "market_price_unavailable": "बाजार की कीमत उपलब्ध नहीं है और इसलिए कीमत का प्रभाव अज्ञात है। कृपया सत्यापित करें कि स्वैप करने से पहले मिलने वाले टोकन की रकम के साथ आप सहज हैं।",
     "price_difference": "{{amount}} की कीमत में अंतर",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "हिस्सेदारी",
+    "earn": "Earn",
     "stake_eth": "ETH स्टेक करें",
     "unstake_eth": "ETH अनस्टेक करें",
     "staked_balance": "स्टेक किया गया बैलेंस",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "सेवा की शर्तें",
     "risk_disclosure": "जोखिम प्रकटीकरण",
     "cancel": "कैंसिल करें",
-    "confirm": "कन्फर्म करें"
+    "confirm": "कन्फर्म करें",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "आपका वॉलेट तैयार है",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "रिवॉर्ड आवृत्ति",
       "tooltip": "नए रिवॉर्ड का हिसाब-किताब रखने के लिए आपका स्टेक किया बैलेंस हर 12 घंटे में अपडेट होता है।"
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

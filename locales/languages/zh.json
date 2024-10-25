@@ -437,7 +437,13 @@
       "cancel_cta": "取消",
       "confirm_cta": "确认"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "请添加加密货币以开始",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "购买{{asset}}",
     "no_tokens": "您没有任何代币！",
     "no_nfts_yet": "尚无 NFT",
@@ -666,6 +672,8 @@
     "yes_remove_it": "是，删除它",
     "remove_hardware_account": "去除硬件账户",
     "remove_hw_account_alert_description": "您确定要去除此硬件钱包账户吗？如果您想在 MetaMask Mobile 中再次使用此账户，则必须重新同步您的硬件钱包。",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "去除",
     "remove_account_alert_cancel_btn": "没关系",
     "accounts_title": "账户",
@@ -689,6 +697,10 @@
     "site_permission_to": "此网站有权：",
     "address_balance_activity_permission": "查看地址、账户余额和活动",
     "suggest_transactions": "建议要批准的交易",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "断开连接",
     "disconnect_all": "断开所有连接",
     "reconnect_notice": "如果您断开与 {{dappUrl}} 的连接，则需要重新连接您的账户和网络才能再次使用此网站。",
@@ -706,6 +718,7 @@
     "connected_and_active": "已连接且处于活动状态。",
     "now_active": "现处于活动状态。",
     "network_added": "已成功添加",
+    "network_deleted": "was successfully deleted",
     "revoked": "已撤销。",
     "revoked_all": "已撤销所有账户。",
     "accounts_connected": "账户已连接。",
@@ -917,7 +930,7 @@
     "data_collection_title": "用于营销目的的数据收集",
     "data_collection_description": "我们将使用 MetaMetrics 来了解您如何与我们的营销通信交互。我们可能会分享相关资讯（例如产品特点和其他内容）。",
     "batch_balance_requests_title": "批量账户余额请求",
-    "batch_balance_requests_description": "我们对账户进行批量处理并查询 Infura ，以便对应地显示您的余额。如果关闭此选项，则仅限查询活跃账户。除非连接钱包，否则某些去中心化应用（dApp）将无法工作。",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "获取传入交易",
     "third_party_description": "第三方 API (Etherscan) 用于显示历史记录中的传入交易。如果您不希望我们通过这些服务拉取数据，请关闭。",
     "metametrics_opt_out": "MetaMetrics 退出",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "去除 Snap",
         "remove_snap_section_description": "此操作将会删除 Snap 及其数据，并撤销您获授予的许可。",
-        "remove_button_label": "去除 {{snapName}}"
+        "remove_button_label": "去除 {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "于{{date}}安装",
         "install_origin": "安装源",
         "enabled": "已启用",
         "version": "版本"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "于{{date}}批准",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "发送",
     "buy_button": "买入",
+    "token_marketplace": "Token marketplace",
     "sell_button": "卖出",
     "receive_button": "接收",
     "portfolio_button": "投资组合",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "您需要额外 {{amount}} {{tokenSymbol}} 才能完成这项交易。",
     "buy_more_eth": "购买更多 ETH",
     "buy_more": "购买更多",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "转到水龙头",
     "get_ether": "为 {{networkName}} 网络获取以太币。",
     "insufficient_tokens": "{{token}} 不足",
@@ -1426,7 +1460,7 @@
     "asset": "资产",
     "balance": "余额",
     "token_id": "代币 ID",
-    "not_enough_for_gas": "您的账户中有 0 {{ticker}} 可用于支付交易费用。购买一些 {{ticker}} 或保证金，从其他账户存入。",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "发送",
     "confirm_with_qr_hardware": "使用硬件钱包确认",
     "confirm_with_ledger_hardware": "使用 Ledger 确认",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "使用您启用的网络",
     "wants_to_see_your_accounts": "查看您的账户并建议交易",
     "requesting_for": "请求 ",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "管理权限",
     "edit": "编辑",
     "cancel": "取消"
@@ -2393,6 +2430,7 @@
     "All": "所有",
     "Buy": "买入",
     "Sell": "卖出",
+    "token_marketplace": "Token marketplace",
     "Purchased": "已购买",
     "Sold": "已卖出",
     "empty_buy_orders_list": "您没有任何买入订单！",
@@ -2659,8 +2697,7 @@
     "you_need": "您需要",
     "more_to_complete": "更多才能完成这次兑换。",
     "more_gas_to_complete": "更多燃料，以完成这次兑换。",
-    "buy_more_eth": "购买更多 ETH。",
-    "buy_more": "购买更多 {{ticker}}。",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "在继续之前，请检查您的费率",
     "market_price_unavailable": "市场价格不可用，因此价格影响未知。在兑换之前，请确认您对您将收到的代币数量感到满意。",
     "price_difference": "价格差异为 {{amount}}",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "质押",
+    "earn": "Earn",
     "stake_eth": "质押 ETH",
     "unstake_eth": "解除质押 ETH",
     "staked_balance": "质押余额",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "服务条款",
     "risk_disclosure": "风险披露",
     "cancel": "取消",
-    "confirm": "确认"
+    "confirm": "确认",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "您的钱包已准备就绪",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "奖励频率",
       "tooltip": "您的质押余额每 12 小时更新一次，以计入新的奖励。"
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {

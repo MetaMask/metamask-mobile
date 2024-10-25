@@ -437,7 +437,13 @@
       "cancel_cta": "キャンセル",
       "confirm_cta": "確認"
     },
+    "import": "Import",
+    "sort_by": "Sort by",
+    "declining_balance": "Declining balance ({{currency}} high-low)",
+    "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "開始するには仮想通貨を追加してください",
+    "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "next": "Next",
     "buy_asset": "{{asset}}を購入",
     "no_tokens": "トークンがありません！",
     "no_nfts_yet": "まだNFTがありません",
@@ -666,6 +672,8 @@
     "yes_remove_it": "はい、削除します",
     "remove_hardware_account": "ハードウェアアカウントを削除",
     "remove_hw_account_alert_description": "このハードウェアウォレットアカウントを削除してよろしいですか？このアカウントをMetaMask Mobileで再び使用するには、ハードウェアウォレットを同期し直す必要があります。",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "削除",
     "remove_account_alert_cancel_btn": "取り消し",
     "accounts_title": "アカウント",
@@ -689,6 +697,10 @@
     "site_permission_to": "このサイトには次のアクセス許可があります:",
     "address_balance_activity_permission": "アドレス、アカウント残高、アクティビティの表示",
     "suggest_transactions": "承認するトランザクションの提案",
+    "accounts_connected": "accounts connected",
+    "account_connected": "account connected",
+    "accounts_disconnected": "accounts disconnected.",
+    "account_disconnected": "account disconnected.",
     "disconnect": "接続解除",
     "disconnect_all": "すべて接続解除",
     "reconnect_notice": "{{dappUrl}}との接続を解除すると、このサイトをもう一度使用するには、アカウントとネットワークを接続しなおす必要があります。",
@@ -706,6 +718,7 @@
     "connected_and_active": "接続済みかつ有効です。",
     "now_active": "有効になりました。",
     "network_added": "が追加されました",
+    "network_deleted": "was successfully deleted",
     "revoked": "取り消されました。",
     "revoked_all": "すべてのアカウントが取り消されました。",
     "accounts_connected": "アカウントが接続されました。",
@@ -917,7 +930,7 @@
     "data_collection_title": "マーケティング目的のデータ収集",
     "data_collection_description": "当社はMetaMetricsを使用して、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握します。また、関連ニュースをお伝えする場合もあります (製品の機能、その他資料など)。",
     "batch_balance_requests_title": "アカウント残高の一括リクエスト",
-    "batch_balance_requests_description": "当社は残高を素早く表示できるよう、アカウントをまとめてInfuraにクエリを送ります。この機能をオフにすると、アクティブなアカウントのみクエリの対象となります。DAppによっては、ウォレットを接続しないと機能しないものもあります。",
+    "batch_balance_requests_description": "Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.",
     "third_party_title": "受信トランザクションを取得",
     "third_party_description": "履歴への受信トランザクションの表示には、サードパーティAPI (Etherscan) が使用されます。これらのサービスからデータを取得しないようにするには、オフにしてください。",
     "metametrics_opt_out": "MetaMetricsオプトアウト",
@@ -1025,13 +1038,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Snapの削除",
         "remove_snap_section_description": "この操作により、Snapとそのデータが削除され、与えられたアクセス許可が取り消されます。",
-        "remove_button_label": "{{snapName}}を削除"
+        "remove_button_label": "{{snapName}}を削除",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "{{date}}にインストール",
         "install_origin": "インストール元",
         "enabled": "有効",
         "version": "バージョン"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "{{date}}に承認",
@@ -1224,6 +1253,7 @@
   "asset_overview": {
     "send_button": "送信",
     "buy_button": "購入",
+    "token_marketplace": "Token marketplace",
     "sell_button": "売却",
     "receive_button": "受取",
     "portfolio_button": "Portfolio",
@@ -1379,6 +1409,10 @@
     "insufficient_amount": "このトランザクションを完了させるには、あと{{amount}} {{tokenSymbol}}必要です。",
     "buy_more_eth": "ETHを追加購入",
     "buy_more": "さらに購入",
+    "more_to_continue": "More {{ticker}} is needed to continue",
+    "you_can_also_send_funds": "You can also send funds from another account.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "フォーセットに移動",
     "get_ether": "{{networkName}}ネットワーク用のイーサを入手してください。",
     "insufficient_tokens": "{{token}}不足",
@@ -1426,7 +1460,7 @@
     "asset": "アセット",
     "balance": "残高",
     "token_id": "トークンID",
-    "not_enough_for_gas": "トランザクション手数料を支払うための{{ticker}}がアカウントにありません。{{ticker}}を購入するか、別のアカウントから入金してください。",
+    "not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees.",
     "send": "送信",
     "confirm_with_qr_hardware": "ハードウェアウォレットで確定",
     "confirm_with_ledger_hardware": "Ledgerで確定",
@@ -1794,6 +1828,9 @@
     "use_enabled_networks": "有効なネットワークを使用する",
     "wants_to_see_your_accounts": "アカウントを確認しトランザクションを提案する",
     "requesting_for": "次の要求:",
+    "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "see_your_accounts": "See your accounts and suggest transactions",
+    "connected_to": "Connected to ",
     "manage_permissions": "アクセス許可の管理",
     "edit": "編集",
     "cancel": "キャンセル"
@@ -2393,6 +2430,7 @@
     "All": "すべて",
     "Buy": "購入",
     "Sell": "売却",
+    "token_marketplace": "Token marketplace",
     "Purchased": "購入しました",
     "Sold": "売却しました",
     "empty_buy_orders_list": "購入注文がありません",
@@ -2659,8 +2697,7 @@
     "you_need": "このスワップを完了させるには",
     "more_to_complete": "さらに必要です。",
     "more_gas_to_complete": "さらにガス代が必要です。",
-    "buy_more_eth": "ETHを追加購入してください。",
-    "buy_more": "{{ticker}}を追加購入してください。",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "続ける前にレートを確認してください",
     "market_price_unavailable": "市場価格が利用できないため、プライスインパクトが不明です。スワップする前に、受け取るトークンの額に問題がないことを確認してください。",
     "price_difference": "{{amount}}の価格差",
@@ -3271,6 +3308,7 @@
   },
   "stake": {
     "stake": "ステーク",
+    "earn": "Earn",
     "stake_eth": "ETHをステーキング",
     "unstake_eth": "ETHのステーキングを解除",
     "staked_balance": "ステーキング残高",
@@ -3341,7 +3379,12 @@
     "terms_of_service": "サービス規約",
     "risk_disclosure": "リスクに関する開示事項",
     "cancel": "キャンセル",
-    "confirm": "確定"
+    "confirm": "確定",
+    "continue": "Continue",
+    "estimated_changes": "Estimated changes",
+    "you_receive": "You receive",
+    "up_to_n": "Up to {{count}}",
+    "unstaking_to": "Unstaking to"
   },
   "default_settings": {
     "title": "ウォレットの準備ができました",
@@ -3416,6 +3459,10 @@
     "reward_frequency": {
       "title": "報酬の頻度",
       "tooltip": "ステーキングされた残高は、新しい報酬が反映されるように12時間ごとに更新されます。"
+    },
+    "unstaking_time": {
+      "title": "Unstaking time",
+      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
     }
   },
   "confirm": {
