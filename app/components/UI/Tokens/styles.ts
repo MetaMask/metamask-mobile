@@ -153,6 +153,13 @@ const createStyles = (colors: Colors) =>
       borderStyle: 'solid',
       borderWidth: 1,
     },
+    balanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    privacyIcon: {
+      marginLeft: 8,
+    },
   });
 
 export default createStyles;

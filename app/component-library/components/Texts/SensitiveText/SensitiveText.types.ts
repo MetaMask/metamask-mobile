@@ -1,4 +1,5 @@
 // External dependencies.
+import React from 'react';
 import { TextProps } from '../Text/Text.types';
 
 /**
@@ -42,5 +43,5 @@ export interface SensitiveTextProps extends TextProps {
   /**
    * The text content to be displayed or hidden.
    */
-  children: string;
+  children: string | React.ReactNode;
 }

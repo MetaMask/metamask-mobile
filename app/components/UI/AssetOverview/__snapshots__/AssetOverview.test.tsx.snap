@@ -1060,6 +1060,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 "textTransform": "uppercase",
               }
             }
+            testID="main-balance-test-id"
           >
             0 ETH
           </Text>
