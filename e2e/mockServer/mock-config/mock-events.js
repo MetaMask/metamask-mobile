@@ -1,4 +1,4 @@
-import { suggestedGasApiResponses, suggestedGasFeesApiGanache } from '../mock-responses/mockResponses.json';
+import { suggestedGasApiResponses, suggestedGasFeesApiGanache } from '../mock-responses/mock-responses.json';
 
 export const mockEvents = {
   GET: {
