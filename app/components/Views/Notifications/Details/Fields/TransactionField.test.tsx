@@ -1,16 +1,16 @@
 /* eslint-disable import/no-namespace */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import TransactionField from '../TransactionField';
-import * as useMetricsModule from '../../../../../../components/hooks/useMetrics';
-import * as useCopyClipboardModule from '../../hooks/useCopyClipboard';
-import { ModalFieldType } from '../../../../../../util/notifications';
-import MOCK_NOTIFICATIONS from '../../../../../UI/Notification/__mocks__/mock_notifications';
+import TransactionField from './TransactionField';
+import * as useMetricsModule from '../../../../hooks/useMetrics';
+import * as useCopyClipboardModule from '../hooks/useCopyClipboard';
+import { ModalFieldType } from '../../../../../util/notifications';
+import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
 
 // Mock the required modules
-jest.mock('../../../../../../components/hooks/useMetrics');
-jest.mock('../../hooks/useCopyClipboard');
-jest.mock('../../../../../../../locales/i18n', () => ({
+jest.mock('../../../../hooks/useMetrics');
+jest.mock('../hooks/useCopyClipboard');
+jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
