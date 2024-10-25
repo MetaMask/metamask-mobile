@@ -1,11 +1,11 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { JsonRpcEngine } from 'json-rpc-engine';
 import {
   createSelectedNetworkMiddleware,
   METAMASK_DOMAIN,
 } from '@metamask/selected-network-controller';
 import EthQuery from '@metamask/eth-query';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
 import {
@@ -26,9 +26,9 @@ import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
-const createFilterMiddleware = require('eth-json-rpc-filters');
-const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
+const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
@@ -388,11 +388,7 @@ export class BackgroundBridge extends EventEmitter {
 
     pump(outStream, providerStream, outStream, (err) => {
       // handle any middleware cleanup
-      this.engine._middleware.forEach((mid) => {
-        if (mid.destroy && typeof mid.destroy === 'function') {
-          mid.destroy();
-        }
-      });
+      this.engine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);
     });
   }

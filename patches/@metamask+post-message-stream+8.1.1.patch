@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js
-index cead325..a319ed7 100644
+index f2e42ef..27807bb 100644
 --- a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js
 +++ b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.js
-@@ -6,11 +6,21 @@ const utils_1 = require("@metamask/utils");
+@@ -17,11 +17,21 @@ const utils_1 = require("@metamask/utils");
  const BasePostMessageStream_1 = require("../BasePostMessageStream");
  const utils_2 = require("../utils");
  /* istanbul ignore next */

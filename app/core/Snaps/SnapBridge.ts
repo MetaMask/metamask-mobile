@@ -10,7 +10,7 @@ import {
   createSwappableProxy,
   createEventEmitterProxy,
 } from '@metamask/swappable-obj-proxy';
-import { JsonRpcEngine } from 'json-rpc-engine';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import { NetworksChainId } from '@metamask/controller-utils';
 
@@ -22,9 +22,9 @@ import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 
 const ObjectMultiplex = require('@metamask/object-multiplex');
-const createFilterMiddleware = require('eth-json-rpc-filters');
-const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
+const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
 
 interface ISnapBridgeProps {
@@ -125,14 +125,7 @@ export default class SnapBridge {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pump(outStream, providerStream, outStream, (err: any) => {
-      // handle any middleware cleanup
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      engine._middleware.forEach((mid: any) => {
-        if (mid.destroy && typeof mid.destroy === 'function') {
-          mid.destroy();
-        }
-      });
+      engine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);
     });
   };

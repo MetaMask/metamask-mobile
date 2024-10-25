@@ -12,7 +12,7 @@
     "@metamask/oss-attribution-generator": "^2.0.2"
   },
   "engines": {
-    "node": "^20.14.0",
+    "node": "^20.18.0",
     "yarn": "^1.22.0"
   },
   "lavamoat": {
