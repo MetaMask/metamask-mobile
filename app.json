@@ -1,4 +1,17 @@
 {
   "name": "MetaMask",
-  "displayName": "MetaMask"
+  "displayName": "MetaMask",
+  "plugins": [
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "extraMavenRepos": [
+            "../../node_modules/@notifee/react-native/android/libs"
+            ]
+        },
+        "ios": {  }
+      }
+    ]
+  ]
 }

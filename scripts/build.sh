@@ -214,6 +214,12 @@ buildAndroidRun(){
 	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 }
 
+buildAndroidRunExpo(){
+	remapEnvVariableLocal
+	prebuild_android
+	npx expo run:android --no-install --variant 'prodDebug' --port=$WATCHER_PORT $SIM_OPTION
+}
+
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
@@ -512,6 +518,8 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
+		elif [ "$MODE" == "expo" ] ; then
+		buildAndroidRunExpo
 	else
 		buildAndroidRun
 	fi
