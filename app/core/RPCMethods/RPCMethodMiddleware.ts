@@ -205,6 +205,7 @@ export const checkActiveAccountAndChainId = async ({
 export const getAndSetRequestSource = (getSource: () => string) => {
   const requestSource = getSource();
   store.dispatch(setRequestSource(requestSource));
+  return requestSource;
 };
 
 const generateRawSignature = async ({
