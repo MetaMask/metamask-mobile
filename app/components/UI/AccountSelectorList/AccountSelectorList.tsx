@@ -201,10 +201,12 @@ const AccountSelectorList = ({
         );
       }
 
-      const cellStyle = {
+      const cellStyle: ViewStyle = {
         opacity: isLoading ? 0.5 : 1,
-        alignItems: 'center',
       };
+      if (!isMultiSelect) {
+        cellStyle.alignItems = 'center';
+      }
 
       return (
         <Cell
@@ -230,7 +232,7 @@ const AccountSelectorList = ({
           }}
           tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
           disabled={isDisabled}
-          style={cellStyle as ViewStyle}
+          style={cellStyle}
           buttonProps={{
             onButtonClick: () => onNavigateToAccountActions(address),
           }}
