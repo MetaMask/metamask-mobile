@@ -330,6 +330,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
         <Text
           accessibilityRole="link"
           accessible={true}
+          disabled={false}
+          loading={false}
           onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
