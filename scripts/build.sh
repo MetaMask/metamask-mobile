@@ -236,6 +236,17 @@ buildIosSimulator(){
 	react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
 }
 
+buildIosSimulatorExpo(){
+	remapEnvVariableLocal
+	prebuild_ios
+	if [ -n "$IOS_SIMULATOR" ]; then
+		SIM_OPTION="--simulator \"$IOS_SIMULATOR\""
+	else
+		SIM_OPTION=""
+	fi
+	npx expo run:ios --no-install --configuration Debug --port=$WATCHER_PORT $SIM_OPTION
+}
+
 buildIosSimulatorQA(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
@@ -540,6 +551,12 @@ buildIos() {
 			buildIosDeviceFlask
 		else
 			buildIosSimulatorFlask
+		fi
+	elif [ "$MODE" == "expo" ] ; then
+		if [ "$RUN_DEVICE" = true ] ; then
+			buildIosSimulatorExpo
+		else
+			buildIosSimulatorExpo
 		fi
 	else
 		if [ "$RUN_DEVICE" = true ] ; then

@@ -127,3 +127,8 @@ docs/assets/termsOfUse.html
 
 # build metadata
 android/app/src/main/assets/modules.json
+
+# Expo
+.expo
+dist/
+web-build/
