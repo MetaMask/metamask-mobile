@@ -10,6 +10,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   DevSettings,
+  Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
@@ -24,9 +25,6 @@ import CLIcon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import EvilIcon from 'react-native-vector-icons/EvilIcons';
-import Feather from 'react-native-vector-icons/Feather';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,6 +40,9 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
 
+// eslint-disable-next-line import/no-commonjs
+const WarningIcon = require('./warning-icon.png');
+
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
@@ -53,9 +54,8 @@ const createStyles = (colors) =>
       paddingTop: 20,
     },
     errorImage: {
-      width: 50,
-      height: 50,
-      marginTop: 24,
+      width: 32,
+      height: 32,
     },
     title: {
       color: colors.text.default,
@@ -243,7 +243,7 @@ export const Fallback = (props) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Icon name="warning" size={30} color="orange" />
+        <Image source={WarningIcon} style={styles.errorImage} />
         <Text style={styles.title}>{strings('error_screen.title')}</Text>
       </View>
       <View style={styles.contentContainer}>
@@ -342,7 +342,12 @@ export const Fallback = (props) => {
                   style={styles.closeIconWrapper}
                   hitSlop={styles.hitSlop}
                 >
-                  <EvilIcon name="close" size={24} />
+                  <CLIcon
+                    name={IconName.Close}
+                    size={IconSize.Md}
+                    color={IconColor.Default}
+                    onPress={toggleModal}
+                  />
                 </TouchableOpacity>
               </View>
               <TextInput
