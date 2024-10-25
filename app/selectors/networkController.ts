@@ -38,6 +38,7 @@ export interface ProviderConfig {
   ticker: string;
   rpcPrefs: { blockExplorerUrl?: string };
   type: string;
+  requestSource?: string;
 }
 
 // Helper function to return the default provider config (mainnet)
@@ -124,6 +125,10 @@ export const selectChainId = createSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.chainId,
 );
+export const selectRequestSource = createSelector(
+  selectProviderConfig,
+  (providerConfig) => providerConfig.requestSource,
+);
 export const selectProviderType = createSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig.type,
@@ -156,4 +161,3 @@ export const selectNetworkClientId = createSelector(
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
 );
-

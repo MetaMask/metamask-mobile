@@ -58,6 +58,7 @@ import { buildTransactionParams } from '../../../../util/confirmation/transactio
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
+import { setRequestSource } from '../../../../actions/onboardNetwork';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -367,6 +368,8 @@ class Approval extends PureComponent {
         ? AppConstants.REQUEST_SOURCES.WC
         : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
+
+    setRequestSource(baseParams.request_source);
 
     try {
       const { selectedAsset } = transaction;
@@ -706,6 +709,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
+  setRequestSource: (requestSource) =>
+    dispatch(setRequestSource(requestSource)),
 });
 
 Approval.contextType = ThemeContext;

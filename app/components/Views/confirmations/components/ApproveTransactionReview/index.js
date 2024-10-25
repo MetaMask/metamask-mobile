@@ -104,6 +104,7 @@ import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import { setRequestSource } from '../../../../../actions/onboardNetwork';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -592,6 +593,8 @@ class ApproveTransactionReview extends PureComponent {
         : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
+
+    setRequestSource(baseParams.request_source);
 
     try {
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
@@ -1335,6 +1338,8 @@ const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
   showAlert: (config) => dispatch(showAlert(config)),
+  setRequestSource: (requestSource) =>
+    dispatch(setRequestSource(requestSource)),
 });
 
 ApproveTransactionReview.contextType = ThemeContext;

@@ -38,3 +38,14 @@ export const showNetworkOnboardingAction = ({
   nativeToken,
   showNetworkOnboarding,
 });
+
+/**
+ * Set the connection's request source for the network
+ *
+ * @param {string} requestSource - The connection's request source
+ * @returns
+ */
+export const setRequestSource = (requestSource: string) => ({
+  type: 'SET_REQUEST_SOURCE',
+  requestSource,
+});

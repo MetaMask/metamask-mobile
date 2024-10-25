@@ -5,6 +5,7 @@ export const initialState = {
     nativeToken: '',
     networkType: '',
     networkUrl: '',
+    requestSource: undefined,
   },
   switchedNetwork: {
     networkUrl: '',
@@ -30,6 +31,7 @@ function networkOnboardReducer(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any;
+    requestSource?: string;
   } = {
     nativeToken: '',
     networkType: '',
@@ -38,6 +40,7 @@ function networkOnboardReducer(
     showNetworkOnboarding: false,
     type: '',
     payload: undefined,
+    requestSource: undefined,
   },
 ) {
   switch (action.type) {
@@ -71,6 +74,14 @@ function networkOnboardReducer(
         networkOnboardedState: {
           ...state.networkOnboardedState,
           [action.payload]: true,
+        },
+      };
+    case 'SET_REQUEST_SOURCE':
+      return {
+        ...state,
+        networkState: {
+          ...state.networkState,
+          requestSource: action.requestSource,
         },
       };
     default:
