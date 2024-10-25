@@ -97,12 +97,12 @@ const attemptPoolStakedClaimTransaction =
       const isMultiCallClaim = pooledStakesData.exitRequests.length > 1;
 
       return isMultiCallClaim
-        ? attemptMultiCallClaimTransaction(
+        ? await attemptMultiCallClaimTransaction(
             pooledStakesData,
             poolStakingContract,
             activeAccountAddress,
           )
-        : attemptSingleClaimTransaction(
+        : await attemptSingleClaimTransaction(
             pooledStakesData,
             poolStakingContract,
             activeAccountAddress,

@@ -62,7 +62,7 @@ const attemptDepositTransaction =
       );
 
       // TODO: Add Stake/Unstake/Claim TransactionType to display contract method in confirmation screen.
-      return addTransaction(txParams, {
+      return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: ORIGIN_METAMASK,
       });

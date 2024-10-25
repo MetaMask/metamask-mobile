@@ -47,7 +47,7 @@ const attemptUnstakeTransaction =
         chainId,
       );
 
-      return addTransaction(txParams, {
+      return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: ORIGIN_METAMASK,
       });
