@@ -1,4 +1,4 @@
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from '@ethereumjs/util';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 

@@ -6,7 +6,7 @@ import { Account } from '../../../../components/hooks/useAccounts/useAccounts.ty
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { Hex } from '@metamask/utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from '@ethereumjs/util';
 import { RootState } from '../../../../reducers';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 
