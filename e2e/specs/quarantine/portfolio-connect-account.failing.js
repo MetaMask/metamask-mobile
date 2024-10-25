@@ -15,7 +15,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import BrowserView from '../../pages/Browser/BrowserView';
 import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
 import Assertions from '../../utils/Assertions';
-import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectModal from '../../pages/Browser/ConnectModal';
 const fixtureServer = new FixtureServer();
 describe(SmokeCore('Connect account to Portfolio'), () => {
   beforeAll(async () => {

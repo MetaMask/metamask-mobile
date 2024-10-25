@@ -1,32 +1,24 @@
 import Selectors from '../../helpers/Selectors';
-import {
-  ACCOUNT_APPROVAL_CONNECT_BUTTON,
-  ACCOUNT_APPROVAL_SELECT_ALL_BUTTON,
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-} from '../testIDs/Components/AccountApprovalModal.testIds';
 import Gestures from '../../helpers/Gestures';
+import { ConnectAccountModalSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectAccountModal.selectors';
 
 class AccountApprovalModal {
   get modalContainer() {
     return Selectors.getXpathElementByResourceId(
-      ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
+      ConnectAccountModalSelectorsIDs.CONTAINER,
     );
   }
 
   get connectButton() {
-    return Selectors.getElementByPlatform(ACCOUNT_APPROVAL_CONNECT_BUTTON);
+    return Selectors.getElementByPlatform(ConnectAccountModalSelectorsIDs.CONNECT_BUTTON);
   }
 
   get connectMultipleAccountsButton() {
-    return Selectors.getElementByPlatform('multiconnect-connect-button');
-  }
-
-  get connectButtonText() {
-    return Selectors.getXpathElementByText('Connect');
+    return Selectors.getElementByPlatform(ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON);
   }
 
   get selectAllButton() {
-    return Selectors.getElementByPlatform(ACCOUNT_APPROVAL_SELECT_ALL_BUTTON);
+    return Selectors.getElementByPlatform(ConnectAccountModalSelectorsIDs.SELECT_ALL_BUTTON);
   }
 
   get amountInputField() {
@@ -35,10 +27,6 @@ class AccountApprovalModal {
 
   get nextButton() {
     return Selectors.getXpathElementByText('Next');
-  }
-
-  async tapConnectButton() {
-    await Gestures.waitAndTap(this.connectButton);
   }
 
   async tapConnectMultipleAccountsButton() {

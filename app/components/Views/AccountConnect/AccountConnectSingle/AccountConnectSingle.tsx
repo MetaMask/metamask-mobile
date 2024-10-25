@@ -35,7 +35,7 @@ import styleSheet from './AccountConnectSingle.styles';
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountModal.selectors';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountConnectSingle = ({
@@ -168,7 +168,7 @@ const AccountConnectSingle = ({
       <SheetHeader title={strings('accounts.connect_account_title')} />
       <View
         style={styles.body}
-        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
+        testID={ConnectAccountModalSelectorsIDs.CONTAINER}
       >
         <TagUrl
           imageSource={favicon}

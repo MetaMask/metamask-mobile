@@ -8,8 +8,8 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 
-import ConnectModal from '../../pages/modals/ConnectModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import ConnectModal from '../../pages/Browser/ConnectModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 

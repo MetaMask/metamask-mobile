@@ -68,7 +68,6 @@ import {
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
@@ -870,7 +869,6 @@ class DrawerView extends PureComponent {
           name: strings('drawer.lock'),
           icon: this.getFeatherIcon('log-out'),
           action: this.lock,
-          // ...generateTestId(Platform, DRAWER_VIEW_LOCK_ICON_ID),
           testID: DRAWER_VIEW_LOCK_TEXT_ID,
         },
       ],
@@ -1015,7 +1013,7 @@ class DrawerView extends PureComponent {
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
     return (
-      <View style={styles.wrapper} testID={'drawer-screen'}>
+      <View style={styles.wrapper}>
         <ScrollView>
           <View style={styles.header}>
             <View style={styles.metamaskLogo}>
@@ -1036,7 +1034,6 @@ class DrawerView extends PureComponent {
               <TouchableOpacity
                 style={styles.identiconWrapper}
                 onPress={this.openAccountSelector}
-                testID={'navbar-account-identicon'}
               >
                 <View style={styles.identiconBorder}>
                   <Identicon
@@ -1048,7 +1045,6 @@ class DrawerView extends PureComponent {
               <TouchableOpacity
                 style={styles.accountInfo}
                 onPress={this.openAccountSelector}
-                testID={'navbar-account-button'}
               >
                 <View style={styles.accountNameWrapper}>
                   <Text style={styles.accountName} numberOfLines={1}>
@@ -1071,7 +1067,6 @@ class DrawerView extends PureComponent {
               type={'rounded-normal'}
               onPress={this.onSend}
               containerStyle={[styles.button, styles.leftButton]}
-              testID={'drawer-send-button'}
             >
               <View style={styles.buttonContent}>
                 <MaterialIcon
@@ -1089,7 +1084,6 @@ class DrawerView extends PureComponent {
               type={'rounded-normal'}
               onPress={this.onReceive}
               containerStyle={[styles.button, styles.rightButton]}
-              testID={'drawer-receive-button'}
             >
               <View style={styles.buttonContent}>
                 <MaterialIcon
@@ -1161,7 +1155,7 @@ class DrawerView extends PureComponent {
                                 ? styles.selectedName
                                 : null,
                             ]}
-                            {...generateTestId(Platform, item.testID)}
+                            testID={item.testID}
                             numberOfLines={1}
                           >
                             {item.name}

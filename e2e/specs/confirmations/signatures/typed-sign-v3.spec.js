@@ -2,7 +2,7 @@
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
-import SigningModal from '../../../pages/modals/SigningModal';
+import SigningModal from '../../../pages/Browser/SigningModal';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {

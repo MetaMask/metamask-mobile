@@ -2,7 +2,7 @@
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 
-import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectModal from '../../pages/Browser/ConnectModal';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 

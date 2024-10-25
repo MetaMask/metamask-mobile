@@ -21,7 +21,7 @@ import { shuffle } from 'lodash';
 import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountModal.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';

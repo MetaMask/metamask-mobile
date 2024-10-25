@@ -1,7 +1,7 @@
 import {
   ConnectAccountModalSelectorsIDs,
   ConnectAccountModalSelectorsText,
-} from '../../selectors/Modals/ConnectAccountModal.selectors';
+} from '../../selectors/Browser/ConnectAccountModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';

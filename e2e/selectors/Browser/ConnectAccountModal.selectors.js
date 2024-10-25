@@ -5,6 +5,7 @@ export const ConnectAccountModalSelectorsIDs = {
   SELECT_MULTI_BUTTON: 'multiconnect-connect-button',
   CONNECT_BUTTON: 'connect-button',
   CANCEL_BUTTON: 'cancel-button',
+  SELECT_ALL_BUTTON: 'select-all-button',
 };
 
 export const ConnectAccountModalSelectorsText = {

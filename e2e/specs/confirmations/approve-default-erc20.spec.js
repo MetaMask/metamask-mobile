@@ -9,10 +9,10 @@ import {
 } from '../../fixtures/fixture-helper';
 
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ContractApprovalModalSelectorsText } from '../../selectors/Modals/ContractApprovalModal.selectors';
+import { ContractApprovalModalSelectorsText } from '../../selectors/Browser/ContractApprovalModal.selectors';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 
-import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import ContractApprovalModal from '../../pages/Browser/ContractApprovalModal';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';

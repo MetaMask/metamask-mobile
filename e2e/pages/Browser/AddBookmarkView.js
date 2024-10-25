@@ -12,10 +12,6 @@ class AddFavoritesView {
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
-
-  async tapAddBookmarksButton() {
-    await Gestures.waitAndTap(this.addBookmarkButton);
-  }
 }
 
 export default new AddFavoritesView();

@@ -11,7 +11,7 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import ContractApprovalModal from '../../pages/Browser/ContractApprovalModal';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 

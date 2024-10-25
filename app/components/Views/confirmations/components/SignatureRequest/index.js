@@ -3,7 +3,7 @@ import React, { PureComponent } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningModal.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';

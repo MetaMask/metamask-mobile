@@ -14,7 +14,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningModal.selectors';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 

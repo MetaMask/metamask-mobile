@@ -1,4 +1,4 @@
-import { SigningModalSelectorsIDs } from '../../selectors/Modals/SigningModal.selectors';
+import { SigningModalSelectorsIDs } from '../../selectors/Browser/SigningModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 

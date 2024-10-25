@@ -3,7 +3,7 @@ import {
   AccountListViewSelectorsIDs,
   AccountListViewSelectorsText,
 } from '../selectors/AccountListView.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
+import { ConnectAccountModalSelectorsIDs } from '../selectors/Browser/ConnectAccountModal.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 

@@ -1,7 +1,7 @@
 import {
   ContractApprovalModalSelectorsIDs,
   ContractApprovalModalSelectorsText,
-} from '../../selectors/Modals/ContractApprovalModal.selectors';
+} from '../../selectors/Browser/ContractApprovalModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 

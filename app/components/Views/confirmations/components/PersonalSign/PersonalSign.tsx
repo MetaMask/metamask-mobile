@@ -20,7 +20,7 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningModal.selectors';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectChainId } from '../../../../../selectors/networkController';

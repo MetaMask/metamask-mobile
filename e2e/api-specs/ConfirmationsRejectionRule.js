@@ -4,9 +4,9 @@ import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
-import ConnectModal from '../pages/modals/ConnectModal';
+import ConnectModal from '../pages/Browser/ConnectModal';
 import AssetWatchModal from '../pages/modals/AssetWatchModal';
-import SpamFilterModal from '../pages/modals/SpamFilterModal';
+import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import fs from 'fs';

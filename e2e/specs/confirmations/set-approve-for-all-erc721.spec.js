@@ -14,8 +14,8 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
-import { ContractApprovalModalSelectorsText } from '../../selectors/Modals/ContractApprovalModal.selectors';
-import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import { ContractApprovalModalSelectorsText } from '../../selectors/Browser/ContractApprovalModal.selectors';
+import ContractApprovalModal from '../../pages/Browser/ContractApprovalModal';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;

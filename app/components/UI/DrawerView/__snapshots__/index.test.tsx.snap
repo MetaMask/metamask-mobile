@@ -9,7 +9,6 @@ exports[`DrawerView should render correctly 1`] = `
       "width": 315,
     }
   }
-  testID="drawer-screen"
 >
   <RCTScrollView
     collapsable={false}
@@ -102,7 +101,6 @@ exports[`DrawerView should render correctly 1`] = `
                 "width": 56,
               }
             }
-            testID="navbar-account-identicon"
           >
             <View
               style={
@@ -176,7 +174,6 @@ exports[`DrawerView should render correctly 1`] = `
           </TouchableOpacity>
           <TouchableOpacity
             onPress={[Function]}
-            testID="navbar-account-button"
           >
             <View
               style={
@@ -305,7 +302,6 @@ exports[`DrawerView should render correctly 1`] = `
               null,
             ]
           }
-          testID="drawer-send-button"
         >
           <View
             style={
@@ -390,7 +386,6 @@ exports[`DrawerView should render correctly 1`] = `
               null,
             ]
           }
-          testID="drawer-receive-button"
         >
           <View
             style={
