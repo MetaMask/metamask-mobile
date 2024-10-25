@@ -10,7 +10,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "cp &quot;$(SRCROOT)/GoogleServices/GoogleService-Info.plist&quot; &quot;$(SRCROOT)/GoogleService-Info.plist&quot;&#10;">
+               scriptText = "cp &quot;${SRCROOT}/GoogleServices/GoogleService-Info.plist&quot; &quot;${SRCROOT}/GoogleService-Info.plist&quot;&#10;">
             </ActionContent>
          </ExecutionAction>
       </PreActions>
