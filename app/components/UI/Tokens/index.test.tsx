@@ -2,7 +2,7 @@ import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
-import { BN } from 'ethereumjs-util';
+import BN5 from 'bnjs5';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
@@ -86,9 +86,9 @@ const initialState = {
       },
       TokenBalancesController: {
         contractBalances: {
-          '0x00': new BN(2),
-          '0x01': new BN(2),
-          '0x02': new BN(0),
+          '0x00': new BN5(2),
+          '0x01': new BN5(2),
+          '0x02': new BN5(0),
         },
       },
     },
@@ -240,7 +240,7 @@ describe('Tokens', () => {
           },
           TokenBalancesController: {
             contractBalances: {
-              '0x02': new BN(1),
+              '0x02': new BN5(1),
             },
           },
         },
