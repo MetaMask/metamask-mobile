@@ -58,24 +58,34 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState =
     MOCK_ADDRESS_3,
   );
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-          },
-        ],
+jest.mock('../../../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+            },
+          ],
+        },
+      },
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
-    PreferencesController: {
-      state: {
-        securityAlertsEnabled: true,
-      },
-    },
-  },
-}));
+  };
+});
 
 jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
