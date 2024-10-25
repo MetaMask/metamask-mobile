@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
@@ -36,7 +36,6 @@ import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountModal.selectors';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,

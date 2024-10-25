@@ -1013,7 +1013,7 @@ class DrawerView extends PureComponent {
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.wrapper} testID={'drawer-screen'}>
         <ScrollView>
           <View style={styles.header}>
             <View style={styles.metamaskLogo}>
@@ -1034,6 +1034,7 @@ class DrawerView extends PureComponent {
               <TouchableOpacity
                 style={styles.identiconWrapper}
                 onPress={this.openAccountSelector}
+                testID={'navbar-account-identicon'}
               >
                 <View style={styles.identiconBorder}>
                   <Identicon
@@ -1045,6 +1046,7 @@ class DrawerView extends PureComponent {
               <TouchableOpacity
                 style={styles.accountInfo}
                 onPress={this.openAccountSelector}
+                testID={'navbar-account-button'}
               >
                 <View style={styles.accountNameWrapper}>
                   <Text style={styles.accountName} numberOfLines={1}>
@@ -1067,6 +1069,7 @@ class DrawerView extends PureComponent {
               type={'rounded-normal'}
               onPress={this.onSend}
               containerStyle={[styles.button, styles.leftButton]}
+              testID={'drawer-send-button'}
             >
               <View style={styles.buttonContent}>
                 <MaterialIcon
@@ -1084,6 +1087,7 @@ class DrawerView extends PureComponent {
               type={'rounded-normal'}
               onPress={this.onReceive}
               containerStyle={[styles.button, styles.rightButton]}
+              testID={'drawer-receive-button'}
             >
               <View style={styles.buttonContent}>
                 <MaterialIcon
