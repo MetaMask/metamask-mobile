@@ -206,6 +206,8 @@ prebuild_android(){
   if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
     echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
     echo "google-services.json has been created successfully."
+    # Ensure the file has read and write permissions
+    chmod 664 ./android/app/google-services.json
   else
     echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
     exit 1
