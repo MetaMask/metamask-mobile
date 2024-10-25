@@ -10,6 +10,24 @@ import {
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_ASSET,
 } from '../../__mocks__/mockData';
+import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+
+const MOCK_ADDRESS_1 = '0x0';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS_1,
+]);
+
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
+  },
+};
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -107,6 +125,7 @@ describe('StakingBalance', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -114,6 +133,7 @@ describe('StakingBalance', () => {
   it('redirects to StakeInputView on stake button click', () => {
     const { getByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      { state: mockInitialState },
     );
 
     fireEvent.press(getByText(strings('stake.stake_more')));
@@ -127,6 +147,7 @@ describe('StakingBalance', () => {
   it('redirects to UnstakeInputView on unstake button click', () => {
     const { getByText } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      { state: mockInitialState },
     );
 
     fireEvent.press(getByText(strings('stake.unstake')));
