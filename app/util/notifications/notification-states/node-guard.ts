@@ -1,4 +1,7 @@
-import { TRIGGER_TYPES } from '../constants';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 import { Notification } from '../types';
 
 /**

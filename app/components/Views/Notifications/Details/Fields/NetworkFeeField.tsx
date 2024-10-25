@@ -140,9 +140,9 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
       trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
         notification_id: notification.id,
         notification_type: notification.type,
-        ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-          ? { chain_id: notification?.chain_id }
-          : {}),
+        ...('chain_id' in notification && {
+          chain_id: notification.chain_id,
+        }),
         clicked_item: 'fee_details',
       });
     }

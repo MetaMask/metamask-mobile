@@ -69,7 +69,7 @@ function NotificationsListItem(props: NotificationsListItemProps) {
           isRead: item.isRead,
         },
       ]);
-      if (hasNotificationModal(item.type)) {
+      if (hasNotificationModal(item?.type)) {
         props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
           notification: item,
         });
@@ -86,9 +86,9 @@ function NotificationsListItem(props: NotificationsListItemProps) {
       trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
         notification_id: item.id,
         notification_type: item.type,
-        ...(item.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-          ? { chain_id: item?.chain_id }
-          : {}),
+        ...('chain_id' in item && {
+          chain_id: item.chain_id,
+        }),
         previously_read: item.isRead,
       });
     },
@@ -97,11 +97,14 @@ function NotificationsListItem(props: NotificationsListItemProps) {
 
   const menuItemState = useMemo(() => {
     const notificationState =
-      NotificationComponentState[props.notification.type];
-    return notificationState.createMenuItem(props.notification);
+      props.notification?.type && hasNotificationComponents(props.notification.type)
+      ? NotificationComponentState[props.notification.type]
+      : undefined;
+
+    return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
-  if (!hasNotificationComponents(props.notification.type)) {
+  if (!hasNotificationComponents(props.notification.type) || !menuItemState) {
     return null;
   }
 
@@ -129,7 +132,7 @@ function useNotificationListProps(props: {
   const getListProps = useCallback(
     (data: Notification[], tabLabel?: string) => {
       const listProps: FlatListProps<Notification> = {
-        keyExtractor: (item) => item.id,
+        keyExtractor: (item: Notification) => item.id,
         data,
         ListEmptyComponent: (
           <Empty
@@ -137,10 +140,9 @@ function useNotificationListProps(props: {
           />
         ),
         contentContainerStyle: styles.list,
-        renderItem: ({ item }) => (
+        renderItem: ({ item }: { item: Notification }) => (
           <NotificationsListItem
             notification={item}
-            // eslint-disable-next-line react/prop-types
             navigation={props.navigation}
           />
         ),
