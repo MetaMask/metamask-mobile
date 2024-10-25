@@ -6,7 +6,7 @@ import BlockExplorerFooter from './BlockExplorerFooter';
 import { useSelector } from 'react-redux';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
-
+import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -31,7 +31,7 @@ describe('BlockExplorerFooter', () => {
     const props = {
       chainId: 1,
       txHash: '0x123',
-      notification: { id: '1', type: 'transaction' },
+      notification: MOCK_NOTIFICATIONS[0],
       type: ModalFooterType.BLOCK_EXPLORER,
     } as const;
 

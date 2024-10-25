@@ -13,7 +13,7 @@ describe('hasNotificationModal', () => {
   };
 
   afterEach(() => {
-    delete (NotificationComponentState)[TRIGGER_TYPES.ERC20_SENT];
+    delete (NotificationComponentState as { [key in TRIGGER_TYPES]?: unknown })[TRIGGER_TYPES.ERC20_SENT];
   });
 
   it('returns false for an invalid trigger type', () => {
