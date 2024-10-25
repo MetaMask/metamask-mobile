@@ -5,6 +5,7 @@ import { Image } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
+import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -56,6 +57,11 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   default: () => ({
     refreshPooledStakes: jest.fn(),
   }),
+}));
+
+jest.mock('../../hooks/useStakeContext', () => ({
+  __esModule: true,
+  useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
 describe('UnstakeConfirmationView', () => {

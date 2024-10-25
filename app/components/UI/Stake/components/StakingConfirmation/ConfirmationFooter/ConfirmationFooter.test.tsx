@@ -5,6 +5,7 @@ import { ConfirmationFooterProps } from './ConfirmationFooter.types';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { FooterButtonGroupActions } from './FooterButtonGroup/FooterButtonGroup.types';
+import { MOCK_POOL_STAKING_SDK } from '../../../__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -34,20 +35,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/usePoolStakedDeposit', () => ({
-  __esModule: true,
-  default: () => ({
-    poolStakingContract: {},
-    estimateDepositGas: jest.fn(),
-    attemptDepositTransaction: jest.fn(),
-  }),
-}));
-
-jest.mock('../../../hooks/usePooledStakes', () => ({
-  __esModule: true,
-  default: () => ({
-    refreshPooledStakes: jest.fn(),
-  }),
+jest.mock('../../../hooks/useStakeContext', () => ({
+  useStakeContext: () => MOCK_POOL_STAKING_SDK,
 }));
 
 describe('ConfirmationFooter', () => {

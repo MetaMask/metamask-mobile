@@ -1,7 +1,7 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   artifacts: {
-    rootDir: "./artifacts/screenshots",
+    rootDir: "./artifacts",
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
@@ -9,10 +9,15 @@ module.exports = {
         takeWhen: {
           testStart: false,
           testDone: false,
-        }
+        },
+      },
+      video: {
+        enabled: true,  // Enable video recording
+        keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
       },
     },
   },
+  
   testRunner: {
     args: {
       $0: 'jest',
