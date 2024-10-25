@@ -202,6 +202,11 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+/**
+ * Get the request source and set it in the redux store
+ * @param getSource - Function to get the request source
+ * @returns The request source
+ */
 export const getAndSetRequestSource = (getSource: () => string) => {
   const requestSource = getSource();
   store.dispatch(setRequestSource(requestSource));
