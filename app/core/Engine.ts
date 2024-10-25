@@ -253,7 +253,6 @@ import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
 import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
-import { isProduction } from '../util/environment';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1219,7 +1218,7 @@ class Engine {
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
       env: {
-        isAccountSyncingEnabled: !isProduction(),
+        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
       },
       config: {
         accountSyncing: {
