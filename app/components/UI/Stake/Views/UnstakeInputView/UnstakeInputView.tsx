@@ -16,11 +16,11 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import QuickAmounts from '../../components/QuickAmounts';
 import { View } from 'react-native';
-import useStakingInputHandlers from '../../hooks/useStakingInput';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
 import useBalance from '../../hooks/useBalance';
 import Routes from '../../../../../constants/navigation/Routes';
+import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
@@ -43,7 +43,7 @@ const UnstakeInputView = () => {
     handleAmountPress,
     handleKeypadChange,
     conversionRate,
-  } = useStakingInputHandlers(new BN(stakedBalanceWei));
+  } = useUnstakingInputHandlers(new BN(stakedBalanceWei));
 
   const stakeBalanceInEth = renderFromWei(stakedBalanceWei, 5);
   const stakeBalanceFiatNumber = weiToFiatNumber(

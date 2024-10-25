@@ -45,6 +45,7 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,
+    handleMaxPress,
   } = useStakingInputHandlers(balanceWei);
 
   const navigateToLearnMoreModal = () => {
@@ -72,6 +73,15 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
   ]);
+
+  const handleMaxButtonPress = () => {
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.MAX_INPUT,
+      params: {
+        handleMaxPress,
+      },
+    });
+  };
 
   const balanceText = strings('stake.balance');
 
@@ -121,6 +131,7 @@ const StakeInputView = () => {
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleAmountPress}
+        onMaxPress={handleMaxButtonPress}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}

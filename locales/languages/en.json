@@ -3439,7 +3439,12 @@
     "estimated_changes": "Estimated changes",
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
-    "unstaking_to": "Unstaking to"
+    "unstaking_to": "Unstaking to",
+    "max_modal": {
+      "title": "Max",
+      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+    },
+    "use_max": "Use max"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
