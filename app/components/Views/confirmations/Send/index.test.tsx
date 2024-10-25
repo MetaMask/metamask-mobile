@@ -124,66 +124,76 @@ const initialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('../../../../core/Engine', () => ({
-  rejectPendingApproval: jest.fn(),
-  context: {
-    PreferencesController: {
-      state: {
-        securityAlertsEnabled: false,
+jest.mock('../../../../core/Engine', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    rejectPendingApproval: jest.fn(),
+    context: {
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: false,
+        },
       },
-    },
-    TokensController: {
-      addToken: jest.fn(),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
-            index: 0,
-            type: 'HD Key Tree',
+      TokensController: {
+        addToken: jest.fn(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
+              index: 0,
+              type: 'HD Key Tree',
+            },
+          ],
+        },
+      },
+      TransactionController: {
+        estimateGas: jest.fn().mockImplementation(({ gas }) => {
+          if (gas === undefined) return Promise.resolve({ gas: '0x5208' });
+          return Promise.resolve({ gas });
+        }),
+        addTransaction: jest.fn().mockResolvedValue({
+          result: {},
+          transactionMeta: {
+            id: 1,
           },
-        ],
+        }),
+      },
+      GasFeeController: {
+        stopPolling: jest.fn(),
+        getGasFeeEstimatesAndStartPolling: jest
+          .fn()
+          .mockResolvedValue('poll-token'),
+      },
+      NetworkController: {
+        getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
+          provider: {
+            sendAsync: () => null,
+          },
+        })),
+        getNetworkClientById: () => ({
+          configuration: {
+            chainId: '0x1',
+            rpcUrl: 'https://mainnet.infura.io/v3',
+            ticker: 'ETH',
+            type: 'custom',
+          },
+        }),
+        state: {
+          ...mockedNetworkControllerState,
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
-    TransactionController: {
-      estimateGas: jest.fn().mockImplementation(({ gas }) => {
-        if (gas === undefined) return Promise.resolve({ gas: '0x5208' });
-        return Promise.resolve({ gas });
-      }),
-      addTransaction: jest.fn().mockResolvedValue({
-        result: {},
-        transactionMeta: {
-          id: 1,
-        },
-      }),
-    },
-    GasFeeController: {
-      stopPolling: jest.fn(),
-      getGasFeeEstimatesAndStartPolling: jest
-        .fn()
-        .mockResolvedValue('poll-token'),
-    },
-    NetworkController: {
-      getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
-        provider: {
-          sendAsync: () => null,
-        },
-      })),
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
-          rpcUrl: 'https://mainnet.infura.io/v3',
-          ticker: 'ETH',
-          type: 'custom',
-        },
-      }),
-      state: {
-        ...mockedNetworkControllerState,
-      },
-    },
-  },
-}));
+  };
+});
 
 describe('Accounts', () => {
   it('should render correctly', () => {
