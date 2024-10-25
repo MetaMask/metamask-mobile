@@ -1,5 +1,4 @@
 #import "AppDelegate.h"
-#import <Firebase.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -61,7 +60,7 @@
 
   //Uncomment the following line to enable the splashscreen on ios
   //[RNSplashScreen show];
-  [FIRApp configure];
+
   return YES;
 }
 
