@@ -50,10 +50,7 @@ const useBalance = () => {
   );
 
   const { pooledStakesData } = usePooledStakes();
-  const assets = useMemo(
-    () => hexToBN(pooledStakesData.assets).toString('hex'),
-    [pooledStakesData],
-  );
+  const assets = hexToBN(pooledStakesData.assets);
   const formattedStakedBalanceETH = useMemo(
     () => `${renderFromWei(assets)} ETH`,
     [assets],
