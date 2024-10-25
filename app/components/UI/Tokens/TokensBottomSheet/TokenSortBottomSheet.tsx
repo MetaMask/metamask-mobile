@@ -12,10 +12,9 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import currencySymbols from '../../../../util/currency-symbols.json';
-import Cell, {
-  CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
+import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 
 const TokenSortBottomSheet = () => {
   const { colors } = useTheme();
@@ -56,25 +55,35 @@ const TokenSortBottomSheet = () => {
         >
           {strings('wallet.sort_by')}
         </Text>
-        <Cell
+        <ListItemSelect
           testID={WalletViewSelectorsIDs.SORT_DECLINING_BALANCE}
-          variant={CellVariant.Select}
-          title={strings('wallet.declining_balance', {
-            currency:
-              currencySymbols[
-                currentCurrency as keyof typeof currencySymbols
-              ] ?? currentCurrency,
-          })}
-          isSelected={tokenSortConfig.key === 'tokenFiatAmount'}
           onPress={() => onSortControlsBottomSheetPress(0)}
-        />
-        <Cell
+          isSelected={tokenSortConfig.key === 'tokenFiatAmount'}
+          isDisabled={false}
+          gap={8}
+          verticalAlignment={VerticalAlignment.Center}
+        >
+          <Text style={{ width: '100%' }}>
+            {strings('wallet.declining_balance', {
+              currency:
+                currencySymbols[
+                  currentCurrency as keyof typeof currencySymbols
+                ] ?? currentCurrency,
+            })}
+          </Text>
+        </ListItemSelect>
+        <ListItemSelect
           testID={WalletViewSelectorsIDs.SORT_ALPHABETICAL}
-          variant={CellVariant.Select}
-          title={strings('wallet.alphabetically')}
-          isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}
           onPress={() => onSortControlsBottomSheetPress(1)}
-        />
+          isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}
+          isDisabled={false}
+          gap={8}
+          verticalAlignment={VerticalAlignment.Center}
+        >
+          <Text style={{ width: '100%' }}>
+            {strings('wallet.alphabetically')}
+          </Text>
+        </ListItemSelect>
       </View>
     </BottomSheet>
   );
