@@ -10,7 +10,7 @@ import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notif
 // Mock the required modules
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../hooks/useCopyClipboard');
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
