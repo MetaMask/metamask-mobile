@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.32.0",
+  "version": "7.33.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -239,7 +239,7 @@
     "eciesjs": "^0.3.15",
     "eth-block-tracker": "^7.0.1",
     "eth-ens-namehash": "2.0.8",
-    "eth-json-rpc-filters": "^5.1.0",
+    "eth-json-rpc-filters": "^6.0.1",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.4",
     "ethereumjs-abi": "0.6.6",
@@ -254,7 +254,7 @@
     "humanize-duration": "^3.27.2",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
-    "json-rpc-middleware-stream": "3.0.0",
+    "json-rpc-middleware-stream": "^4.2.3",
     "lodash": "^4.17.21",
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",

@@ -1,6 +1,6 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
+import EnableAutomaticSecurityChecksView from './pages/modals/EnableAutomaticSecurityChecksView';
 import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -108,7 +108,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
   // Should dismiss Automatic Security checks screen
-  await EnableAutomaticSecurityChecksView.isVisible();
+  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
@@ -146,7 +146,7 @@ export const CreateNewWallet = async () => {
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
   //'Should dismiss Automatic Security checks screen'
-  await EnableAutomaticSecurityChecksView.isVisible();
+  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // 'should dismiss the onboarding wizard'

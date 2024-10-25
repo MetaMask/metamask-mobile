@@ -21,7 +21,8 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, dropdownIconStyle } = vars;
+
   return StyleSheet.create({
     base: Object.assign(
       {
@@ -35,9 +36,12 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    dropdownIcon: {
-      marginLeft: 16,
-    },
+    dropdownIcon: Object.assign(
+      {
+        marginLeft: 16,
+      } as ViewStyle,
+      dropdownIconStyle,
+    ),
   });
 };
 
