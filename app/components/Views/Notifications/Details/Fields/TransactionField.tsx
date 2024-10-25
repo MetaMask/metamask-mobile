@@ -21,7 +21,6 @@ import useCopyClipboard, {
 import useStyles from '../useStyles';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { TRIGGER_TYPES } from '../../../../../util/notifications';
 import type { Notification } from '../../../../../util/notifications/types';
 
 type TransactionFieldProps = ModalFieldTransaction & {

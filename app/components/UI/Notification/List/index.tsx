@@ -16,7 +16,7 @@ import {
 } from '../../../../util/notifications/notification-states';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+import { Notification } from '../../../../util/notifications';
 import {
   useListNotifications,
   useMarkNotificationAsRead,

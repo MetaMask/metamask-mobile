@@ -24,7 +24,6 @@ import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 import {
   type Notification,
-  TRIGGER_TYPES,
 } from '../../../../../util/notifications';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
