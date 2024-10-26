@@ -2065,6 +2065,7 @@ export class NetworkSettings extends PureComponent {
               <View style={styles.dropDownInput}>
                 <Cell
                   key={rpcUrl}
+                  testID={NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER}
                   variant={CellVariant.SelectWithMenu}
                   title={blockExplorerUrl}
                   isSelected={false}
@@ -2233,7 +2234,9 @@ export class NetworkSettings extends PureComponent {
                   )}
                   testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
                   placeholderTextColor={colors.text.muted}
-                  onSubmitEditing={this.toggleNetworkDetailsModal}
+                  onSubmitEditing={() => {
+                    this.onBlockExplorerItemAdd(blockExplorerUrlForm);
+                  }}
                   keyboardAppearance={themeAppearance}
                 />
                 {blockExplorerUrl &&
@@ -2247,6 +2250,7 @@ export class NetworkSettings extends PureComponent {
                 <View style={styles.addRpcNameButton}>
                   <ButtonPrimary
                     label={strings('app_settings.add_block_explorer_url')}
+                    testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     size={ButtonSize.Lg}
                     onPress={() => {
                       this.onBlockExplorerItemAdd(blockExplorerUrlForm);
@@ -2324,6 +2328,7 @@ export class NetworkSettings extends PureComponent {
                       this.openAddBlockExplorerForm();
                       this.closeBlockExplorerModal();
                     }}
+                    testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     width={ButtonWidthTypes.Auto}
                     labelTextVariant={TextVariant.DisplayMD}
                   />
