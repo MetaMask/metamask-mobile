@@ -45,7 +45,7 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,
-    handleMaxPress,
+    handleMax,
   } = useStakingInputHandlers(balanceWei);
 
   const navigateToLearnMoreModal = () => {
@@ -78,7 +78,7 @@ const StakeInputView = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.MAX_INPUT,
       params: {
-        handleMaxPress,
+        handleMaxPress: handleMax,
       },
     });
   };

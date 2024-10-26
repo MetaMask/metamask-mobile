@@ -130,7 +130,7 @@ const useStakingInputHandlers = (balance: BN) => {
     [balance, conversionRate],
   );
 
-  const handleMaxPress = useCallback(() => {
+  const handleMax = useCallback(() => {
     if (!balance) return;
 
     const newEthAmount = renderFromWei(maxStakeableAmountWei, 5);
@@ -205,7 +205,7 @@ const useStakingInputHandlers = (balance: BN) => {
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,
-    handleMaxPress,
+    handleMax,
     isLoadingStakingGasFee,
   };
 };
