@@ -9,6 +9,7 @@ import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { BN } from 'ethereumjs-util';
 import { formatEther } from 'ethers/lib/utils';
 import Engine from '../../../../core/Engine';
+import { hexToBN } from '../../../../util/number';
 
 interface StakingGasFee {
   estimatedGasFeeWei: BN;
@@ -97,7 +98,7 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
         break;
     }
 
-    const weiGasPrice = new BN(decGWEIToHexWEI(gasPrice) as string, 'hex');
+    const weiGasPrice = hexToBN(decGWEIToHexWEI(gasPrice));
     const estimatedGasFeeWei = weiGasPrice.muln(gasLimit);
 
     return {
