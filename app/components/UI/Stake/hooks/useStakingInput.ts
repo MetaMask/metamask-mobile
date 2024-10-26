@@ -8,11 +8,10 @@ import {
 import {
   toWei,
   weiToFiatNumber,
-  renderFromTokenMinimalUnit,
   fiatNumberToWei,
-  fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
   renderFiat,
+  renderFromWei,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import useVaultData from './useVaultData';
@@ -69,9 +68,8 @@ const useStakingInputHandlers = (balance: BN) => {
   const handleFiatInput = useCallback(
     (value: string) => {
       setFiatAmount(value);
-      const ethValue = renderFromTokenMinimalUnit(
+      const ethValue = renderFromWei(
         fiatNumberToWei(value, conversionRate).toString(),
-        18,
         5,
       );
 
@@ -107,14 +105,7 @@ const useStakingInputHandlers = (balance: BN) => {
 
       const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
 
-      const newAmountString = fromTokenMinimalUnitString(
-        amountPercentage.toString(10),
-        18,
-      );
-      const newEthAmount = limitToMaximumDecimalPlaces(
-        Number(newAmountString),
-        5,
-      );
+      const newEthAmount = renderFromWei(amountPercentage, 5);
       setAmountEth(newEthAmount);
       setAmountWei(amountPercentage);
 
@@ -131,19 +122,13 @@ const useStakingInputHandlers = (balance: BN) => {
   const handleMaxPress = useCallback(() => {
     if (!balance) return;
 
-    const newAmountString = fromTokenMinimalUnitString(
-      maxStakeableAmountWei.toString(10),
-      18,
-    );
-    const newEthAmount = limitToMaximumDecimalPlaces(
-      Number(newAmountString),
-      5,
-    );
+    const newEthAmount = renderFromWei(maxStakeableAmountWei, 5);
+
     setAmountEth(newEthAmount);
     setAmountWei(maxStakeableAmountWei);
 
     const newFiatAmount = weiToFiatNumber(
-      toWei(newEthAmount.toString(), 'ether'),
+      maxStakeableAmountWei,
       conversionRate,
       2,
     ).toString();
