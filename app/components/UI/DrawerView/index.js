@@ -68,6 +68,7 @@ import {
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
   selectNetworkConfigurations,
@@ -869,6 +870,7 @@ class DrawerView extends PureComponent {
           name: strings('drawer.lock'),
           icon: this.getFeatherIcon('log-out'),
           action: this.lock,
+          // ...generateTestId(Platform, DRAWER_VIEW_LOCK_ICON_ID),
           testID: DRAWER_VIEW_LOCK_TEXT_ID,
         },
       ],
@@ -1159,7 +1161,7 @@ class DrawerView extends PureComponent {
                                 ? styles.selectedName
                                 : null,
                             ]}
-                            testID={item.testID}
+                            {...generateTestId(Platform, item.testID)}
                             numberOfLines={1}
                           >
                             {item.name}
