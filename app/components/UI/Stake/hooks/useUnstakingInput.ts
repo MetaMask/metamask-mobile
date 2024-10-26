@@ -107,7 +107,7 @@ const useUnstakingInputHandlers = (balance: BN) => {
       setAmountWei(amountPercentage);
 
       const newFiatAmount = weiToFiatNumber(
-        toWei(newEthAmount.toString(), 'ether'),
+        amountPercentage,
         conversionRate,
         2,
       ).toString();
