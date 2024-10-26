@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useStakeContext } from './useStakeContext';
 import type { PooledStakingContract } from '@metamask/stake-sdk';
 import { useSelector } from 'react-redux';
@@ -16,6 +16,7 @@ interface StakingGasFee {
   gasLimit: number;
   isLoadingStakingGasFee: boolean;
   isStakingGasFeeError: boolean;
+  refreshGasValues: () => void;
 }
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -35,38 +36,36 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
   const [isStakingGasFeeError, setIsStakingGasFeeError] =
     useState<boolean>(false);
 
-  useEffect(() => {
+  const fetchDepositGasValues = useCallback(async () => {
     const { GasFeeController } = Engine.context;
 
-    const fetchDepositGasValues = async () => {
-      setIsLoadingStakingGasFee(true);
-      setIsStakingGasFeeError(false);
-      try {
-        await GasFeeController.fetchGasFeeEstimates();
-        const depositGasLimit =
-          depositValueWei === '0'
-            ? DEFAULT_GAS_LIMIT
-            : await pooledStakingContract.estimateDepositGas(
-                formatEther(depositValueWei),
-                selectedAddress,
-                ZERO_ADDRESS,
-              );
+    setIsLoadingStakingGasFee(true);
+    setIsStakingGasFeeError(false);
+    try {
+      await GasFeeController.fetchGasFeeEstimates();
+      const depositGasLimit =
+        depositValueWei === '0'
+          ? DEFAULT_GAS_LIMIT
+          : await pooledStakingContract.estimateDepositGas(
+              formatEther(depositValueWei),
+              selectedAddress,
+              ZERO_ADDRESS,
+            );
 
-        const gasLimitWithBuffer = Math.ceil(
-          depositGasLimit * GAS_LIMIT_BUFFER,
-        );
-        setGasLimit(gasLimitWithBuffer);
-      } catch (error) {
-        console.error('Error fetching gas limit:', error);
-        setGasLimit(DEFAULT_GAS_LIMIT);
-        setIsStakingGasFeeError(true);
-      } finally {
-        setIsLoadingStakingGasFee(false);
-      }
-    };
-
-    fetchDepositGasValues();
+      const gasLimitWithBuffer = Math.ceil(depositGasLimit * GAS_LIMIT_BUFFER);
+      setGasLimit(gasLimitWithBuffer);
+    } catch (error) {
+      console.error('Error fetching gas limit:', error);
+      setGasLimit(DEFAULT_GAS_LIMIT);
+      setIsStakingGasFeeError(true);
+    } finally {
+      setIsLoadingStakingGasFee(false);
+    }
   }, [depositValueWei, pooledStakingContract, selectedAddress]);
+
+  useEffect(() => {
+    fetchDepositGasValues();
+  }, [fetchDepositGasValues]);
 
   if (
     gasLimit === 0 ||
@@ -77,10 +76,11 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
       gasLimit,
       isLoadingStakingGasFee,
       isStakingGasFeeError: true,
+      refreshGasValues: fetchDepositGasValues,
     };
   }
 
-  const estimateRange = 'medium';
+  const estimateRange = 'high';
   let gasPrice: string;
 
   try {
@@ -106,6 +106,7 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
       gasLimit,
       isLoadingStakingGasFee,
       isStakingGasFeeError,
+      refreshGasValues: fetchDepositGasValues,
     };
   } catch (error) {
     console.error('Error calculating gas fee estimate:', error);
@@ -114,6 +115,7 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
       gasLimit: 0,
       isLoadingStakingGasFee: false,
       isStakingGasFeeError: true,
+      refreshGasValues: fetchDepositGasValues,
     };
   }
 };
