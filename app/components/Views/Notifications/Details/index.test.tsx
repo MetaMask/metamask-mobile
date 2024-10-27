@@ -67,7 +67,9 @@ describe('NotificationsDetails', () => {
   });
 
   it('derives state correctly based on notification type', () => {
-    (NotificationComponentState[MOCK_NOTIFICATIONS[1].type] as unknown) = {
+    const notificationType = MOCK_NOTIFICATIONS[1].type as keyof typeof NotificationComponentState;
+
+    (NotificationComponentState[notificationType] as unknown) = {
       createModalDetails: jest.fn().mockReturnValue({
         title: 'Test Title',
         createdAt: new Date().toISOString(),
