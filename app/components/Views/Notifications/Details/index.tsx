@@ -72,7 +72,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   const HeaderTitle = useCallback(
     () => (
       <Header
-        title={state?.title || ''}
+        title={state?.title ?? ''}
         subtitle={toLocaleDate(state?.createdAt)}
       />
     ),
