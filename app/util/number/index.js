@@ -449,7 +449,7 @@ export function toWei(value, unit = 'ether') {
  * @returns {Object} - BN instance containing the new number
  */
 export function toGwei(value, unit = 'ether') {
-  return fromWei(value, unit) * 1000000000;
+  return fromWei(toBN(value), unit).mul(1000000000);
 }
 
 /**
@@ -460,10 +460,8 @@ export function toGwei(value, unit = 'ether') {
  * @returns {string} - String instance containing the renderable number
  */
 export function renderToGwei(value, unit = 'ether') {
-  const gwei = fromWei(value, unit) * 1000000000;
-  let gweiFixed = parseFloat(Math.round(gwei));
-  gweiFixed = isNaN(gweiFixed) ? 0 : gweiFixed;
-  return gweiFixed;
+  const gwei = toGwei(value, unit);
+  return gwei.toString();
 }
 
 /**
