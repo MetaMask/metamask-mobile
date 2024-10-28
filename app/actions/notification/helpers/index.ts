@@ -3,7 +3,7 @@ import { getErrorMessage } from '@metamask/utils';
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
 import { Notification, mmStorage, getAllUUIDs } from '../../../util/notifications';
-import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/user-storage.mjs';
+import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
 
 export type MarkAsReadNotificationsParam = Pick<
   Notification,
