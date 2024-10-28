@@ -25,7 +25,7 @@ import {
 } from '../../../../../util/confirmation/signatureUtils';
 import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
@@ -270,7 +270,7 @@ class TypedSign extends PureComponent {
         truncateMessage={truncateMessage}
         type={typedSign[messageParams.version]}
         fromAddress={from}
-        testID={SigningModalSelectorsIDs.TYPED_REQUEST}
+        testID={SigningBottomSheetSelectorsIDs.TYPED_REQUEST}
       >
         <View
           style={messageWrapperStyles}
