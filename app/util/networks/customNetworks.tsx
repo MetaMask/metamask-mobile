@@ -130,10 +130,9 @@ export const UnpopularNetworkList = [
   },
 ];
 
-console.log('THIS: ', toHex(33139));
-
 export const CustomNetworkImgMapping: Record<`0x${string}`, string> = {
   '0xe': require('../../images/flare-mainnet.png'), // Flare Mainnet
   '0x13': require('../../images/songbird.png'), // Songbird Testnet
-  [toHex(33139)]: require('../../images/ape-network.png'),
+  '0x8157': require('../../images/ape-network.png'), // ApeChain testnet
+  '0x8173': require('../../images/ape-network.png'), // ApeChain mainnet
 };
