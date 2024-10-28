@@ -19,17 +19,16 @@ function switchNetwork({
     typeof switchToChainId === 'number' ||
     typeof switchToChainId === 'string'
   ) {
-    const chainId = selectChainId(store.getState());
-
-    if (chainId === toHex(switchToChainId)) {
-      return;
-    }
+    const activeChainId = selectChainId(store.getState());
 
     const newChainId = String(switchToChainId);
     const networkName = handleNetworkSwitch(newChainId);
 
     if (!networkName) {
-      throw new Error(`Unable to find network with chain id ${chainId}`);
+      if (activeChainId === toHex(newChainId)) {
+        return;
+      }
+      throw new Error(`Unable to find network with chain id ${newChainId}`);
     }
 
     deeplinkManager.dispatch(
