@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NetworkFeeField should renders correctly when type has "ModalField-NetworkFee" 1`] = `
+exports[`NetworkFeeField renders correctly when type has "ModalField-NetworkFee" 1`] = `
 <View
   style={
     {

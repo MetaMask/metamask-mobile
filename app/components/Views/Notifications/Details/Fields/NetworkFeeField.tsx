@@ -37,7 +37,7 @@ type NetworkFeeFieldProps = ModalFieldNetworkFee & {
 
 type NetworkFee = Awaited<ReturnType<ModalFieldNetworkFee['getNetworkFees']>>;
 
-function useNetworkFee({ getNetworkFees }: NetworkFeeFieldProps) {
+export function useNetworkFee({ getNetworkFees }: NetworkFeeFieldProps) {
   const [data, setData] = useState<NetworkFee | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
@@ -149,7 +149,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
 
   return (
     <>
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity testID="network-fee-field" onPress={onPress}>
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}
