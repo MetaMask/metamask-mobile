@@ -443,6 +443,7 @@ function SwapsQuotesView({
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isHandlingSwap, setIsHandlingSwap] = useState(false);
   const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
     useState(null);
 
@@ -1072,6 +1073,8 @@ function SwapsQuotesView({
     if (!selectedQuote) {
       return;
     }
+    setIsHandlingSwap(true);
+
 
     const isHardwareAddress = isHardwareAccount(selectedAddress);
 
@@ -1097,6 +1100,7 @@ function SwapsQuotesView({
       await handleSwapTransaction(approvalTransactionMetaId);
     }
 
+    setIsHandlingSwap(false);
     navigation.dangerouslyGetParent()?.pop();
   }, [
     selectedQuote,
@@ -2151,7 +2155,7 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap || isAnimating}>
+        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap || isHandlingSwap || isAnimating}>
           {strings('swaps.swap')}
         </StyledButton>
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
