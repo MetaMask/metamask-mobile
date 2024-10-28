@@ -264,7 +264,7 @@ describe('Transaction event handlers', () => {
   });
 
   describe('_handleTransactionFinalizedEvent', () => {
-    it('should track event with basic properties when smart transactions are disabled', async () => {
+    it('tracks event with basic properties when smart transactions are disabled', async () => {
       const properties = { status: 'confirmed' };
       const transactionEventPayload: TransactionEventPayload = {
         transactionMeta: { hash: '0x123' } as TransactionMeta,
@@ -286,7 +286,7 @@ describe('Transaction event handlers', () => {
       );
     });
 
-    it('should not process smart transaction metrics if transactionMeta is missing', async () => {
+    it('does not process smart transaction metrics if transactionMeta is missing', async () => {
       const properties = { status: 'failed' };
       const transactionEventPayload = {} as TransactionEventPayload;
 
@@ -308,7 +308,7 @@ describe('Transaction event handlers', () => {
   });
 
   describe('Transaction status handlers', () => {
-    it('should handle dropped transactions', async () => {
+    it('tracks dropped transactions', async () => {
       const transactionEventPayload: TransactionEventPayload = {
         transactionMeta: { hash: '0x123' } as TransactionMeta,
       };
@@ -326,7 +326,7 @@ describe('Transaction event handlers', () => {
       );
     });
 
-    it('should handle confirmed transactions', async () => {
+    it('tracks confirmed transactions', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
 
       await engine._handleTransactionConfirmed(transactionMeta);
@@ -342,7 +342,7 @@ describe('Transaction event handlers', () => {
       );
     });
 
-    it('should handle failed transactions', async () => {
+    it('tracks failed transactions', async () => {
       const transactionEventPayload: TransactionEventPayload = {
         transactionMeta: { hash: '0x123' } as TransactionMeta,
       };
@@ -362,7 +362,7 @@ describe('Transaction event handlers', () => {
   });
 
   describe('_addTransactionControllerListeners', () => {
-    it('should subscribe to transaction events', () => {
+    it('subscribes to transaction events', () => {
       jest.spyOn(engine.controllerMessenger, 'subscribe');
 
       engine._addTransactionControllerListeners();
