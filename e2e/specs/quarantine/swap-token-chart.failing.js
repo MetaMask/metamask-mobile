@@ -53,8 +53,8 @@ describe(Regression('Swap from Token view'), () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
+    await Assertions.checkIfVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
-    await TokenOverview.isVisible();
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await Assertions.checkIfVisible(QuoteView.getQuotes);
