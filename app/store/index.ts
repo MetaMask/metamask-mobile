@@ -9,6 +9,8 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
+import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
+
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
@@ -46,6 +48,11 @@ const createStoreAndPersistor = async () => {
     middlewares.push(createReduxFlipperDebugger());
   }
 
+  trace({
+    name: TraceName.CreateStore,
+    op: TraceOperation.CreateStore,
+  });
+
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -54,10 +61,19 @@ const createStoreAndPersistor = async () => {
 
   sagaMiddleware.run(rootSaga);
 
+  endTrace({ name: TraceName.CreateStore });
+
+  trace({
+    name: TraceName.StorageRehydration,
+    op: TraceOperation.StorageRehydration,
+  });
+
   /**
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+    endTrace({ name: TraceName.StorageRehydration });
+
     /**
      * EngineService.initalizeEngine(store) with SES/lockdown:
      * Requires ethjs nested patches (lib->src)
@@ -73,6 +89,7 @@ const createStoreAndPersistor = async () => {
      * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
      * - V8: SES_UNHANDLED_REJECTION
      */
+
     store.dispatch({
       type: 'TOGGLE_BASIC_FUNCTIONALITY',
       basicFunctionalityEnabled:
@@ -83,7 +100,16 @@ const createStoreAndPersistor = async () => {
       store.dispatch({
         type: 'FETCH_FEATURE_FLAGS',
       });
-    EngineService.initalizeEngine(store);
+    trace(
+      {
+        name: TraceName.EngineInitialization,
+        op: TraceOperation.EngineInitialization,
+      },
+      () => {
+        EngineService.initalizeEngine(store);
+      },
+    );
+
     Authentication.init(store);
     AppStateEventProcessor.init(store);
     LockManagerService.init(store);
@@ -93,7 +119,13 @@ const createStoreAndPersistor = async () => {
 };
 
 (async () => {
-  await createStoreAndPersistor();
+  await trace(
+    {
+      name: TraceName.UIStartup,
+      op: TraceOperation.UIStartup,
+    },
+    async () => await createStoreAndPersistor(),
+  );
 })();
 
 export { store, persistor };
