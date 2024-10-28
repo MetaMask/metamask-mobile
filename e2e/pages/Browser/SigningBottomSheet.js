@@ -1,26 +1,26 @@
-import { SigningModalSelectorsIDs } from '../../selectors/Browser/SigningModal.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../selectors/Browser/SigningBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class SigningBottomSheet {
   get signButton() {
     return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(SigningModalSelectorsIDs.SIGN_BUTTON)
-      : Matchers.getElementByID(SigningModalSelectorsIDs.SIGN_BUTTON);
+      ? Matchers.getElementByLabel(SigningBottomSheetSelectorsIDs.SIGN_BUTTON)
+      : Matchers.getElementByID(SigningBottomSheetSelectorsIDs.SIGN_BUTTON);
   }
 
   get cancelButton() {
     return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(SigningModalSelectorsIDs.CANCEL_BUTTON)
-      : Matchers.getElementByID(SigningModalSelectorsIDs.CANCEL_BUTTON);
+      ? Matchers.getElementByLabel(SigningBottomSheetSelectorsIDs.CANCEL_BUTTON)
+      : Matchers.getElementByID(SigningBottomSheetSelectorsIDs.CANCEL_BUTTON);
   }
 
   get personalRequest() {
-    return Matchers.getElementByID(SigningModalSelectorsIDs.PERSONAL_REQUEST);
+    return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST);
   }
 
   get typedRequest() {
-    return Matchers.getElementByID(SigningModalSelectorsIDs.TYPED_REQUEST);
+    return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.TYPED_REQUEST);
   }
 
   async tapSignButton() {

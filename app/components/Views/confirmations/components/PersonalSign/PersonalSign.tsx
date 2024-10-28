@@ -20,7 +20,7 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningModal.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -244,7 +244,7 @@ const PersonalSign = ({
       type="personal_sign"
       fromAddress={messageParams.from}
       origin={messageParams.origin}
-      testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
+      testID={SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

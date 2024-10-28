@@ -1,6 +1,6 @@
 import enContent from '../../../locales/languages/en.json';
 
-export const ConnectAccountModalSelectorsIDs = {
+export const ConnectAccountBottomSheetSelectorsIDs = {
   CONTAINER: 'connect-account-modal',
   SELECT_MULTI_BUTTON: 'multiconnect-connect-button',
   CONNECT_BUTTON: 'connect-button',
@@ -8,7 +8,7 @@ export const ConnectAccountModalSelectorsIDs = {
   SELECT_ALL_BUTTON: 'select-all-button',
 };
 
-export const ConnectAccountModalSelectorsText = {
+export const ConnectAccountBottomSheetSelectorsText = {
   CONNECT: enContent.accounts.connect,
   CONNECT_ACCOUNTS: enContent.accounts.connect_multiple_accounts,
   IMPORT_ACCOUNT: enContent.account_actions.add_account_or_hardware_wallet,

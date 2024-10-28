@@ -22,7 +22,7 @@ import HelpText, {
 } from '../../../../component-library/components/Form/HelpText';
 
 // Internal dependencies.
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountModal.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
 import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
@@ -108,7 +108,7 @@ const AccountConnectMultiSelector = ({
             ...(isLoading && styles.disabled),
           }}
           label={strings('accounts.select_all')}
-          testID={ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON}
+          testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
         />
       ),
     [accounts, isLoading, onSelectAddress, styles],
@@ -228,7 +228,7 @@ const AccountConnectMultiSelector = ({
                 ...(isConnectDisabled && styles.disabled),
               }}
               disabled={isConnectDisabled}
-              testID={ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON}
+              testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
             />
           )}
         </View>

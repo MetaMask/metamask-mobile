@@ -1,24 +1,24 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
-import { ConnectAccountModalSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectAccountModal.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 
 class AccountApprovalModal {
   get modalContainer() {
     return Selectors.getXpathElementByResourceId(
-      ConnectAccountModalSelectorsIDs.CONTAINER,
+      ConnectAccountBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
   get connectButton() {
-    return Selectors.getElementByPlatform(ConnectAccountModalSelectorsIDs.CONNECT_BUTTON);
+    return Selectors.getElementByPlatform(ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON);
   }
 
   get connectMultipleAccountsButton() {
-    return Selectors.getElementByPlatform(ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON);
+    return Selectors.getElementByPlatform(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON);
   }
 
   get selectAllButton() {
-    return Selectors.getElementByPlatform(ConnectAccountModalSelectorsIDs.SELECT_ALL_BUTTON);
+    return Selectors.getElementByPlatform(ConnectAccountBottomSheetSelectorsIDs.SELECT_ALL_BUTTON);
   }
 
   get amountInputField() {

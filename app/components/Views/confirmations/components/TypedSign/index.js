@@ -25,7 +25,7 @@ import {
 } from '../../../../../util/confirmation/signatureUtils';
 import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningModal.selectors';
+import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
