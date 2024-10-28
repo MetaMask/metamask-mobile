@@ -17,8 +17,8 @@ import Assertions from '../../utils/Assertions';
 import {
   startMockServer,
   stopMockServer
-} from '../../mockServer/mock-server';
-import { mockEvents } from '../../mockServer/mock-config/mock-events';
+} from '../../api-mocking/mock-server';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 

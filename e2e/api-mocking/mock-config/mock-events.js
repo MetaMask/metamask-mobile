@@ -1,7 +1,7 @@
 import {
   suggestedGasApiResponses,
   suggestedGasFeesApiGanache,
-} from '../mock-responses/mock-responses.json';
+} from '../mock-responses/gas-api-responses.json';
 
 export const mockEvents = {
   GET: {
