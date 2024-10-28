@@ -4,7 +4,7 @@ import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
-import ConnectModal from '../pages/Browser/ConnectModal';
+import ConnectBottomSheet from '../pages/Browser/ConnectBottomSheet';
 import AssetWatchModal from '../pages/modals/AssetWatchModal';
 import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 
@@ -59,9 +59,9 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(ConnectModal.container);
-            await ConnectModal.tapConnectButton();
-            await Assertions.checkIfNotVisible(ConnectModal.container);
+            await Assertions.checkIfVisible(ConnectBottomSheet.container);
+            await ConnectBottomSheet.tapConnectButton();
+            await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
             await TestHelpers.delay(3000);
 
             try {

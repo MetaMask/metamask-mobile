@@ -6,7 +6,7 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
-class ConnectModal {
+class ConnectBottomSheet {
   get container() {
     return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
   }
@@ -74,4 +74,4 @@ class ConnectModal {
   }
 }
 
-export default new ConnectModal();
+export default new ConnectBottomSheet();

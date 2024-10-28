@@ -2,7 +2,7 @@ import { SigningModalSelectorsIDs } from '../../selectors/Browser/SigningModal.s
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
-class SigningModal {
+class SigningBottomSheet {
   get signButton() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(SigningModalSelectorsIDs.SIGN_BUTTON)
@@ -32,4 +32,4 @@ class SigningModal {
   }
 }
 
-export default new SigningModal();
+export default new SigningBottomSheet();

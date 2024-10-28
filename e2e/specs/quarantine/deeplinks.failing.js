@@ -2,7 +2,7 @@
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 
-import ConnectModal from '../../pages/Browser/ConnectModal';
+import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 
@@ -193,12 +193,12 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
     await TestHelpers.delay(4500);
 
-    await Assertions.checkIfVisible(ConnectModal.container);
-    await ConnectModal.tapConnectButton();
+    await Assertions.checkIfVisible(ConnectBottomSheet.container);
+    await ConnectBottomSheet.tapConnectButton();
 
     await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
     await Assertions.checkIfVisible(Browser.browserScreenID);
-    await Assertions.checkIfNotVisible(ConnectModal.container);
+    await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
   });
 });

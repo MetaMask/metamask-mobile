@@ -2,7 +2,7 @@
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
-import SigningModal from '../../../pages/Browser/SigningModal';
+import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
@@ -37,16 +37,16 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfVisible(SigningModal.personalRequest);
-        await SigningModal.tapCancelButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapCancelButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
 
         await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfVisible(SigningModal.personalRequest);
-        await SigningModal.tapSignButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
       },
     );
   });
