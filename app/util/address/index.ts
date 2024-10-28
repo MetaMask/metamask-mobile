@@ -153,8 +153,8 @@ export async function importAccountFromPrivateKey(private_key: string) {
   // Import private key
   let pkey = private_key;
   // Handle PKeys with 0x
-  if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-    pkey = pkey.substr(2);
+  if (pkey.length === 66 && pkey.substring(0, 3) === '0x') {
+    pkey = pkey.substring(2);
   }
   const importedAccountAddress =
     await KeyringController.importAccountWithStrategy(
@@ -321,7 +321,7 @@ export function isENS(name: string | undefined = undefined) {
   const tld =
     index &&
     index >= OFFSET &&
-    tlc(name.substr(index + OFFSET, name.length - OFFSET));
+    tlc(name.substring(index + OFFSET, name.length - OFFSET + 1));
   if (index && tld && !!match) return true;
   return false;
 }

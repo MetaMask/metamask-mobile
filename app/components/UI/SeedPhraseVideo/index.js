@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 
 const SeedPhraseVideo = ({ style, onClose }) => {
   const [showVideo, setShowVideo] = useState(false);
-  const language = I18n.locale.substr(0, 2);
+  const language = I18n.locale.substring(0, 3);
 
   useEffect(() => {
     InteractionManager.runAfterInteractions(() => {

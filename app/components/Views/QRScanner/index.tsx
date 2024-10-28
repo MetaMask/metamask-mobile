@@ -219,7 +219,7 @@ const QRScanner = ({
         ) {
           shouldReadBarCodeRef.current = false;
           data = {
-            private_key: content.length === 64 ? content : content.substr(2),
+            private_key: content.length === 64 ? content : content.substring(2),
           };
         } else if (content.substring(0, 2).toLowerCase() === '0x') {
           shouldReadBarCodeRef.current = false;

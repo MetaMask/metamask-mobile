@@ -208,7 +208,7 @@ class Settings extends PureComponent {
   };
 
   state = {
-    currentLanguage: I18n.locale.substr(0, 2),
+    currentLanguage: I18n.locale.substring(0, 3),
     languages: {},
   };
 

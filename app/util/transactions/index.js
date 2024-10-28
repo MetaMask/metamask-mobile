@@ -247,8 +247,8 @@ export function generateApprovalData(opts) {
 
 export function decodeApproveData(data) {
   return {
-    spenderAddress: addHexPrefix(data.substr(34, 40)),
-    encodedAmount: data.substr(74, 138),
+    spenderAddress: addHexPrefix(data.substring(34, 41)),
+    encodedAmount: data.substring(74, 139),
   };
 }
 
@@ -321,7 +321,7 @@ export async function getMethodData(data) {
     return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
   } else if (fourByteSignature === SET_APPROVAL_FOR_ALL_SIGNATURE) {
     return { name: TOKEN_METHOD_SET_APPROVAL_FOR_ALL };
-  } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
+  } else if (data.substring(0, 33) === CONTRACT_CREATION_SIGNATURE) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
   // If it's a new method, use on-chain method registry
@@ -746,7 +746,7 @@ export const calculateEIP1559Times = ({
   }
 
   try {
-    const language = I18n.locale.substr(0, 2);
+    const language = I18n.locale.substring(0, 3);
 
     const timeParams = {
       language,

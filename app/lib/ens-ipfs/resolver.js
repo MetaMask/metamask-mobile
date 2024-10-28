@@ -95,11 +95,11 @@ function getRegistryForChainId(chainId) {
 
 export function isGatewayUrl(urlObj) {
   // All IPFS gateway urls start with the path /ipfs/
-  if (urlObj.pathname.substr(0, 6) === '/ipfs/') return true;
+  if (urlObj.pathname.substring(0, 7) === '/ipfs/') return true;
   // All Swarm gateway urls start with the path /bzz:/
-  if (urlObj.pathname.substr(0, 6) === '/bzz:/') return true;
+  if (urlObj.pathname.substring(0, 7) === '/bzz:/') return true;
   // All IPNS gateway urls start with the path /ipns/
-  if (urlObj.pathname.substr(0, 6) === '/ipns/') return true;
+  if (urlObj.pathname.substring(0, 7) === '/ipns/') return true;
 
   return false;
 }
