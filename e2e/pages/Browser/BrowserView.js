@@ -7,6 +7,7 @@ import {
 } from '../../selectors/Browser/BrowserView.selectors';
 import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
+import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -15,12 +16,24 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.SEARCH_BUTTON);
   }
 
+  get optionsButton() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.OPTIONS_BUTTON);
+  }
+
   get tabsButton() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_BUTTON);
   }
 
+  get homeButton() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.HOME_BUTTON);
+  }
+
   get browserScreenID() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+  }
+
+  get androidBrowserWebViewID() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
   }
 
   get addressBar() {
@@ -33,6 +46,7 @@ class Browser {
   get clearURLButton() {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
+
   get backToSafetyButton() {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
@@ -41,6 +55,12 @@ class Browser {
 
   get returnHomeButton() {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
+  }
+
+  get addFavouritesButton() {
+    return Matchers.getElementByText(
+      BrowserViewSelectorsText.ADD_FAVORITES_BUTTON,
+    );
   }
 
   get homePageFavouritesTab() {
@@ -62,6 +82,10 @@ class Browser {
         );
   }
 
+  get multiTabButton() {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
+  }
+
   get networkAvatarButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(BrowserViewSelectorsIDs.AVATAR_IMAGE)
@@ -69,6 +93,12 @@ class Browser {
           AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
           BrowserViewSelectorsIDs.AVATAR_IMAGE,
         );
+  }
+
+  get addBookmarkButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
+      : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
   get tabsNumber() {
@@ -83,12 +113,23 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
   }
 
+  async getFavoritesURL(url) {
+    return Matchers.getElementByHref(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      url,
+    );
+  }
+
   async tapUrlInputBox() {
     await Gestures.waitAndTap(this.addressBar);
   }
 
   async tapBottomSearchBar() {
     await Gestures.waitAndTap(this.searchButton);
+  }
+
+  async tapOptionsButton() {
+    await Gestures.waitAndTap(this.optionsButton);
   }
 
   async tapOpenAllTabsButton() {
@@ -99,8 +140,24 @@ class Browser {
     await Gestures.waitAndTap(this.closeAllTabsButton);
   }
 
+  async tapOpenNewTabButton() {
+    await Gestures.waitAndTap(this.multiTabButton);
+  }
+
   async tapNetworkAvatarButtonOnBrowser() {
     await Gestures.waitAndTap(this.networkAvatarButton);
+  }
+
+  async tapAddToFavoritesButton() {
+    await Gestures.waitAndTap(this.addFavouritesButton);
+  }
+
+  async tapAddBookmarksButton() {
+    await Gestures.waitAndTap(this.addBookmarkButton);
+  }
+
+  async tapHomeButton() {
+    await Gestures.waitAndTap(this.homeButton);
   }
 
   async tapBackToSafetyButton() {
