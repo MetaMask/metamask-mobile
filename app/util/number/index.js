@@ -115,7 +115,7 @@ export function fromWei(value = 0, unit = 'ether') {
  */
 export function fromTokenMinimalUnit(
   minimalInput,
-  decimals,
+  decimals = 0,
   isRounding = true,
 ) {
   minimalInput = isRounding ? Number(minimalInput) : minimalInput;
