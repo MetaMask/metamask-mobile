@@ -348,7 +348,7 @@ class Confirm extends PureComponent {
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
-    setRequestSource(baseParams.request_source);
+    setRequestSource(baseParams.dapp_host_name, baseParams.request_source);
 
     try {
       const { SmartTransactionsController } = Engine.context;
@@ -1531,8 +1531,8 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   updateTransactionMetrics: ({ transactionId, params }) =>
     dispatch(updateTransactionMetrics({ transactionId, params })),
-  setRequestSource: (requestSource) =>
-    dispatch(setRequestSource(requestSource)),
+  setRequestSource: (dappHostName, requestSource) =>
+    dispatch(setRequestSource(dappHostName, requestSource)),
 });
 
 export default connect(

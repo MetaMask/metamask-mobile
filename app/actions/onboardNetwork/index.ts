@@ -40,12 +40,13 @@ export const showNetworkOnboardingAction = ({
 });
 
 /**
- * Set the connection's request source for the network
+ * Set or update the connection's request source for the network.
  *
- * @param {string} requestSource - The connection's request source
+ * @param {string} hostname - The hostname for which to set the request source.
+ * @param {string} source - The connection's request source.
  * @returns
  */
-export const setRequestSource = (requestSource: string) => ({
+export const setRequestSource = (hostname: string, source: string) => ({
   type: 'SET_REQUEST_SOURCE',
-  requestSource,
+  payload: { hostname, source },
 });

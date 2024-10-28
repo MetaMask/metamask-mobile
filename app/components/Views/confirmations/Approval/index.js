@@ -369,7 +369,7 @@ class Approval extends PureComponent {
         : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
-    setRequestSource(baseParams.request_source);
+    setRequestSource(baseParams.dapp_host_name, baseParams.request_source);
 
     try {
       const { selectedAsset } = transaction;
@@ -709,8 +709,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
-  setRequestSource: (requestSource) =>
-    dispatch(setRequestSource(requestSource)),
+  setRequestSource: (dappHostName, requestSource) =>
+    dispatch(setRequestSource(dappHostName, requestSource)),
 });
 
 Approval.contextType = ThemeContext;

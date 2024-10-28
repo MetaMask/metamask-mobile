@@ -594,7 +594,7 @@ class ApproveTransactionReview extends PureComponent {
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
-    setRequestSource(baseParams.request_source);
+    setRequestSource(baseParams.dapp_host_name, baseParams.request_source);
 
     try {
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
@@ -1338,8 +1338,8 @@ const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
   showAlert: (config) => dispatch(showAlert(config)),
-  setRequestSource: (requestSource) =>
-    dispatch(setRequestSource(requestSource)),
+  setRequestSource: (dappHostName, requestSource) =>
+    dispatch(setRequestSource(dappHostName, requestSource)),
 });
 
 ApproveTransactionReview.contextType = ThemeContext;
