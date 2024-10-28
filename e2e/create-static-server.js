@@ -6,7 +6,7 @@ import serveHandler from 'serve-handler';
 const createStaticServer = function (rootDirectory) {
   return http.createServer((request, response) => {
     if (request.url.startsWith('/node_modules/')) {
-      request.url = request.url.substr(14);
+      request.url = request.url.substring(14);
       return serveHandler(request, response, {
         directoryListing: false,
         public: path.resolve('./node_modules'),
