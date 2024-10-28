@@ -568,7 +568,7 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
     return undefined;
   }
   const eth = new BigNumber(fromWei(wei), 10);
-  const value = parseFloat(eth.multipliedBy(new BigNumber(conversionRate, 10)).toPrecision(decimalsToShow));
+  const value = parseFloat(eth.multipliedBy(new BigNumber(conversionRate, 10)).decimalPlaces(decimalsToShow).toString());
   return value;
 }
 

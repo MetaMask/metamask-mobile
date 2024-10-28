@@ -77,7 +77,7 @@ describe('useBalance', () => {
     expect(result.current.balanceFiatNumber).toBe(39506172511.6); // Fiat number balance
     expect(result.current.stakedBalanceWei).toBe('5791332670714232000'); // No staked assets
     expect(result.current.formattedStakedBalanceETH).toBe('5.79133 ETH'); // Formatted ETH balance
-    expect(result.current.stakedBalanceFiatNumber).toBe(18532.26454); // Staked balance in fiat number
+    expect(result.current.stakedBalanceFiatNumber).toBe(18532.26455); // Staked balance in fiat number
     expect(result.current.formattedStakedBalanceFiat).toBe('$18532.26'); //
   });
 
