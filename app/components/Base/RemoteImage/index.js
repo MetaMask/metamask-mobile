@@ -70,7 +70,10 @@ const RemoteImage = (props) => {
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState(false);
 
   const uri =
-    resolvedIpfsUrl || (source.uri?.startsWith('ipfs') ? '' : source.uri);
+    resolvedIpfsUrl ||
+    (source.uri === undefined || source.uri?.startsWith('ipfs')
+      ? ''
+      : source.uri);
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
