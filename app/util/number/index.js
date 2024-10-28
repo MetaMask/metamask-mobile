@@ -116,8 +116,14 @@ export function fromWei(value = 0, unit = 'ether') {
 export function fromTokenMinimalUnit(
   minimalInput,
   decimals = 0,
-  isRounding = true,
+  _isRounding = true,
 ) {
+  const value = new BigNumber(
+    (isBN(minimalInput) ? minimalInput.toString(10) : minimalInput),
+    10,
+  )
+  return value.shiftedBy(parseInt(-decimals, 10)).toString(10, decimals);
+  /*
   minimalInput = isRounding ? Number(minimalInput) : minimalInput;
   const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBN(prefixedInput);
@@ -138,6 +144,7 @@ export function fromTokenMinimalUnit(
     value = '-' + value;
   }
   return value;
+  */
 }
 
 /**
@@ -384,6 +391,9 @@ export function toBN(value) {
   // TODO: Throw on NaN input
   if (typeof value === 'number' && isNaN(value) || !value || value === 'NaN') {
     return new BN(0);
+  }
+  if (isBN(value)) {
+    return value;
   }
   return value?.startsWith('0x')
     ? hexToBN(value)
