@@ -28,6 +28,13 @@ import {
   TokenListControllerActions,
   TokenListControllerEvents,
   TokenBalancesControllerState,
+  AssetsContractControllerGetERC20BalanceOfAction,
+  AssetsContractControllerGetERC721AssetNameAction,
+  AssetsContractControllerGetERC721AssetSymbolAction,
+  AssetsContractControllerGetERC721TokenURIAction,
+  AssetsContractControllerGetERC721OwnerOfAction,
+  AssetsContractControllerGetERC1155BalanceOfAction,
+  AssetsContractControllerGetERC1155TokenURIAction,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -304,7 +311,14 @@ type GlobalActions =
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions
-  | SmartTransactionsControllerActions;
+  | SmartTransactionsControllerActions
+  | AssetsContractControllerGetERC20BalanceOfAction
+  | AssetsContractControllerGetERC721AssetNameAction
+  | AssetsContractControllerGetERC721AssetSymbolAction
+  | AssetsContractControllerGetERC721TokenURIAction
+  | AssetsContractControllerGetERC721OwnerOfAction
+  | AssetsContractControllerGetERC1155BalanceOfAction
+  | AssetsContractControllerGetERC1155TokenURIAction;
 
 type GlobalEvents =
   | AddressBookControllerEvents
@@ -619,7 +633,7 @@ class Engine {
           'AssetsContractController:getERC721TokenURI',
           'AssetsContractController:getERC721OwnerOf',
           'AssetsContractController:getERC1155BalanceOf',
-          'AssetsContractController:getERC1155TokenURI ',
+          'AssetsContractController:getERC1155TokenURI',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1638,13 +1652,14 @@ class Engine {
     // controllers. They should be initialized via the constructor instead.
     for (const controller of controllers) {
       if (
+        // @ts-expect-error controller.name does not exist in AssetsContractController but this should be fixed in v38.
         hasProperty(initialState, controller.name) &&
         // Use `in` operator here because the `subscribe` function is one level up the prototype chain
         'subscribe' in controller &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
-        // @ts-expect-error No type-level guarantee that the correct state is being applied to the correct controller here.
+
         controller.update(initialState[controller.name]);
       }
     }
@@ -1657,6 +1672,7 @@ class Engine {
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
         ...context,
+        // @ts-expect-error controller.name does not exist in AssetsContractController but this should be fixed in v38.
         [controller.name]: controller,
       }),
       {},
@@ -1763,12 +1779,8 @@ class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const {
-      AccountTrackerController,
-      AssetsContractController,
-      NetworkController,
-      SwapsController,
-    } = this.context;
+    const { AccountTrackerController, NetworkController, SwapsController } =
+      this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1776,7 +1788,6 @@ class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    AssetsContractController.setProvider(provider);
 
     SwapsController.configure({
       provider,
