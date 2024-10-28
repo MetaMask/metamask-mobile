@@ -25,10 +25,15 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
  * @param inputHex - Number represented as a hex string.
  * @returns A BN instance.
  */
-export const hexToBN = (inputHex) =>
-  typeof inputHex !== 'string'
-    ? new BN(inputHex, 16)
-    : (inputHex ? new BN(remove0x(inputHex), 16) : new BN(0));
+export function hexToBN(inputHex) {
+  if (typeof inputHex === 'number' && isNaN(inputHex) || !inputHex) {
+    return new BN(0);
+  }
+
+  return typeof inputHex === 'string'
+    ? new BN(remove0x(inputHex), 16)
+    : new BN(inputHex, 16);
+}
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix.
