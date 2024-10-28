@@ -22,7 +22,6 @@ import {
 const defaultReturn = {
   balance: null,
   balanceFiat: null,
-  balanceBN: null,
 };
 
 interface Asset {
@@ -51,14 +50,14 @@ export default function useBalance(asset?: Asset) {
     return defaultReturn;
   }
 
-  let balance, balanceFiat, balanceBN;
+  let balance, balanceFiat;
   if (assetAddress === NATIVE_ADDRESS) {
     balance = renderFromWei(
       //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
 
-    balanceBN = hexToBN(
+    const balanceBN = hexToBN(
       //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
@@ -78,11 +77,7 @@ export default function useBalance(asset?: Asset) {
       exchangeRate,
       currentCurrency,
     );
-    balanceBN =
-      assetAddress && assetAddress in balances
-        ? hexToBN(balances[assetAddress])
-        : null;
   }
 
-  return { balance, balanceFiat, balanceBN };
+  return { balance, balanceFiat };
 }

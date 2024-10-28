@@ -216,7 +216,7 @@ const BuildQuote = () => {
     selectedAddress,
   );
 
-  const { balanceFiat, balanceBN } = useBalance(
+  const { balanceFiat, balance } = useBalance(
     selectedAsset
       ? {
           address: selectedAsset.address,
@@ -224,8 +224,8 @@ const BuildQuote = () => {
         }
       : undefined,
   );
-  const balanceBigNum = balanceBN
-   ? new BigNumber(balanceBN.toString(10), 10)
+  const balanceBigNum = balance
+   ? new BigNumber(balance, 10)
    : null;
 
   const maxSellAmount =
@@ -369,7 +369,6 @@ const BuildQuote = () => {
       }
     },
     [
-      balanceBN,
       isBuy,
       maxSellAmount,
       selectedAsset?.address,

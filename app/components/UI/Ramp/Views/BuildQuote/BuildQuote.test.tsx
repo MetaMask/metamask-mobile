@@ -191,7 +191,7 @@ jest.mock('../../../../hooks/useAddressBalance/useAddressBalance', () =>
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceFiat: '$27.02',
-  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN,
+  balance: '5.36385',
 };
 
 let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
@@ -666,10 +666,7 @@ describe('BuildQuote View', () => {
         maxAmount: 10,
       } as Limits;
 
-      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
-        '5',
-        mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN;
+      mockUseBalanceValues.balance = '5';
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -685,10 +682,7 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
       const initialAmount = '0';
 
-      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
-        '1',
-        mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN;
+      mockUseBalanceValues.balance = '1';
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
@@ -716,10 +710,6 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues = {
         balance: '1',
         balanceFiat: '$1.00',
-        balanceBN: toTokenMinimalUnit(
-          '1',
-          mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
@@ -749,10 +739,6 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues = {
         balance: '1',
         balanceFiat: '$1.00',
-        balanceBN: toTokenMinimalUnit(
-          '1',
-          mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
