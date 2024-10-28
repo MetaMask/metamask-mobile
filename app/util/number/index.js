@@ -121,7 +121,7 @@ export function fromTokenMinimalUnit(
   const value = new BigNumber(
     (isBN(minimalInput) ? minimalInput.toString(10) : minimalInput),
     10,
-  )
+  );
   return value.shiftedBy(parseInt(-decimals, 10)).toString(10, decimals);
   /*
   minimalInput = isRounding ? Number(minimalInput) : minimalInput;
@@ -562,11 +562,8 @@ export function addCurrencySymbol(
  * @returns {Number} - The converted balance
  */
 export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
-  const base = Math.pow(10, decimalsToShow);
-  const eth = fromWei(wei).toString();
-  let value = parseFloat(Math.floor(eth * conversionRate * base) / base);
-  value = isNaN(value) ? 0.0 : value;
-  return value;
+  const eth = new BigNumber(fromWei(wei), 10);
+  return eth.multipliedBy(new BigNumber(conversionRate, 10)).toString(10, decimalsToShow);
 }
 
 /**
