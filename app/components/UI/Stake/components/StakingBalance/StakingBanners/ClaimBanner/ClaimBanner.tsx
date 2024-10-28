@@ -91,6 +91,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
             })}
           </Text>
           <Button
+            testID={'claim-banner-claim-eth-button'}
             variant={ButtonVariants.Link}
             style={styles.claimButton}
             label={
