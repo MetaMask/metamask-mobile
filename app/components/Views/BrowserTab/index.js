@@ -80,6 +80,7 @@ import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
+  OPEN_FAVORITES_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
   OPEN_IN_BROWSER_OPTION,
@@ -979,6 +980,15 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Go to favorites page
+   */
+  const goToFavorites = async () => {
+    if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
+    await go(OLD_HOMEPAGE_URL_HOST);
+    trackEvent(MetaMetricsEvents.DAPP_GO_TO_FAVORITES);
+  };
+
+  /**
    * Handle url input submit
    */
   const onUrlInputSubmit = useCallback(
@@ -1311,7 +1321,7 @@ export const BrowserTab = (props) => {
         {!isBookmark() && (
           <Button onPress={addBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
-              <Icon name="star" size={16} style={styles.optionIcon} />
+              <Icon name="plus-square" size={16} style={styles.optionIcon} />
             </View>
             <Text
               style={styles.optionText}
@@ -1322,6 +1332,18 @@ export const BrowserTab = (props) => {
             </Text>
           </Button>
         )}
+        <Button onPress={goToFavorites} style={styles.option}>
+          <View style={styles.optionIconWrapper}>
+            <Icon name="star" size={16} style={styles.optionIcon} />
+          </View>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
+          >
+            {strings('browser.open_favorites')}
+          </Text>
+        </Button>
         <Button onPress={share} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
