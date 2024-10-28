@@ -554,7 +554,7 @@ export function addCurrencySymbol(
 }
 
 /**
- * Converts wei expressed as a BN instance into a human-readable fiat string
+ * Converts wei expressed as a BN instance into a fiat number
  *
  * @param {number|string|BN} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
@@ -563,7 +563,8 @@ export function addCurrencySymbol(
  */
 export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
   const eth = new BigNumber(fromWei(wei), 10);
-  return eth.multipliedBy(new BigNumber(conversionRate, 10)).toString(10, decimalsToShow);
+  const value = parseFloat(eth.multipliedBy(new BigNumber(conversionRate, 10)).toPrecision(decimalsToShow));
+  return isNaN(value) ? '0.0' : value;
 }
 
 /**
