@@ -105,6 +105,7 @@
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/node-fetch": "^2.6.7",
     "**/xml2js": ">=0.5.0",
+    "ethereumjs-abi": "npm:ethereumjs-abi@^0.6.8",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/levelup/semver": "^5.7.2",
     "@metamask/accounts-controller": "^18.1.0",
