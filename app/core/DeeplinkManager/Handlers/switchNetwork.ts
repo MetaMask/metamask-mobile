@@ -19,12 +19,11 @@ function switchNetwork({
     typeof switchToChainId === 'number' ||
     typeof switchToChainId === 'string'
   ) {
-    const activeChainId = selectChainId(store.getState());
-
     const newChainId = String(switchToChainId);
     const networkName = handleNetworkSwitch(newChainId);
 
     if (!networkName) {
+      const activeChainId = selectChainId(store.getState());
       if (activeChainId === toHex(newChainId)) {
         return;
       }
