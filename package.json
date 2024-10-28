@@ -240,7 +240,7 @@
     "eth-block-tracker": "^7.0.1",
     "eth-ens-namehash": "2.0.8",
     "eth-json-rpc-filters": "^6.0.1",
-    "eth-json-rpc-middleware": "4.3.0",
+    "eth-json-rpc-middleware": "9.0.1",
     "eth-url-parser": "1.0.4",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
