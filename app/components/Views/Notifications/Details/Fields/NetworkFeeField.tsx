@@ -29,6 +29,8 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
 
+export const NETWORK_FEE_FIELD_TESTID = 'network-fee-field';
+
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
   notification: Notification;
   isCollapsed: boolean;
@@ -149,7 +151,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
 
   return (
     <>
-      <TouchableOpacity testID="network-fee-field" onPress={onPress}>
+      <TouchableOpacity testID={NETWORK_FEE_FIELD_TESTID} onPress={onPress}>
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}
