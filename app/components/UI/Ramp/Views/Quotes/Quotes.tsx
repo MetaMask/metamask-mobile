@@ -74,7 +74,7 @@ import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 
 const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {
-  amount: number | string;
+  amount: string;
   asset: CryptoCurrency;
   fiatCurrency: FiatCurrency;
 }

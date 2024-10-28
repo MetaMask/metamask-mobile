@@ -1,3 +1,4 @@
+import { BigNumber } from 'bignumber.js';
 import useSDKMethod from './useSDKMethod';
 import { useRampSDK } from '../sdk';
 
@@ -18,13 +19,17 @@ const useLimits = () => {
     selectedFiatCurrencyId,
   );
 
-  const isAmountBelowMinimum = (amount: number) =>
-    amount !== 0 && limits && amount < limits.minAmount;
+  const isAmountBelowMinimum = (amount: string): boolean => {
+    const amountBigNum = new BigNumber(amount, 10);
+    return amountBigNum.gt(0) && !!limits && amountBigNum.lt(limits.minAmount);
+  };
 
-  const isAmountAboveMaximum = (amount: number) =>
-    amount !== 0 && limits && amount > limits.maxAmount;
+  const isAmountAboveMaximum = (amount: string): boolean => {
+    const amountBigNum = new BigNumber(amount, 10);
+    return amountBigNum.gt(0) && !!limits && amountBigNum.gt(limits.maxAmount);
+  };
 
-  const isAmountValid = (amount: number) =>
+  const isAmountValid = (amount: string): boolean =>
     !isAmountBelowMinimum(amount) && !isAmountAboveMaximum(amount);
 
   return {

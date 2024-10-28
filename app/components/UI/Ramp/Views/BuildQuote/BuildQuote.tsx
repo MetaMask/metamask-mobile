@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
-import BN from 'bn.js';
+import { BigNumber } from 'bignumber.js';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -65,7 +65,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
 import {
-  toTokenMinimalUnit,
   fromTokenMinimalUnitString,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
@@ -103,8 +102,6 @@ const BuildQuote = () => {
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
-  const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN>();
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -191,8 +188,6 @@ const BuildQuote = () => {
 
   useIntentAmount(
     setAmount,
-    setAmountNumber,
-    setAmountBNMinimalUnit,
     currentFiatCurrency,
   );
 
@@ -229,40 +224,43 @@ const BuildQuote = () => {
         }
       : undefined,
   );
+  const balanceBigNum = balanceBN
+   ? new BigNumber(balanceBN.toString(10), 10)
+   : null;
 
   const maxSellAmount =
-    balanceBN && gasPriceEstimation
-      ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+    balanceBigNum && gasPriceEstimation
+      ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
       : null;
 
   const amountIsBelowMinimum = useMemo(
-    () => isAmountBelowMinimum(amountNumber),
-    [amountNumber, isAmountBelowMinimum],
+    () => isAmountBelowMinimum(amount),
+    [amount, isAmountBelowMinimum],
   );
 
   const amountIsAboveMaximum = useMemo(
-    () => isAmountAboveMaximum(amountNumber),
-    [amountNumber, isAmountAboveMaximum],
+    () => isAmountAboveMaximum(amount),
+    [amount, isAmountAboveMaximum],
   );
 
   const amountIsValid = useMemo(
-    () => isAmountValid(amountNumber),
-    [amountNumber, isAmountValid],
+    () => isAmountValid(amount),
+    [amount, isAmountValid],
   );
 
   const amountIsOverGas = useMemo(() => {
     if (isBuy || !maxSellAmount) {
       return false;
     }
-    return Boolean(amountBNMinimalUnit?.gt(maxSellAmount));
-  }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
+    return Boolean(new BigNumber(amount).gt(maxSellAmount));
+  }, [amount, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!balanceBN || !amountBNMinimalUnit) {
-      return false;
+    if (!balanceBigNum) {
+      return undefined;
     }
-    return balanceBN.lt(amountBNMinimalUnit);
-  }, [balanceBN, amountBNMinimalUnit]);
+    return balanceBigNum.lt(amount);
+  }, [balanceBigNum, amount]);
 
   const isFetching =
     isFetchingCryptoCurrencies ||
@@ -336,28 +334,18 @@ const BuildQuote = () => {
   const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }) => {
+    ({ value }) => {
       setAmount(`${value}`);
-      setAmountNumber(valueAsNumber);
-      if (isSell) {
-        setAmountBNMinimalUnit(
-          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN,
-        );
-      }
     },
-    [isSell, selectedAsset?.decimals],
+    [],
   );
 
   const handleQuickAmountPress = useCallback(
     ({ value }: QuickAmount) => {
       if (isBuy) {
-        setAmount(`${value}`);
-        setAmountNumber(value);
+        setAmount(value.toString());
       } else {
-        const percentage = value * 100;
-        const amountPercentage = balanceBN
-          ?.mul(new BN(percentage))
-          .div(new BN(100));
+        const amountPercentage = balanceBigNum?.multipliedBy(value);
 
         if (!amountPercentage) {
           return;
@@ -372,13 +360,12 @@ const BuildQuote = () => {
           amountToSet = maxSellAmount;
         }
 
+        // TODO: Too many levels of parsing strings and numbers back and forth here..
         const newAmountString = fromTokenMinimalUnitString(
           amountToSet.toString(10),
           selectedAsset?.decimals ?? 18,
         );
-        setAmountBNMinimalUnit(amountToSet);
         setAmount(newAmountString);
-        setAmountNumber(Number(newAmountString));
       }
     },
     [
@@ -408,7 +395,6 @@ const BuildQuote = () => {
     async (region: Region) => {
       hideRegionModal();
       setAmount('0');
-      setAmountNumber(0);
       if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
         /*
          * Selected fiat currency is default, we will fetch
@@ -463,7 +449,6 @@ const BuildQuote = () => {
     (fiatCurrency) => {
       setSelectedFiatCurrencyId(fiatCurrency?.id);
       setAmount('0');
-      setAmountNumber(0);
       hideFiatSelectorModal();
     },
     [hideFiatSelectorModal, setSelectedFiatCurrencyId],
@@ -490,7 +475,7 @@ const BuildQuote = () => {
     if (selectedAsset && currentFiatCurrency) {
       navigation.navigate(
         ...createQuotesNavDetails({
-          amount: isBuy ? amountNumber : amount,
+          amount,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,
         }),
@@ -498,7 +483,7 @@ const BuildQuote = () => {
 
       const analyticsPayload = {
         payment_method_id: selectedPaymentMethodId as string,
-        amount: amountNumber,
+        amount: parseFloat(amount),
         location: screenLocation,
       };
 
@@ -521,7 +506,6 @@ const BuildQuote = () => {
   }, [
     screenLocation,
     amount,
-    amountNumber,
     currentFiatCurrency,
     isBuy,
     navigation,
@@ -687,7 +671,7 @@ const BuildQuote = () => {
   }
 
   const displayAmount = isBuy
-    ? formatAmount(amountNumber)
+    ? formatAmount(parseFloat(amount))
     : `${amount} ${selectedAsset?.symbol}`;
 
   let quickAmounts: QuickAmount[] = [];
@@ -698,7 +682,7 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN(0))) {
+  } else if (balanceBigNum && !balanceBigNum.isZero() && maxSellAmount?.gt(0)) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -783,14 +767,13 @@ const BuildQuote = () => {
               }
               amount={displayAmount}
               highlightedError={
-                amountNumber > 0 && (!amountIsValid || amountIsOverGas)
+                parseFloat(amount) > 0 && (!amountIsValid || amountIsOverGas)
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
-            {amountNumber > 0 &&
-              amountIsValid &&
+            {amountIsValid &&
               !hasInsufficientBalance &&
               amountIsOverGas && (
                 <Row>
@@ -864,8 +847,8 @@ const BuildQuote = () => {
             {currentPaymentMethod?.customAction ? (
               <CustomActionButton
                 customAction={currentPaymentMethod.customAction}
-                amount={amountNumber}
-                disabled={!amountIsValid || amountNumber <= 0}
+                amount={amount}
+                disabled={!amountIsValid}
                 fiatSymbol={currentFiatCurrency?.symbol}
               />
             ) : (
@@ -874,7 +857,7 @@ const BuildQuote = () => {
                 onPress={handleGetQuotePress}
                 accessibilityRole="button"
                 accessible
-                disabled={amountNumber <= 0}
+                disabled={parseInt(amount, 10) <= 0}
               >
                 {strings('fiat_on_ramp_aggregator.get_quotes')}
               </StyledButton>

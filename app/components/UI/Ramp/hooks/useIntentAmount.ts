@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
-import type BN from 'bn.js';
 import { useRampSDK } from '../sdk';
 import parseAmount from '../utils/parseAmount';
-import { toTokenMinimalUnit } from '../../../../util/number';
+// import { toTokenMinimalUnit } from '../../../../util/number';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 
 /**
@@ -19,10 +18,6 @@ import { FiatCurrency } from '@consensys/on-ramp-sdk';
  */
 export default function useIntentAmount(
   setAmount: (amount: React.SetStateAction<string>) => void,
-  setAmountNumber: (amount: React.SetStateAction<number>) => void,
-  setAmountBNMinimalUnit: (
-    amount: React.SetStateAction<BN | undefined>,
-  ) => void,
   currentFiatCurrency: FiatCurrency | null,
 ) {
   const { selectedAsset, intent, setIntent, isBuy, isSell } = useRampSDK();
@@ -35,7 +30,13 @@ export default function useIntentAmount(
             ? currentFiatCurrency.decimals ?? 0
             : selectedAsset.decimals ?? 0,
         );
+        if (!parsedAmount) {
+          throw new Error(`Empty result for non-empty input '${intent.amount}'`);
+        }
+        setAmount(parsedAmount);
 
+        // TODO
+          /*
         if (parsedAmount) {
           let valueAsNumber = 0;
           try {
@@ -47,7 +48,6 @@ export default function useIntentAmount(
             );
           }
           setAmount(parsedAmount);
-          setAmountNumber(valueAsNumber);
           if (isSell) {
             setAmountBNMinimalUnit(
               toTokenMinimalUnit(
@@ -57,6 +57,7 @@ export default function useIntentAmount(
             );
           }
         }
+          */
       } catch (parsingError) {
         console.error('Error parsing intent amount', parsingError as Error);
       } finally {
@@ -71,7 +72,5 @@ export default function useIntentAmount(
     isSell,
     selectedAsset,
     setAmount,
-    setAmountNumber,
-    setAmountBNMinimalUnit,
   ]);
 }
