@@ -4,10 +4,7 @@ import { handleNetworkSwitch } from '../../../util/networks';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
 
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { toHex } from '@metamask/controller-utils';
 
@@ -23,12 +20,6 @@ function switchNetwork({
     typeof switchToChainId === 'string'
   ) {
     const chainId = selectChainId(store.getState());
-    const networkConfigurations = selectNetworkConfigurations(store.getState());
-
-    Object.entries(networkConfigurations).find(
-      ([, { chainId: configChainId }]) =>
-        configChainId === toHex(switchToChainId),
-    );
 
     if (chainId === toHex(switchToChainId)) {
       return;
