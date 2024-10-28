@@ -376,6 +376,10 @@ export function isDecimal(value) {
  * @returns {Object} - BN instance
  */
 export function toBN(value) {
+  // TODO: Throw on NaN input
+  if (isNaN(value)) {
+    return new BN(0);
+  }
   return value?.startsWith('0x')
     ? hexToBN(value)
     : new BN(value || '0');
