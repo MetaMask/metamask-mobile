@@ -459,7 +459,7 @@ export function toWei(value, unit = 'ether') {
  * @returns {Object} - BN instance containing the new number
  */
 export function toGwei(value, unit = 'ether') {
-  return toBN(fromWei(toBN(value), unit)).mul(1000000000);
+  return toBN(fromWei(value, unit)).mul(1000000000);
 }
 
 /**
