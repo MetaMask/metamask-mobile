@@ -9,10 +9,10 @@ import {
 } from '../../fixtures/fixture-helper';
 
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ContractApprovalModalSelectorsText } from '../../selectors/Browser/ContractApprovalModal.selectors';
+import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 
-import ContractApprovalModal from '../../pages/Browser/ContractApprovalModal';
+import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -53,24 +53,24 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.tapApproveButton();
 
         await Assertions.checkIfVisible(
-          ContractApprovalModal.approveTokenAmount,
+          ContractApprovalBottomSheet.approveTokenAmount,
         );
 
         await Assertions.checkIfElementToHaveText(
-          ContractApprovalModal.approveTokenAmount,
+          ContractApprovalBottomSheet.approveTokenAmount,
           EXPECTED_TOKEN_AMOUNT,
         );
         // Tap next button
         await Assertions.checkIfTextIsDisplayed(
-          ContractApprovalModalSelectorsText.NEXT,
+          ContractApprovalBottomSheetSelectorsText.NEXT,
         );
-        await ContractApprovalModal.tapNextButton();
+        await ContractApprovalBottomSheet.tapNextButton();
 
         await Assertions.checkIfTextIsDisplayed(
-          ContractApprovalModalSelectorsText.APPROVE,
+          ContractApprovalBottomSheetSelectorsText.APPROVE,
         );
         // Tap approve button
-        await ContractApprovalModal.tapApproveButton();
+        await ContractApprovalBottomSheet.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

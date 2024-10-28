@@ -14,8 +14,8 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
-import { ContractApprovalModalSelectorsText } from '../../selectors/Browser/ContractApprovalModal.selectors';
-import ContractApprovalModal from '../../pages/Browser/ContractApprovalModal';
+import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
+import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -51,11 +51,11 @@ describe(SmokeConfirmations('ERC721 token'), () => {
         // Set approval for all NFTs
         await TestDApp.tapNFTSetApprovalForAllButton();
         await Assertions.checkIfTextIsDisplayed(
-          ContractApprovalModalSelectorsText.APPROVE,
+          ContractApprovalBottomSheetSelectorsText.APPROVE,
         );
 
         // Tap approve button
-        await ContractApprovalModal.tapApproveButton();
+        await ContractApprovalBottomSheet.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
