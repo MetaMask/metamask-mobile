@@ -386,7 +386,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                             >
                               Staked balance
                               : 
-                              4.59996 ETH
+                              5.79133 ETH
                             </Text>
                           </View>
                           <View
