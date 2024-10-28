@@ -706,12 +706,12 @@ PODS:
     - React
   - RNDeviceInfo (9.0.2):
     - React-Core
-  - RNFBApp (20.5.0):
-    - Firebase/CoreOnly (= 10.29.0)
+  - RNFBApp (21.2.0):
+    - Firebase/CoreOnly (<= 11.4.0)
     - React-Core
-  - RNFBMessaging (20.5.0):
-    - Firebase/Messaging (= 10.29.0)
-    - FirebaseCoreExtension
+  - RNFBMessaging (21.2.0):
+    - Firebase/Messaging (<= 11.4.0)
+    - FirebaseCoreExtension (<= 11.4.0)
     - React-Core
     - RNFBApp
   - RNFS (2.20.0):
@@ -1272,8 +1272,8 @@ SPEC CHECKSUMS:
   RNDateTimePicker: 4f3c4dbd4f908be32ec8c93f086e8924bd4a2e07
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
-  RNFBApp: 5f87753a8d8b37d229adf85cd0ff37709ffdf008
-  RNFBMessaging: 3fa1114c0868dd21f20dfe186adf42297ea316b1
+  RNFBApp: 5d3d1b9d563857c68d161a3226d9dd6d6be1a846
+  RNFBMessaging: 2895d9dfa1cfea663c26a1b5dfb5faf17ad096f8
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
