@@ -5,8 +5,8 @@ import { stripHexPrefix } from 'ethereumjs-util';
 import BN from 'bn.js';
 import { utils as ethersUtils } from 'ethers';
 import convert from '@metamask/ethjs-unit';
+import numberToBN from '@metamask/number-to-bn';
 import { add0x, remove0x } from '@metamask/utils';
-import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
@@ -377,7 +377,7 @@ export function isDecimal(value) {
  */
 export function toBN(value) {
   // TODO: Throw on NaN input
-  if (isNaN(value)) {
+  if (typeof value === 'number' && isNaN(value)) {
     return new BN(0);
   }
   return value?.startsWith('0x')
