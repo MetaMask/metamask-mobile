@@ -16,6 +16,11 @@ import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/Wall
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 
+enum SortOption {
+  FiatAmount = 0,
+  Alphabetical = 1,
+}
+
 const TokenSortBottomSheet = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -23,17 +28,17 @@ const TokenSortBottomSheet = () => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const onSortControlsBottomSheetPress = (index: number) => {
+  const onSortControlsBottomSheetPress = (option: SortOption) => {
     const { PreferencesController } = Engine.context;
-    switch (index) {
-      case 0:
+    switch (option) {
+      case SortOption.FiatAmount:
         PreferencesController.setTokenSortConfig({
           key: 'tokenFiatAmount',
           order: 'dsc',
           sortCallback: 'stringNumeric',
         });
         break;
-      case 1:
+      case SortOption.Alphabetical:
         PreferencesController.setTokenSortConfig({
           key: 'symbol',
           sortCallback: 'alphaNumeric',
@@ -57,7 +62,7 @@ const TokenSortBottomSheet = () => {
         </Text>
         <ListItemSelect
           testID={WalletViewSelectorsIDs.SORT_DECLINING_BALANCE}
-          onPress={() => onSortControlsBottomSheetPress(0)}
+          onPress={() => onSortControlsBottomSheetPress(SortOption.FiatAmount)}
           isSelected={tokenSortConfig.key === 'tokenFiatAmount'}
           isDisabled={false}
           gap={8}
@@ -74,7 +79,9 @@ const TokenSortBottomSheet = () => {
         </ListItemSelect>
         <ListItemSelect
           testID={WalletViewSelectorsIDs.SORT_ALPHABETICAL}
-          onPress={() => onSortControlsBottomSheetPress(1)}
+          onPress={() =>
+            onSortControlsBottomSheetPress(SortOption.Alphabetical)
+          }
           isSelected={tokenSortConfig.key !== 'tokenFiatAmount'}
           isDisabled={false}
           gap={8}
