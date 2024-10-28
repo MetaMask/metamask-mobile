@@ -12,7 +12,7 @@ export default {
   DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
-  IPFS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipfs/',
+  IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
   IPNS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipns/',
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
@@ -129,6 +129,7 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:

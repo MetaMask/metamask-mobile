@@ -131,6 +131,11 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
+import Engine from '../../../core/Engine';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -326,6 +331,231 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
+const EditAccountNameFlow = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="EditAccountName" component={EditAccountName} />
+  </Stack.Navigator>
+);
+
+// eslint-disable-next-line react/prop-types
+const AddNetworkFlow = ({ route }) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="AddNetwork"
+      component={NetworkSettings}
+      // eslint-disable-next-line react/prop-types
+      initialParams={route?.params}
+    />
+  </Stack.Navigator>
+);
+const DetectedTokensFlow = () => (
+  <Stack.Navigator
+    mode={'modal'}
+    screenOptions={clearStackNavigatorOptions}
+    initialRouteName={'DetectedTokens'}
+  >
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+    <Stack.Screen
+      name={'DetectedTokensConfirmation'}
+      component={DetectedTokensConfirmation}
+    />
+  </Stack.Navigator>
+);
+
+const RootModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen
+      name={Routes.MODAL.WALLET_ACTIONS}
+      component={WalletActions}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.DELETE_WALLET}
+      component={DeleteWalletModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MODAL_CONFIRMATION}
+      component={ModalConfirmation}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MODAL_MANDATORY}
+      component={ModalMandatory}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+      component={SmartTransactionsOptInModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_SELECTOR}
+      component={AccountSelector}
+    />
+    <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_FEEDBACK}
+      component={SDKFeedbackModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+      component={SDKSessionModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.EXPERIENCE_ENHANCER}
+      component={ExperienceEnhancerModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.DATA_COLLECTION}
+      component={DataCollectionModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_DISCONNECT}
+      component={SDKDisconnectModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_CONNECT}
+      component={AccountConnect}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+      component={AccountPermissions}
+      initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+      component={AccountPermissionsConfirmRevokeAll}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.NETWORK_SELECTOR}
+      component={NetworkSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.BASIC_FUNCTIONALITY}
+      component={BasicFunctionalityModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.PROFILE_SYNCING}
+      component={ProfileSyncingModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.RESET_NOTIFICATIONS}
+      component={ResetNotificationsModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+      component={ReturnToAppModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+      component={AmbiguousAddressSheet}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+      component={TurnOffRememberMeModal}
+    />
+    <Stack.Screen
+      name={'AssetHideConfirmation'}
+      component={AssetHideConfirmation}
+    />
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+    <Stack.Screen name={'NftOptions'} component={NftOptions} />
+    <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
+    <Stack.Screen
+      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+      component={EnableAutomaticSecurityChecksModal}
+    />
+    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    <Stack.Screen
+      name={Routes.SHEET.ACCOUNT_ACTIONS}
+      component={AccountActions}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+      component={FiatOnTestnetsFriction}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SHOW_IPFS}
+      component={ShowIpfsGatewaySheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+      component={ShowDisplayNftMediaSheet}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
+      component={NFTAutoDetectionModal}
+    />
+    {isNetworkUiRedesignEnabled() ? (
+      <Stack.Screen
+        name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
+        component={MultiRpcModal}
+      />
+    ) : null}
+    <Stack.Screen
+      name={Routes.SHEET.SHOW_TOKEN_ID}
+      component={ShowTokenIdSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+      component={OriginSpamModal}
+    />
+    <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+  </Stack.Navigator>
+);
+
+const ImportPrivateKeyView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+    <Stack.Screen
+      name="ImportPrivateKeySuccess"
+      component={ImportPrivateKeySuccess}
+    />
+    <Stack.Screen
+      name={Routes.QR_TAB_SWITCHER}
+      component={QRTabSwitcher}
+      screenOptions={{
+        headerShown: false,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const ConnectQRHardwareFlow = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+  </Stack.Navigator>
+);
+
+const LedgerConnectFlow = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+    initialRouteName={Routes.HW.LEDGER_CONNECT}
+  >
+    <Stack.Screen
+      name={Routes.HW.LEDGER_CONNECT}
+      component={LedgerSelectAccount}
+    />
+  </Stack.Navigator>
+);
+
+const ConnectHardwareWalletFlow = () => (
+  <Stack.Navigator name="ConnectHardwareWallet">
+    <Stack.Screen
+      name={Routes.HW.SELECT_DEVICE}
+      component={SelectHardwareWallet}
+      options={SelectHardwareWallet.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const App = (props) => {
   const { userLoggedIn } = props;
   // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
@@ -354,7 +584,15 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          await Authentication.appTriggeredAuth();
+          await trace(
+            {
+              name: TraceName.BiometricAuthentication,
+              op: TraceOperation.BiometricAuthentication,
+            },
+            async () => {
+              await Authentication.appTriggeredAuth();
+            },
+          );
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
@@ -528,6 +766,46 @@ const App = (props) => {
   useEffect(() => {
     async function startApp() {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+      if (!existingUser) {
+        // List of chainIds to add (as hex strings)
+        const chainIdsToAdd = [
+          CHAIN_IDS.ARBITRUM,
+          CHAIN_IDS.BASE,
+          CHAIN_IDS.BSC,
+          CHAIN_IDS.OPTIMISM,
+          CHAIN_IDS.POLYGON,
+        ];
+
+        // Filter the PopularList to get only the specified networks based on chainId
+        const selectedNetworks = PopularList.filter((network) =>
+          chainIdsToAdd.includes(network.chainId),
+        );
+        const { NetworkController } = Engine.context;
+
+        // Loop through each selected network and call NetworkController.addNetwork
+        for (const network of selectedNetworks) {
+          try {
+            await NetworkController.addNetwork({
+              chainId: network.chainId,
+              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
+              defaultRpcEndpointIndex: 0,
+              defaultBlockExplorerUrlIndex: 0,
+              name: network.nickname,
+              nativeCurrency: network.ticker,
+              rpcEndpoints: [
+                {
+                  url: network.rpcUrl,
+                  name: network.nickname,
+                  type: RpcEndpointType.Custom,
+                },
+              ],
+            });
+          } catch (error) {
+            Logger.error(error);
+          }
+        }
+      }
+
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
@@ -563,242 +841,6 @@ const App = (props) => {
       NavigationService.setNavigationRef(ref);
     }
   };
-
-  const DetectedTokensFlow = () => (
-    <Stack.Navigator
-      mode={'modal'}
-      screenOptions={clearStackNavigatorOptions}
-      initialRouteName={'DetectedTokens'}
-    >
-      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-      <Stack.Screen
-        name={'DetectedTokensConfirmation'}
-        component={DetectedTokensConfirmation}
-      />
-    </Stack.Navigator>
-  );
-
-  const RootModalFlow = () => (
-    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-      <Stack.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        component={WalletActions}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.DELETE_WALLET}
-        component={DeleteWalletModal}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.MODAL_CONFIRMATION}
-        component={ModalConfirmation}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.MODAL_MANDATORY}
-        component={ModalMandatory}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
-        component={SmartTransactionsOptInModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_SELECTOR}
-        component={AccountSelector}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_LOADING}
-        component={SDKLoadingModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_FEEDBACK}
-        component={SDKFeedbackModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-        component={SDKSessionModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.EXPERIENCE_ENHANCER}
-        component={ExperienceEnhancerModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.DATA_COLLECTION}
-        component={DataCollectionModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SDK_DISCONNECT}
-        component={SDKDisconnectModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_CONNECT}
-        component={AccountConnect}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-        component={AccountPermissions}
-        initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-        component={AccountPermissionsConfirmRevokeAll}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.NETWORK_SELECTOR}
-        component={NetworkSelector}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BASIC_FUNCTIONALITY}
-        component={BasicFunctionalityModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.PROFILE_SYNCING}
-        component={ProfileSyncingModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.RESET_NOTIFICATIONS}
-        component={ResetNotificationsModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-        component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.AMBIGUOUS_ADDRESS}
-        component={AmbiguousAddressSheet}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
-        component={TurnOffRememberMeModal}
-      />
-      <Stack.Screen
-        name={'AssetHideConfirmation'}
-        component={AssetHideConfirmation}
-      />
-      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
-      <Stack.Screen name={'NftOptions'} component={NftOptions} />
-      <Stack.Screen
-        name={Routes.MODAL.UPDATE_NEEDED}
-        component={UpdateNeeded}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-        component={EnableAutomaticSecurityChecksModal}
-      />
-      <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
-      <Stack.Screen
-        name={Routes.SHEET.ACCOUNT_ACTIONS}
-        component={AccountActions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
-        component={FiatOnTestnetsFriction}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_IPFS}
-        component={ShowIpfsGatewaySheet}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
-        component={ShowDisplayNftMediaSheet}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
-        component={NFTAutoDetectionModal}
-      />
-      {isNetworkUiRedesignEnabled() ? (
-        <Stack.Screen
-          name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
-          component={MultiRpcModal}
-        />
-      ) : null}
-
-      <Stack.Screen
-        name={Routes.SHEET.SHOW_TOKEN_ID}
-        component={ShowTokenIdSheet}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-        component={OriginSpamModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.TOOLTIP_MODAL}
-        component={TooltipModal}
-      />
-    </Stack.Navigator>
-  );
-
-  const ImportPrivateKeyView = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-      <Stack.Screen
-        name="ImportPrivateKeySuccess"
-        component={ImportPrivateKeySuccess}
-      />
-      <Stack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcher}
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </Stack.Navigator>
-  );
-
-  const ConnectQRHardwareFlow = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-    </Stack.Navigator>
-  );
-
-  const LedgerConnectFlow = () => (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-      initialRouteName={Routes.HW.LEDGER_CONNECT}
-    >
-      <Stack.Screen
-        name={Routes.HW.LEDGER_CONNECT}
-        component={LedgerSelectAccount}
-      />
-    </Stack.Navigator>
-  );
-
-  const ConnectHardwareWalletFlow = () => (
-    <Stack.Navigator name="ConnectHardwareWallet">
-      <Stack.Screen
-        name={Routes.HW.SELECT_DEVICE}
-        component={SelectHardwareWallet}
-        options={SelectHardwareWallet.navigationOptions}
-      />
-    </Stack.Navigator>
-  );
-
-  const EditAccountNameFlow = () => (
-    <Stack.Navigator>
-      <Stack.Screen name="EditAccountName" component={EditAccountName} />
-    </Stack.Navigator>
-  );
-
-  // eslint-disable-next-line react/prop-types
-  const AddNetworkFlow = ({ route }) => (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="AddNetwork"
-        component={NetworkSettings}
-        // eslint-disable-next-line react/prop-types
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
 
   return supressRender ? null : (
     <>

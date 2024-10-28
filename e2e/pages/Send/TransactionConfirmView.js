@@ -71,9 +71,9 @@ class TransactionConfirmationView {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
-  get editPriorityModal() {
-    return Matchers.getElementByText(
-      TransactionConfirmViewSelectorsText.EDIT_PRIORITY_MODAL,
+  get editPriorityLegacyModal() {
+    return Matchers.getElementByID(
+      EditGasViewSelectorsIDs.LEGACY_CONTAINER,
     );
   }
 
