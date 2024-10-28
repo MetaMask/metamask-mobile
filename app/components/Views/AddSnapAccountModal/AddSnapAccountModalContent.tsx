@@ -41,11 +41,6 @@ const AddSnapAccountModalContent: React.FC<AddSnapAccountModalContentProps> = ({
         <TextField value={accountName} onChangeText={onChangeName} autoFocus />
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
-      <View style={styles.inputContainer}>
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('address_book.address')}
-        </Text>
-      </View>
     </View>
   );
 };

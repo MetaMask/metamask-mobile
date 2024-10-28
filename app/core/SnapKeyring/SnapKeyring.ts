@@ -63,7 +63,10 @@ export const snapKeyringBuilder = (
         - displayConfirmation: ${displayConfirmation}`,
         );
 
-        // Approve everything for now because we have not implemented snap account confirmations yet
+        const confirmed = await confirmAddSnapAccount();
+        if (!confirmed) {
+          throw new Error(`User rejected snap account creation`);
+        }
         await handleUserInput(true);
         await persistKeyringHelper();
         const account = controllerMessenger.call(
@@ -79,14 +82,6 @@ export const snapKeyringBuilder = (
           'AccountsController:setSelectedAccount',
           account.id,
         );
-
-        showAddSnapAccountPrompt({
-          isVisible: true,
-          onClose: handleCancel,
-          onConfirm: handleConfirm,
-          suggestedName: accountNameSuggestion,
-          existingNames,
-        });
       },
 
       removeAccount: async (
@@ -111,9 +106,7 @@ export const snapKeyringBuilder = (
   return builder;
 };
 
-// TODO: Implement this function to show the AddSnapAccountModal
-function showAddSnapAccountPrompt(
-  props: React.ComponentProps<typeof AddSnapAccountModal>,
-) {
+// TODO: Implement this function to show the AddSnapAccountModal and start the generic approval flow
+function confirmAddSnapAccount(): Promise<boolean> {
   // Start generic approval flow
 }
