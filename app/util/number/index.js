@@ -382,7 +382,7 @@ export function isDecimal(value) {
  */
 export function toBN(value) {
   // TODO: Throw on NaN input
-  if (typeof value === 'number' && isNaN(value) || !value) {
+  if (typeof value === 'number' && isNaN(value) || !value || value === 'NaN') {
     return new BN(0);
   }
   return value?.startsWith('0x')
