@@ -252,7 +252,7 @@ describe('captureSentryFeedback', () => {
                 name: 'Account 1',
               },
             },
-            ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
+            ipfsGateway: 'https://dweb.link/ipfs/',
             isIpfsGatewayEnabled: true,
             isMultiAccountBalancesEnabled: true,
             lostIdentities: {},

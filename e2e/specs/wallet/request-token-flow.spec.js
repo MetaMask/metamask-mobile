@@ -1,11 +1,12 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import SendLinkView from '../../pages/SendLinkView';
+import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
+import SendLinkView from '../../pages/Receive/SendLinkView';
+import PaymentRequestQrModal from '../../pages/Receive/PaymentRequestQrModal';
 import RequestPaymentView from '../../pages/RequestPaymentView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
-import RequestPaymentModal from '../../pages/modals/RequestPaymentModal';
 import { loginToApp } from '../../viewHelper';
 import {
   loadFixture,
@@ -63,16 +64,16 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should request DAI amount', async () => {
     await RequestPaymentView.typeInTokenAmount(5.5);
-    await SendLinkView.isVisible();
+    await Assertions.checkIfVisible(SendLinkView.container);
   });
 
   it('should see DAI request QR code', async () => {
     await SendLinkView.tapQRCodeButton();
-    await SendLinkView.isQRModalVisible();
+    await Assertions.checkIfVisible(PaymentRequestQrModal.container);
   });
 
   it('should close request', async () => {
-    await SendLinkView.tapQRCodeCloseButton();
+    await PaymentRequestQrModal.tapCloseButton();
     await SendLinkView.tapCloseSendLinkButton();
   });
 
