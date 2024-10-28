@@ -16,7 +16,6 @@ import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
-import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
@@ -26,6 +25,7 @@ import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
+import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
 const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
