@@ -139,10 +139,7 @@ export const PortfolioBalance = () => {
   return (
     <View style={styles.portfolioBalance}>
       <View>
-        <TouchableOpacity
-          onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-          testID="balance-container"
-        >
+        <View>
           <View style={styles.balanceContainer}>
             <SensitiveText
               isHidden={privacyMode}
@@ -152,18 +149,22 @@ export const PortfolioBalance = () => {
             >
               {fiatBalance}
             </SensitiveText>
-
-            <Icon
-              style={styles.privacyIcon}
-              name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-              size={IconSize.Md}
-              color={colors.text.muted}
-              testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
-            />
+            <TouchableOpacity
+              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+              testID="balance-container"
+            >
+              <Icon
+                style={styles.privacyIcon}
+                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                size={IconSize.Md}
+                color={colors.text.muted}
+                testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
+              />
+            </TouchableOpacity>
           </View>
 
           {renderAggregatedPercentage()}
-        </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.portfolioButtonContainer}>
         <Button

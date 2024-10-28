@@ -161,7 +161,6 @@ const createStyles = (colors: Colors) =>
       marginLeft: 8,
     },
     portfolioButtonContainer: {
-      // width: '100%',
       alignItems: 'center',
     },
   });
