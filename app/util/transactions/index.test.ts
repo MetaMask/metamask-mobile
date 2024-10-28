@@ -238,7 +238,7 @@ describe('Transactions utils :: parseTransactionLegacy', () => {
 
     const expectedResult = createExpectedResult({
       totalHexValue: totalHexValueMocked,
-      transactionTotalAmount: '0.2 ERC20 + 0 tBNB',
+      transactionTotalAmount: '2 ERC20 + 0 tBNB',
       transactionTotalAmountFiat: '0 USD',
       transactionFee: '0 tBNB',
     });
