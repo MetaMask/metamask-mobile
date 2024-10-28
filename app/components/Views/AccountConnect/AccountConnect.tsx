@@ -151,8 +151,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
-  const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
-
+  const dappUrl =
+    sdkConnection?.originatorInfo?.dappId ??
+    sdkConnection?.originatorInfo?.url ??
+    '';
   const { domainTitle, hostname } = useMemo(() => {
     let title = '';
     let dappHostname = dappUrl || channelIdOrHostname;
