@@ -2,7 +2,9 @@ import { getErrorMessage } from '@metamask/utils';
 
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
-import { Notification } from '../../../util/notifications';
+import { Notification, mmStorage } from '../../../util/notifications';
+import { getAllUUIDs } from '@metamask/notification-services-controller/dist/NotificationServicesController/utils/utils.mjs';
+import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/user-storage.mjs';
 
 export type MarkAsReadNotificationsParam = Pick<
   Notification,
@@ -83,7 +85,7 @@ export const checkAccountsPresence = async (accounts: string[]) => {
 
 export const deleteOnChainTriggersByAccount = async (accounts: string[]) => {
   try {
-    const { userStorage } =
+    const userStorage =
       await Engine.context.NotificationServicesController.deleteOnChainTriggersByAccount(
         accounts,
       );
@@ -92,6 +94,7 @@ export const deleteOnChainTriggersByAccount = async (accounts: string[]) => {
         notificationsErrors.DELETE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
       );
     }
+    mmStorage.saveLocal('pnUserStorage', userStorage);
   } catch (error) {
     return getErrorMessage(error);
   }
@@ -99,7 +102,7 @@ export const deleteOnChainTriggersByAccount = async (accounts: string[]) => {
 
 export const updateOnChainTriggersByAccount = async (accounts: string[]) => {
   try {
-    const { userStorage } =
+    const userStorage =
       await Engine.context.NotificationServicesController.updateOnChainTriggersByAccount(
         accounts,
       );
@@ -108,6 +111,7 @@ export const updateOnChainTriggersByAccount = async (accounts: string[]) => {
         notificationsErrors.UPDATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
       );
     }
+    mmStorage.saveLocal('pnUserStorage', userStorage);
   } catch (error) {
     return getErrorMessage(error);
   }
@@ -117,7 +121,7 @@ export const createOnChainTriggersByAccount = async (
   resetNotifications: boolean,
 ) => {
   try {
-    const { userStorage } =
+    const userStorage =
       await Engine.context.NotificationServicesController.createOnChainTriggers(
         {
           resetNotifications,
@@ -129,6 +133,7 @@ export const createOnChainTriggersByAccount = async (
         notificationsErrors.CREATE_ON_CHAIN_TRIGGERS_BY_ACCOUNT,
       );
     }
+    mmStorage.saveLocal('pnUserStorage', userStorage);
   } catch (error) {
     return getErrorMessage(error);
   }
@@ -184,6 +189,39 @@ export const performDeleteStorage = async (): Promise<string | undefined> => {
       resetNotifications: true,
     },
   );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+export const enablePushNotifications = async (userStorage: UserStorage, fcmToken?: string) => {
+  try {
+    const uuids = getAllUUIDs(userStorage);
+    await Engine.context.NotificationServicesPushController.enablePushNotifications(
+      uuids,
+      fcmToken,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
+export const disablePushNotifications = async (userStorage: UserStorage) => {
+  try {
+    const uuids = getAllUUIDs(userStorage);
+    await Engine.context.NotificationServicesPushController.disablePushNotifications(
+      uuids,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
+export const updateTriggerPushNotifications = async (userStorage: UserStorage) => {
+  try {
+    const uuids = getAllUUIDs(userStorage);
+    await Engine.context.NotificationServicesPushController.updateTriggerPushNotifications(
+      uuids,
+    );
   } catch (error) {
     return getErrorMessage(error);
   }
