@@ -22,7 +22,7 @@
  */
 
 import BigNumber from 'bignumber.js';
-import BN from 'bnjs4';
+import BN from 'bn.js';
 
 import { stripHexPrefix } from 'ethereumjs-util';
 

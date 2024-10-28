@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import BN4 from 'bnjs4';
+import BN from 'bn.js';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import {
   TransactionParams,
@@ -132,7 +132,7 @@ function SendTransaction() {
       setIsConfirming(true);
       let transactionParams: TransactionParams;
       const amount = addHexPrefix(
-        new BN4(
+        new BN(
           toTokenMinimalUnit(
             orderData.cryptoAmount || '0',
             orderData.cryptoCurrency.decimals,

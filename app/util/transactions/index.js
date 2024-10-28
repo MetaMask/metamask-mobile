@@ -1,5 +1,5 @@
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
-import BN from 'bnjs4';
+import BN from 'bn.js';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';

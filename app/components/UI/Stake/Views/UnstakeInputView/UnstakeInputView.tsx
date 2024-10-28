@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import BN4 from 'bnjs4';
+import BN from 'bn.js';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -43,7 +43,7 @@ const UnstakeInputView = () => {
     handleAmountPress,
     handleKeypadChange,
     conversionRate,
-  } = useStakingInputHandlers(new BN4(stakedBalanceWei));
+  } = useStakingInputHandlers(new BN(stakedBalanceWei));
 
   const stakeBalanceInEth = renderFromWei(stakedBalanceWei, 5);
   const stakeBalanceFiatNumber = weiToFiatNumber(
