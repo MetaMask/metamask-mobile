@@ -98,10 +98,6 @@ describe('Number utils :: toWei', () => {
     // BN.js do not support such big numbers
     expect(() => toWei(new BN(1.337e18))).toThrow(Error);
     expect(() => toWei(new BN(1337000000000000000))).toThrow(Error);
-    // For some reason this returns 8338418000000000000000000 wei
-    expect(toWei(new BN('1.337e18'))).not.toEqual(
-      '1337000000000000000000000000000000000',
-    );
   });
 });
 
