@@ -142,7 +142,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
-      await SwapView.swipeToSwap();
+      await SwapView.tapSwapButton();
       //Wait for Swap to complete
       await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
