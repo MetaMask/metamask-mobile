@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -7,7 +7,9 @@ import createStyles from '../styles';
 import { strings } from '../../../../../locales/i18n';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -22,6 +24,7 @@ enum SortOption {
 }
 
 const TokenSortBottomSheet = () => {
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -37,6 +40,7 @@ const TokenSortBottomSheet = () => {
           order: 'dsc',
           sortCallback: 'stringNumeric',
         });
+        sheetRef.current?.onCloseBottomSheet();
         break;
       case SortOption.Alphabetical:
         PreferencesController.setTokenSortConfig({
@@ -44,6 +48,7 @@ const TokenSortBottomSheet = () => {
           sortCallback: 'alphaNumeric',
           order: 'asc',
         });
+        sheetRef.current?.onCloseBottomSheet();
         break;
       default:
         break;
@@ -51,7 +56,7 @@ const TokenSortBottomSheet = () => {
   };
 
   return (
-    <BottomSheet shouldNavigateBack>
+    <BottomSheet shouldNavigateBack ref={sheetRef}>
       <View style={styles.bottomSheetWrapper}>
         <Text
           testID={WalletViewSelectorsIDs.SORT_BY}
