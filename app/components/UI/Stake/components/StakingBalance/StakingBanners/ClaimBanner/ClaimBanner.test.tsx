@@ -5,7 +5,6 @@ import { fireEvent } from '@testing-library/react-native';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
-import { waitFor } from '@testing-library/react';
 
 const MOCK_CLAIM_AMOUNT = '0.016';
 const MOCK_ADDRESS_1 = '0x0123456789abcdef0123456789abcdef01234567';

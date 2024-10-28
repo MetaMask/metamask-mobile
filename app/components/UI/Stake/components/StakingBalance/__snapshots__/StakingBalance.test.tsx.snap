@@ -348,6 +348,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             }
           }
           suppressHighlighting={true}
+          testID="claim-banner-claim-eth-button"
         >
           <Text
             accessibilityRole="text"
