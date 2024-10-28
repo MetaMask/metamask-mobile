@@ -489,8 +489,10 @@ export function weiToFiat(
   currencyCode,
   decimalsToShow = 5,
 ) {
-  if (!conversionRate) return undefined;
-  if (!wei || !isBN(wei) || !conversionRate) {
+  if (typeof wei === 'undefined' || !conversionRate || typeof wei === 'number' && isNaN(wei) || !conversionRate) {
+    return undefined;
+  }
+  if (!wei || typeof wei !== 'number' && !isBN(wei)) {
     return addCurrencySymbol(0, currencyCode);
   }
   decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
