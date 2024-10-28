@@ -3507,5 +3507,14 @@
       "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
     }
+  },
+  "add_snap_account": {
+    "title": "Add Snap Account",
+    "message": "Name your new Snap account",
+    "name_label": "Account Name",
+    "name_placeholder": "Enter account name",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "name_exists": "An account with this name already exists"
   }
 }

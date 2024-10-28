@@ -2,6 +2,8 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
+import AddSnapAccountModal from '../../components/Views/AddSnapAccountModal';
+import React from 'react';
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
@@ -77,6 +79,14 @@ export const snapKeyringBuilder = (
           'AccountsController:setSelectedAccount',
           account.id,
         );
+
+        showAddSnapAccountPrompt({
+          isVisible: true,
+          onClose: handleCancel,
+          onConfirm: handleConfirm,
+          suggestedName: accountNameSuggestion,
+          existingNames,
+        });
       },
 
       removeAccount: async (
@@ -100,3 +110,10 @@ export const snapKeyringBuilder = (
   builder.type = SnapKeyring.type;
   return builder;
 };
+
+// TODO: Implement this function to show the AddSnapAccountModal
+function showAddSnapAccountPrompt(
+  props: React.ComponentProps<typeof AddSnapAccountModal>,
+) {
+  // Start generic approval flow
+}
