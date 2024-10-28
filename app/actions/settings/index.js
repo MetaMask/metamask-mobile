@@ -67,3 +67,10 @@ export function toggleDeviceNotification(deviceNotificationEnabled) {
     deviceNotificationEnabled,
   };
 }
+
+export function setTokenSortConfig(tokenSortConfig) {
+  return {
+    type: 'SET_TOKEN_SORT_CONFIG',
+    tokenSortConfig,
+  };
+}

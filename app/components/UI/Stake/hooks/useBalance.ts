@@ -9,11 +9,12 @@ import {
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   hexToBN,
+  renderFiat,
   renderFromWei,
-  toHexadecimal,
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
+import usePooledStakes from './usePooledStakes';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -25,7 +26,7 @@ const useBalance = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const rawAccountBalance = selectedAddress
-    ? accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance
+    ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';
 
   const balance = useMemo(
@@ -48,7 +49,35 @@ const useBalance = () => {
     [balanceWei, conversionRate],
   );
 
-  return { balance, balanceFiat, balanceWei, balanceFiatNumber };
+  const { pooledStakesData } = usePooledStakes();
+  const assets = hexToBN(pooledStakesData.assets).toString('hex');
+  const formattedStakedBalanceETH = useMemo(
+    () => `${renderFromWei(assets)} ETH`,
+    [assets],
+  );
+
+  const stakedBalanceFiatNumber = useMemo(
+    () => weiToFiatNumber(assets, conversionRate),
+    [assets, conversionRate],
+  );
+
+  const formattedStakedBalanceFiat = useMemo(
+    () => renderFiat(stakedBalanceFiatNumber, currentCurrency, 2),
+    [currentCurrency, stakedBalanceFiatNumber],
+  );
+
+  return {
+    balance,
+    balanceFiat,
+    balanceWei,
+    balanceFiatNumber,
+    stakedBalanceWei: assets ?? '0',
+    formattedStakedBalanceETH,
+    stakedBalanceFiatNumber,
+    formattedStakedBalanceFiat,
+    conversionRate,
+    currentCurrency,
+  };
 };
 
 export default useBalance;

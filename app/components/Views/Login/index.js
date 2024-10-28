@@ -13,13 +13,15 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from '@metamask/react-native-button';
-import StyledButton from '../../UI/StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -31,7 +33,6 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
-import { OutlinedTextField } from 'react-native-material-textfield';
 import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
@@ -58,6 +59,19 @@ import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selector
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
+import Label from '../../../component-library/components/Form/Label';
+import HelpText, {
+  HelpTextSeverity,
+} from '../../../component-library/components/Form/HelpText';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -107,11 +121,10 @@ const createStyles = (colors) =>
     },
     footer: {
       marginVertical: 40,
+      alignItems: 'center',
     },
     goBack: {
       marginVertical: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
     },
     biometrics: {
       flexDirection: 'row',
@@ -127,12 +140,6 @@ const createStyles = (colors) =>
     },
     biometrySwitch: {
       flex: 0,
-    },
-    input: {
-      ...fontStyles.normal,
-      fontSize: 16,
-      paddingTop: 2,
-      color: colors.text.default,
     },
     cant: {
       width: 280,
@@ -244,6 +251,10 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
+    trace({
+      name: TraceName.LoginToPasswordEntry,
+      op: TraceOperation.LoginToPasswordEntry,
+    });
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -367,7 +378,15 @@ class Login extends PureComponent {
     );
 
     try {
-      await Authentication.userEntryAuth(password, authType);
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.AuthenticateUser,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       Keyboard.dismiss();
 
@@ -435,7 +454,15 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await Authentication.appTriggeredAuth();
+      await trace(
+        {
+          name: TraceName.BiometricAuthentication,
+          op: TraceOperation.BiometricAuthentication,
+        },
+        async () => {
+          await Authentication.appTriggeredAuth();
+        },
+      );
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -454,6 +481,7 @@ class Login extends PureComponent {
   };
 
   triggerLogIn = () => {
+    endTrace({ name: TraceName.LoginToPasswordEntry });
     this.onLogin();
   };
 
@@ -536,21 +564,18 @@ class Login extends PureComponent {
                 )}
               </TouchableOpacity>
 
-              <Text
-                style={styles.title}
-                testID={LoginViewSelectors.TITLE_ID}
-              >
+              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
                 {strings('login.title')}
               </Text>
               <View style={styles.field}>
-                <Text
+                <Label
                   variant={TextVariant.HeadingSMRegular}
                   style={styles.label}
                 >
                   {strings('login.password')}
-                </Text>
-                <OutlinedTextField
-                  style={styles.input}
+                </Label>
+                <TextField
+                  size={TextFieldSize.Lg}
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
@@ -563,13 +588,13 @@ class Login extends PureComponent {
                   baseColor={colors.border.default}
                   tintColor={colors.primary.default}
                   onSubmitEditing={this.triggerLogIn}
-                  renderRightAccessory={() => (
+                  endAccessory={
                     <BiometryButton
                       onPress={this.tryBiometric}
                       hidden={shouldHideBiometricAccessoryButton}
                       biometryType={this.state.biometryType}
                     />
-                  )}
+                  }
                   keyboardAppearance={themeAppearance}
                 />
               </View>
@@ -577,27 +602,34 @@ class Login extends PureComponent {
               {this.renderSwitch()}
 
               {!!this.state.error && (
-                <Text
-                  color={TextColor.Error}
+                <HelpText
+                  severity={HelpTextSeverity.Error}
+                  variant={TextVariant.BodyMD}
                   testID={LoginViewSelectors.PASSWORD_ERROR}
                 >
                   {this.state.error}
-                </Text>
+                </HelpText>
               )}
               <View
                 style={styles.ctaWrapper}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
-                <StyledButton type={'confirm'} onPress={this.triggerLogIn}>
-                  {this.state.loading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('login.unlock_button')
-                  )}
-                </StyledButton>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  width={ButtonWidthTypes.Full}
+                  size={ButtonSize.Lg}
+                  onPress={this.triggerLogIn}
+                  label={
+                    this.state.loading ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={colors.primary.inverse}
+                      />
+                    ) : (
+                      strings('login.unlock_button')
+                    )
+                  }
+                />
               </View>
 
               <View style={styles.footer}>
@@ -609,11 +641,11 @@ class Login extends PureComponent {
                 </Text>
                 <Button
                   style={styles.goBack}
+                  variant={ButtonVariants.Link}
                   onPress={this.toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
-                >
-                  {strings('login.reset_wallet')}
-                </Button>
+                  label={strings('login.reset_wallet')}
+                />
               </View>
             </View>
           </KeyboardAwareScrollView>

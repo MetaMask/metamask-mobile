@@ -12,6 +12,8 @@ import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { mockNetworkState } from '../../../util/test/network';
+
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -35,6 +37,23 @@ jest.mock('../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
       getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockReturnValue({ chainId: '0x1' }),
+      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Mainnet',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: 'infura',
+            url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+          },
+        ],
+      }),
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
@@ -63,37 +82,65 @@ const initialState = {
       },
       NetworkController: {
         selectedNetworkClientId: 'mainnet',
-        networksMetadata: {},
-        networkConfigurations: {
-          networkId1: {
+        networksMetadata: {
+          mainnet: { status: 'available', EIPS: { '1559': true } },
+        },
+        networkConfigurationsByChainId: {
+          '0xa86a': {
+            blockExplorerUrls: ['https://snowtrace.io'],
             chainId: '0xa86a',
-            nickname: 'Avalanche Mainnet C-Chain',
-            rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
-            rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-            ticker: 'AVAX',
+            defaultRpcEndpointIndex: 0,
+            name: 'Avalanche Mainnet C-Chain',
+            nativeCurrency: 'AVAX',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId1',
+                type: 'custom',
+                url: 'https://api.avax.network/ext/bc/C/rpc',
+              },
+            ],
           },
-          networkId2: {
+          '0x89': {
+            blockExplorerUrls: ['https://polygonscan.com'],
             chainId: '0x89',
-            nickname: 'Polygon Mainnet',
-            rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-            rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
-            ticker: 'MATIC',
+            defaultRpcEndpointIndex: 0,
+            name: 'Polygon Mainnet',
+            nativeCurrency: 'MATIC',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId2',
+                type: 'infura',
+                url: 'https://polygon-mainnet.infura.io/v3/12345',
+              },
+            ],
           },
-          networkId3: {
+          '0xa': {
+            blockExplorerUrls: ['https://optimistic.etherscan.io'],
             chainId: '0xa',
-            nickname: 'Optimism',
-            rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
-            rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
-            ticker: 'ETH',
+            defaultRpcEndpointIndex: 0,
+            name: 'Optimism',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId3',
+                type: 'infura',
+                url: 'https://optimism-mainnet.infura.io/v3/12345',
+              },
+            ],
           },
-          networkId4: {
+          '0x64': {
+            blockExplorerUrls: ['https://blockscout.com/xdai/mainnet/'],
             chainId: '0x64',
-            nickname: 'Gnosis Chain',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://blockscout.com/xdai/mainnet/',
-            },
-            rpcUrl: 'https://rpc.gnosischain.com/',
-            ticker: 'XDAI',
+            defaultRpcEndpointIndex: 0,
+            name: 'Gnosis Chain',
+            nativeCurrency: 'XDAI',
+            rpcEndpoints: [
+              {
+                networkClientId: 'networkId4',
+                type: 'custom',
+                url: 'https://rpc.gnosischain.com/',
+              },
+            ],
           },
         },
       },
@@ -138,6 +185,20 @@ describe('Network Selector', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly when network UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('shows popular networks when UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    const popularNetworksTitle = getByText('Additional networks');
+    expect(popularNetworksTitle).toBeTruthy();
+  });
+
   it('changes network when another network cell is pressed', async () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
@@ -171,29 +232,39 @@ describe('Network Selector', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           NetworkController: {
-            ...initialState.engine.backgroundState.NetworkController,
             selectedNetworkClientId: 'sepolia',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'http://mainnet.infura.io',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+              sepolia: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              [CHAIN_IDS.MAINNET]: {
+                blockExplorerUrls: ['https://etherscan.com'],
                 chainId: CHAIN_IDS.MAINNET,
-                ticker: 'ETH',
-                nickname: 'Ethereum Mainnet',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
+                defaultRpcEndpointIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    type: 'infura',
+                    url: 'http://mainnet.infura.io',
+                  },
+                ],
               },
-              sepolia: {
-                id: 'sepolia',
-                rpcUrl: 'http://sepolia.infura.io',
+              [CHAIN_IDS.SEPOLIA]: {
+                blockExplorerUrls: ['https://etherscan.com'],
                 chainId: CHAIN_IDS.SEPOLIA,
-                ticker: 'ETH',
-                nickname: 'Sepolia',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
+                defaultRpcEndpointIndex: 0,
+                name: 'Sepolia',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sepolia',
+                    type: 'infura',
+                    url: 'http://sepolia.infura.io',
+                  },
+                ],
               },
             },
           },
@@ -229,6 +300,43 @@ describe('Network Selector', () => {
           PreferencesController: {
             showTestNetworks: true,
           },
+          NetworkController: {
+            selectedNetworkClientId: 'sepolia',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+              sepolia: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              [CHAIN_IDS.MAINNET]: {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: CHAIN_IDS.MAINNET,
+                defaultRpcEndpointIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    type: 'infura',
+                    url: 'http://mainnet.infura.io',
+                  },
+                ],
+              },
+              [CHAIN_IDS.SEPOLIA]: {
+                blockExplorerUrls: ['https://etherscan.com'],
+                chainId: CHAIN_IDS.SEPOLIA,
+                defaultRpcEndpointIndex: 0,
+                name: 'Sepolia',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sepolia',
+                    type: 'infura',
+                    url: 'http://sepolia.infura.io',
+                  },
+                ],
+              },
+            },
+          },
         },
       },
     });
@@ -248,8 +356,12 @@ describe('Network Selector', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           NetworkController: {
-            ...initialState.engine.backgroundState.NetworkController,
-            networkConfigurations: {},
+            ...mockNetworkState({
+              chainId: '0x1',
+              id: 'Mainnet',
+              nickname: 'Ethereum Main Network',
+              ticker: 'ETH',
+            }),
           },
         },
       },
@@ -290,69 +402,61 @@ describe('Network Selector', () => {
     });
   });
 
-  // Add this test for selecting between two Polygon networks
-  it('should select only one Polygon network when two networks with different RPC URLs exist', async () => {
-    jest.clearAllMocks(); // Clears mock data, ensuring that no mock has been called
-    jest.resetAllMocks(); // Resets mock implementation and mock instances
+  it('filters networks correctly when searching', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByPlaceholderText, queryByText } = renderComponent(initialState);
 
-    const customState = {
-      ...initialState,
-      engine: {
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          NetworkController: {
-            networkConfigurations: {
-              polygonNetwork1: {
-                chainId: '0x89', // Polygon Mainnet
-                nickname: 'Polygon Mainnet 1',
-                rpcUrl: 'https://polygon-mainnet-1.rpc',
-                ticker: 'POL',
-              },
-              polygonNetwork2: {
-                chainId: '0x89', // Polygon Mainnet (same chainId, different RPC URL)
-                nickname: 'Polygon Mainnet 2',
-                rpcUrl: 'https://polygon-mainnet-2.rpc',
-                ticker: 'POL',
-              },
-            },
-          },
-        },
-      },
-    };
+    const searchInput = getByPlaceholderText('Search');
 
-    (
-      Engine.context.NetworkController.getNetworkClientById as jest.Mock
-    ).mockReturnValue({
-      configuration: {
-        chainId: '0x89', // Polygon Mainnet
-        nickname: 'Polygon Mainnet 1',
-        rpcUrl: 'https://polygon-mainnet-1.rpc',
-        ticker: 'POL',
-        type: 'custom',
-      },
-    });
+    // Simulate entering a search term
+    fireEvent.changeText(searchInput, 'Polygon');
 
-    const { getByText, queryByTestId } = renderComponent(customState);
+    // Polygon should appear, but others should not
+    expect(queryByText('Polygon Mainnet')).toBeTruthy();
+    expect(queryByText('Avalanche Mainnet C-Chain')).toBeNull();
 
-    // Ensure both networks are rendered
-    const polygonNetwork1 = getByText('Polygon Mainnet 1');
-    const polygonNetwork2 = getByText('Polygon Mainnet 2');
-    expect(polygonNetwork1).toBeTruthy();
-    expect(polygonNetwork2).toBeTruthy();
+    // Clear search and check if all networks appear
+    fireEvent.changeText(searchInput, '');
+    expect(queryByText('Polygon Mainnet')).toBeTruthy();
+    expect(queryByText('Avalanche Mainnet C-Chain')).toBeTruthy();
+  });
 
-    // Select the first network
-    fireEvent.press(polygonNetwork1);
+  it('shows popular networks when network UI redesign is enabled', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
 
-    // Wait for the selection to be applied
+    // Check that the additional networks section is rendered
+    const popularNetworksTitle = getByText('Additional networks');
+    expect(popularNetworksTitle).toBeTruthy();
+  });
+
+  it('opens the multi-RPC selection modal correctly', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    const polygonCell = getByText('Polygon Mainnet');
+
+    // Open the modal
+    fireEvent.press(polygonCell);
     await waitFor(() => {
-      const polygonNetwork1Selected = queryByTestId(
-        'Polygon Mainnet 1-selected',
-      );
-      expect(polygonNetwork1Selected).toBeTruthy();
+      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
+      expect(rpcOption).toBeTruthy();
     });
+  });
 
-    // Assert that the second network is NOT selected
-    const polygonNetwork2Selected = queryByTestId('Polygon Mainnet 2-selected');
-    expect(polygonNetwork2Selected).toBeNull(); // Not selected
+  it('toggles test networks visibility when switch is used', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByTestId } = renderComponent(initialState);
+    const testNetworksSwitch = getByTestId(
+      NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
+    );
+
+    // Toggle the switch on
+    fireEvent(testNetworksSwitch, 'onValueChange', true);
+    expect(setShowTestNetworksSpy).toBeCalledWith(true);
+
+    // Toggle the switch off
+    fireEvent(testNetworksSwitch, 'onValueChange', false);
+    expect(setShowTestNetworksSpy).toBeCalledWith(false);
   });
 });

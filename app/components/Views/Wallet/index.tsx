@@ -52,6 +52,8 @@ import {
   isMainNet,
 } from '../../../util/networks';
 import {
+  selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -80,8 +82,14 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectUseNftDetection } from '../../../selectors/preferencesController';
-import { setNftAutoDetectionModalOpen } from '../../../actions/security';
+import {
+  selectShowMultiRpcModal,
+  selectUseNftDetection,
+} from '../../../selectors/preferencesController';
+import {
+  setNftAutoDetectionModalOpen,
+  setMultiRpcMigrationModalOpen,
+} from '../../../actions/security';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
@@ -96,6 +104,9 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
+import { isObject } from 'lodash';
+
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -111,12 +122,12 @@ const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.primary.default,
     },
     tabStyle: {
-      paddingBottom: 0,
+      paddingBottom: 8,
       paddingVertical: 8,
     },
     tabBar: {
       borderColor: colors.background.default,
-      marginTop: 16,
+      marginBottom: 8,
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
@@ -167,6 +178,8 @@ const Wallet = ({
   const styles = createStyles(theme);
   const { colors } = theme;
   const dispatch = useDispatch();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
   /**
    * Object containing the balance of the current selected account
    */
@@ -295,11 +308,14 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const chainId = useSelector(selectChainId);
+  const name = useSelector(selectNetworkName);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const useNftDetection = useSelector(selectUseNftDetection);
+  const showMultiRpcModal = useSelector(selectShowMultiRpcModal);
   const isNFTAutoDetectionModalViewed = useSelector(
     (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
   );
@@ -315,6 +331,13 @@ const Wallet = ({
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
+
+  const isNetworkDuplicated = Object.values(networkConfigurations).some(
+    (networkConfiguration) =>
+      isObject(networkConfiguration) &&
+      Array.isArray(networkConfiguration.rpcEndpoints) &&
+      networkConfiguration.rpcEndpoints.length > 1,
+  );
 
   const checkNftAutoDetectionModal = useCallback(() => {
     const isOnMainnet = isMainNet(providerConfig.chainId);
@@ -332,12 +355,22 @@ const Wallet = ({
     useNftDetection,
   ]);
 
+  const checkMultiRpcModal = useCallback(() => {
+    if (showMultiRpcModal && isNetworkDuplicated) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
+      });
+      dispatch(setMultiRpcMigrationModalOpen(true));
+    }
+  }, [dispatch, showMultiRpcModal, navigation, isNetworkDuplicated]);
+
   useEffect(() => {
     if (
       currentRouteName === 'Wallet' ||
       currentRouteName === 'SecuritySettings'
     ) {
       checkNftAutoDetectionModal();
+      checkMultiRpcModal();
     }
 
     async function checkIfNotificationsAreEnabled() {
@@ -564,29 +597,32 @@ const Wallet = ({
         {selectedAddress ? (
           <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          // eslint-disable-next-line react/jsx-no-bind
-          onChangeTab={onChangeTab}
-        >
-          <Tokens
-            tabLabel={strings('wallet.tokens')}
-            key={'tokens-tab'}
-            navigation={navigation}
-            // TODO - Consolidate into the correct type.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            tokens={assets}
-          />
-          <CollectibleContracts
-            // TODO - Extend component to support injected tabLabel prop.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            tabLabel={strings('wallet.collectibles')}
-            key={'nfts-tab'}
-            navigation={navigation}
-          />
-        </ScrollableTabView>
+        <>
+          {accountBalanceByChainId && <PortfolioBalance />}
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            // eslint-disable-next-line react/jsx-no-bind
+            onChangeTab={onChangeTab}
+          >
+            <Tokens
+              tabLabel={strings('wallet.tokens')}
+              key={'tokens-tab'}
+              navigation={navigation}
+              // TODO - Consolidate into the correct type.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tokens={assets}
+            />
+            <CollectibleContracts
+              // TODO - Extend component to support injected tabLabel prop.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tabLabel={strings('wallet.collectibles')}
+              key={'nfts-tab'}
+              navigation={navigation}
+            />
+          </ScrollableTabView>
+        </>
       </View>
     );
   }, [
