@@ -42,6 +42,14 @@ class SwapView {
   }
 
   async tapSwapButton() {
+    const swapButtonElement = await this.swapButton;
+    const delay = 500; // Delay in milliseconds
+
+    // Wait until the button is enabled before performing swipe actions
+    while (!(await this.isButtonEnabled(swapButtonElement))) {
+      await TestHelpers.delay(delay); // Wait for the specified delay
+    }
+
     await Gestures.waitAndTap(this.swapButton);
   }
 
