@@ -148,12 +148,17 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
 
     // test decimal greater than 30,000
     expect(fromTokenMinimalUnit(new BN('50000000000000000000000'), 18)).toEqual(
-      '49999.999999999995805696',
+      '50000',
+    );
+    expect(fromTokenMinimalUnit(parseFloat('69999999999999999999999'), 18)).toEqual(
+      '69999.999999999996',
     );
 
     // test decimal less than 1e-14
     expect(fromTokenMinimalUnit(hexToBN('576129d2d21d64a5'), 18)).toEqual(
-      '6.296359739485676544',
+      // exactly correct:
+      // '6.296359739485677000',
+      '6.296359739485676709',
     );
   });
 
