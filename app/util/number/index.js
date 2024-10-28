@@ -564,9 +564,12 @@ export function addCurrencySymbol(
  * @returns {Number} - The converted balance
  */
 export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
+  if (!conversionRate) {
+    return undefined;
+  }
   const eth = new BigNumber(fromWei(wei), 10);
   const value = parseFloat(eth.multipliedBy(new BigNumber(conversionRate, 10)).toPrecision(decimalsToShow));
-  return isNaN(value) ? '0.0' : value;
+  return value;
 }
 
 /**
