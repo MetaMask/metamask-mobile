@@ -6,7 +6,6 @@ import Engine, {
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
-import { store } from '../store';
 import { mockNetworkState } from '../util/test/network';
 import MetaMetrics from './Analytics/MetaMetrics';
 import { store } from '../store';
