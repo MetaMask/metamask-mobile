@@ -456,10 +456,10 @@ export function toWei(value, unit = 'ether') {
  *
  * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {Object} - BIgNumber instance containing the new number
  */
 export function toGwei(value, unit = 'ether') {
-  return toBN(fromWei(value, unit)).mul(1000000000);
+  return new BigNumber(fromWei(value, unit)).multipliedBy(1000000000);
 }
 
 /**
@@ -467,11 +467,11 @@ export function toGwei(value, unit = 'ether') {
  *
  * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {string} - String instance containing the renderable number
+ * @returns {string} - String representation of the converted value
  */
 export function renderToGwei(value, unit = 'ether') {
   const gwei = toGwei(value, unit);
-  return gwei.toString();
+  return gwei.toString(10);
 }
 
 /**
