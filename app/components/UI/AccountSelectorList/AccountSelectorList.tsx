@@ -160,8 +160,6 @@ const AccountSelectorList = ({
 
   const onNavigateToAccountActions = useCallback(
     (selectedAccount: string) => {
-      // TODO: Fix this, there has to be a better
-      // way to get a internal account from the address.
       const account = internalAccounts.find(
         (accountData: InternalAccount) =>
           accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
