@@ -100,7 +100,7 @@ jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
-  amount: 50,
+  amount: '50',
   asset: {
     symbol: 'ETH',
   },

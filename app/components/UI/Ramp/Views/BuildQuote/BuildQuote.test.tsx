@@ -155,7 +155,7 @@ jest.mock('../../hooks/usePaymentMethods', () =>
 );
 
 const MAX_LIMIT = 4;
-const VALID_AMOUNT = 3;
+const VALID_AMOUNT = '3';
 const MIN_LIMIT = 2;
 const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
   limits: {
