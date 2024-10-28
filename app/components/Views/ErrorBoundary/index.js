@@ -230,7 +230,10 @@ export const Fallback = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  const toggleModal = () => setModalVisible((visible) => !visible);
+  const toggleModal = () => {
+    setModalVisible((visible) => !visible);
+    setFeedback('');
+  };
   const handleContactSupport = () =>
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
   const handleTryAgain = () => DevSettings.reload();
