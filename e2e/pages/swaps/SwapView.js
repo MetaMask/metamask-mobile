@@ -20,8 +20,8 @@ class SwapView {
     return Matchers.getElementByText(SwapViewSelectorsTexts.FETCHING_QUOTES);
   }
 
-  get swipeToSwapButton() {
-    return Matchers.getElementByID(SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON);
+  get swapButton() {
+    return Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON);
   }
 
   get iUnderstandLabel() {
@@ -41,19 +41,8 @@ class SwapView {
     return attributes.enabled === true; // Check if enabled is true
   }
 
-  async swipeToSwap() {
-    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
-    const swapsSliderElement = await this.swipeToSwapButton;
-    const delay = 500; // Delay in milliseconds
-
-    // Wait until the button is enabled before performing swipe actions
-    while (!(await this.isButtonEnabled(swapsSliderElement))) {
-      await TestHelpers.delay(delay); // Wait for the specified delay
-    }
-
-    // Once enabled, perform the swipe actions
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
-    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
+  async tapSwapButton() {
+    await Gestures.waitAndTap(this.swapButton);
   }
 
   async swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {

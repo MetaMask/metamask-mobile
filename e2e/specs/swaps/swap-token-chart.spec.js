@@ -94,7 +94,7 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(SwapView.quoteSummary);
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
-    await SwapView.swipeToSwap();
+    await SwapView.tapSwapButton();
     //Wait for Swap to complete
     await SwapView.swapCompleteLabel('ETH', 'DAI');
     await device.enableSynchronization();
