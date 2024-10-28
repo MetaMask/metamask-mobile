@@ -376,7 +376,9 @@ export function isDecimal(value) {
  * @returns {Object} - BN instance
  */
 export function toBN(value) {
-  return new BN(value);
+  return value?.startsWith('0x')
+    ? hexToBN(value)
+    : new BN(value || '0');
 }
 
 /**
