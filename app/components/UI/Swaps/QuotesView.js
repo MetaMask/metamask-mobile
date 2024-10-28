@@ -1070,11 +1070,12 @@ function SwapsQuotesView({
   );
 
   const handleCompleteSwap = useCallback(async () => {
-    if (!selectedQuote) {
-      return;
-    }
     setIsHandlingSwap(true);
 
+    if (!selectedQuote) {
+      setIsHandlingSwap(false);
+      return;
+    }
 
     const isHardwareAddress = isHardwareAccount(selectedAddress);
 
@@ -1088,6 +1089,7 @@ function SwapsQuotesView({
       );
 
       if (isHardwareAddress) {
+        setIsHandlingSwap(false);
         navigation.dangerouslyGetParent()?.pop();
         return;
       }
