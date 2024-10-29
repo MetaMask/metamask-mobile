@@ -23,7 +23,7 @@ jest.mock('../../../../core/Engine.ts', () => ({
 }));
 
 describe('Approval', () => {
-  it('should render correctly', () => {
+  it('render matches snapshot', () => {
     const wrapper = renderScreen(
       Approval,
       { name: 'Approval' },
