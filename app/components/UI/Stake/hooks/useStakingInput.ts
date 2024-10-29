@@ -34,8 +34,6 @@ const useStakingInputHandlers = () => {
   const { estimatedGasFeeWei, isLoadingStakingGasFee, isStakingGasFeeError } =
     useStakingGasFee(balance.toString());
 
-  // console.log('estimatedgas', new BN(estimatedGasFeeWei).toString());
-
   const maxStakeableAmountWei = useMemo(
     () =>
       !isStakingGasFeeError && balance.gt(estimatedGasFeeWei)
