@@ -290,7 +290,7 @@ index 2688318..fa7521e 100644
     * Allows controller to make active and passive polling requests
     */
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js b/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js
-index 6550aec..8e19aab 100644
+index 6550aec..b46080e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js
 @@ -17,7 +17,7 @@ function getDefaultTokenBalancesState() {
@@ -333,7 +333,7 @@ index 6550aec..8e19aab 100644
    /**
     * Allows controller to update tracked tokens contract balances.
     */
-@@ -101,30 +115,34 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+@@ -101,30 +115,38 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
        "AccountsController:getSelectedAccount"
      );
      const newContractBalances = {};
@@ -342,9 +342,10 @@ index 6550aec..8e19aab 100644
        const { address } = token;
 -      try {
 -        const balance = await this.messagingSystem.call(
--          "AssetsContractController:getERC20BalanceOf",
--          address,
--          selectedInternalAccount.address
++      return this.messagingSystem.call(
+           "AssetsContractController:getERC20BalanceOf",
+           address,
+           selectedInternalAccount.address
 -        );
 -        newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
 -        token.hasBalanceError = false;
@@ -353,7 +354,7 @@ index 6550aec..8e19aab 100644
 -        token.hasBalanceError = true;
 -      }
 -    }
-+      return _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedInternalAccount.address).then((balance) => {
++        ).then((balance) => {
 +          newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
 +              token = {
 +                ...token,
