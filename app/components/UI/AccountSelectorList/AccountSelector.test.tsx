@@ -5,7 +5,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import {
@@ -137,10 +137,10 @@ describe('AccountSelectorList', () => {
 
     await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
       const personalAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -180,7 +180,7 @@ describe('AccountSelectorList', () => {
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();

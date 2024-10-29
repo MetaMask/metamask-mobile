@@ -1154,7 +1154,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1213,7 +1213,7 @@ export function getNftDetailsNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -1336,7 +1336,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <IonicIcon
           name={'ios-close'}

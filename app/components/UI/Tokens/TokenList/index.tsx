@@ -18,6 +18,7 @@ import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 interface TokenListProps {
   tokens: TokenI[];
@@ -71,6 +72,7 @@ export const TokenList = ({
 
   return tokens?.length ? (
     <FlatList
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
