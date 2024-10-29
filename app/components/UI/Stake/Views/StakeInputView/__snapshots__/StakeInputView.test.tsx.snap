@@ -545,15 +545,15 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 >
                                   <SvgMock
                                     color="#6a737d"
-                                    height={20}
+                                    height={16}
                                     name="Question"
                                     style={
                                       {
-                                        "height": 20,
-                                        "width": 20,
+                                        "height": 16,
+                                        "width": 16,
                                       }
                                     }
-                                    width={20}
+                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>
