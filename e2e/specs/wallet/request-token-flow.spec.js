@@ -3,7 +3,7 @@ import { SmokeCore } from '../../tags';
 import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
 import PaymentRequestQrModal from '../../pages/Receive/PaymentRequestQrModal';
-import RequestPaymentView from '../../pages/RequestPaymentView';
+import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';

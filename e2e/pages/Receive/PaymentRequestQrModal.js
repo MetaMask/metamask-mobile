@@ -1,6 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { SendLinkViewSelectorsIDs } from '../../selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
 
 class PaymentRequestQrModal {
   get container() {
