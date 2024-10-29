@@ -34,9 +34,9 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -91,7 +91,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const networkName = useSelector(selectNetworkName);
 
   const actionSheet = useRef<typeof ActionSheet>();
-  const filterControlsActionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
@@ -149,7 +148,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
-  const showFilterControls = () => filterControlsActionSheet?.current?.show(); // TODO: BottomSheet
   const showSortControls = () => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   };
@@ -224,21 +222,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const onFilterControlsActionSheetPress = (index: number) => {
-    const { PreferencesController } = Engine.context;
-    switch (index) {
-      case 0:
-        PreferencesController.setTokenNetworkFilter({});
-        break;
-      case 1:
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-        break;
-      default:
-        break;
-    }
-  };
+  // const onFilterControlsActionSheetPress = (index: number) => {
+  //   const { PreferencesController } = Engine.context;
+  //   switch (index) {
+  //     case 0:
+  //       PreferencesController.setTokenNetworkFilter({});
+  //       break;
+  //     case 1:
+  //       PreferencesController.setTokenNetworkFilter({
+  //         [chainId]: true,
+  //       });
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // };
 
   return (
     <View
@@ -253,7 +251,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
                 ? networkName ?? 'Current Network'
                 : 'All Networks'
             }
-            onPress={showFilterControls}
+            onPress={() => console.log('handle filter controls')}
             endIconName={IconName.ArrowDown}
             style={styles.controlButton}
           />
@@ -304,13 +302,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
-      />
-      <ActionSheet
-        ref={filterControlsActionSheet as LegacyRef<typeof ActionSheet>}
-        title={'Filter'}
-        options={['All Networks', 'Current Network', 'Cancel']}
-        cancelButtonIndex={2}
-        onPress={onFilterControlsActionSheetPress}
       />
     </View>
   );

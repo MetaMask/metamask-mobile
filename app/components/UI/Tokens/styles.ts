@@ -17,6 +17,9 @@ const createStyles = (colors: Colors) =>
       paddingTop: 16,
       paddingBottom: 16,
     },
+    bottomSheetText: {
+      width: '100%',
+    },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',
