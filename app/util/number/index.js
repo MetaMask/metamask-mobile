@@ -2,11 +2,11 @@
  * Collection of utility functions for consistent formatting and conversion
  */
 import { stripHexPrefix } from 'ethereumjs-util';
-import BN4 from 'bnjs4';
+import BN from 'bn.js';
 import { utils as ethersUtils } from 'ethers';
 import convert from '@metamask/ethjs-unit';
+import numberToBN from '@metamask/number-to-bn';
 import { add0x, remove0x } from '@metamask/utils';
-import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
@@ -25,10 +25,15 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
  * @param inputHex - Number represented as a hex string.
  * @returns A BN instance.
  */
-export const hexToBN = (inputHex) =>
-  typeof inputHex !== 'string'
-    ? new BN4(inputHex, 16)
-    : (inputHex ? new BN4(remove0x(inputHex), 16) : new BN4(0));
+export function hexToBN(inputHex) {
+  if (typeof inputHex === 'number' && isNaN(inputHex) || !inputHex) {
+    return new BN(0);
+  }
+
+  return typeof inputHex === 'string'
+    ? new BN(remove0x(inputHex), 16)
+    : new BN(inputHex, 16);
+}
 
 /**
  * Converts a BN object to a hex string with a '0x' prefix.
@@ -64,7 +69,7 @@ const toSpecifiedDenomination = {
 const baseChange = {
   hex: (n) => n.toString(16),
   dec: (n) => new BigNumber(n).toString(10),
-  BN: (n) => new BN4(n.toString(16)),
+  BN: (n) => new BN(n.toString(16)),
 };
 
 /**
@@ -110,13 +115,19 @@ export function fromWei(value = 0, unit = 'ether') {
  */
 export function fromTokenMinimalUnit(
   minimalInput,
-  decimals,
-  isRounding = true,
+  decimals = 0,
+  _isRounding = true,
 ) {
+  const value = new BigNumber(
+    (isBN(minimalInput) ? minimalInput.toString(10) : minimalInput),
+    10,
+  );
+  return value.shiftedBy(parseInt(-decimals, 10)).toString(10, decimals);
+  /*
   minimalInput = isRounding ? Number(minimalInput) : minimalInput;
   const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBN(prefixedInput);
-  const negative = minimal.lt(new BN4(0));
+  const negative = minimal.lt(new BN(0));
   const base = toBN(Math.pow(10, decimals).toString());
 
   if (negative) {
@@ -133,6 +144,7 @@ export function fromTokenMinimalUnit(
     value = '-' + value;
   }
   return value;
+  */
 }
 
 /**
@@ -142,11 +154,12 @@ export function fromTokenMinimalUnit(
  * @param {number} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
-export function fromTokenMinimalUnitString(minimalInput, decimals) {
+export function fromTokenMinimalUnitString(minimalInput, decimals = 0) {
   if (typeof minimalInput !== 'string') {
     throw new TypeError('minimalInput must be a string');
   }
 
+  console.warn('HARP', { minimalInput, decimals, });
   const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
   const isInteger = Boolean(regex.integer.exec(tokenFormat));
 
@@ -160,13 +173,23 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
 /**
  * Converts some unit to token minimal unit
  *
- * @param {number|string|BN4} tokenValue - Value to convert
+ * @param {number|string|BN} tokenValue - Value to convert
  * @param {number} decimals - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {string} - string format of new number
  */
-export function toTokenMinimalUnit(tokenValue, decimals) {
-  const base = toBN(Math.pow(10, decimals).toString());
-  let value = convert.numberToString(tokenValue);
+export function toTokenMinimalUnit(tokenValue, decimals = 0) {
+  //const base = toBN(Math.pow(10, decimals).toString());
+  const valueBigNum = new BigNumber(tokenValue.toString(10), 10);
+  if (valueBigNum.isNaN()) {
+    throw new Error(`Could not parse '${tokenValue}' (${typeof tokenValue}) into BigNumber`);
+  }
+  const result = valueBigNum.shiftedBy(decimals);
+  if (result.gt(0) && result.lt(1)) {
+    throw new Error(`Invalid input '${JSON.stringify(tokenValue, decimals)}'.`);
+  }
+  //let value = convert.numberToString(tokenValue);
+  return result.toString(10);
+  /*
   const negative = value.substring(0, 1) === '-';
   if (negative) {
     value = value.substring(1);
@@ -205,19 +228,20 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   while (fraction.length < decimals) {
     fraction += '0';
   }
-  whole = new BN4(whole);
-  fraction = new BN4(fraction);
+  whole = new BN(whole);
+  fraction = new BN(fraction);
   let tokenMinimal = whole.mul(base).add(fraction);
   if (negative) {
     tokenMinimal = tokenMinimal.mul(negative);
   }
-  return new BN4(tokenMinimal.toString(10), 10);
+  return new BN(tokenMinimal.toString(10), 10);
+  */
 }
 
 /**
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
- * @param {Number|String|BN4} tokenValue - Token value to convert
+ * @param {Number|String|BN} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - Number of token minimal unit, in render format
@@ -313,7 +337,7 @@ export function fiatNumberToTokenMinimalUnit(
 /**
  * Converts wei to render format string, showing 5 decimals
  *
- * @param {Number|String|BN4} value - Wei to convert
+ * @param {Number|String|BN} value - Wei to convert
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - Number of token minimal unit, in render format
  * If value is less than 5 precision decimals will show '< 0.00001'
@@ -352,7 +376,7 @@ export function calcTokenValueToSend(value, decimals) {
  * @returns {boolean} - True if the value is a BN instance
  */
 export function isBN(value) {
-  return BN4.isBN(value);
+  return BN.isBN(value);
 }
 
 /**
@@ -376,7 +400,16 @@ export function isDecimal(value) {
  * @returns {Object} - BN instance
  */
 export function toBN(value) {
-  return new BN4(value);
+  // TODO: Throw on NaN input
+  if (typeof value === 'number' && isNaN(value) || !value || value === 'NaN') {
+    return new BN(0);
+  }
+  if (isBN(value)) {
+    return value;
+  }
+  return value?.startsWith('0x')
+    ? hexToBN(value)
+    : new BN(value || '0');
 }
 
 /**
@@ -417,9 +450,9 @@ export const isNumberScientificNotationWhenString = (value) => {
 /**
  * Converts some unit to wei
  *
- * @param {number|string|BN4} value - Value to convert
+ * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {BN4} - BN instance containing the new number
+ * @returns {BN} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
   // check the posibilty to convert to BN
@@ -433,33 +466,31 @@ export function toWei(value, unit = 'ether') {
 /**
  * Converts some unit to Gwei
  *
- * @param {number|string|BN4} value - Value to convert
+ * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {Object} - BIgNumber instance containing the new number
  */
 export function toGwei(value, unit = 'ether') {
-  return fromWei(value, unit) * 1000000000;
+  return new BigNumber(fromWei(value, unit)).multipliedBy(1000000000);
 }
 
 /**
  * Converts some unit to Gwei and return it in render format
  *
- * @param {number|string|BN4} value - Value to convert
+ * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {string} - String instance containing the renderable number
+ * @returns {string} - String representation of the converted value
  */
 export function renderToGwei(value, unit = 'ether') {
-  const gwei = fromWei(value, unit) * 1000000000;
-  let gweiFixed = parseFloat(Math.round(gwei));
-  gweiFixed = isNaN(gweiFixed) ? 0 : gweiFixed;
-  return gweiFixed;
+  const gwei = toGwei(value, unit);
+  return gwei.toString(10);
 }
 
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  * TODO: wei should be a BN instance, but we're not sure if it's always the case
 //
- * @param {number | BN4} wei - BN corresponding to an amount of wei
+ * @param {number | BN} wei - BN corresponding to an amount of wei
  * @param {number | null} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -470,8 +501,10 @@ export function weiToFiat(
   currencyCode,
   decimalsToShow = 5,
 ) {
-  if (!conversionRate) return undefined;
-  if (!wei || !isBN(wei) || !conversionRate) {
+  if (typeof wei === 'undefined' || !conversionRate || (typeof wei === 'number' || isBN(wei)) && isNaN(wei) || typeof wei !== 'number' && !isBN(wei)) {
+    return undefined;
+  }
+  if (!wei) {
     return addCurrencySymbol(0, currencyCode);
   }
   decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
@@ -535,18 +568,19 @@ export function addCurrencySymbol(
 }
 
 /**
- * Converts wei expressed as a BN instance into a human-readable fiat string
+ * Converts wei expressed as a BN instance into a fiat number
  *
- * @param {number|string|BN4} wei - BN corresponding to an amount of wei
+ * @param {number|string|BN} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
 export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
-  const base = Math.pow(10, decimalsToShow);
-  const eth = fromWei(wei).toString();
-  let value = parseFloat(Math.floor(eth * conversionRate * base) / base);
-  value = isNaN(value) ? 0.0 : value;
+  if (!conversionRate) {
+    return undefined;
+  }
+  const eth = new BigNumber(fromWei(wei), 10);
+  const value = parseFloat(eth.multipliedBy(new BigNumber(conversionRate, 10)).decimalPlaces(decimalsToShow).toString());
   return value;
 }
 

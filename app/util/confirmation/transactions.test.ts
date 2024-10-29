@@ -1,4 +1,4 @@
-import BN from 'bnjs4';
+import BN from 'bn.js';
 import { buildTransactionParams } from './transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { TransactionEnvelopeType } from '@metamask/transaction-controller';

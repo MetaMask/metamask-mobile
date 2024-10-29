@@ -1,7 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import type BN4 from 'bnjs4';
+import BN from 'bn.js';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -155,7 +155,7 @@ jest.mock('../../hooks/usePaymentMethods', () =>
 );
 
 const MAX_LIMIT = 4;
-const VALID_AMOUNT = 3;
+const VALID_AMOUNT = '3';
 const MIN_LIMIT = 2;
 const mockUseLimitsInitialValues: Partial<ReturnType<typeof useLimits>> = {
   limits: {
@@ -191,7 +191,8 @@ jest.mock('../../../../hooks/useAddressBalance/useAddressBalance', () =>
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceFiat: '$27.02',
-  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN4,
+  balance: '5.36385',
+  balanceMinimalUnit: '5363850000000000000',
 };
 
 let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
@@ -239,10 +240,10 @@ let mockUseParamsValues: {
 const mockUseGasPriceEstimationInitialValue: ReturnType<
   typeof useGasPriceEstimation
 > = {
-  estimatedGasFee: toTokenMinimalUnit(
+  estimatedGasFee: new BN(toTokenMinimalUnit(
     '0.01',
     mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
-  ) as BN4,
+  )),
 };
 
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
@@ -666,10 +667,12 @@ describe('BuildQuote View', () => {
         maxAmount: 10,
       } as Limits;
 
-      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
-        '5',
-        mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      mockUseBalanceValues = {
+        ...mockUseBalanceInitialValue,
+        balance: '5',
+        balanceMinimalUnit: (5 * Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
+      };
+
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -682,14 +685,15 @@ describe('BuildQuote View', () => {
     });
 
     it('updates the amount input with quick amount buttons', async () => {
-      render(BuildQuote);
       const initialAmount = '0';
+      mockUseBalanceValues = {
+        ...mockUseBalanceInitialValue,
+        balance: '1',
+        balanceMinimalUnit: (1 * Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
+      };
 
-      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
-        '1',
-        mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      render(BuildQuote);
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
       expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
@@ -715,17 +719,14 @@ describe('BuildQuote View', () => {
 
       mockUseBalanceValues = {
         balance: '1',
+        balanceMinimalUnit: (1 * Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
         balanceFiat: '$1.00',
-        balanceBN: toTokenMinimalUnit(
-          '1',
-          mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
       };
       mockUseGasPriceEstimationValue = {
-        estimatedGasFee: toTokenMinimalUnit(
+        estimatedGasFee: new BN(toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        )),
       };
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
@@ -733,9 +734,8 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
     });
 
-    it('updates the amount input up to the percentage considering gas', async () => {
-      render(BuildQuote);
       const initialAmount = '0';
+    it('updates the amount input up to the percentage considering gas', async () => {
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
         isBuy: false,
@@ -745,21 +745,20 @@ describe('BuildQuote View', () => {
           address: NATIVE_ADDRESS,
         },
       };
-
       mockUseBalanceValues = {
         balance: '1',
+        balanceMinimalUnit: (1 * Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
         balanceFiat: '$1.00',
-        balanceBN: toTokenMinimalUnit(
-          '1',
-          mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
       };
       mockUseGasPriceEstimationValue = {
-        estimatedGasFee: toTokenMinimalUnit(
+        estimatedGasFee: new BN(toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        )),
       };
+
+      render(BuildQuote);
+
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('75%'));
@@ -799,7 +798,7 @@ describe('BuildQuote View', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_QUOTES_REQUESTED', {
-      amount: VALID_AMOUNT,
+      amount: parseInt(VALID_AMOUNT),
       currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
@@ -834,7 +833,7 @@ describe('BuildQuote View', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
-      amount: VALID_AMOUNT,
+      amount: parseInt(VALID_AMOUNT),
       currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
       currency_destination:
         mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,

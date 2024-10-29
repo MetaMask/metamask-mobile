@@ -10,7 +10,7 @@ import {
   toHexadecimal,
 } from '../../../../../../util/number';
 import { isValidAddress, addHexPrefix } from 'ethereumjs-util';
-import BN from 'bnjs4';
+import BN from 'bn.js';
 import { strings } from '../../../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';

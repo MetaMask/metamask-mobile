@@ -46,9 +46,6 @@ const mockFiatCurrenciesData = [
 ] as FiatCurrency[];
 
 const mockSetAmount = jest.fn();
-const mockSetAmountNumber = jest.fn();
-const mockSetAmountBNMinimalUnit = jest.fn();
-
 const mockSetIntent = jest.fn();
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
@@ -80,14 +77,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100');
-    expect(mockSetAmountNumber).toHaveBeenCalledWith(100);
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -102,14 +95,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.23');
-    expect(mockSetAmountNumber).toHaveBeenCalledWith(100.23);
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -124,14 +113,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100');
-    expect(mockSetAmountNumber).toHaveBeenCalledWith(100);
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -145,26 +130,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.12345678');
-    expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          100.12345678,
-        ],
-      ]
-    `);
-    expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "254c8454e",
-        ],
-      ]
-    `);
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -182,26 +151,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.1234');
-    expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          100.1234,
-        ],
-      ]
-    `);
-    expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "f4712",
-        ],
-      ]
-    `);
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -219,26 +172,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100');
-    expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          100,
-        ],
-      ]
-    `);
-    expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "64",
-        ],
-      ]
-    `);
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -257,26 +194,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.123');
-    expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          100.123,
-        ],
-      ]
-    `);
-    expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "1871b",
-        ],
-      ]
-    `);
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -288,14 +209,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -309,14 +226,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).toHaveBeenCalledWith(expect.any(Function));
   });
 
@@ -326,14 +239,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).not.toHaveBeenCalled();
   });
 
@@ -345,14 +254,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).not.toHaveBeenCalled();
   });
 
@@ -361,14 +266,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).not.toHaveBeenCalled();
   });
 
@@ -379,14 +280,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).not.toHaveBeenCalled();
   });
 
@@ -396,14 +293,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).not.toHaveBeenCalled();
   });
 
@@ -415,14 +308,10 @@ describe('useIntentAmount', () => {
     renderHook(() =>
       useIntentAmount(
         mockSetAmount,
-        mockSetAmountNumber,
-        mockSetAmountBNMinimalUnit,
         currentFiatCurrency,
       ),
     );
     expect(mockSetAmount).not.toHaveBeenCalled();
-    expect(mockSetAmountNumber).not.toHaveBeenCalled();
-    expect(mockSetAmountBNMinimalUnit).not.toHaveBeenCalled();
     expect(mockSetIntent).not.toHaveBeenCalled();
   });
 });

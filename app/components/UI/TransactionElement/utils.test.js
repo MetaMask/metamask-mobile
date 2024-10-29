@@ -160,7 +160,7 @@ describe('Utils', () => {
       hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
       renderFrom: '0xABcdEFABcdEFabcdEfAbCdefabcdeFABcDEFabCD',
       renderGas: '21000',
-      renderGasPrice: 1,
+      renderGasPrice: '1',
       renderTo: '0x1234567890AbcdEF1234567890aBcdef12345678',
       renderTotalGas: '0.00002 ETH',
       renderValue: '0 ETH',
