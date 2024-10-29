@@ -35,21 +35,7 @@ class SwapView {
     return title;
   }
 
-  // Function to check if the button is enabled
-  async isButtonEnabled(element) {
-    const attributes = await element.getAttributes();
-    return attributes.enabled === true; // Check if enabled is true
-  }
-
   async tapSwapButton() {
-    const swapButtonElement = await this.swapButton;
-    const delay = 500; // Delay in milliseconds
-
-    // Wait until the button is enabled before performing swipe actions
-    while (!(await this.isButtonEnabled(swapButtonElement))) {
-      await TestHelpers.delay(delay); // Wait for the specified delay
-    }
-
     await Gestures.waitAndTap(this.swapButton);
   }
 
