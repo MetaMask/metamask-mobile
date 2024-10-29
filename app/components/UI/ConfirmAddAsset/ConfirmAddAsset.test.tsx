@@ -7,7 +7,6 @@ import renderWithProvider, {
 import useBalance from '../Ramp/hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../util/number';
 import { fireEvent } from '@testing-library/react-native';
-import BN from 'bn.js';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
