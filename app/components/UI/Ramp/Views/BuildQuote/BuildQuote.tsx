@@ -253,7 +253,7 @@ const BuildQuote = () => {
       return false;
     }
     return Boolean(new BigNumber(amount).gt(maxSellAmount));
-  }, [amount, isBuy, balance]);
+  }, [amount, isBuy, balance, gasPriceEstimation]);
 
   const hasInsufficientBalance = useMemo(() => {
     const balanceBigNum = balance
@@ -380,6 +380,7 @@ const BuildQuote = () => {
       selectedAsset?.address,
       selectedAsset?.decimals,
       balance,
+      gasPriceEstimation,
     ],
   );
 
