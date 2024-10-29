@@ -240,6 +240,7 @@ export const Fallback = (props) => {
 
   const handleSubmit = () => {
     captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
+    toggleModal();
     Alert.alert(strings('error_screen.bug_report_thanks'));
   };
 
