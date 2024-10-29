@@ -154,7 +154,7 @@ export function fromTokenMinimalUnit(
  * @param {number} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
-export function fromTokenMinimalUnitString(minimalInput, decimals) {
+export function fromTokenMinimalUnitString(minimalInput, decimals=0) {
   if (typeof minimalInput !== 'string') {
     throw new TypeError('minimalInput must be a string');
   }
@@ -177,7 +177,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
  * @param {number} decimals - Unit to convert from, ether by default
  * @returns {Object} - BN instance containing the new number
  */
-export function toTokenMinimalUnit(tokenValue, decimals) {
+export function toTokenMinimalUnit(tokenValue, decimals=0) {
   //const base = toBN(Math.pow(10, decimals).toString());
   const valueBigNum = new BigNumber(tokenValue.toString(10), 10);
   if (valueBigNum.isNaN()) {
