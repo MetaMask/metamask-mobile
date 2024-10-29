@@ -1,11 +1,18 @@
 import {
   JsonRpcEngine,
-  JsonRpcFailure,
   JsonRpcMiddleware,
+} from '@metamask/json-rpc-engine';
+import {
+  Json,
+  JsonRpcFailure,
+  JsonRpcParams,
   JsonRpcRequest,
   JsonRpcResponse,
   JsonRpcSuccess,
-} from '@metamask/json-rpc-engine';
+} from '@metamask/utils';
+import type {
+  JsonRpcParams as ProviderParams ,
+} from '../../../node_modules/@metamask/providers/node_modules/@metamask/utils';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
@@ -106,8 +113,8 @@ const jsonrpc = '2.0' as const;
  * @throws If the given value is not a valid {@link JsonRpcSuccess} object.
  */
 function assertIsJsonRpcSuccess(
-  response: JsonRpcResponse<unknown>,
-): asserts response is JsonRpcSuccess<unknown> {
+  response: JsonRpcResponse<Json>,
+): asserts response is JsonRpcSuccess<Json> {
   if ('error' in response) {
     throw new Error(`Response failed with error '${JSON.stringify('error')}'`);
   } else if (!('result' in response)) {
@@ -208,13 +215,13 @@ async function callMiddleware({
   middleware,
   request,
 }: {
-  middleware: JsonRpcMiddleware<unknown, unknown>;
-  request: JsonRpcRequest<unknown>;
+  middleware: JsonRpcMiddleware<JsonRpcParams, Json>;
+  request: JsonRpcRequest<ProviderParams>;
 }) {
   const engine = new JsonRpcEngine();
   engine.push(middleware);
 
-  return await engine.handle(request);
+  return await engine.handle([request]);
 }
 
 /**

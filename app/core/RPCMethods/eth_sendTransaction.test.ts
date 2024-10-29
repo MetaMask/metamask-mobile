@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { inspect } from 'util';
-import type { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import type { Json, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import type {
   TransactionParams,
   TransactionController,
@@ -8,6 +8,7 @@ import type {
 } from '@metamask/transaction-controller';
 import eth_sendTransaction from './eth_sendTransaction';
 import PPOMUtil from '../../lib/ppom/ppom-util';
+import { JsonRpcParams } from '@metamask/eth-query';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -49,12 +50,12 @@ jest.mock('../../util/transaction-controller', () => ({
  */
 function constructSendTransactionRequest(
   params: unknown,
-): JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' } {
+): JsonRpcRequest<JsonRpcParams> & { method: 'eth_sendTransaction' } {
   return {
     jsonrpc: '2.0',
     id: 1,
     method: 'eth_sendTransaction',
-    params,
+    params: params as JsonRpcParams,
   };
 }
 
@@ -63,7 +64,7 @@ function constructSendTransactionRequest(
  *
  * @returns A pending JSON-RPC response.
  */
-function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
+function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<Json> {
   return {
     jsonrpc: '2.0',
     id: 1,
