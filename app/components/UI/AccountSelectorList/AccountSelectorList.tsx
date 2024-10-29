@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, Platform, View } from 'react-native';
+import { Alert, ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -33,8 +33,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -73,14 +72,10 @@ const AccountSelectorList = ({
       const fiatBalanceStrSplit = fiatBalance.split('\n');
       const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
       const tokenTicker = fiatBalanceStrSplit[1] || '';
-
       return (
         <View
           style={styles.balancesContainer}
-          {...generateTestId(
-            Platform,
-            `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`,
-          )}
+          testID={`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
         >
           <SensitiveText
             length={SensitiveTextLength.Long}
@@ -108,7 +103,7 @@ const AccountSelectorList = ({
         </View>
       );
     },
-    [styles.balancesContainer, styles.balanceLabel, privacyMode],
+    [styles.balancesContainer, styles.balanceLabel],
   );
 
   const onLongPress = useCallback(
