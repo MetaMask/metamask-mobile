@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import { BN } from 'ethereumjs-util';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -9,7 +8,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { renderFromWei, weiToFiatNumber } from '../../../../../util/number';
 import Keypad from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
@@ -18,7 +16,6 @@ import QuickAmounts from '../../components/QuickAmounts';
 import { View } from 'react-native';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
-import useBalance from '../../hooks/useBalance';
 import Routes from '../../../../../constants/navigation/Routes';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 
@@ -26,8 +23,6 @@ const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-
-  const { stakedBalanceWei } = useBalance();
 
   const {
     isEth,
@@ -42,19 +37,10 @@ const UnstakeInputView = () => {
     percentageOptions,
     handleAmountPress,
     handleKeypadChange,
-    conversionRate,
-  } = useUnstakingInputHandlers(new BN(stakedBalanceWei));
-
-  const stakeBalanceInEth = renderFromWei(stakedBalanceWei, 5);
-  const stakeBalanceFiatNumber = weiToFiatNumber(
-    stakedBalanceWei,
-    conversionRate,
-  );
+    stakedBalanceValue,
+  } = useUnstakingInputHandlers();
 
   const stakedBalanceText = strings('stake.staked_balance');
-  const stakedBalanceValue = isEth
-    ? `${stakeBalanceInEth} ETH`
-    : `${stakeBalanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   const buttonLabel = !isNonZeroAmount
     ? strings('stake.enter_amount')
