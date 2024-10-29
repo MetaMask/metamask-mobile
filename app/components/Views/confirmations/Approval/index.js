@@ -52,14 +52,16 @@ import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
-import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selectors/confirmTransaction';
+import {
+  selectCurrentTransactionSecurityAlertResponse,
+  selectCurrentTransactionMetadata,
+} from '../../../../selectors/confirmTransaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
-import { selectCurrentTransactionMetadata } from '../../../../selectors/confirmTransaction';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -141,6 +143,11 @@ class Approval extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+
+    /**
+     * Object containing simulation data
+     */
+    simulationData: PropTypes.object,
   };
 
   state = {
