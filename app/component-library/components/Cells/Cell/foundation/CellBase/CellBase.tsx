@@ -35,14 +35,12 @@ const CellBase = ({
   return (
     <View style={styles.cellBase}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-      {avatarProps && (
-        <Avatar
-          style={styles.avatar}
-          testID={CellModalSelectorsIDs.BASE_AVATAR}
-          size={DEFAULT_CELLBASE_AVATAR_SIZE}
-          {...avatarProps}
-        />
-      )}
+      <Avatar
+        style={styles.avatar}
+        testID={CellModalSelectorsIDs.BASE_AVATAR}
+        size={DEFAULT_CELLBASE_AVATAR_SIZE}
+        {...avatarProps}
+      />
       <View style={styles.cellBaseInfo}>
         <Text
           numberOfLines={1}

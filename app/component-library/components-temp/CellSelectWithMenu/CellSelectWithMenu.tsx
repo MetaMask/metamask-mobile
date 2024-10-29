@@ -47,7 +47,7 @@ const CellSelectWithMenu = ({
     >
       <View style={styles.cellBase}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-        {withAvatar && avatarProps ? (
+        {withAvatar ? (
           <Avatar
             style={styles.avatar}
             testID={CellModalSelectorsIDs.BASE_AVATAR}
