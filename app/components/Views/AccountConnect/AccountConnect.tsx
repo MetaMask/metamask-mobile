@@ -678,6 +678,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
       accountAddresses: confirmedAddresses,
+      accounts: accounts,
       // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
     };

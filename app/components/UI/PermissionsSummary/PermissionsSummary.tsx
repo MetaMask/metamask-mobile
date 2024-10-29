@@ -57,13 +57,13 @@ const PermissionsSummary = ({
   isDisconnectAllShown = true,
   isNetworkSwitch = false,
   accountAddresses = [],
+  accounts = [],
   networkAvatars = [],
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
-  const { networkName: defaultGlobalSelectedNetworkName } = useNetworkInfo();
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -171,21 +171,29 @@ const PermissionsSummary = ({
       if (accountAddresses.length === 0 && selectedAccount) {
         return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
       }
-      return accountAddresses.length === 1
-        ? `1 ${strings('accounts.account_connected')}`
-        : `${accountAddresses.length} ${strings(
-            'accounts.accounts_connected',
-          )}`;
+      if (accountAddresses.length === 1) {
+        const matchedConnectedAccount = accounts.find(
+          (account) => account.address === accountAddresses[0],
+        );
+        return matchedConnectedAccount?.name;
+      } else {
+        return `${accountAddresses.length} ${strings(
+          'accounts.accounts_connected',
+        )}`;
+      }
     }
 
-    if (
-      accountAddresses.length === 1 ||
-      (accountAddresses.length === 0 && selectedAccount)
-    ) {
-      return (
-        selectedAccount?.name &&
-        `${strings('permissions.requesting_for')}${selectedAccount?.name}`
+    if (accountAddresses.length === 1 && accounts?.length >= 1) {
+      const matchedAccount = accounts.find(
+        (account) => account.address === accountAddresses[0],
       );
+      return `${strings('permissions.requesting_for')}${
+        matchedAccount?.name ? matchedAccount.name : accountAddresses[0]
+      }`;
+    }
+
+    if (accountAddresses.length === 0 && selectedAccount) {
+      return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
     }
 
     return strings('permissions.requesting_for_accounts', {
@@ -212,7 +220,7 @@ const PermissionsSummary = ({
     return strings('permissions.requesting_for_networks', {
       numberOfNetworks: networkAvatars.length,
     });
-  }, [networkAvatars, isAlreadyConnected, defaultGlobalSelectedNetworkName]);
+  }, [networkAvatars, isAlreadyConnected]);
 
   function renderAccountPermissionsRequestInfoCard() {
     return (

@@ -562,6 +562,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: checksummedPermittedAddresses,
+      accounts: accounts,
       networkAvatars,
     };
 
