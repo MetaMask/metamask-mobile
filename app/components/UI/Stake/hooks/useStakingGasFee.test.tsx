@@ -2,7 +2,7 @@ import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useStakingGasFee from './useStakingGasFee';
 import Engine from '../../../../core/Engine';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 
@@ -93,7 +93,7 @@ describe('useStakingGasFee', () => {
 
     expect(result.current.isLoadingStakingGasFee).toBe(true);
     expect(result.current.isStakingGasFeeError).toBe(false);
-    expect(result.current.estimatedGasFeeWei).toEqual(new BN(0));
+    expect(result.current.estimatedGasFeeWei).toEqual(new BN4(0));
   });
 
   it('should fetch gas limit and calculate gas fee correctly', async () => {
@@ -113,7 +113,7 @@ describe('useStakingGasFee', () => {
         '0x0000000000000000000000000000000000000000',
       );
       expect(result.current.estimatedGasFeeWei).toEqual(
-        new BN('5094922637614180'),
+        new BN4('5094922637614180'),
       );
     });
   });
@@ -132,7 +132,7 @@ describe('useStakingGasFee', () => {
 
     await waitFor(() => {
       expect(result.current.isStakingGasFeeError).toBe(true);
-      expect(result.current.estimatedGasFeeWei).toEqual(new BN(0));
+      expect(result.current.estimatedGasFeeWei).toEqual(new BN4(0));
     });
   });
 
