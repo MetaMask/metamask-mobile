@@ -239,8 +239,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           <ButtonBase
             label={
               tokenNetworkFilter[chainId]
-                ? networkName ?? 'Current Network'
-                : 'All Networks'
+                ? networkName ?? strings('wallet.current_network')
+                : strings('wallet.all_networks')
             }
             onPress={showFilterControls}
             endIconName={IconName.ArrowDown}

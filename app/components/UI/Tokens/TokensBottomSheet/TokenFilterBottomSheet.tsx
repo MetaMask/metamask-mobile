@@ -14,6 +14,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
+import { strings } from '../../../../../locales/i18n';
 
 enum FilterOption {
   AllNetworks = 0,
@@ -56,7 +57,7 @@ const TokenFilterBottomSheet = () => {
           variant={TextVariant.HeadingMD}
           style={styles.bottomSheetTitle}
         >
-          Filter by
+          {strings('wallet.filter_by')}
         </Text>
         <ListItemSelect
           //   testID={WalletViewSelectorsIDs.SORT_DECLINING_BALANCE}
