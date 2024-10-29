@@ -43,5 +43,5 @@ export interface SensitiveTextProps extends TextProps {
   /**
    * The text content to be displayed or hidden.
    */
-  children: string | React.ReactNode;
+  children: React.ReactNode;
 }
