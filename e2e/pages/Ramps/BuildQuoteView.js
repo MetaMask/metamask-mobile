@@ -18,7 +18,7 @@ class BuildQuoteView {
   get cancelButton() {
     return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
   }
-  
+
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
@@ -69,6 +69,10 @@ class BuildQuoteView {
 
   async selectToken(token) {
     await Gestures.waitAndTap(Matchers.getElementByText(token));
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

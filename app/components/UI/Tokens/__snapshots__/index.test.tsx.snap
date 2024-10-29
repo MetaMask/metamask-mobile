@@ -311,6 +311,120 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                       }
                       testID="tokens"
                     >
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingBottom": 16,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
+                            "paddingTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Sort by
+                          </Text>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="import-token-button"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Add"
+                            style={
+                              {
+                                "height": 16,
+                                "marginRight": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Import
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                       <RCTScrollView
                         ListFooterComponent={
                           <TokenListFooter
@@ -327,6 +441,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   "isETH": true,
                                   "name": "Ethereum",
                                   "symbol": "ETH",
+                                  "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
@@ -335,6 +450,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
+                                  "tokenFiatAmount": NaN,
                                 },
                               ]
                             }
@@ -350,6 +466,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "isETH": true,
                               "name": "Ethereum",
                               "symbol": "ETH",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
@@ -358,6 +475,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
+                              "tokenFiatAmount": NaN,
                             },
                           ]
                         }
@@ -387,6 +505,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
@@ -663,7 +782,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -1056,7 +1175,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
+                                testID="import-token-footer-link"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -1434,6 +1553,120 @@ exports[`Tokens should render correctly 1`] = `
                       }
                       testID="tokens"
                     >
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingBottom": 16,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
+                            "paddingTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Sort by
+                          </Text>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="import-token-button"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Add"
+                            style={
+                              {
+                                "height": 16,
+                                "marginRight": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Import
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                       <RCTScrollView
                         ListFooterComponent={
                           <TokenListFooter
@@ -1450,6 +1683,7 @@ exports[`Tokens should render correctly 1`] = `
                                   "isETH": true,
                                   "name": "Ethereum",
                                   "symbol": "ETH",
+                                  "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
@@ -1458,6 +1692,7 @@ exports[`Tokens should render correctly 1`] = `
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
+                                  "tokenFiatAmount": NaN,
                                 },
                               ]
                             }
@@ -1473,6 +1708,7 @@ exports[`Tokens should render correctly 1`] = `
                               "isETH": true,
                               "name": "Ethereum",
                               "symbol": "ETH",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
@@ -1481,6 +1717,7 @@ exports[`Tokens should render correctly 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
+                              "tokenFiatAmount": NaN,
                             },
                           ]
                         }
@@ -1510,6 +1747,7 @@ exports[`Tokens should render correctly 1`] = `
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
@@ -1786,7 +2024,7 @@ exports[`Tokens should render correctly 1`] = `
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -2179,7 +2417,7 @@ exports[`Tokens should render correctly 1`] = `
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
+                                testID="import-token-footer-link"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2557,6 +2795,120 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                       }
                       testID="tokens"
                     >
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingBottom": 16,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
+                            "paddingTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                        >
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Sort by
+                          </Text>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="import-token-button"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Add"
+                            style={
+                              {
+                                "height": 16,
+                                "marginRight": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Import
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                       <RCTScrollView
                         ListFooterComponent={
                           <TokenListFooter
@@ -2573,6 +2925,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "isETH": true,
                                   "name": "Ethereum",
                                   "symbol": "ETH",
+                                  "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x01",
@@ -2581,6 +2934,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
+                                  "tokenFiatAmount": NaN,
                                 },
                                 {
                                   "address": "0x02",
@@ -2589,6 +2943,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "iconUrl": "",
                                   "name": "Link",
                                   "symbol": "LINK",
+                                  "tokenFiatAmount": NaN,
                                 },
                               ]
                             }
@@ -2604,6 +2959,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "isETH": true,
                               "name": "Ethereum",
                               "symbol": "ETH",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
@@ -2612,6 +2968,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x02",
@@ -2620,6 +2977,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "iconUrl": "",
                               "name": "Link",
                               "symbol": "LINK",
+                              "tokenFiatAmount": NaN,
                             },
                           ]
                         }
@@ -2649,6 +3007,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
@@ -2925,7 +3284,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -3582,7 +3941,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
+                                testID="import-token-footer-link"
                               >
                                 <Text
                                   accessibilityRole="text"

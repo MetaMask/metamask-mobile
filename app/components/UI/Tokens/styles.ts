@@ -9,6 +9,17 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    bottomSheetWrapper: {
+      alignItems: 'flex-start',
+    },
+    bottomSheetTitle: {
+      alignSelf: 'center',
+      paddingTop: 16,
+      paddingBottom: 16,
+    },
+    bottomSheetText: {
+      width: '100%',
+    },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',
@@ -138,6 +149,20 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.border.muted,
       alignSelf: 'center',
       marginTop: 4,
+    },
+    actionBarWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingTop: 8,
+    },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
     },
   });
 

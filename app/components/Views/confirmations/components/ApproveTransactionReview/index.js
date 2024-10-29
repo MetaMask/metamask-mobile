@@ -6,7 +6,7 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import Eth from 'ethjs-query';
+import Eth from '@metamask/ethjs-query';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../../UI/Navbar';
@@ -830,7 +830,7 @@ class ApproveTransactionReview extends PureComponent {
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       !gasEstimateType ||

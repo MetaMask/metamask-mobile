@@ -2,15 +2,19 @@ import {
   startSpan as sentryStartSpan,
   startSpanManual,
   withScope,
+  setMeasurement,
+  Scope,
 } from '@sentry/react-native';
 import performance from 'react-native-performance';
-import type { Primitive, Span, StartSpanOptions } from '@sentry/types';
+import type { Span, StartSpanOptions, MeasurementUnit } from '@sentry/types';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
 const log = createModuleLogger(projectLogger, 'trace');
-
+/**
+ * The supported trace names.
+ */
 export enum TraceName {
   DeveloperTest = 'Developer Test',
   Middleware = 'Middleware',
@@ -19,6 +23,29 @@ export enum TraceName {
   NotificationDisplay = 'Notification Display',
   PPOMValidation = 'PPOM Validation',
   Signature = 'Signature',
+  LoadScripts = 'Load Scripts',
+  SetupStore = 'Setup Store',
+  LoginToPasswordEntry = 'Login to Password Entry',
+  AuthenticateUser = 'Authenticate User',
+  BiometricAuthentication = 'Biometrics Authentication',
+  EngineInitialization = 'Engine Initialization',
+  CreateStore = 'Create Store',
+  CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
+  StorageRehydration = 'Storage Rehydration',
+  UIStartup = 'UIStartup',
+}
+
+export enum TraceOperation {
+  LoadScripts = 'custom.load.scripts',
+  SetupStore = 'custom.setup.store',
+  LoginToPasswordEntry = 'custom.login.to.password.entry',
+  BiometricAuthentication = 'biometrics.authentication',
+  AuthenticateUser = 'custom.authenticate.user',
+  EngineInitialization = 'custom.engine.initialization',
+  CreateStore = 'custom.create.store',
+  CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
+  StorageRehydration = 'custom.storage.rehydration',
+  UIStartup = 'custom.ui.startup',
 }
 
 const ID_DEFAULT = 'default';
@@ -33,23 +60,72 @@ export interface PendingTrace {
   startTime: number;
   timeoutId: NodeJS.Timeout;
 }
-
+/**
+ * A context object to associate traces with each other and generate nested traces.
+ */
 export type TraceContext = unknown;
-
+/**
+ * A callback function that can be traced.
+ */
 export type TraceCallback<T> = (context?: TraceContext) => T;
-
+/**
+ * A request to create a new trace.
+ */
 export interface TraceRequest {
+  /**
+   * Custom data to associate with the trace.
+   */
   data?: Record<string, number | string | boolean>;
-  id?: string;
-  name: TraceName;
-  parentContext?: TraceContext;
-  startTime?: number;
-  tags?: Record<string, number | string | boolean>;
-}
 
-export interface EndTraceRequest {
+  /**
+   * A unique identifier when not tracing a callback.
+   * Defaults to 'default' if not provided.
+   */
   id?: string;
+
+  /**
+   * The name of the trace.
+   */
   name: TraceName;
+
+  /**
+   * The parent context of the trace.
+   * If provided, the trace will be nested under the parent trace.
+   */
+  parentContext?: TraceContext;
+
+  /**
+   * Override the start time of the trace.
+   */
+  startTime?: number;
+
+  /**
+   * Custom tags to associate with the trace.
+   */
+  tags?: Record<string, number | string | boolean>;
+  /**
+   * Custom operation name to associate with the trace.
+   */
+  op?: string;
+}
+/**
+ * A request to end a pending trace.
+ */
+export interface EndTraceRequest {
+  /**
+   * The unique identifier of the trace.
+   * Defaults to 'default' if not provided.
+   */
+  id?: string;
+
+  /**
+   * The name of the trace.
+   */
+  name: TraceName;
+
+  /**
+   * Override the end time of the trace.
+   */
   timestamp?: number;
 }
 
@@ -57,6 +133,16 @@ export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
 
 export function trace(request: TraceRequest): TraceContext;
 
+/**
+ * Create a Sentry transaction to analyse the duration of a code flow.
+ * If a callback is provided, the transaction will be automatically ended when the callback completes.
+ * If the callback returns a promise, the transaction will be ended when the promise resolves or rejects.
+ * If no callback is provided, the transaction must be manually ended using `endTrace`.
+ *
+ * @param request - The data associated with the trace, such as the name and tags.
+ * @param fn - The optional callback to record the duration of.
+ * @returns The context of the trace, or the result of the callback if provided.
+ */
 export function trace<T>(
   request: TraceRequest,
   fn?: TraceCallback<T>,
@@ -68,6 +154,12 @@ export function trace<T>(
   return traceCallback(request, fn);
 }
 
+/**
+ * End a pending trace that was started without a callback.
+ * Does nothing if the pending trace cannot be found.
+ *
+ * @param request - The data necessary to identify and end the pending trace.
+ */
 export function endTrace(request: EndTraceRequest) {
   const { name, timestamp } = request;
   const id = getTraceId(request);
@@ -100,6 +192,10 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
     const start = Date.now();
     let error: unknown;
 
+    if (span) {
+      initSpan(span, request);
+    }
+
     return tryCatchMaybePromise<T>(
       () => fn(span),
       (currentError) => {
@@ -130,6 +226,10 @@ function startTrace(request: TraceRequest): TraceContext {
       span?.end(timestamp);
     };
 
+    if (span) {
+      initSpan(span, request);
+    }
+
     const timeoutId = setTimeout(() => {
       log('Trace cleanup due to timeout', name, id);
       end();
@@ -154,13 +254,13 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, tags } = request;
+  const { data: attributes, name, parentContext, startTime, op } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
     attributes,
     name,
-    op: OP_DEFAULT,
+    op: op || OP_DEFAULT,
     // This needs to be parentSpan once we have the withIsolatedScope implementation in place in the Sentry SDK for React Native
     // Reference PR that updates @sentry/react-native: https://github.com/getsentry/sentry-react-native/pull/3895
     parentSpanId: parentSpan?.spanId,
@@ -168,7 +268,7 @@ function startSpan<T>(
   };
 
   return withScope((scope) => {
-    scope.setTags(tags as Record<string, Primitive>);
+    initScope(scope, request);
 
     return callback(spanOptions);
   }) as T;
@@ -183,6 +283,40 @@ function getTraceKey(request: TraceRequest) {
   const id = getTraceId(request);
 
   return [name, id].join(':');
+}
+
+/**
+ * Initialise the isolated Sentry scope created for each trace.
+ * Includes setting all non-numeric tags.
+ *
+ * @param scope - The Sentry scope to initialise.
+ * @param request - The trace request.
+ */
+function initScope(scope: Scope, request: TraceRequest) {
+  const tags = request.tags ?? {};
+
+  for (const [key, value] of Object.entries(tags)) {
+    if (typeof value !== 'number') {
+      scope.setTag(key, value);
+    }
+  }
+}
+
+/**
+ * Initialise the Sentry span created for each trace.
+ * Includes setting all numeric tags as measurements so they can be queried numerically in Sentry.
+ *
+ * @param _span - The Sentry span to initialise.
+ * @param request - The trace request.
+ */
+function initSpan(_span: Span, request: TraceRequest) {
+  const tags = request.tags ?? {};
+
+  for (const [key, value] of Object.entries(tags)) {
+    if (typeof value === 'number') {
+      sentrySetMeasurement(key, value, 'none');
+    }
+  }
 }
 
 function getPerformanceTimestamp(): number {
@@ -216,4 +350,12 @@ function tryCatchMaybePromise<T>(
   }
 
   return undefined;
+}
+
+function sentrySetMeasurement(
+  key: string,
+  value: number,
+  unit: MeasurementUnit,
+) {
+  setMeasurement(key, value, unit);
 }
