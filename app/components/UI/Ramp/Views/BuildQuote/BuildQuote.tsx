@@ -241,12 +241,12 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
-    const balanceBigNum = balance
-     ? new BigNumber(balance, 10)
-     : null;
-    const maxSellAmount =
-      balanceBigNum && gasPriceEstimation
-        ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
+    if (balance === null) {
+      return false;
+    }
+    const balanceBigNum = new BigNumber(balance, 10);
+    const maxSellAmount = gasPriceEstimation !== null
+        ? balanceBigNum.minus(gasPriceEstimation.estimatedGasFee.toString(10))
         : null;
 
     if (isBuy || !maxSellAmount) {
@@ -256,12 +256,10 @@ const BuildQuote = () => {
   }, [amount, isBuy, balance, gasPriceEstimation]);
 
   const hasInsufficientBalance = useMemo(() => {
-    const balanceBigNum = balance
-     ? new BigNumber(balance, 10)
-     : null;
-    if (!balanceBigNum) {
+    if (balance === null) {
       return undefined;
     }
+    const balanceBigNum = new BigNumber(balance, 10);
     return balanceBigNum.lt(amount);
   }, [balance, amount]);
 
@@ -348,18 +346,14 @@ const BuildQuote = () => {
       if (isBuy) {
         setAmount(value.toString());
       } else {
-        const balanceBigNum = balance
-         ? new BigNumber(balance, 10)
-         : null;
-
-        const amountPercentage = balanceBigNum?.multipliedBy(value);
-
-        if (!amountPercentage) {
+        if (balance === null) {
           return;
         }
+        const balanceBigNum = new BigNumber(balance, 10);
 
-        const maxSellAmount =
-          balanceBigNum && gasPriceEstimation
+        const amountPercentage = balanceBigNum.multipliedBy(value);
+
+        const maxSellAmount = gasPriceEstimation !== null
             ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
             : null;
 
