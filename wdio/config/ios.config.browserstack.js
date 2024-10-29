@@ -12,13 +12,14 @@ config.key = process.env.BROWSERSTACK_ACCESS_KEY;
 
 const defaultCapabilities = [
   {
-    platformName: 'Android',
+    platformName: 'iOS',
     noReset: false,
     fullReset: false,
     maxInstances: 1,
     build: 'iOS App Launch Times Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'iPhone 15 Pro',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '17',
+    automationName: 'XCUITest',
     app: process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
@@ -31,13 +32,14 @@ const defaultCapabilities = [
 // Define capabilities for app upgrade tests
 const upgradeCapabilities = [
   {
-    platformName: 'Android',
+    platformName: 'iOS',
     noReset: false,
     fullReset: false,
     maxInstances: 1,
     build: 'iOS App Upgrade Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'iPhone 12',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '15',
+    automationName: 'XCUITest',
     app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
