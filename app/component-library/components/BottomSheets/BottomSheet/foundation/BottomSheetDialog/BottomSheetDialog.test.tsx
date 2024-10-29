@@ -94,5 +94,5 @@ describe('BottomSheetDialog', () => {
 
     expect(onCloseMock).toHaveBeenCalled();
   });
-  //    Note: Add Gesture tests when react-native-gesture-handler gets updated
+  //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 });
