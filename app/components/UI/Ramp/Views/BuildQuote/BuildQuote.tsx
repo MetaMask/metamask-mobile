@@ -345,29 +345,29 @@ const BuildQuote = () => {
     ({ value }: QuickAmount) => {
       if (isBuy) {
         setAmount(value.toString());
-      } else {
-        if (balanceMinimalUnit === null) {
-          return;
-        }
-        const balanceBigNum = new BigNumber(balanceMinimalUnit, 10);
-
-        const amountPercentage = balanceBigNum.multipliedBy(value);
-
-        const maxSellAmount = gasPriceEstimation !== null
-            ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
-            : null;
-
-        const amountToSet = (
-          selectedAsset?.address === NATIVE_ADDRESS && maxSellAmount?.lt(amountPercentage)
-        ) ? maxSellAmount : amountPercentage;
-
-        // TODO: Too many levels of parsing strings and numbers back and forth here..
-        const newAmountString = fromTokenMinimalUnitString(
-          amountToSet.toString(10),
-          selectedAsset?.decimals ?? 18,
-        );
-        setAmount(newAmountString);
+        return;
       }
+      if (balanceMinimalUnit === null) {
+        return;
+      }
+      const balanceBigNum = new BigNumber(balanceMinimalUnit, 10);
+
+      const targetAmount = balanceBigNum.multipliedBy(value);
+
+      const maxSellAmount = gasPriceEstimation !== null
+          ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
+          : null;
+
+      const amountToSet = (
+        selectedAsset?.address === NATIVE_ADDRESS && maxSellAmount?.lt(targetAmount)
+      ) ? maxSellAmount : targetAmount;
+
+      // TODO: Too many levels of parsing strings and numbers back and forth here..
+      const newAmountString = fromTokenMinimalUnitString(
+        amountToSet.toString(10),
+        selectedAsset?.decimals ?? 18,
+      );
+      setAmount(newAmountString);
     },
     [
       isBuy,
@@ -693,10 +693,10 @@ const BuildQuote = () => {
         isNative: selectedAsset?.address === NATIVE_ADDRESS,
       },
     ];
-    if (balance === null || gasPriceEstimation === null) {
+    if (balanceMinimalUnit === null || gasPriceEstimation === null) {
       return sellLimits;
     }
-    const balanceBigNum = new BigNumber(balance, 10);
+    const balanceBigNum = new BigNumber(balanceMinimalUnit, 10);
     const maxSellAmount = balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10));
     if (!balanceBigNum.isZero() && maxSellAmount.gt(0)) {
       return sellLimits;
