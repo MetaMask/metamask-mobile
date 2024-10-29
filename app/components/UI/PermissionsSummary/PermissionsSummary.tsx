@@ -40,7 +40,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -176,11 +175,11 @@ const PermissionsSummary = ({
           (account) => account.address === accountAddresses[0],
         );
         return matchedConnectedAccount?.name;
-      } else {
-        return `${accountAddresses.length} ${strings(
-          'accounts.accounts_connected',
-        )}`;
       }
+
+      return `${accountAddresses.length} ${strings(
+        'accounts.accounts_connected',
+      )}`;
     }
 
     if (accountAddresses.length === 1 && accounts?.length >= 1) {
@@ -199,7 +198,7 @@ const PermissionsSummary = ({
     return strings('permissions.requesting_for_accounts', {
       numberOfAccounts: accountAddresses.length,
     });
-  }, [accountAddresses, isAlreadyConnected, selectedAccount]);
+  }, [accountAddresses, isAlreadyConnected, selectedAccount, accounts]);
 
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {

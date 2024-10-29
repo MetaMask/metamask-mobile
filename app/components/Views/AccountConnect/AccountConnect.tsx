@@ -678,7 +678,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
       accountAddresses: confirmedAddresses,
-      accounts: accounts,
+      accounts,
       // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
     };
@@ -688,6 +688,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     urlWithProtocol,
     confirmedAddresses,
     selectedNetworkAvatars,
+    accounts,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
