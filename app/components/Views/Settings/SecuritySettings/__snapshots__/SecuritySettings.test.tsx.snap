@@ -1844,7 +1844,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "uri": "MockImage",
                   },
                 },
-                "name": "Mainnet",
+                "name": "Ethereum Mainnet",
                 "variant": "Network",
               }
             }
@@ -1859,7 +1859,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Mainnet"
+            title="Ethereum Mainnet"
           >
             <View
               style={
@@ -1925,7 +1925,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Mainnet
+                  Ethereum Mainnet
                 </Text>
                 <Text
                   accessibilityRole="text"
@@ -2557,7 +2557,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "uri": "MockImage",
                   },
                 },
-                "name": "Linea Mainnet",
+                "name": "Linea",
                 "variant": "Network",
               }
             }
@@ -2572,7 +2572,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Linea Mainnet"
+            title="Linea"
           >
             <View
               style={
@@ -2638,7 +2638,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Linea Mainnet
+                  Linea
                 </Text>
                 <Text
                   accessibilityRole="text"
