@@ -1,7 +1,7 @@
 import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
-} from '../../selectors/Modals/TransactionDetailsModal.selectors';
+} from '../../selectors/Transactions/TransactionDetailsModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';

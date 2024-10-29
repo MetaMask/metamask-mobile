@@ -5,7 +5,7 @@ import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import ConnectBottomSheet from '../pages/Browser/ConnectBottomSheet';
-import AssetWatchModal from '../pages/modals/AssetWatchModal';
+import AssetWatchModal from '../pages/Transactions/AssetWatchModal';
 import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 
 // eslint-disable-next-line import/no-nodejs-modules

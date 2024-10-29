@@ -1,4 +1,4 @@
-import { AssetWatcherSelectorsIDs } from '../../selectors/Modals/AssetWatcher.selectors';
+import { AssetWatcherSelectorsIDs } from '../../selectors/Transactions/AssetWatcher.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
@@ -12,9 +12,6 @@ class NetworkAddedModal {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
-  }
-  async tapConfirmButton() {
-    await Gestures.waitAndTap(this.confirmButton);
   }
 }
 
