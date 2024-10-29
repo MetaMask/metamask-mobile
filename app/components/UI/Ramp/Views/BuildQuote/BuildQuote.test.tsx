@@ -192,6 +192,7 @@ jest.mock('../../../../hooks/useAddressBalance/useAddressBalance', () =>
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceFiat: '$27.02',
   balance: '5.36385',
+  balanceMinimalUnit: '5363850000000000000',
 };
 
 let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {

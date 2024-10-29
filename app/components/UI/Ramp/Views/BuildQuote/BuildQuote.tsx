@@ -216,7 +216,7 @@ const BuildQuote = () => {
     selectedAddress,
   );
 
-  const { balanceFiat, balance } = useBalance(
+  const { balance, balanceFiat, balanceMinimalUnit } = useBalance(
     selectedAsset
       ? {
           address: selectedAsset.address,
@@ -241,10 +241,10 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
-    if (isBuy || balance === null) {
+    if (isBuy || balanceMinimalUnit === null) {
       return false;
     }
-    const balanceBigNum = new BigNumber(balance, 10);
+    const balanceBigNum = new BigNumber(balanceMinimalUnit, 10);
     const maxSellAmount = gasPriceEstimation !== null
         ? balanceBigNum.minus(gasPriceEstimation.estimatedGasFee.toString(10))
         : null;
@@ -253,7 +253,7 @@ const BuildQuote = () => {
       return false;
     }
     return Boolean(new BigNumber(amount).gt(maxSellAmount));
-  }, [amount, isBuy, balance, gasPriceEstimation]);
+  }, [amount, isBuy, balanceMinimalUnit, gasPriceEstimation]);
 
   const hasInsufficientBalance = useMemo(() => {
     if (balance === null) {
@@ -346,10 +346,10 @@ const BuildQuote = () => {
       if (isBuy) {
         setAmount(value.toString());
       } else {
-        if (balance === null) {
+        if (balanceMinimalUnit === null) {
           return;
         }
-        const balanceBigNum = new BigNumber(balance, 10);
+        const balanceBigNum = new BigNumber(balanceMinimalUnit, 10);
 
         const amountPercentage = balanceBigNum.multipliedBy(value);
 
@@ -373,7 +373,7 @@ const BuildQuote = () => {
       isBuy,
       selectedAsset?.address,
       selectedAsset?.decimals,
-      balance,
+      balanceMinimalUnit,
       gasPriceEstimation,
     ],
   );
@@ -676,6 +676,7 @@ const BuildQuote = () => {
     : `${amount} ${selectedAsset?.symbol}`;
 
   const getQuickAmounts = (): QuickAmount[] => {
+    console.warn('GQC', {isBuy, isSell, limits, balance, balanceMinimalUnit, gasPriceEstimation });
     if (isBuy) {
       return limits?.quickAmounts?.map((quickAmount) => ({
           value: quickAmount,

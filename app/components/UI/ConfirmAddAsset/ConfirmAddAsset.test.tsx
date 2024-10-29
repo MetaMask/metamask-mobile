@@ -47,7 +47,8 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balanceFiat: '$27.02',
-  balance: toTokenMinimalUnit('5.36385', 18).toString(),
+  balance: '5.36385',
+  balanceMinimalUnit: toTokenMinimalUnit('5.36385', 18).toString(),
 };
 
 const mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {

@@ -159,6 +159,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
     throw new TypeError('minimalInput must be a string');
   }
 
+  console.warn('HARP', { minimalInput, decimals, })
   const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
   const isInteger = Boolean(regex.integer.exec(tokenFormat));
 

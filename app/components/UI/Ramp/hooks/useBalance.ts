@@ -22,6 +22,7 @@ import {
 const defaultReturn = {
   balance: null,
   balanceFiat: null,
+  balanceMinimalUnit: null,
 };
 
 interface Asset {
@@ -32,6 +33,7 @@ interface Asset {
 export default function useBalance(asset?: Asset): {
   balance: string|null,
   balanceFiat: string|null,
+  balanceMinimalUnit: string|null,
 }{
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
@@ -54,20 +56,20 @@ export default function useBalance(asset?: Asset): {
   }
 
   if (assetAddress === NATIVE_ADDRESS) {
-    const balance = renderFromWei(
-      //@ts-expect-error - TODO: Ramps team
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
+    //@ts-expect-error - TODO: Ramps team
+    const balanceMinimalUnit = accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance;
+    const balance = renderFromWei(balanceMinimalUnit);
 
-    const balanceBN = hexToBN(
-      //@ts-expect-error - TODO: Ramps team
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
+    const balanceBN = hexToBN(balance);
     const balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
-    return { balance, balanceFiat };
+    return { balance, balanceFiat, balanceMinimalUnit };
   }
 
   const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;
+  const balanceMinimalUnit =
+    assetAddress && assetAddress in balances
+      ? balances[assetAddress]
+      : '0';
   const balance =
     assetAddress && assetAddress in balances
       ? renderFromTokenMinimalUnit(
@@ -81,5 +83,5 @@ export default function useBalance(asset?: Asset): {
     exchangeRate,
     currentCurrency,
   );
-  return { balance, balanceFiat };
+  return { balance, balanceFiat, balanceMinimalUnit };
 }
