@@ -668,8 +668,12 @@ describe('BuildQuote View', () => {
         maxAmount: 10,
       } as Limits;
 
-      mockUseBalanceValues.balance = '5';
-      mockUseBalanceValues.balanceMinimalUnit = (5*Math.pow(10, 18)).toString(10);
+      mockUseBalanceValues = {
+        ...mockUseBalanceInitialValue,
+        balance: '5',
+        balanceMinimalUnit: (5*Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
+      };
+
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -682,12 +686,15 @@ describe('BuildQuote View', () => {
     });
 
     it('updates the amount input with quick amount buttons', async () => {
-      render(BuildQuote);
       const initialAmount = '0';
+      mockUseBalanceValues = {
+        ...mockUseBalanceInitialValue,
+        balance: '1',
+        balanceMinimalUnit: (1*Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
+      };
 
-      mockUseBalanceValues.balance = '1';
-      mockUseBalanceValues.balanceMinimalUnit = (1*Math.pow(10, 18)).toString(10);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      render(BuildQuote);
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
       expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
