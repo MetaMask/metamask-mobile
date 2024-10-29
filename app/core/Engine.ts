@@ -575,18 +575,9 @@ class Engine {
           'NetworkController:networkDidChange',
         ],
       }),
-      /*       onPreferencesStateChange,
-      onNetworkDidChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_DID_CHANGE_EVENT,
-          // @ts-expect-error TODO: Resolve bump the assets controller version.
-          listener,
-        ), */
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      /*       getNetworkClientById:
-        networkController.getNetworkClientById.bind(networkController), */
     });
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
