@@ -25,7 +25,7 @@ const mockStore = {
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({
-  store: { getState: jest.fn(() => ({ engine: {} })) },
+  store: mockStore,
 }));
 jest.mock('../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
