@@ -1701,6 +1701,152 @@ exports[`SecuritySettings should render correctly 1`] = `
           <TouchableOpacity
             avatarProps={
               {
+                "imageSource": {
+                  "default": {
+                    "uri": "MockImage",
+                  },
+                },
+                "name": "Linea",
+                "variant": "Network",
+              }
+            }
+            secondaryText="lineascan.build"
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Linea"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    {
+                      "default": {
+                        "uri": "MockImage",
+                      },
+                    }
+                  }
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Linea
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  lineascan.build
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376c9"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#bbc0c566",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID="incoming-linea-mainnet-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
                 "imageSource": undefined,
                 "name": "Goerli",
                 "variant": "Network",
@@ -2263,152 +2409,6 @@ exports[`SecuritySettings should render correctly 1`] = `
                     ]
                   }
                   testID=""
-                  thumbTintColor="#ffffff"
-                  tintColor="#bbc0c566"
-                  value={true}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            avatarProps={
-              {
-                "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                },
-                "name": "Linea",
-                "variant": "Network",
-              }
-            }
-            secondaryText="lineascan.build"
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderColor": "#bbc0c5",
-                "borderRadius": 4,
-                "borderWidth": 0,
-                "padding": 16,
-              }
-            }
-            testID="celldisplay"
-            title="Linea"
-          >
-            <View
-              style={
-                {
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 16,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginRight": 16,
-                    "overflow": "hidden",
-                    "width": 32,
-                  }
-                }
-                testID="cellbase-avatar"
-              >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
-                  style={
-                    {
-                      "height": 32,
-                      "width": 32,
-                    }
-                  }
-                  testID="network-avatar-image"
-                />
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                    "flex": 1,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 16,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                  testID="cellbase-avatar-title"
-                >
-                  Linea
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#6a737d",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  lineascan.build
-                </Text>
-              </View>
-              <View
-                style={
-                  {
-                    "marginLeft": 16,
-                  }
-                }
-              >
-                <RCTSwitch
-                  accessibilityRole="switch"
-                  onChange={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
-                  onTintColor="#0376c9"
-                  style={
-                    [
-                      {
-                        "height": 31,
-                        "width": 51,
-                      },
-                      [
-                        {
-                          "alignSelf": "flex-start",
-                        },
-                        {
-                          "backgroundColor": "#bbc0c566",
-                          "borderRadius": 16,
-                        },
-                      ],
-                    ]
-                  }
-                  testID="incoming-linea-mainnet-toggle"
                   thumbTintColor="#ffffff"
                   tintColor="#bbc0c566"
                   value={true}
