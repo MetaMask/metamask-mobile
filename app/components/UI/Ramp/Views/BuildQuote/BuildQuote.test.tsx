@@ -785,7 +785,7 @@ describe('BuildQuote View', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_QUOTES_REQUESTED', {
-      amount: VALID_AMOUNT,
+      amount: parseInt(VALID_AMOUNT),
       currency_source: mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,
       currency_destination: mockUseRampSDKValues?.selectedAsset?.symbol,
       payment_method_id: mockUsePaymentMethodsValues.currentPaymentMethod?.id,
@@ -820,7 +820,7 @@ describe('BuildQuote View', () => {
     });
 
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTES_REQUESTED', {
-      amount: VALID_AMOUNT,
+      amount: parseInt(VALID_AMOUNT),
       currency_source: mockUseRampSDKValues?.selectedAsset?.symbol,
       currency_destination:
         mockUseFiatCurrenciesValues?.currentFiatCurrency?.symbol,

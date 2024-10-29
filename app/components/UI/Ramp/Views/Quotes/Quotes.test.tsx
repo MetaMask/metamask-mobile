@@ -257,7 +257,7 @@ describe('Quotes', () => {
       [
         "ONRAMP_QUOTES_EXPANDED",
         {
-          "amount": 50,
+          "amount": "50",
           "chain_id_destination": "1",
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -339,7 +339,7 @@ describe('Quotes', () => {
       [
         "ONRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": "50",
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
@@ -369,7 +369,7 @@ describe('Quotes', () => {
       [
         "OFFRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": "50",
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -404,7 +404,7 @@ describe('Quotes', () => {
       [
         "ONRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": "50",
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
@@ -434,7 +434,7 @@ describe('Quotes', () => {
       [
         "OFFRAMP_PROVIDER_SELECTED",
         {
-          "amount": 50,
+          "amount": "50",
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -535,7 +535,7 @@ describe('Quotes', () => {
         [
           "ONRAMP_QUOTES_RECEIVED",
           {
-            "amount": 50,
+            "amount": "50",
             "average_crypto_out": 0.016671,
             "average_gas_fee": 1.32,
             "average_processing_fee": 1.455,
@@ -564,7 +564,7 @@ describe('Quotes', () => {
         [
           "ONRAMP_QUOTE_ERROR",
           {
-            "amount": 50,
+            "amount": "50",
             "chain_id_destination": "1",
             "currency_destination": "ETH",
             "currency_source": "USD",
@@ -594,7 +594,7 @@ describe('Quotes', () => {
         [
           "OFFRAMP_QUOTES_RECEIVED",
           {
-            "amount": 50,
+            "amount": "50",
             "average_fiat_out": 0.016671,
             "average_gas_fee": 1.32,
             "average_processing_fee": 1.455,
@@ -623,7 +623,7 @@ describe('Quotes', () => {
         [
           "OFFRAMP_QUOTE_ERROR",
           {
-            "amount": 50,
+            "amount": "50",
             "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": "ETH",
