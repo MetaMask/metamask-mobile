@@ -16,11 +16,6 @@ jest.mock('react-redux', () => ({
   useDispatch: () => jest.fn(),
 }));
 
-const mockAction = { type: 'MOCK_ACTION' };
-jest.mock('../../../core/redux/slices/originThrottling', () => ({
-  resetOriginSpamState: jest.fn().mockImplementation(() => mockAction),
-}));
-
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () =>
