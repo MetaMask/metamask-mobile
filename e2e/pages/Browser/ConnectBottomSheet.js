@@ -1,14 +1,14 @@
 import {
-  ConnectAccountModalSelectorsIDs,
-  ConnectAccountModalSelectorsText,
-} from '../../selectors/Modals/ConnectAccountModal.selectors';
+  ConnectAccountBottomSheetSelectorsIDs,
+  ConnectAccountBottomSheetSelectorsText,
+} from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
-class ConnectModal {
+class ConnectBottomSheet {
   get container() {
-    return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
+    return Matchers.getElementByID(ConnectAccountBottomSheetSelectorsIDs.CONTAINER);
   }
 
   get connectButton() {
@@ -17,31 +17,31 @@ class ConnectModal {
 
   get connectAccountsButton() {
     return Matchers.getElementByText(
-      ConnectAccountModalSelectorsText.CONNECT_ACCOUNTS,
+      ConnectAccountBottomSheetSelectorsText.CONNECT_ACCOUNTS,
     );
   }
 
   get importButton() {
     return Matchers.getElementByText(
-      ConnectAccountModalSelectorsText.IMPORT_ACCOUNT,
+      ConnectAccountBottomSheetSelectorsText.IMPORT_ACCOUNT,
     );
   }
 
   get selectAllButton() {
     return Matchers.getElementByText(
-      ConnectAccountModalSelectorsText.SELECT_ALL,
+      ConnectAccountBottomSheetSelectorsText.SELECT_ALL,
     );
   }
 
   get selectMultiButton() {
     return Matchers.getElementByID(
-      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
   get cancelButton() {
     return Matchers.getElementByID(
-      ConnectAccountModalSelectorsIDs.CANCEL_BUTTON,
+      ConnectAccountBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
@@ -74,4 +74,4 @@ class ConnectModal {
   }
 }
 
-export default new ConnectModal();
+export default new ConnectBottomSheet();
