@@ -34,7 +34,10 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+import {
+  createTokenBottomSheetFilterNavDetails,
+  createTokensBottomSheetNavDetails,
+} from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 
@@ -148,6 +151,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
   };
 
+  const showFilterControls = () => {
+    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+  };
+
   const showSortControls = () => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   };
@@ -222,22 +229,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  // const onFilterControlsActionSheetPress = (index: number) => {
-  //   const { PreferencesController } = Engine.context;
-  //   switch (index) {
-  //     case 0:
-  //       PreferencesController.setTokenNetworkFilter({});
-  //       break;
-  //     case 1:
-  //       PreferencesController.setTokenNetworkFilter({
-  //         [chainId]: true,
-  //       });
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // };
-
   return (
     <View
       style={styles.wrapper}
@@ -251,7 +242,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
                 ? networkName ?? 'Current Network'
                 : 'All Networks'
             }
-            onPress={() => console.log('handle filter controls')}
+            onPress={showFilterControls}
             endIconName={IconName.ArrowDown}
             style={styles.controlButton}
           />
