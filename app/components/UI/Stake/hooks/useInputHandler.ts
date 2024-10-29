@@ -111,6 +111,28 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
     [balance, conversionRate],
   );
 
+  const handleMaxInput = useCallback(
+    (maxStakeableWei: BN) => {
+      setAmountWei(maxStakeableWei);
+
+      let ethValue;
+
+      try {
+        ethValue = renderFromWei(maxStakeableWei, 5);
+      } catch (error) {
+        ethValue = fromWei(maxStakeableWei);
+      }
+      setAmountEth(ethValue);
+      const fiatValue = weiToFiatNumber(
+        maxStakeableWei,
+        conversionRate,
+        2,
+      ).toString();
+      setFiatAmount(fiatValue);
+    },
+    [conversionRate],
+  );
+
   const currencyToggleValue = isEth
     ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
     : `${amountEth} ETH`;
@@ -131,6 +153,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
     handleAmountPress,
     currentCurrency,
     conversionRate,
+    handleMaxInput,
   };
 };
 

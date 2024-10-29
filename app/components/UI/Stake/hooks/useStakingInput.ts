@@ -3,8 +3,6 @@ import { useState, useMemo, useCallback } from 'react';
 import {
   limitToMaximumDecimalPlaces,
   renderFiat,
-  renderFromWei,
-  fromWei,
 } from '../../../../util/number';
 import useVaultData from './useVaultData';
 import useStakingGasFee from './useStakingGasFee';
@@ -30,20 +28,20 @@ const useStakingInputHandlers = () => {
     amountEth,
     amountWei,
     fiatAmount,
+    handleMaxInput,
   } = useInputHandler({ balance });
 
-  const {
-    estimatedGasFeeWei,
-    isLoadingStakingGasFee,
-    isStakingGasFeeError,
-    refreshGasValues,
-  } = useStakingGasFee(balance.toString());
+  const { estimatedGasFeeWei, isLoadingStakingGasFee, isStakingGasFeeError } =
+    useStakingGasFee(balance.toString());
+
+  // console.log('estimatedgas', new BN(estimatedGasFeeWei).toString());
 
   const maxStakeableAmountWei = useMemo(
     () =>
       !isStakingGasFeeError && balance.gt(estimatedGasFeeWei)
         ? balance.sub(estimatedGasFeeWei)
         : new BN(0),
+
     [balance, estimatedGasFeeWei, isStakingGasFeeError],
   );
 
@@ -57,18 +55,8 @@ const useStakingInputHandlers = () => {
 
   const handleMax = useCallback(async () => {
     if (!balance) return;
-
-    refreshGasValues();
-
-    let newEthAmount: string;
-
-    try {
-      newEthAmount = renderFromWei(maxStakeableAmountWei, 5);
-    } catch (error) {
-      newEthAmount = fromWei(maxStakeableAmountWei);
-    }
-    handleEthInput(newEthAmount);
-  }, [balance, handleEthInput, maxStakeableAmountWei, refreshGasValues]);
+    handleMaxInput(maxStakeableAmountWei);
+  }, [balance, handleMaxInput, maxStakeableAmountWei]);
 
   const annualRewardsETH = useMemo(
     () =>
