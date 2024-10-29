@@ -16,7 +16,6 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import useVaultData from './useVaultData';
 import useStakingGasFee from './useStakingGasFee';
-import { useFocusEffect } from '@react-navigation/native';
 
 const useStakingInputHandlers = (balance: BN) => {
   const [amountEth, setAmountEth] = useState('0');
@@ -29,12 +28,6 @@ const useStakingInputHandlers = (balance: BN) => {
     isStakingGasFeeError,
     refreshGasValues,
   } = useStakingGasFee(balance.toString());
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshGasValues();
-    }, [refreshGasValues]),
-  );
 
   const maxStakeableAmountWei = useMemo(
     () =>
@@ -130,8 +123,10 @@ const useStakingInputHandlers = (balance: BN) => {
     [balance, conversionRate],
   );
 
-  const handleMax = useCallback(() => {
+  const handleMax = useCallback(async () => {
     if (!balance) return;
+
+    refreshGasValues();
 
     const newEthAmount = renderFromWei(maxStakeableAmountWei, 5);
 
@@ -144,7 +139,7 @@ const useStakingInputHandlers = (balance: BN) => {
       2,
     ).toString();
     setFiatAmount(newFiatAmount);
-  }, [balance, conversionRate, maxStakeableAmountWei]);
+  }, [balance, conversionRate, maxStakeableAmountWei, refreshGasValues]);
 
   const annualRewardsETH = useMemo(
     () =>
