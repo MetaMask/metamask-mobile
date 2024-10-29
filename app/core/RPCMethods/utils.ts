@@ -76,7 +76,7 @@ export function makeMethodMiddlewareMaker<U>(
   const makeMethodMiddleware = (hooks: Record<string, unknown>) => {
     assertExpectedHook(hooks, expectedHookNames);
 
-    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, unknown> = async (
+    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, Json> = async (
       req,
       res,
       next,

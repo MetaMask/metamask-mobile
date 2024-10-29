@@ -1,5 +1,6 @@
 import type { Json, JsonRpcParams, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import {
+  type TransactionParams,
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -99,11 +100,11 @@ async function eth_sendTransaction({
     });
   }
   await validateAccountAndChainId({
-    from: req.params[0].from,
-    chainId: req.params[0].chainId,
+    from: transactionParameters.from,
+    chainId: transactionParameters.chainId as number | undefined,
   });
 
-  const { result, transactionMeta } = await sendTransaction(req.params[0], {
+  const { result, transactionMeta } = await sendTransaction(transactionParameters as TransactionParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     origin: hostname,
   });
