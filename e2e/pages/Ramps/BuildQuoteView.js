@@ -70,10 +70,6 @@ class BuildQuoteView {
   async selectToken(token) {
     await Gestures.waitAndTap(Matchers.getElementByText(token));
   }
-
-  async tapCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton);
-  }
 }
 
 export default new BuildQuoteView();
