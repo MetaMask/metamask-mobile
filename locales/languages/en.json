@@ -439,6 +439,7 @@
     },
     "import": "Import",
     "sort_by": "Sort by",
+    "filter_by": "Filter by",
     "current_network": "Current Network",
     "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
