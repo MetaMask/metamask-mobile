@@ -17,28 +17,15 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../reducers';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
-const mockStore = {
-  getState: jest.fn(() => ({ engine: {} })) as jest.MockedFunction<
-    () => RootState
-  >,
-};
-
 jest.unmock('./Engine');
 jest.mock('../store', () => ({
-  store: mockStore,
+  store: { getState: jest.fn(() => ({ engine: {} })) },
 }));
 jest.mock('../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
 
 describe('Engine', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-    mockStore.getState.mockReturnValue({
-      settings: { showFiatOnTestnets: true },
-    });
-  });
-
   it('should expose an API', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
@@ -82,16 +69,7 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    const initialBackgroundState = {
-      ...engine.datamodel.state,
-      PhishingController: {
-        phishingLists: [],
-        whitelist: [],
-        c2DomainBlocklistLastFetched: 0,
-        hotlistLastFetched: 0,
-        stalelistLastFetched: 0,
-      },
-    };
+    const initialBackgroundState = engine.datamodel.state;
 
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
