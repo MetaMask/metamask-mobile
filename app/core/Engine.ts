@@ -1638,14 +1638,12 @@ export class Engine {
     // controllers. They should be initialized via the constructor instead.
     for (const controller of controllers) {
       if (
-        // @ts-expect-error controller.name does not exist in AssetsContractController but this should be fixed in v38.
         hasProperty(initialState, controller.name) &&
         // Use `in` operator here because the `subscribe` function is one level up the prototype chain
         'subscribe' in controller &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
-
         controller.update(initialState[controller.name]);
       }
     }
@@ -1658,7 +1656,6 @@ export class Engine {
     this.context = controllers.reduce<Partial<typeof this.context>>(
       (context, controller) => ({
         ...context,
-        // @ts-expect-error controller.name does not exist in AssetsContractController but this should be fixed in v38.
         [controller.name]: controller,
       }),
       {},

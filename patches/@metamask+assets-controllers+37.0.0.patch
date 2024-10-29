@@ -214,6 +214,18 @@ index fb25753..88208d5 100644
    /**
     * Adds a token to the stored token list.
     *
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js b/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js
+index ec5a116..a82c449 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js
+@@ -72,6 +72,7 @@ var AssetsContractController = class {
+      * @returns Hex chain ID.
+      */
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getCorrectChainId);
++    this.name = name;
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _provider, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _ipfsGateway, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _chainId, void 0);
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-T5ZX5BV7.js b/node_modules/@metamask/assets-controllers/dist/chunk-T5ZX5BV7.js
 index 9c89a65..2ac17ba 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-T5ZX5BV7.js
@@ -383,6 +395,18 @@ index 6550aec..b46080e 100644
  var TokenBalancesController_default = TokenBalancesController;
  
  
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts
+index 6d364e4..33fa36f 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts
+@@ -103,6 +103,7 @@ export type AssetsContractControllerMessenger = RestrictedControllerMessenger<ty
+  */
+ export declare class AssetsContractController {
+     #private;
++    readonly name: typeof name = name;
+     protected messagingSystem: AssetsContractControllerMessenger;
+     /**
+      * Creates a AssetsContractController instance.
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 index 576faaa..3311706 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts

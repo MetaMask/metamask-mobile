@@ -30,7 +30,7 @@ describe('Engine', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
-    //  expect(engine.context).toHaveProperty('AssetsContractController'); //Removing this one for this version but should be added back in v38
+    expect(engine.context).toHaveProperty('AssetsContractController');
     expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
     expect(engine.context).toHaveProperty('NftDetectionController');
@@ -70,11 +70,6 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
-    // The name property of assetsContractController was deleted in this version which made the initialBackgroundState
-    // have an undefined property as name
-    initialBackgroundState.AssetsContractController =
-      backgroundState.AssetsContractController;
-    delete initialBackgroundState.undefined;
 
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
