@@ -723,9 +723,8 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
     });
 
-    it('updates the amount input up to the percentage considering gas', async () => {
-      render(BuildQuote);
       const initialAmount = '0';
+    it('updates the amount input up to the percentage considering gas', async () => {
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
         isBuy: false,
@@ -735,7 +734,6 @@ describe('BuildQuote View', () => {
           address: NATIVE_ADDRESS,
         },
       };
-
       mockUseBalanceValues = {
         balance: '1',
         balanceFiat: '$1.00',
@@ -746,6 +744,9 @@ describe('BuildQuote View', () => {
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ) as BN,
       };
+
+      render(BuildQuote);
+
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('75%'));
