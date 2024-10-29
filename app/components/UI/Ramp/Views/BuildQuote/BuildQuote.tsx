@@ -241,7 +241,7 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
-    if (balance === null) {
+    if (isBuy || balance === null) {
       return false;
     }
     const balanceBigNum = new BigNumber(balance, 10);
@@ -249,7 +249,7 @@ const BuildQuote = () => {
         ? balanceBigNum.minus(gasPriceEstimation.estimatedGasFee.toString(10))
         : null;
 
-    if (isBuy || !maxSellAmount) {
+    if (!maxSellAmount) {
       return false;
     }
     return Boolean(new BigNumber(amount).gt(maxSellAmount));
@@ -683,15 +683,12 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else {
-    const balanceBigNum = balance
-     ? new BigNumber(balance, 10)
-     : null;
-    const maxSellAmount =
-      balanceBigNum && gasPriceEstimation
+  } else if (balance !== null) {
+    const balanceBigNum = new BigNumber(balance, 10);
+    const maxSellAmount = gasPriceEstimation !== null
         ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
         : null;
-    if (balanceBigNum && !balanceBigNum.isZero() && maxSellAmount?.gt(0)) {
+    if (!balanceBigNum.isZero() && maxSellAmount?.gt(0)) {
       quickAmounts = [
         { value: 0.25, label: '25%' },
         { value: 0.5, label: '50%' },
@@ -894,7 +891,7 @@ const BuildQuote = () => {
               : `${selectedAsset?.symbol}-crypto`
           }
           decimals={
-            isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals
+            (isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals) ?? 0
           }
         />
         <ScreenLayout.Content>
