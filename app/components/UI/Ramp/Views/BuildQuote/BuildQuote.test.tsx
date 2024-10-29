@@ -2,6 +2,7 @@ import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import type BN from 'bn.js';
+import { BigNumber } from 'bignumber.js';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -710,6 +711,7 @@ describe('BuildQuote View', () => {
 
       mockUseBalanceValues = {
         balance: '1',
+        balanceMinimalUnit: BigNumber(1).shiftedBy(mockUseRampSDKValues.selectedAsset?.decimals || 18).toString(10),
         balanceFiat: '$1.00',
       };
       mockUseGasPriceEstimationValue = {
@@ -737,6 +739,7 @@ describe('BuildQuote View', () => {
       };
       mockUseBalanceValues = {
         balance: '1',
+        balanceMinimalUnit: BigNumber(1).shiftedBy(mockUseRampSDKValues.selectedAsset?.decimals || 18).toString(10),
         balanceFiat: '$1.00',
       };
       mockUseGasPriceEstimationValue = {

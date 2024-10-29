@@ -31,9 +31,13 @@ interface Asset {
 }
 
 export default function useBalance(asset?: Asset): {
-  balance: string|null,
-  balanceFiat: string|null,
-  balanceMinimalUnit: string|null,
+  balance: string,
+  balanceFiat: string,
+  balanceMinimalUnit: string,
+} | {
+  balance: null,
+  balanceFiat: null,
+  balanceMinimalUnit: null,
 }{
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
@@ -66,17 +70,15 @@ export default function useBalance(asset?: Asset): {
   }
 
   const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;
-  const balanceMinimalUnit =
-    assetAddress && assetAddress in balances
-      ? balances[assetAddress]
-      : '0';
-  const balance =
-    assetAddress && assetAddress in balances
-      ? renderFromTokenMinimalUnit(
-          balances[assetAddress],
-          asset.decimals ?? 18,
-        )
-      : '0';
+  const balanceMinimalUnit = assetAddress && assetAddress in balances
+    ? balances[assetAddress]
+    : '0';
+  const balance = balanceMinimalUnit
+    ? renderFromTokenMinimalUnit(
+        balanceMinimalUnit,
+        asset.decimals ?? 18,
+      )
+    : '0';
   const balanceFiat = balanceToFiat(
     balance,
     conversionRate,
