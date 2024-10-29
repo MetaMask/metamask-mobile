@@ -983,6 +983,7 @@ export const BrowserTab = (props) => {
    * Go to favorites page
    */
   const goToFavorites = async () => {
+    toggleOptionsIfNeeded();
     if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
     await go(OLD_HOMEPAGE_URL_HOST);
     trackEvent(MetaMetricsEvents.DAPP_GO_TO_FAVORITES);
@@ -1299,10 +1300,28 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Renders Go to Favorites option
+   */
+  const renderGoToFavorites = () => (
+    <Button onPress={goToFavorites} style={styles.option}>
+      <View style={styles.optionIconWrapper}>
+        <Icon name="star" size={16} style={styles.optionIcon} />
+      </View>
+      <Text
+        style={styles.optionText}
+        numberOfLines={2}
+        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
+      >
+        {strings('browser.go_to_favorites')}
+      </Text>
+    </Button>
+  );
+
+  /**
    * Render non-homepage options menu
    */
   const renderNonHomeOptions = () => {
-    if (isHomepage()) return null;
+    if (isHomepage()) return renderGoToFavorites();
 
     return (
       <React.Fragment>
@@ -1332,18 +1351,7 @@ export const BrowserTab = (props) => {
             </Text>
           </Button>
         )}
-        <Button onPress={goToFavorites} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="star" size={16} style={styles.optionIcon} />
-          </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
-          >
-            {strings('browser.open_favorites')}
-          </Text>
-        </Button>
+        {renderGoToFavorites()}
         <Button onPress={share} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
