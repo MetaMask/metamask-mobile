@@ -229,38 +229,60 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
+  const isTokenFilterEnabled =
+    process.env.MM_TOKEN_NETWORK_FILTER_ENABLED === '1';
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <ButtonBase
-            label={
-              tokenNetworkFilter[chainId]
-                ? networkName ?? strings('wallet.current_network')
-                : strings('wallet.all_networks')
-            }
-            onPress={showFilterControls}
-            endIconName={IconName.ArrowDown}
-            style={styles.controlButton}
-          />
-          <ButtonBase
-            testID={WalletViewSelectorsIDs.SORT_BY}
-            label={strings('wallet.sort_by')}
-            onPress={showSortControls}
-            endIconName={IconName.ArrowDown}
-            style={styles.controlButton}
-          />
-          <ButtonBase
-            testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-            label={strings('wallet.import')}
-            onPress={goToAddToken}
-            startIconName={IconName.Add}
-            style={styles.controlButton}
-          />
-        </ScrollView>
+        {isTokenFilterEnabled ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ButtonBase
+              label={
+                tokenNetworkFilter[chainId]
+                  ? networkName ?? strings('wallet.current_network')
+                  : strings('wallet.all_networks')
+              }
+              onPress={showFilterControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.SORT_BY}
+              label={strings('wallet.sort_by')}
+              onPress={showSortControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+              label={strings('wallet.import')}
+              onPress={goToAddToken}
+              startIconName={IconName.Add}
+              style={styles.controlButton}
+            />
+          </ScrollView>
+        ) : (
+          <>
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.SORT_BY}
+              label={strings('wallet.sort_by')}
+              onPress={showSortControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+              label={strings('wallet.import')}
+              onPress={goToAddToken}
+              startIconName={IconName.Add}
+              style={styles.controlButton}
+            />
+          </>
+        )}
       </View>
       {tokensList && (
         <TokenList
