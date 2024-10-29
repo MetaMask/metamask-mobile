@@ -6,7 +6,6 @@ import Engine, {
 import { backgroundState } from '../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
-import { store } from '../store';
 import { mockNetworkState } from '../util/test/network';
 import MetaMetrics from './Analytics/MetaMetrics';
 import { store } from '../store';
@@ -18,17 +17,24 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../reducers';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
+const mockStore = {
+  getState: jest.fn(() => ({ engine: {} })) as jest.MockedFunction<
+    () => RootState
+  >,
+};
+
 jest.unmock('./Engine');
 jest.mock('../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
+  store: { getState: jest.fn(() => ({ engine: {} })) },
+}));
+jest.mock('../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
 
 describe('Engine', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    store.getState.mockReturnValue({
+    mockStore.getState.mockReturnValue({
       settings: { showFiatOnTestnets: true },
     });
   });
