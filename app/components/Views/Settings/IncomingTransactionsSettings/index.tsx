@@ -129,9 +129,6 @@ const IncomingTransactionsSettings = () => {
       );
     });
   };
-  console.log('incoming transactions state:', showIncomingTransactionsNetworks);
-  console.log('Ethereum Mainnet:', showIncomingTransactionsNetworks['0x1']);
-  console.log('Linea Mainnet:', showIncomingTransactionsNetworks['0xe708']);
 
   return (
     <View style={styles.setting} testID={INCOMING_TRANSACTIONS}>
