@@ -1,7 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import type BN from 'bn.js';
+import BN from 'bn.js';
 import { BigNumber } from 'bignumber.js';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -241,10 +241,10 @@ let mockUseParamsValues: {
 const mockUseGasPriceEstimationInitialValue: ReturnType<
   typeof useGasPriceEstimation
 > = {
-  estimatedGasFee: toTokenMinimalUnit(
+  estimatedGasFee: new BN(toTokenMinimalUnit(
     '0.01',
     mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
-  ) as BN,
+  )),
 };
 
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
@@ -669,6 +669,7 @@ describe('BuildQuote View', () => {
       } as Limits;
 
       mockUseBalanceValues.balance = '5';
+      mockUseBalanceValues.balanceMinimalUnit = (5*Math.pow(10, 18)).toString(10);
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -685,6 +686,7 @@ describe('BuildQuote View', () => {
       const initialAmount = '0';
 
       mockUseBalanceValues.balance = '1';
+      mockUseBalanceValues.balanceMinimalUnit = (1*Math.pow(10, 18)).toString(10);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
@@ -711,14 +713,14 @@ describe('BuildQuote View', () => {
 
       mockUseBalanceValues = {
         balance: '1',
-        balanceMinimalUnit: BigNumber(1).shiftedBy(mockUseRampSDKValues.selectedAsset?.decimals || 18).toString(10),
+        balanceMinimalUnit: (1*Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
         balanceFiat: '$1.00',
       };
       mockUseGasPriceEstimationValue = {
-        estimatedGasFee: toTokenMinimalUnit(
+        estimatedGasFee: new BN(toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
+        )),
       };
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
@@ -739,14 +741,14 @@ describe('BuildQuote View', () => {
       };
       mockUseBalanceValues = {
         balance: '1',
-        balanceMinimalUnit: BigNumber(1).shiftedBy(mockUseRampSDKValues.selectedAsset?.decimals || 18).toString(10),
+        balanceMinimalUnit: (1*Math.pow(10, mockUseRampSDKValues.selectedAsset?.decimals || 18)).toString(10),
         balanceFiat: '$1.00',
       };
       mockUseGasPriceEstimationValue = {
-        estimatedGasFee: toTokenMinimalUnit(
+        estimatedGasFee: new BN(toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN,
+        )),
       };
 
       render(BuildQuote);

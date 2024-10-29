@@ -175,7 +175,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals=0) {
  *
  * @param {number|string|BN} tokenValue - Value to convert
  * @param {number} decimals - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {string} - string format of new number
  */
 export function toTokenMinimalUnit(tokenValue, decimals=0) {
   //const base = toBN(Math.pow(10, decimals).toString());
