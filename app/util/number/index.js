@@ -154,12 +154,12 @@ export function fromTokenMinimalUnit(
  * @param {number} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
-export function fromTokenMinimalUnitString(minimalInput, decimals=0) {
+export function fromTokenMinimalUnitString(minimalInput, decimals = 0) {
   if (typeof minimalInput !== 'string') {
     throw new TypeError('minimalInput must be a string');
   }
 
-  console.warn('HARP', { minimalInput, decimals, })
+  console.warn('HARP', { minimalInput, decimals, });
   const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
   const isInteger = Boolean(regex.integer.exec(tokenFormat));
 
@@ -177,7 +177,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals=0) {
  * @param {number} decimals - Unit to convert from, ether by default
  * @returns {string} - string format of new number
  */
-export function toTokenMinimalUnit(tokenValue, decimals=0) {
+export function toTokenMinimalUnit(tokenValue, decimals = 0) {
   //const base = toBN(Math.pow(10, decimals).toString());
   const valueBigNum = new BigNumber(tokenValue.toString(10), 10);
   if (valueBigNum.isNaN()) {
