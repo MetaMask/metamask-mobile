@@ -45,6 +45,7 @@ import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTran
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
+import Routes from '../../../../constants/navigation/Routes';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
@@ -58,6 +59,7 @@ import { buildTransactionParams } from '../../../../util/confirmation/transactio
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
+import { selectCurrentTransactionMetadata } from '../../../../selectors/confirmTransaction';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -145,6 +147,7 @@ class Approval extends PureComponent {
     mode: REVIEW,
     transactionHandled: false,
     transactionConfirmed: false,
+    isChangeInSimulationModalOpen: false,
   };
 
   originIsWalletConnect = false;
@@ -476,7 +479,13 @@ class Approval extends PureComponent {
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
     const { KeyringController, ApprovalController } = Engine.context;
-    const { transactions, chainId, shouldUseSmartTransaction } = this.props;
+    const {
+      transactions,
+      chainId,
+      shouldUseSmartTransaction,
+      simulationData: { isUpdatedAfterSecurityCheck },
+      navigation,
+    } = this.props;
     let { transaction } = this.props;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
@@ -484,6 +493,25 @@ class Approval extends PureComponent {
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       ExtendedKeyringTypes.ledger,
     ]);
+
+    if (isUpdatedAfterSecurityCheck) {
+      this.setState({ isChangeInSimulationModalOpen: true });
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
+        params: {
+          onProceed: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.setState({ transactionConfirmed: false });
+          },
+          onReject: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.onCancel();
+          },
+        },
+      });
+      return;
+    }
 
     this.setState({ transactionConfirmed: true });
 
@@ -658,12 +686,15 @@ class Approval extends PureComponent {
 
   render = () => {
     const { dappTransactionModalVisible } = this.props;
-    const { mode, transactionConfirmed } = this.state;
+    const { mode, transactionConfirmed, isChangeInSimulationModalOpen } =
+      this.state;
     const colors = this.context.colors || mockTheme.colors;
 
     return (
       <Modal
-        isVisible={dappTransactionModalVisible}
+        isVisible={
+          dappTransactionModalVisible && !isChangeInSimulationModalOpen
+        }
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
@@ -694,6 +725,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: selectTransactions(state),
+  simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: selectShowCustomNonce(state),
