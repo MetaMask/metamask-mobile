@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStakeContext } from './useStakeContext';
-import type { PooledStakingContract } from '@metamask/stake-sdk';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
-import { selectGasFeeControllerState } from '../../../../selectors/gasFeeController';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { BN } from 'ethereumjs-util';
@@ -13,7 +11,6 @@ import { hexToBN } from '../../../../util/number';
 
 interface StakingGasFee {
   estimatedGasFeeWei: BN;
-  gasLimit: number;
   isLoadingStakingGasFee: boolean;
   isStakingGasFeeError: boolean;
   refreshGasValues: () => void;
@@ -24,17 +21,14 @@ const DEFAULT_GAS_LIMIT = 21000;
 const GAS_LIMIT_BUFFER = 1.3;
 
 const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
-  const sdk = useStakeContext();
-  const gasFeeControllerState = useSelector(selectGasFeeControllerState);
-
+  const { stakingContract } = useStakeContext();
   const selectedAddress =
     useSelector(selectSelectedInternalAccountChecksummedAddress) || '';
-  const pooledStakingContract = sdk.stakingContract as PooledStakingContract;
-  const [gasLimit, setGasLimit] = useState<number>(0);
   const [isLoadingStakingGasFee, setIsLoadingStakingGasFee] =
     useState<boolean>(true);
   const [isStakingGasFeeError, setIsStakingGasFeeError] =
     useState<boolean>(false);
+  const [estimatedGasFeeWei, setEstimatedGasFeeWei] = useState<BN>(new BN(0));
 
   const fetchDepositGasValues = useCallback(async () => {
     const { GasFeeController } = Engine.context;
@@ -42,82 +36,59 @@ const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
     setIsLoadingStakingGasFee(true);
     setIsStakingGasFeeError(false);
     try {
-      await GasFeeController.fetchGasFeeEstimates();
+      const result = await GasFeeController.fetchGasFeeEstimates();
+      if (!stakingContract) {
+        throw new Error('Staking contract is not available');
+      }
       const depositGasLimit =
         depositValueWei === '0'
           ? DEFAULT_GAS_LIMIT
-          : await pooledStakingContract.estimateDepositGas(
+          : await stakingContract.estimateDepositGas(
               formatEther(depositValueWei),
               selectedAddress,
               ZERO_ADDRESS,
             );
 
       const gasLimitWithBuffer = Math.ceil(depositGasLimit * GAS_LIMIT_BUFFER);
-      setGasLimit(gasLimitWithBuffer);
+
+      const estimateRange = 'high';
+      let gasPrice: string;
+
+      switch (result.gasEstimateType) {
+        case GAS_ESTIMATE_TYPES.FEE_MARKET:
+          gasPrice =
+            result.gasFeeEstimates[estimateRange].suggestedMaxFeePerGas;
+          break;
+        case GAS_ESTIMATE_TYPES.LEGACY:
+          gasPrice = result.gasFeeEstimates[estimateRange];
+          break;
+        default:
+          gasPrice = result.gasFeeEstimates.gasPrice;
+          break;
+      }
+
+      const weiGasPrice = hexToBN(decGWEIToHexWEI(gasPrice));
+      const estimatedGasFee = weiGasPrice.muln(gasLimitWithBuffer);
+
+      setEstimatedGasFeeWei(estimatedGasFee);
     } catch (error) {
-      console.error('Error fetching gas limit:', error);
-      setGasLimit(DEFAULT_GAS_LIMIT);
+      console.error('Error calculating gas fees', error);
       setIsStakingGasFeeError(true);
     } finally {
       setIsLoadingStakingGasFee(false);
     }
-  }, [depositValueWei, pooledStakingContract, selectedAddress]);
+  }, [depositValueWei, stakingContract, selectedAddress]);
 
   useEffect(() => {
     fetchDepositGasValues();
   }, [fetchDepositGasValues]);
 
-  if (
-    gasLimit === 0 ||
-    gasFeeControllerState.gasEstimateType === GAS_ESTIMATE_TYPES.NONE
-  ) {
-    return {
-      estimatedGasFeeWei: new BN(0),
-      gasLimit,
-      isLoadingStakingGasFee,
-      isStakingGasFeeError: true,
-      refreshGasValues: fetchDepositGasValues,
-    };
-  }
-
-  const estimateRange = 'high';
-  let gasPrice: string;
-
-  try {
-    switch (gasFeeControllerState.gasEstimateType) {
-      case GAS_ESTIMATE_TYPES.FEE_MARKET:
-        gasPrice =
-          gasFeeControllerState.gasFeeEstimates[estimateRange]
-            .suggestedMaxFeePerGas;
-        break;
-      case GAS_ESTIMATE_TYPES.LEGACY:
-        gasPrice = gasFeeControllerState.gasFeeEstimates[estimateRange];
-        break;
-      default:
-        gasPrice = gasFeeControllerState.gasFeeEstimates.gasPrice;
-        break;
-    }
-
-    const weiGasPrice = hexToBN(decGWEIToHexWEI(gasPrice));
-    const estimatedGasFeeWei = weiGasPrice.muln(gasLimit);
-
-    return {
-      estimatedGasFeeWei,
-      gasLimit,
-      isLoadingStakingGasFee,
-      isStakingGasFeeError,
-      refreshGasValues: fetchDepositGasValues,
-    };
-  } catch (error) {
-    console.error('Error calculating gas fee estimate:', error);
-    return {
-      estimatedGasFeeWei: new BN(0),
-      gasLimit: 0,
-      isLoadingStakingGasFee: false,
-      isStakingGasFeeError: true,
-      refreshGasValues: fetchDepositGasValues,
-    };
-  }
+  return {
+    estimatedGasFeeWei,
+    isLoadingStakingGasFee,
+    isStakingGasFeeError,
+    refreshGasValues: fetchDepositGasValues,
+  };
 };
 
 export default useStakingGasFee;
