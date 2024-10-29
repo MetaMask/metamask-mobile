@@ -63,6 +63,7 @@
     "test:e2e:android:debug:build": "IS_TEST='true' detox build -c android.emu.debug",
     "test:e2e:android:debug:run": "IS_TEST='true' detox test -c android.emu.debug",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
+    "test:wdio:ios:browserstack": "yarn wdio ./wdio/config/ios.config.browserstack.js",
     "test:wdio:ios:browserstack:local": "yarn wdio ./wdio/config/ios.config.browserstack.local.js",
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
     "test:wdio:android:browserstack": "yarn wdio ./wdio/config/android.config.browserstack.js",
