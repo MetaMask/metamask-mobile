@@ -88,6 +88,16 @@ async function eth_sendTransaction({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }
+  if (!hasProperty(transactionParameters, 'from') || typeof transactionParameters.from !== 'string') {
+    throw rpcErrors.invalidParams({
+      message: `Invalid parameters: expected the first parameter to have a 'from' property of type string`,
+    });
+  }
+  if (hasProperty(transactionParameters, 'chainId') && !['undefined', 'number'].includes(typeof transactionParameters.chainId)) {
+    throw rpcErrors.invalidParams({
+      message: `Invalid parameters: expected the first parameter to have a 'chainId' property of type number`,
+    });
+  }
   await validateAccountAndChainId({
     from: req.params[0].from,
     chainId: req.params[0].chainId,
