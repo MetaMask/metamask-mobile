@@ -675,32 +675,35 @@ const BuildQuote = () => {
     ? formatAmount(parseFloat(amount))
     : `${amount} ${selectedAsset?.symbol}`;
 
-  let quickAmounts: QuickAmount[] = [];
-
-  if (isBuy) {
-    quickAmounts =
-      limits?.quickAmounts?.map((quickAmount) => ({
-        value: quickAmount,
-        label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
-      })) ?? [];
-  } else if (balance !== null) {
-    const balanceBigNum = new BigNumber(balance, 10);
-    const maxSellAmount = gasPriceEstimation !== null
-        ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
-        : null;
-    if (!balanceBigNum.isZero() && maxSellAmount?.gt(0)) {
-      quickAmounts = [
-        { value: 0.25, label: '25%' },
-        { value: 0.5, label: '50%' },
-        { value: 0.75, label: '75%' },
-        {
-          value: 1,
-          label: strings('fiat_on_ramp_aggregator.max'),
-          isNative: selectedAsset?.address === NATIVE_ADDRESS,
-        },
-      ];
+  const getQuickAmounts = (): QuickAmount[] => {
+    if (isBuy) {
+      return limits?.quickAmounts?.map((quickAmount) => ({
+          value: quickAmount,
+          label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
+        })) ?? [];
     }
-  }
+    const sellLimits = [
+      { value: 0.25, label: '25%' },
+      { value: 0.50, label: '50%' },
+      { value: 0.75, label: '75%' },
+      {
+        value: 1,
+        label: strings('fiat_on_ramp_aggregator.max'),
+        isNative: selectedAsset?.address === NATIVE_ADDRESS,
+      },
+    ];
+    if (balance === null || gasPriceEstimation === null) {
+      return sellLimits;
+    }
+    const balanceBigNum = new BigNumber(balance, 10);
+    const maxSellAmount = balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10));
+    if (!balanceBigNum.isZero() && maxSellAmount.gt(0)) {
+      return sellLimits;
+    }
+    return [];
+  };
+
+  const quickAmounts = getQuickAmounts();
 
   return (
     <ScreenLayout>
