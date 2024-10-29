@@ -11,12 +11,35 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Engine from '../../../core/Engine';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+
+jest.mock('../../../core/NotificationManager', () => ({
+  showSimpleNotification: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('./TokensBottomSheet', () => ({
+  createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn(() => Promise.resolve()),
+    },
+    CurrencyRateController: {
+      startPollingByNetworkClientId: jest.fn(() => Promise.resolve()),
+    },
+    TokenRatesController: {
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -153,6 +176,7 @@ describe('Tokens', () => {
     mockNavigate.mockClear();
     mockPush.mockClear();
   });
+
   it('should render correctly', () => {
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
@@ -160,7 +184,6 @@ describe('Tokens', () => {
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
-    // ETH and BAT should display
 
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
@@ -180,7 +203,6 @@ describe('Tokens', () => {
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
     expect(getByText('Link')).toBeDefined();
-    // All three should display
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -252,6 +274,7 @@ describe('Tokens', () => {
       await findByText(strings('wallet.unable_to_find_conversion_rate')),
     ).toBeDefined();
   });
+
   it('renders stake button correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
@@ -270,6 +293,54 @@ describe('Tokens', () => {
         },
         screen: Routes.BROWSER.VIEW,
       });
+    });
+  });
+
+  it('should refresh tokens and call necessary controllers', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.scroll(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        nativeEvent: {
+          contentOffset: { y: 100 }, // Simulate scroll offset
+          contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
+          layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
+        },
+      },
+    );
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      {
+        refreshing: true,
+      },
+    );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.TokenDetectionController.detectTokens,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.AccountTrackerController.refresh,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.CurrencyRateController.startPollingByNetworkClientId,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.TokenRatesController.updateExchangeRates,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  it('triggers bottom sheet when sort controls are pressed', async () => {
+    const { getByText } = renderComponent(initialState);
+
+    await fireEvent.press(getByText('Sort by'));
+
+    await waitFor(() => {
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
     });
   });
 });

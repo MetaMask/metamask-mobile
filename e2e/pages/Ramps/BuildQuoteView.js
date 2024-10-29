@@ -1,4 +1,5 @@
 import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
 
 class BuildQuoteView {
@@ -12,6 +13,14 @@ class BuildQuoteView {
 
   get getQuotesButton() {
     return Matchers.getElementByText(BuildQuoteSelectors.GET_QUOTES_BUTTON);
+  }
+
+  get cancelButton() {
+    return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

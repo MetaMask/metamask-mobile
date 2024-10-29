@@ -6,6 +6,7 @@ export const NetworksViewSelectorsIDs = {
   ADD_NETWORKS_BUTTON: 'add-network-button',
   NETWORK_NAME_INPUT: 'input-network-name',
   BLOCK_EXPLORER_INPUT: 'block-explorer',
+  ADD_BLOCK_EXPLORER: 'add-block-explorer-button',
   RPC_URL_INPUT: 'input-rpc-url',
   CHAIN_INPUT: 'input-chain-id',
   NETWORKS_SYMBOL_INPUT: 'input-network-symbol',
@@ -20,6 +21,7 @@ export const NetworksViewSelectorsIDs = {
   SEARCH_NETWORK_INPUT_BOX_ID: 'network-search-input',
   CONTAINER: 'network-form-container',
   ICON_BUTTON_RPC: 'drop-down-rpc-menu',
+  ICON_BUTTON_BLOCK_EXPLORER: 'drop-down-block-explorer-menu',
   ADD_RPC_BUTTON: 'add-rpc-button',
   RPC_NAME_INPUT: 'input-rpc-name',
 };

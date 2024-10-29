@@ -12,7 +12,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeAssets } from '../../tags';
+import { SmokeCore } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
@@ -32,9 +32,9 @@ const PaymentMethods = {
   DEBIT_OR_CREDIT: 'Debit or Credit',
   INSTANT_ACH_BANK_TRANSFER: 'Insant ACH Bank Transfer',
   ACH_BANK_TRANSFER: 'ACH Bank Transfer',
-}
+};
 
-describe(SmokeAssets('Off-Ramp'), () => {
+describe(SmokeCore('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -66,10 +66,11 @@ describe(SmokeAssets('Off-Ramp'), () => {
     await SelectRegionView.tapRegionOption(Regions.USA);
     await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
     await SelectRegionView.tapContinueButton();
-    await SelectPaymentMethodView.tapPaymentMethodOption(PaymentMethods.DEBIT_OR_CREDIT);
-    await SelectPaymentMethodView.tapContinueButton();    
+    await SelectPaymentMethodView.tapPaymentMethodOption(
+      PaymentMethods.DEBIT_OR_CREDIT,
+    );
+    await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });
-
 });

@@ -17,8 +17,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
 
 const fixtureServer = new FixtureServer();
 
@@ -74,6 +72,12 @@ describe(Regression('Custom RPC Tests'), () => {
     );
 
     await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+
+    await NetworkView.tapBlockExplorerDownButton();
+    await NetworkView.tapBlockExplorerButton();
+    await NetworkView.typeInNetworkBlockExplorer(
+      `${CustomNetworks.Gnosis.providerConfig.BlockExplorerUrl}\n`,
+    );
 
     if (device.getPlatform() === 'ios') {
       await NetworkView.tapChainIDLabel(); // Focus outside of text input field
