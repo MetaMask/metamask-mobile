@@ -40,6 +40,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -62,6 +63,7 @@ const PermissionsSummary = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
+  const { networkName: defaultGlobalSelectedNetworkName } = useNetworkInfo();
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -191,6 +193,27 @@ const PermissionsSummary = ({
     });
   }, [accountAddresses, isAlreadyConnected, selectedAccount]);
 
+  const getNetworkLabel = useCallback(() => {
+    if (isAlreadyConnected) {
+      return networkAvatars.length === 1
+        ? networkAvatars[0]?.name
+        : `${strings('permissions.n_networks_connect', {
+            numberOfNetworks: networkAvatars.length,
+          })}`;
+    }
+
+    if (networkAvatars.length === 1) {
+      return (
+        networkAvatars[0]?.name &&
+        `${strings('permissions.requesting_for')}${networkAvatars[0]?.name}`
+      );
+    }
+
+    return strings('permissions.requesting_for_networks', {
+      numberOfNetworks: networkAvatars.length,
+    });
+  }, [networkAvatars, isAlreadyConnected, defaultGlobalSelectedNetworkName]);
+
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
@@ -284,9 +307,7 @@ const PermissionsSummary = ({
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
                       <TextComponent variant={TextVariant.BodySM}>
-                        {strings('permissions.n_networks_connect', {
-                          numberOfNetworks: networkAvatars.length,
-                        })}
+                        {getNetworkLabel()}
                       </TextComponent>
                     </TextComponent>
                   </View>
