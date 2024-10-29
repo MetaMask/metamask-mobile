@@ -209,6 +209,44 @@ index a9f6736..ecd98e7 100644
        });
      }
    } finally {
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-IJS7EZU2.js b/node_modules/@metamask/assets-controllers/dist/chunk-IJS7EZU2.js
+index e6efbd3..5437325 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-IJS7EZU2.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-IJS7EZU2.js
+@@ -51,7 +51,8 @@ var AssetsContractController = class extends _basecontroller.BaseControllerV1 {
+     chainId: initialChainId,
+     onPreferencesStateChange,
+     onNetworkDidChange,
+-    getNetworkClientById
++    getNetworkClientById,
++    getBalances
+   }, config, state) {
+     super(config, state);
+     /**
+@@ -65,6 +66,7 @@ var AssetsContractController = class extends _basecontroller.BaseControllerV1 {
+     };
+     this.initialize();
+     this.getNetworkClientById = getNetworkClientById;
++    this.getBalances = getBalances;
+     onPreferencesStateChange(({ ipfsGateway }) => {
+       this.configure({ ipfsGateway });
+     });
+@@ -348,6 +350,15 @@ var AssetsContractController = class extends _basecontroller.BaseControllerV1 {
+       _singlecallbalancecheckerabi2.default,
+       provider
+     );
++    try{
++console.log('ENTER HEREEE 0');
++
++    const test = await  this.getBalances('https://mainnet.infura.io/v3/59fa1b7e5d2449ce9c7ec7a0b9bd5dff', contractAddress,selectedAddress,tokensToDetect, _singlecallbalancecheckerabi2.default);
++    console.log('ENTER balances',test);
++    }catch(err){
++      console.log('ENTER ERr', err);
++      
++    }
+     const result = await contract.balances([selectedAddress], tokensToDetect);
+     const nonZeroBalances = {};
+     if (result.length > 0) {
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js b/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
 index 995ec6b..7222a8a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js

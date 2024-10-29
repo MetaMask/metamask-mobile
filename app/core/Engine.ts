@@ -30,7 +30,7 @@ import {
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { AppState } from 'react-native';
+import { AppState, NativeModules } from 'react-native';
 import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -501,7 +501,6 @@ export class Engine {
     initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
-
     /**
      * Subscribes a listener to the state change events of Preferences Controller.
      *
@@ -582,6 +581,8 @@ export class Engine {
       ).configuration.chainId,
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
+      //@ts-expect-error - temporarily for debug
+      getBalances: NativeModules.EthRpc.getBalances,
     });
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
