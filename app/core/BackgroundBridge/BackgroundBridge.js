@@ -1,11 +1,11 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { JsonRpcEngine } from 'json-rpc-engine';
 import {
   createSelectedNetworkMiddleware,
   METAMASK_DOMAIN,
 } from '@metamask/selected-network-controller';
 import EthQuery from '@metamask/eth-query';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
 import {

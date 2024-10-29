@@ -1,5 +1,5 @@
 import { Caveat, ValidPermission } from '@metamask/permission-controller';
-import { Json } from 'json-rpc-engine';
+import { Json } from '@metamask/json-rpc-engine';
 
 export const extractApprovedAccounts = (
   accountPermission: // TODO: Replace "any" with type

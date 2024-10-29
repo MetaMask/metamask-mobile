@@ -1,4 +1,4 @@
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type { Json, JsonRpcParams, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import {
   TransactionController,
   WalletDevice,
@@ -66,8 +66,8 @@ async function eth_sendTransaction({
   validateAccountAndChainId,
 }: {
   hostname: string;
-  req: JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' };
-  res: PendingJsonRpcResponse<unknown>;
+  req: JsonRpcRequest<JsonRpcParams> & { method: 'eth_sendTransaction' };
+  res: PendingJsonRpcResponse<Json>;
   sendTransaction: TransactionController['addTransaction'];
   validateAccountAndChainId: (args: {
     from: string;
