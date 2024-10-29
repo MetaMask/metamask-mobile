@@ -261,19 +261,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             style={styles.controlButton}
           />
         </ScrollView>
-        <ButtonBase
-          label={strings('wallet.sort_by')}
-          onPress={showSortControls}
-          endIconName={IconName.ArrowDown}
-          style={styles.controlButton}
-        />
-        <ButtonBase
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON_LINK}
-          label={strings('wallet.import')}
-          onPress={goToAddToken}
-          startIconName={IconName.Add}
-          style={styles.controlButton}
-        />
       </View>
       {tokensList && (
         <TokenList

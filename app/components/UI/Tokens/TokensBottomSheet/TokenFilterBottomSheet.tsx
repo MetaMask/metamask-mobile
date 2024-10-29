@@ -1,11 +1,7 @@
 import React, { useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectChainId } from '../../../../selectors/networkController';
-import {
-  selectTokenNetworkFilter,
-  selectTokenSortConfig,
-} from '../../../../selectors/preferencesController';
+import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -60,7 +56,6 @@ const TokenFilterBottomSheet = () => {
           variant={TextVariant.HeadingMD}
           style={styles.bottomSheetTitle}
         >
-          {/* {strings('wallet.sort_by')} */}
           Filter by
         </Text>
         <ListItemSelect
@@ -83,10 +78,7 @@ const TokenFilterBottomSheet = () => {
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >
-          <Text style={styles.bottomSheetText}>
-            {/* {strings('wallet.alphabetically')} */}
-            Current Network
-          </Text>
+          <Text style={styles.bottomSheetText}>Current Network</Text>
         </ListItemSelect>
       </View>
     </BottomSheet>
