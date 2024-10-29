@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ChangeInSimulationModal renders content 1`] = `
+exports[`ChangeInSimulationModal render matches snapshot 1`] = `
 <View
   style={
     {
