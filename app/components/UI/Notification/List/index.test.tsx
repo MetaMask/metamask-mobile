@@ -1,25 +1,45 @@
 import React from 'react';
+import { renderHook, act } from '@testing-library/react-hooks';
 import NotificationsList from './';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import renderWithProvider, { DeepPartial } from '../../../../util/test/renderWithProvider';
 import MOCK_NOTIFICATIONS from '../__mocks__/mock_notifications';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import initialRootState, { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import { createNavigationProps } from '../../../../util/testUtils';
-
+import { hasNotificationModal } from '../../../../util/notifications/notification-states';
+import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
+import { Provider } from 'react-redux';
+import createMockStore from 'redux-mock-store';
+// eslint-disable-next-line import/no-namespace
+import * as Actions from '../../../../actions/notification/helpers';
 const mockNavigation = createNavigationProps({});
 
-jest.mock('@react-navigation/native', () => {
-  const navigation = {
-    params: {},
-  };
-  return {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...jest.requireActual<any>('@react-navigation/native'),
-    useRoute: jest.fn(() => ({ params: navigation.params })),
-    useNavigation: jest.fn(() => mockNavigation),
-  };
-});
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../util/notifications/services/NotificationService', () => ({
+  ...jest.requireActual('../../../../util/notifications/services/NotificationService'),
+  getBadgeCount: jest.fn(),
+  decrementBadgeCount: jest.fn(),
+  setBadgeCount: jest.fn(),
+}));
+
+jest.mock('../../../../util/notifications/notification-states', () => ({
+  hasNotificationModal: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+  }),
+  MetaMetricsEvents: {
+    NOTIFICATION_CLICKED: 'NOTIFICATION_CLICKED',
+  },
+}));
+
+const navigation = {
+  navigate: jest.fn(),
+};
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
@@ -34,12 +54,42 @@ const mockInitialState: DeepPartial<RootState> = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (fn: any) => fn(mockInitialState),
+  useSelector: (fn: (state: DeepPartial<RootState>) => unknown) => fn(mockInitialState),
 }));
 
+function arrangeStore() {
+  const store = createMockStore()(initialRootState);
+
+  // Ensure dispatch mocks are handled correctly
+  store.dispatch = jest.fn().mockImplementation((action) => {
+    if (typeof action === 'function') {
+      return action(store.dispatch, store.getState);
+    }
+    return Promise.resolve();
+  });
+
+  return store;
+}
+
+function arrangeActions() {
+  const mockMarkNotificationAsRead = jest.spyOn(Actions, 'markMetamaskNotificationsAsRead').mockResolvedValue(undefined);
+
+  return {
+    mockMarkNotificationAsRead,
+  };
+}
+
+function arrangeHook() {
+  const store = arrangeStore();
+  const hook = renderHook(() => useMarkNotificationAsRead(), {
+    wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+  });
+
+  return hook;
+}
 describe('NotificationsList', () => {
+
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <NotificationsList
@@ -64,6 +114,31 @@ describe('NotificationsList', () => {
       />,
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('marks notification as read and not navigates if modal does not exist', async () => {
+    (hasNotificationModal as jest.Mock).mockReturnValue(false);
+    (NotificationsService.getBadgeCount as jest.Mock).mockResolvedValue(0);
+    const mockActions = arrangeActions();
+    const { result } = arrangeHook();
+    await act(async () => {
+      await result.current.markNotificationAsRead([
+        {
+          id: MOCK_NOTIFICATIONS[2].id,
+          type: MOCK_NOTIFICATIONS[2].type,
+          isRead: MOCK_NOTIFICATIONS[2].isRead,
+        },
+      ]);
+    });
+
+    expect(mockActions.mockMarkNotificationAsRead).toHaveBeenCalledWith([
+      {
+        id: MOCK_NOTIFICATIONS[2].id,
+        type: MOCK_NOTIFICATIONS[2].type,
+        isRead: MOCK_NOTIFICATIONS[2].isRead,
+      },
+    ]);
+    expect(navigation.navigate).not.toHaveBeenCalled();
   });
 });
 
