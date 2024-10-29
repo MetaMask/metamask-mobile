@@ -84,7 +84,7 @@ jest.mock('../../hooks/useStakeContext.ts', () => ({
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
-    balance: '1.5',
+    balanceETH: '1.5',
     balanceWei: mockBalanceBN,
     balanceFiatNumber: '3000',
   }),
