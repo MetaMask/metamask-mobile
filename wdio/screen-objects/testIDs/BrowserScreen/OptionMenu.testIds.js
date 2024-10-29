@@ -2,6 +2,8 @@ export const MENU_ID = 'browser-options-menu';
 
 export const ADD_FAVORITES_OPTION = 'browser-options-menu-add-favorites';
 
+export const OPEN_FAVORITES_OPTION = 'browser-options-menu-open-favorites';
+
 export const NEW_TAB_OPTION = 'browser-options-menu-new-tab';
 
 export const RELOAD_OPTION = 'browser-options-menu-reload';

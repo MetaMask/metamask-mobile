@@ -1,50 +1,50 @@
 import {
-  ContractApprovalModalSelectorsIDs,
-  ContractApprovalModalSelectorsText,
-} from '../../selectors/Modals/ContractApprovalModal.selectors';
+  ContractApprovalBottomSheetSelectorsIDs,
+  ContractApprovalBottomSheetSelectorsText,
+} from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
-class ContractApprovalModal {
+class ContractApprovalBottomSheet {
   get container() {
-    return Matchers.getElementByID(ContractApprovalModalSelectorsIDs.CONTAINER);
+    return Matchers.getElementByID(ContractApprovalBottomSheetSelectorsIDs.CONTAINER);
   }
 
   get addNickName() {
     return Matchers.getElementByText(
-      ContractApprovalModalSelectorsText.ADD_NICKNAME,
+      ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
     );
   }
 
   get editNickName() {
     return Matchers.getElementByText(
-      ContractApprovalModalSelectorsText.EDIT_NICKNAME,
+      ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
     );
   }
 
   get rejectButton() {
-    return Matchers.getElementByText(ContractApprovalModalSelectorsText.REJECT);
+    return Matchers.getElementByText(ContractApprovalBottomSheetSelectorsText.REJECT);
   }
 
   get approveButton() {
     return Matchers.getElementByText(
-      ContractApprovalModalSelectorsText.APPROVE,
+      ContractApprovalBottomSheetSelectorsText.APPROVE,
     );
   }
 
   get contractAddress() {
     return Matchers.getElementByID(
-      ContractApprovalModalSelectorsIDs.CONTRACT_ADDRESS,
+      ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
     );
   }
 
   get nextButton() {
-    return Matchers.getElementByText(ContractApprovalModalSelectorsText.NEXT);
+    return Matchers.getElementByText(ContractApprovalBottomSheetSelectorsText.NEXT);
   }
 
   get approveTokenAmount() {
     return Matchers.getElementByID(
-      ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+      ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
   }
 
@@ -80,4 +80,4 @@ class ContractApprovalModal {
   }
 }
 
-export default new ContractApprovalModal();
+export default new ContractApprovalBottomSheet();
