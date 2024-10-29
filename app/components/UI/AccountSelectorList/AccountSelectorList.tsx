@@ -103,7 +103,7 @@ const AccountSelectorList = ({
         </View>
       );
     },
-    [styles.balancesContainer, styles.balanceLabel],
+    [styles.balancesContainer, styles.balanceLabel, privacyMode],
   );
 
   const onLongPress = useCallback(
