@@ -17,6 +17,7 @@ import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 // Extend dayjs with the plugins
 dayjs.extend(isYesterday);
@@ -480,4 +481,17 @@ export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     setTimeout(() => reject(new Error(strings('notifications.timeout'))), ms),
   );
   return Promise.race([promise, timeout]);
+}
+
+export function parseNotification(remoteMessage: FirebaseMessagingTypes.RemoteMessage) {
+  const notification = remoteMessage.data?.data;
+  const parsedNotification = typeof notification === 'string' ? JSON.parse(notification) : notification;
+
+  const notificationData = {
+    type: parsedNotification?.type || parsedNotification?.data?.kind,
+    transaction: parsedNotification?.data,
+    duration: 5000,
+  };
+
+  return notificationData;
 }
