@@ -52,15 +52,10 @@ const TokenFilterBottomSheet = () => {
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
       <View style={styles.bottomSheetWrapper}>
-        <Text
-          //   testID={WalletViewSelectorsIDs.SORT_BY}
-          variant={TextVariant.HeadingMD}
-          style={styles.bottomSheetTitle}
-        >
+        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
           {strings('wallet.filter_by')}
         </Text>
         <ListItemSelect
-          //   testID={WalletViewSelectorsIDs.SORT_DECLINING_BALANCE}
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.AllNetworks)
           }
@@ -68,10 +63,11 @@ const TokenFilterBottomSheet = () => {
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >
-          <Text style={styles.bottomSheetText}>All Networks</Text>
+          <Text style={styles.bottomSheetText}>
+            {strings('wallet.all_networks')}
+          </Text>
         </ListItemSelect>
         <ListItemSelect
-          //   testID={WalletViewSelectorsIDs.SORT_ALPHABETICAL}
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.CurrentNetwork)
           }
@@ -79,7 +75,9 @@ const TokenFilterBottomSheet = () => {
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >
-          <Text style={styles.bottomSheetText}>Current Network</Text>
+          <Text style={styles.bottomSheetText}>
+            {strings('wallet.current_network')}
+          </Text>
         </ListItemSelect>
       </View>
     </BottomSheet>
