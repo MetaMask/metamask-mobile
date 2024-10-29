@@ -43,7 +43,7 @@ describe('ChangeInSimulationModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders content', () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <ChangeInSimulationModal route={NAVIGATION_PARAMS_MOCK} />,
       {
