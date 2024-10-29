@@ -299,7 +299,8 @@ export const BrowserTab = (props) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
-  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
+  const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
+    useMetrics();
   /**
    * Is the current tab the active tab
    */
@@ -986,7 +987,9 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
     await go(OLD_HOMEPAGE_URL_HOST);
-    trackEvent(MetaMetricsEvents.DAPP_GO_TO_FAVORITES);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
+    );
   };
 
   /**
