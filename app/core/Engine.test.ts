@@ -74,7 +74,7 @@ describe('Engine', () => {
     // have an undefined property as name
     initialBackgroundState.AssetsContractController =
       backgroundState.AssetsContractController;
-    delete initialBackgroundState[undefined];
+    delete initialBackgroundState.undefined;
 
     expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
