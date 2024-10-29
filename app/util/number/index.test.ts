@@ -351,20 +351,20 @@ describe('Number utils :: fromTokenMinimalUnitString', () => {
 
 describe('Number utils :: toTokenMinimalUnit', () => {
   it('toTokenMinimalUnit using number', () => {
-    expect(toTokenMinimalUnit(1337, 6)).toEqual(new BN('1337000000', 10));
-    expect(toTokenMinimalUnit(1337, 0)).toEqual(new BN('1337'));
-    expect(toTokenMinimalUnit(1337.1, 1)).toEqual(new BN('13371'));
+    expect(toTokenMinimalUnit(1337, 6)).toEqual('1337000000');
+    expect(toTokenMinimalUnit(1337, 0)).toEqual('1337');
+    expect(toTokenMinimalUnit(1337.1, 1)).toEqual('13371');
   });
 
   it('toTokenMinimalUnit using string', () => {
-    expect(toTokenMinimalUnit('1337', 6)).toEqual(new BN('1337000000'));
-    expect(toTokenMinimalUnit('1337', 0)).toEqual(new BN('1337'));
-    expect(toTokenMinimalUnit('1337.1', 2)).toEqual(new BN('133710'));
+    expect(toTokenMinimalUnit('1337', 6)).toEqual('1337000000');
+    expect(toTokenMinimalUnit('1337', 0)).toEqual('1337');
+    expect(toTokenMinimalUnit('1337.1', 2)).toEqual('133710');
   });
 
   it('toTokenMinimalUnit using BN number', () => {
-    expect(toTokenMinimalUnit(new BN('1337'), 0)).toEqual(new BN('1337'));
-    expect(toTokenMinimalUnit(new BN('1337'), 6)).toEqual(new BN('1337000000'));
+    expect(toTokenMinimalUnit(new BN('1337'), 0)).toEqual('1337');
+    expect(toTokenMinimalUnit(new BN('1337'), 6)).toEqual('1337000000');
   });
 
   it('toTokenMinimalUnit using invalid inputs', () => {

@@ -179,8 +179,15 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
 export function toTokenMinimalUnit(tokenValue, decimals) {
   //const base = toBN(Math.pow(10, decimals).toString());
   const valueBigNum = new BigNumber(tokenValue.toString(10), 10);
+  if (valueBigNum.isNaN()) {
+    throw new Error(`Could not parse '${tokenValue}' (${typeof tokenValue}) into BigNumber`);
+  }
+  const result = valueBigNum.shiftedBy(decimals);
+  if (result.gt(0) && result.lt(1)) {
+    throw new Error(`Invalid input '${JSON.stringify(tokenValue, decimals)}'.`);
+  }
   //let value = convert.numberToString(tokenValue);
-  return valueBigNum.shiftedBy(decimals).toString(10);
+  return result.toString(10);
   /*
   const negative = value.substring(0, 1) === '-';
   if (negative) {
