@@ -224,14 +224,6 @@ const BuildQuote = () => {
         }
       : undefined,
   );
-  const balanceBigNum = balance
-   ? new BigNumber(balance, 10)
-   : null;
-
-  const maxSellAmount =
-    balanceBigNum && gasPriceEstimation
-      ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
-      : null;
 
   const amountIsBelowMinimum = useMemo(
     () => isAmountBelowMinimum(amount),
@@ -249,18 +241,29 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
+    const balanceBigNum = balance
+     ? new BigNumber(balance, 10)
+     : null;
+    const maxSellAmount =
+      balanceBigNum && gasPriceEstimation
+        ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
+        : null;
+
     if (isBuy || !maxSellAmount) {
       return false;
     }
     return Boolean(new BigNumber(amount).gt(maxSellAmount));
-  }, [amount, isBuy, maxSellAmount, balanceBigNum]);
+  }, [amount, isBuy, balance]);
 
   const hasInsufficientBalance = useMemo(() => {
+    const balanceBigNum = balance
+     ? new BigNumber(balance, 10)
+     : null;
     if (!balanceBigNum) {
       return undefined;
     }
     return balanceBigNum.lt(amount);
-  }, [balanceBigNum, amount]);
+  }, [balance, amount]);
 
   const isFetching =
     isFetchingCryptoCurrencies ||
@@ -345,20 +348,24 @@ const BuildQuote = () => {
       if (isBuy) {
         setAmount(value.toString());
       } else {
+        const balanceBigNum = balance
+         ? new BigNumber(balance, 10)
+         : null;
+
         const amountPercentage = balanceBigNum?.multipliedBy(value);
 
         if (!amountPercentage) {
           return;
         }
 
-        let amountToSet = amountPercentage;
+        const maxSellAmount =
+          balanceBigNum && gasPriceEstimation
+            ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
+            : null;
 
-        if (
-          selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount?.lt(amountPercentage)
-        ) {
-          amountToSet = maxSellAmount;
-        }
+        const amountToSet = (
+          selectedAsset?.address === NATIVE_ADDRESS && maxSellAmount?.lt(amountPercentage)
+        ) ? maxSellAmount : amountPercentage;
 
         // TODO: Too many levels of parsing strings and numbers back and forth here..
         const newAmountString = fromTokenMinimalUnitString(
@@ -369,11 +376,10 @@ const BuildQuote = () => {
       }
     },
     [
-      balanceBigNum,
       isBuy,
-      maxSellAmount,
       selectedAsset?.address,
       selectedAsset?.decimals,
+      balance,
     ],
   );
 
@@ -682,17 +688,26 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBigNum && !balanceBigNum.isZero() && maxSellAmount?.gt(0)) {
-    quickAmounts = [
-      { value: 0.25, label: '25%' },
-      { value: 0.5, label: '50%' },
-      { value: 0.75, label: '75%' },
-      {
-        value: 1,
-        label: strings('fiat_on_ramp_aggregator.max'),
-        isNative: selectedAsset?.address === NATIVE_ADDRESS,
-      },
-    ];
+  } else {
+    const balanceBigNum = balance
+     ? new BigNumber(balance, 10)
+     : null;
+    const maxSellAmount =
+      balanceBigNum && gasPriceEstimation
+        ? balanceBigNum?.minus(gasPriceEstimation.estimatedGasFee.toString(10))
+        : null;
+    if (balanceBigNum && !balanceBigNum.isZero() && maxSellAmount?.gt(0)) {
+      quickAmounts = [
+        { value: 0.25, label: '25%' },
+        { value: 0.5, label: '50%' },
+        { value: 0.75, label: '75%' },
+        {
+          value: 1,
+          label: strings('fiat_on_ramp_aggregator.max'),
+          isNative: selectedAsset?.address === NATIVE_ADDRESS,
+        },
+      ];
+    }
   }
 
   return (
