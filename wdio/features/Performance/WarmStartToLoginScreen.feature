@@ -1,4 +1,5 @@
 @androidApp
+@iosApp
 @performance
 Feature: Measure Login Screen Warm Start
     # This feature measures the warm start of the app when:

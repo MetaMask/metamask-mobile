@@ -113,6 +113,4 @@ delete config.port;
 delete config.path;
 delete config.services;
 
-const _config = config;
- 
-export { _config as config };
+module.exports = { config };
