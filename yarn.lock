@@ -5648,7 +5648,7 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/transaction-controller@^37.1.0":
+"@metamask/transaction-controller@^37.1.0", "@metamask/transaction-controller@^37.1.0@npm:@metamask-previews/transaction-controller@37.3.0-preview-374ec2c3":
   version "37.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-37.1.0.tgz#2168fc768befc9d6c9065cc74196386e3cb36f38"
   integrity sha512-jzHhrF7M+Ko9UAR8tuumlHY5brOcuAE1cl5c0tWjwKpyc0ei6UQ8c8cpalGjN3pVy9oeX00Gm7qUpZ5FOCVpLQ==
