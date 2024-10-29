@@ -10,6 +10,7 @@ import {
   weiToFiatNumber,
   fiatNumberToWei,
   renderFromWei,
+  fromWei,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 
@@ -50,12 +51,20 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
   const handleFiatInput = useCallback(
     (value: string) => {
       setFiatAmount(value);
-      const ethValue = renderFromWei(
-        fiatNumberToWei(value, conversionRate).toString(),
-        5,
-      );
-      setAmountEth(ethValue);
-      setAmountWei(toWei(ethValue, 'ether'));
+      try {
+        const ethValue = renderFromWei(
+          fiatNumberToWei(value, conversionRate).toString(),
+          5,
+        );
+        setAmountEth(ethValue);
+        setAmountWei(toWei(ethValue, 'ether'));
+      } catch (error) {
+        const ethValue = fromWei(
+          fiatNumberToWei(value, conversionRate).toString(),
+        );
+        setAmountEth(ethValue);
+        setAmountWei(toWei(ethValue, 'ether'));
+      }
     },
     [conversionRate],
   );
@@ -83,7 +92,12 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
       const percentage = value * 100;
       const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
 
-      const newEthAmount = renderFromWei(amountPercentage, 5);
+      let newEthAmount;
+      try {
+        newEthAmount = renderFromWei(amountPercentage, 5);
+      } catch (error) {
+        newEthAmount = fromWei(amountPercentage);
+      }
       setAmountEth(newEthAmount);
       setAmountWei(amountPercentage);
 
