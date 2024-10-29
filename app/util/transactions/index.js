@@ -1479,7 +1479,7 @@ export const generateTxWithNewTokenAllowance = (
   spenderAddress,
   transaction,
 ) => {
-  const uint = toTokenMinimalUnit(tokenValue, tokenDecimals);
+  const uint = new BN(toTokenMinimalUnit(tokenValue, tokenDecimals));
   const approvalData = generateApprovalData({
     spender: spenderAddress,
     value: uint.gt(UINT256_BN_MAX_VALUE)
