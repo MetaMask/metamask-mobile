@@ -1,119 +1,60 @@
 import { BN } from 'ethereumjs-util';
 import { useState, useMemo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
 import {
-  selectCurrentCurrency,
-  selectConversionRate,
-} from '../../../../selectors/currencyRateController';
-import {
-  toWei,
-  weiToFiatNumber,
-  renderFromTokenMinimalUnit,
-  fiatNumberToWei,
-  fromTokenMinimalUnitString,
   limitToMaximumDecimalPlaces,
   renderFiat,
 } from '../../../../util/number';
-import { strings } from '../../../../../locales/i18n';
 import useVaultData from './useVaultData';
+import useStakingGasFee from './useStakingGasFee';
+import useBalance from './useBalance';
+import useInputHandler from './useInputHandler';
 
-const useStakingInputHandlers = (balance: BN) => {
-  const [amountEth, setAmountEth] = useState('0');
-  const [amountWei, setAmountWei] = useState<BN>(new BN(0));
+const useStakingInputHandlers = () => {
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
+  const { balanceWei: balance, balanceETH, balanceFiatNumber } = useBalance();
 
-  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN(0)), [amountWei]);
+  const {
+    isEth,
+    currencyToggleValue,
+    isNonZeroAmount,
+    handleKeypadChange,
+    handleCurrencySwitch,
+    percentageOptions,
+    handleAmountPress,
+    currentCurrency,
+    handleEthInput,
+    handleFiatInput,
+    conversionRate,
+    amountEth,
+    amountWei,
+    fiatAmount,
+    handleMaxInput,
+  } = useInputHandler({ balance });
+
+  const { estimatedGasFeeWei, isLoadingStakingGasFee, isStakingGasFeeError } =
+    useStakingGasFee(balance.toString());
+
+  const maxStakeableAmountWei = useMemo(
+    () =>
+      !isStakingGasFeeError && balance.gt(estimatedGasFeeWei)
+        ? balance.sub(estimatedGasFeeWei)
+        : new BN(0),
+
+    [balance, estimatedGasFeeWei, isStakingGasFeeError],
+  );
+
   const isOverMaximum = useMemo(() => {
-    const additionalFundsRequired = amountWei.sub(balance || new BN(0));
+    const additionalFundsRequired = amountWei.sub(maxStakeableAmountWei);
     return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
-  }, [amountWei, balance, isNonZeroAmount]);
-
-  const [fiatAmount, setFiatAmount] = useState('0');
-  const [isEth, setIsEth] = useState<boolean>(true);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate) || 1;
+  }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
 
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
     useVaultData();
 
-  const currencyToggleValue = isEth
-    ? `${fiatAmount} ${currentCurrency.toUpperCase()}`
-    : `${amountEth} ETH`;
-
-  const handleEthInput = useCallback(
-    (value: string) => {
-      setAmountEth(value);
-      setAmountWei(toWei(value, 'ether'));
-      const fiatValue = weiToFiatNumber(
-        toWei(value, 'ether'),
-        conversionRate,
-        2,
-      ).toString();
-      setFiatAmount(fiatValue);
-    },
-    [conversionRate],
-  );
-
-  const handleFiatInput = useCallback(
-    (value: string) => {
-      setFiatAmount(value);
-      const ethValue = renderFromTokenMinimalUnit(
-        fiatNumberToWei(value, conversionRate).toString(),
-        18,
-        5,
-      );
-
-      setAmountEth(ethValue);
-      setAmountWei(toWei(ethValue, 'ether'));
-    },
-    [conversionRate],
-  );
-
-  /* Keypad Handlers */
-  const handleKeypadChange = useCallback(
-    ({ value }) => {
-      isEth ? handleEthInput(value) : handleFiatInput(value);
-    },
-    [handleEthInput, handleFiatInput, isEth],
-  );
-
-  const handleCurrencySwitch = useCallback(() => {
-    setIsEth(!isEth);
-  }, [isEth]);
-
-  const percentageOptions = [
-    { value: 0.25, label: '25%' },
-    { value: 0.5, label: '50%' },
-    { value: 0.75, label: '75%' },
-    { value: 1, label: strings('stake.max') },
-  ];
-
-  const handleAmountPress = useCallback(
-    ({ value }: { value: number }) => {
-      if (!balance) return;
-      const percentage = value * 100;
-      const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
-
-      const newAmountString = fromTokenMinimalUnitString(
-        amountPercentage.toString(10),
-        18,
-      );
-      const newEthAmount = limitToMaximumDecimalPlaces(
-        Number(newAmountString),
-        5,
-      );
-      setAmountEth(newEthAmount);
-      setAmountWei(amountPercentage);
-
-      const newFiatAmount = weiToFiatNumber(
-        toWei(newEthAmount.toString(), 'ether'),
-        conversionRate,
-        2,
-      ).toString();
-      setFiatAmount(newFiatAmount);
-    },
-    [balance, conversionRate],
-  );
+  const handleMax = useCallback(async () => {
+    if (!balance) return;
+    handleMaxInput(maxStakeableAmountWei);
+  }, [balance, handleMaxInput, maxStakeableAmountWei]);
 
   const annualRewardsETH = useMemo(
     () =>
@@ -152,6 +93,10 @@ const useStakingInputHandlers = (balance: BN) => {
     annualRewardRate,
   ]);
 
+  const balanceValue = isEth
+    ? `${balanceETH} ETH`
+    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
+
   return {
     amountEth,
     amountWei,
@@ -174,6 +119,9 @@ const useStakingInputHandlers = (balance: BN) => {
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,
+    handleMax,
+    isLoadingStakingGasFee,
+    balanceValue,
   };
 };
 
