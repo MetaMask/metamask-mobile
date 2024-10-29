@@ -27,6 +27,7 @@ import {
 } from './index.constants';
 import { NetworksI } from './index.types';
 import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
+import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -59,9 +60,9 @@ const IncomingTransactionsSettings = () => {
         const { name } = { name: nickname || rpcUrl };
 
         let testId = '';
-        if (name === 'Mainnet') {
+        if (chainId === Networks[MAINNET].chainId) {
           testId = INCOMING_MAINNET_TOGGLE;
-        } else if (name === 'Linea Mainnet') {
+        } else if (chainId === Networks[LINEA_MAINNET].chainId) {
           testId = INCOMING_LINEA_MAINNET_TOGGLE;
         }
 
