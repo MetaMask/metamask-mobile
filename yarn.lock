@@ -4529,6 +4529,17 @@
     "@metamask/utils" "^9.2.1"
     ethereum-cryptography "^2.1.2"
 
+"@metamask/eth-json-rpc-filters@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-filters/-/eth-json-rpc-filters-8.0.0.tgz#fd0ca224dc198e270e142c1f2007e05cacb5f16a"
+  integrity sha512-kDwSoas8gYWtN79AO4vvyKvaL8bIMstpuwZdsWTSc1goBFTOJEscCD6zUX+MOQFnQohFoC512mNeA5tPLRV46A==
+  dependencies:
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^9.0.0"
+    "@metamask/safe-event-emitter" "^3.0.0"
+    async-mutex "^0.5.0"
+    pify "^5.0.0"
+
 "@metamask/eth-json-rpc-infura@^9.0.0", "@metamask/eth-json-rpc-infura@^9.1.0":
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-9.1.0.tgz#8e09588ed58f49058615cab7040dcbce4682a292"
@@ -16998,17 +17009,6 @@ eth-ens-namehash@^1.0.2:
     idna-uts46 "^1.0.1"
     js-sha3 "^0.5.7"
 
-eth-json-rpc-filters@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/eth-json-rpc-filters/-/eth-json-rpc-filters-6.0.1.tgz#0b3e370f017f5c6f58d3e7bd0756d8099ed85c56"
-  integrity sha512-ITJTvqoCw6OVMLs7pI8f4gG92n/St6x80ACtHodeS+IXmO0w+t1T5OOzfSt7KLSMLRkVUoexV7tztLgDxg+iig==
-  dependencies:
-    "@metamask/safe-event-emitter" "^3.0.0"
-    async-mutex "^0.2.6"
-    eth-query "^2.1.2"
-    json-rpc-engine "^6.1.0"
-    pify "^5.0.0"
-
 eth-json-rpc-middleware@9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-middleware/-/eth-json-rpc-middleware-9.0.1.tgz#193cb05174739fb736737bbbf992e13010c4b44e"
@@ -17040,14 +17040,6 @@ eth-phishing-detect@^1.2.0:
   integrity sha512-+M7D4dhu5tkSA9b5eiBwDeJCjwy+7Lv49nuTEw8fNZIZUAVZC3d2XHatBq1MOW7J8kxNGbBdgBuIf65opI7Tkg==
   dependencies:
     fast-levenshtein "^2.0.6"
-
-eth-query@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/eth-query/-/eth-query-2.1.2.tgz#d6741d9000106b51510c72db92d6365456a6da5e"
-  integrity sha1-1nQdkAAQa1FRDHLbktY2VFam2l4=
-  dependencies:
-    json-rpc-random-id "^1.0.0"
-    xtend "^4.0.1"
 
 eth-rpc-errors@^4.0.2, eth-rpc-errors@^4.0.3:
   version "4.0.3"
