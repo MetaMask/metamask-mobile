@@ -9,7 +9,7 @@ jest.mock('../../../core/Engine', () => ({
     PhishingController: {
       maybeUpdateState: jest.fn(),
       test: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { result: true };
+        if (url === 'https://phishing.com') return { result: true };
         return { result: false };
       }),
     },

@@ -780,12 +780,12 @@ class Engine {
             this.controllerMessenger,
             'PhishingController:maybeUpdateState',
           ),
-          isOnPhishingList: (origin: string) =>
+          isOnPhishingList: (sender: string) =>
             this.controllerMessenger.call<'PhishingController:testOrigin'>(
               'PhishingController:testOrigin',
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              origin,
+              sender.url,
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
             ).result,

@@ -422,9 +422,9 @@ export const BrowserTab = (props) => {
   };
 
   /**
-   * Check if a hostname is allowed
+   * Check if a url is allowed
    */
-  const isAllowedUrl = useCallback((hostname) => {
+  const isAllowedUrl = useCallback((url) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -432,14 +432,14 @@ export const BrowserTab = (props) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    const phishingControllerTestResult = PhishingController.test(url);
 
     // Only assign the if the hostname is on the block list
     if (phishingControllerTestResult.result)
       blockListType.current = phishingControllerTestResult.name;
 
     return (
-      (allowList.current && allowList.current.includes(hostname)) ||
+      (allowList.current && allowList.current.includes(url)) ||
       !phishingControllerTestResult.result
     );
   }, []);
@@ -581,7 +581,7 @@ export const BrowserTab = (props) => {
         }
       }
 
-      if (isAllowedUrl(hostname)) {
+      if (isAllowedUrl(url)) {
         if (initialCall || !firstUrlLoaded) {
           setInitialUrl(urlToGo);
           setFirstUrlLoaded(true);
@@ -860,7 +860,7 @@ export const BrowserTab = (props) => {
     }
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(hostname)) {
+    if (!isAllowedUrl(url)) {
       handleNotAllowedUrl(url);
       return false;
     }
@@ -1064,7 +1064,6 @@ export const BrowserTab = (props) => {
       origin,
       pathname = '',
       query = '',
-      hostname,
     } = new URL(nativeEvent.url);
 
     // Reset the previous bridges
@@ -1072,7 +1071,7 @@ export const BrowserTab = (props) => {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(hostname)) {
+    if (!isAllowedUrl(url)) {
       handleNotAllowedUrl(url);
       return false;
     }

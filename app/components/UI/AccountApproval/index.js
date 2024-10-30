@@ -163,8 +163,7 @@ class AccountApproval extends PureComponent {
     const { currentPageInformation } = this.props;
 
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
-    const { hostname } = new URL(prefixedUrl);
-    this.checkUrlFlaggedAsPhishing(hostname);
+    this.checkUrlFlaggedAsPhishing(prefixedUrl);
 
     this.props.metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_STARTED,
@@ -279,10 +278,10 @@ class AccountApproval extends PureComponent {
     });
   };
 
-  checkUrlFlaggedAsPhishing = (hostname) => {
+  checkUrlFlaggedAsPhishing = (url) => {
     const { PhishingController } = Engine.context;
     PhishingController.maybeUpdateState();
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    const phishingControllerTestResult = PhishingController.test(url);
 
     this.setState({
       isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
