@@ -110,6 +110,7 @@
     "@metamask/accounts-controller": "^18.1.0",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
+    "**/@metamask/utils": "^10.0.0",
     "**/minimist": "1.2.6",
     "d3-color": "3.1.0",
     "tough-cookie": "4.1.3",
