@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import RequestPaymentBottomSheet from '../../pages/Receive/RequestPaymentBottomSheet';
+import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
 import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
 import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
@@ -48,7 +48,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapReceiveButton();
-    await RequestPaymentBottomSheet.tapRequestPaymentButton();
+    await RequestPaymentModal.tapRequestPaymentButton();
     await Assertions.checkIfVisible(RequestPaymentView.requestPaymentContainer);
   });
 
