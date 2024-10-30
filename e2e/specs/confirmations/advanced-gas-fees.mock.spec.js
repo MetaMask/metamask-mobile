@@ -17,9 +17,8 @@ import Assertions from '../../utils/Assertions';
 import {
   startMockServer,
   stopMockServer
-} from '../../mockServer/mockServer';
-import { urls } from '../../mockServer/mockUrlCollection.json';
-import responseBody from '../../mockServer/data/suggestedGasApiGanacheResponseBody.json';
+} from '../../api-mocking/mock-server';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -28,11 +27,10 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
-
-    mockServer = await startMockServer({ // Configure mock server
-      mockUrl: urls.suggestedGasApiGanache,
-      responseCode: 200,
-      responseBody
+    mockServer = await startMockServer({
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
     });
 
   });
