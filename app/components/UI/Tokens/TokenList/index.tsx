@@ -11,6 +11,7 @@ import { useTheme } from '../../../../util/theme';
 import { createDetectedTokensNavDetails } from '../../../Views/DetectedTokens';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectDetectedTokens } from '../../../../selectors/tokensController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../util/networks';
 import createStyles from '../styles';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -18,6 +19,7 @@ import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 interface TokenListProps {
   tokens: TokenI[];
@@ -52,6 +54,7 @@ export const TokenList = ({
 
   const chainId = useSelector(selectChainId);
   const detectedTokens = useSelector(selectDetectedTokens);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
@@ -71,6 +74,7 @@ export const TokenList = ({
 
   return tokens?.length ? (
     <FlatList
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
@@ -78,6 +82,7 @@ export const TokenList = ({
           showRemoveMenu={showRemoveMenu}
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
+          privacyMode={privacyMode}
         />
       )}
       keyExtractor={(_, index) => index.toString()}
