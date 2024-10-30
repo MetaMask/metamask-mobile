@@ -474,11 +474,6 @@ export function deriveSentryEnvironment(
 export function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
-  // Disable Sentry for E2E tests or when DSN is not provided
-  if (isE2E || !dsn) {
-    return;
-  }
-
   const isQa = METAMASK_ENVIRONMENT === 'qa';
   const isDev = __DEV__;
 
@@ -496,15 +491,15 @@ export function setupSentry() {
       dsn,
       debug: isDev,
       environment,
-      integrations:
-        metricsOptIn === AGREED
-          ? [
-              ...integrations,
-              new Sentry.reactNativeTracingIntegration({
-                routingInstrumentation,
-              }),
-            ]
-          : integrations,
+      // eslint-disable-next-line no-constant-condition
+      integrations: true
+        ? [
+            ...integrations,
+            new Sentry.reactNativeTracingIntegration({
+              routingInstrumentation,
+            }),
+          ]
+        : integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: isDev || isQa ? 1.0 : 0.04,
       beforeSend: (report) => rewriteReport(report),

@@ -12,6 +12,7 @@ import {
   BackHandler,
   TouchableOpacity,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -639,6 +640,14 @@ class Login extends PureComponent {
                 >
                   {strings('login.go_back')}
                 </Text>
+                <Button
+                  style={styles.goBack}
+                  variant={ButtonVariants.Link}
+                  onPress={() => {
+                    captureException(new Error('First error'));
+                  }}
+                  label={'test'}
+                />
                 <Button
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
