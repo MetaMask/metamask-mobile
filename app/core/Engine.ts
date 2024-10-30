@@ -1423,6 +1423,7 @@ export class Engine {
           allowedActions: [],
           allowedEvents: [],
         }),
+        state: initialState.AddressBookController,
       }),
       assetsContractController,
       nftController,

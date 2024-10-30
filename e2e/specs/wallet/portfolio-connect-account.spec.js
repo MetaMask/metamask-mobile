@@ -15,7 +15,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import BrowserView from '../../pages/Browser/BrowserView';
 import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
 import Assertions from '../../utils/Assertions';
-import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 const fixtureServer = new FixtureServer();
 describe(Regression('Connect account to Portfolio'), () => {
   beforeAll(async () => {
@@ -52,7 +52,7 @@ describe(Regression('Connect account to Portfolio'), () => {
     }
     await device.disableSynchronization();
     await PortfolioHomePage.tapConnectMetaMask();
-    await ConnectModal.tapConnectButton();
+    await ConnectBottomSheet.tapConnectButton();
     await device.enableSynchronization();
   });
 

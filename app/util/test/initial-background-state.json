@@ -64,7 +64,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
-        "name": "Mainnet",
+        "name": "Ethereum Mainnet",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -134,7 +134,7 @@
         "blockExplorerUrls": [],
         "chainId": "0xe708",
         "defaultRpcEndpointIndex": 0,
-        "name": "Linea Mainnet",
+        "name": "Linea",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
