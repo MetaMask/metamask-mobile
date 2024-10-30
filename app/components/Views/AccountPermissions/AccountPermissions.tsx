@@ -300,13 +300,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(true);
       let newActiveAddress;
       let connectedAccountLength = 0;
-      let addedAccountCount = 0;
       let removedAccountCount = 0;
 
       if (!isMultichainVersion1Enabled) {
         newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
         connectedAccountLength = selectedAddresses.length;
-        addedAccountCount = selectedAddresses.length;
       } else {
         // Function to normalize Ethereum addresses using checksum
         const normalizeAddresses = (addresses: string[]) =>
@@ -331,7 +329,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accountsToAdd = normalizedSelectedAddresses.filter(
           (account) => !normalizedPermittedAccounts.includes(account),
         );
-        addedAccountCount = accountsToAdd.length;
 
         // Add newly selected accounts
         if (accountsToAdd.length > 0) {
@@ -341,7 +338,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           newActiveAddress = normalizedSelectedAddresses[0];
         }
 
-        // if (!isFirstRenderOfEditingAllAccountPermissions.current) {
         // Identify accounts to be removed
         accountsToRemove = normalizedPermittedAccounts.filter(
           (account) => !normalizedSelectedAddresses.includes(account),
@@ -352,7 +348,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         if (accountsToRemove.length > 0) {
           removePermittedAccounts(hostname, accountsToRemove);
         }
-        // }
 
         // Calculate the number of connected accounts after changes
         connectedAccountLength =
@@ -433,7 +428,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       };
       toastRef?.current?.showToast(networkToastProps);
     }
-  }, [networkSelectorUserIntent, hideSheet]);
+  }, [networkSelectorUserIntent, hideSheet, faviconSource, toastRef]);
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
