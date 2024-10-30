@@ -228,8 +228,8 @@ const NetworkConnectMultiSelector = ({
     isLoading ||
     isEqual(selectedChainIds, originalChainIds);
 
-  const renderCtaButtons = useCallback(() => {
-    return (
+  const renderCtaButtons = useCallback(
+    () => (
       <View style={styles.buttonsContainer}>
         <View style={styles.updateButtonContainer}>
           {areAnyNetworksSelected && (
@@ -274,18 +274,17 @@ const NetworkConnectMultiSelector = ({
           </View>
         )}
       </View>
-    );
-  }, [
-    handleUpdateNetworkPermissions,
-    areAnyNetworksSelected,
-    isLoading,
-    selectedChainIds,
-    styles,
-    areNoNetworksSelected,
-    hostname,
-    toggleRevokeAllNetworkPermissionsModal,
-    isUpdateDisabled,
-  ]);
+    ),
+    [
+      handleUpdateNetworkPermissions,
+      areAnyNetworksSelected,
+      styles,
+      areNoNetworksSelected,
+      hostname,
+      toggleRevokeAllNetworkPermissionsModal,
+      isUpdateDisabled,
+    ],
+  );
 
   const renderNetworkConnectMultiSelector = useCallback(
     () => (
