@@ -171,7 +171,7 @@ describe('ApproveTransactionHeader', () => {
     ['ORIGIN_METAMASK', ORIGIN_METAMASK],
     ['MM_FOX_CODE', process.env.MM_FOX_CODE],
     ['MMM', TransactionTypes.MMM],
-  ])('does not render if origin is internal (%s)', (_, origin) => {
+  ])('does not render origin if %s', (_, origin) => {
     const { queryByTestId } = renderWithProvider(
       <ApproveTransactionHeader
         {...defaultProps}
