@@ -2,8 +2,8 @@
 import { SmokeCore } from '../../tags';
 import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
-import PaymentRequestQrModal from '../../pages/Receive/PaymentRequestQrModal';
-import RequestPaymentView from '../../pages/RequestPaymentView';
+import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
+import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
@@ -69,11 +69,11 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should see DAI request QR code', async () => {
     await SendLinkView.tapQRCodeButton();
-    await Assertions.checkIfVisible(PaymentRequestQrModal.container);
+    await Assertions.checkIfVisible(PaymentRequestQrBottomSheet.container);
   });
 
   it('should close request', async () => {
-    await PaymentRequestQrModal.tapCloseButton();
+    await PaymentRequestQrBottomSheet.tapCloseButton();
     await SendLinkView.tapCloseSendLinkButton();
   });
 
