@@ -23,7 +23,7 @@ import {
 
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
