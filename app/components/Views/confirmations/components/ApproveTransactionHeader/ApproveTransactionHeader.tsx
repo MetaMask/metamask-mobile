@@ -70,7 +70,7 @@ const ApproveTransactionHeader = ({
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
 
-  const showOrigin = !INTERNAL_ORIGINS.includes(origin) && origin && !isOriginDeepLink;
+  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   return (
     <View style={styles.transactionHeader}>

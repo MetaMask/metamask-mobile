@@ -97,7 +97,7 @@ exports[`AccountApproval should render correctly 1`] = `
           "marginTop": 10,
         }
       }
-      testID="TRANSACTION_HEADER_ORIGIN"
+      testID="transaction-header-origin"
     >
       <Text
         allowFontScaling={false}

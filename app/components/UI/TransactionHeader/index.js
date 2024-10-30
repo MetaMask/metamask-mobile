@@ -18,10 +18,9 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { TransactionReviewSelectorsIDs } from '../../../../e2e/selectors/TransactionReview.selectors';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
-
-export const TRANSACTION_HEADER_ORIGIN = 'TRANSACTION_HEADER_ORIGIN';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -198,7 +197,7 @@ const TransactionHeader = (props) => {
   };
 
   const renderDomainUrlContainer = () => (
-    <View style={styles.domanUrlContainer} testID={TRANSACTION_HEADER_ORIGIN}>
+    <View style={styles.domanUrlContainer} testID={TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN}>
       {renderSecureIcon()}
       {renderTitle()}
     </View>
