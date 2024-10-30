@@ -370,34 +370,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let labelOptions: ToastOptions['labelOptions'] = [];
       // Start of Selection
       if (connectedAccountLength >= 1) {
-        if (addedAccountCount > 0) {
-          labelOptions = [
-            { label: `${addedAccountCount} `, isBold: true },
-            {
-              label: `${strings(
-                addedAccountCount > 1
-                  ? 'toast.accounts_connected'
-                  : 'toast.account_connected',
-              )}\n`,
-            },
-          ];
-        }
-        if (removedAccountCount > 0) {
-          labelOptions.push(
-            { label: `${removedAccountCount} `, isBold: true },
-            {
-              label: `${strings(
-                removedAccountCount > 1
-                  ? 'toast.accounts_disconnected'
-                  : 'toast.account_disconnected',
-              )}\n`,
-            },
-          );
-        }
-        labelOptions.push(
-          { label: `${activeAccountName} `, isBold: true },
-          { label: strings('toast.now_active') },
-        );
+        labelOptions = [
+          { label: `${strings('toast.accounts_permissions_updated')}` },
+        ];
       }
 
       if (connectedAccountLength === 1 && removedAccountCount === 0) {
@@ -446,20 +421,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
       setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
       setNetworkSelectorUserIntent(USER_INTENT.None);
+      const networkToastProps: ToastOptions = {
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: strings('toast.network_permissions_updated'),
+          },
+        ],
+        hasNoTimeout: false,
+        networkImageSource: faviconSource,
+      };
+      toastRef?.current?.showToast(networkToastProps);
     }
-
-    const networkToastProps: ToastOptions = {
-      variant: ToastVariants.Network,
-      labelOptions: [
-        {
-          label: strings('toast.network_permissions_updated'),
-        },
-      ],
-      hasNoTimeout: false,
-      networkImageSource: faviconSource,
-    };
-
-    toastRef?.current?.showToast(networkToastProps);
   }, [networkSelectorUserIntent, hideSheet]);
 
   useEffect(() => {
