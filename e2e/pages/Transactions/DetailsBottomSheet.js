@@ -1,31 +1,31 @@
 import {
-  TransactionDetailsModalSelectorsText,
-  TransactionDetailsModalSelectorsIDs,
-} from '../../selectors/Transactions/TransactionDetailsModal.selectors';
+  TransactionDetailsBottomSheetSelectorsText,
+  TransactionDetailsBottomSheetSelectorsIDs,
+} from '../../selectors/Transactions/TransactionDetailsBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
-class DetailsModal {
+class DetailsBottomSheet {
   get title() {
-    return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
+    return Matchers.getElementByID(TransactionDetailsBottomSheetSelectorsIDs.TITLE);
   }
 
   get closeIcon() {
     return Matchers.getElementByID(
-      TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
+      TransactionDetailsBottomSheetSelectorsIDs.CLOSE_ICON,
     );
   }
 
   get statusConfirmed() {
     return Matchers.getElementIDWithAncestor(
       CommonSelectorsIDs.STATUS_CONFIRMED,
-      TransactionDetailsModalSelectorsIDs.BODY,
+      TransactionDetailsBottomSheetSelectorsIDs.BODY,
     );
   }
 
   generateExpectedTitle(sourceToken, destinationToken) {
-    let title = TransactionDetailsModalSelectorsText.TITLE;
+    let title = TransactionDetailsBottomSheetSelectorsText.TITLE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
     return title;
@@ -40,4 +40,4 @@ class DetailsModal {
   }
 }
 
-export default new DetailsModal();
+export default new DetailsBottomSheet();

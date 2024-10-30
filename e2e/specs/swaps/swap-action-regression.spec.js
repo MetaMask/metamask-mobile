@@ -5,7 +5,7 @@ import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import DetailsModal from '../../pages/Transactions/DetailsModal';
+import DetailsBottomSheet from '../../pages/Transactions/DetailsBottomSheet';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -116,23 +116,23 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       );
 
       try {
-        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfVisible(DetailsBottomSheet.title);
       } catch (e) {
         await ActivitiesView.tapOnSwapActivity(
           sourceTokenSymbol,
           destTokenSymbol,
         );
-        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfVisible(DetailsBottomSheet.title);
       }
 
-      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfVisible(DetailsBottomSheet.title);
       await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+        DetailsBottomSheet.title,
+        DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-      await DetailsModal.tapOnCloseIcon();
-      await Assertions.checkIfNotVisible(DetailsModal.title);
+      await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
+      await DetailsBottomSheet.tapOnCloseIcon();
+      await Assertions.checkIfNotVisible(DetailsBottomSheet.title);
     },
   );
 });
