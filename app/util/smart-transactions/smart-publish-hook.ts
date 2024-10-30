@@ -331,6 +331,7 @@ class SmartTransactionHook {
       signedTransactions,
       signedCanceledTransactions,
       txParams: this.#txParams,
+      // @ts-expect-error TODO: Resolve mismatch between transaction controller versions.
       transactionMeta: this.#transactionMeta,
     });
   };

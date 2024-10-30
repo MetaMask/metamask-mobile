@@ -1415,6 +1415,7 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
+      // @ts-expect-error TODO: Resolve mismatch between transaction controller versions.
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
