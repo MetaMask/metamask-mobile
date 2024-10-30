@@ -35,7 +35,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const AccountPermissionsRevoke = ({

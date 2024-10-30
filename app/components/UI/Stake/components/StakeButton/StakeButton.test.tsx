@@ -53,7 +53,9 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
     isEligible: true,
     loading: false,
     error: null,
-    refreshPooledStakingEligibility: jest.fn(),
+    refreshPooledStakingEligibility: jest
+      .fn()
+      .mockResolvedValueOnce({ isEligible: true }),
   }),
 }));
 
