@@ -4,6 +4,10 @@ import { handleNetworkSwitch } from '../../../util/networks';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
 
+import { selectChainId } from '../../../selectors/networkController';
+import { store } from '../../../store';
+import { toHex } from '@metamask/controller-utils';
+
 function switchNetwork({
   deeplinkManager,
   switchToChainId,
@@ -15,11 +19,16 @@ function switchNetwork({
     typeof switchToChainId === 'number' ||
     typeof switchToChainId === 'string'
   ) {
-    const chainId = String(switchToChainId);
+    const newChainId = String(switchToChainId);
+    const networkName = handleNetworkSwitch(newChainId);
 
-    const networkName = handleNetworkSwitch(chainId);
-
-    if (!networkName) return;
+    if (!networkName) {
+      const activeChainId = selectChainId(store.getState());
+      if (activeChainId === toHex(newChainId)) {
+        return;
+      }
+      throw new Error(`Unable to find network with chain id ${newChainId}`);
+    }
 
     deeplinkManager.dispatch(
       showAlert({
