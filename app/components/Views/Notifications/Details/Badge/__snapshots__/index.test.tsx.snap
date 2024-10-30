@@ -21,7 +21,7 @@ exports[`NotificationBadge should renders correctly 1`] = `
         onLoadEnd={[Function]}
         source={
           {
-            "uri": "",
+            "uri": undefined,
           }
         }
         style={

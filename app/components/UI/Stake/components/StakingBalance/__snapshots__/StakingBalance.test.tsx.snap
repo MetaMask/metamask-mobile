@@ -36,7 +36,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             onLoadEnd={[Function]}
             source={
               {
-                "uri": "",
+                "uri": undefined,
               }
             }
             style={

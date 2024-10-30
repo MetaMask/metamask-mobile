@@ -1,13 +1,35 @@
-diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-2TZK6YZA.js b/node_modules/@metamask/assets-controllers/dist/chunk-2TZK6YZA.js
-index 1d6c20d..abf5f3b 100644
---- a/node_modules/@metamask/assets-controllers/dist/chunk-2TZK6YZA.js
-+++ b/node_modules/@metamask/assets-controllers/dist/chunk-2TZK6YZA.js
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-DSDI75PJ.js b/node_modules/@metamask/assets-controllers/dist/chunk-DSDI75PJ.js
+index f95d90f..3c33263 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-DSDI75PJ.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-DSDI75PJ.js
+@@ -173,6 +173,17 @@ var TokenRatesController = class extends _pollingcontroller.StaticIntervalPollin
+     _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _subscribeToNetworkStateChange, subscribeToNetworkStateChange_fn).call(this);
+     _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _subscribeToAccountChange, subscribeToAccountChange_fn).call(this);
+   }
++
++  /**
++  * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
++  * Resets to the default state
++  */
++  reset() {
++    this.update((state) => {
++        state.marketData = {};
++    });
++  }
++  
+   /**
+    * Allows controller to make active and passive polling requests
+    */
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HTIZ4JKG.js b/node_modules/@metamask/assets-controllers/dist/chunk-HTIZ4JKG.js
+index a9f6736..ecd98e7 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-HTIZ4JKG.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-HTIZ4JKG.js
 @@ -46,7 +46,7 @@ var getDefaultNftControllerState = () => ({
    allNfts: {},
    ignoredNfts: []
  });
--var _mutex, _selectedAccountId, _chainId, _ipfsGateway, _openSeaEnabled, _useIpfsSubdomains, _isIpfsGatewayEnabled, _onNftAdded, _onNetworkControllerNetworkDidChange, onNetworkControllerNetworkDidChange_fn, _onPreferencesControllerStateChange, onPreferencesControllerStateChange_fn, _onSelectedAccountChange, onSelectedAccountChange_fn, _updateNestedNftState, updateNestedNftState_fn, _getNftCollectionApi, getNftCollectionApi_fn, _getNftInformationFromApi, getNftInformationFromApi_fn, _getNftInformationFromTokenURI, getNftInformationFromTokenURI_fn, _getNftURIAndStandard, getNftURIAndStandard_fn, _getNftInformation, getNftInformation_fn, _getNftContractInformationFromContract, getNftContractInformationFromContract_fn, _getNftContractInformation, getNftContractInformation_fn, _addIndividualNft, addIndividualNft_fn, _addNftContract, addNftContract_fn, _removeAndIgnoreIndividualNft, removeAndIgnoreIndividualNft_fn, _removeIndividualNft, removeIndividualNft_fn, _removeNftContract, removeNftContract_fn, _validateWatchNft, validateWatchNft_fn, _getCorrectChainId, getCorrectChainId_fn, _getAddressOrSelectedAddress, getAddressOrSelectedAddress_fn, _updateNftUpdateForAccount, updateNftUpdateForAccount_fn;
-+var _mutex, _selectedAccountId, _chainId, _ipfsGateway, _displayNftMedia, _useIpfsSubdomains, _isIpfsGatewayEnabled, _onNftAdded, _onNetworkControllerNetworkDidChange, onNetworkControllerNetworkDidChange_fn, _onPreferencesControllerStateChange, onPreferencesControllerStateChange_fn, _onSelectedAccountChange, onSelectedAccountChange_fn, _updateNestedNftState, updateNestedNftState_fn, _getNftCollectionApi, getNftCollectionApi_fn, _getNftInformationFromApi, getNftInformationFromApi_fn, _getNftInformationFromTokenURI, getNftInformationFromTokenURI_fn, _getNftURIAndStandard, getNftURIAndStandard_fn, _getNftInformation, getNftInformation_fn, _getNftContractInformationFromContract, getNftContractInformationFromContract_fn, _getNftContractInformation, getNftContractInformation_fn, _addIndividualNft, addIndividualNft_fn, _addNftContract, addNftContract_fn, _removeAndIgnoreIndividualNft, removeAndIgnoreIndividualNft_fn, _removeIndividualNft, removeIndividualNft_fn, _removeNftContract, removeNftContract_fn, _validateWatchNft, validateWatchNft_fn, _getCorrectChainId, getCorrectChainId_fn, _getAddressOrSelectedAddress, getAddressOrSelectedAddress_fn, _updateNftUpdateForAccount, updateNftUpdateForAccount_fn;
+-var _mutex, _selectedAccountId, _chainId, _ipfsGateway, _openSeaEnabled, _useIpfsSubdomains, _isIpfsGatewayEnabled, _getERC721AssetName, _getERC721AssetSymbol, _getERC721TokenURI, _getERC721OwnerOf, _getERC1155BalanceOf, _getERC1155TokenURI, _onNftAdded, _onNetworkControllerNetworkDidChange, onNetworkControllerNetworkDidChange_fn, _onPreferencesControllerStateChange, onPreferencesControllerStateChange_fn, _onSelectedAccountChange, onSelectedAccountChange_fn, _updateNestedNftState, updateNestedNftState_fn, _getNftInformationFromApi, getNftInformationFromApi_fn, _getNftInformationFromTokenURI, getNftInformationFromTokenURI_fn, _getNftURIAndStandard, getNftURIAndStandard_fn, _getNftInformation, getNftInformation_fn, _getNftContractInformationFromContract, getNftContractInformationFromContract_fn, _getNftContractInformation, getNftContractInformation_fn, _addIndividualNft, addIndividualNft_fn, _addNftContract, addNftContract_fn, _removeAndIgnoreIndividualNft, removeAndIgnoreIndividualNft_fn, _removeIndividualNft, removeIndividualNft_fn, _removeNftContract, removeNftContract_fn, _validateWatchNft, validateWatchNft_fn, _getCorrectChainId, getCorrectChainId_fn, _getAddressOrSelectedAddress, getAddressOrSelectedAddress_fn, _updateNftUpdateForAccount, updateNftUpdateForAccount_fn;
++var _mutex, _selectedAccountId, _chainId, _ipfsGateway, _displayNftMedia, _useIpfsSubdomains, _isIpfsGatewayEnabled, _getERC721AssetName, _getERC721AssetSymbol, _getERC721TokenURI, _getERC721OwnerOf, _getERC1155BalanceOf, _getERC1155TokenURI, _onNftAdded, _onNetworkControllerNetworkDidChange, onNetworkControllerNetworkDidChange_fn, _onPreferencesControllerStateChange, onPreferencesControllerStateChange_fn, _onSelectedAccountChange, onSelectedAccountChange_fn, _updateNestedNftState, updateNestedNftState_fn, _getNftInformationFromApi, getNftInformationFromApi_fn, _getNftInformationFromTokenURI, getNftInformationFromTokenURI_fn, _getNftURIAndStandard, getNftURIAndStandard_fn, _getNftInformation, getNftInformation_fn, _getNftContractInformationFromContract, getNftContractInformationFromContract_fn, _getNftContractInformation, getNftContractInformation_fn, _addIndividualNft, addIndividualNft_fn, _addNftContract, addNftContract_fn, _removeAndIgnoreIndividualNft, removeAndIgnoreIndividualNft_fn, _removeIndividualNft, removeIndividualNft_fn, _removeNftContract, removeNftContract_fn, _validateWatchNft, validateWatchNft_fn, _getCorrectChainId, getCorrectChainId_fn, _getAddressOrSelectedAddress, getAddressOrSelectedAddress_fn, _updateNftUpdateForAccount, updateNftUpdateForAccount_fn;
  var NftController = class extends _basecontroller.BaseController {
    /**
     * Creates an NftController instance.
@@ -19,8 +41,8 @@ index 1d6c20d..abf5f3b 100644
 +   * @param options.displayNftMedia - Controls whether the OpenSea API is used.
     * @param options.useIpfsSubdomains - Controls whether IPFS subdomains are used.
     * @param options.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
-    * @param options.onNftAdded - Callback that is called when an NFT is added. Currently used pass data
-@@ -65,7 +65,7 @@ var NftController = class extends _basecontroller.BaseController {
+    * @param options.getERC721AssetName - Gets the name of the asset at the given address.
+@@ -71,7 +71,7 @@ var NftController = class extends _basecontroller.BaseController {
    constructor({
      chainId: initialChainId,
      ipfsGateway = _controllerutils.IPFS_DEFAULT_GATEWAY_URL,
@@ -28,8 +50,8 @@ index 1d6c20d..abf5f3b 100644
 +    displayNftMedia = false,
      useIpfsSubdomains = true,
      isIpfsGatewayEnabled = true,
-     onNftAdded,
-@@ -91,7 +91,7 @@ var NftController = class extends _basecontroller.BaseController {
+     getERC721AssetName,
+@@ -103,7 +103,7 @@ var NftController = class extends _basecontroller.BaseController {
       * Handles the state change of the preference controller.
       * @param preferencesState - The new state of the preference controller.
       * @param preferencesState.ipfsGateway - The configured IPFS gateway.
@@ -38,7 +60,7 @@ index 1d6c20d..abf5f3b 100644
       * @param preferencesState.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
       */
      _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _onPreferencesControllerStateChange);
-@@ -228,7 +228,7 @@ var NftController = class extends _basecontroller.BaseController {
+@@ -239,7 +239,7 @@ var NftController = class extends _basecontroller.BaseController {
      _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _selectedAccountId, void 0);
      _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _chainId, void 0);
      _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _ipfsGateway, void 0);
@@ -46,8 +68,8 @@ index 1d6c20d..abf5f3b 100644
 +    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _displayNftMedia, void 0);
      _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _useIpfsSubdomains, void 0);
      _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _isIpfsGatewayEnabled, void 0);
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _onNftAdded, void 0);
-@@ -237,7 +237,7 @@ var NftController = class extends _basecontroller.BaseController {
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getERC721AssetName, void 0);
+@@ -254,7 +254,7 @@ var NftController = class extends _basecontroller.BaseController {
      ).id);
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _chainId, initialChainId);
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _ipfsGateway, ipfsGateway);
@@ -55,8 +77,8 @@ index 1d6c20d..abf5f3b 100644
 +    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _displayNftMedia, displayNftMedia);
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _useIpfsSubdomains, useIpfsSubdomains);
      _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isIpfsGatewayEnabled, isIpfsGatewayEnabled);
-     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _onNftAdded, onNftAdded);
-@@ -258,6 +258,20 @@ var NftController = class extends _basecontroller.BaseController {
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _getERC721AssetName, getERC721AssetName);
+@@ -281,6 +281,19 @@ var NftController = class extends _basecontroller.BaseController {
        _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _onSelectedAccountChange, onSelectedAccountChange_fn).bind(this)
      );
    }
@@ -72,12 +94,11 @@ index 1d6c20d..abf5f3b 100644
 +      state.ignoredNfts = [];
 +    });
 +  }
-+
-+
++  
    getNftApi() {
      return `${_controllerutils.NFT_API_BASE_URL}/tokens`;
    }
-@@ -806,7 +820,7 @@ _mutex = new WeakMap();
+@@ -799,7 +812,7 @@ _mutex = new WeakMap();
  _selectedAccountId = new WeakMap();
  _chainId = new WeakMap();
  _ipfsGateway = new WeakMap();
@@ -85,8 +106,8 @@ index 1d6c20d..abf5f3b 100644
 +_displayNftMedia = new WeakMap();
  _useIpfsSubdomains = new WeakMap();
  _isIpfsGatewayEnabled = new WeakMap();
- _onNftAdded = new WeakMap();
-@@ -825,7 +839,7 @@ onNetworkControllerNetworkDidChange_fn = function({
+ _getERC721AssetName = new WeakMap();
+@@ -824,7 +837,7 @@ onNetworkControllerNetworkDidChange_fn = function({
  _onPreferencesControllerStateChange = new WeakSet();
  onPreferencesControllerStateChange_fn = async function({
    ipfsGateway,
@@ -95,7 +116,7 @@ index 1d6c20d..abf5f3b 100644
    isIpfsGatewayEnabled
  }) {
    const selectedAccount = this.messagingSystem.call(
-@@ -833,9 +847,9 @@ onPreferencesControllerStateChange_fn = async function({
+@@ -832,9 +845,9 @@ onPreferencesControllerStateChange_fn = async function({
    );
    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAccountId, selectedAccount.id);
    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _ipfsGateway, ipfsGateway);
@@ -107,7 +128,7 @@ index 1d6c20d..abf5f3b 100644
    if (needsUpdateNftMetadata && selectedAccount) {
      await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _updateNftUpdateForAccount, updateNftUpdateForAccount_fn).call(this, selectedAccount);
    }
-@@ -844,7 +858,7 @@ _onSelectedAccountChange = new WeakSet();
+@@ -843,7 +856,7 @@ _onSelectedAccountChange = new WeakSet();
  onSelectedAccountChange_fn = async function(internalAccount) {
    const oldSelectedAccountId = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAccountId);
    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAccountId, internalAccount.id);
@@ -116,7 +137,7 @@ index 1d6c20d..abf5f3b 100644
    if (needsUpdateNftMetadata) {
      await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _updateNftUpdateForAccount, updateNftUpdateForAccount_fn).call(this, internalAccount);
    }
-@@ -905,7 +919,8 @@ getNftInformationFromApi_fn = async function(contractAddress, tokenId) {
+@@ -900,7 +913,8 @@ getNftInformationFromApi_fn = async function(contractAddress, tokenId) {
        name: null,
        description: null,
        image: null,
@@ -126,7 +147,7 @@ index 1d6c20d..abf5f3b 100644
      };
    }
    const {
-@@ -966,7 +981,7 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -961,7 +975,7 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        tokenURI: tokenURI ?? null
      };
    }
@@ -135,7 +156,7 @@ index 1d6c20d..abf5f3b 100644
    if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
      return {
        image: null,
-@@ -974,7 +989,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -969,7 +983,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        description: null,
        standard: standard || null,
        favorite: false,
@@ -145,7 +166,7 @@ index 1d6c20d..abf5f3b 100644
      };
    }
    if (hasIpfsTokenURI) {
-@@ -1015,7 +1031,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
+@@ -1010,7 +1025,8 @@ getNftInformationFromTokenURI_fn = async function(contractAddress, tokenId, netw
        description: null,
        standard: standard || null,
        favorite: false,
@@ -155,7 +176,7 @@ index 1d6c20d..abf5f3b 100644
      };
    }
  };
-@@ -1056,10 +1073,21 @@ getNftInformation_fn = async function(contractAddress, tokenId, networkClientId)
+@@ -1041,10 +1057,21 @@ getNftInformation_fn = async function(contractAddress, tokenId, networkClientId)
      _controllerutils.safelyExecute.call(void 0, 
        () => _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getNftInformationFromTokenURI, getNftInformationFromTokenURI_fn).call(this, contractAddress, tokenId, networkClientId)
      ),
@@ -178,7 +199,7 @@ index 1d6c20d..abf5f3b 100644
    return {
      ...nftApiMetadata,
      name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
-@@ -1184,7 +1212,8 @@ addIndividualNft_fn = async function(tokenAddress, tokenId, nftMetadata, nftCont
+@@ -1161,7 +1188,8 @@ addIndividualNft_fn = async function(tokenAddress, tokenId, nftMetadata, nftCont
          symbol: nftContract.symbol,
          tokenId: tokenId.toString(),
          standard: nftMetadata.standard,
@@ -188,13 +209,34 @@ index 1d6c20d..abf5f3b 100644
        });
      }
    } finally {
-diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-ADJ3IFJH.js b/node_modules/@metamask/assets-controllers/dist/chunk-ADJ3IFJH.js
-index fb25753..88208d5 100644
---- a/node_modules/@metamask/assets-controllers/dist/chunk-ADJ3IFJH.js
-+++ b/node_modules/@metamask/assets-controllers/dist/chunk-ADJ3IFJH.js
-@@ -189,6 +189,21 @@ var TokensController = class extends _basecontroller.BaseController {
-       }
-     );
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js b/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
+index 995ec6b..7222a8a 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-NHFZIY2K.js
+@@ -19,7 +19,7 @@ function getDefaultTokenBalancesState() {
+     contractBalances: {}
+   };
+ }
+-var _handle, _getERC20BalanceOf, _interval, _tokens, _disabled;
++var _handle, _getERC20BalanceOf, _interval, _tokens, _disabled, _updateInProgress;
+ var TokenBalancesController = class extends _basecontroller.BaseController {
+   /**
+    * Construct a Token Balances Controller.
+@@ -54,9 +54,11 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _interval, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _tokens, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _disabled, void 0);
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _updateInProgress, void 0);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _disabled, disabled);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _interval, interval);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokens, tokens);
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _updateInProgress, false);
+     this.messagingSystem.subscribe(
+       "TokensController:stateChange",
+       ({ tokens: newTokens, detectedTokens }) => {
+@@ -67,6 +69,17 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _getERC20BalanceOf, getERC20BalanceOf);
+     this.poll();
    }
 +
 +  /**
@@ -203,29 +245,59 @@ index fb25753..88208d5 100644
 +  */
 +  reset() {
 +    this.update((state) => {
-+      state.allTokens = {};
-+      state.allIgnoredTokens = {};
-+      state.ignoredTokens = [];
-+      state.tokens = [];
++      state.contractBalances = {};
 +    });
 +  }
-+
-+
++  
    /**
-    * Adds a token to the stored token list.
-    *
-diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js b/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js
-index ec5a116..a82c449 100644
---- a/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js
-+++ b/node_modules/@metamask/assets-controllers/dist/chunk-GHG3DOUK.js
-@@ -72,6 +72,7 @@ var AssetsContractController = class {
-      * @returns Hex chain ID.
-      */
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getCorrectChainId);
-+    this.name = name;
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _provider, void 0);
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _ipfsGateway, void 0);
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _chainId, void 0);
+    * Allows controller to update tracked tokens contract balances.
+    */
+@@ -107,20 +120,27 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
+       "AccountsController:getSelectedAccount"
+     );
+     const newContractBalances = {};
+-    for (const token of _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens)) {
++    const balancePromises = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens).map((token) => {
+       const { address } = token;
+-      try {
+-        const balance = await _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedInternalAccount.address);
+-        newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
+-        token.hasBalanceError = false;
+-      } catch (error) {
+-        newContractBalances[address] = _controllerutils.toHex.call(void 0, 0);
+-        token.hasBalanceError = true;
+-      }
+-    }
++      return _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _getERC20BalanceOf).call(this, address, selectedInternalAccount.address).then((balance) => {
++          newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
++              token = {
++                ...token,
++                hasBalanceError: false
++              };
++      }).catch((error) => {
++          newContractBalances[address] = _controllerutils.toHex.call(void 0, 0);
++              token = {
++                ...token,
++                hasBalanceError: true
++              };
++          });
++    });
++    await Promise.all(balancePromises);
+     this.update((state) => {
+       state.contractBalances = newContractBalances;
+     });
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _updateInProgress, false);
+   }
+ };
+ _handle = new WeakMap();
+@@ -128,6 +148,7 @@ _getERC20BalanceOf = new WeakMap();
+ _interval = new WeakMap();
+ _tokens = new WeakMap();
+ _disabled = new WeakMap();
++_updateInProgress = new WeakMap();
+ var TokenBalancesController_default = TokenBalancesController;
+ 
+ 
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-T5ZX5BV7.js b/node_modules/@metamask/assets-controllers/dist/chunk-T5ZX5BV7.js
 index 9c89a65..2ac17ba 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-T5ZX5BV7.js
@@ -279,13 +351,13 @@ index 9c89a65..2ac17ba 100644
        } finally {
          releaseLock();
        }
-diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-X2HRAVDO.js b/node_modules/@metamask/assets-controllers/dist/chunk-X2HRAVDO.js
-index 2688318..fa7521e 100644
---- a/node_modules/@metamask/assets-controllers/dist/chunk-X2HRAVDO.js
-+++ b/node_modules/@metamask/assets-controllers/dist/chunk-X2HRAVDO.js
-@@ -173,6 +173,17 @@ var TokenRatesController = class extends _pollingcontroller.StaticIntervalPollin
-     _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _subscribeToNetworkStateChange, subscribeToNetworkStateChange_fn).call(this);
-     _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _subscribeToAccountChange, subscribeToAccountChange_fn).call(this);
+diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js b/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js
+index baaf7d0..cfefb60 100644
+--- a/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js
++++ b/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js
+@@ -189,6 +189,20 @@ var TokensController = class extends _basecontroller.BaseController {
+       }
+     );
    }
 +
 +  /**
@@ -294,121 +366,18 @@ index 2688318..fa7521e 100644
 +  */
 +  reset() {
 +    this.update((state) => {
-+        state.marketData = {};
++      state.allTokens = {};
++      state.allIgnoredTokens = {};
++      state.ignoredTokens = [];
++      state.tokens = [];
 +    });
 +  }
 +
    /**
-    * Allows controller to make active and passive polling requests
-    */
-diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js b/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js
-index 6550aec..b46080e 100644
---- a/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js
-+++ b/node_modules/@metamask/assets-controllers/dist/chunk-YGGUAMHV.js
-@@ -17,7 +17,7 @@ function getDefaultTokenBalancesState() {
-     contractBalances: {}
-   };
- }
--var _handle, _interval, _tokens, _disabled;
-+var _handle, _interval, _tokens, _disabled, _updateInProgress;
- var TokenBalancesController = class extends _basecontroller.BaseController {
-   /**
-    * Construct a Token Balances Controller.
-@@ -49,9 +49,11 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _interval, void 0);
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _tokens, void 0);
-     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _disabled, void 0);
-+    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _updateInProgress, void 0);
-     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _disabled, disabled);
-     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _interval, interval);
-     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokens, tokens);
-+    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _updateInProgress, false);
-     this.messagingSystem.subscribe(
-       "TokensController:stateChange",
-       ({ tokens: newTokens, detectedTokens }) => {
-@@ -61,6 +63,18 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
-     );
-     this.poll();
-   }
-+
-+  /**
-+  * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+  * Resets to the default state
-+  */
-+  reset() {
-+    this.update((state) => {
-+      state.contractBalances = {};
-+    });
-+  }
-+
-+
-   /**
-    * Allows controller to update tracked tokens contract balances.
-    */
-@@ -101,30 +115,38 @@ var TokenBalancesController = class extends _basecontroller.BaseController {
-       "AccountsController:getSelectedAccount"
-     );
-     const newContractBalances = {};
--    for (const token of _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens)) {
-+    const balancePromises = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokens).map((token) => {
-       const { address } = token;
--      try {
--        const balance = await this.messagingSystem.call(
-+      return this.messagingSystem.call(
-           "AssetsContractController:getERC20BalanceOf",
-           address,
-           selectedInternalAccount.address
--        );
--        newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
--        token.hasBalanceError = false;
--      } catch (error) {
--        newContractBalances[address] = _controllerutils.toHex.call(void 0, 0);
--        token.hasBalanceError = true;
--      }
--    }
-+        ).then((balance) => {
-+          newContractBalances[address] = _controllerutils.toHex.call(void 0, balance);
-+              token = {
-+                ...token,
-+                hasBalanceError: false
-+              };
-+      }).catch((error) => {
-+          newContractBalances[address] = _controllerutils.toHex.call(void 0, 0);
-+              token = {
-+                ...token,
-+                hasBalanceError: true
-+              };
-+          });
-+    });
-+    await Promise.all(balancePromises);
-     this.update((state) => {
-       state.contractBalances = newContractBalances;
-     });
-+    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _updateInProgress, false);
-   }
- };
- _handle = new WeakMap();
- _interval = new WeakMap();
- _tokens = new WeakMap();
- _disabled = new WeakMap();
-+_updateInProgress = new WeakMap();
- var TokenBalancesController_default = TokenBalancesController;
- 
- 
-diff --git a/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts
-index 6d364e4..33fa36f 100644
---- a/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts
-+++ b/node_modules/@metamask/assets-controllers/dist/types/AssetsContractController.d.ts
-@@ -103,6 +103,7 @@ export type AssetsContractControllerMessenger = RestrictedControllerMessenger<ty
-  */
- export declare class AssetsContractController {
-     #private;
-+    readonly name: typeof name = name;
-     protected messagingSystem: AssetsContractControllerMessenger;
-     /**
-      * Creates a AssetsContractController instance.
+    * Adds a token to the stored token list.
+    *
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
-index 576faaa..3311706 100644
+index a69c32d..077e2db 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 @@ -108,6 +108,7 @@ export type NftMetadata = {
@@ -419,9 +388,9 @@ index 576faaa..3311706 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
-@@ -419,6 +420,11 @@ export declare class NftController extends BaseController<typeof controllerName,
-         collections: Collection[];
-     }>;
+@@ -421,6 +422,11 @@ export declare class NftController extends BaseController<typeof controllerName,
+      */
+     resetNftTransactionStatusByTransactionId(transactionId: string, selectedAddress: string, chainId: Hex): boolean;
      _requestApproval(suggestedNftMeta: SuggestedNftMeta): Promise<unknown>;
 +    /**
 +     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
@@ -433,10 +402,10 @@ index 576faaa..3311706 100644
  //# sourceMappingURL=NftController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
-index 09a5fe0..ce64d87 100644
+index 45d58f8..ce24723 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/types/TokenBalancesController.d.ts
-@@ -77,6 +77,11 @@ export declare class TokenBalancesController extends BaseController<typeof contr
+@@ -79,6 +79,11 @@ export declare class TokenBalancesController extends BaseController<typeof contr
       * Updates balances for all tokens.
       */
      updateBalances(): Promise<void>;
@@ -483,3 +452,16 @@ index a3eb08b..9bbc823 100644
  export default TokensController;
  //# sourceMappingURL=TokensController.d.ts.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+index 2a42816..f0d02dc 100644
+--- a/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/types/index.d.ts
+@@ -6,7 +6,7 @@ export type { NftControllerState, NftControllerMessenger, NftControllerActions,
+ export { getDefaultNftControllerState, NftController } from './NftController';
+ export type { NftDetectionControllerMessenger, ApiNft, ApiNftContract, ApiNftLastSale, ApiNftCreator, ReservoirResponse, TokensResponse, BlockaidResultType, Blockaid, Market, TokenResponse, TopBid, LastSale, FeeBreakdown, Attributes, Collection, Royalties, Ownership, FloorAsk, Price, Metadata, } from './NftDetectionController';
+ export { NftDetectionController } from './NftDetectionController';
+-export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, } from './TokenBalancesController';
++export type { TokenBalancesControllerMessenger, TokenBalancesControllerActions, TokenBalancesControllerGetStateAction, TokenBalancesControllerEvents, TokenBalancesControllerStateChangeEvent, TokenBalancesControllerState, } from './TokenBalancesController';
+ export { TokenBalancesController } from './TokenBalancesController';
+ export type { TokenDetectionControllerMessenger, TokenDetectionControllerActions, TokenDetectionControllerGetStateAction, TokenDetectionControllerEvents, TokenDetectionControllerStateChangeEvent, } from './TokenDetectionController';
+ export { TokenDetectionController } from './TokenDetectionController';
