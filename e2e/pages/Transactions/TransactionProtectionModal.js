@@ -1,4 +1,4 @@
-import { TransactionProtectionModalSelectorText } from '../../selectors/Modals/TransactionProtectionModal.selectors';
+import { TransactionProtectionModalSelectorText } from '../../selectors/Transactions/TransactionProtectionModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
