@@ -439,10 +439,27 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   useEffect(() => {
+    if (!isMultichainVersion1Enabled) {
+      return;
+    }
+
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
       setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
       setNetworkSelectorUserIntent(USER_INTENT.None);
     }
+
+    const networkToastProps: ToastOptions = {
+      variant: ToastVariants.Network,
+      labelOptions: [
+        {
+          label: strings('toast.network_permissions_updated'),
+        },
+      ],
+      hasNoTimeout: false,
+      networkImageSource: faviconSource,
+    };
+
+    toastRef?.current?.showToast(networkToastProps);
   }, [networkSelectorUserIntent, hideSheet]);
 
   useEffect(() => {
