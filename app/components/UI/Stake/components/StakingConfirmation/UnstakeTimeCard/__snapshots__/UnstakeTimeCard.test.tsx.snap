@@ -145,7 +145,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             }
             testID="label"
           >
-            Up to 11 days
+            1 to 11 days
           </Text>
         </View>
       </View>

@@ -3445,7 +3445,8 @@
       "title": "Max",
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
     },
-    "use_max": "Use max"
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
