@@ -200,40 +200,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           "flex": 1,
         }
       }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
-            "fontWeight": "500",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        $13,292.20
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-            "paddingHorizontal": 0,
-            "textTransform": "uppercase",
-          }
-        }
-      >
-        4.9999 ETH
-      </Text>
-    </View>
+    />
   </TouchableOpacity>
   <View
     style={
@@ -363,6 +330,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
         <Text
           accessibilityRole="link"
           accessible={true}
+          disabled={false}
+          loading={false}
           onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
@@ -379,6 +348,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             }
           }
           suppressHighlighting={true}
+          testID="claim-banner-claim-eth-button"
         >
           <Text
             accessibilityRole="text"
@@ -395,122 +365,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
           >
             Claim
              ETH
-          </Text>
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "paddingBottom": 8,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
-            "fontSize": 18,
-            "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "paddingBottom": 16,
-            "paddingTop": 14,
-          }
-        }
-      >
-        Stake ETH and earn
-      </Text>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "flexWrap": "wrap",
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-              "paddingRight": 3,
-            }
-          }
-        >
-          Stake your ETH with MetaMask Pool and earn
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#1c8234",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-              "paddingRight": 3,
-            }
-          }
-        >
-          2.9%
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          annually.
-        </Text>
-        <Text
-          accessibilityRole="link"
-          accessible={true}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "backgroundColor": "transparent",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          suppressHighlighting={true}
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#0376c9",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Learn more.
           </Text>
         </Text>
       </View>

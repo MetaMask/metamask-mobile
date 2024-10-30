@@ -1047,34 +1047,38 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   }
                                                 >
                                                   <View
-                                                    style={
-                                                      {
-                                                        "alignItems": "center",
-                                                        "backgroundColor": "#f2f4f6",
-                                                        "borderRadius": 8,
-                                                        "borderWidth": 1,
-                                                        "height": 16,
-                                                        "justifyContent": "center",
-                                                        "overflow": "hidden",
-                                                        "width": 16,
-                                                      }
-                                                    }
+                                                    style={null}
                                                   >
-                                                    <Text
-                                                      accessibilityRole="text"
+                                                    <View
                                                       style={
                                                         {
-                                                          "color": "#141618",
-                                                          "fontFamily": "EuclidCircularB-Regular",
-                                                          "fontSize": 10,
-                                                          "fontWeight": "400",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": undefined,
+                                                          "alignItems": "center",
+                                                          "backgroundColor": "#f2f4f6",
+                                                          "borderRadius": 8,
+                                                          "borderWidth": 1,
+                                                          "height": 16,
+                                                          "justifyContent": "center",
+                                                          "overflow": "hidden",
+                                                          "width": 16,
                                                         }
                                                       }
                                                     >
-                                                      C
-                                                    </Text>
+                                                      <Text
+                                                        accessibilityRole="text"
+                                                        style={
+                                                          {
+                                                            "color": "#141618",
+                                                            "fontFamily": "EuclidCircularB-Regular",
+                                                            "fontSize": 10,
+                                                            "fontWeight": "400",
+                                                            "letterSpacing": 0,
+                                                            "lineHeight": undefined,
+                                                          }
+                                                        }
+                                                      >
+                                                        C
+                                                      </Text>
+                                                    </View>
                                                   </View>
                                                   <Text
                                                     accessibilityRole="text"

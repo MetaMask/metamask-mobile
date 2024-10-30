@@ -1,4 +1,4 @@
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { AccountListViewSelectorsIDs } from '../../../e2e/selectors/AccountListView.selectors';
 import { regex, hasDecimals } from '.';
 
 describe('REGEX :: hasDecimals', () => {
@@ -64,13 +64,13 @@ describe('REGEX :: REGEX_6400_USD', () => {
 });
 
 describe('REGEX :: regex.accountBalance', () => {
-  it(`should match "${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}"`, () => {
+  it(`should match "${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}"`, () => {
     expect(
-      regex.accountBalance.test(ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID),
+      regex.accountBalance.test(AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID),
     ).toEqual(true);
   });
 
-  it(`should not match "Account balance != ${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}"`, () => {
+  it(`should not match "Account balance != ${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}"`, () => {
     expect(regex.accountBalance.test('123')).toEqual(false);
   });
 });

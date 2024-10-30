@@ -102,26 +102,49 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            />
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <View
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontSize": 18,
-                    "fontWeight": "700",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "alignItems": "center",
                   }
                 }
               >
-                Unstake ETH
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 18,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Unstake ETH
+                </Text>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -386,7 +409,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                             >
                               Staked balance
                               : 
-                              4.59996 ETH
+                              5.79133 ETH
                             </Text>
                           </View>
                           <View

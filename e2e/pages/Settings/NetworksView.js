@@ -20,21 +20,25 @@ class NetworkView {
   }
 
   get addNetworkButtonForm() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(NetworkListModalSelectorsIDs.ADD_BUTTON);
+    return Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON);
   }
 
   get addRpcDropDownButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC)
-      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
+  }
+
+  get addBlockExplorerDropDownButton() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER,
+    );
+  }
+
+  get addBlockExplorerButton() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER);
   }
 
   get addRpcButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON)
-      : Matchers.getElementByLabel(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
   }
 
   get noMatchingText() {
@@ -97,14 +101,16 @@ class NetworkView {
     );
   }
 
+  get networkBlockExplorerInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT,
+    );
+  }
+
   get rpcAddButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(
-          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-        )
-      : Matchers.getElementByID(
-          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-        );
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
   }
 
   get blockExplorer() {
@@ -146,6 +152,14 @@ class NetworkView {
 
   async tapRpcDropDownButton() {
     await Gestures.waitAndTap(this.addRpcDropDownButton);
+  }
+
+  async tapBlockExplorerDownButton() {
+    await Gestures.waitAndTap(this.addBlockExplorerDropDownButton);
+  }
+
+  async tapBlockExplorerButton() {
+    await Gestures.waitAndTap(this.addBlockExplorerButton);
   }
 
   async tapAddRpcButton() {
@@ -199,6 +213,13 @@ class NetworkView {
     await Gestures.typeTextAndHideKeyboard(
       this.networkSymbolInput,
       networkSymbol,
+    );
+  }
+
+  async typeInNetworkBlockExplorer(networkBlockExplorer) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkBlockExplorerInput,
+      networkBlockExplorer,
     );
   }
 

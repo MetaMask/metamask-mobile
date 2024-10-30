@@ -1125,7 +1125,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1184,7 +1184,7 @@ export function getNftDetailsNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -1830,6 +1830,9 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
       fontSize: 14,
       ...fontStyles.normal,
     },
+    headerTitle: {
+      alignItems: 'center',
+    },
   });
 
   function navigationPop() {
@@ -1838,7 +1841,9 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
 
   return {
     headerTitle: () => (
-      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      <View style={innerStyles.headerTitle}>
+        <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      </View>
     ),
     headerStyle: innerStyles.headerStyle,
     headerLeft: () =>
@@ -1849,7 +1854,9 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
           onPress={navigationPop}
           style={innerStyles.headerLeft}
         />
-      ) : null,
+      ) : (
+        <></>
+      ),
     headerRight: () =>
       hasCancelButton ? (
         <TouchableOpacity
@@ -1860,6 +1867,8 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
             {strings('navigation.cancel')}
           </Text>
         </TouchableOpacity>
-      ) : null,
+      ) : (
+        <></>
+      ),
   };
 }

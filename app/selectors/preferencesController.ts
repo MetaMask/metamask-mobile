@@ -41,6 +41,12 @@ export const selectUseSafeChainsListValidation = createSelector(
     preferencesControllerState.useSafeChainsListValidation,
 );
 
+export const selectTokenSortConfig = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenSortConfig,
+);
+
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(
   selectPreferencesControllerState,
@@ -107,4 +113,10 @@ export const selectUseTransactionSimulations = createSelector(
         useTransactionSimulations: boolean;
       }
     ).useTransactionSimulations,
+);
+
+export const selectPrivacyMode = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.privacyMode,
 );

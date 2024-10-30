@@ -4,6 +4,10 @@ import AggregatedPercentage from './AggregatedPercentage';
 import { mockTheme } from '../../../../util/theme';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import {
+  FORMATTED_VALUE_PRICE_TEST_ID,
+  FORMATTED_PERCENTAGE_TEST_ID,
+} from './AggregatedPercentage.constants';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -64,5 +68,23 @@ describe('AggregatedPercentage', () => {
     expect(getByText('(-30.00%)').props.style).toMatchObject({
       color: mockTheme.colors.error.default,
     });
+  });
+
+  it('renders correctly with privacy mode on', () => {
+    const { getByTestId } = render(
+      <AggregatedPercentage
+        ethFiat={150}
+        tokenFiat={200}
+        tokenFiat1dAgo={300}
+        ethFiat1dAgo={200}
+        privacyMode
+      />,
+    );
+
+    const formattedPercentage = getByTestId(FORMATTED_PERCENTAGE_TEST_ID);
+    const formattedValuePrice = getByTestId(FORMATTED_VALUE_PRICE_TEST_ID);
+
+    expect(formattedPercentage.props.children).toBe('••••••••••');
+    expect(formattedValuePrice.props.children).toBe('••••••••••');
   });
 });

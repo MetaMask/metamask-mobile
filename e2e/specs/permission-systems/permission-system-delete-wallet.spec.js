@@ -9,7 +9,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
 import LoginView from '../../pages/LoginView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
@@ -102,6 +102,7 @@ describe(
           await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+          await NetworkListModal.scrollToBottomOfNetworkList();
           await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
         },
       );

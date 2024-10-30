@@ -74,6 +74,7 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionMeta,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import {
@@ -241,8 +242,8 @@ import {
   MetaMetricsEventName,
 } from '@metamask/smart-transactions-controller/dist/constants';
 import {
-  getSmartTransactionMetricsProperties,
-  getSmartTransactionMetricsSensitiveProperties,
+  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
+  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
 } from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { snapKeyringBuilder } from './SnapKeyring';
@@ -251,7 +252,10 @@ import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermiss
 import { HandleSnapRequestArgs } from './Snaps/types';
 import { handleSnapRequest } from './Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
+import { getSmartTransactionMetricsProperties } from '../util/smart-transactions';
 import { trace } from '../util/trace';
+import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import { JsonMap } from './Analytics/MetaMetrics.types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -435,11 +439,17 @@ export type ControllerMessenger = ExtendedControllerMessenger<
   GlobalEvents
 >;
 
+export interface TransactionEventPayload {
+  transactionMeta: TransactionMeta;
+  actionId?: string;
+  error?: string;
+}
+
 /**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
  */
-class Engine {
+export class Engine {
   /**
    * The global Engine singleton
    */
@@ -506,7 +516,6 @@ class Engine {
     };
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
         allowedEvents: [],
@@ -533,6 +542,11 @@ class Engine {
         useNftDetection: true, // set this to true to enable nft detection by default to new users
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        tokenSortConfig: {
+          key: 'tokenFiatAmount',
+          order: 'dsc',
+          sortCallback: 'stringNumeric',
+        },
         ...initialState.PreferencesController,
       },
     });
@@ -761,20 +775,6 @@ class Engine {
     additionalKeyrings.push(ledgerKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-    /**
-     * Removes an account from state / storage.
-     *
-     * @param {string} address - A hex address
-     */
-    const removeAccount = async (address: string) => {
-      // Remove all associated permissions
-      await removeAccountsFromPermissions([address]);
-      // Remove account from the keyring
-      await this.keyringController.removeAccount(address as Hex);
-      return address;
-    };
-
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
       name: 'SnapKeyringBuilder',
       allowedActions: [
@@ -808,7 +808,7 @@ class Engine {
         snapKeyringBuildMessenger,
         getSnapController,
         persistAndUpdateAccounts,
-        (address) => removeAccount(address),
+        (address) => this.removeAccount(address),
       ),
     );
 
@@ -981,6 +981,10 @@ class Engine {
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts:
           accountsController.listAccounts.bind(accountsController),
+        findNetworkClientIdByChainId:
+          networkController.findNetworkClientIdByChainId.bind(
+            networkController,
+          ),
       }),
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
@@ -1372,9 +1376,11 @@ class Engine {
       params: {
         event: MetaMetricsEventName;
         category: MetaMetricsEventCategory;
-        properties?: ReturnType<typeof getSmartTransactionMetricsProperties>;
+        properties?: ReturnType<
+          typeof getSmartTransactionMetricsPropertiesType
+        >;
         sensitiveProperties?: ReturnType<
-          typeof getSmartTransactionMetricsSensitiveProperties
+          typeof getSmartTransactionMetricsSensitivePropertiesType
         >;
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1382,16 +1388,13 @@ class Engine {
         metaMetricsId?: string;
       },
     ) => {
-      const { event, category, ...restParams } = params;
-
       MetaMetrics.getInstance().trackEvent(
-        {
-          category,
-          properties: {
-            name: event,
-          },
-        },
-        restParams,
+        MetricsEventBuilder.createEventBuilder({
+          category: params.event,
+        })
+          .addProperties(params.properties || {})
+          .addSensitiveProperties(params.sensitiveProperties || {})
+          .build(),
       );
     };
     this.smartTransactionsController = new SmartTransactionsController({
@@ -1427,6 +1430,7 @@ class Engine {
           allowedActions: [],
           allowedEvents: [],
         }),
+        state: initialState.AddressBookController,
       }),
       assetsContractController,
       nftController,
@@ -1512,6 +1516,11 @@ class Engine {
           assetsContractController,
         ),
         interval: 180000,
+        tokens: [
+          ...tokensController.state.tokens,
+          ...tokensController.state.detectedTokens,
+        ],
+        state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1729,8 +1738,95 @@ class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+    this._addTransactionControllerListeners();
 
     Engine.instance = this;
+  }
+
+  // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
+  _handleTransactionFinalizedEvent = async (
+    transactionEventPayload: TransactionEventPayload,
+    properties: JsonMap,
+  ) => {
+    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+      store.getState(),
+    );
+    if (
+      !shouldUseSmartTransaction ||
+      !transactionEventPayload.transactionMeta
+    ) {
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TRANSACTION_FINALIZED,
+        )
+          .addProperties(properties)
+          .build(),
+      );
+      return;
+    }
+    const { transactionMeta } = transactionEventPayload;
+    const { SmartTransactionsController } = this.context;
+    const waitForSmartTransaction = true;
+    const smartTransactionMetricsProperties =
+      await getSmartTransactionMetricsProperties(
+        SmartTransactionsController,
+        transactionMeta,
+        waitForSmartTransaction,
+        this.controllerMessenger,
+      );
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRANSACTION_FINALIZED,
+      )
+        .addProperties(smartTransactionMetricsProperties)
+        .addProperties(properties)
+        .build(),
+    );
+  };
+
+  _handleTransactionDropped = async (
+    transactionEventPayload: TransactionEventPayload,
+  ) => {
+    const properties = { status: 'dropped' };
+    await this._handleTransactionFinalizedEvent(
+      transactionEventPayload,
+      properties,
+    );
+  };
+
+  _handleTransactionConfirmed = async (transactionMeta: TransactionMeta) => {
+    const properties = { status: 'confirmed' };
+    await this._handleTransactionFinalizedEvent(
+      { transactionMeta },
+      properties,
+    );
+  };
+
+  _handleTransactionFailed = async (
+    transactionEventPayload: TransactionEventPayload,
+  ) => {
+    const properties = { status: 'failed' };
+    await this._handleTransactionFinalizedEvent(
+      transactionEventPayload,
+      properties,
+    );
+  };
+
+  _addTransactionControllerListeners() {
+    this.controllerMessenger.subscribe(
+      'TransactionController:transactionDropped',
+      this._handleTransactionDropped,
+    );
+
+    this.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      this._handleTransactionConfirmed,
+    );
+
+    this.controllerMessenger.subscribe(
+      'TransactionController:transactionFailed',
+      this._handleTransactionFailed,
+    );
   }
 
   handleVaultBackup() {
@@ -1927,6 +2023,19 @@ class Engine {
       );
     }
     return snapKeyring;
+  };
+
+  /**
+   * Removes an account from state / storage.
+   *
+   * @param {string} address - A hex address
+   */
+  removeAccount = async (address: string) => {
+    // Remove all associated permissions
+    await removeAccountsFromPermissions([address]);
+    // Remove account from the keyring
+    await this.keyringController.removeAccount(address as Hex);
+    return address;
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -2249,7 +2358,7 @@ export default {
     instance = null;
   },
 
-  init(state: Record<string, never> | undefined, keyringState = null) {
+  init(state: Partial<EngineState> | undefined, keyringState = null) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
@@ -2284,4 +2393,14 @@ export default {
     assertEngineExists(instance);
     return instance.getGlobalEthQuery();
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  getSnapKeyring: () => {
+    assertEngineExists(instance);
+    return instance.getSnapKeyring();
+  },
+  removeAccount: async (address: string) => {
+    assertEngineExists(instance);
+    return await instance.removeAccount(address);
+  },
+  ///: END:ONLY_INCLUDE_IF
 };

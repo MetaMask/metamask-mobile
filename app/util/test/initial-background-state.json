@@ -64,7 +64,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
-        "name": "Mainnet",
+        "name": "Ethereum Mainnet",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -134,7 +134,7 @@
         "blockExplorerUrls": [],
         "chainId": "0xe708",
         "defaultRpcEndpointIndex": 0,
-        "name": "Linea Mainnet",
+        "name": "Linea",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -156,7 +156,7 @@
   "PreferencesController": {
     "featureFlags": {},
     "identities": {},
-    "ipfsGateway": "https://gateway.pinata.cloud/ipfs/",
+    "ipfsGateway": "https://dweb.link/ipfs/",
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
@@ -194,7 +194,13 @@
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": false,
-    "useTransactionSimulations": true
+    "useTransactionSimulations": true,
+    "tokenSortConfig": {
+      "key": "tokenFiatAmount",
+      "order": "dsc",
+      "sortCallback": "stringNumeric"
+    },
+    "privacyMode": false
   },
   "TokenBalancesController": {
     "contractBalances": {}
@@ -315,6 +321,7 @@
     "domains": {}
   },
   "SignatureController": {
+    "signatureRequests": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
     "unapprovedPersonalMsgCount": 0,

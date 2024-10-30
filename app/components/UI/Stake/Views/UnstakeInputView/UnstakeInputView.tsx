@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import { BN } from 'ethereumjs-util';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -9,29 +8,28 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { renderFromWei, weiToFiatNumber } from '../../../../../util/number';
 import Keypad from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import QuickAmounts from '../../components/QuickAmounts';
 import { View } from 'react-native';
-import useStakingInputHandlers from '../../hooks/useStakingInput';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
+import Routes from '../../../../../constants/navigation/Routes';
+import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const stakeBalance = '4599964000000000000'; //TODO: Replace with actual balance - STAKE-806
-
   const {
     isEth,
     currentCurrency,
     isNonZeroAmount,
     amountEth,
+    amountWei,
     fiatAmount,
     isOverMaximum,
     handleCurrencySwitch,
@@ -39,16 +37,10 @@ const UnstakeInputView = () => {
     percentageOptions,
     handleAmountPress,
     handleKeypadChange,
-    conversionRate,
-  } = useStakingInputHandlers(new BN(stakeBalance));
-
-  const stakeBalanceInEth = renderFromWei(stakeBalance, 5);
-  const stakeBalanceFiatNumber = weiToFiatNumber(stakeBalance, conversionRate);
+    stakedBalanceValue,
+  } = useUnstakingInputHandlers();
 
   const stakedBalanceText = strings('stake.staked_balance');
-  const stakedBalanceValue = isEth
-    ? `${stakeBalanceInEth} ETH`
-    : `${stakeBalanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   const buttonLabel = !isNonZeroAmount
     ? strings('stake.enter_amount')
@@ -65,8 +57,14 @@ const UnstakeInputView = () => {
   }, [navigation, theme.colors, title]);
 
   const handleUnstakePress = useCallback(() => {
-    // TODO: Display the Review bottom sheet: STAKE-841
-  }, []);
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+      params: {
+        amountWei: amountWei.toString(),
+        amountFiat: fiatAmount,
+      },
+    });
+  }, [amountWei, fiatAmount, navigation]);
 
   return (
     <ScreenLayout style={styles.container}>
