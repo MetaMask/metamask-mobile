@@ -2,7 +2,7 @@ import {
   JsonRpcEngine,
   JsonRpcEngineEndCallback,
   JsonRpcEngineNextCallback,
-} from 'json-rpc-engine';
+} from '@metamask/json-rpc-engine';
 import {
   Json,
   JsonRpcParams,

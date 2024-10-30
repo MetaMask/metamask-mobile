@@ -1,8 +1,8 @@
 import { query } from '@metamask/controller-utils';
 import Engine from '../Engine';
+import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import { selectHooks } from '@metamask/snaps-rpc-methods';
 import { OptionalDataWithOptionalCause, rpcErrors } from '@metamask/rpc-errors';
-import { JsonRpcMiddleware } from 'json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
 import EthQuery from '@metamask/eth-query';
@@ -76,7 +76,7 @@ export function makeMethodMiddlewareMaker<U>(
   const makeMethodMiddleware = (hooks: Record<string, unknown>) => {
     assertExpectedHook(hooks, expectedHookNames);
 
-    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, unknown> = async (
+    const methodMiddleware: JsonRpcMiddleware<JsonRpcParams, Json> = async (
       req,
       res,
       next,
