@@ -12,7 +12,7 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
