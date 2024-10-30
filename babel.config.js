@@ -20,7 +20,10 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
-      test: './node_modules/@metamask/rpc-errors',
+      test: [
+        './node_modules/**/@metamask/rpc-errors/**',
+        './node_modules/@metamask/rpc-errors/**',
+      ],
       plugins: [['@babel/plugin-transform-classes', { loose: true }]],
     },
     {
