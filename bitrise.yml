@@ -1563,7 +1563,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.14.0
+      NODE_VERSION: 20.18.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
