@@ -3,7 +3,6 @@ import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 
 const mockServer = getLocal();
-export const DEFAULT_MOCKSERVER_PORT = 8000;
 
 /**
  * Starts the mock server and sets up mock events.
