@@ -25,7 +25,7 @@ jobs:
           with:
             fetch-depth: 0
             ref: ${{ inputs.base-branch }}
-            token: ${{ secrets.GITHUB_TOKEN }} # TODO Update to Seths new token
+            token: ${{ secrets.PR_TOKEN }}
             
     
         - uses: MetaMask/metamask-mobile-build-version@v0.1.0
