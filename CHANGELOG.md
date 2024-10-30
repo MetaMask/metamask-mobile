@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 7.33.1 - Oct 29, 2024
+### Fixed
+
 ## 7.33.0 - Oct 3, 2024
 ### Added
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
