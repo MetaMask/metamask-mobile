@@ -70,14 +70,18 @@ describe('Migration #57 - Update default search engine from DDG to Google', () =
 
   it('should update the search engine to Google', async () => {
     const oldState = {
-      engine: {},
+      engine: {
+        backgroundState: {},
+      },
       settings: {
         searchEngine: 'DuckDuckGo',
       }
     };
 
     const expectedState = {
-      engine: {},
+      engine: {
+        backgroundState: {},
+      },
       settings: {
         searchEngine: 'Google',
       }
