@@ -4,57 +4,48 @@ import { config } from '../../wdio.conf';
 
 const browserstack = require('browserstack-local');
 
-// Appium capabilities
-// https://appium.io/docs/en/writing-running-appium/caps/
-
+// BrowserStack credentials
 config.user = process.env.BROWSERSTACK_USERNAME;
 config.key = process.env.BROWSERSTACK_ACCESS_KEY;
 
+// Define iOS capabilities for non-upgrade and upgrade tests
 const defaultCapabilities = [
   {
     platformName: 'iOS',
-    noReset: false,
-    fullReset: false,
     maxInstances: 1,
-    build: 'iOS App Launch Times Tests',
-    device: process.env.BROWSERSTACK_DEVICE || 'iPhone 15 Pro',
-    os_version: process.env.BROWSERSTACK_OS_VERSION || '17',
-    automationName: 'XCUITest',
-    app: process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
-    settings: {
-      snapshotMaxDepth: 100,
-    },
-  }
-];
-
-// Define capabilities for app upgrade tests
-const upgradeCapabilities = [
-  {
-    platformName: 'iOS',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    build: 'iOS App Upgrade Tests',
-    device: process.env.BROWSERSTACK_DEVICE || 'iPhone 12',
-    os_version: process.env.BROWSERSTACK_OS_VERSION || '15',
-    automationName: 'XCUITest',
-    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
-    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
-    settings: {
-      snapshotMaxDepth: 100,
+    'appium:deviceName': process.env.BROWSERSTACK_DEVICE || 'iPhone 15 Pro',
+    'appium:platformVersion': process.env.BROWSERSTACK_OS_VERSION || '17.3',
+    'appium:automationName': 'XCUITest',
+    'appium:app': process.env.BROWSERSTACK_APP_URL,
+    'appium:fullReset': true,
+    'appium:settings[snapshotMaxDepth]': 62,
+    'appium:settings[customSnapshotTimeout]': 50000,
+    'bstack:options': {
+      buildName: 'iOS App Launch Times Tests',
     },
   },
 ];
 
-// Determine test type based on command-line arguments
-const isAppUpgrade = process.argv.includes('--upgrade') || false;
-const isPerformance = process.argv.includes('--performance') || false;
+const upgradeCapabilities = [
+  {
+    platformName: 'iOS',
+    maxInstances: 1,
+    'appium:deviceName': process.env.BROWSERSTACK_DEVICE || 'iPhone 15 Pro',
+    'appium:platformVersion': process.env.BROWSERSTACK_OS_VERSION || '17.3',
+    'appium:automationName': 'XCUITest',
+    'appium:app': process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
+    'appium:noReset': true,
+    'appium:settings[snapshotMaxDepth]': 62,
+    'appium:settings[customSnapshotTimeout]': 50000,
+    'bstack:options': {
+      buildName: 'iOS App Upgrade E2E',
+    },
+  },
+];
 
-// Consolidating the conditional logic for capabilities and tag expression
+// Determine selected capabilities and tags
+const isAppUpgrade = process.argv.includes('--upgrade');
+const isPerformance = process.argv.includes('--performance');
 const { selectedCapabilities, defaultTagExpression } = (() => {
   if (isAppUpgrade) {
       return {
@@ -75,40 +66,29 @@ const { selectedCapabilities, defaultTagExpression } = (() => {
 })();
 
 // Apply the selected configuration
-config.cucumberOpts.tagExpression = selectedCapabilities; // pass tag to run tests specific to android
+config.capabilities = selectedCapabilities;
 config.cucumberOpts.tagExpression = process.env.BROWSERSTACK_TAG_EXPRESSION || defaultTagExpression;
 
-config.waitforTimeout = 10000; // do we need these here as well?
-config.connectionRetryTimeout = 90000; // do we need these here as well?
+config.waitforTimeout = 10000;
+config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
-
-
-config.onPrepare = function (config, capabilities) {
+// BrowserStack Local setup
+config.onPrepare = function () {
   removeSync('./wdio/reports');
-  console.log('Connecting local');
   return new Promise((resolve, reject) => {
     exports.bs_local = new browserstack.Local();
-    exports.bs_local.start({ key: config.key }, (error) => {
-      if (error) return reject(error);
-      console.log('Connected. Now testing...');
-
-      resolve();
-    });
+    exports.bs_local.start({ key: config.key }, (error) => error ? reject(error) : resolve());
   });
 };
-config.onComplete = function (exitCode, config, capabilities, results) {
+
+config.onComplete = function () {
   generateTestReports();
-  console.log('Closing local tunnel');
   return new Promise((resolve, reject) => {
-    exports.bs_local.stop((error) => {
-      if (error) return reject(error);
-      console.log('Stopped BrowserStackLocal');
-
-      resolve();
-    });
+    exports.bs_local.stop((error) => error ? reject(error) : resolve());
   });
 };
 
+// Cleanup BrowserStack-specific configuration settings
 delete config.port;
 delete config.path;
 delete config.services;
