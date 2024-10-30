@@ -11,4 +11,5 @@ export const ConnectedAccountsSelectorsIDs = {
   CONNECT_ACCOUNTS_BUTTON: 'connect-accounts-buttons',
   NETWORK_PICKER: 'accounts-connected-network-picker',
   DISCONNECT_ALL_BUTTON: 'accounts-connected-revoke-button',
+  CONTAINER: 'accounts-connected-modal-container',
 };
