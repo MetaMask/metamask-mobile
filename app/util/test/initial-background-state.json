@@ -165,9 +165,6 @@
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
-    "disabledRpcMethodPreferences": {
-      "eth_sign": false
-    },
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
