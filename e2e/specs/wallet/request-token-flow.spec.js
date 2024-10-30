@@ -1,8 +1,8 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
+import RequestPaymentBottomSheet from '../../pages/Receive/RequestPaymentBottomSheet';
 import SendLinkView from '../../pages/Receive/SendLinkView';
-import PaymentRequestQrModal from '../../pages/Receive/PaymentRequestQrModal';
+import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
 import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
@@ -48,7 +48,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapReceiveButton();
-    await RequestPaymentModal.tapRequestPaymentButton();
+    await RequestPaymentBottomSheet.tapRequestPaymentButton();
     await Assertions.checkIfVisible(RequestPaymentView.requestPaymentContainer);
   });
 
@@ -69,11 +69,11 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
 
   it('should see DAI request QR code', async () => {
     await SendLinkView.tapQRCodeButton();
-    await Assertions.checkIfVisible(PaymentRequestQrModal.container);
+    await Assertions.checkIfVisible(PaymentRequestQrBottomSheet.container);
   });
 
   it('should close request', async () => {
-    await PaymentRequestQrModal.tapCloseButton();
+    await PaymentRequestQrBottomSheet.tapCloseButton();
     await SendLinkView.tapCloseSendLinkButton();
   });
 

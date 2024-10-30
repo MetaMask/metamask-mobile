@@ -28,7 +28,7 @@ import { isNetworkRampSupported } from '../Ramp/utils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
+import { RequestPaymentBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
@@ -251,7 +251,7 @@ class ReceiveRequest extends PureComponent {
               type={'normal'}
               onPress={this.onReceive}
               containerStyle={styles.actionButton}
-              testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
+              testID={RequestPaymentBottomSheetSelectorsIDs.REQUEST_BUTTON}
             >
               {strings('receive_request.request_payment')}
             </StyledButton>
