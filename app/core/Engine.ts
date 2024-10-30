@@ -1516,6 +1516,11 @@ export class Engine {
           assetsContractController,
         ),
         interval: 180000,
+        tokens: [
+          ...tokensController.state.tokens,
+          ...tokensController.state.detectedTokens,
+        ],
+        state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
