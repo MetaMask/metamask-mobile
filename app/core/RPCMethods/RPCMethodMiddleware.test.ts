@@ -4,12 +4,9 @@ import type {
   JsonRpcParams,
   JsonRpcRequest,
   JsonRpcResponse,
-} from '@metamask/utils8';
-import type {
-  JsonRpcParams as ProviderParams ,
   JsonRpcFailure,
   JsonRpcSuccess,
-} from '../../../node_modules/@metamask/providers/node_modules/@metamask/utils';
+} from '@metamask/utils8';
 import { type JsonRpcError, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
