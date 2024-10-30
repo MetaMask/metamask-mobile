@@ -6,7 +6,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation(() => 'https://cloudflare-ipfs.com/ipfs/'),
+    .mockImplementation(() => 'https://dweb.link/ipfs/'),
 }));
 
 jest.mock('../../../components/hooks/useIpfsGateway', () => jest.fn());

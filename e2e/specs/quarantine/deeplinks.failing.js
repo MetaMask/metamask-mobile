@@ -2,7 +2,7 @@
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 
-import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 
@@ -13,7 +13,7 @@ import LoginView from '../../pages/LoginView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-
+import CommonView from '../../pages/CommonView';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
@@ -68,9 +68,8 @@ describe(Regression('Deep linking Tests'), () => {
   it('should relaunch the app then enable remember me', async () => {
     // Relaunch app
     await TestHelpers.relaunchApp();
-    await LoginView.isVisible();
-    await LoginView.toggleRememberMe();
-
+    await Assertions.checkIfVisible(LoginView.container);
+    await LoginView.toggleRememberMeSwitch();
     await LoginView.enterPassword(validAccount.password);
     await Assertions.checkIfVisible(WalletView.container);
   });
@@ -80,8 +79,7 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.delay(3000);
     await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
     await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
-
-    await WalletView.tapOKAlertButton();
+    await CommonView.tapOKAlertButton();
   });
 
   it('should go to settings then networks', async () => {
@@ -195,12 +193,12 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
     await TestHelpers.delay(4500);
 
-    await Assertions.checkIfVisible(ConnectModal.container);
-    await ConnectModal.tapConnectButton();
+    await Assertions.checkIfVisible(ConnectBottomSheet.container);
+    await ConnectBottomSheet.tapConnectButton();
 
     await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
     await Assertions.checkIfVisible(Browser.browserScreenID);
-    await Assertions.checkIfNotVisible(ConnectModal.container);
+    await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
   });
 });

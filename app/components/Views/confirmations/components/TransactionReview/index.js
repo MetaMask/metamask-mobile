@@ -1,5 +1,5 @@
+import Eth from '@metamask/ethjs-query';
 import { withNavigation } from '@react-navigation/compat';
-import Eth from 'ethjs-query';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
@@ -593,7 +593,7 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {useTransactionSimulations && (
+                    {useTransactionSimulations && transactionSimulationData && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
                           simulationData={transactionSimulationData}
