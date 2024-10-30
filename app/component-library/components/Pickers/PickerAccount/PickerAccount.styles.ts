@@ -43,7 +43,6 @@ const styleSheet = (params: {
       ...cellAccountContainerStyle,
     },
     accountNameLabel: {
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -52,7 +51,6 @@ const styleSheet = (params: {
       alignItems: 'center',
     },
     pickerAccountContainer: {
-      flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
     },

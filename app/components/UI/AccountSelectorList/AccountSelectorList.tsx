@@ -14,7 +14,11 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell';
 import { InternalAccount } from '@metamask/keyring-api';
 import { useStyles } from '../../../component-library/hooks';
-import Text from '../../../component-library/components/Texts/Text';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import { TextColor } from '../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
@@ -67,27 +71,46 @@ const AccountSelectorList = ({
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
-
+  const privacyMode = useSelector(selectPrivacyMode);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => (
-      <View
-        style={styles.balancesContainer}
-        testID={`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
-      >
-        <Text style={styles.balanceLabel}>{fiatBalance}</Text>
-        {tokens && (
-          <AvatarGroup
-            avatarPropsList={tokens.map((tokenObj) => ({
-              ...tokenObj,
-              variant: AvatarVariant.Token,
-            }))}
-          />
-        )}
-      </View>
-    ),
-    [styles.balancesContainer, styles.balanceLabel],
+    ({ fiatBalance, tokens }: Assets, address: string) => {
+      const fiatBalanceStrSplit = fiatBalance.split('\n');
+      const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
+      const tokenTicker = fiatBalanceStrSplit[1] || '';
+      return (
+        <View
+          style={styles.balancesContainer}
+          testID={`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+        >
+          <SensitiveText
+            length={SensitiveTextLength.Long}
+            style={styles.balanceLabel}
+            isHidden={privacyMode}
+          >
+            {fiatBalanceAmount}
+          </SensitiveText>
+          <SensitiveText
+            length={SensitiveTextLength.Short}
+            style={styles.balanceLabel}
+            isHidden={privacyMode}
+            color={privacyMode ? TextColor.Alternative : TextColor.Default}
+          >
+            {tokenTicker}
+          </SensitiveText>
+          {tokens && (
+            <AvatarGroup
+              avatarPropsList={tokens.map((tokenObj) => ({
+                ...tokenObj,
+                variant: AvatarVariant.Token,
+              }))}
+            />
+          )}
+        </View>
+      );
+    },
+    [styles.balancesContainer, styles.balanceLabel, privacyMode],
   );
 
   const onLongPress = useCallback(

@@ -352,6 +352,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     style={
                       {
                         "alignItems": "flex-end",
+                        "flexDirection": "column",
                       }
                     }
                     testID="account-balance-by-address-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
@@ -371,7 +372,22 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       }
                     >
                       $3200.00
-1 ETH
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                          "textAlign": "right",
+                        }
+                      }
+                    >
+                      1 ETH
                     </Text>
                   </View>
                 </View>
@@ -750,6 +766,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     style={
                       {
                         "alignItems": "flex-end",
+                        "flexDirection": "column",
                       }
                     }
                     testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
@@ -769,7 +786,22 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       }
                     >
                       $6400.00
-2 ETH
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                          "textAlign": "right",
+                        }
+                      }
+                    >
+                      2 ETH
                     </Text>
                   </View>
                 </View>
@@ -1932,6 +1964,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     style={
                       {
                         "alignItems": "flex-end",
+                        "flexDirection": "column",
                       }
                     }
                     testID="account-balance-by-address-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
@@ -1951,7 +1984,22 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       }
                     >
                       $3200.00
-1 ETH
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                          "textAlign": "right",
+                        }
+                      }
+                    >
+                      1 ETH
                     </Text>
                   </View>
                 </View>
@@ -2330,6 +2378,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     style={
                       {
                         "alignItems": "flex-end",
+                        "flexDirection": "column",
                       }
                     }
                     testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
@@ -2349,7 +2398,22 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       }
                     >
                       $6400.00
-2 ETH
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                          "textAlign": "right",
+                        }
+                      }
+                    >
+                      2 ETH
                     </Text>
                   </View>
                 </View>
@@ -2637,6 +2701,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     style={
                       {
                         "alignItems": "flex-end",
+                        "flexDirection": "column",
                       }
                     }
                     testID="account-balance-by-address-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
@@ -2656,7 +2721,22 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                       }
                     >
                       $3200.00
-1 ETH
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                          "textAlign": "right",
+                        }
+                      }
+                    >
+                      1 ETH
                     </Text>
                   </View>
                 </View>

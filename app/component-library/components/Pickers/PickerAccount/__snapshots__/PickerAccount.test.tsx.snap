@@ -5,7 +5,6 @@ exports[`PickerAccount should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "flexDirection": "column",
       "justifyContent": "center",
     }
   }
@@ -37,7 +36,6 @@ exports[`PickerAccount should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "flexDirection": "column",
             "justifyContent": "center",
           }
         }

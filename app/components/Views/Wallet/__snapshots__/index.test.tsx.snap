@@ -226,7 +226,6 @@ exports[`Wallet should render correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "flexDirection": "column",
                       "justifyContent": "center",
                     }
                   }
@@ -259,7 +258,6 @@ exports[`Wallet should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "flexDirection": "column",
                             "justifyContent": "center",
                           }
                         }
