@@ -26,6 +26,7 @@ import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
 import { RootState } from '../../../../../reducers';
+import { INTERNAL_ORIGINS } from '../../../../../constants/transaction';
 
 const ApproveTransactionHeader = ({
   from,
@@ -69,9 +70,11 @@ const ApproveTransactionHeader = ({
 
   const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
 
+  const showOrigin = !INTERNAL_ORIGINS.includes(origin) && origin && !isOriginDeepLink;
+
   return (
     <View style={styles.transactionHeader}>
-      {origin && !isOriginDeepLink ? (
+      { showOrigin ? (
         <ApprovalTagUrl
           from={from}
           origin={origin}

@@ -17,8 +17,11 @@ import {
   selectNickname,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
+
+export const TRANSACTION_HEADER_ORIGIN = 'TRANSACTION_HEADER_ORIGIN';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -195,7 +198,7 @@ const TransactionHeader = (props) => {
   };
 
   const renderDomainUrlContainer = () => (
-    <View style={styles.domanUrlContainer}>
+    <View style={styles.domanUrlContainer} testID={TRANSACTION_HEADER_ORIGIN}>
       {renderSecureIcon()}
       {renderTitle()}
     </View>
@@ -209,11 +212,12 @@ const TransactionHeader = (props) => {
       </Text>
     </View>
   );
+  const showOrigin = !INTERNAL_ORIGINS.includes(props.currentPageInformation.origin);
 
   return (
     <View style={styles.transactionHeader}>
       {renderTopIcon()}
-      {isMultichainVersion1Enabled ? null : renderDomainUrlContainer()}
+      {isMultichainVersion1Enabled || !showOrigin ? null : renderDomainUrlContainer()}
       {isMultichainVersion1Enabled ? null : renderNetworkContainer()}
     </View>
   );
