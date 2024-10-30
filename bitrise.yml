@@ -1588,5 +1588,3 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: update-bitrise-machines
-    pipeline: pr_smoke_e2e_pipeline
