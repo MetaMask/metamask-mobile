@@ -1645,6 +1645,7 @@ export class Engine {
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
+        // @ts-expect-error No type-level guarantee that the correct state is being applied to the correct controller here.
         controller.update(initialState[controller.name]);
       }
     }
