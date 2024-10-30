@@ -294,6 +294,7 @@ class Confirm extends PureComponent {
     multiLayerL1FeeTotal: '0x0',
     result: {},
     transactionMeta: {},
+    isChangeInSimulationModalShown: false,
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -866,14 +867,34 @@ class Confirm extends PureComponent {
       resetTransaction,
       gasEstimateType,
       shouldUseSmartTransaction,
+      transactionSimulationData: { isUpdatedAfterSecurityCheck },
     } = this.props;
 
     const {
       legacyGasTransaction,
       transactionConfirmed,
       EIP1559GasTransaction,
+      isChangeInSimulationModalShown,
     } = this.state;
     if (transactionConfirmed) return;
+
+    if (isUpdatedAfterSecurityCheck && !isChangeInSimulationModalShown) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
+        params: {
+          onProceed: () => {
+            this.setState({ isChangeInSimulationModalShown: true });
+          },
+          onReject: () => {
+            this.setState({ isChangeInSimulationModalShown: true });
+            resetTransaction();
+            navigation?.dangerouslyGetParent()?.pop();
+          },
+        },
+      });
+      return;
+    }
+
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
     try {
       const transaction = this.prepareTransactionToSend();

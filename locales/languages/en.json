@@ -3403,5 +3403,11 @@
     "title": {
       "signature": "Signature request"
       }
+  },
+  "change_in_simulation_modal": {
+    "title": "Results have changed",
+    "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
+    "proceed": "Proceed",
+    "reject": "Reject the transaction"
   }
 }
