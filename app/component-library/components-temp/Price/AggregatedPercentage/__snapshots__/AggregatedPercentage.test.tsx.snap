@@ -21,6 +21,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
         "lineHeight": 22,
       }
     }
+    testID="formatted-value-price-test-id"
   >
     +20 USD 
   </Text>
@@ -36,6 +37,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
         "lineHeight": 22,
       }
     }
+    testID="formatted-percentage-test-id"
   >
     (+11.11%)
   </Text>
