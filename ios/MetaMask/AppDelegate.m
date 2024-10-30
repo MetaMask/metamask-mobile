@@ -20,6 +20,9 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
 
+  self.moduleName = @"MetaMask";
+
+
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   NSString *foxCode;
@@ -40,8 +43,7 @@
                                                    moduleName:@"MetaMask"
                                             initialProperties:@{@"foxCode": foxCode}];
 
-
-
+  self.initialProps = @{@"foxCode": foxCode};
 
   rootView.backgroundColor = [UIColor colorNamed:@"ThemeColors"];
 
@@ -61,7 +63,7 @@
   //Uncomment the following line to enable the splashscreen on ios
   //[RNSplashScreen show];
 
-  return YES;
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
 - (void) initializeFlipper:(UIApplication *)application {
