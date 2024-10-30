@@ -362,10 +362,71 @@ index 33b048f..5867375 100644
      };
      this.defaultConfig = {
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
-index 76e3362..e11991d 100644
+index 76e3362..8d04025 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-HDI4L2DD.js
-@@ -165,7 +165,10 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+@@ -3,7 +3,7 @@
+ var _chunkNEXY7SE2js = require('./chunk-NEXY7SE2.js');
+ 
+ 
+-
++const lodash_1 = require("lodash");
+ 
+ 
+ var _chunkZ4BLTVTBjs = require('./chunk-Z4BLTVTB.js');
+@@ -19,6 +19,15 @@ function isEqualCaseInsensitive(value1, value2) {
+   }
+   return value1.toLowerCase() === value2.toLowerCase();
+ }
++
++function mapChainIdWithTokenListMap(tokensChainsCache) {
++  return (0, lodash_1.mapValues)(tokensChainsCache, (value) => {
++      if ((0, lodash_1.isObject)(value) && 'data' in value) {
++          return (0, lodash_1.get)(value, ['data']);
++      }
++      return value;
++  });
++}
+ var STATIC_MAINNET_TOKEN_LIST = Object.entries(
+   _contractmetadata2.default
+ ).reduce((acc, [base, contract]) => {
+@@ -34,7 +43,7 @@ var STATIC_MAINNET_TOKEN_LIST = Object.entries(
+   };
+ }, {});
+ var controllerName = "TokenDetectionController";
+-var _intervalId, _selectedAddress, _networkClientId, _tokenList, _disabled, _isUnlocked, _isDetectionEnabledFromPreferences, _isDetectionEnabledForNetwork, _getBalancesInSingleCall, _trackMetaMetricsEvent, _registerEventListeners, registerEventListeners_fn, _stopPolling, stopPolling_fn, _startPolling, startPolling_fn, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn, _restartTokenDetection, restartTokenDetection_fn, _getSlicesOfTokensToDetect, getSlicesOfTokensToDetect_fn, _addDetectedTokens, addDetectedTokens_fn;
++var _intervalId, _selectedAddress, _networkClientId, _tokensChainsCache, _disabled, _isUnlocked, _isDetectionEnabledFromPreferences, _isDetectionEnabledForNetwork, _getBalancesInSingleCall, _trackMetaMetricsEvent, _registerEventListeners, registerEventListeners_fn, _stopPolling, stopPolling_fn, _startPolling, startPolling_fn, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn, _restartTokenDetection, restartTokenDetection_fn, _getSlicesOfTokensToDetect, getSlicesOfTokensToDetect_fn, _addDetectedTokens, addDetectedTokens_fn, _compareTokensChainsCache, compareTokensChainsCache_fn, _getConvertedStaticMainnetTokenList, getConvertedStaticMainnetTokenList_fn;
+ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPollingController {
+   /**
+    * Creates a TokenDetectionController instance.
+@@ -71,6 +80,8 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+      */
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _startPolling);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getCorrectChainIdAndNetworkClientId);
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _compareTokensChainsCache);
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _getConvertedStaticMainnetTokenList);
+     /**
+      * Restart token detection polling period and call detectNewTokens
+      * in case of address change or user session initialization.
+@@ -85,7 +96,7 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _intervalId, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _selectedAddress, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _networkClientId, void 0);
+-    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _tokenList, {});
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _tokensChainsCache, {});
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _disabled, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _isUnlocked, void 0);
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _isDetectionEnabledFromPreferences, void 0);
+@@ -97,6 +108,8 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _selectedAddress, selectedAddress ?? this.messagingSystem.call("AccountsController:getSelectedAccount").address);
+     const { chainId, networkClientId } = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn).call(this);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _networkClientId, networkClientId);
++    const { tokensChainsCache } = this.messagingSystem.call("TokenListController:getState");
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokensChainsCache, tokensChainsCache);
+     const { useTokenDetection: defaultUseTokenDetection } = this.messagingSystem.call("PreferencesController:getState");
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isDetectionEnabledFromPreferences, defaultUseTokenDetection);
+     _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _isDetectionEnabledForNetwork, _chunkNEXY7SE2js.isTokenDetectionSupportedForNetwork.call(void 0, chainId));
+@@ -165,7 +178,10 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
      if (!this.isActive) {
        return;
      }
@@ -377,7 +438,40 @@ index 76e3362..e11991d 100644
      const { chainId, networkClientId: selectedNetworkClientId } = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getCorrectChainIdAndNetworkClientId, getCorrectChainIdAndNetworkClientId_fn).call(this, networkClientId);
      const chainIdAgainstWhichToDetect = chainId;
      const networkClientIdAgainstWhichToDetect = selectedNetworkClientId;
-@@ -224,12 +227,10 @@ registerEventListeners_fn = function() {
+@@ -179,7 +195,9 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+     const { tokensChainsCache } = this.messagingSystem.call(
+       "TokenListController:getState"
+     );
+-    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokenList, isTokenDetectionInactiveInMainnet ? STATIC_MAINNET_TOKEN_LIST : tokensChainsCache[chainIdAgainstWhichToDetect]?.data ?? {});
++
++    const convertedMainnet = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getConvertedStaticMainnetTokenList, getConvertedStaticMainnetTokenList_fn).call(this)
++    _chunkZ4BLTVTBjs.__privateSet.call(void 0, this, _tokensChainsCache, isTokenDetectionInactiveInMainnet ? convertedMainnet : tokensChainsCache ?? {});
+     for (const tokensSlice of _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getSlicesOfTokensToDetect, getSlicesOfTokensToDetect_fn).call(this, {
+       chainId: chainIdAgainstWhichToDetect,
+       selectedAddress: addressAgainstWhichToDetect
+@@ -196,7 +214,7 @@ var TokenDetectionController = class extends _pollingcontroller.StaticIntervalPo
+ _intervalId = new WeakMap();
+ _selectedAddress = new WeakMap();
+ _networkClientId = new WeakMap();
+-_tokenList = new WeakMap();
++_tokensChainsCache = new WeakMap();
+ _disabled = new WeakMap();
+ _isUnlocked = new WeakMap();
+ _isDetectionEnabledFromPreferences = new WeakMap();
+@@ -215,21 +233,19 @@ registerEventListeners_fn = function() {
+   });
+   this.messagingSystem.subscribe(
+     "TokenListController:stateChange",
+-    async ({ tokenList }) => {
+-      const hasTokens = Object.keys(tokenList).length;
+-      if (hasTokens) {
+-        await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this);
++    async ({ tokensChainsCache }) => {
++      const isEqualValues = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _compareTokensChainsCache, compareTokensChainsCache_fn).call(this, tokensChainsCache, _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokensChainsCache))
++      if (!isEqualValues) {
++         await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this);
+       }
+     }
    );
    this.messagingSystem.subscribe(
      "PreferencesController:stateChange",
@@ -392,6 +486,58 @@ index 76e3362..e11991d 100644
          await _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _restartTokenDetection, restartTokenDetection_fn).call(this, {
            selectedAddress: _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _selectedAddress)
          });
+@@ -280,6 +296,33 @@ startPolling_fn = async function() {
+     await this.detectTokens();
+   }, this.getIntervalLength()));
+ };
++_compareTokensChainsCache = new WeakSet();
++compareTokensChainsCache_fn = function(tokensChainsCache, previousTokensChainsCache) {
++  const cleanPreviousTokensChainsCache = mapChainIdWithTokenListMap(previousTokensChainsCache);
++  const cleanTokensChainsCache = mapChainIdWithTokenListMap(tokensChainsCache);
++  const isEqualValues = (0, lodash_1.isEqual)(cleanTokensChainsCache, cleanPreviousTokensChainsCache);
++  return isEqualValues;
++};
++_getConvertedStaticMainnetTokenList = new WeakSet();
++getConvertedStaticMainnetTokenList_fn = function() {
++  const data = Object.entries(exports.STATIC_MAINNET_TOKEN_LIST).reduce((acc, [key, value]) => ({
++    ...acc,
++    [key]: {
++        name: value.name,
++        symbol: value.symbol,
++        decimals: value.decimals,
++        address: value.address,
++        aggregators: [],
++        iconUrl: value?.iconUrl,
++    },
++}), {});
++return {
++    '0x1': {
++        data,
++        timestamp: 0,
++    },
++};
++};
+ _getCorrectChainIdAndNetworkClientId = new WeakSet();
+ getCorrectChainIdAndNetworkClientId_fn = function(networkClientId) {
+   if (networkClientId) {
+@@ -335,7 +378,7 @@ getSlicesOfTokensToDetect_fn = function({
+     )
+   );
+   const tokensToDetect = [];
+-  for (const tokenAddress of Object.keys(_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokenList))) {
++  for (const tokenAddress of Object.keys(_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokensChainsCache)?.[chainId]?.data || {})) {
+     if ([
+       tokensAddresses,
+       detectedTokensAddresses,
+@@ -366,7 +409,7 @@ addDetectedTokens_fn = async function({
+     const tokensWithBalance = [];
+     const eventTokensDetails = [];
+     for (const nonZeroTokenAddress of Object.keys(balances)) {
+-      const { decimals, symbol, aggregators, iconUrl, name } = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokenList)[nonZeroTokenAddress];
++      const { decimals, symbol, aggregators, iconUrl, name } = _chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _tokensChainsCache)[chainId].data[nonZeroTokenAddress];
+       eventTokensDetails.push(`${symbol} - ${nonZeroTokenAddress}`);
+       tokensWithBalance.push({
+         address: nonZeroTokenAddress,
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-IBK6AXPP.js b/node_modules/@metamask/assets-controllers/dist/chunk-IBK6AXPP.js
 index f7509a1..4573718 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-IBK6AXPP.js
