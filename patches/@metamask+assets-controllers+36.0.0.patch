@@ -352,10 +352,37 @@ index 9c89a65..2ac17ba 100644
          releaseLock();
        }
 diff --git a/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js b/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js
-index baaf7d0..cfefb60 100644
+index baaf7d0..b6bc5db 100644
 --- a/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js
 +++ b/node_modules/@metamask/assets-controllers/dist/chunk-TPUVGGNO.js
-@@ -189,6 +189,20 @@ var TokensController = class extends _basecontroller.BaseController {
+@@ -76,7 +76,7 @@ var getDefaultTokensState = () => {
+     allDetectedTokens: {}
+   };
+ };
+-var _mutex, _chainId, _selectedAccountId, _provider, _abortController, _onNetworkDidChange, onNetworkDidChange_fn, _onSelectedAccountChange, onSelectedAccountChange_fn, _fetchTokenMetadata, fetchTokenMetadata_fn, _updateTokensAttribute, updateTokensAttribute_fn, _detectIsERC721, detectIsERC721_fn, _getProvider, getProvider_fn, _createEthersContract, createEthersContract_fn, _generateRandomId, generateRandomId_fn, _getNewAllTokensState, getNewAllTokensState_fn, _getAddressOrSelectedAddress, getAddressOrSelectedAddress_fn, _isInteractingWithWallet, isInteractingWithWallet_fn, _requestApproval, requestApproval_fn, _getSelectedAccount, getSelectedAccount_fn, _getSelectedAddress, getSelectedAddress_fn;
++var _mutex, _chainId, _selectedAccountId, _provider, _abortController, _onNetworkDidChange, onNetworkDidChange_fn, _onSelectedAccountChange, onSelectedAccountChange_fn, _fetchTokenMetadata, fetchTokenMetadata_fn, _updateTokensAttribute, updateTokensAttribute_fn, _detectIsERC721, detectIsERC721_fn, _getProvider, getProvider_fn, _createEthersContract, createEthersContract_fn, _generateRandomId, generateRandomId_fn, _getNewAllTokensState, getNewAllTokensState_fn, _getAddressOrSelectedAddress, getAddressOrSelectedAddress_fn, _isInteractingWithWallet, isInteractingWithWallet_fn, _requestApproval, requestApproval_fn, _getSelectedAccount, getSelectedAccount_fn, _getSelectedAddress, getSelectedAddress_fn, _onKeyringUnlock, onKeyringUnlock_fn;;
+ var TokensController = class extends _basecontroller.BaseController {
+   /**
+    * Tokens controller options
+@@ -114,6 +114,7 @@ var TokensController = class extends _basecontroller.BaseController {
+      * @param selectedAccount - The new selected account
+      */
+     _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _onSelectedAccountChange);
++    _chunkZ4BLTVTBjs.__privateAdd.call(void 0, this, _onKeyringUnlock);
+     /**
+      * Fetch metadata for a token.
+      *
+@@ -179,6 +180,9 @@ var TokensController = class extends _basecontroller.BaseController {
+       "NetworkController:networkDidChange",
+       _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _onNetworkDidChange, onNetworkDidChange_fn).bind(this)
+     );
++    this.messagingSystem.subscribe("KeyringController:unlock",
++      _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _onKeyringUnlock, onKeyringUnlock_fn).bind(this)
++    );
+     this.messagingSystem.subscribe(
+       "TokenListController:stateChange",
+       ({ tokenList }) => {
+@@ -189,6 +193,20 @@ var TokensController = class extends _basecontroller.BaseController {
        }
      );
    }
@@ -376,6 +403,23 @@ index baaf7d0..cfefb60 100644
    /**
     * Adds a token to the stored token list.
     *
+@@ -645,6 +663,16 @@ onSelectedAccountChange_fn = function(selectedAccount) {
+     state.detectedTokens = allDetectedTokens[_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _chainId)]?.[selectedAccount.address] ?? [];
+   });
+ };
++_onKeyringUnlock = new WeakSet();
++onKeyringUnlock_fn = function() {
++  const selectedAddress = _chunkZ4BLTVTBjs.__privateMethod.call(void 0, this, _getSelectedAddress, getSelectedAddress_fn).call(this);
++  const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
++  this.update((state) => {
++    state.tokens = allTokens[_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _chainId)]?.[selectedAddress] ?? [];
++    state.ignoredTokens = allIgnoredTokens[_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _chainId)]?.[selectedAddress] ?? [];
++    state.detectedTokens = allDetectedTokens[_chunkZ4BLTVTBjs.__privateGet.call(void 0, this, _chainId)]?.[selectedAddress] ?? [];
++  });
++};
+ _fetchTokenMetadata = new WeakSet();
+ fetchTokenMetadata_fn = async function(tokenAddress) {
+   try {
 diff --git a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts
 index a69c32d..077e2db 100644
 --- a/node_modules/@metamask/assets-controllers/dist/types/NftController.d.ts

@@ -683,6 +683,7 @@ export class Engine {
           'NetworkController:networkDidChange',
           'TokenListController:stateChange',
           'AccountsController:selectedEvmAccountChange',
+          'KeyringController:unlock',
         ],
       }),
     });
