@@ -7,6 +7,7 @@ import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmat
 import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
+import MaxInputModal from '../components/MaxInputModal';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -31,10 +32,10 @@ const StakeScreenStack = () => (
         name={Routes.STAKING.STAKE_CONFIRMATION}
         component={StakeConfirmationView}
       />
-                                <Stack.Screen
-                                name={Routes.STAKING.UNSTAKE_CONFIRMATION}
-                                component={UnstakeConfirmationView}
-                                />
+      <Stack.Screen
+        name={Routes.STAKING.UNSTAKE_CONFIRMATION}
+        component={UnstakeConfirmationView}
+      />
     </Stack.Navigator>
   </StakeSDKProvider>
 );
@@ -49,6 +50,11 @@ const StakeModalStack = () => (
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.LEARN_MORE}
         component={LearnMoreModal}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.STAKING.MODALS.MAX_INPUT}
+        component={MaxInputModal}
         options={{ headerShown: false }}
       />
     </ModalStack.Navigator>
