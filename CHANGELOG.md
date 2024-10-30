@@ -4,6 +4,7 @@
 
 ## 7.33.1 - Oct 29, 2024
 ### Fixed
+- [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
 
 ## 7.33.0 - Oct 3, 2024
 ### Added
