@@ -1086,14 +1086,17 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
-    const result = await getTransactionReviewActionKey(transaction, chainId);
+    const result = await getTransactionReviewActionKey(
+      { transaction },
+      chainId,
+    );
     expect(result).toEqual(expectedReviewActionKey);
   });
 
   it('returns correct review action key', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
     const result = await getTransactionReviewActionKey(
-      { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE },
+      { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);
