@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
 import { useTheme } from '../../util/theme';
-import { TransactionDetailsBottomSheetSelectorsIDs } from '../../../e2e/selectors/Transactions/TransactionDetailsBottomSheet.selectors';
+import { TransactionDetailsModalSelectorsIDs } from '../../../e2e/selectors/Transactions/TransactionDetailsModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -82,7 +82,7 @@ const DetailsModalTitle = ({ style, ...props }) => {
 
   return (
     <Text
-      testID={TransactionDetailsBottomSheetSelectorsIDs.TITLE}
+      testID={TransactionDetailsModalSelectorsIDs.TITLE}
       style={[styles.title, style]}
       {...props}
     />
@@ -96,7 +96,7 @@ const DetailsModalCloseIcon = ({ style, ...props }) => {
     <TouchableOpacity
       style={[styles.closeIcon, style]}
       {...props}
-      testID={TransactionDetailsBottomSheetSelectorsIDs.CLOSE_ICON}
+      testID={TransactionDetailsModalSelectorsIDs.CLOSE_ICON}
     >
       <Ionicons color={colors.text.default} name={'ios-close'} size={38} />
     </TouchableOpacity>
@@ -108,7 +108,7 @@ const DetailsModalBody = ({ style, ...props }) => {
 
   return (
     <View
-      testID={TransactionDetailsBottomSheetSelectorsIDs.BODY}
+      testID={TransactionDetailsModalSelectorsIDs.BODY}
       style={[styles.body, style]}
       {...props}
     />

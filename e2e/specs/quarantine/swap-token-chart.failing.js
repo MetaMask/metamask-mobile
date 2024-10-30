@@ -19,7 +19,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import DetailsBottomSheet from '../../pages/Transactions/DetailsBottomSheet';
+import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
 
 const fixtureServer = new FixtureServer();
 const sourceTokenSymbol = 'USDT';

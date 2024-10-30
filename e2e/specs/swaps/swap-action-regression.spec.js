@@ -5,7 +5,7 @@ import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import DetailsBottomSheet from '../../pages/Transactions/DetailsBottomSheet';
+import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../fixtures/fixture-builder';

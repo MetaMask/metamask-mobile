@@ -1,31 +1,31 @@
 import {
-  TransactionDetailsBottomSheetSelectorsText,
-  TransactionDetailsBottomSheetSelectorsIDs,
-} from '../../selectors/Transactions/TransactionDetailsBottomSheet.selectors';
+  TransactionDetailsModalSelectorsText,
+  TransactionDetailsModalSelectorsIDs,
+} from '../../selectors/Transactions/TransactionDetailsModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
-class DetailsBottomSheet {
+class TransactionDetailsModal {
   get title() {
-    return Matchers.getElementByID(TransactionDetailsBottomSheetSelectorsIDs.TITLE);
+    return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
 
   get closeIcon() {
     return Matchers.getElementByID(
-      TransactionDetailsBottomSheetSelectorsIDs.CLOSE_ICON,
+      TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
     );
   }
 
   get statusConfirmed() {
     return Matchers.getElementIDWithAncestor(
       CommonSelectorsIDs.STATUS_CONFIRMED,
-      TransactionDetailsBottomSheetSelectorsIDs.BODY,
+      TransactionDetailsModalSelectorsIDs.BODY,
     );
   }
 
   generateExpectedTitle(sourceToken, destinationToken) {
-    let title = TransactionDetailsBottomSheetSelectorsText.TITLE;
+    let title = TransactionDetailsModalSelectorsText.TITLE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
     return title;
@@ -40,4 +40,4 @@ class DetailsBottomSheet {
   }
 }
 
-export default new DetailsBottomSheet();
+export default new TransactionDetailsModal();
