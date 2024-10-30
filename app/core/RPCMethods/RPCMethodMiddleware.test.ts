@@ -1,12 +1,5 @@
-import {
-  JsonRpcEngine,
-  JsonRpcMiddleware,
-} from '@metamask/json-rpc-engine';
-import {
-  JsonRpcFailure,
-  JsonRpcSuccess,
-} from '@metamask/utils';
-import {
+import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
+import type {
   Json,
   JsonRpcParams,
   JsonRpcRequest,
@@ -14,9 +7,11 @@ import {
 } from '@metamask/utils8';
 import type {
   JsonRpcParams as ProviderParams ,
+  JsonRpcFailure,
+  JsonRpcSuccess,
 } from '../../../node_modules/@metamask/providers/node_modules/@metamask/utils';
+import { type JsonRpcError, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
@@ -218,12 +213,12 @@ async function callMiddleware({
   request,
 }: {
   middleware: JsonRpcMiddleware<JsonRpcParams, Json>;
-  request: JsonRpcRequest<ProviderParams>;
+  request: JsonRpcRequest<JsonRpcParams>;
 }) {
   const engine = new JsonRpcEngine();
   engine.push(middleware);
 
-  return await engine.handle([request]);
+  return await engine.handle(request);
 }
 
 /**
@@ -425,7 +420,7 @@ describe('getRpcMethodMiddleware', () => {
       permissionController.createPermissionMiddleware({
         origin: hostMock,
       });
-    // @ts-expect-error JsonRpcId (number | string | void) doesn't match PS middleware's id, which is (string | number | null)
+      // @ts-expect-error TODO: Resolve mismatch for permission-controller json-rpc-engine eth-json-rpc-middleware
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -471,7 +466,7 @@ describe('getRpcMethodMiddleware', () => {
             method,
           };
 
-          const response = (await callMiddleware({ middleware, request }))[0];
+          const response = await callMiddleware({ middleware, request });
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
@@ -496,7 +491,7 @@ describe('getRpcMethodMiddleware', () => {
             method,
           };
 
-          const response = (await callMiddleware({ middleware, request }))[0];
+          const response = await callMiddleware({ middleware, request });
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([]);
@@ -522,7 +517,7 @@ describe('getRpcMethodMiddleware', () => {
             method,
           };
 
-          const response = (await callMiddleware({ middleware, request }))[0];
+          const response = await callMiddleware({ middleware, request });
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
@@ -550,7 +545,7 @@ describe('getRpcMethodMiddleware', () => {
             method,
           };
 
-          const response = (await callMiddleware({ middleware, request }))[0];
+          const response = await callMiddleware({ middleware, request });
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
@@ -575,7 +570,7 @@ describe('getRpcMethodMiddleware', () => {
             method,
           };
 
-          const response = (await callMiddleware({ middleware, request }))[0];
+          const response = await callMiddleware({ middleware, request });
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([]);
@@ -628,7 +623,7 @@ describe('getRpcMethodMiddleware', () => {
           },
         ],
       };
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
       ).toEqual([mockPermission.eth_accounts]);
@@ -669,7 +664,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_getPermissions',
         params: [],
       };
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
       ).toEqual([mockPermission.eth_accounts]);
@@ -718,7 +713,7 @@ describe('getRpcMethodMiddleware', () => {
           params: [mockTransactionParameters],
         };
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error).toBeUndefined();
         expect((response as JsonRpcSuccess<string>).result).toBe('fake-hash');
@@ -768,7 +763,7 @@ describe('getRpcMethodMiddleware', () => {
         };
         const expectedError = providerErrors.userRejectedRequest();
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error.code).toBe(
           expectedError.code,
@@ -823,7 +818,7 @@ describe('getRpcMethodMiddleware', () => {
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error.code).toBe(
           expectedError.code,
@@ -873,7 +868,7 @@ describe('getRpcMethodMiddleware', () => {
           params: [mockTransactionParameters],
         };
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error).toBeUndefined();
         expect((response as JsonRpcSuccess<string>).result).toBe('fake-hash');
@@ -923,7 +918,7 @@ describe('getRpcMethodMiddleware', () => {
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error.code).toBe(
           expectedError.code,
@@ -976,7 +971,7 @@ describe('getRpcMethodMiddleware', () => {
           params: [mockTransactionParameters],
         };
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error).toBeUndefined();
         expect((response as JsonRpcSuccess<string>).result).toBe('fake-hash');
@@ -1025,7 +1020,7 @@ describe('getRpcMethodMiddleware', () => {
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
-        const response = (await callMiddleware({ middleware, request }))[0];
+        const response = await callMiddleware({ middleware, request });
 
         expect((response as JsonRpcFailure).error.code).toBe(
           expectedError.code,
@@ -1072,7 +1067,7 @@ describe('getRpcMethodMiddleware', () => {
         params: [mockTransactionParameters],
       };
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBe('fake-hash');
@@ -1097,7 +1092,7 @@ describe('getRpcMethodMiddleware', () => {
         params: [mockTransactionParameters],
       };
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBe('fake-hash');
@@ -1106,7 +1101,8 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as TransactionParams;
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -1123,10 +1119,14 @@ describe('getRpcMethodMiddleware', () => {
       };
       const expectedError = rpcErrors.internal('Failed to add transaction');
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause.message).toBe(
         expectedError.message,
       );
     });
@@ -1134,7 +1134,8 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as TransactionParams;
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       setupGlobalState({
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
@@ -1153,7 +1154,7 @@ describe('getRpcMethodMiddleware', () => {
       };
       const expectedError = rpcErrors.internal('Failed to process transaction');
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
@@ -1184,7 +1185,7 @@ describe('getRpcMethodMiddleware', () => {
         params: [helloWorldMessage, helloWorldSignature],
       };
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBe(
@@ -1204,7 +1205,7 @@ describe('getRpcMethodMiddleware', () => {
         params: ['another message', helloWorldSignature],
       };
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBeTruthy();
@@ -1226,7 +1227,7 @@ describe('getRpcMethodMiddleware', () => {
       };
       const expectedError = rpcErrors.internal('Missing signature parameter');
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
@@ -1243,11 +1244,11 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'personal_ecRecover',
-        params: [undefined, helloWorldSignature],
+        params: [undefined, helloWorldSignature] as JsonRpcParams,
       };
       const expectedError = rpcErrors.internal('Missing data parameter');
 
-      const response = (await callMiddleware({ middleware, request: request as JsonRpcRequest }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
       expect((response as JsonRpcFailure).error.message).toBe(
@@ -1268,7 +1269,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'parity_checkRequest',
       };
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       expect((response as JsonRpcFailure).error).toBeUndefined();
       expect((response as JsonRpcSuccess<string>).result).toBeNull();
@@ -1423,7 +1424,7 @@ describe('getRpcMethodMiddleware', () => {
         origin: mockBlockedOrigin,
       };
 
-      const response = (await callMiddleware({ middleware, request }))[0];
+      const response = await callMiddleware({ middleware, request });
 
       const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
       expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
