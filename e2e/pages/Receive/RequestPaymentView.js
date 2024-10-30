@@ -1,6 +1,6 @@
-import { RequestPaymentViewSelectors } from '../selectors/RequestPaymentView.selectors';
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
+import { RequestPaymentViewSelectors } from '../../selectors/Receive/RequestPaymentView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 class RequestPaymentView {
   get backButton() {
