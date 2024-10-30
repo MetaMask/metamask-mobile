@@ -1,12 +1,12 @@
 import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
-} from '../../selectors/Modals/TransactionDetailsModal.selectors';
+} from '../../selectors/Transactions/TransactionDetailsModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
-class DetailsModal {
+class TransactionDetailsModal {
   get title() {
     return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
@@ -40,4 +40,4 @@ class DetailsModal {
   }
 }
 
-export default new DetailsModal();
+export default new TransactionDetailsModal();
