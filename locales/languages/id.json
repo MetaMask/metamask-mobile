@@ -2813,20 +2813,6 @@
       "description": "Jual kripto langsung di MetaMask! Kami akan membantu menemukan penawaran harga dari penyedia tepercaya, sehingga Anda dapat menjual kripto dengan cara yang mudah diakses, cepat, dan aman, setiap saat.",
       "action_text": "Cobalah"
     },
-    "stx": {
-      "header": "Peningkatan Perlindungan Transaksi",
-      "description_1": "Raih tingkat keberhasilan yang lebih tinggi, perlindungan frontrunning, dan visibilitas yang lebih baik dengan Transaksi Pintar.",
-      "description_2": "Hanya tersedia di Ethereum. Aktifkan atau nonaktifkan setiap saat di pengaturan.",
-      "no_thanks": "Tidak, terima kasih",
-      "primary_button": "Aktifkan",
-      "learn_more": "Selengkapnya.",
-      "benefit_1_1": "Keberhasilan 99,5%",
-      "benefit_1_2": "tingkat",
-      "benefit_2_1": "Menghemat",
-      "benefit_2_2": "uang",
-      "benefit_3_1": "Waktu nyata",
-      "benefit_3_2": "pembaruan"
-    },
     "transaction_simulation": {
       "title": "Estimasi perubahan saldo",
       "description_1": "Kini Anda dapat melihat potensi hasil transaksi sebelum melakukannya!",

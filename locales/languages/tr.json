@@ -2813,20 +2813,6 @@
       "description": "Kriptonuzu doğrudan MetaMask'ta satın! Kriptonuzu her defasında erişilebilir, hızlı ve güvenli bir şekilde satabilmeniz için güvenilir sağlayıcılardan teklifleri bulmanıza yardımcı olacağız.",
       "action_text": "Deneyin"
     },
-    "stx": {
-      "header": "İyileştirilmiş İşlem Koruması",
-      "description_1": "Akıllı İşlemler ile daha yüksek başarı oranlarının, arkadan çalıştırma korumasının ve daha iyi görünürlüğün kilidini açın.",
-      "description_2": "Sadece Ethereum'da mevcuttur. Dilediğiniz zaman ayarlar kısmında etkinleştirin veya devre dışı bırakın.",
-      "no_thanks": "Hayır, teşekkürler",
-      "primary_button": "Etkinleştir",
-      "learn_more": "Daha fazla bilgi edinin.",
-      "benefit_1_1": "%99,5 başarı oranı",
-      "benefit_1_2": "oran",
-      "benefit_2_1": "Paradan",
-      "benefit_2_2": "tasarruf sağlar",
-      "benefit_3_1": "Gerçek zamanlı",
-      "benefit_3_2": "güncellemeler"
-    },
     "transaction_simulation": {
       "title": "Tahmini bakiye değişiklikleri",
       "description_1": "Artık gerçekleştirmeden önce işlemlerinizin potansiyel sonuçlarını görebilirsiniz!",

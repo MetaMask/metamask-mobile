@@ -2813,20 +2813,6 @@
       "description": "Venda seus criptoativos diretamente na MetaMask! Vamos ajudar você a encontrar cotações de provedores de confiança para que possa vendê-los de forma acessível, rápida e segura, sempre.",
       "action_text": "Experimente"
     },
-    "stx": {
-      "header": "Proteção de transações aprimorada",
-      "description_1": "Desbloqueie taxas de sucesso maiores, proteção contra front running e melhor visibilidade com as transações inteligentes.",
-      "description_2": "Disponível somente na Ethereum. Ative ou desative a qualquer momento nas configurações.",
-      "no_thanks": "Não, obrigado",
-      "primary_button": "Ativar",
-      "learn_more": "Saiba mais.",
-      "benefit_1_1": "99,5% de taxa de",
-      "benefit_1_2": "sucesso",
-      "benefit_2_1": "Faz você economizar",
-      "benefit_2_2": "dinheiro",
-      "benefit_3_1": "em tempo real",
-      "benefit_3_2": "Atualizações"
-    },
     "transaction_simulation": {
       "title": "Alterações de saldo estimadas",
       "description_1": "Agora você pode ver os possíveis resultados de suas transações antes de realizá-las!",

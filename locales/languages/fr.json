@@ -2813,20 +2813,6 @@
       "description": "Vendez vos cryptomonnaies directement dans MetaMask ! Nous vous aiderons à trouver des cotations auprès de fournisseurs de confiance, afin que vous puissiez vendre rapidement et en toute sécurité vos cryptomonnaies.",
       "action_text": "Essayez cette fonctionnalité"
     },
-    "stx": {
-      "header": "Protection renforcée des transactions",
-      "description_1": "Bénéficiez de taux de réussite plus élevés, d’une protection contre le « front running » et d’une meilleure visibilité grâce aux transactions intelligentes.",
-      "description_2": "Disponible uniquement sur Ethereum. Vous pouvez activer ou désactiver cette option à tout moment dans les paramètres.",
-      "no_thanks": "Non, merci",
-      "primary_button": "Activer",
-      "learn_more": "En savoir plus.",
-      "benefit_1_1": "Taux de réussite de",
-      "benefit_1_2": "99,5 %",
-      "benefit_2_1": "Vous fait économiser",
-      "benefit_2_2": "de l’argent",
-      "benefit_3_1": "Mises à jour",
-      "benefit_3_2": "en temps réel"
-    },
     "transaction_simulation": {
       "title": "Estimation des changements de solde",
       "description_1": "Vous pouvez désormais connaître le résultat potentiel de vos transactions avant de les effectuer !",
