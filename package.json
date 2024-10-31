@@ -191,7 +191,7 @@
     "@metamask/stake-sdk": "^0.2.13",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^9.0.12",
-    "@metamask/transaction-controller": "^38.1.0",
+    "@metamask/transaction-controller": "^37.1.0",
     "@metamask/utils": "^9.2.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
@@ -532,7 +532,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^20.17.0",
+    "node": "^20.14.0",
     "yarn": "^1.22.22"
   },
   "lavamoat": {
