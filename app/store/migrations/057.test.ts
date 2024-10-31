@@ -1,19 +1,36 @@
-import migrate from './057';
+import migration from './057';
 import { merge } from 'lodash';
-import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
+import { captureException } from '@sentry/react-native';
+import {
+  expectedUuid,
+  expectedUuid2,
+  internalAccount1,
+  internalAccount2,
+} from '../../util/test/accountsControllerTestUtils';
+
+const oldState = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [expectedUuid]: internalAccount1,
+            [expectedUuid2]: internalAccount2,
+          },
+          selectedAccount: expectedUuid,
+        },
+      },
+    },
+  },
+};
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
-
-describe('Migration #57 - Update default search engine from DDG to Google', () => {
+describe('Migration #57', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -21,17 +38,12 @@ describe('Migration #57 - Update default search engine from DDG to Google', () =
 
   const invalidStates = [
     {
-      state: null,
-      errorMessage: "FATAL ERROR: Migration 57: Invalid state error: 'object'",
-      scenario: 'state is invalid',
-    },
-    {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 57: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
+      expectedError:
+        "FATAL ERROR: Migration 57: Invalid engine state error: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -39,55 +51,147 @@ describe('Migration #57 - Update default search engine from DDG to Google', () =
           backgroundState: null,
         },
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 57: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
+      expectedError:
+        "FATAL ERROR: Migration 57: Invalid engine backgroundState error: 'object'",
     },
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: {},
+          backgroundState: {
+            AccountsController: { internalAccounts: null },
+          },
         },
-        settings: null,
       }),
-      errorMessage:
-        "FATAL ERROR: Migration 57: Invalid Settings state error: 'object'",
-      scenario: 'Settings object is invalid',
+      scenario: 'AccountsController internalAccounts state is invalid',
+      expectedError:
+        "FATAL ERROR: Migration 57: Invalid AccountsController state error: internalAccounts is not an object, type: 'object'",
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: null,
+              },
+            },
+          },
+        },
+      }),
+      scenario: 'AccountsController internalAccounts accounts state is invalid',
+      expectedError:
+        "FATAL ERROR: Migration 57: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: 'object'",
     },
   ];
 
-  for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
-      const newState = await migrate(state);
+  for (const { scenario, state, expectedError } of invalidStates) {
+    it(`captures exception if ${scenario}`, () => {
+      const newState = migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        errorMessage,
+        expectedError,
       );
     });
   }
 
-  it('should update the search engine to Google', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {},
-      },
-      settings: {
-        searchEngine: 'DuckDuckGo',
-      }
-    };
+  it('does not change the selectedAccount if it is valid', () => {
+    const newState = migration(oldState) as typeof oldState;
 
-    const expectedState = {
-      engine: {
-        backgroundState: {},
-      },
-      settings: {
-        searchEngine: 'Google',
-      }
-    };
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toEqual(expectedUuid);
+  });
 
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+  it('updates the selectedAccount if it is invalid', () => {
+    const invalidState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'invalid-uuid',
+            },
+          },
+        },
+      },
+    });
+
+    const newState = migration(invalidState) as typeof invalidState;
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toEqual(expectedUuid);
+  });
+
+  it('updates the selectedAccount if it is undefined', () => {
+    const invalidState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {},
+          },
+        },
+      },
+    });
+
+    const newState = migration(invalidState) as typeof invalidState;
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toEqual(expectedUuid);
+  });
+
+  it('does not change the state if there are no accounts', () => {
+    const emptyAccountsState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: 'some-uuid',
+            },
+          },
+        },
+      },
+    });
+
+    const newState = migration(emptyAccountsState) as typeof emptyAccountsState;
+
+    expect(newState).toStrictEqual(emptyAccountsState);
+  });
+
+  it('updates the selectedAccount to the first account if current selection is invalid', () => {
+    const invalidSelectedState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'non-existent-uuid',
+            },
+          },
+        },
+      },
+    });
+
+    const newState = migration(
+      invalidSelectedState,
+    ) as typeof invalidSelectedState;
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toEqual(expectedUuid);
+  });
+
+  it('does not modify the state if the selectedAccount is valid', () => {
+    const validState = merge({}, oldState);
+    const newState = migration(validState) as typeof validState;
+
+    expect(newState).toStrictEqual(validState);
   });
 });

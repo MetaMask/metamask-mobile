@@ -12,7 +12,7 @@ import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModa
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
 import LoginView from '../../pages/LoginView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';

@@ -40,7 +40,7 @@ import {
   toggleUseSafeChainsListValidation,
   isMultichainVersion1Enabled,
 } from '../../../util/networks';
-import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 
@@ -407,7 +407,7 @@ const NetworkVerificationInfo = ({
       />
     </View>
   ) : (
-    <View testID={NetworkApprovalModalSelectorsIDs.CONTAINER}>
+    <View testID={NetworkApprovalBottomSheetSelectorsIDs.CONTAINER}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork
@@ -461,14 +461,14 @@ const NetworkVerificationInfo = ({
             label: strings('confirmation_modal.cancel_cta'),
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
-            testID: NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON,
+            testID: NetworkApprovalBottomSheetSelectorsIDs.CANCEL_BUTTON,
           },
           {
             onPress: onConfirm,
             label: strings('confirmation_modal.confirm_cta'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
-            testID: NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON,
+            testID: NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
           },
         ]}
         buttonsAlignment={ButtonsAlignment.Horizontal}
