@@ -4,7 +4,7 @@ import { SmokeCore } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';

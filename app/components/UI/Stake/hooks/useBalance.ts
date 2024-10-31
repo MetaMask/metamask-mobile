@@ -29,7 +29,7 @@ const useBalance = () => {
     ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';
 
-  const balance = useMemo(
+  const balanceETH = useMemo(
     () => renderFromWei(rawAccountBalance),
     [rawAccountBalance],
   );
@@ -50,8 +50,7 @@ const useBalance = () => {
   );
 
   const { pooledStakesData } = usePooledStakes();
-  const assets = pooledStakesData.assets ?? 0;
-
+  const assets = hexToBN(pooledStakesData.assets).toString('hex');
   const formattedStakedBalanceETH = useMemo(
     () => `${renderFromWei(assets)} ETH`,
     [assets],
@@ -68,11 +67,11 @@ const useBalance = () => {
   );
 
   return {
-    balance,
+    balanceETH,
     balanceFiat,
     balanceWei,
     balanceFiatNumber,
-    stakedBalanceWei: assets,
+    stakedBalanceWei: assets ?? '0',
     formattedStakedBalanceETH,
     stakedBalanceFiatNumber,
     formattedStakedBalanceFiat,
