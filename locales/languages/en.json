@@ -3524,7 +3524,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
+      "tooltip": "It can take between 1 and 11 days for your unstaking request to be processed. The exact duration depends on ETH staking activity."
     }
   },
   "confirm": {
