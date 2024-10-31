@@ -13,7 +13,7 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 

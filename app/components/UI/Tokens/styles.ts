@@ -166,6 +166,16 @@ const createStyles = (colors: Colors) =>
       marginLeft: 5,
       marginRight: 5,
     },
+    balanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    privacyIcon: {
+      marginLeft: 8,
+    },
+    portfolioButtonContainer: {
+      alignItems: 'center',
+    },
   });
 
 export default createStyles;

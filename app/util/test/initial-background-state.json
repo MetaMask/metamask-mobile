@@ -165,9 +165,6 @@
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
-    "disabledRpcMethodPreferences": {
-      "eth_sign": false
-    },
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
@@ -200,7 +197,8 @@
       "order": "dsc",
       "sortCallback": "stringNumeric"
     },
-    "tokenNetworkFilter": {}
+    "tokenNetworkFilter": {},
+    "privacyMode": false
   },
   "TokenBalancesController": {
     "contractBalances": {}

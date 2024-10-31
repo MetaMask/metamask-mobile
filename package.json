@@ -142,7 +142,7 @@
     "@metamask/accounts-controller": "^18.2.1",
     "@metamask/address-book-controller": "^6.0.1",
     "@metamask/approval-controller": "^7.1.0",
-    "@metamask/assets-controllers": "^36.0.0",
+    "@metamask/assets-controllers": "^37.0.0",
     "@metamask/base-controller": "^7.0.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
@@ -170,7 +170,7 @@
     "@metamask/phishing-controller": "^12.0.3",
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "0.32.0",
-    "@metamask/preferences-controller": "^11.0.0",
+    "@metamask/preferences-controller": "^13.1.0",
     "@metamask/profile-sync-controller": "^0.9.7",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
@@ -192,7 +192,7 @@
     "@metamask/stake-sdk": "^0.2.13",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^9.0.12",
-    "@metamask/transaction-controller": "^37.1.0",
+    "@metamask/transaction-controller": "^38.1.0",
     "@metamask/utils": "^9.2.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
@@ -264,6 +264,7 @@
     "path": "0.12.7",
     "pbkdf2": "3.1.2",
     "pify": "6.1.0",
+    "portfinder": "^1.0.32",
     "prop-types": "15.7.2",
     "pump": "3.0.0",
     "punycode": "^2.1.1",
@@ -532,7 +533,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^20.14.0",
+    "node": "^20.17.0",
     "yarn": "^1.22.22"
   },
   "lavamoat": {

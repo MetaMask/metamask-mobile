@@ -120,3 +120,9 @@ export const selectUseTransactionSimulations = createSelector(
       }
     ).useTransactionSimulations,
 );
+
+export const selectPrivacyMode = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.privacyMode,
+);

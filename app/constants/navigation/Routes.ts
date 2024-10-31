@@ -114,6 +114,7 @@ const Routes = {
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
+    CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
