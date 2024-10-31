@@ -4,7 +4,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ToastModal from '../../pages/modals/ToastModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import { loginToApp } from '../../viewHelper';
