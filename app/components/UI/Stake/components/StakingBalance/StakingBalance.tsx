@@ -142,7 +142,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
                     )}
                     timeRemaining={
                       !Number(withdrawalTimestamp)
-                        ? { days: 11, hours: 0, minutes: 0 } // default to 11 days.
+                        ? { days: 0, hours: 0, minutes: 0 } // default to 0 days.
                         : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
                     }
                     style={styles.bannerStyles}

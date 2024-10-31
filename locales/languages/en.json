@@ -3422,7 +3422,7 @@
         "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
         "and": "and",
         "to_claim_it": "to claim it.",
-        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
