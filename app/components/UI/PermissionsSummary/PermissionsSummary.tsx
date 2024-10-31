@@ -40,6 +40,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
+import Engine from '../../../core/Engine';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -63,6 +64,8 @@ const PermissionsSummary = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
+
+  const hostname = new URL(currentPageInformation.url).hostname;
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -150,20 +153,24 @@ const PermissionsSummary = ({
     </View>
   );
 
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
         hostInfo: {
           metadata: {
-            origin:
-              currentPageInformation?.url &&
-              new URL(currentPageInformation?.url).hostname,
+            origin: hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, currentPageInformation?.url]);
+  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -346,10 +353,10 @@ const PermissionsSummary = ({
             <TextComponent variant={TextVariant.HeadingSM}>
               {!isAlreadyConnected || isNetworkSwitch
                 ? strings('permissions.title_dapp_url_wants_to', {
-                    dappUrl: new URL(currentPageInformation.url).hostname,
+                    dappUrl: hostname,
                   })
                 : strings('permissions.title_dapp_url_has_approval_to', {
-                    dappUrl: new URL(currentPageInformation.url).hostname,
+                    dappUrl: hostname,
                   })}
             </TextComponent>
           </View>
