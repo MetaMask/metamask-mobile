@@ -13,6 +13,7 @@ const styleSheet = () =>
   StyleSheet.create({
     balancesContainer: {
       alignItems: 'flex-end',
+      flexDirection: 'column',
     },
     balanceLabel: { textAlign: 'right' },
   });
