@@ -463,26 +463,15 @@ const AccountConnect = (props: AccountConnectProps) => {
         source: eventSource,
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
-      if (connectedAccountLength > 1) {
-        labelOptions = [
-          { label: `${connectedAccountLength} `, isBold: true },
-          {
-            label: `${strings('toast.accounts_connected')}`,
-          },
-          { label: `\n${activeAccountName} `, isBold: true },
-          { label: strings('toast.now_active') },
-        ];
-      } else {
-        labelOptions = [
-          { label: `${activeAccountName} `, isBold: true },
-          { label: strings('toast.connected_and_active') },
-        ];
+
+      if (connectedAccountLength >= 1) {
+        labelOptions = [{ label: `${strings('toast.permissions_updated')}` }];
       }
+
       toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
+        variant: ToastVariants.Network,
         labelOptions,
-        accountAddress: activeAddress,
-        accountAvatarType,
+        networkImageSource: faviconSource,
         hasNoTimeout: false,
       });
     } catch (e) {
@@ -504,6 +493,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
     triggerDappViewedEvent,
     trackEvent,
+    faviconSource,
   ]);
 
   const handleCreateAccount = useCallback(
