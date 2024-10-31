@@ -52,7 +52,8 @@ git checkout -b "${CHANGELOG_BRANCH_NAME}"
 echo "Changelog Branch Created"
 
 #Bump versions for the release"
-SEMVER_VERSION="${NEW_VERSION}" VERSION_NUMBER="${NEW_VERSION_NUMBER}" yarn set-version
+./scripts/set-semvar-version.sh "${NEW_VERSION}"
+./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
 
 #Generate changelog and test plan csv
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
@@ -66,7 +67,7 @@ then
     exit 1
 fi
 
-PR_BODY="This is PR updateds the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
+PR_BODY="This PR updates the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
 
 git push --set-upstream origin "${CHANGELOG_BRANCH_NAME}"
 

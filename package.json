@@ -76,7 +76,6 @@
     "changeset-changelog": "wrap () { node ./scripts/generate-rc-commits.js \"$@\" && ./scripts/changelog-csv.sh }; wrap ",
     "prestorybook": "rnstl",
     "deduplicate": "yarn yarn-deduplicate && yarn install",
-    "set-version": "./scripts/set-versions.sh",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
     "patch:assets": "./scripts/patch-assets-controllers.sh",
     "patch:approval": "./scripts/patch-approval-controller.sh",
