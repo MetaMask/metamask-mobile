@@ -160,12 +160,6 @@ const NetworkConnectMultiSelector = ({
   );
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
-    // not sure if we want to do this here or on the sub modal
-    // which provides the extra warning that it will fully disconnect you
-    Engine.context.PermissionController.revokePermissions({
-      [hostname]: [PermissionKeys.permittedChains, PermissionKeys.eth_accounts],
-    });
-
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
