@@ -159,6 +159,11 @@ const NetworkConnectMultiSelector = ({
     [networks, selectedChainIds],
   );
 
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
@@ -168,13 +173,14 @@ const NetworkConnectMultiSelector = ({
             origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
   }, [navigate, urlWithProtocol, hostname]);
+
   const areAllNetworksSelected = networks
     .map(({ id }) => id)
     .every((id) => selectedChainIds?.includes(id));
-
   const areAnyNetworksSelected = selectedChainIds?.length !== 0;
   const areNoNetworksSelected = selectedChainIds?.length === 0;
 
