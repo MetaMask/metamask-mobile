@@ -1,5 +1,5 @@
 import SecureKeychain from './SecureKeychain';
-import * as Keychain from 'react-native-keychain';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import StorageWrapper from '../store/storage-wrapper';
 import { Platform } from 'react-native';
 import {
@@ -9,7 +9,6 @@ import {
   PASSCODE_DISABLED,
   TRUE,
 } from '../constants/storage';
-import { IMetaMetrics } from './Analytics/MetaMetrics.types';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 
@@ -59,29 +58,10 @@ jest.mock('../core/Analytics', () => ({
 
 describe('SecureKeychain - setGenericPassword', () => {
   const mockPassword = 'test_password';
-  let metricsInstance: IMetaMetrics;
 
   beforeEach(() => {
     jest.clearAllMocks();
     SecureKeychain.init('test_salt');
-    metricsInstance = {
-      addTraitsToUser: mockAddTraitsToUser,
-      trackEvent: jest.fn(),
-      isEnabled: jest.fn(),
-      enable: jest.fn(),
-      group: jest.fn(),
-      reset: jest.fn(),
-      identify: jest.fn(),
-      page: jest.fn(),
-      track: jest.fn(),
-      updateTraits: jest.fn(),
-      getTraits: jest.fn(),
-      disable: jest.fn(),
-      flush: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-    } as unknown as IMetaMetrics;
   });
 
   it('should set biometric authentication correctly', async () => {
