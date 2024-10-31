@@ -1290,13 +1290,15 @@ export function getNetworkNavbarOptions(
           />
         }
         endAccessory={
-          <ButtonIcon
-            style={styles.headerRightButton}
-            onPress={onRightPress}
-            size={ButtonIconSizes.Lg}
-            iconName={IconName.MoreVertical}
-            iconColor={IconColor.Default}
-          />
+          onRightPress && (
+            <ButtonIcon
+              style={styles.headerRightButton}
+              onPress={onRightPress}
+              size={ButtonIconSizes.Lg}
+              iconName={IconName.MoreVertical}
+              iconColor={IconColor.Default}
+            />
+          )
         }
       >
         <NavbarTitle
