@@ -1336,6 +1336,7 @@ export class Engine {
       },
       isSimulationEnabled: () =>
         preferencesController.state.useTransactionSimulations,
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
@@ -1407,6 +1408,7 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
+      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
