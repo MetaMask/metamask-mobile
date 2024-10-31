@@ -297,10 +297,10 @@ index d252cab..ccc3d82 100644
  //# sourceMappingURL=TokenBalancesController.d.cts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
-index bdee9e6..525f4d2 100644
+index bdee9e6..069ec0c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
-@@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+@@ -13,12 +13,13 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
  var __importDefault = (this && this.__importDefault) || function (mod) {
      return (mod && mod.__esModule) ? mod : { "default": mod };
  };
@@ -309,7 +309,13 @@ index bdee9e6..525f4d2 100644
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.TokenDetectionController = exports.controllerName = exports.STATIC_MAINNET_TOKEN_LIST = exports.isEqualCaseInsensitive = void 0;
  const contract_metadata_1 = __importDefault(require("@metamask/contract-metadata"));
-@@ -50,6 +50,19 @@ exports.STATIC_MAINNET_TOKEN_LIST = Object.entries(contract_metadata_1.default).
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const polling_controller_1 = require("@metamask/polling-controller");
++const lodash_1 = require("lodash");
+ const assetsUtil_1 = require("./assetsUtil.cjs");
+ const DEFAULT_INTERVAL = 180000;
+ /**
+@@ -50,6 +51,19 @@ exports.STATIC_MAINNET_TOKEN_LIST = Object.entries(contract_metadata_1.default).
          },
      };
  }, {});
@@ -329,7 +335,7 @@ index bdee9e6..525f4d2 100644
  exports.controllerName = 'TokenDetectionController';
  /**
   * Controller that passively polls on a set interval for Tokens auto detection
-@@ -83,7 +96,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+@@ -83,7 +97,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
          _TokenDetectionController_intervalId.set(this, void 0);
          _TokenDetectionController_selectedAccountId.set(this, void 0);
          _TokenDetectionController_networkClientId.set(this, void 0);
@@ -338,7 +344,7 @@ index bdee9e6..525f4d2 100644
          _TokenDetectionController_disabled.set(this, void 0);
          _TokenDetectionController_isUnlocked.set(this, void 0);
          _TokenDetectionController_isDetectionEnabledFromPreferences.set(this, void 0);
-@@ -95,6 +108,8 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+@@ -95,6 +109,8 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
          __classPrivateFieldSet(this, _TokenDetectionController_selectedAccountId, __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAccount).call(this).id, "f");
          const { chainId, networkClientId } = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getCorrectChainIdAndNetworkClientId).call(this);
          __classPrivateFieldSet(this, _TokenDetectionController_networkClientId, networkClientId, "f");
@@ -347,7 +353,7 @@ index bdee9e6..525f4d2 100644
          const { useTokenDetection: defaultUseTokenDetection } = this.messagingSystem.call('PreferencesController:getState');
          __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, defaultUseTokenDetection, "f");
          __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledForNetwork, (0, assetsUtil_1.isTokenDetectionSupportedForNetwork)(chainId), "f");
-@@ -172,9 +187,9 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+@@ -172,9 +188,9 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
          const isTokenDetectionInactiveInMainnet = !__classPrivateFieldGet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, "f") &&
              chainIdAgainstWhichToDetect === controller_utils_1.ChainId.mainnet;
          const { tokensChainsCache } = this.messagingSystem.call('TokenListController:getState');
@@ -360,7 +366,7 @@ index bdee9e6..525f4d2 100644
          const tokenDetectionPromises = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSlicesOfTokensToDetect).call(this, {
              chainId: chainIdAgainstWhichToDetect,
              selectedAddress: addressAgainstWhichToDetect,
-@@ -188,7 +203,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+@@ -188,7 +204,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
      }
  }
  exports.TokenDetectionController = TokenDetectionController;
@@ -369,7 +375,7 @@ index bdee9e6..525f4d2 100644
      // TODO: Either fix this lint violation or explain why it's necessary to ignore.
      // eslint-disable-next-line @typescript-eslint/no-misused-promises
      this.messagingSystem.subscribe('KeyringController:unlock', async () => {
-@@ -200,14 +215,14 @@ _TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_
+@@ -200,14 +216,14 @@ _TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_
          __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_stopPolling).call(this);
      });
      this.messagingSystem.subscribe('TokenListController:stateChange', 
@@ -392,7 +398,7 @@ index bdee9e6..525f4d2 100644
      this.messagingSystem.subscribe('PreferencesController:stateChange', 
      // TODO: Either fix this lint violation or explain why it's necessary to ignore.
      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-@@ -266,6 +281,11 @@ async function _TokenDetectionController_startPolling() {
+@@ -266,6 +282,11 @@ async function _TokenDetectionController_startPolling() {
      __classPrivateFieldSet(this, _TokenDetectionController_intervalId, setInterval(async () => {
          await this.detectTokens();
      }, this.getIntervalLength()), "f");
@@ -404,7 +410,7 @@ index bdee9e6..525f4d2 100644
  }, _TokenDetectionController_getCorrectChainIdAndNetworkClientId = function _TokenDetectionController_getCorrectChainIdAndNetworkClientId(networkClientId) {
      if (networkClientId) {
          const networkConfiguration = this.messagingSystem.call('NetworkController:getNetworkConfigurationByNetworkClientId', networkClientId);
-@@ -305,7 +325,7 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
+@@ -305,7 +326,7 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
          allIgnoredTokens,
      ].map((tokens) => (tokens[chainId]?.[selectedAddress] ?? []).map((value) => typeof value === 'string' ? value : value.address));
      const tokensToDetect = [];
@@ -413,7 +419,7 @@ index bdee9e6..525f4d2 100644
          if ([
              tokensAddresses,
              detectedTokensAddresses,
-@@ -319,13 +339,31 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
+@@ -319,13 +340,31 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
          slicesOfTokensToDetect.push(tokensToDetect.slice(i, i + size));
      }
      return slicesOfTokensToDetect;

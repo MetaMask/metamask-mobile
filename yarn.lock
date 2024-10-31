@@ -4338,7 +4338,7 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^38.0.0":
+"@metamask/assets-controllers@^38.3.0":
   version "38.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-38.3.0.tgz#78432ce2f1696ab5de27c9f70ae7676563699de2"
   integrity sha512-hPvQy/HoWAf1FsYEY6TbqVhCfDMuRbtycg3oXWX/XrgyRilvSgB4fIp49h+rxpeewxDt/4LMUw+Y1d8qxQDdsw==
