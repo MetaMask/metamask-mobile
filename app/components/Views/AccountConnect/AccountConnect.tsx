@@ -232,8 +232,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
     let hasPermittedChains = false;
-    const chainsToPermit =
-      selectedChainIds.length > 0 ? selectedChainIds : chainId ? [chainId] : [];
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      chainsToPermit = [chainId];
+    }
 
     try {
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
