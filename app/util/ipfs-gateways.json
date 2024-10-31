@@ -18,5 +18,10 @@
     "value": "https://gateway.pinata.cloud/ipfs/",
     "key": 24,
     "label": "https://gateway.pinata.cloud/ipfs/"
+  },
+  {
+    "value": "https://dweb.link/ipfs/",
+    "key": 30,
+    "label": "https://dweb.link/ipfs/"
   }
 ]

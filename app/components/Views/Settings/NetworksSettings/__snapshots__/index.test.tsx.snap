@@ -413,11 +413,14 @@ exports[`NetworksSettings should render correctly 1`] = `
                           
                         </Text>
                         <TextInput
+                          onBlur={[Function]}
                           onChangeText={[Function]}
-                          placeholder="Search for previously added network"
+                          onFocus={[Function]}
+                          placeholder="Search"
                           placeholderTextColor="#141618"
                           style={
                             {
+                              "borderColor": "#bbc0c5",
                               "color": "#141618",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",

@@ -49,7 +49,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import { colors as importedColors } from '../../../styles/common';
 import {
   ToastContext,
   ToastVariants,
@@ -59,6 +58,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -80,6 +80,8 @@ import {
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
+import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 
 const Stack = createStackNavigator();
 
@@ -97,7 +99,6 @@ const createStyles = (colors) =>
   });
 
 const Main = (props) => {
-  const [connected, setConnected] = useState(true);
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
@@ -108,13 +109,12 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
+  const { connectionChangeHandler } = useConnectionHandler(props.navigation);
+
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler(props.navigation);
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
-
-
-
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -133,21 +133,6 @@ const Main = (props) => {
       stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
-
-  const connectionChangeHandler = useCallback(
-    (state) => {
-      if (!state) return;
-      const { isConnected } = state;
-      // Show the modal once the status changes to offline
-      if (connected && isConnected === false) {
-        props.navigation.navigate('OfflineModeView');
-      }
-      if (connected !== isConnected && isConnected !== null) {
-        setConnected(isConnected);
-      }
-    },
-    [connected, setConnected, props.navigation],
-  );
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -235,8 +220,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
+  const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
@@ -262,13 +249,46 @@ const Main = (props) => {
     previousProviderConfig.current = providerConfig;
   }, [providerConfig, networkName, networkImage, toastRef]);
 
+  // Show add network confirmation.
+  useEffect(() => {
+    if (!isNetworkUiRedesignEnabled()) return;
+
+    // Memoized values to avoid recalculations
+    const currentNetworkValues = Object.values(networkConfigurations);
+    const previousNetworkValues = Object.values(
+      previousNetworkConfigurations.current ?? {},
+    );
+
+    if (
+      previousNetworkValues.length &&
+      currentNetworkValues.length !== previousNetworkValues.length
+    ) {
+      // Find the newly added network
+      const newNetwork = currentNetworkValues.find(
+        (network) => !previousNetworkValues.includes(network),
+      );
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: `${newNetwork?.name ?? strings('asset_details.network')} `,
+            isBold: true,
+          },
+          { label: strings('toast.network_added') },
+        ],
+        networkImageSource: networkImage,
+      });
+    }
+    previousNetworkConfigurations.current = networkConfigurations;
+  }, [networkConfigurations, networkName, networkImage, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
       initForceReload();
       return;
     }
-
   });
 
   // Remove all notifications that aren't visible
@@ -302,7 +322,7 @@ const Main = (props) => {
         removeConnectionStatusListener.current();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connectionChangeHandler]);
 
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {

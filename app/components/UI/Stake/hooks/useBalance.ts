@@ -1,4 +1,3 @@
-import { hexToBN } from '@metamask/controller-utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
@@ -9,11 +8,13 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
+  hexToBN,
+  renderFiat,
   renderFromWei,
-  toHexadecimal,
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
+import usePooledStakes from './usePooledStakes';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -25,30 +26,58 @@ const useBalance = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const rawAccountBalance = selectedAddress
-    ? accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance
+    ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';
 
-  const balance = useMemo(
+  const balanceETH = useMemo(
     () => renderFromWei(rawAccountBalance),
     [rawAccountBalance],
   );
 
-  const balanceBN = useMemo(
+  const balanceWei = useMemo(
     () => hexToBN(rawAccountBalance),
     [rawAccountBalance],
   );
 
   const balanceFiat = useMemo(
-    () => weiToFiat(balanceBN, conversionRate, currentCurrency),
-    [balanceBN, conversionRate, currentCurrency],
+    () => weiToFiat(balanceWei, conversionRate, currentCurrency),
+    [balanceWei, conversionRate, currentCurrency],
   );
 
   const balanceFiatNumber = useMemo(
-    () => weiToFiatNumber(balanceBN, conversionRate, 2),
-    [balanceBN, conversionRate],
+    () => weiToFiatNumber(balanceWei, conversionRate, 2),
+    [balanceWei, conversionRate],
   );
 
-  return { balance, balanceFiat, balanceBN, balanceFiatNumber };
+  const { pooledStakesData } = usePooledStakes();
+  const assets = hexToBN(pooledStakesData.assets).toString('hex');
+  const formattedStakedBalanceETH = useMemo(
+    () => `${renderFromWei(assets)} ETH`,
+    [assets],
+  );
+
+  const stakedBalanceFiatNumber = useMemo(
+    () => weiToFiatNumber(assets, conversionRate),
+    [assets, conversionRate],
+  );
+
+  const formattedStakedBalanceFiat = useMemo(
+    () => renderFiat(stakedBalanceFiatNumber, currentCurrency, 2),
+    [currentCurrency, stakedBalanceFiatNumber],
+  );
+
+  return {
+    balanceETH,
+    balanceFiat,
+    balanceWei,
+    balanceFiatNumber,
+    stakedBalanceWei: assets ?? '0',
+    formattedStakedBalanceETH,
+    stakedBalanceFiatNumber,
+    formattedStakedBalanceFiat,
+    conversionRate,
+    currentCurrency,
+  };
 };
 
 export default useBalance;
