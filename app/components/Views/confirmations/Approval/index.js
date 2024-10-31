@@ -45,17 +45,13 @@ import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTran
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
-import Routes from '../../../../constants/navigation/Routes';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
-import {
-  selectCurrentTransactionSecurityAlertResponse,
-  selectCurrentTransactionMetadata,
-} from '../../../../selectors/confirmTransaction';
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selectors/confirmTransaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
@@ -143,18 +139,12 @@ class Approval extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
-
-    /**
-     * Object containing simulation data
-     */
-    simulationData: PropTypes.object,
   };
 
   state = {
     mode: REVIEW,
     transactionHandled: false,
     transactionConfirmed: false,
-    isChangeInSimulationModalOpen: false,
   };
 
   originIsWalletConnect = false;
@@ -486,13 +476,7 @@ class Approval extends PureComponent {
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
     const { KeyringController, ApprovalController } = Engine.context;
-    const {
-      transactions,
-      chainId,
-      shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
-      navigation,
-    } = this.props;
+    const { transactions, chainId, shouldUseSmartTransaction } = this.props;
     let { transaction } = this.props;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
@@ -500,25 +484,6 @@ class Approval extends PureComponent {
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       ExtendedKeyringTypes.ledger,
     ]);
-
-    if (isUpdatedAfterSecurityCheck) {
-      this.setState({ isChangeInSimulationModalOpen: true });
-
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
-        params: {
-          onProceed: () => {
-            this.setState({ isChangeInSimulationModalOpen: false });
-            this.setState({ transactionConfirmed: false });
-          },
-          onReject: () => {
-            this.setState({ isChangeInSimulationModalOpen: false });
-            this.onCancel();
-          },
-        },
-      });
-      return;
-    }
 
     this.setState({ transactionConfirmed: true });
 
@@ -693,15 +658,12 @@ class Approval extends PureComponent {
 
   render = () => {
     const { dappTransactionModalVisible } = this.props;
-    const { mode, transactionConfirmed, isChangeInSimulationModalOpen } =
-      this.state;
+    const { mode, transactionConfirmed } = this.state;
     const colors = this.context.colors || mockTheme.colors;
 
     return (
       <Modal
-        isVisible={
-          dappTransactionModalVisible && !isChangeInSimulationModalOpen
-        }
+        isVisible={dappTransactionModalVisible}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
@@ -732,7 +694,6 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: selectTransactions(state),
-  simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: selectShowCustomNonce(state),
