@@ -145,6 +145,9 @@ const actionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.set_approval_for_all',
   ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
