@@ -96,7 +96,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   return (
     <View>
-      {hasStakedPositions && isEligibleForPooledStaking && (
+      {hasStakedPositions && (
         <AssetElement
           asset={asset}
           mainBalance={stakedBalanceETH}
