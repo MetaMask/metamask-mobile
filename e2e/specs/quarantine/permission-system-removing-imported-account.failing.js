@@ -10,8 +10,8 @@ import AccountListView from '../../pages/AccountListView';
 
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 import Accounts from '../../../wdio/helpers/Accounts';
 import { TestDApp } from '../../pages/Browser/TestDApp';

@@ -1,4 +1,4 @@
-import migration from './052';
+import migration from './057';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -30,7 +30,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #52', () => {
+describe('Migration #57', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -43,7 +43,7 @@ describe('Migration #52', () => {
       }),
       scenario: 'engine state is invalid',
       expectedError:
-        "FATAL ERROR: Migration 52: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 57: Invalid engine state error: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -53,7 +53,7 @@ describe('Migration #52', () => {
       }),
       scenario: 'backgroundState is invalid',
       expectedError:
-        "FATAL ERROR: Migration 52: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 57: Invalid engine backgroundState error: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -65,7 +65,7 @@ describe('Migration #52', () => {
       }),
       scenario: 'AccountsController internalAccounts state is invalid',
       expectedError:
-        "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts is not an object, type: 'object'",
+        "FATAL ERROR: Migration 57: Invalid AccountsController state error: internalAccounts is not an object, type: 'object'",
     },
     {
       state: merge({}, initialRootState, {
@@ -81,7 +81,7 @@ describe('Migration #52', () => {
       }),
       scenario: 'AccountsController internalAccounts accounts state is invalid',
       expectedError:
-        "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: 'object'",
+        "FATAL ERROR: Migration 57: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: 'object'",
     },
   ];
 
