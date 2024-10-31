@@ -203,6 +203,7 @@ class AesCryptoTestForm {
       this.decryptPasswordInput,
       encryptionKey,
     );
+    await Gestures.swipe(this.decryptPasswordInput, 'up', 'slow', 0.2);
     await Gestures.waitAndTap(this.decryptButton);
   }
 
