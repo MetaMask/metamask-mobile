@@ -52,25 +52,6 @@ function isAccountsControllerState(
     return false;
   }
 
-  if (!hasProperty(state.internalAccounts, 'selectedAccount')) {
-    captureException(
-      new Error(
-        'FATAL ERROR: Migration 52: Invalid AccountsController state error: missing internalAccounts.selectedAccount',
-      ),
-    );
-    return false;
-  }
-
-  if (typeof state.internalAccounts.selectedAccount !== 'string') {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.selectedAccount is not a string, type: '${typeof state
-          .internalAccounts.selectedAccount}'`,
-      ),
-    );
-    return false;
-  }
-
   return true;
 }
 
@@ -89,7 +70,10 @@ export default function migrate(state: unknown) {
   const { accounts, selectedAccount } =
     accountsControllerState.internalAccounts;
 
-  if (Object.values(accounts).length > 0 && !accounts[selectedAccount]) {
+  if (
+    Object.values(accounts).length > 0 &&
+    (!selectedAccount || (selectedAccount && !accounts[selectedAccount]))
+  ) {
     accountsControllerState.internalAccounts.selectedAccount =
       Object.values(accounts)[0].id;
   }
