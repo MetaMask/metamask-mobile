@@ -549,7 +549,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -865,6 +865,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                    ETH
                                 </Text>
@@ -882,6 +883,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -1129,6 +1131,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   &lt; 0.00001 BAT
                                 </Text>
@@ -1146,6 +1149,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -1791,7 +1795,7 @@ exports[`Tokens should render correctly 1`] = `
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -2107,6 +2111,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                    ETH
                                 </Text>
@@ -2124,6 +2129,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -2371,6 +2377,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   &lt; 0.00001 BAT
                                 </Text>
@@ -2388,6 +2395,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -3051,7 +3059,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -3367,6 +3375,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                    ETH
                                 </Text>
@@ -3384,6 +3393,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -3631,6 +3641,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   &lt; 0.00001 BAT
                                 </Text>
@@ -3648,6 +3659,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -3895,6 +3907,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   0 LINK
                                 </Text>
@@ -3912,6 +3925,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
