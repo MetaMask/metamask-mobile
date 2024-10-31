@@ -21,6 +21,7 @@ import AccountSelectorList from '../../../UI/AccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
+import Engine from '../../../../core/Engine';
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
@@ -84,6 +85,11 @@ const AccountConnectMultiSelector = ({
     [accounts, selectedAddresses, onSelectAddress],
   );
 
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
   const toggleRevokeAllAccountPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
@@ -93,6 +99,7 @@ const AccountConnectMultiSelector = ({
             origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
   }, [navigate, urlWithProtocol]);
