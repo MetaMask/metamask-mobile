@@ -10,7 +10,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import FiatOnTestnetsModal from '../../pages/Settings/Advanced/FiatOnTestnetsModal.js';
+import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestnetsBottomSheet.js';
 import Assertions from '../../utils/Assertions.js';
 import TestHelpers from '../../helpers.js';
 
@@ -50,7 +50,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
         await SettingsView.tapAdvancedTitle();
         await AdvancedSettingsView.scrollToShowFiatOnTestnetsToggle();
         await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
-        await FiatOnTestnetsModal.tapContinueButton();
+        await FiatOnTestnetsBottomSheet.tapContinueButton();
 
         // Verify fiat values are displayed
         await TabBarComponent.tapWallet();
