@@ -1506,6 +1506,9 @@ app:
       MM_POOLED_STAKING_UI_ENABLED: true
     - opts:
         is_expand: false
+      MM_SECURITY_ALERTS_API_ENABLED: true
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1573,7 +1576,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
-    machine_type_id: g2-m1-max.5core
+    machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline

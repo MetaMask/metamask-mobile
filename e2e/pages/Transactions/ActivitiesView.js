@@ -1,14 +1,10 @@
-import { ActivitiesViewSelectorsText } from '../selectors/ActivitiesView.selectors';
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 class ActivitiesView {
   get title() {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
-  }
-
-  get confirmedLabel() {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
   generateSwapActivityLabel(sourceToken, destinationToken) {
