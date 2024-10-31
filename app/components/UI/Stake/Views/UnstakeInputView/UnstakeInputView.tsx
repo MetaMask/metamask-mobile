@@ -82,7 +82,7 @@ const UnstakeInputView = () => {
       },
     });
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
       .addProperties({
         selected_provider: 'consensys',
         tokens_to_stake_native_value: amountEth,
