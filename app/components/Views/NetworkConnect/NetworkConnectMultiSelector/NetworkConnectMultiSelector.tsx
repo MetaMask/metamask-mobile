@@ -170,7 +170,7 @@ const NetworkConnectMultiSelector = ({
         },
       },
     });
-  }, [navigate, urlWithProtocol, hostname]);
+  }, [navigate, urlWithProtocol]);
   const areAllNetworksSelected = networks
     .map(({ id }) => id)
     .every((id) => selectedChainIds?.includes(id));
