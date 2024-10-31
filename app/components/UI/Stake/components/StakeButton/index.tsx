@@ -67,7 +67,6 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       });
     }
     trackEvent(MetaMetricsEvents.STAKE_BUTTON_CLICKED, {
-      action: 'Stake',
       chain_id: getDecimalChainId(chainId),
       location: 'Home Screen',
       text: 'Stake',
