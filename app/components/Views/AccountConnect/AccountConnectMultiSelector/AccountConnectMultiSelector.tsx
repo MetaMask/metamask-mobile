@@ -102,7 +102,7 @@ const AccountConnectMultiSelector = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, urlWithProtocol]);
+  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const renderSelectAllButton = useCallback(
     () =>

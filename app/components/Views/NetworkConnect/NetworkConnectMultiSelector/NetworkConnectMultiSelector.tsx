@@ -176,7 +176,7 @@ const NetworkConnectMultiSelector = ({
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, urlWithProtocol, hostname]);
+  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
   const areAllNetworksSelected = networks
     .map(({ id }) => id)
