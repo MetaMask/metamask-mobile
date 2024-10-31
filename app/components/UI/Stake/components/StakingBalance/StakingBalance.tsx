@@ -62,7 +62,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     exchangeRate,
     hasStakedPositions,
     hasEthToUnstake,
-    isLoadingPooledStakesData,
   } = usePooledStakes();
   const { vaultData } = useVaultData();
   const annualRewardRate = vaultData?.apy || '';
@@ -91,7 +90,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
-  if (!isStakingSupportedChain || isLoadingPooledStakesData) {
+  if (!isStakingSupportedChain) {
     return <></>;
   }
 
