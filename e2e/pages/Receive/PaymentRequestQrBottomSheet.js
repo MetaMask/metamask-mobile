@@ -1,8 +1,8 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { SendLinkViewSelectorsIDs } from '../../selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
 
-class PaymentRequestQrModal {
+class PaymentRequestQrBottomSheet {
   get container() {
     return Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_MODAL);
   }
@@ -16,4 +16,4 @@ class PaymentRequestQrModal {
   }
 }
 
-export default new PaymentRequestQrModal();
+export default new PaymentRequestQrBottomSheet();

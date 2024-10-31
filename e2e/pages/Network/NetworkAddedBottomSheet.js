@@ -1,34 +1,34 @@
 import {
-  NetworkAddedModalSelectorsIDs,
-  NetworkAddedModalSelectorsText,
-} from '../../selectors/Modals/NetworkAddedModal.selectors';
+  NetworkAddedBottomSheetSelectorsIDs,
+  NetworkAddedBottomSheetSelectorsText,
+} from '../../selectors/Network/NetworkAddedBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
-class NetworkAddedModal {
+class NetworkAddedBottomSheet {
   get switchNetwork() {
     return Matchers.getElementByText(
-      NetworkAddedModalSelectorsText.SWITCH_NETWORK,
+      NetworkAddedBottomSheetSelectorsText.SWITCH_NETWORK,
     );
   }
 
   get switchNetworkButton() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(
-          NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
         )
       : Matchers.getElementByID(
-          NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
         );
   }
 
   get closeNetworkButton() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(
-          NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
         )
       : Matchers.getElementByID(
-          NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
         );
   }
 
@@ -41,4 +41,4 @@ class NetworkAddedModal {
   }
 }
 
-export default new NetworkAddedModal();
+export default new NetworkAddedBottomSheet();
