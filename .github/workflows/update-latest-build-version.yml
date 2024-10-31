@@ -35,7 +35,7 @@ jobs:
             
         - name: Bump script
           env:
-            HEAD_REF: ${{ github.head_ref }}
+            HEAD_REF: ${{ inputs.base-branch }}
           run: |
             ./scripts/set-build-version.sh ${{ needs.generate-build-version.outputs.build-version }}
             git diff
