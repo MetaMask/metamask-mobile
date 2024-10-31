@@ -28,6 +28,13 @@ import {
   TokenListControllerActions,
   TokenListControllerEvents,
   TokenBalancesControllerState,
+  AssetsContractControllerGetERC20BalanceOfAction,
+  AssetsContractControllerGetERC721AssetNameAction,
+  AssetsContractControllerGetERC721AssetSymbolAction,
+  AssetsContractControllerGetERC721TokenURIAction,
+  AssetsContractControllerGetERC721OwnerOfAction,
+  AssetsContractControllerGetERC1155BalanceOfAction,
+  AssetsContractControllerGetERC1155TokenURIAction,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -308,7 +315,14 @@ type GlobalActions =
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions
-  | SmartTransactionsControllerActions;
+  | SmartTransactionsControllerActions
+  | AssetsContractControllerGetERC20BalanceOfAction
+  | AssetsContractControllerGetERC721AssetNameAction
+  | AssetsContractControllerGetERC721AssetSymbolAction
+  | AssetsContractControllerGetERC721TokenURIAction
+  | AssetsContractControllerGetERC721OwnerOfAction
+  | AssetsContractControllerGetERC1155BalanceOfAction
+  | AssetsContractControllerGetERC1155TokenURIAction;
 
 type GlobalEvents =
   | AddressBookControllerEvents
@@ -502,19 +516,6 @@ export class Engine {
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
 
-    /**
-     * Subscribes a listener to the state change events of Preferences Controller.
-     *
-     * @param listener - The callback function to execute when the state changes.
-     */
-    const onPreferencesStateChange = (
-      listener: (preferencesState: PreferencesState) => void,
-    ) => {
-      const eventName = `PreferencesController:stateChange`;
-
-      this.controllerMessenger.subscribe(eventName, listener);
-    };
-
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
@@ -529,7 +530,6 @@ export class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -570,18 +570,23 @@ export class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      onPreferencesStateChange,
-      onNetworkDidChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_DID_CHANGE_EVENT,
-          // @ts-expect-error TODO: Resolve bump the assets controller version.
-          listener,
-        ),
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AssetsContractController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getNetworkConfigurationByNetworkClientId',
+          'NetworkController:getSelectedNetworkClient',
+          'NetworkController:getState',
+        ],
+        allowedEvents: [
+          'PreferencesController:stateChange',
+          'NetworkController:networkDidChange',
+        ],
+      }),
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      getNetworkClientById:
-        networkController.getNetworkClientById.bind(networkController),
     });
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -623,6 +628,12 @@ export class Engine {
           `${networkController.name}:getNetworkClientById`,
           'AccountsController:getAccount',
           'AccountsController:getSelectedAccount',
+          'AssetsContractController:getERC721AssetName',
+          'AssetsContractController:getERC721AssetSymbol',
+          'AssetsContractController:getERC721TokenURI',
+          'AssetsContractController:getERC721OwnerOf',
+          'AssetsContractController:getERC1155BalanceOf',
+          'AssetsContractController:getERC1155TokenURI',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -630,25 +641,6 @@ export class Engine {
           'AccountsController:selectedEvmAccountChange',
         ],
       }),
-
-      getERC721AssetName: assetsContractController.getERC721AssetName.bind(
-        assetsContractController,
-      ),
-      getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(
-        assetsContractController,
-      ),
-      getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
-        assetsContractController,
-      ),
-      getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
-        assetsContractController,
-      ),
-      getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
-        assetsContractController,
-      ),
-      getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
-        assetsContractController,
-      ),
     });
 
     const loggingController = new LoggingController({
@@ -1509,13 +1501,18 @@ export class Engine {
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
-          allowedActions: ['AccountsController:getSelectedAccount'],
+          allowedActions: [
+            'AccountsController:getSelectedAccount',
+            'AssetsContractController:getERC20BalanceOf',
+          ],
           allowedEvents: ['TokensController:stateChange'],
         }),
-        getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
-          assetsContractController,
-        ),
         interval: 180000,
+        tokens: [
+          ...tokensController.state.tokens,
+          ...tokensController.state.detectedTokens,
+        ],
+        state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1858,12 +1855,8 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const {
-      AccountTrackerController,
-      AssetsContractController,
-      NetworkController,
-      SwapsController,
-    } = this.context;
+    const { AccountTrackerController, NetworkController, SwapsController } =
+      this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1871,7 +1864,6 @@ export class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    AssetsContractController.configure({ provider });
 
     SwapsController.configure({
       provider,

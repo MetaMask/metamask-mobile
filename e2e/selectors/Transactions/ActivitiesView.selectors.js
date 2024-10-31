@@ -1,4 +1,4 @@
-import enContent from '../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 function getSentUnitMessage(unit) {
   return enContent.transactions.sent_unit.replace('{{unit}}', unit);
