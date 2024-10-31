@@ -124,7 +124,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         {!isEligibleForPooledStaking ? (
           <Banner
             variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Warning}
+            severity={BannerAlertSeverity.Info}
             description={strings('stake.banner_text.geo_blocked')}
             style={styles.bannerStyles}
           />
