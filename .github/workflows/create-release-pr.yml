@@ -12,9 +12,14 @@ on:
       previous-version-tag:
         description: 'Previous release version tag. eg: v7.7.0'
         required: true
+
 jobs:
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+
   create-release-pr:
     runs-on: ubuntu-latest
+    needs: generate-build-version
     permissions:
       contents: write
       pull-requests: write
@@ -34,9 +39,6 @@ jobs:
           # the default GITHUB_TOKEN for the checkout action.
           token: ${{ secrets.BUG_REPORT_TOKEN }}
 
-      - uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
-        id: build-version-generator
-
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -50,4 +52,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ steps.build-version-generator.outputs.version-number }}
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ needs.generate-build-version.outputs.build-version }}
