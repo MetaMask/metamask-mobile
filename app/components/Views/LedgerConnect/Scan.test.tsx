@@ -197,7 +197,7 @@ describe('Scan', () => {
     const onDeviceSelected = jest.fn();
 
     const navigateMock = {
-      navigate: jest.fn().mockImplementation(() => {onDeviceSelected(device2);}),
+      navigate: jest.fn().mockImplementation(() => {onDeviceSelected(device2)}),
     } as unknown as NavigationProp<ParamListBase>;
     jest.mocked(useNavigation).mockReturnValue(navigateMock);
 
