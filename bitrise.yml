@@ -1506,7 +1506,10 @@ app:
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: false
+      MM_POOLED_STAKING_UI_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android

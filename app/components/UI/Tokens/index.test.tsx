@@ -13,6 +13,7 @@ import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -146,10 +147,12 @@ jest.mock('../../UI/Stake/constants', () => ({
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    isEligible: false,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
+    isEligible: true,
+    isLoadingEligibility: false,
+    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+      isEligible: true,
+    }),
+    error: false,
   })),
 }));
 
@@ -281,7 +284,15 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
 
-  it('navigates to Stake Input screen when stake button is pressed and user is not eligible', async () => {
+  it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: false }),
+      error: false,
+    });
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
@@ -292,6 +303,25 @@ describe('Tokens', () => {
           timestamp: 123,
         },
         screen: Routes.BROWSER.VIEW,
+      });
+    });
+  });
+
+  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: true }),
+      error: false,
+    });
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
       });
     });
   });
