@@ -19,12 +19,14 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { balance, balanceFiatNumber, balanceWei } = useBalance();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     isEth,
@@ -51,6 +53,15 @@ const StakeInputView = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
+      .addProperties({
+        selected_provider: 'consensys',
+        text: '?',
+        location: 'Stake Input View'
+      })
+      .build()
+    );
   };
 
   const handleStakePress = useCallback(() => {
@@ -64,13 +75,25 @@ const StakeInputView = () => {
         annualRewardRate,
       },
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+      .addProperties({
+        selected_provider: 'consensys',
+        tokens_to_stake_native_value: amountEth,
+        tokens_to_stake_usd_value: fiatAmount,
+      })
+      .build(),
+    );
   }, [
+    amountEth,
     navigation,
     amountWei,
     fiatAmount,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
+    trackEvent,
+    createEventBuilder
   ]);
 
   const balanceText = strings('stake.balance');

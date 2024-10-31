@@ -16,6 +16,7 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import useVaultData from './useVaultData';
+import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
 
 const useStakingInputHandlers = (balance: BN) => {
   const [amountEth, setAmountEth] = useState('0');
@@ -32,6 +33,8 @@ const useStakingInputHandlers = (balance: BN) => {
   const [isEth, setIsEth] = useState<boolean>(true);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
     useVaultData();
@@ -111,8 +114,18 @@ const useStakingInputHandlers = (balance: BN) => {
         2,
       ).toString();
       setFiatAmount(newFiatAmount);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
+        .addProperties({
+          location: 'Stake',
+          amount: value,
+          is_max: value === 1,
+          mode: isEth ? 'native' : 'fiat'
+        })
+        .build()
+      );
     },
-    [balance, conversionRate],
+    [balance, conversionRate, createEventBuilder, isEth, trackEvent],
   );
 
   const annualRewardsETH = useMemo(
