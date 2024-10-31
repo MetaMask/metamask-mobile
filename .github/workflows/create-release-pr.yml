@@ -9,9 +9,6 @@ on:
       semver-version:
         description: 'A semantic version. eg: x.x.x'
         required: true
-      version-number:
-        description: 'A natural version number. eg: 862'
-        required: true
       previous-version-tag:
         description: 'Previous release version tag. eg: v7.7.0'
         required: true
@@ -36,6 +33,10 @@ jobs:
           # The workaround is to use a personal access token (BUG_REPORT_TOKEN) instead of
           # the default GITHUB_TOKEN for the checkout action.
           token: ${{ secrets.BUG_REPORT_TOKEN }}
+
+      - uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+        id: build-version-generator
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -49,4 +50,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ github.event.inputs.version-number }}
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ steps.build-version-generator.outputs.version-number }}
