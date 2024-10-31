@@ -60,8 +60,11 @@ const AccountConnectMultiSelector = ({
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
   );
+  const sortedSelectedAddresses = [...selectedAddresses].sort((a, b) =>
+    a.localeCompare(b),
+  );
   const [originalSelectedAddresses] = useState<string[]>(
-    selectedAddresses.sort(),
+    sortedSelectedAddresses,
   );
 
   const onSelectAccount = useCallback(
@@ -188,8 +191,8 @@ const AccountConnectMultiSelector = ({
 
   const renderCtaButtons = useCallback(() => {
     const isConnectDisabled = Boolean(!selectedAddresses.length) || isLoading;
-    const isUpdateDisabled = isEqual(
-      selectedAddresses.sort(),
+    const areUpdateDisabled = isEqual(
+      [...selectedAddresses].sort((a, b) => a.localeCompare(b)),
       originalSelectedAddresses,
     );
 
@@ -233,9 +236,10 @@ const AccountConnectMultiSelector = ({
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
-                ...((isConnectDisabled || isUpdateDisabled) && styles.disabled),
+                ...((isConnectDisabled || areUpdateDisabled) &&
+                  styles.disabled),
               }}
-              disabled={isConnectDisabled || isUpdateDisabled}
+              disabled={isConnectDisabled || areUpdateDisabled}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
             />
           )}
