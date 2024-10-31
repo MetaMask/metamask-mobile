@@ -36,7 +36,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             onLoadEnd={[Function]}
             source={
               {
-                "uri": undefined,
+                "uri": "",
               }
             }
             style={
@@ -330,6 +330,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
         <Text
           accessibilityRole="link"
           accessible={true}
+          disabled={false}
+          loading={false}
           onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
@@ -346,6 +348,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             }
           }
           suppressHighlighting={true}
+          testID="claim-banner-claim-eth-button"
         >
           <Text
             accessibilityRole="text"
