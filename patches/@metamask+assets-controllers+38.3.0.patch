@@ -296,6 +296,156 @@ index d252cab..ccc3d82 100644
  export default TokenBalancesController;
  //# sourceMappingURL=TokenBalancesController.d.cts.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+index bdee9e6..525f4d2 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+@@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _TokenDetectionController_instances, _TokenDetectionController_intervalId, _TokenDetectionController_selectedAccountId, _TokenDetectionController_networkClientId, _TokenDetectionController_tokenList, _TokenDetectionController_disabled, _TokenDetectionController_isUnlocked, _TokenDetectionController_isDetectionEnabledFromPreferences, _TokenDetectionController_isDetectionEnabledForNetwork, _TokenDetectionController_getBalancesInSingleCall, _TokenDetectionController_trackMetaMetricsEvent, _TokenDetectionController_registerEventListeners, _TokenDetectionController_stopPolling, _TokenDetectionController_startPolling, _TokenDetectionController_getCorrectChainIdAndNetworkClientId, _TokenDetectionController_restartTokenDetection, _TokenDetectionController_getSlicesOfTokensToDetect, _TokenDetectionController_addDetectedTokens, _TokenDetectionController_getSelectedAccount, _TokenDetectionController_getSelectedAddress;
++var _TokenDetectionController_instances, _TokenDetectionController_intervalId, _TokenDetectionController_selectedAccountId, _TokenDetectionController_networkClientId, _TokenDetectionController_tokensChainsCache, _TokenDetectionController_disabled, _TokenDetectionController_isUnlocked, _TokenDetectionController_isDetectionEnabledFromPreferences, _TokenDetectionController_isDetectionEnabledForNetwork, _TokenDetectionController_getBalancesInSingleCall, _TokenDetectionController_trackMetaMetricsEvent, _TokenDetectionController_registerEventListeners, _TokenDetectionController_stopPolling, _TokenDetectionController_startPolling, _TokenDetectionController_compareTokensChainsCache, _TokenDetectionController_getCorrectChainIdAndNetworkClientId, _TokenDetectionController_restartTokenDetection, _TokenDetectionController_getSlicesOfTokensToDetect, _TokenDetectionController_getConvertedStaticMainnetTokenList, _TokenDetectionController_addDetectedTokens, _TokenDetectionController_getSelectedAccount, _TokenDetectionController_getSelectedAddress;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenDetectionController = exports.controllerName = exports.STATIC_MAINNET_TOKEN_LIST = exports.isEqualCaseInsensitive = void 0;
+ const contract_metadata_1 = __importDefault(require("@metamask/contract-metadata"));
+@@ -50,6 +50,19 @@ exports.STATIC_MAINNET_TOKEN_LIST = Object.entries(contract_metadata_1.default).
+         },
+     };
+ }, {});
++/**
++ * Function that takes a TokensChainsCache object and maps chainId with TokenListMap.
++ * @param tokensChainsCache - TokensChainsCache input object
++ * @returns returns the map of chainId with TokenListMap
++ */
++function mapChainIdWithTokenListMap(tokensChainsCache) {
++    return (0, lodash_1.mapValues)(tokensChainsCache, (value) => {
++        if ((0, lodash_1.isObject)(value) && 'data' in value) {
++            return (0, lodash_1.get)(value, ['data']);
++        }
++        return value;
++    });
++}
+ exports.controllerName = 'TokenDetectionController';
+ /**
+  * Controller that passively polls on a set interval for Tokens auto detection
+@@ -83,7 +96,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+         _TokenDetectionController_intervalId.set(this, void 0);
+         _TokenDetectionController_selectedAccountId.set(this, void 0);
+         _TokenDetectionController_networkClientId.set(this, void 0);
+-        _TokenDetectionController_tokenList.set(this, {});
++        _TokenDetectionController_tokensChainsCache.set(this, {});
+         _TokenDetectionController_disabled.set(this, void 0);
+         _TokenDetectionController_isUnlocked.set(this, void 0);
+         _TokenDetectionController_isDetectionEnabledFromPreferences.set(this, void 0);
+@@ -95,6 +108,8 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+         __classPrivateFieldSet(this, _TokenDetectionController_selectedAccountId, __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAccount).call(this).id, "f");
+         const { chainId, networkClientId } = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getCorrectChainIdAndNetworkClientId).call(this);
+         __classPrivateFieldSet(this, _TokenDetectionController_networkClientId, networkClientId, "f");
++        const { tokensChainsCache } = this.messagingSystem.call('TokenListController:getState');
++        __classPrivateFieldSet(this, _TokenDetectionController_tokensChainsCache, tokensChainsCache, "f");
+         const { useTokenDetection: defaultUseTokenDetection } = this.messagingSystem.call('PreferencesController:getState');
+         __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, defaultUseTokenDetection, "f");
+         __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledForNetwork, (0, assetsUtil_1.isTokenDetectionSupportedForNetwork)(chainId), "f");
+@@ -172,9 +187,9 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+         const isTokenDetectionInactiveInMainnet = !__classPrivateFieldGet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, "f") &&
+             chainIdAgainstWhichToDetect === controller_utils_1.ChainId.mainnet;
+         const { tokensChainsCache } = this.messagingSystem.call('TokenListController:getState');
+-        __classPrivateFieldSet(this, _TokenDetectionController_tokenList, isTokenDetectionInactiveInMainnet
+-            ? exports.STATIC_MAINNET_TOKEN_LIST
+-            : tokensChainsCache[chainIdAgainstWhichToDetect]?.data ?? {}, "f");
++        __classPrivateFieldSet(this, _TokenDetectionController_tokensChainsCache, isTokenDetectionInactiveInMainnet
++            ? __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getConvertedStaticMainnetTokenList).call(this)
++            : tokensChainsCache ?? {}, "f");
+         const tokenDetectionPromises = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSlicesOfTokensToDetect).call(this, {
+             chainId: chainIdAgainstWhichToDetect,
+             selectedAddress: addressAgainstWhichToDetect,
+@@ -188,7 +203,7 @@ class TokenDetectionController extends polling_controller_1.StaticIntervalPollin
+     }
+ }
+ exports.TokenDetectionController = TokenDetectionController;
+-_TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_selectedAccountId = new WeakMap(), _TokenDetectionController_networkClientId = new WeakMap(), _TokenDetectionController_tokenList = new WeakMap(), _TokenDetectionController_disabled = new WeakMap(), _TokenDetectionController_isUnlocked = new WeakMap(), _TokenDetectionController_isDetectionEnabledFromPreferences = new WeakMap(), _TokenDetectionController_isDetectionEnabledForNetwork = new WeakMap(), _TokenDetectionController_getBalancesInSingleCall = new WeakMap(), _TokenDetectionController_trackMetaMetricsEvent = new WeakMap(), _TokenDetectionController_instances = new WeakSet(), _TokenDetectionController_registerEventListeners = function _TokenDetectionController_registerEventListeners() {
++_TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_selectedAccountId = new WeakMap(), _TokenDetectionController_networkClientId = new WeakMap(), _TokenDetectionController_tokensChainsCache = new WeakMap(), _TokenDetectionController_disabled = new WeakMap(), _TokenDetectionController_isUnlocked = new WeakMap(), _TokenDetectionController_isDetectionEnabledFromPreferences = new WeakMap(), _TokenDetectionController_isDetectionEnabledForNetwork = new WeakMap(), _TokenDetectionController_getBalancesInSingleCall = new WeakMap(), _TokenDetectionController_trackMetaMetricsEvent = new WeakMap(), _TokenDetectionController_instances = new WeakSet(), _TokenDetectionController_registerEventListeners = function _TokenDetectionController_registerEventListeners() {
+     // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+     // eslint-disable-next-line @typescript-eslint/no-misused-promises
+     this.messagingSystem.subscribe('KeyringController:unlock', async () => {
+@@ -200,14 +215,14 @@ _TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_
+         __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_stopPolling).call(this);
+     });
+     this.messagingSystem.subscribe('TokenListController:stateChange', 
+-    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+-    async ({ tokenList }) => {
+-        const hasTokens = Object.keys(tokenList).length;
+-        if (hasTokens) {
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
+-        }
+-    });
++        // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++        // eslint-disable-next-line @typescript-eslint/no-misused-promises
++        async ({ tokensChainsCache }) => {
++            const isEqualValues = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_compareTokensChainsCache).call(this, tokensChainsCache, __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f"));
++            if (!isEqualValues) {
++                await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
++            }
++        });
+     this.messagingSystem.subscribe('PreferencesController:stateChange', 
+     // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+     // eslint-disable-next-line @typescript-eslint/no-misused-promises
+@@ -266,6 +281,11 @@ async function _TokenDetectionController_startPolling() {
+     __classPrivateFieldSet(this, _TokenDetectionController_intervalId, setInterval(async () => {
+         await this.detectTokens();
+     }, this.getIntervalLength()), "f");
++}, _TokenDetectionController_compareTokensChainsCache = function _TokenDetectionController_compareTokensChainsCache(tokensChainsCache, previousTokensChainsCache) {
++    const cleanPreviousTokensChainsCache = mapChainIdWithTokenListMap(previousTokensChainsCache);
++    const cleanTokensChainsCache = mapChainIdWithTokenListMap(tokensChainsCache);
++    const isEqualValues = (0, lodash_1.isEqual)(cleanTokensChainsCache, cleanPreviousTokensChainsCache);
++    return isEqualValues;
+ }, _TokenDetectionController_getCorrectChainIdAndNetworkClientId = function _TokenDetectionController_getCorrectChainIdAndNetworkClientId(networkClientId) {
+     if (networkClientId) {
+         const networkConfiguration = this.messagingSystem.call('NetworkController:getNetworkConfigurationByNetworkClientId', networkClientId);
+@@ -305,7 +325,7 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
+         allIgnoredTokens,
+     ].map((tokens) => (tokens[chainId]?.[selectedAddress] ?? []).map((value) => typeof value === 'string' ? value : value.address));
+     const tokensToDetect = [];
+-    for (const tokenAddress of Object.keys(__classPrivateFieldGet(this, _TokenDetectionController_tokenList, "f"))) {
++    for (const tokenAddress of Object.keys(__classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f")?.[chainId]?.data || {})) {
+         if ([
+             tokensAddresses,
+             detectedTokensAddresses,
+@@ -319,13 +339,31 @@ async function _TokenDetectionController_restartTokenDetection({ selectedAddress
+         slicesOfTokensToDetect.push(tokensToDetect.slice(i, i + size));
+     }
+     return slicesOfTokensToDetect;
++}, _TokenDetectionController_getConvertedStaticMainnetTokenList = function _TokenDetectionController_getConvertedStaticMainnetTokenList() {
++    const data = Object.entries(exports.STATIC_MAINNET_TOKEN_LIST).reduce((acc, [key, value]) => ({
++        ...acc,
++        [key]: {
++            name: value.name,
++            symbol: value.symbol,
++            decimals: value.decimals,
++            address: value.address,
++            aggregators: [],
++            iconUrl: value?.iconUrl,
++        },
++    }), {});
++    return {
++        '0x1': {
++            data,
++            timestamp: 0,
++        },
++    };
+ }, _TokenDetectionController_addDetectedTokens = async function _TokenDetectionController_addDetectedTokens({ tokensSlice, selectedAddress, networkClientId, chainId, }) {
+     await (0, controller_utils_1.safelyExecute)(async () => {
+         const balances = await __classPrivateFieldGet(this, _TokenDetectionController_getBalancesInSingleCall, "f").call(this, selectedAddress, tokensSlice, networkClientId);
+         const tokensWithBalance = [];
+         const eventTokensDetails = [];
+         for (const nonZeroTokenAddress of Object.keys(balances)) {
+-            const { decimals, symbol, aggregators, iconUrl, name } = __classPrivateFieldGet(this, _TokenDetectionController_tokenList, "f")[nonZeroTokenAddress];
++            const { decimals, symbol, aggregators, iconUrl, name } = __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f")[chainId].data[nonZeroTokenAddress];
+             eventTokensDetails.push(`${symbol} - ${nonZeroTokenAddress}`);
+             tokensWithBalance.push({
+                 address: nonZeroTokenAddress,
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
 index 2a84595..c049380 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
