@@ -1,10 +1,9 @@
 import {
   NetworkListModalSelectorsIDs,
   NetworkListModalSelectorsText,
-} from '../../selectors/Modals/NetworkListModal.selectors';
+} from '../../selectors/Network/NetworkListModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { CellModalSelectorsIDs } from '../../selectors/Modals/CellModal.selectors';
 import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
 
 class NetworkListModal {
