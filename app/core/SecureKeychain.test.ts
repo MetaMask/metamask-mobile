@@ -59,6 +59,7 @@ jest.mock('../core/Analytics', () => ({
 
 describe('SecureKeychain - setGenericPassword', () => {
   const mockPassword = 'test_password';
+  let metricsInstance: IMetaMetrics;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,7 +67,21 @@ describe('SecureKeychain - setGenericPassword', () => {
     metricsInstance = {
       addTraitsToUser: mockAddTraitsToUser,
       trackEvent: jest.fn(),
-    } as IMetaMetrics;
+      isEnabled: jest.fn(),
+      enable: jest.fn(),
+      group: jest.fn(),
+      reset: jest.fn(),
+      identify: jest.fn(),
+      page: jest.fn(),
+      track: jest.fn(),
+      updateTraits: jest.fn(),
+      getTraits: jest.fn(),
+      disable: jest.fn(),
+      flush: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+    } as unknown as IMetaMetrics;
   });
 
   it('should set biometric authentication correctly', async () => {
