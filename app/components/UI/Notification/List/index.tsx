@@ -56,7 +56,7 @@ function Loading() {
   );
 }
 
-function NotificationsListItem(props: NotificationsListItemProps) {
+export function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent } = useMetrics();

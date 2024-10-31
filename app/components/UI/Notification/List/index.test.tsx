@@ -1,16 +1,18 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import NotificationsList from './';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { Provider } from 'react-redux';
+import createMockStore from 'redux-mock-store';
+import NotificationsList, { NotificationsListItem } from './';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import renderWithProvider, { DeepPartial } from '../../../../util/test/renderWithProvider';
 import MOCK_NOTIFICATIONS from '../__mocks__/mock_notifications';
 import initialRootState, { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import { createNavigationProps } from '../../../../util/testUtils';
-import { hasNotificationModal } from '../../../../util/notifications/notification-states';
+import { hasNotificationModal, hasNotificationComponents, NotificationComponentState } from '../../../../util/notifications/notification-states';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-import { Provider } from 'react-redux';
-import createMockStore from 'redux-mock-store';
+
 // eslint-disable-next-line import/no-namespace
 import * as Actions from '../../../../actions/notification/helpers';
 const mockNavigation = createNavigationProps({});
@@ -26,6 +28,8 @@ jest.mock('../../../../util/notifications/services/NotificationService', () => (
 
 jest.mock('../../../../util/notifications/notification-states', () => ({
   hasNotificationModal: jest.fn(),
+  hasNotificationComponents: jest.fn(),
+  NotificationComponentState: {},
 }));
 
 jest.mock('../../../hooks/useMetrics', () => ({
@@ -51,6 +55,14 @@ const mockInitialState: DeepPartial<RootState> = {
     },
   },
 };
+
+jest.mock('../NotificationMenuItem', () => ({
+  NotificationMenuItem: {
+    Root: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Icon: jest.fn(({ isRead }: { isRead: boolean }) => <div>{isRead ? 'Read Icon' : 'Unread Icon'}</div>),
+    Content: jest.fn(() => <div>Mocked Content</div>),
+  },
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -88,8 +100,6 @@ function arrangeHook() {
   return hook;
 }
 describe('NotificationsList', () => {
-
-
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <NotificationsList
@@ -139,6 +149,36 @@ describe('NotificationsList', () => {
       },
     ]);
     expect(navigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('derives notificationState correctly based on notification type', () => {
+    (hasNotificationComponents as unknown as jest.Mock).mockReturnValue(true);
+    (NotificationComponentState[MOCK_NOTIFICATIONS[2].type] = {
+      createMenuItem: jest.fn().mockReturnValue({
+        title: MOCK_NOTIFICATIONS[2].title,
+        description: {
+          start: MOCK_NOTIFICATIONS[2].description,
+          end: MOCK_NOTIFICATIONS[2].description,
+        },
+        image: {
+          url: MOCK_NOTIFICATIONS[2].image,
+          variant: 'circle',
+        },
+        badgeIcon: MOCK_NOTIFICATIONS[2].badgeIcon,
+        createdAt: MOCK_NOTIFICATIONS[2].createdAt,
+        isRead: MOCK_NOTIFICATIONS[2].isRead,
+      }),
+      guardFn: (n): n is NotificationServicesController.Types.INotification => true,
+    });
+
+    renderWithProvider(
+      <NotificationsListItem
+        notification={MOCK_NOTIFICATIONS[2]}
+        navigation={mockNavigation}
+      />
+    );
+
+    expect(NotificationComponentState[MOCK_NOTIFICATIONS[2].type].createMenuItem).toHaveBeenCalledWith(MOCK_NOTIFICATIONS[2]);
   });
 });
 
