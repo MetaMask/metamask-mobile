@@ -1,4 +1,4 @@
-export const NetworkApprovalModalSelectorsIDs = {
+export const NetworkApprovalBottomSheetSelectorsIDs = {
   DISPLAY_NAME: 'approve-network-display-name-id',
   CONTAINER: 'approve-network-modal',
   CANCEL_BUTTON: 'approve-network-cancel-button',
