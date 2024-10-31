@@ -359,8 +359,13 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
+  // Transactions
+  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
+  TRANSACTION_FINALIZED = 'Transaction Finalized',
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+
   // Nft auto detection modal
   NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
   NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
@@ -842,6 +847,8 @@ const events = {
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
+  // Transactions
+  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
@@ -885,6 +892,7 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
+  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',

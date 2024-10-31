@@ -232,8 +232,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
     let hasPermittedChains = false;
-    const chainsToPermit =
-      selectedChainIds.length > 0 ? selectedChainIds : chainId ? [chainId] : [];
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      chainsToPermit = [chainId];
+    }
 
     try {
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
@@ -678,6 +680,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
       accountAddresses: confirmedAddresses,
+      accounts,
       // @ts-expect-error imageSource not yet typed
       networkAvatars: selectedNetworkAvatars,
     };
@@ -687,6 +690,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     urlWithProtocol,
     confirmedAddresses,
     selectedNetworkAvatars,
+    accounts,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(

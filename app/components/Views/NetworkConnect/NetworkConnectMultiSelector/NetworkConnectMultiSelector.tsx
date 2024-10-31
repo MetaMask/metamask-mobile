@@ -4,6 +4,7 @@ import { Platform, SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -48,11 +49,13 @@ const NetworkConnectMultiSelector = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
+  const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
       setSelectedChainIds(propSelectedChainIds);
+      setOriginalChainIds(propSelectedChainIds);
     }
   }, [propSelectedChainIds, isInitializedWithPermittedChains]);
 
@@ -80,6 +83,7 @@ const NetworkConnectMultiSelector = ({
     }
 
     setSelectedChainIds(currentlyPermittedChains);
+    setOriginalChainIds(currentlyPermittedChains);
   }, [hostname, isInitializedWithPermittedChains, initialChainId]);
 
   const handleUpdateNetworkPermissions = useCallback(async () => {
@@ -156,12 +160,6 @@ const NetworkConnectMultiSelector = ({
   );
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
-    // not sure if we want to do this here or on the sub modal
-    // which provides the extra warning that it will fully disconnect you
-    Engine.context.PermissionController.revokePermissions({
-      [hostname]: [PermissionKeys.permittedChains, PermissionKeys.eth_accounts],
-    });
-
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -219,10 +217,13 @@ const NetworkConnectMultiSelector = ({
     styles.selectAllContainer,
   ]);
 
-  const renderCtaButtons = useCallback(() => {
-    const isConnectDisabled = Boolean(!selectedChainIds.length) || isLoading;
+  const isUpdateDisabled =
+    selectedChainIds.length === 0 ||
+    isLoading ||
+    isEqual(selectedChainIds, originalChainIds);
 
-    return (
+  const renderCtaButtons = useCallback(
+    () => (
       <View style={styles.buttonsContainer}>
         <View style={styles.updateButtonContainer}>
           {areAnyNetworksSelected && (
@@ -233,9 +234,9 @@ const NetworkConnectMultiSelector = ({
               size={ButtonSize.Lg}
               style={{
                 ...styles.buttonPositioning,
-                ...(isConnectDisabled && styles.disabledOpacity),
+                ...(isUpdateDisabled && styles.disabledOpacity),
               }}
-              disabled={isConnectDisabled}
+              disabled={isUpdateDisabled}
               {...generateTestId(
                 Platform,
                 ConnectNetworkModalSelectorsIDs.SELECT_MULTI_BUTTON,
@@ -267,17 +268,17 @@ const NetworkConnectMultiSelector = ({
           </View>
         )}
       </View>
-    );
-  }, [
-    handleUpdateNetworkPermissions,
-    areAnyNetworksSelected,
-    isLoading,
-    selectedChainIds,
-    styles,
-    areNoNetworksSelected,
-    hostname,
-    toggleRevokeAllNetworkPermissionsModal,
-  ]);
+    ),
+    [
+      handleUpdateNetworkPermissions,
+      areAnyNetworksSelected,
+      styles,
+      areNoNetworksSelected,
+      hostname,
+      toggleRevokeAllNetworkPermissionsModal,
+      isUpdateDisabled,
+    ],
+  );
 
   const renderNetworkConnectMultiSelector = useCallback(
     () => (

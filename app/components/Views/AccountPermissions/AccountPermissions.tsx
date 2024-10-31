@@ -300,13 +300,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(true);
       let newActiveAddress;
       let connectedAccountLength = 0;
-      let addedAccountCount = 0;
       let removedAccountCount = 0;
 
       if (!isMultichainVersion1Enabled) {
         newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
         connectedAccountLength = selectedAddresses.length;
-        addedAccountCount = selectedAddresses.length;
       } else {
         // Function to normalize Ethereum addresses using checksum
         const normalizeAddresses = (addresses: string[]) =>
@@ -331,7 +329,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accountsToAdd = normalizedSelectedAddresses.filter(
           (account) => !normalizedPermittedAccounts.includes(account),
         );
-        addedAccountCount = accountsToAdd.length;
 
         // Add newly selected accounts
         if (accountsToAdd.length > 0) {
@@ -341,7 +338,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           newActiveAddress = normalizedSelectedAddresses[0];
         }
 
-        // if (!isFirstRenderOfEditingAllAccountPermissions.current) {
         // Identify accounts to be removed
         accountsToRemove = normalizedPermittedAccounts.filter(
           (account) => !normalizedSelectedAddresses.includes(account),
@@ -352,7 +348,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         if (accountsToRemove.length > 0) {
           removePermittedAccounts(hostname, accountsToRemove);
         }
-        // }
 
         // Calculate the number of connected accounts after changes
         connectedAccountLength =
@@ -370,34 +365,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let labelOptions: ToastOptions['labelOptions'] = [];
       // Start of Selection
       if (connectedAccountLength >= 1) {
-        if (addedAccountCount > 0) {
-          labelOptions = [
-            { label: `${addedAccountCount} `, isBold: true },
-            {
-              label: `${strings(
-                addedAccountCount > 1
-                  ? 'toast.accounts_connected'
-                  : 'toast.account_connected',
-              )}\n`,
-            },
-          ];
-        }
-        if (removedAccountCount > 0) {
-          labelOptions.push(
-            { label: `${removedAccountCount} `, isBold: true },
-            {
-              label: `${strings(
-                removedAccountCount > 1
-                  ? 'toast.accounts_disconnected'
-                  : 'toast.account_disconnected',
-              )}\n`,
-            },
-          );
-        }
-        labelOptions.push(
-          { label: `${activeAccountName} `, isBold: true },
-          { label: strings('toast.now_active') },
-        );
+        labelOptions = [
+          { label: `${strings('toast.accounts_permissions_updated')}` },
+        ];
       }
 
       if (connectedAccountLength === 1 && removedAccountCount === 0) {
@@ -439,11 +409,26 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   useEffect(() => {
+    if (!isMultichainVersion1Enabled) {
+      return;
+    }
+
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
       setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
       setNetworkSelectorUserIntent(USER_INTENT.None);
+      const networkToastProps: ToastOptions = {
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: strings('toast.network_permissions_updated'),
+          },
+        ],
+        hasNoTimeout: false,
+        networkImageSource: faviconSource,
+      };
+      toastRef?.current?.showToast(networkToastProps);
     }
-  }, [networkSelectorUserIntent, hideSheet]);
+  }, [networkSelectorUserIntent, hideSheet, faviconSource, toastRef]);
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
@@ -562,6 +547,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: checksummedPermittedAddresses,
+      accounts,
       networkAvatars,
     };
 
@@ -574,6 +560,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     permittedAccountsByHostname,
     setSelectedAddresses,
     networkAvatars,
+    accounts,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
