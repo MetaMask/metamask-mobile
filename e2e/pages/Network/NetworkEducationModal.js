@@ -1,7 +1,7 @@
 import {
   NetworkEducationModalSelectorsIDs,
   NetworkEducationModalSelectorsText,
-} from '../../selectors/Modals/NetworkEducationModal.selectors';
+} from '../../selectors/Network/NetworkEducationModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
@@ -32,10 +32,6 @@ class NetworkEducationModal {
 
   async tapGotItButton() {
     await Gestures.waitAndTap(this.closeButton);
-  }
-
-  async tapManualAddTokenLink() {
-    await Gestures.waitAndTap(this.addToken);
   }
 }
 

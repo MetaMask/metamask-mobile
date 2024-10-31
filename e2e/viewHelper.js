@@ -4,8 +4,8 @@ import EnableAutomaticSecurityChecksView from './pages/modals/EnableAutomaticSec
 import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
-import NetworkEducationModal from './pages/modals/NetworkEducationModal';
-import NetworkListModal from './pages/modals/NetworkListModal';
+import NetworkEducationModal from './pages/Network/NetworkEducationModal';
+import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
