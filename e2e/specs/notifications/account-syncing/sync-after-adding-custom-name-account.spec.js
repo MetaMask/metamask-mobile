@@ -7,7 +7,7 @@ import {
 import {
   startMockServer,
   stopMockServer,
-} from '../../../mockServer/mockServer';
+} from '../../../api-mocking/mock-server';
 import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
@@ -16,9 +16,6 @@ import AccountListView from '../../../pages/AccountListView';
 import Assertions from '../../../utils/Assertions';
 import AddAccountModal from '../../../pages/modals/AddAccountModal';
 import AccountActionsModal from '../../../pages/modals/AccountActionsModal';
-import EditAccountNameView from '../../../pages/EditAccountNameView';
-import Gestures from '../../../utils/Gestures';
-import EditAccountNameSelectorIDs from '../../../selectors/EditAccountName.selectors';
 import { mockNotificationServices } from '../utils/mocks';
 import { SmokeNotifications } from '../../../tags';
 
@@ -29,9 +26,7 @@ describe(SmokeNotifications('Account syncing'), () => {
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
-    const mockServer = await startMockServer({
-      mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
-    });
+    const mockServer = await startMockServer();
 
     const { userStorageMockttpControllerInstance } =
       await mockNotificationServices(mockServer);
@@ -65,23 +60,16 @@ describe(SmokeNotifications('Account syncing'), () => {
 
     for (const accountName of decryptedAccountNames) {
       await Assertions.checkIfVisible(
-        element(by.text(accountName).and(by.id('cellbase-avatar-title'))),
+        await AccountListView.getAccountElementByAccountName(accountName),
       );
     }
 
     await AccountListView.tapAddAccountButton();
     await AddAccountModal.tapCreateAccount();
-
     await AccountListView.swipeToDismissAccountsModal();
 
     await WalletView.tapMainWalletAccountActions();
-    await AccountActionsModal.tapEditAccount();
-    await Gestures.clearField(EditAccountNameView.accountNameInput);
-    await TestHelpers.typeTextAndHideKeyboard(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
-      NEW_ACCOUNT_NAME,
-    );
-    await EditAccountNameView.tapSave();
+    await AccountActionsModal.renameActiveAccount(NEW_ACCOUNT_NAME);
 
     await Assertions.checkIfElementToHaveText(
       WalletView.accountName,
@@ -102,7 +90,7 @@ describe(SmokeNotifications('Account syncing'), () => {
     await Assertions.checkIfVisible(AccountListView.accountList);
 
     await Assertions.checkIfVisible(
-      element(by.text(NEW_ACCOUNT_NAME).and(by.id('cellbase-avatar-title'))),
+      await AccountListView.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
     );
 
     await stopMockServer();

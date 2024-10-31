@@ -7,7 +7,7 @@ import {
 import {
   startMockServer,
   stopMockServer,
-} from '../../../mockServer/mockServer';
+} from '../../../api-mocking/mock-server';
 import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
@@ -58,7 +58,7 @@ describe(SmokeNotifications('Account syncing'), () => {
 
     for (const accountName of decryptedAccountNames) {
       await Assertions.checkIfVisible(
-        element(by.text(accountName).and(by.id('cellbase-avatar-title'))),
+        await AccountListView.getAccountElementByAccountName(accountName),
       );
     }
 
