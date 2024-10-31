@@ -19,8 +19,12 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import Logger from '../../../../../util/Logger';
 
 const StakeInputView = () => {
+  const { trackEvent, createEventBuilder } = useMetrics()
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -64,6 +68,24 @@ const StakeInputView = () => {
         annualRewardRate,
       },
     });
+    const metrics = MetaMetrics.getInstance();
+    Logger.log('Should fire event')
+    // Working code
+    metrics.trackEvent(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED, {
+      blah: 'test'
+    })
+    // Broken code
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+      .addProperties({
+        blah: 'test 1'
+      })
+      .build(),
+    );
+    // Also broken code
+    trackEvent(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED, {
+      blah: 'test 2'
+    })
   }, [
     navigation,
     amountWei,
