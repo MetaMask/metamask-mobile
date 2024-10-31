@@ -17,6 +17,8 @@ on:
 jobs:
     generate-build-version:
       uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+      permissions:
+        id-token: write
 
     bump-version:
         runs-on: ubuntu-latest
