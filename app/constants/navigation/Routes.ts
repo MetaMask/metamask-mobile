@@ -112,6 +112,8 @@ const Routes = {
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
+    TOKEN_SORT: 'TokenSort',
+    CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -146,9 +148,11 @@ const Routes = {
     STAKE: 'Stake',
     STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
+    UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      MAX_INPUT: 'MaxInput',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

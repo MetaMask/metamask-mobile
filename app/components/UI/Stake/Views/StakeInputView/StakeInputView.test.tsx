@@ -4,10 +4,11 @@ import StakeInputView from './StakeInputView';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { BN } from 'ethereumjs-util';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { Contract } from 'ethers';
+import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
+import { toWei } from '../../../../../util/number';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -53,7 +54,7 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
-const mockBalanceBN = new BN('1500000000000000000');
+const mockBalanceBN = toWei('1.5'); // 1.5 ETH
 
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
@@ -83,9 +84,47 @@ jest.mock('../../hooks/useStakeContext.ts', () => ({
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
-    balance: '1.5',
+    balanceETH: '1.5',
     balanceWei: mockBalanceBN,
     balanceFiatNumber: '3000',
+  }),
+}));
+
+const mockGasFee = toWei('0.0001');
+
+jest.mock('../../hooks/useStakingGasFee', () => ({
+  __esModule: true,
+  default: () => ({
+    estimatedGasFeeWei: mockGasFee,
+    gasLimit: 70122,
+    isLoadingStakingGasFee: false,
+    isStakingGasFeeError: false,
+    refreshGasValues: jest.fn(),
+  }),
+}));
+
+const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+// Mock hooks
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useVaultData', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultData: mockVaultData,
+    loading: false,
+    error: null,
+    refreshVaultData: jest.fn(),
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
   }),
 }));
 
@@ -122,7 +161,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(screen.getByText('2'));
 
-      expect(screen.getByText('0.052 ETH')).toBeTruthy();
+      expect(screen.getByText('0.05 ETH')).toBeTruthy();
     });
   });
 

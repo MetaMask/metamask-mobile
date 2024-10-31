@@ -28,7 +28,6 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -43,7 +42,7 @@ import {
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
@@ -52,7 +51,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -361,7 +360,7 @@ export function getPaymentRequestOptionsTitle(
         <TouchableOpacity
           onPress={goBack}
           style={styles.backButton}
-          {...generateTestId(Platform, REQUEST_SEARCH_RESULTS_BACK_BUTTON)}
+          testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
         >
           <IonicIcon
             name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -1118,7 +1117,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1177,7 +1176,7 @@ export function getNftDetailsNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -1300,7 +1299,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <IonicIcon
           name={'ios-close'}
@@ -1849,6 +1848,9 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
       fontSize: 14,
       ...fontStyles.normal,
     },
+    headerTitle: {
+      alignItems: 'center',
+    },
   });
 
   function navigationPop() {
@@ -1857,7 +1859,9 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
 
   return {
     headerTitle: () => (
-      <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      <View style={innerStyles.headerTitle}>
+        <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      </View>
     ),
     headerStyle: innerStyles.headerStyle,
     headerLeft: () =>
@@ -1868,7 +1872,9 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
           onPress={navigationPop}
           style={innerStyles.headerLeft}
         />
-      ) : null,
+      ) : (
+        <></>
+      ),
     headerRight: () =>
       hasCancelButton ? (
         <TouchableOpacity
@@ -1879,6 +1885,8 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
             {strings('navigation.cancel')}
           </Text>
         </TouchableOpacity>
-      ) : null,
+      ) : (
+        <></>
+      ),
   };
 }

@@ -17,14 +17,12 @@ import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsC
 import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
-import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { balance, balanceFiatNumber, balanceWei } = useBalance();
 
   const {
     isEth,
@@ -41,7 +39,13 @@ const StakeInputView = () => {
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
-  } = useStakingInputHandlers(balanceWei);
+    annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+    isLoadingVaultData,
+    handleMax,
+    balanceValue,
+  } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
@@ -55,9 +59,28 @@ const StakeInputView = () => {
       params: {
         amountWei: amountWei.toString(),
         amountFiat: fiatAmount,
+        annualRewardsETH,
+        annualRewardsFiat,
+        annualRewardRate,
       },
     });
-  }, [amountWei, fiatAmount, navigation]);
+  }, [
+    navigation,
+    amountWei,
+    fiatAmount,
+    annualRewardsETH,
+    annualRewardsFiat,
+    annualRewardRate,
+  ]);
+
+  const handleMaxButtonPress = () => {
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.MAX_INPUT,
+      params: {
+        handleMaxPress: handleMax,
+      },
+    });
+  };
 
   const balanceText = strings('stake.balance');
 
@@ -66,10 +89,6 @@ const StakeInputView = () => {
     : isOverMaximum
     ? strings('stake.not_enough_eth')
     : strings('stake.review');
-
-  const balanceValue = isEth
-    ? `${balance} ETH`
-    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   useEffect(() => {
     navigation.setOptions(
@@ -101,11 +120,13 @@ const StakeInputView = () => {
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
           onIconPress={navigateToLearnMoreModal}
+          isLoading={isLoadingVaultData}
         />
       </View>
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleAmountPress}
+        onMaxPress={handleMaxButtonPress}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}

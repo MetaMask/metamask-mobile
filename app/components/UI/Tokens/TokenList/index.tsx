@@ -11,6 +11,7 @@ import { useTheme } from '../../../../util/theme';
 import { createDetectedTokensNavDetails } from '../../../Views/DetectedTokens';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectDetectedTokens } from '../../../../selectors/tokensController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../util/networks';
 import createStyles from '../styles';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -18,12 +19,16 @@ import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 interface TokenListProps {
   tokens: TokenI[];
   refreshing: boolean;
+  isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
+  goToAddToken: () => void;
+  setIsAddTokenEnabled: (arg: boolean) => void;
 }
 
 interface TokenListNavigationParamList {
@@ -34,8 +39,11 @@ interface TokenListNavigationParamList {
 export const TokenList = ({
   tokens,
   refreshing,
+  isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
+  goToAddToken,
+  setIsAddTokenEnabled,
 }: TokenListProps) => {
   const navigation =
     useNavigation<
@@ -46,21 +54,11 @@ export const TokenList = ({
 
   const chainId = useSelector(selectChainId);
   const detectedTokens = useSelector(selectDetectedTokens);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
-  const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   const styles = createStyles(colors);
-
-  const goToAddToken = () => {
-    setIsAddTokenEnabled(false);
-    navigation.push('AddAsset', { assetType: 'token' });
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
-    });
-    setIsAddTokenEnabled(true);
-  };
 
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
@@ -76,6 +74,7 @@ export const TokenList = ({
 
   return tokens?.length ? (
     <FlatList
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
@@ -83,15 +82,16 @@ export const TokenList = ({
           showRemoveMenu={showRemoveMenu}
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
+          privacyMode={privacyMode}
         />
       )}
       keyExtractor={(_, index) => index.toString()}
       ListFooterComponent={
         <TokenListFooter
           tokens={tokens}
-          isAddTokenEnabled={isAddTokenEnabled}
           goToAddToken={goToAddToken}
           showDetectedTokens={showDetectedTokens}
+          isAddTokenEnabled={isAddTokenEnabled}
         />
       }
       refreshControl={

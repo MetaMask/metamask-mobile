@@ -58,6 +58,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import TokenSortBottomSheet from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -123,6 +124,7 @@ import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
@@ -131,6 +133,11 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
+import Engine from '../../../core/Engine';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -422,6 +429,10 @@ const RootModalFlow = () => (
       component={NetworkSelector}
     />
     <Stack.Screen
+      name={Routes.SHEET.TOKEN_SORT}
+      component={TokenSortBottomSheet}
+    />
+    <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
       component={BasicFunctionalityModal}
     />
@@ -491,6 +502,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
       component={OriginSpamModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
+      component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
   </Stack.Navigator>
@@ -579,7 +594,15 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          await Authentication.appTriggeredAuth();
+          await trace(
+            {
+              name: TraceName.BiometricAuthentication,
+              op: TraceOperation.BiometricAuthentication,
+            },
+            async () => {
+              await Authentication.appTriggeredAuth();
+            },
+          );
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
@@ -753,6 +776,46 @@ const App = (props) => {
   useEffect(() => {
     async function startApp() {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+      if (!existingUser) {
+        // List of chainIds to add (as hex strings)
+        const chainIdsToAdd = [
+          CHAIN_IDS.ARBITRUM,
+          CHAIN_IDS.BASE,
+          CHAIN_IDS.BSC,
+          CHAIN_IDS.OPTIMISM,
+          CHAIN_IDS.POLYGON,
+        ];
+
+        // Filter the PopularList to get only the specified networks based on chainId
+        const selectedNetworks = PopularList.filter((network) =>
+          chainIdsToAdd.includes(network.chainId),
+        );
+        const { NetworkController } = Engine.context;
+
+        // Loop through each selected network and call NetworkController.addNetwork
+        for (const network of selectedNetworks) {
+          try {
+            await NetworkController.addNetwork({
+              chainId: network.chainId,
+              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
+              defaultRpcEndpointIndex: 0,
+              defaultBlockExplorerUrlIndex: 0,
+              name: network.nickname,
+              nativeCurrency: network.ticker,
+              rpcEndpoints: [
+                {
+                  url: network.rpcUrl,
+                  name: network.nickname,
+                  type: RpcEndpointType.Custom,
+                },
+              ],
+            });
+          } catch (error) {
+            Logger.error(error);
+          }
+        }
+      }
+
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);

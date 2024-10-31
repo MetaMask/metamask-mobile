@@ -145,8 +145,8 @@ stages:
       - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-        - ios_e2e_build: {}
-        - android_e2e_build: {}
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -746,7 +746,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy test screenshots
           is_always_run: true
@@ -754,7 +754,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: E2E_Android_Failure_Screenshots
+            - zip_name: E2E_Android_Failure_Artifacts
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -1004,7 +1004,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           run_if: .IsBuildFailed
@@ -1012,7 +1012,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Screenshots'
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -1094,6 +1094,11 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+    after_run:
+      - build_android_release
   build_android_qa:
     before_run:
       - code_setup
@@ -1264,7 +1269,7 @@ workflows:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
     envs:
-       - NO_FLIPPER: '1'
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1303,9 +1308,14 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  build_ios_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+    after_run:
+      - build_ios_release
   build_ios_qa:
     envs:
-       - NO_FLIPPER: '1'
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1493,7 +1503,10 @@ app:
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: false
+      MM_POOLED_STAKING_UI_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1526,16 +1539,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.32.0
+      VERSION_NAME: 7.33.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1450
+      VERSION_NUMBER: 1460
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.32.0
+      FLASK_VERSION_NAME: 7.33.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1450
+      FLASK_VERSION_NUMBER: 1460
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1553,7 +1566,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.12.2
+      NODE_VERSION: 20.14.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
@@ -1563,7 +1576,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
-    machine_type_id: g2-m1-max.5core
+    machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
