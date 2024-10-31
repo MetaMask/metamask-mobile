@@ -883,7 +883,7 @@ class Confirm extends PureComponent {
       resetTransaction,
       gasEstimateType,
       shouldUseSmartTransaction,
-      transactionSimulationData: { isUpdatedAfterSecurityCheck },
+      transactionSimulationData: { isUpdatedAfterSecurityCheck } = {},
     } = this.props;
 
     const {
