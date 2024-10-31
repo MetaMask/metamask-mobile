@@ -26,7 +26,7 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../../../../e2e/selectors/Modals/SrpQuizModal.selectors';
+} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 

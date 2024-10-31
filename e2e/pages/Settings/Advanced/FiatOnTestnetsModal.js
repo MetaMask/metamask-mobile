@@ -1,6 +1,6 @@
-import { FiatOnTestnetsModalSelectorsIDs } from '../../selectors/Modals/FiatOnTestnetsModal.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import { FiatOnTestnetsModalSelectorsIDs } from '../../../selectors/Settings/Advanced/FiatOnTestnetsModal.selectors';
+import Gestures from '../../../utils/Gestures';
+import Matchers from '../../../utils/Matchers';
 
 class FiatOnTestnetsModal {
   get continueButton() {

@@ -5,9 +5,9 @@ import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../selectors/Modals/SrpQuizModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+} from '../../../selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
 
 class SrpQuizModal {
   // Getters for common elements
