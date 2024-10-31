@@ -112,6 +112,8 @@ const Routes = {
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
+    TOKEN_SORT: 'TokenSort',
+    CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
