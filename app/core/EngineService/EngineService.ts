@@ -53,7 +53,6 @@ class EngineService {
         name: 'AddressBookController',
         key: `${engine.context.AddressBookController.name}:stateChange`,
       },
-      { name: 'AssetsContractController' },
       { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',

@@ -1,6 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { SendLinkViewSelectorsIDs } from '../../selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
 
 class SendLinkView {
   get container() {
@@ -12,7 +12,9 @@ class SendLinkView {
   }
 
   get closeSendLinkButton() {
-    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON);
+    return Matchers.getElementByID(
+      SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
+    );
   }
 
   get qrCodeButton() {

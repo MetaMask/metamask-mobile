@@ -1,14 +1,16 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { SendLinkViewSelectorsIDs } from '../../selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
 
-class PaymentRequestQrModal {
+class PaymentRequestQrBottomSheet {
   get container() {
     return Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_MODAL);
   }
 
   get closeButton() {
-    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON);
+    return Matchers.getElementByID(
+      SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON,
+    );
   }
 
   async tapCloseButton() {
@@ -16,4 +18,4 @@ class PaymentRequestQrModal {
   }
 }
 
-export default new PaymentRequestQrModal();
+export default new PaymentRequestQrBottomSheet();

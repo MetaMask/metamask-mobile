@@ -8530,7 +8530,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               onLoadEnd={[Function]}
                                               source={
                                                 {
-                                                  "uri": undefined,
+                                                  "uri": "",
                                                 }
                                               }
                                               style={
@@ -11635,7 +11635,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               onLoadEnd={[Function]}
                                               source={
                                                 {
-                                                  "uri": undefined,
+                                                  "uri": "",
                                                 }
                                               }
                                               style={
