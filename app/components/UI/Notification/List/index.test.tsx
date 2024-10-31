@@ -12,9 +12,11 @@ import { RootState } from '../../../../reducers';
 import { createNavigationProps } from '../../../../util/testUtils';
 import { hasNotificationModal, hasNotificationComponents, NotificationComponentState } from '../../../../util/notifications/notification-states';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-
+import { Notification } from '../../../../util/notifications/types';
 // eslint-disable-next-line import/no-namespace
 import * as Actions from '../../../../actions/notification/helpers';
+import { NotificationState } from '../../../../util/notifications/notification-states/types/NotificationState';
+import { TRIGGER_TYPES } from '../../../../util/notifications/constants';
 const mockNavigation = createNavigationProps({});
 
 const mockTrackEvent = jest.fn();
@@ -153,23 +155,22 @@ describe('NotificationsList', () => {
 
   it('derives notificationState correctly based on notification type', () => {
     (hasNotificationComponents as unknown as jest.Mock).mockReturnValue(true);
-    (NotificationComponentState[MOCK_NOTIFICATIONS[2].type] = {
+    (NotificationComponentState as Record<TRIGGER_TYPES, NotificationState<Notification>>)[MOCK_NOTIFICATIONS[2].type] = {
       createMenuItem: jest.fn().mockReturnValue({
-        title: MOCK_NOTIFICATIONS[2].title,
+        title: MOCK_NOTIFICATIONS[2].type,
         description: {
-          start: MOCK_NOTIFICATIONS[2].description,
-          end: MOCK_NOTIFICATIONS[2].description,
+          start: MOCK_NOTIFICATIONS[2].type,
         },
         image: {
-          url: MOCK_NOTIFICATIONS[2].image,
+          url: MOCK_NOTIFICATIONS[2].type,
           variant: 'circle',
         },
-        badgeIcon: MOCK_NOTIFICATIONS[2].badgeIcon,
+        badgeIcon: MOCK_NOTIFICATIONS[2].type,
         createdAt: MOCK_NOTIFICATIONS[2].createdAt,
         isRead: MOCK_NOTIFICATIONS[2].isRead,
       }),
       guardFn: (n): n is NotificationServicesController.Types.INotification => true,
-    });
+    };
 
     renderWithProvider(
       <NotificationsListItem
@@ -178,8 +179,7 @@ describe('NotificationsList', () => {
       />
     );
 
-    expect(NotificationComponentState[MOCK_NOTIFICATIONS[2].type].createMenuItem).toHaveBeenCalledWith(MOCK_NOTIFICATIONS[2]);
+    expect((NotificationComponentState as Record<TRIGGER_TYPES, NotificationState<Notification>>)[MOCK_NOTIFICATIONS[2].type].createMenuItem).toHaveBeenCalledWith(MOCK_NOTIFICATIONS[2]);
   });
 });
-
 
