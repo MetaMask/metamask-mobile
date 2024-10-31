@@ -6,6 +6,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
@@ -18,7 +20,6 @@ import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.TypeReference;
 
 import java.math.BigInteger;
@@ -47,6 +48,7 @@ public class EthRpc extends ReactContextBaseJavaModule {
             Web3j web3j = Web3j.build(new HttpService(infuraUrl));
 
             List<Address> users = Collections.singletonList(new Address(userAddress));
+
             List<Address> tokens = new ArrayList<>();
             for (int i = 0; i < tokenAddresses.size(); i++) {
                 tokens.add(new Address(tokenAddresses.getString(i)));
@@ -56,7 +58,22 @@ public class EthRpc extends ReactContextBaseJavaModule {
             System.out.println("Users: " + users);
             System.out.println("Tokens: " + tokens);
 
-            // Parse the ABI JSON to get the function
+            // Parse the ABI JSON to get the function definition
+            JSONArray abiArray = new JSONArray(abiJson);
+            JSONObject functionAbi = null;
+            for (int i = 0; i < abiArray.length(); i++) {
+                JSONObject abiObject = abiArray.getJSONObject(i);
+                if (abiObject.has("name") && abiObject.getString("name").equals("balances")) {
+                    functionAbi = abiObject;
+                    break;
+                }
+            }
+
+            if (functionAbi == null) {
+                promise.reject("Error", "Function 'balances' not found in ABI");
+                return;
+            }
+
             Function function = new Function(
                 "balances",
                 Arrays.asList(new DynamicArray<>(Address.class, users), new DynamicArray<>(Address.class, tokens)),
