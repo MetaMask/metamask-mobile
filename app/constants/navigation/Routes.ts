@@ -112,6 +112,7 @@ const Routes = {
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
+    TOKEN_SORT: 'TokenSort',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -150,6 +151,7 @@ const Routes = {
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      MAX_INPUT: 'MaxInput',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
