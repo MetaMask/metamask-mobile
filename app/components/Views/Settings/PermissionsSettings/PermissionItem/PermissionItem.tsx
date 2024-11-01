@@ -18,6 +18,7 @@ import {
 import WebsiteIcon from '../../../../../components/UI/WebsiteIcon';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
+import { useFavicon } from '../../../../hooks/useFavicon';
 
 interface PermissionListItemProps {
   item: PermissionListItemViewModel;
@@ -29,10 +30,11 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
   onPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const faviconUrl = useFavicon(item.dappHostName);
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.iconContainer}>
-        <WebsiteIcon style={styles.icon} url={item.dappLogoUrl} />
+        <WebsiteIcon style={styles.icon} icon={faviconUrl} />
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.row}>
