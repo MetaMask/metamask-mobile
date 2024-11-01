@@ -100,6 +100,20 @@ const NetworkVerificationInfo = ({
     [customNetworkInformation],
   );
 
+  const dappOrigin = useMemo(() => {
+    // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
+    const customNetworkUrl = customNetworkInformation.pageMeta?.url;
+    const url = customNetworkUrl ? new URL(customNetworkUrl) : null;
+    if (url) {
+      try {
+        return url.hostname;
+      } catch (error) {
+        console.error('Invalid URL:', error);
+      }
+    }
+    return 'Undefined dapp origin';
+  }, [customNetworkInformation]);
+
   const renderCurrencySymbol = () => (
     <>
       <Text
@@ -437,9 +451,7 @@ const NetworkVerificationInfo = ({
               {strings(
                 'switch_custom_network.add_network_and_give_dapp_permission_warning',
                 {
-                  // @ts-expect-error let's adjust the CustomNetworkInformation after multichain controllers have been updated by the api team
-                  dapp_origin: new URL(customNetworkInformation.pageMeta.url)
-                    ?.hostname,
+                  dapp_origin: dappOrigin,
                 },
               )}
             </Text>

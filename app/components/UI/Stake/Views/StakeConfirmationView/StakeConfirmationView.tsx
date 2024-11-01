@@ -11,6 +11,7 @@ import ConfirmationFooter from '../../components/StakingConfirmation/Confirmatio
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
 import { strings } from '../../../../../../locales/i18n';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
+import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -47,6 +48,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
             rewardsEth={route.params.annualRewardsETH}
             rewardsFiat={route.params.annualRewardsFiat}
           />
+          <UnstakingTimeCard />
         </View>
       </View>
       <ConfirmationFooter
