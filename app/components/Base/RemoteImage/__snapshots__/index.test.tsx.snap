@@ -5,7 +5,7 @@ exports[`RemoteImage should render ipfs sources 1`] = `
   onError={[Function]}
   source={
     {
-      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+      "uri": Promise {},
     }
   }
 />
