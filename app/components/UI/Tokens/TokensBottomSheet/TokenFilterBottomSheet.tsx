@@ -47,7 +47,7 @@ const TokenFilterBottomSheet = () => {
     }
   };
 
-  const isSelectedNetwork = tokenNetworkFilter?.[chainId];
+  const isSelectedNetwork = Boolean(tokenNetworkFilter?.[chainId]);
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
