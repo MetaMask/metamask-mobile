@@ -10,7 +10,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
+import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
 import LoginView from '../../pages/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp } from '../../viewHelper';

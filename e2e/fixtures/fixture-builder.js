@@ -421,6 +421,7 @@ class FixtureBuilder {
               pendingApprovalCount: 0,
               approvalFlows: [],
             },
+            UserStorageController: {},
             NotificationServicesController: {
               subscriptionAccountsSeen: [],
               isMetamaskNotificationsFeatureSeen: false,

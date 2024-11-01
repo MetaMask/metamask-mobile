@@ -1,9 +1,9 @@
 import {
   DeleteWalletModalSelectorsIDs,
   DeleteWalletModalSelectorsText,
-} from '../../selectors/Modals/DeleteWalletModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+} from '../../../selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
 
 class DeleteWalletModal {
   get container() {
