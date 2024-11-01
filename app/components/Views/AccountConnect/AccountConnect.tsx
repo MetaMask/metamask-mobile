@@ -13,7 +13,6 @@ import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -33,7 +32,6 @@ import {
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
-import getAccountNameWithENS from '../../../util/accounts';
 import {
   getAddressAccountType,
   safeToChecksumAddress,
@@ -133,11 +131,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   >([]);
 
   const { toastRef } = useContext(ToastContext);
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
   // origin is set to the last active tab url in the browser which can conflict with sdk
   const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
@@ -439,11 +432,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     };
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
-    const activeAccountName = getAccountNameWithENS({
-      accountAddress: activeAddress,
-      accounts,
-      ensByAccountAddress,
-    });
 
     try {
       setIsLoading(true);
@@ -485,9 +473,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     eventSource,
     selectedAddresses,
     hostInfo,
-    accounts,
-    ensByAccountAddress,
-    accountAvatarType,
     toastRef,
     accountsLength,
     channelIdOrHostname,
