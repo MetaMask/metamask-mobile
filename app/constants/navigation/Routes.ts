@@ -43,7 +43,6 @@ const Routes = {
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
     WHATS_NEW: 'WhatsNewModal',
-    SMART_TRANSACTIONS_OPT_IN: 'SmartTransactionsOptInModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',

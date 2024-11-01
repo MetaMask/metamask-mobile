@@ -366,9 +366,6 @@ describe('captureSentryFeedback', () => {
         type: undefined,
         warningGasPriceHigh: undefined,
       },
-      smartTransactions: {
-        optInModalAppVersionSeen: null,
-      },
       user: {
         ambiguousAddressEntries: {},
         backUpSeedphraseVisible: false,
