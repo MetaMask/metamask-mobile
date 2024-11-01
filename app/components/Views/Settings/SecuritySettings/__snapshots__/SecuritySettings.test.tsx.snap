@@ -1171,7 +1171,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="clear-cookies-section"
       >
         <Text
           accessibilityRole="text"
