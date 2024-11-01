@@ -266,6 +266,7 @@ import { getSmartTransactionMetricsProperties } from '../util/smart-transactions
 import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
+import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -957,6 +958,11 @@ export class Engine {
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
+      getStakedBalanceForChain:
+        assetsContractController.getStakedBalanceForChain.bind(
+          assetsContractController,
+        ),
+      includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1995,6 +2001,14 @@ export class Engine {
           accountsByChainId[toHexadecimal(chainId)][
             selectSelectedInternalAccountChecksummedAddress
           ].balance,
+          conversionRate,
+          decimalsToShow,
+        );
+
+        ethFiat += weiToFiatNumber(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].stakedBalance ?? '0x00',
           conversionRate,
           decimalsToShow,
         );
