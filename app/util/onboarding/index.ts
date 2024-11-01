@@ -15,51 +15,6 @@ const isVersionSeenAndGreaterThanMinAppVersion = (
   minAppVersion: string,
 ) => !!versionSeen && compareVersions.compare(versionSeen, minAppVersion, '>=');
 
-const STX_OPT_IN_MIN_APP_VERSION = '7.24.0';
-
-/**
- *
- * @param chainId The chainId of the current network
- * @param providerConfigRpcUrl The RPC URL of the current network
- * @returns Boolean indicating whether or not to show smart transactions opt in modal
- */
-export const shouldShowSmartTransactionsOptInModal = async (
-  chainId: string,
-  providerConfigRpcUrl: string | undefined,
-  accountHasZeroBalance: boolean,
-) => {
-  if (
-    process.env.IS_TEST === 'true' ||
-    chainId !== NETWORKS_CHAIN_ID.MAINNET ||
-    providerConfigRpcUrl !== undefined || // undefined is the default RPC URL (Infura).
-    accountHasZeroBalance
-  ) {
-    return false;
-  }
-
-  const versionSeen =
-    store.getState().smartTransactions.optInModalAppVersionSeen;
-
-  const currentAppVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
-
-  // Check if user has seen
-  const seen = isVersionSeenAndGreaterThanMinAppVersion(
-    versionSeen,
-    STX_OPT_IN_MIN_APP_VERSION,
-  );
-
-  if (seen) return false;
-
-  // Check version
-  const versionCorrect = compareVersions.compare(
-    currentAppVersion as string,
-    STX_OPT_IN_MIN_APP_VERSION,
-    '>=',
-  );
-
-  return versionCorrect;
-};
-
 /**
  * Returns boolean indicating whether or not to show whats new modal
  *

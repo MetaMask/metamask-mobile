@@ -36,7 +36,6 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowSmartTransactionsOptInModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -336,7 +335,7 @@ const Wallet = ({
   });
 
   /**
-   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
+   * Check to see if we need to show What's New modal
    */
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
@@ -351,36 +350,6 @@ const Wallet = ({
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
-
-    // Show STX opt in modal before What's New modal
-    // Fired on the first load of the wallet and also on network switch
-    const checkSmartTransactionsOptInModal = async () => {
-      try {
-        const accountHasZeroBalance = hexToBN(
-          accountBalanceByChainId?.balance || '0x0',
-        ).isZero();
-        const shouldShowStxOptInModal =
-          await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
-            providerConfig.rpcUrl,
-            accountHasZeroBalance,
-          );
-        if (shouldShowStxOptInModal) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
-          });
-        }
-      } catch (error) {
-        Logger.log(
-          error,
-          'Error while checking Smart Tranasctions Opt In modal!',
-        );
-      }
-    };
-
-    InteractionManager.runAfterInteractions(() => {
-      checkSmartTransactionsOptInModal();
-    });
   }, [
     wizardStep,
     navigation,
