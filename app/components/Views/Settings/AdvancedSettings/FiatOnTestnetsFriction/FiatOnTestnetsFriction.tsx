@@ -20,7 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../Base/Text';
 import { useDispatch } from 'react-redux';
 import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
-import { FiatOnTestnetsModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/FiatOnTestnetsModal.selectors';
+import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const FiatOnTestnetsFriction = () => {
@@ -63,7 +63,7 @@ const FiatOnTestnetsFriction = () => {
         </Text>
         <View style={styles.buttonsContainer}>
           <Button
-            testID={FiatOnTestnetsModalSelectorsIDs.CANCEL_BUTTON}
+            testID={FiatOnTestnetsBottomSheetSelectorsIDs.CANCEL_BUTTON}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
@@ -74,7 +74,7 @@ const FiatOnTestnetsFriction = () => {
             onPress={() => sheetRef.current?.onCloseBottomSheet()}
           />
           <Button
-            testID={FiatOnTestnetsModalSelectorsIDs.CONTINUE_BUTTON}
+            testID={FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}

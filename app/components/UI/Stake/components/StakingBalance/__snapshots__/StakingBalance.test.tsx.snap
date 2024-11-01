@@ -36,7 +36,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             onLoadEnd={[Function]}
             source={
               {
-                "uri": undefined,
+                "uri": "",
               }
             }
             style={
@@ -265,7 +265,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             }
           }
         >
-          Unstaking 0.0010 ETH in progress. Come back in 11 days to claim it.
+          Unstaking 0.0010 ETH in progress. Come back in a few days to claim it.
         </Text>
       </View>
     </View>
