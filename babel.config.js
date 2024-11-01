@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
-  ignore: [/ses\.cjs/],
+  ignore: ['ses.cjs'],
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
     'transform-inline-environment-variables',
