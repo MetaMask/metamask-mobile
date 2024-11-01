@@ -21,4 +21,6 @@ export interface TokenI {
   balanceFiat: string;
   logo: string | undefined;
   isETH: boolean | undefined;
+  isStaked: boolean | undefined;
+  nativeAsset: TokenI | undefined;
 }
