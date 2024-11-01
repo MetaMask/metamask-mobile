@@ -51,7 +51,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376c9",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -159,7 +159,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376c9",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -267,7 +267,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376c9",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
@@ -375,7 +375,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376c9",
             "borderRadius": 20,
             "height": 40,
             "justifyContent": "center",
