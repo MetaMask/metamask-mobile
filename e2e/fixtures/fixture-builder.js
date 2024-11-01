@@ -461,7 +461,7 @@ class FixtureBuilder {
           signMessageModalVisible: true,
         },
         settings: {
-          searchEngine: 'DuckDuckGo',
+          searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
           useBlockieIcon: true,
