@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
@@ -33,14 +33,6 @@ const WalletAction = ({
   const { colors } = lightTheme;
   const { styles } = useStyles(styleSheet, {});
 
-  const avatarStyle = useMemo(
-    () => ({
-      ...iconStyle,
-      backgroundColor: disabled ? colors.primary.muted : colors.primary.default,
-    }),
-    [disabled, colors, iconStyle],
-  );
-
   const touchableStyles = [
     styles.base,
     containerStyle,
@@ -57,9 +49,10 @@ const WalletAction = ({
     >
       <Avatar
         variant={AvatarVariant.Icon}
-        style={avatarStyle}
+        style={iconStyle}
         size={iconSize}
         name={iconName}
+        backgroundColor={colors.primary.default}
         iconColor={colors.background.default}
       />
       <View>
