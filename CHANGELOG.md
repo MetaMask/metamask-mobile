@@ -2,7 +2,11 @@
 
 ## Current Main Branch
 
-## 7.33.1 - Oct 29, 2024
+## 7.33.2 - Nov 1, 2024
+### Fixed
+- [#10952](https://github.com/MetaMask/metamask-mobile/pull/10952): refactor(ramp): update ramp copy (#10952)
+
+## 7.33.2 - Oct 29, 2024
 ### Fixed
 - [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
 
