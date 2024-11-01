@@ -9,7 +9,7 @@ const PORTFOLIO_URL =
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
+  DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
