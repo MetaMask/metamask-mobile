@@ -38,6 +38,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -240,6 +241,7 @@ const AccountSelectorList = ({
           isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
+          showSecondaryTextIcon={false}
           tertiaryText={balanceError}
           onPress={() => onSelectAccount?.(address, isSelectedAccount)}
           avatarProps={{
@@ -252,6 +254,7 @@ const AccountSelectorList = ({
           style={cellStyle}
           buttonProps={{
             onButtonClick: () => onNavigateToAccountActions(address),
+            buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
           }}
         >
           {renderRightAccessory?.(address, accountName) ||

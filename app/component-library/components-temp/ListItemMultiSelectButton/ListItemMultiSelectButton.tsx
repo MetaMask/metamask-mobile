@@ -44,7 +44,6 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
     isDisabled,
     isSelected,
   });
-
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -68,7 +67,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
           <ButtonIcon
             iconName={buttonIcon}
             iconColor={IconColor.Default}
-            testID={BUTTON_TEST_ID}
+            testID={buttonProps?.buttonTestId || BUTTON_TEST_ID}
             onPress={buttonProps?.onButtonClick}
             accessibilityRole="button"
           />

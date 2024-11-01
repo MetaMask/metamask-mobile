@@ -325,20 +325,6 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     >
                       0xC495...D272
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -426,7 +412,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -448,7 +434,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-0"
           >
             <SvgMock
               color="#141618"
@@ -739,20 +725,6 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     >
                       0xd018...78E7
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -812,7 +784,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -834,7 +806,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#141618"
@@ -1182,20 +1154,6 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     >
                       0xC495...D272
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -1218,7 +1176,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -1240,7 +1198,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-0"
           >
             <SvgMock
               color="#141618"
@@ -1532,20 +1490,6 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     >
                       0xd018...78E7
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -1568,7 +1512,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -1590,7 +1534,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#141618"
@@ -1937,20 +1881,6 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     >
                       0xC495...D272
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -2038,7 +1968,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -2060,7 +1990,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-0"
           >
             <SvgMock
               color="#141618"
@@ -2351,20 +2281,6 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     >
                       0xd018...78E7
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -2424,7 +2340,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -2446,7 +2362,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#141618"
@@ -2674,20 +2590,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     >
                       0xC495...D272
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
                 <View
@@ -2775,7 +2677,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -2797,7 +2699,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-0"
           >
             <SvgMock
               color="#141618"
@@ -2972,20 +2874,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     >
                       0xd018...78E7
                     </Text>
-                    <SvgMock
-                      color="#141618"
-                      height={10}
-                      name="ArrowDown"
-                      style={
-                        {
-                          "height": 10,
-                          "paddingLeft": 8,
-                          "paddingTop": 24,
-                          "width": 10,
-                        }
-                      }
-                      width={10}
-                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -2995,7 +2883,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         <View
           style={
             {
-              "paddingHorizontal": 20,
+              "paddingRight": 20,
             }
           }
         >
@@ -3017,7 +2905,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                 "width": 24,
               }
             }
-            testID="button-menu-select-test-id"
+            testID="main-wallet-account-actions-1"
           >
             <SvgMock
               color="#141618"

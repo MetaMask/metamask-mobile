@@ -30,6 +30,7 @@ export const WalletViewSelectorsIDs = {
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
   SORT_BY: 'sort-by',
+  NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
 };
 
 export const WalletViewSelectorsText = {

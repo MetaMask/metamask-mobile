@@ -155,6 +155,7 @@ exports[`Wallet should render correctly 1`] = `
                     }
                   >
                     <View
+                      accessibilityLabel="Ethereum Mainnet"
                       style={
                         {
                           "alignItems": "center",
@@ -166,6 +167,7 @@ exports[`Wallet should render correctly 1`] = `
                           "width": 16,
                         }
                       }
+                      testID="network-avatar-picker"
                     >
                       <Image
                         onError={[Function]}
