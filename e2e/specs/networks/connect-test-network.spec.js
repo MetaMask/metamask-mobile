@@ -1,8 +1,8 @@
 import { Regression } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
