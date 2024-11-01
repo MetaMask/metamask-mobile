@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { View, SafeAreaView } from 'react-native';
+import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -58,6 +59,12 @@ const AccountConnectMultiSelector = ({
   const { navigate } = useNavigation();
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
     AccountConnectMultiSelectorScreens.AccountMultiSelector,
+  );
+  const sortedSelectedAddresses = [...selectedAddresses].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const [originalSelectedAddresses] = useState<string[]>(
+    sortedSelectedAddresses,
   );
 
   const onSelectAccount = useCallback(
@@ -184,6 +191,10 @@ const AccountConnectMultiSelector = ({
 
   const renderCtaButtons = useCallback(() => {
     const isConnectDisabled = Boolean(!selectedAddresses.length) || isLoading;
+    const areUpdateDisabled = isEqual(
+      [...selectedAddresses].sort((a, b) => a.localeCompare(b)),
+      originalSelectedAddresses,
+    );
 
     return (
       <View style={styles.ctaButtonsContainer}>
@@ -225,9 +236,10 @@ const AccountConnectMultiSelector = ({
               size={ButtonSize.Lg}
               style={{
                 ...styles.button,
-                ...(isConnectDisabled && styles.disabled),
+                ...((isConnectDisabled || areUpdateDisabled) &&
+                  styles.disabled),
               }}
-              disabled={isConnectDisabled}
+              disabled={isConnectDisabled || areUpdateDisabled}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
             />
           )}
@@ -270,6 +282,7 @@ const AccountConnectMultiSelector = ({
     toggleRevokeAllAccountPermissionsModal,
     showDisconnectAllButton,
     onPrimaryActionButtonPress,
+    originalSelectedAddresses,
   ]);
 
   const renderAccountConnectMultiSelector = useCallback(
