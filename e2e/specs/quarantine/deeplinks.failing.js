@@ -3,8 +3,8 @@ import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
-import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
+import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 
 import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
@@ -99,15 +99,15 @@ describe(Regression('Deep linking Tests'), () => {
       PopularNetworksList.BNB.providerConfig.nickname,
     );
 
-    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
     await Assertions.checkIfElementToHaveText(
-      NetworkApprovalModal.displayName,
+      NetworkApprovalBottomSheet.displayName,
       PopularNetworksList.BNB.providerConfig.nickname,
     );
-    await NetworkApprovalModal.tapApproveButton();
+    await NetworkApprovalBottomSheet.tapApproveButton();
 
-    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
-    await NetworkAddedModal.tapCloseButton();
+    await Assertions.checkIfVisible(NetworkAddedBottomSheet.switchNetwork);
+    await NetworkAddedBottomSheet.tapCloseButton();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
   });
 
@@ -116,17 +116,17 @@ describe(Regression('Deep linking Tests'), () => {
       PopularNetworksList.Polygon.providerConfig.nickname,
     );
 
-    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
     await Assertions.checkIfElementToHaveText(
-      NetworkApprovalModal.displayName,
+      NetworkApprovalBottomSheet.displayName,
       PopularNetworksList.Polygon.providerConfig.nickname,
     );
 
-    await NetworkApprovalModal.tapApproveButton();
+    await NetworkApprovalBottomSheet.tapApproveButton();
     await TestHelpers.delay(1000);
 
-    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
-    await NetworkAddedModal.tapSwitchToNetwork();
+    await Assertions.checkIfVisible(NetworkAddedBottomSheet.switchNetwork);
+    await NetworkAddedBottomSheet.tapSwitchToNetwork();
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementToHaveText(

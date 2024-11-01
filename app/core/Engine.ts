@@ -28,6 +28,13 @@ import {
   TokenListControllerActions,
   TokenListControllerEvents,
   TokenBalancesControllerState,
+  AssetsContractControllerGetERC20BalanceOfAction,
+  AssetsContractControllerGetERC721AssetNameAction,
+  AssetsContractControllerGetERC721AssetSymbolAction,
+  AssetsContractControllerGetERC721TokenURIAction,
+  AssetsContractControllerGetERC721OwnerOfAction,
+  AssetsContractControllerGetERC1155BalanceOfAction,
+  AssetsContractControllerGetERC1155TokenURIAction,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -128,7 +135,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
+import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -308,7 +315,14 @@ type GlobalActions =
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions
-  | SmartTransactionsControllerActions;
+  | SmartTransactionsControllerActions
+  | AssetsContractControllerGetERC20BalanceOfAction
+  | AssetsContractControllerGetERC721AssetNameAction
+  | AssetsContractControllerGetERC721AssetSymbolAction
+  | AssetsContractControllerGetERC721TokenURIAction
+  | AssetsContractControllerGetERC721OwnerOfAction
+  | AssetsContractControllerGetERC1155BalanceOfAction
+  | AssetsContractControllerGetERC1155TokenURIAction;
 
 type GlobalEvents =
   | AddressBookControllerEvents
@@ -502,19 +516,6 @@ export class Engine {
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
 
-    /**
-     * Subscribes a listener to the state change events of Preferences Controller.
-     *
-     * @param listener - The callback function to execute when the state changes.
-     */
-    const onPreferencesStateChange = (
-      listener: (preferencesState: PreferencesState) => void,
-    ) => {
-      const eventName = `PreferencesController:stateChange`;
-
-      this.controllerMessenger.subscribe(eventName, listener);
-    };
-
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
@@ -529,7 +530,6 @@ export class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -570,18 +570,22 @@ export class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      onPreferencesStateChange,
-      onNetworkDidChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_DID_CHANGE_EVENT,
-          // @ts-expect-error TODO: Resolve bump the assets controller version.
-          listener,
-        ),
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'AssetsContractController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getNetworkConfigurationByNetworkClientId',
+          'NetworkController:getSelectedNetworkClient',
+          'NetworkController:getState',
+        ],
+        allowedEvents: [
+          'PreferencesController:stateChange',
+          'NetworkController:networkDidChange',
+        ],
+      }),
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      getNetworkClientById:
-        networkController.getNetworkClientById.bind(networkController),
     });
     const accountsControllerMessenger: AccountsControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -614,8 +618,7 @@ export class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      useIPFSSubdomains: false,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      useIpfsSubdomains: false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
         allowedActions: [
@@ -623,6 +626,12 @@ export class Engine {
           `${networkController.name}:getNetworkClientById`,
           'AccountsController:getAccount',
           'AccountsController:getSelectedAccount',
+          'AssetsContractController:getERC721AssetName',
+          'AssetsContractController:getERC721AssetSymbol',
+          'AssetsContractController:getERC721TokenURI',
+          'AssetsContractController:getERC721OwnerOf',
+          'AssetsContractController:getERC1155BalanceOf',
+          'AssetsContractController:getERC1155TokenURI',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -630,25 +639,6 @@ export class Engine {
           'AccountsController:selectedEvmAccountChange',
         ],
       }),
-
-      getERC721AssetName: assetsContractController.getERC721AssetName.bind(
-        assetsContractController,
-      ),
-      getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(
-        assetsContractController,
-      ),
-      getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
-        assetsContractController,
-      ),
-      getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
-        assetsContractController,
-      ),
-      getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
-        assetsContractController,
-      ),
-      getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
-        assetsContractController,
-      ),
     });
 
     const loggingController = new LoggingController({
@@ -667,9 +657,9 @@ export class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -695,7 +685,6 @@ export class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -703,7 +692,6 @@ export class Engine {
       }),
     });
     const currencyRateController = new CurrencyRateController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -902,7 +890,7 @@ export class Engine {
           type,
           requestData: { content, placeholder },
         }),
-      showInAppNotification: (origin: string, args: NotificationArgs) => {
+      showInAppNotification: (origin: string, args: NotificationParameters) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
           args,
@@ -943,7 +931,6 @@ export class Engine {
     });
 
     const accountTrackerController = new AccountTrackerController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions
       messenger: this.controllerMessenger.getRestricted({
         name: 'AccountTrackerController',
         allowedActions: [
@@ -1226,12 +1213,42 @@ export class Engine {
 
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      env: {
+        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+        },
+      },
       state: initialState.UserStorageController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
           'KeyringController:getState',
+          'KeyringController:addNewAccount',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1239,13 +1256,12 @@ export class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          'KeyringController:addNewAccount',
           'AccountsController:listAccounts',
           'AccountsController:updateAccountMetadata',
         ],
         allowedEvents: [
-          'KeyringController:lock',
           'KeyringController:unlock',
+          'KeyringController:lock',
           'AccountsController:accountAdded',
           'AccountsController:accountRenamed',
         ],
@@ -1437,7 +1453,6 @@ export class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1482,7 +1497,6 @@ export class Engine {
       }),
 
       new NftDetectionController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftDetectionController',
           allowedEvents: [
@@ -1506,19 +1520,22 @@ export class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
-          allowedActions: ['AccountsController:getSelectedAccount'],
+          allowedActions: [
+            'AccountsController:getSelectedAccount',
+            'AssetsContractController:getERC20BalanceOf',
+          ],
           allowedEvents: ['TokensController:stateChange'],
         }),
-        getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
-          assetsContractController,
-        ),
         interval: 180000,
+        tokens: [
+          ...tokensController.state.tokens,
+          ...tokensController.state.detectedTokens,
+        ],
+        state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenRatesController',
           allowedActions: [
@@ -1858,12 +1875,8 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const {
-      AccountTrackerController,
-      AssetsContractController,
-      NetworkController,
-      SwapsController,
-    } = this.context;
+    const { AccountTrackerController, NetworkController, SwapsController } =
+      this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1871,7 +1884,6 @@ export class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-    AssetsContractController.configure({ provider });
 
     SwapsController.configure({
       provider,
