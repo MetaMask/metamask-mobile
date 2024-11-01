@@ -3397,7 +3397,7 @@
     "earn_eth_rewards":"Earn ETH rewards",
     "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
     "flexible_unstaking":"Flexible unstaking",
-    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
     "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more":"Learn more",
     "got_it":"Got it",
@@ -3428,7 +3428,7 @@
         "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
         "and": "and",
         "to_claim_it": "to claim it.",
-        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
@@ -3451,7 +3451,8 @@
       "title": "Max",
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
     },
-    "use_max": "Use max"
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3529,7 +3530,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
+      "tooltip": "It can take between 1 and 11 days for your unstaking request to be processed. The exact duration depends on ETH staking activity."
     }
   },
   "confirm": {
