@@ -12,7 +12,7 @@ export interface NetworkConnectMultiSelectorProps {
   onSelectNetwork?: (id: string, isSelected: boolean) => void;
   networks?: Network[];
   isLoading?: boolean;
-  selectedNetworkIds?: string[];
+  selectedChainIds?: string[];
   isMultiSelect?: boolean;
   renderRightAccessory?: (id: string, name: string) => React.ReactNode;
   isSelectionDisabled?: boolean;
