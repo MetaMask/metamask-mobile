@@ -1,6 +1,6 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
-import { AutoLockModalSelectorsText } from '../../selectors/Modals/AutoLockModal.selectors';
+import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../utils/Gestures';
+import { AutoLockModalSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/AutoLockModal.selectors';
 
 class AutoLockModal {
   get autoLockImmediate() {
