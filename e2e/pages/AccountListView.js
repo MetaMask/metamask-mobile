@@ -51,6 +51,13 @@ class AccountListView {
     return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
   }
 
+  getAccountElementByAccountName(accountName) {
+    return Matchers.getElementByIDAndLabel(
+      CellModalSelectorsIDs.BASE_TITLE,
+      accountName,
+    );
+  }
+
   getSelectElement(index) {
     return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
   }

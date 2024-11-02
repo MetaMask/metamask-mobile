@@ -135,7 +135,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
+import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -570,7 +570,6 @@ export class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
         allowedActions: [
@@ -619,8 +618,7 @@ export class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
-      useIPFSSubdomains: false,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      useIpfsSubdomains: false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
         allowedActions: [
@@ -659,9 +657,9 @@ export class Engine {
       chainId: networkController.getNetworkClientById(
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [
@@ -687,7 +685,6 @@ export class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -695,7 +692,6 @@ export class Engine {
       }),
     });
     const currencyRateController = new CurrencyRateController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
         allowedActions: [`${networkController.name}:getNetworkClientById`],
@@ -894,7 +890,7 @@ export class Engine {
           type,
           requestData: { content, placeholder },
         }),
-      showInAppNotification: (origin: string, args: NotificationArgs) => {
+      showInAppNotification: (origin: string, args: NotificationParameters) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
           args,
@@ -935,7 +931,6 @@ export class Engine {
     });
 
     const accountTrackerController = new AccountTrackerController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions
       messenger: this.controllerMessenger.getRestricted({
         name: 'AccountTrackerController',
         allowedActions: [
@@ -1218,12 +1213,42 @@ export class Engine {
 
     const userStorageController = new UserStorageController.Controller({
       getMetaMetricsState: () => MetaMetrics.getInstance().isEnabled(),
+      env: {
+        isAccountSyncingEnabled: Boolean(process.env.IS_TEST),
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+        },
+      },
       state: initialState.UserStorageController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'UserStorageController',
         allowedActions: [
           'SnapController:handleRequest',
           'KeyringController:getState',
+          'KeyringController:addNewAccount',
           'AuthenticationController:getBearerToken',
           'AuthenticationController:getSessionProfile',
           'AuthenticationController:isSignedIn',
@@ -1231,13 +1256,12 @@ export class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          'KeyringController:addNewAccount',
           'AccountsController:listAccounts',
           'AccountsController:updateAccountMetadata',
         ],
         allowedEvents: [
-          'KeyringController:lock',
           'KeyringController:unlock',
+          'KeyringController:lock',
           'AccountsController:accountAdded',
           'AccountsController:accountRenamed',
         ],
@@ -1429,7 +1453,6 @@ export class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
@@ -1474,7 +1497,6 @@ export class Engine {
       }),
 
       new NftDetectionController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'NftDetectionController',
           allowedEvents: [
@@ -1498,7 +1520,6 @@ export class Engine {
       phishingController,
       preferencesController,
       new TokenBalancesController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
@@ -1515,7 +1536,6 @@ export class Engine {
         state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenRatesController',
           allowedActions: [

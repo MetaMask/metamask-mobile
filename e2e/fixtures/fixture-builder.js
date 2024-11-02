@@ -421,6 +421,7 @@ class FixtureBuilder {
               pendingApprovalCount: 0,
               approvalFlows: [],
             },
+            UserStorageController: {},
             NotificationServicesController: {
               subscriptionAccountsSeen: [],
               isMetamaskNotificationsFeatureSeen: false,
@@ -460,7 +461,7 @@ class FixtureBuilder {
           signMessageModalVisible: true,
         },
         settings: {
-          searchEngine: 'DuckDuckGo',
+          searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
           useBlockieIcon: true,
