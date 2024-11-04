@@ -339,6 +339,9 @@
     "metamaskNotificationsReadList": [],
     "subscriptionAccountsSeen": []
   },
+  "NotificationServicesPushController": {
+    "fcmToken": ""
+  },
   "UserStorageController": {
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
