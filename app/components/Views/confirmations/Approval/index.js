@@ -317,7 +317,7 @@ class Approval extends PureComponent {
    */
   trackEditScreen = async () => {
     const { transaction } = this.props;
-    const actionKey = await getTransactionReviewActionKey(transaction);
+    const actionKey = await getTransactionReviewActionKey({ transaction });
     this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
@@ -374,8 +374,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
