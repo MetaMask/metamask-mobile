@@ -129,15 +129,15 @@ describe(Regression('Custom RPC Tests'), () => {
     );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
 
+    await NetworkEducationModal.tapGotItButton();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.checkIfVisible(WalletView.container);
     const networkPicker = await WalletView.getNavbarNetworkPicker();
+
     await Assertions.checkIfElementHasLabel(
       networkPicker,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
-
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should switch back to Gnosis', async () => {
