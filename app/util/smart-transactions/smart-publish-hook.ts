@@ -331,6 +331,7 @@ class SmartTransactionHook {
       signedTransactions,
       signedCanceledTransactions,
       txParams: this.#txParams,
+      // @ts-expect-error version mismatch between smart-transactions-controller and transaction-controller breaking type safety
       transactionMeta: this.#transactionMeta,
     });
   };
