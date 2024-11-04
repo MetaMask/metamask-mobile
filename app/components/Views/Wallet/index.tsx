@@ -229,10 +229,6 @@ const Wallet = ({
   const currentToast = toastRef?.current;
 
   useEffect(() => {
-    throw new Error('Test Error');
-  }, []);
-
-  useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
