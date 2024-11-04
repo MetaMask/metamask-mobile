@@ -1866,7 +1866,9 @@
     "connected_to": "Connected to ",
     "manage_permissions": "Manage Permissions",
     "edit": "Edit",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "connection_details_title": "Connection Details",
+    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}"
   },
   "select": {
     "cancel": "Cancel",

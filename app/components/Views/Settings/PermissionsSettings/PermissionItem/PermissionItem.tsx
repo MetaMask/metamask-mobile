@@ -11,12 +11,8 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import styleSheet from './PermissionItem.style';
-import {
-  PermissionListItemViewModel,
-  PermissionSource,
-} from './PermissionItem.types';
+import { PermissionListItemViewModel } from './PermissionItem.types';
 import WebsiteIcon from '../../../../../components/UI/WebsiteIcon';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useFavicon } from '../../../../hooks/useFavicon';
 
@@ -54,19 +50,6 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
               ? strings('app_settings.networks')
               : strings('app_settings.network')}
           </Text>
-        </View>
-        <View style={styles.row}>
-          <View>
-            <Tag
-              label={
-                item.permissionSource === PermissionSource.SDK
-                  ? 'SDK'
-                  : item.permissionSource === PermissionSource.MetaMaskBrowser
-                  ? 'MetaMask Browser'
-                  : 'WalletConnect'
-              }
-            ></Tag>
-          </View>
         </View>
       </View>
       <View style={styles.chevronContainer}>

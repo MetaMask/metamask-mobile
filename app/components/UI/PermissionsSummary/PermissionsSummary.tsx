@@ -127,7 +127,31 @@ const PermissionsSummary = ({
         </View>
 
         <View style={styles.logoContainer}>{renderTopIcon()}</View>
-        <View style={styles.endAccessory}></View>
+        <View style={styles.endAccessory}>
+          {!isRenderedAsBottomSheet && (
+            <ButtonIcon
+              size={ButtonIconSizes.Sm}
+              iconName={IconName.Info}
+              iconColor={IconColor.Default}
+              onPress={() => {
+                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                  screen: Routes.SHEET.CONNECTION_DETAILS,
+                  params: {
+                    hostInfo: {
+                      metadata: {
+                        origin:
+                          currentPageInformation?.url &&
+                          new URL(currentPageInformation?.url).hostname,
+                      },
+                    },
+                    connectionDateTime: new Date().getTime(),
+                  },
+                });
+              }}
+              // testID={CommonSelectorsIDs.PERMISSIONS_INFO_BUTTON}
+            />
+          )}
+        </View>
       </View>
     );
   }
