@@ -30,7 +30,7 @@ class FCMService {
         }
       }
     } catch (error) {
-      Logger.error(error as Error);
+      Logger.log(error as Error, 'FCMService:: error saving');
     }
   };
 
