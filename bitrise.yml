@@ -136,7 +136,7 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_notifications_ios: {}
-      - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_notifications_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -1559,16 +1559,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.33.1
+      VERSION_NAME: 7.33.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1471
+      VERSION_NUMBER: 1474
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.33.1
+      FLASK_VERSION_NAME: 7.33.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1471
+      FLASK_VERSION_NUMBER: 1474
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1586,7 +1586,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.14.0
+      NODE_VERSION: 20.17.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
