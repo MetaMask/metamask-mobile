@@ -224,7 +224,7 @@ describe('captureSentryFeedback', () => {
             logs: {},
           },
           NetworkController: {
-            networkConfigurations: {},
+            networkConfigurationsByChainId: {},
             networksMetadata: {
               mainnet: {
                 EIPS: {
@@ -252,7 +252,7 @@ describe('captureSentryFeedback', () => {
                 name: 'Account 1',
               },
             },
-            ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
+            ipfsGateway: 'https://dweb.link/ipfs/',
             isIpfsGatewayEnabled: true,
             isMultiAccountBalancesEnabled: true,
             lostIdentities: {},
@@ -330,7 +330,7 @@ describe('captureSentryFeedback', () => {
         hideZeroBalanceTokens: false,
         lockTime: 30000,
         primaryCurrency: 'ETH',
-        searchEngine: 'DuckDuckGo',
+        searchEngine: 'Google',
         useBlockieIcon: true,
       },
       alert: {

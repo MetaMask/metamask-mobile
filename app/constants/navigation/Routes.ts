@@ -51,12 +51,16 @@ const Routes = {
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
+    MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
     DEFAULT_SETTINGS: 'DefaultSettings',
+    GENERAL_SETTINGS: 'GeneralSettings',
+    ASSETS_SETTINGS: 'AssetsSettings',
+    SECURITY_SETTINGS: 'SecuritySettings',
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
@@ -108,6 +112,7 @@ const Routes = {
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
+    TOKEN_SORT: 'TokenSort',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
@@ -141,10 +146,13 @@ const Routes = {
   },
   STAKING: {
     STAKE: 'Stake',
+    STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
+    UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      MAX_INPUT: 'MaxInput',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

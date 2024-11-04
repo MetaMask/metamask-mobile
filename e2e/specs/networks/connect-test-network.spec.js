@@ -1,8 +1,8 @@
 import { Regression } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -41,6 +41,7 @@ describe(Regression('Connect to a Test Network'), () => {
   it('should switch to test Network then dismiss the network education modal', async () => {
     // Tap to prompt network list
     await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.scrollToBottomOfNetworkList();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
@@ -62,12 +63,14 @@ describe(Regression('Connect to a Test Network'), () => {
 
   it('should not toggle off the Test Network switch while connected to test network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.scrollToBottomOfNetworkList();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
   });
 
   it('should disconnect to Test Network', async () => {
+    await NetworkListModal.scrollToTopOfNetworkList();
     await NetworkListModal.changeNetworkTo(ETHEREUM);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
@@ -85,6 +88,7 @@ describe(Regression('Connect to a Test Network'), () => {
 
   it('should toggle off the Test Network switch', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.scrollToBottomOfNetworkList();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await Assertions.checkIfTextIsDisplayed(
       CustomNetworks.Sepolia.providerConfig.nickname,

@@ -449,37 +449,29 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     Current Region
                                   </Text>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -498,14 +490,21 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         </Text>
                                       </View>
                                       <View
+                                        accessible={false}
                                         style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -1610,37 +1609,29 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     Current Region
                                   </Text>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -1659,14 +1650,21 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         </Text>
                                       </View>
                                       <View
+                                        accessible={false}
                                         style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -2329,37 +2327,29 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                     Current Region
                                   </Text>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -2378,14 +2368,21 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         </Text>
                                       </View>
                                       <View
+                                        accessible={false}
                                         style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -2873,37 +2870,29 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                     Current Region
                                   </Text>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -2922,14 +2911,21 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         </Text>
                                       </View>
                                       <View
+                                        accessible={false}
                                         style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -3455,37 +3451,29 @@ exports[`Settings renders correctly 1`] = `
                                     Current Region
                                   </Text>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -3504,14 +3492,21 @@ exports[`Settings renders correctly 1`] = `
                                         </Text>
                                       </View>
                                       <View
+                                        accessible={false}
                                         style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -4037,37 +4032,29 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     Current Region
                                   </Text>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      [
-                                        {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
                                       }
                                     >
                                       <View
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "flex": -1,
+                                          }
                                         }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"
@@ -4086,14 +4073,21 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         </Text>
                                       </View>
                                       <View
+                                        accessible={false}
                                         style={
-                                          [
-                                            {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "width": 16,
+                                          }
                                         }
+                                        testID="listitem-gap"
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "flex": -1,
+                                          }
+                                        }
+                                        testID="listitemcolumn"
                                       >
                                         <Text
                                           accessibilityRole="text"

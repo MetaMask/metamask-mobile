@@ -1,83 +1,94 @@
-import TestHelpers from '../helpers';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 import {
-  TOKEN_PRICE,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-  TOKEN_OVERVIEW_BUY_BUTTON,
-  TOKEN_OVERVIEW_SWAP_BUTTON,
-} from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { ImportTokenViewSelectorsIDs } from '../selectors/wallet/ImportTokenView.selectors';
-import enContent from '../../locales/languages/en.json';
+  TokenOverviewSelectorsIDs,
+  TokenOverviewSelectorsText
+} from '../selectors/TokenOverview.selectors';
 
-const chartTimePeriod = [
-  enContent.asset_overview.chart_time_period_navigation['1d'],
-  enContent.asset_overview.chart_time_period_navigation['1w'],
-  enContent.asset_overview.chart_time_period_navigation['1m'],
-  enContent.asset_overview.chart_time_period_navigation['3m'],
-  enContent.asset_overview.chart_time_period_navigation['1y'],
-  enContent.asset_overview.chart_time_period_navigation['3y'],
-];
-
-export default class TokenOverview {
-  static async tapSendButton() {
-    await TestHelpers.waitAndTap(TOKEN_OVERVIEW_SEND_BUTTON);
+class TokenOverview {
+  get container() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  static async tapSwapButton() {
-    await TestHelpers.waitAndTap(TOKEN_OVERVIEW_SWAP_BUTTON);
+  get tokenPrice() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  static async scrollOnScreen() {
-    await TestHelpers.swipe(TOKEN_PRICE, 'up', 'fast', 0.6);
+  get sendButton() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
-  static async tapBackButton() {
-    await TestHelpers.waitAndTap(ImportTokenViewSelectorsIDs.BACK_BUTTON);
+  get swapButton() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(TOKEN_OVERVIEW_SEND_BUTTON);
+  get receiveButton() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
   }
 
-  static async selectChart(chartPeriod) {
-    await TestHelpers.tapByText(chartPeriod);
+  get noChartData() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
   }
 
-  static async checkIfChartIsVisible() {
-    for (const period of chartTimePeriod) {
-      await this.selectChart(period);
-      await TestHelpers.checkIfElementWithTextIsNotVisible(
-        enContent.asset_overview.no_chart_data.title,
-      );
-    }
+  get chartPeriod1d() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);
   }
 
-  static async TokenQuoteIsNotZero() {
-    await TestHelpers.checkIfElementNotToHaveText(TOKEN_PRICE, '$0');
+  get chartPeriod1w() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText['1w']);
   }
 
-  static async TokenQuoteIsZero() {
-    await TestHelpers.checkIfHasText(TOKEN_PRICE, '$0');
+  get chartPeriod1m() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText['1m']);
   }
 
-  static async ChartNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(
-      enContent.asset_overview.no_chart_data.title,
-    );
-  }
-  static async isReceiveButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_RECEIVE_BUTTON);
+  get chartPeriod3m() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText['3m']);
   }
 
-  static async isSendButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SEND_BUTTON);
+  get chartPeriod1y() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText['1y']);
   }
 
-  static async isBuyButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_BUY_BUTTON);
+  get chartPeriod3y() {
+    return Matchers.getElementByText(TokenOverviewSelectorsText['3y']);
   }
 
-  static async isSwapButtonVisible() {
-    await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SWAP_BUTTON);
+  async tapSendButton() {
+    await Gestures.waitAndTap(this.sendButton);
+  }
+
+  async tapSwapButton() {
+    await Gestures.waitAndTap(this.swapButton);
+  }
+
+  async scrollOnScreen() {
+    await Gestures.swipe(this.tokenPrice, 'up', 'fast', 0.6);
+  }
+
+  async tapChartPeriod1d() {
+    await Gestures.waitAndTap(this.chartPeriod1d);
+  }
+
+  async tapChartPeriod1w() {
+    await Gestures.waitAndTap(this.chartPeriod1w);
+  }
+
+  async tapChartPeriod1m() {
+    await Gestures.waitAndTap(this.chartPeriod1m);
+  }
+
+  async tapChartPeriod3m() {
+    await Gestures.waitAndTap(this.chartPeriod3m);
+  }
+
+  async tapChartPeriod1y() {
+    await Gestures.waitAndTap(this.chartPeriod1y);
+  }
+
+  async tapChartPeriod3y() {
+    await Gestures.waitAndTap(this.chartPeriod3y);
   }
 }
+
+export default new TokenOverview();

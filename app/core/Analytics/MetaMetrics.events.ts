@@ -359,8 +359,13 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
+  // Transactions
+  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
+  TRANSACTION_FINALIZED = 'Transaction Finalized',
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
+
   // Nft auto detection modal
   NFT_AUTO_DETECTION_ENABLED_MODAL = 'Nft Autodetection Enabled from modal',
   NFT_AUTO_DETECTION_DISBLED_MODAL = 'Nft Autodetection Disabled from modal',
@@ -368,6 +373,16 @@ enum EVENT_NAME {
   NFT_AUTO_DETECTION_ENABLED = 'nft_autodetection_enabled',
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
+
+  // Profile Syncing
+  ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
+  ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
+  // network
+  MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
+
+  // Connection
+  CONNECTION_DROPPED = 'Connection dropped',
+  CONNECTION_RESTORED = 'Connection restored',
 }
 
 enum ACTIONS {
@@ -835,9 +850,14 @@ const events = {
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
+  // Transactions
+  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
+  ),
+  MULTI_RPC_MIGRATION_MODAL_ACCEPTED: generateOpt(
+    EVENT_NAME.MULTI_RPC_MIGRATION_MODAL_ACCEPTED,
   ),
   NFT_AUTO_DETECTION_MODAL_DISABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_DISBLED_MODAL,
@@ -848,6 +868,14 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
+  // Profile Syncing
+  ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
+  ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
+    EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+  ),
+  // Connection
+  CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
+  CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
 };
 
 /**
@@ -871,6 +899,7 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
+  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',

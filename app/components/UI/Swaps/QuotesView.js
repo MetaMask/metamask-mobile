@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import Eth from 'ethjs-query';
+import Eth from '@metamask/ethjs-query';
 import {
   View,
   StyleSheet,
@@ -17,6 +17,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import {
   WalletDevice,
   TransactionStatus,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { query, toHex } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -55,7 +56,6 @@ import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
 import Alert, { AlertType } from '../../Base/Alert';
 import StyledButton from '../StyledButton';
-import SliderButton from '../SliderButton';
 
 import LoadingAnimation from './components/LoadingAnimation';
 import TokenIcon from './components/TokenIcon';
@@ -443,6 +443,7 @@ function SwapsQuotesView({
   const [trackedError, setTrackedError] = useState(false);
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isHandlingSwap, setIsHandlingSwap] = useState(false);
   const [multiLayerL1ApprovalFeeTotal, setMultiLayerL1ApprovalFeeTotal] =
     useState(null);
 
@@ -458,8 +459,6 @@ function SwapsQuotesView({
 
   const [customGasEstimate, setCustomGasEstimate] = useState(null);
   const [customGasLimit, setCustomGasLimit] = useState(null);
-
-  const [isSwiping, setIsSwiping] = useState(false);
 
   // TODO: use this variable in the future when calculating savings
   const [isSaving] = useState(false);
@@ -1004,6 +1003,21 @@ function SwapsQuotesView({
           transactionMeta.id,
         );
 
+        // TODO: remove this when linea swaps issue is resolved with better transaction awaiting
+        if (
+          [
+            CHAIN_IDS.LINEA_MAINNET,
+            CHAIN_IDS.LINEA_GOERLI,
+            CHAIN_IDS.LINEA_SEPOLIA,
+          ].includes(chainId)
+        ) {
+          Logger.log('Delaying submitting trade tx to make Linea confirmation more likely',);
+          const waitPromise = new Promise((resolve) =>
+            setTimeout(resolve, 5000),
+          );
+          await waitPromise;
+        }
+
         setRecipient(selectedAddress);
 
         const approvalTransactionMetaId = transactionMeta.id;
@@ -1051,11 +1065,15 @@ function SwapsQuotesView({
       setRecipient,
       resetTransaction,
       shouldUseSmartTransaction,
+      chainId,
     ],
   );
 
   const handleCompleteSwap = useCallback(async () => {
+    setIsHandlingSwap(true);
+
     if (!selectedQuote) {
+      setIsHandlingSwap(false);
       return;
     }
 
@@ -1071,6 +1089,7 @@ function SwapsQuotesView({
       );
 
       if (isHardwareAddress) {
+        setIsHandlingSwap(false);
         navigation.dangerouslyGetParent()?.pop();
         return;
       }
@@ -1083,6 +1102,7 @@ function SwapsQuotesView({
       await handleSwapTransaction(approvalTransactionMetaId);
     }
 
+    setIsHandlingSwap(false);
     navigation.dangerouslyGetParent()?.pop();
   }, [
     selectedQuote,
@@ -1703,7 +1723,6 @@ function SwapsQuotesView({
       contentContainerStyle={styles.screen}
       style={styles.container}
       keyboardShouldPersistTaps="handled"
-      scrollEnabled={!isSwiping}
     >
       <View style={styles.topBar}>
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
@@ -2138,24 +2157,9 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <SliderButton
-          incompleteText={
-            <Text style={styles.sliderButtonText}>
-              {`${strings('swaps.swipe_to')} `}
-              <Text reset bold>
-                {strings('swaps.swap')}
-              </Text>
-            </Text>
-          }
-          onSwipeChange={setIsSwiping}
-          completeText={
-            <Text style={styles.sliderButtonText}>
-              {strings('swaps.completed_swap')}
-            </Text>
-          }
-          disabled={unableToSwap || isAnimating}
-          onComplete={handleCompleteSwap}
-        />
+        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap || isHandlingSwap || isAnimating}>
+          {strings('swaps.swap')}
+        </StyledButton>
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>
           <Text link centered>
             {strings('swaps.terms_of_service')}

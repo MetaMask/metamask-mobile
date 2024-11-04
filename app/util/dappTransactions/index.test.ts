@@ -93,7 +93,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
   it('should check value from contractBalances if selectedAddress is from address', async () => {
     const mockGetERC20BalanceOf = jest.fn().mockReturnValue('0x0');
     Engine.context.AssetsContractController = {
-      name: '',
+      name: 'AssetsContractController',
       getERC20BalanceOf: mockGetERC20BalanceOf,
     } as Partial<AssetsContractController> as AssetsContractController;
     expect(

@@ -5,18 +5,22 @@ import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+const SECURITY_ALERTS_API_URL = process.env.SECURITY_ALERTS_API_URL ?? 'https://security-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
+  DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
-  IPFS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipfs/',
+  IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
   IPNS_DEFAULT_GATEWAY_URL: 'https://gateway.pinata.cloud/ipns/',
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  SECURITY_ALERTS_API: {
+    URL: SECURITY_ALERTS_API_URL,
+  },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
   },
@@ -129,6 +133,7 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
+    STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -212,7 +217,7 @@ export default {
     'config-api.metamask.io/featureFlags',
   ],
   FEATURE_FLAGS_API: {
-    BASE_URL: 'https://client-config.api.cx.metamask.io/',
+    BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
   },
 } as const;
