@@ -43,7 +43,7 @@ git config user.email metamaskbot@users.noreply.github.com
 ./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
 
 # Track our changes
-git add ./package.json ./android/app/build.gradle ./ios/MetaMask/Info.plist bitrise.yml
+git add package.json android/app/build.gradle ios/MetaMask/Info.plist bitrise.yml
 
 git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
 
