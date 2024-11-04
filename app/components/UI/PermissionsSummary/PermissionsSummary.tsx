@@ -24,7 +24,6 @@ import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { SAMPLE_AVATARGROUP_PROPS } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -57,6 +56,8 @@ const PermissionsSummary = ({
   isDisconnectAllShown = true,
   isNetworkSwitch = false,
   accountAddresses = [],
+  accounts = [],
+  networkAvatars = [],
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
@@ -169,27 +170,56 @@ const PermissionsSummary = ({
       if (accountAddresses.length === 0 && selectedAccount) {
         return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
       }
-      return accountAddresses.length === 1
-        ? `1 ${strings('accounts.account_connected')}`
-        : `${accountAddresses.length} ${strings(
-            'accounts.accounts_connected',
-          )}`;
+      if (accountAddresses.length === 1) {
+        const matchedConnectedAccount = accounts.find(
+          (account) => account.address === accountAddresses[0],
+        );
+        return matchedConnectedAccount?.name;
+      }
+
+      return `${accountAddresses.length} ${strings(
+        'accounts.accounts_connected',
+      )}`;
     }
 
-    if (
-      accountAddresses.length === 1 ||
-      (accountAddresses.length === 0 && selectedAccount)
-    ) {
-      return (
-        selectedAccount?.name &&
-        `${strings('permissions.requesting_for')}${selectedAccount?.name}`
+    if (accountAddresses.length === 1 && accounts?.length >= 1) {
+      const matchedAccount = accounts.find(
+        (account) => account.address === accountAddresses[0],
       );
+      return `${strings('permissions.requesting_for')}${
+        matchedAccount?.name ? matchedAccount.name : accountAddresses[0]
+      }`;
+    }
+
+    if (accountAddresses.length === 0 && selectedAccount) {
+      return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
     }
 
     return strings('permissions.requesting_for_accounts', {
       numberOfAccounts: accountAddresses.length,
     });
-  }, [accountAddresses, isAlreadyConnected, selectedAccount]);
+  }, [accountAddresses, isAlreadyConnected, selectedAccount, accounts]);
+
+  const getNetworkLabel = useCallback(() => {
+    if (isAlreadyConnected) {
+      return networkAvatars.length === 1
+        ? networkAvatars[0]?.name
+        : `${strings('permissions.n_networks_connect', {
+            numberOfNetworks: networkAvatars.length,
+          })}`;
+    }
+
+    if (networkAvatars.length === 1) {
+      return (
+        networkAvatars[0]?.name &&
+        `${strings('permissions.requesting_for')}${networkAvatars[0]?.name}`
+      );
+    }
+
+    return strings('permissions.requesting_for_networks', {
+      numberOfNetworks: networkAvatars.length,
+    });
+  }, [networkAvatars, isAlreadyConnected]);
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
@@ -280,11 +310,24 @@ const PermissionsSummary = ({
                 </>
               )}
               {!isNetworkSwitch && (
-                <View style={styles.avatarGroup}>
-                  <AvatarGroup
-                    avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
-                  />
-                </View>
+                <>
+                  <View style={styles.permissionRequestNetworkName}>
+                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                      <TextComponent variant={TextVariant.BodySM}>
+                        {getNetworkLabel()}
+                      </TextComponent>
+                    </TextComponent>
+                  </View>
+                  <View style={styles.avatarGroup}>
+                    <AvatarGroup
+                      // @ts-expect-error - AvatarGroup is not typed
+                      avatarPropsList={networkAvatars.map((avatar) => ({
+                        ...avatar,
+                        variant: AvatarVariant.Network,
+                      }))}
+                    />
+                  </View>
+                </>
               )}
             </View>
           </View>
