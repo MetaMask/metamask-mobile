@@ -1,6 +1,6 @@
 import {
   TransactionProtectionModalSelectorText
-} from '../../../e2e/selectors/Modals/TransactionProtectionModal.selectors';
+} from '../../../e2e/selectors/Transactions/TransactionProtectionModal.selectors';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
