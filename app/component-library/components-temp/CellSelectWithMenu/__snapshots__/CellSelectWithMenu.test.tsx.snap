@@ -293,6 +293,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                   "paddingHorizontal": 4,
                 }
               }
+              testID="celltag-label"
             >
               <Text
                 accessibilityRole="text"
