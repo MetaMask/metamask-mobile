@@ -87,7 +87,7 @@ export const skipNotificationsDeviceSettings = async () => {
   }
 };
 
-export const importWalletWithRecoveryPhrase = async () => {
+export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
@@ -98,9 +98,11 @@ export const importWalletWithRecoveryPhrase = async () => {
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportWalletView.enterPassword(validAccount.password);
-  await ImportWalletView.reEnterPassword(validAccount.password);
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
+  await ImportWalletView.enterPassword(password ?? validAccount.password);
+  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
