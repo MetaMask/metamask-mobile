@@ -56,6 +56,7 @@ describe(SmokeNotifications('Account syncing'), () => {
     );
 
     await WalletView.tapIdenticon();
+
     await Assertions.checkIfVisible(AccountListView.accountList);
 
     for (const accountName of decryptedAccountNames) {
@@ -67,8 +68,10 @@ describe(SmokeNotifications('Account syncing'), () => {
     await AccountListView.tapAddAccountButton();
     await AddAccountModal.tapCreateAccount();
     await AccountListView.swipeToDismissAccountsModal();
+    await TestHelpers.delay(2000);
+    await WalletView.tapCurrentMainWalletAccountActions();
 
-    await WalletView.tapMainWalletAccountActions();
+    await AccountListView.tapEditAccountActionsAtIndex(2);
     await AccountActionsModal.renameActiveAccount(NEW_ACCOUNT_NAME);
 
     await Assertions.checkIfElementToHaveText(
