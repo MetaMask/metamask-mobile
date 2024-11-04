@@ -18,6 +18,7 @@
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
     "lint:tsc": "tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
+    "expo:start": "npx expo start",
     "setup": "yarn clean && node scripts/setup.mjs",
     "setup:e2e": "cd wdio && yarn install",
     "start:ios": "./scripts/build.sh ios debug",
