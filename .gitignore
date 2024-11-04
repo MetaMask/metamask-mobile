@@ -23,6 +23,7 @@ DerivedData
 project.xcworkspace
 ios/debug.xcconfig
 ios/release.xcconfig
+ios/.xcode.env.local
 
 # android / intellij
 build/
