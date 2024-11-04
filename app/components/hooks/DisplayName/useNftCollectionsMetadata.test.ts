@@ -62,10 +62,10 @@ describe('useNftCollectionsMetadata', () => {
     mockGetTokenDetails
       .mockResolvedValueOnce({
         standard: TokenStandard.erc721,
-      } as ReturnType<typeof NFTController.getNFTContractInfo>)
+      } as ReturnType<typeof NftController.getNFTContractInfo>)
       .mockResolvedValueOnce({
         standard: TokenStandard.erc721,
-      } as ReturnType<typeof NFTController.getNFTContractInfo>);
+      } as ReturnType<typeof NftController.getNFTContractInfo>);
   });
 
   it('calls NFT tokens API and returns the correct data structure', async () => {
@@ -100,7 +100,7 @@ describe('useNftCollectionsMetadata', () => {
       // getTokenStandardAndDetails returns that the standard is ERC20
       mockGetTokenDetails.mockReset().mockResolvedValueOnce({
         standard: SimulationTokenStandard.erc20,
-      } as ReturnType<typeof NFTController.getNFTContractInfo>);
+      } as ReturnType<typeof NftController.getNFTContractInfo>);
 
       renderHook(() =>
         useNftCollectionsMetadata([
