@@ -374,6 +374,9 @@ enum EVENT_NAME {
   PRIMARY_CURRENCY_TOGGLE = 'primary_currency_toggle',
   LOGIN_DOWNLOAD_LOGS = 'Download State Logs Button Clicked',
 
+  // Profile Syncing
+  ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
+  ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
   // network
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
 
@@ -865,7 +868,11 @@ const events = {
   ),
   PRIMARY_CURRENCY_TOGGLE: generateOpt(EVENT_NAME.PRIMARY_CURRENCY_TOGGLE),
   LOGIN_DOWNLOAD_LOGS: generateOpt(EVENT_NAME.LOGIN_DOWNLOAD_LOGS),
-
+  // Profile Syncing
+  ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
+  ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
+    EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+  ),
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
   CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
@@ -892,6 +899,7 @@ enum DESCRIPTION {
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
   DAPP_HOME = 'Home',
   DAPP_ADD_TO_FAVORITE = 'Add to Favorites',
+  DAPP_GO_TO_FAVORITES = 'Go to Favorites',
   DAPP_OPEN_IN_BROWSER = 'Open in Browser',
   // Wallet
   WALLET_TOKENS = 'Tokens',

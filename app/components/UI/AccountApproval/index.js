@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   InteractionManager,
-  Platform,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -21,8 +20,7 @@ import { shuffle } from 'lodash';
 import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -302,7 +300,7 @@ class AccountApproval extends PureComponent {
     return (
       <View
         style={styles.root}
-        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
+        testID={ConnectAccountBottomSheetSelectorsIDs.CONTAINER}
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 

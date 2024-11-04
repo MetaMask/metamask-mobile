@@ -64,7 +64,7 @@
         "blockExplorerUrls": [],
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
-        "name": "Mainnet",
+        "name": "Ethereum Mainnet",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -134,7 +134,7 @@
         "blockExplorerUrls": [],
         "chainId": "0xe708",
         "defaultRpcEndpointIndex": 0,
-        "name": "Linea Mainnet",
+        "name": "Linea",
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
@@ -165,9 +165,6 @@
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
-    "disabledRpcMethodPreferences": {
-      "eth_sign": false
-    },
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
@@ -199,7 +196,8 @@
       "key": "tokenFiatAmount",
       "order": "dsc",
       "sortCallback": "stringNumeric"
-    }
+    },
+    "privacyMode": false
   },
   "TokenBalancesController": {
     "contractBalances": {}
@@ -340,6 +338,9 @@
     "metamaskNotificationsList": [],
     "metamaskNotificationsReadList": [],
     "subscriptionAccountsSeen": []
+  },
+  "NotificationServicesPushController": {
+    "fcmToken": ""
   },
   "UserStorageController": {
     "isProfileSyncingEnabled": true,

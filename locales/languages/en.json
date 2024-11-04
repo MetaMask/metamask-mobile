@@ -742,15 +742,18 @@
     "now_active": "now active.",
     "network_added": "was successfully added",
     "network_deleted": "was successfully deleted",
+    "network_permissions_updated": "Network permissions updated",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
     "account_connected": "account connected.",
+    "accounts_permissions_updated": "Accounts permissions updated",
     "accounts_disconnected": "accounts disconnected.",
     "account_disconnected": "account disconnected.",
     "disconnected": "disconnected.",
     "disconnected_all": "All accounts disconnected.",
     "disconnected_from": "Disconnected from {{dappHostName}}",
+    "permissions_updated": "Permissions updated",
     "nft_detection_enabled": "NFT autodetection enabled"
   },
   "connect_qr_hardware": {
@@ -1595,6 +1598,7 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
+    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",
@@ -1664,6 +1668,9 @@
     "tx_review_approve": "Approve",
     "tx_review_increase_allowance": "Increase Allowance",
     "tx_review_set_approval_for_all": "Set Approval For All",
+    "tx_review_staking_claim": "Staking Claim",
+    "tx_review_staking_deposit": "Staking Deposit",
+    "tx_review_staking_unstake": "Unstake",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -1852,6 +1859,9 @@
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
     "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "requesting_for_networks": "Requesting for {{numberOfNetworks}} networks",
+    "n_networks_connect": "{{numberOfNetworks}} networks connected ",
+    "network_connected": "network connected ",
     "see_your_accounts": "See your accounts and suggest transactions",
     "connected_to": "Connected to ",
     "manage_permissions": "Manage Permissions",
@@ -3390,7 +3400,7 @@
     "earn_eth_rewards":"Earn ETH rewards",
     "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
     "flexible_unstaking":"Flexible unstaking",
-    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
     "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more":"Learn more",
     "got_it":"Got it",
@@ -3421,7 +3431,7 @@
         "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
         "and": "and",
         "to_claim_it": "to claim it.",
-        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
@@ -3439,7 +3449,13 @@
     "estimated_changes": "Estimated changes",
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
-    "unstaking_to": "Unstaking to"
+    "unstaking_to": "Unstaking to",
+    "max_modal": {
+      "title": "Max",
+      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+    },
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3517,7 +3533,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
+      "tooltip": "It can take between 1 and 11 days for your unstaking request to be processed. The exact duration depends on ETH staking activity."
     }
   },
   "confirm": {
@@ -3539,5 +3555,11 @@
       "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
     }
+  },
+  "change_in_simulation_modal": {
+    "title": "Results have changed",
+    "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
+    "proceed": "Proceed",
+    "reject": "Reject the transaction"
   }
 }

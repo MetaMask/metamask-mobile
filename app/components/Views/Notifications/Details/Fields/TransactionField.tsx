@@ -21,7 +21,6 @@ import useCopyClipboard, {
 import useStyles from '../useStyles';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { TRIGGER_TYPES } from '../../../../../util/notifications';
 import type { Notification } from '../../../../../util/notifications/types';
 
 type TransactionFieldProps = ModalFieldTransaction & {
@@ -59,9 +58,9 @@ function TransactionField(props: TransactionFieldProps) {
             trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
               notification_id: notification.id,
               notification_type: notification.type,
-              ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-                ? { chain_id: notification?.chain_id }
-                : {}),
+              ...('chain_id' in notification && {
+                chain_id: notification.chain_id,
+              }),
               clicked_item: 'tx_id',
             });
             copyToClipboard(txHash, CopyClipboardAlertMessage.transaction());

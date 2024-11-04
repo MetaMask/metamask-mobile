@@ -29,7 +29,7 @@ const useBalance = () => {
     ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';
 
-  const balance = useMemo(
+  const balanceETH = useMemo(
     () => renderFromWei(rawAccountBalance),
     [rawAccountBalance],
   );
@@ -67,7 +67,7 @@ const useBalance = () => {
   );
 
   return {
-    balance,
+    balanceETH,
     balanceFiat,
     balanceWei,
     balanceFiatNumber,
