@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { formatMenuItemDate, parseNotification } from './common';
 import { strings } from '../../../../locales/i18n';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 describe('formatMenuItemDate', () => {
   it('returns "No date" if date is not provided', () => {

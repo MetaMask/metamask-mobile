@@ -8,6 +8,8 @@ import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
@@ -17,7 +19,6 @@ import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 // Extend dayjs with the plugins
 dayjs.extend(isYesterday);
@@ -25,7 +26,7 @@ dayjs.extend(localeData);
 dayjs.extend(relativeTime);
 
 const { UI } = NotificationServicesController;
-
+export const USER_STORAGE_VERSION_KEY: unique symbol = 'v' as never;
 export function formatRelative(
   date: Dayjs,
   currentDate: Dayjs,
@@ -481,6 +482,66 @@ export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     setTimeout(() => reject(new Error(strings('notifications.timeout'))), ms),
   );
   return Promise.race([promise, timeout]);
+}
+
+export interface NotificationTrigger {
+  id: string
+  chainId: string
+  kind: string
+  address: string
+}
+
+type MapTriggerFn<Result> = (trigger: NotificationTrigger) => Result
+
+interface TraverseTriggerOpts<Result> {
+  address?: string
+  mapTrigger?: MapTriggerFn<Result>
+}
+
+const triggerToId = (trigger: NotificationTrigger) => trigger.id;
+const triggerIdentity = (trigger: NotificationTrigger) => trigger;
+
+export function traverseUserStorageTriggers<ResultTriggers = NotificationTrigger>(
+  userStorage: UserStorage,
+  options?: TraverseTriggerOpts<ResultTriggers>,
+) {
+  const triggers: ResultTriggers[] = [];
+  const mapTrigger = options?.mapTrigger ?? (triggerIdentity as MapTriggerFn<ResultTriggers>);
+
+  for (const address in userStorage) {
+    if (address === (USER_STORAGE_VERSION_KEY as unknown as string)) continue;
+    if (options?.address && address !== options.address) continue;
+    for (const chain_id in userStorage[address]) {
+      for (const uuid in userStorage[address]?.[chain_id]) {
+        if (uuid) {
+          triggers.push(
+            mapTrigger({
+              id: uuid,
+              kind: userStorage[address]?.[chain_id]?.[uuid]?.k,
+              chainId: chain_id,
+              address,
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  return triggers;
+}
+
+export function getUUIDs(userStorage: UserStorage, address: string): string[] {
+  return traverseUserStorageTriggers(userStorage, {
+    address,
+    mapTrigger: triggerToId,
+  });
+}
+
+export function getAllUUIDs(userStorage: UserStorage): string[] {
+  const uuids = traverseUserStorageTriggers(userStorage, {
+    mapTrigger: triggerToId,
+  });
+  return uuids;
 }
 
 export function parseNotification(remoteMessage: FirebaseMessagingTypes.RemoteMessage) {
