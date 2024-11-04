@@ -141,6 +141,10 @@ class EngineService {
         name: 'NotificationServicesController',
         key: 'NotificationServicesController:stateChange',
       },
+      {
+        name: 'NotificationServicesPushController',
+        key: 'NotificationServicesPushController:stateChange',
+      },
       ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
