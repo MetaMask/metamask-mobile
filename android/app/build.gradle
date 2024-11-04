@@ -269,7 +269,8 @@ dependencies {
     implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
-    implementation 'org.web3j:core:4.8.7'
+    implementation 'org.web3j:core:4.9.0'
+    implementation 'org.web3j:contracts:4.9.0'
     androidTestImplementation 'org.mockito:mockito-android:4.2.0'
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'

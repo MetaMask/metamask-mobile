@@ -1,3 +1,54 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs
+index a8ba346..326cbe1 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs
+@@ -67,13 +67,14 @@ class AssetsContractController {
+      * @param options.messenger - The controller messenger.
+      * @param options.chainId - The chain ID of the current network.
+      */
+-    constructor({ messenger, chainId: initialChainId, }) {
++    constructor({ messenger, chainId: initialChainId, getBalances }) {
+         _AssetsContractController_instances.add(this);
+         this.name = name;
+         _AssetsContractController_provider.set(this, void 0);
+         _AssetsContractController_ipfsGateway.set(this, void 0);
+         _AssetsContractController_chainId.set(this, void 0);
+         this.messagingSystem = messenger;
++        this.getBalances = getBalances;
+         __classPrivateFieldSet(this, _AssetsContractController_provider, undefined, "f");
+         __classPrivateFieldSet(this, _AssetsContractController_ipfsGateway, controller_utils_1.IPFS_DEFAULT_GATEWAY_URL, "f");
+         __classPrivateFieldSet(this, _AssetsContractController_chainId, initialChainId, "f");
+@@ -319,6 +320,16 @@ class AssetsContractController {
+         }
+         const contractAddress = exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID[chainId];
+         const contract = new contracts_1.Contract(contractAddress, single_call_balance_checker_abi_1.default, provider);
++
++
++        if(this.getBalances){
++            try{
++                // replace first param for rpcUrl
++              return await this.getBalances('https://mainnet.infura.io/v3/YOURINFURAKEY', contractAddress, selectedAddress, tokensToDetect);
++            }catch(err){
++ 
++            }
++        }
+         const result = await contract.balances([selectedAddress], tokensToDetect);
+         const nonZeroBalances = {};
+         /* istanbul ignore else */
+@@ -327,10 +338,13 @@ class AssetsContractController {
+                 const balance = result[index];
+                 /* istanbul ignore else */
+                 if (String(balance) !== '0') {
++                   
++                    
+                     nonZeroBalances[tokenAddress] = balance;
+                 }
+             });
+         }
++
+         return nonZeroBalances;
+     }
+ }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 82613cf..27cc892 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
