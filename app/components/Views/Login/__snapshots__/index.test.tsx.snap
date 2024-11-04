@@ -289,6 +289,7 @@ TypeError: (0 , _reactNativeDeviceInfo.getTotalMemorySync) is not a function
             {
               "flex": 1,
               "justifyContent": "flex-end",
+              "marginBottom": 24,
             }
           }
         >
