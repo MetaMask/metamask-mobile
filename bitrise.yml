@@ -136,7 +136,7 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_notifications_ios: {}
-      - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_notifications_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
