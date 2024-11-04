@@ -362,10 +362,9 @@ global.crypto = {
 };
 
 jest.mock('@react-native-firebase/messaging', () => {
-
   const module = () => {
       return {
-          getToken: jest.fn(() => Promise.resolve('fcmToken')),
+          getToken: jest.fn(() => Promise.resolve()),
           deleteToken: jest.fn(() => Promise.resolve()),
           subscribeToTopic: jest.fn(),
           unsubscribeFromTopic: jest.fn(),

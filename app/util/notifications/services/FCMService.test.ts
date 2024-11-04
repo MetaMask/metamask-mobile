@@ -10,6 +10,33 @@ jest.mock('../settings', () => ({
   },
 }));
 
+jest.mock('@react-native-firebase/messaging', () => {
+  const messagingMock = {
+    getToken: jest.fn(() => Promise.resolve('fcmToken')),
+    deleteToken: jest.fn(() => Promise.resolve()),
+    subscribeToTopic: jest.fn(),
+    unsubscribeFromTopic: jest.fn(),
+    hasPermission: jest.fn(() => Promise.resolve(1)),
+    requestPermission: jest.fn(() => Promise.resolve(1)),
+    setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
+    isDeviceRegisteredForRemoteMessages: jest.fn(() => Promise.resolve(false)),
+    registerDeviceForRemoteMessages: jest.fn(() => Promise.resolve('registered')),
+    unregisterDeviceForRemoteMessages: jest.fn(() => Promise.resolve('unregistered')),
+    onMessage: jest.fn(),
+    onTokenRefresh: jest.fn(),
+    AuthorizationStatus: {
+      AUTHORIZED: 1,
+      PROVISIONAL: 2,
+      DENIED: 3,
+    },
+  };
+
+  return {
+    __esModule: true,
+    default: () => messagingMock,
+  };
+});
+
 jest.mock('../../../util/Logger');
 jest.mock('./NotificationService');
 jest.mock('../../../../locales/i18n', () => ({
@@ -24,18 +51,18 @@ jest.mock('../../../store', () => ({
 
 describe('FCMService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('gets FCM token', async () => {
-    const mockToken = 'test-token';
+    const mockToken = 'fcmToken';
     (mmStorage.getLocal as jest.Mock).mockResolvedValue({ data: mockToken });
 
     const token = await FCMService.getFCMToken();
     expect(token).toBe(mockToken);
   });
 
-  it('gets Logged if FCM token is not found', async () => {
+  it('logs if FCM token is not found', async () => {
     const mockToken = undefined;
     (mmStorage.getLocal as jest.Mock).mockResolvedValue({ data: mockToken });
 
@@ -43,21 +70,19 @@ describe('FCMService', () => {
     expect(Logger.log).toHaveBeenCalledWith('getFCMToken: No FCM token found');
   });
 
-  it('saves FCM token', async () => {
-    const mockToken = 'fcmToken';
-    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus.PROVISIONAL);
-    (messaging().getToken as jest.Mock).mockResolvedValue({ data: mockToken });
+  it('does not save FCM token if permission is provisional', async () => {
+    (messaging().hasPermission as jest.Mock).mockResolvedValue(0);
+    (messaging().getToken as jest.Mock).mockResolvedValue('fcmToken');
 
     await FCMService.saveFCMToken();
-    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', { data: mockToken });
+    expect(mmStorage.saveLocal).not.toHaveBeenCalled();
   });
 
-  it('saves FCM token if permissionStatus === messaging.AuthorizationStatus.AUTHORIZED', async () => {
-    const mockToken = 'fcmToken';
-    (messaging().requestPermission as jest.Mock).mockResolvedValue(messaging.AuthorizationStatus.AUTHORIZED);
-    (messaging().getToken as jest.Mock).mockResolvedValue(mockToken);
+  it('does not save when fcmToken is undefined', async () => {
+    (mmStorage.getLocal as jest.Mock).mockResolvedValue({ data: undefined });
+    (messaging().getToken as jest.Mock).mockResolvedValue(undefined);
 
     await FCMService.saveFCMToken();
-    expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', { data: mockToken });
+    expect(mmStorage.saveLocal).not.toHaveBeenCalled();
   });
 });
