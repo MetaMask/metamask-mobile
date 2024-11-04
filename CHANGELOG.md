@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.33.1 - Oct 29, 2024
+### Fixed
+- [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
+
 ## 7.33.0 - Oct 17, 2024
 ### Added
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
