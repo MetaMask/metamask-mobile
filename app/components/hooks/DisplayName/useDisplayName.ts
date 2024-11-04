@@ -3,6 +3,7 @@ import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
 import { useWatchedNFTNames } from './useWatchedNFTName';
 import { useTokenListEntries } from './useTokenListEntry';
+import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
 
 export interface UseDisplayNameRequest {
   value: string;
@@ -14,6 +15,7 @@ export interface UseDisplayNameRequest {
 export interface UseDisplayNameResponse {
   name: string | null | undefined;
   contractDisplayName?: string;
+  image?: string;
   variant: DisplayNameVariant;
 }
 
@@ -74,8 +76,9 @@ export function useDisplayNames(
   const firstPartyContractNames = useFirstPartyContractNames(requests);
   const watchedNftNames = useWatchedNFTNames(requests);
   const tokenListNames = useTokenListEntries(requests);
+  const nftCollections = useNftCollectionsMetadata(requests);
 
-  return requests.map(({ preferContractSymbol }, index) => {
+  return requests.map(({ preferContractSymbol, value }, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
     const tokenListName = tokenListNames[index];
@@ -83,15 +86,29 @@ export function useDisplayNames(
       preferContractSymbol && tokenListName?.symbol
         ? tokenListName.symbol
         : tokenListName?.name;
+    const nftCollectionProperties = nftCollections[value.toLowerCase()];
+
+    const isNotSpam = nftCollectionProperties?.isSpam === false;
+
+    const nftCollectionName = isNotSpam
+      ? nftCollectionProperties?.name
+      : undefined;
+    const nftCollectionImage = isNotSpam
+      ? nftCollectionProperties?.image
+      : undefined;
 
     const recognizedName =
-      watchedNftName || firstPartyContractName || contractDisplayName;
+      watchedNftName ||
+      firstPartyContractName ||
+      contractDisplayName ||
+      nftCollectionName;
 
     if (recognizedName) {
       return {
         variant: DisplayNameVariant.Recognized,
         contractDisplayName,
         name: recognizedName,
+        image: nftCollectionImage,
       };
     }
 

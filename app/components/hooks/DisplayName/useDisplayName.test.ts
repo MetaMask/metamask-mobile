@@ -5,7 +5,7 @@ import useDisplayName, { DisplayNameVariant } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
 import { useTokenListEntries } from './useTokenListEntry';
 import { useWatchedNFTNames } from './useWatchedNFTName';
-
+import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
 const KNOWN_NFT_ADDRESS_CHECKSUMMED =
@@ -24,6 +24,9 @@ jest.mock('./useFirstPartyContractName', () => ({
 jest.mock('./useTokenListEntry', () => ({
   useTokenListEntries: jest.fn(),
 }));
+jest.mock('./useNftCollectionsMetadata', () => ({
+  useNftCollectionsMetadata: jest.fn(),
+}));
 
 describe('useDisplayName', () => {
   const mockUseWatchedNFTNames = jest.mocked(useWatchedNFTNames);
@@ -31,12 +34,13 @@ describe('useDisplayName', () => {
     useFirstPartyContractNames,
   );
   const mockUseTokenListEntries = jest.mocked(useTokenListEntries);
-
+  const mockUseNftCollectionsMetadata = jest.mocked(useNftCollectionsMetadata);
   beforeEach(() => {
     jest.resetAllMocks();
     mockUseWatchedNFTNames.mockReturnValue([]);
     mockUseFirstPartyContractNames.mockReturnValue([]);
     mockUseTokenListEntries.mockReturnValue([]);
+    mockUseNftCollectionsMetadata.mockReturnValue({});
   });
 
   describe('unknown address', () => {
@@ -151,5 +155,50 @@ describe('useDisplayName', () => {
         contractDisplayName: KNOWN_TOKEN_LIST_SYMBOL,
       });
     });
+  });
+
+  it('returns nft collection name from metadata if no other name is found', () => {
+    const IMAGE_MOCK = 'url';
+
+    mockUseNftCollectionsMetadata.mockReturnValueOnce({
+      [KNOWN_NFT_ADDRESS_CHECKSUMMED.toLowerCase()]: {
+        name: KNOWN_NFT_NAME_MOCK,
+        image: IMAGE_MOCK,
+        isSpam: false,
+      },
+    });
+
+    const displayName = useDisplayName(
+      NameType.EthereumAddress,
+      KNOWN_NFT_ADDRESS_CHECKSUMMED,
+      NETWORKS_CHAIN_ID.MAINNET,
+    );
+
+    expect(displayName).toEqual({
+      variant: DisplayNameVariant.Recognized,
+      name: KNOWN_NFT_NAME_MOCK,
+      contractDisplayName: undefined,
+      image: IMAGE_MOCK,
+    });
+  });
+
+  it('does not return nft collection name if collection is marked as spam', () => {
+    const IMAGE_MOCK = 'url';
+
+    mockUseNftCollectionsMetadata.mockReturnValueOnce({
+      [KNOWN_NFT_ADDRESS_CHECKSUMMED.toLowerCase()]: {
+        name: KNOWN_NFT_NAME_MOCK,
+        image: IMAGE_MOCK,
+        isSpam: true,
+      },
+    });
+
+    const displayName = useDisplayName(
+      NameType.EthereumAddress,
+      KNOWN_NFT_ADDRESS_CHECKSUMMED,
+      NETWORKS_CHAIN_ID.MAINNET,
+    );
+
+    expect(displayName.image).toBeUndefined();
   });
 });

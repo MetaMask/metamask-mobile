@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TextProps, View } from 'react-native';
+import { TextProps, View, Image } from 'react-native';
 
 import { useStyles } from '../../../component-library/hooks';
 import Text, {
@@ -56,25 +56,29 @@ const Name: React.FC<NameProperties> = ({
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
-  const displayName = useDisplayName(
+  const { image, name, variant } = useDisplayName(
     type,
     value,
     chainId,
     preferContractSymbol,
   );
   const { styles } = useStyles(styleSheet, {
-    displayNameVariant: displayName.variant,
+    displayNameVariant: variant,
   });
 
-  if (displayName.variant === DisplayNameVariant.Unknown) {
+  if (variant === DisplayNameVariant.Unknown) {
     return <UnknownEthereumAddress address={value} />;
   }
 
   return (
     <View style={styles.base}>
-      <Identicon address={value} diameter={16} />
-      <NameLabel displayNameVariant={displayName.variant} ellipsizeMode="tail">
-        {displayName.name}
+      {image ? (
+        <Image source={{ uri: image }} style={styles.image} />
+      ) : (
+        <Identicon address={value} diameter={16} />
+      )}
+      <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+        {name}
       </NameLabel>
     </View>
   );

@@ -79,5 +79,23 @@ describe('Name', () => {
       expect(wrapper.getByText(KNOWN_NAME_MOCK)).toBeTruthy();
       expect(wrapper).toMatchSnapshot();
     });
+
+    it('should render image', () => {
+      mockUseDisplayName.mockReturnValue({
+        variant: DisplayNameVariant.Recognized,
+        name: KNOWN_NAME_MOCK,
+        image: 'https://example.com/image.png',
+      });
+
+      const wrapper = render(
+        <Provider store={store}>
+          <Name
+            type={NameType.EthereumAddress}
+            value={KNOWN_ADDRESS_CHECKSUMMED}
+          />
+        </Provider>,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
   });
 });
