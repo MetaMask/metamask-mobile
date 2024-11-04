@@ -247,7 +247,6 @@ export async function switchToNetwork({
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-
   // for some reason this extra step is necessary for accessing the env variable in test environment
   const chainPermissionsFeatureEnabled =
     { ...process.env }?.NODE_ENV === 'test'

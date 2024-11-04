@@ -5,7 +5,7 @@ import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ToastModal from '../../pages/modals/ToastModal';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
