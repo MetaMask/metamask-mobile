@@ -6,7 +6,7 @@ import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   useNavigation,
   NavigationProp,
@@ -35,9 +35,6 @@ interface UseBluetoothDevicesHook {
   deviceScanError: boolean;
 }
 
-jest.mock('../../hooks/useBluetoothPermissions');
-jest.mock('../../hooks/Ledger/useBluetooth');
-jest.mock('../../hooks/Ledger/useBluetoothDevices');
 jest.mock('../../hooks/Ledger/useLedgerBluetooth');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -60,6 +57,11 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   getDeviceWidth: jest.fn(),
   getDeviceHeight: jest.fn(),
+}));
+
+jest.mock('../../../core/Ledger/Ledger', () => ({
+  ...jest.requireActual('../../../core/Ledger/Ledger'),
+  getDeviceId: jest.fn().mockResolvedValue('device-id'),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -365,5 +367,24 @@ describe('LedgerConnect', () => {
     fireEvent.press(retryButton);
 
     expect(ledgerLogicToRun).toHaveBeenCalled();
+  });
+
+  it('shows error message about multiple devices support', async () => {
+    isSendingLedgerCommands = true;
+    isAppLaunchConfirmationNeeded = false;
+    const { findByTestId } = renderWithProvider(
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
+    );
+    await waitFor(() => {
+      expect(findByTestId('multiple-devices-error-message')).toBeDefined();
+    });
   });
 });

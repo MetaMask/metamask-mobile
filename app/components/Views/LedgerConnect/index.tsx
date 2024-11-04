@@ -87,7 +87,8 @@ const LedgerConnect = ({
   const onDeviceSelected = (currentDevice: BluetoothDevice | undefined) => {
     const getStoredDeviceId = async () => {
       const storedDeviceId = await getDeviceId();
-      const isMatchingDeviceId = currentDevice?.id === storedDeviceId;
+      const isMatchingDeviceId =
+        !storedDeviceId || currentDevice?.id === storedDeviceId;
       setHasMatchingDeviceId(isMatchingDeviceId);
 
       if (isMatchingDeviceId) {
@@ -127,6 +128,11 @@ const LedgerConnect = ({
       },
     });
   };
+
+  const getStylesWithMultipleDevicesErrorMessage = () =>
+    hasMatchingDeviceId
+      ? styles.bodyContainer
+      : styles.bodyContainerWhithErrorMessage;
 
   useEffect(() => {
     if (ledgerError) {
@@ -272,13 +278,12 @@ const LedgerConnect = ({
             </Text>
           )}
           {!hasMatchingDeviceId && (
-            <Text red small>
-              Mutiple devices not supported yet, please forget your previous
-              device first before adding a new one
+            <Text red small testID={'multiple-devices-error-message'}>
+              {strings('ledger.multiple_devices_error_message')}
             </Text>
           )}
         </View>
-        <View style={styles.bodyContainer}>
+        <View style={getStylesWithMultipleDevicesErrorMessage()}>
           {!isAppLaunchConfirmationNeeded ? (
             <Scan
               onDeviceSelected={onDeviceSelected}
