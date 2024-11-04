@@ -31,7 +31,10 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
-import useSelectedAccount from './useSelectedAccount';
+import { useSelector } from 'react-redux';
+import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
+import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
+import { useAccounts } from '../../../hooks/useAccounts';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -51,7 +54,19 @@ const TabThumbnail = ({
   const Container: React.ElementType = Device.isAndroid() ? View : ElevatedView;
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
-  const selectedAccount = useSelectedAccount();
+
+  // Get permitted accounts for this hostname
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
+  const permittedAccountsByHostname = getPermittedAccountsByHostname(
+    permittedAccountsList,
+    hostname,
+  );
+  const activeAddress = permittedAccountsByHostname[0];
+  const { accounts } = useAccounts({});
+  const selectedAccount = accounts.find(
+    (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
+  );
+
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   return (
