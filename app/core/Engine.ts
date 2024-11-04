@@ -195,7 +195,7 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
+import { NotificationServicesController, NotificationServicesPushController } from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -378,6 +378,7 @@ export interface EngineState {
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
+  NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -425,6 +426,7 @@ interface Controllers {
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
+  NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 }
@@ -1282,6 +1284,9 @@ export class Engine {
             'UserStorageController:getStorageKey',
             'UserStorageController:performGetStorage',
             'UserStorageController:performSetStorage',
+            'NotificationServicesPushController:enablePushNotifications',
+            'NotificationServicesPushController:disablePushNotifications',
+            'NotificationServicesPushController:updateTriggerPushNotifications',
           ],
           allowedEvents: [
             'KeyringController:unlock',
@@ -1298,6 +1303,36 @@ export class Engine {
               .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
             spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
           },
+        },
+      });
+
+      const notificationServicesPushControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'NotificationServicesPushController',
+        allowedActions: ['AuthenticationController:getBearerToken'],
+        allowedEvents: [],
+      });
+
+      const notificationServicesPushController =
+      new NotificationServicesPushController.Controller({
+        messenger: notificationServicesPushControllerMessenger,
+        state: initialState.NotificationServicesPushController || { fcmToken: '' },
+        env: {
+          apiKey: process.env.FIREBASE_API_KEY ?? '',
+          authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
+          storageBucket: process.env.FIREBASE_STORAGE_BUCKET ?? '',
+          projectId: process.env.FIREBASE_PROJECT_ID ?? '',
+          messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID ?? '',
+          appId: process.env.FIREBASE_APP_ID ?? '',
+          measurementId: process.env.FIREBASE_MEASUREMENT_ID ?? '',
+          vapidKey: process.env.VAPID_KEY ?? '',
+        },
+        config: {
+          isPushEnabled: true,
+          platform: 'mobile',
+          // TODO: Implement optionability for push notification handlers (depending of the platform) on the NotificationServicesPushController.
+          onPushNotificationReceived: () => Promise.resolve(undefined),
+          onPushNotificationClicked: () => Promise.resolve(undefined),
         },
       });
     ///: END:ONLY_INCLUDE_IF
@@ -1431,7 +1466,7 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      // @ts-expect-error TODO: Resolve mismatch between transaction-controller versions.
+      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
@@ -1616,6 +1651,7 @@ export class Engine {
       authenticationController,
       userStorageController,
       notificationServicesController,
+      notificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
       accountsController,
       new PPOMController({
@@ -2287,6 +2323,7 @@ export default {
       AuthenticationController,
       UserStorageController,
       NotificationServicesController,
+      NotificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
@@ -2332,6 +2369,7 @@ export default {
       AuthenticationController,
       UserStorageController,
       NotificationServicesController,
+      NotificationServicesPushController,
       ///: END:ONLY_INCLUDE_IF
       PermissionController,
       SelectedNetworkController,
