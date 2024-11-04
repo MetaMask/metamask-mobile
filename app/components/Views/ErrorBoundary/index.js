@@ -139,6 +139,7 @@ const createStyles = (colors) =>
     buttonsContainer: {
       flex: 1,
       justifyContent: 'flex-end',
+      marginBottom: 24,
     },
     modalButtonsWrapper: {
       flex: 1,
