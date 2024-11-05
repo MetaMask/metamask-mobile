@@ -11,7 +11,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
-  selectNetworkClientId,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
@@ -75,7 +75,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const chainId = useSelector(selectChainId);
-  const networkClientId = useSelector(selectNetworkClientId);
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
   const hideZeroBalanceTokens = useSelector(
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
@@ -83,6 +85,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
+  const nativeCurrencies = [
+    ...new Set(
+      Object.values(networkConfigurationsByChainId).map(
+        (n) => n.nativeCurrency,
+      ),
+    ),
+  ];
 
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
@@ -160,7 +169,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.startPolling({
-          networkClientId,
+          nativeCurrencies,
         }),
         TokenRatesController.updateExchangeRates(),
       ];
