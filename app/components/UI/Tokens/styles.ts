@@ -175,6 +175,10 @@ const createStyles = (colors: Colors) =>
       marginRight: 5,
       maxWidth: '60%',
     },
+    controlButtonText: {
+      color: colors.text.default,
+      ...fontStyles.normal,
+    },
     controlIconButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,

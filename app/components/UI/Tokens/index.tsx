@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -244,10 +244,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               label={
-                // tokenNetworkFilter[chainId]
-                //   ? networkName ?? strings('wallet.current_network')
-                //   : strings('wallet.all_networks')
-                'A super very long network name that take a lot of space'
+                <Text style={styles.controlButtonText} numberOfLines={1}>
+                  {tokenNetworkFilter[chainId]
+                    ? networkName ?? strings('wallet.current_network')
+                    : strings('wallet.all_networks')}
+                </Text>
               }
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
