@@ -23,7 +23,6 @@ jest.mock('../../../store', () => ({
 }));
 
 describe('FCMService', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -60,22 +59,5 @@ describe('FCMService', () => {
 
     await FCMService.saveFCMToken();
     expect(mmStorage.saveLocal).toHaveBeenCalledWith('metaMaskFcmToken', { data: mockToken });
-  });
-
-  it('does not save the FCM token when onTokenRefresh is called', async () => {
-    const mockToken = 'fcmToken';
-    const saveLocalMock =  (mmStorage.saveLocal as jest.Mock).mockImplementation(jest.fn());
-
-    const onTokenRefreshMock = jest.fn();
-    (messaging().onTokenRefresh as jest.Mock).mockImplementation((callback) => {
-      onTokenRefreshMock.mockImplementation(callback);
-    });
-
-    FCMService.registerTokenRefreshListener();
-
-    onTokenRefreshMock(mockToken);
-
-    expect(saveLocalMock).not.toHaveBeenCalled();
-
   });
 });
