@@ -42,9 +42,6 @@ git config user.email metamaskbot@users.noreply.github.com
 echo "Fetching from remote..."
 git fetch
 
-echo "Checking out ${RELEASE_BRANCH_NAME}"
-
-
 # Check if the release branch already exists on the remote
 if git branch -a | grep -q "remotes/origin/${RELEASE_BRANCH_NAME}"; then
     echo "Release branch exists on remote, checking out."
