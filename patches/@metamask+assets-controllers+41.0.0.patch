@@ -1,3 +1,614 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
+index aac84e5..983c3f1 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
+@@ -1,19 +1,19 @@
+ "use strict";
+-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+-};
+ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+     if (kind === "m") throw new TypeError("Private method is not writable");
+     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+ };
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _AccountTrackerController_instances, _AccountTrackerController_refreshMutex, _AccountTrackerController_handle, _AccountTrackerController_getCurrentChainId, _AccountTrackerController_getCorrectNetworkClient, _AccountTrackerController_getBalanceFromChain;
++var _AccountTrackerController_instances, _AccountTrackerController_refreshMutex, _AccountTrackerController_includeStakedAssets, _AccountTrackerController_getStakedBalanceForChain, _AccountTrackerController_handle, _AccountTrackerController_getCurrentChainId, _AccountTrackerController_getCorrectNetworkClient, _AccountTrackerController_getBalanceFromChain;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AccountTrackerController = void 0;
+ const controller_utils_1 = require("@metamask/controller-utils");
+@@ -47,8 +47,10 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+      * @param options.interval - Polling interval used to fetch new account balances.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller messaging system.
++     * @param options.getStakedBalanceForChain - The function to get the staked native asset balance for a chain.
++     * @param options.includeStakedAssets - Whether to include staked assets in the account balances.
+      */
+-    constructor({ interval = 10000, state, messenger, }) {
++    constructor({ interval = 10000, state, messenger, getStakedBalanceForChain, includeStakedAssets = false, }) {
+         const { selectedNetworkClientId } = messenger.call('NetworkController:getState');
+         const { configuration: { chainId }, } = messenger.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
+         super({
+@@ -65,7 +67,11 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+         });
+         _AccountTrackerController_instances.add(this);
+         _AccountTrackerController_refreshMutex.set(this, new async_mutex_1.Mutex());
++        _AccountTrackerController_includeStakedAssets.set(this, void 0);
++        _AccountTrackerController_getStakedBalanceForChain.set(this, void 0);
+         _AccountTrackerController_handle.set(this, void 0);
++        __classPrivateFieldSet(this, _AccountTrackerController_getStakedBalanceForChain, getStakedBalanceForChain, "f");
++        __classPrivateFieldSet(this, _AccountTrackerController_includeStakedAssets, includeStakedAssets, "f");
+         this.setIntervalLength(interval);
+         // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+@@ -171,6 +177,15 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+                         balance,
+                     };
+                 }
++                if (__classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")) {
++                    const stakedBalance = await __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, address, networkClientId);
++                    if (stakedBalance) {
++                        accountsForChain[address] = {
++                            ...accountsForChain[address],
++                            stakedBalance,
++                        };
++                    }
++                }
+             }
+             this.update((state) => {
+                 if (chainId === __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCurrentChainId).call(this)) {
+@@ -196,18 +211,23 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+             return (0, controller_utils_1.safelyExecuteWithTimeout)(async () => {
+                 (0, utils_1.assert)(ethQuery, 'Provider not set.');
+                 const balance = await (0, controller_utils_1.query)(ethQuery, 'getBalance', [address]);
+-                return [address, balance];
++                let stakedBalance;
++                if (__classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")) {
++                    stakedBalance = await __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, address, networkClientId);
++                }
++                return [address, balance, stakedBalance];
+             });
+         })).then((value) => {
+             return value.reduce((obj, item) => {
+                 if (!item) {
+                     return obj;
+                 }
+-                const [address, balance] = item;
++                const [address, balance, stakedBalance] = item;
+                 return {
+                     ...obj,
+                     [address]: {
+                         balance,
++                        stakedBalance,
+                     },
+                 };
+             }, {});
+@@ -215,7 +235,7 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
+     }
+ }
+ exports.AccountTrackerController = AccountTrackerController;
+-_AccountTrackerController_refreshMutex = new WeakMap(), _AccountTrackerController_handle = new WeakMap(), _AccountTrackerController_instances = new WeakSet(), _AccountTrackerController_getCurrentChainId = function _AccountTrackerController_getCurrentChainId() {
++_AccountTrackerController_refreshMutex = new WeakMap(), _AccountTrackerController_includeStakedAssets = new WeakMap(), _AccountTrackerController_getStakedBalanceForChain = new WeakMap(), _AccountTrackerController_handle = new WeakMap(), _AccountTrackerController_instances = new WeakSet(), _AccountTrackerController_getCurrentChainId = function _AccountTrackerController_getCurrentChainId() {
+     const { selectedNetworkClientId } = this.messagingSystem.call('NetworkController:getState');
+     const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
+     return chainId;
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts
+index 0bb6c27..6b7d8cd 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts
+@@ -2,6 +2,7 @@ import type { AccountsControllerSelectedEvmAccountChangeEvent, AccountsControlle
+ import type { ControllerStateChangeEvent, ControllerGetStateAction, RestrictedControllerMessenger } from "@metamask/base-controller";
+ import type { NetworkClientId, NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetStateAction } from "@metamask/network-controller";
+ import type { PreferencesControllerGetStateAction } from "@metamask/preferences-controller";
++import type { AssetsContractController, StakedBalance } from "./AssetsContractController.cjs";
+ /**
+  * The name of the {@link AccountTrackerController}.
+  */
+@@ -10,10 +11,12 @@ declare const controllerName = "AccountTrackerController";
+  * @type AccountInformation
+  *
+  * Account information object
+- * @property balance - Hex string of an account balancec in wei
++ * @property balance - Hex string of an account balance in wei
++ * @property stakedBalance - Hex string of an account staked balance in wei
+  */
+ export type AccountInformation = {
+     balance: string;
++    stakedBalance?: string;
+ };
+ /**
+  * @type AccountTrackerControllerState
+@@ -62,18 +65,15 @@ type AccountTrackerPollingInput = {
+     networkClientId: NetworkClientId;
+ };
+ declare const AccountTrackerController_base: (abstract new (...args: any[]) => {
+-    readonly "__#784842@#intervalIds": Record<string, NodeJS.Timeout>;
+-    "__#784842@#intervalLength": number | undefined;
++    readonly "__#784968@#intervalIds": Record<string, NodeJS.Timeout>;
++    "__#784968@#intervalLength": number | undefined;
+     setIntervalLength(intervalLength: number): void;
+     getIntervalLength(): number | undefined;
+     _startPolling(input: AccountTrackerPollingInput): void;
+     _stopPollingByPollingTokenSetId(key: string): void;
+-    readonly "__#784834@#pollingTokenSets": Map<string, Set<string>>;
+-    "__#784834@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
++    readonly "__#784960@#pollingTokenSets": Map<string, Set<string>>;
++    "__#784960@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
+     _executePoll(input: AccountTrackerPollingInput): Promise<void>;
+-    /**
+-     * The action that can be performed to get the state of the {@link AccountTrackerController}.
+-     */
+     startPolling(input: AccountTrackerPollingInput): string;
+     stopAllPolling(): void;
+     stopPollingByPollingToken(pollingToken: string): void;
+@@ -91,11 +91,15 @@ export declare class AccountTrackerController extends AccountTrackerController_b
+      * @param options.interval - Polling interval used to fetch new account balances.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller messaging system.
++     * @param options.getStakedBalanceForChain - The function to get the staked native asset balance for a chain.
++     * @param options.includeStakedAssets - Whether to include staked assets in the account balances.
+      */
+-    constructor({ interval, state, messenger, }: {
++    constructor({ interval, state, messenger, getStakedBalanceForChain, includeStakedAssets, }: {
+         interval?: number;
+         state?: Partial<AccountTrackerControllerState>;
+         messenger: AccountTrackerControllerMessenger;
++        getStakedBalanceForChain: AssetsContractController['getStakedBalanceForChain'];
++        includeStakedAssets?: boolean;
+     });
+     private syncAccounts;
+     /**
+@@ -128,6 +132,7 @@ export declare class AccountTrackerController extends AccountTrackerController_b
+      */
+     syncBalanceWithAddresses(addresses: string[], networkClientId?: NetworkClientId): Promise<Record<string, {
+         balance: string;
++        stakedBalance?: StakedBalance;
+     }>>;
+ }
+ export default AccountTrackerController;
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts
+index 5ca0b5f..20d566f 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts
+@@ -2,6 +2,7 @@ import type { AccountsControllerSelectedEvmAccountChangeEvent, AccountsControlle
+ import type { ControllerStateChangeEvent, ControllerGetStateAction, RestrictedControllerMessenger } from "@metamask/base-controller";
+ import type { NetworkClientId, NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetStateAction } from "@metamask/network-controller";
+ import type { PreferencesControllerGetStateAction } from "@metamask/preferences-controller";
++import type { AssetsContractController, StakedBalance } from "./AssetsContractController.mjs";
+ /**
+  * The name of the {@link AccountTrackerController}.
+  */
+@@ -10,10 +11,12 @@ declare const controllerName = "AccountTrackerController";
+  * @type AccountInformation
+  *
+  * Account information object
+- * @property balance - Hex string of an account balancec in wei
++ * @property balance - Hex string of an account balance in wei
++ * @property stakedBalance - Hex string of an account staked balance in wei
+  */
+ export type AccountInformation = {
+     balance: string;
++    stakedBalance?: string;
+ };
+ /**
+  * @type AccountTrackerControllerState
+@@ -62,18 +65,15 @@ type AccountTrackerPollingInput = {
+     networkClientId: NetworkClientId;
+ };
+ declare const AccountTrackerController_base: (abstract new (...args: any[]) => {
+-    readonly "__#784842@#intervalIds": Record<string, NodeJS.Timeout>;
+-    "__#784842@#intervalLength": number | undefined;
++    readonly "__#784968@#intervalIds": Record<string, NodeJS.Timeout>;
++    "__#784968@#intervalLength": number | undefined;
+     setIntervalLength(intervalLength: number): void;
+     getIntervalLength(): number | undefined;
+     _startPolling(input: AccountTrackerPollingInput): void;
+     _stopPollingByPollingTokenSetId(key: string): void;
+-    readonly "__#784834@#pollingTokenSets": Map<string, Set<string>>;
+-    "__#784834@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
++    readonly "__#784960@#pollingTokenSets": Map<string, Set<string>>;
++    "__#784960@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
+     _executePoll(input: AccountTrackerPollingInput): Promise<void>;
+-    /**
+-     * The action that can be performed to get the state of the {@link AccountTrackerController}.
+-     */
+     startPolling(input: AccountTrackerPollingInput): string;
+     stopAllPolling(): void;
+     stopPollingByPollingToken(pollingToken: string): void;
+@@ -91,11 +91,15 @@ export declare class AccountTrackerController extends AccountTrackerController_b
+      * @param options.interval - Polling interval used to fetch new account balances.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller messaging system.
++     * @param options.getStakedBalanceForChain - The function to get the staked native asset balance for a chain.
++     * @param options.includeStakedAssets - Whether to include staked assets in the account balances.
+      */
+-    constructor({ interval, state, messenger, }: {
++    constructor({ interval, state, messenger, getStakedBalanceForChain, includeStakedAssets, }: {
+         interval?: number;
+         state?: Partial<AccountTrackerControllerState>;
+         messenger: AccountTrackerControllerMessenger;
++        getStakedBalanceForChain: AssetsContractController['getStakedBalanceForChain'];
++        includeStakedAssets?: boolean;
+     });
+     private syncAccounts;
+     /**
+@@ -128,6 +132,7 @@ export declare class AccountTrackerController extends AccountTrackerController_b
+      */
+     syncBalanceWithAddresses(addresses: string[], networkClientId?: NetworkClientId): Promise<Record<string, {
+         balance: string;
++        stakedBalance?: StakedBalance;
+     }>>;
+ }
+ export default AccountTrackerController;
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.mjs b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.mjs
+index 4c4bf70..48cb006 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.mjs
+@@ -1,15 +1,15 @@
+-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+-};
+ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+     if (kind === "m") throw new TypeError("Private method is not writable");
+     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+ };
+-var _AccountTrackerController_instances, _AccountTrackerController_refreshMutex, _AccountTrackerController_handle, _AccountTrackerController_getCurrentChainId, _AccountTrackerController_getCorrectNetworkClient, _AccountTrackerController_getBalanceFromChain;
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var _AccountTrackerController_instances, _AccountTrackerController_refreshMutex, _AccountTrackerController_includeStakedAssets, _AccountTrackerController_getStakedBalanceForChain, _AccountTrackerController_handle, _AccountTrackerController_getCurrentChainId, _AccountTrackerController_getCorrectNetworkClient, _AccountTrackerController_getBalanceFromChain;
+ function $importDefault(module) {
+     if (module?.__esModule) {
+         return module.default;
+@@ -49,8 +49,10 @@ export class AccountTrackerController extends StaticIntervalPollingController()
+      * @param options.interval - Polling interval used to fetch new account balances.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller messaging system.
++     * @param options.getStakedBalanceForChain - The function to get the staked native asset balance for a chain.
++     * @param options.includeStakedAssets - Whether to include staked assets in the account balances.
+      */
+-    constructor({ interval = 10000, state, messenger, }) {
++    constructor({ interval = 10000, state, messenger, getStakedBalanceForChain, includeStakedAssets = false, }) {
+         const { selectedNetworkClientId } = messenger.call('NetworkController:getState');
+         const { configuration: { chainId }, } = messenger.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
+         super({
+@@ -67,7 +69,11 @@ export class AccountTrackerController extends StaticIntervalPollingController()
+         });
+         _AccountTrackerController_instances.add(this);
+         _AccountTrackerController_refreshMutex.set(this, new Mutex());
++        _AccountTrackerController_includeStakedAssets.set(this, void 0);
++        _AccountTrackerController_getStakedBalanceForChain.set(this, void 0);
+         _AccountTrackerController_handle.set(this, void 0);
++        __classPrivateFieldSet(this, _AccountTrackerController_getStakedBalanceForChain, getStakedBalanceForChain, "f");
++        __classPrivateFieldSet(this, _AccountTrackerController_includeStakedAssets, includeStakedAssets, "f");
+         this.setIntervalLength(interval);
+         // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+         // eslint-disable-next-line @typescript-eslint/no-floating-promises
+@@ -173,6 +179,15 @@ export class AccountTrackerController extends StaticIntervalPollingController()
+                         balance,
+                     };
+                 }
++                if (__classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")) {
++                    const stakedBalance = await __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, address, networkClientId);
++                    if (stakedBalance) {
++                        accountsForChain[address] = {
++                            ...accountsForChain[address],
++                            stakedBalance,
++                        };
++                    }
++                }
+             }
+             this.update((state) => {
+                 if (chainId === __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCurrentChainId).call(this)) {
+@@ -198,25 +213,30 @@ export class AccountTrackerController extends StaticIntervalPollingController()
+             return safelyExecuteWithTimeout(async () => {
+                 assert(ethQuery, 'Provider not set.');
+                 const balance = await query(ethQuery, 'getBalance', [address]);
+-                return [address, balance];
++                let stakedBalance;
++                if (__classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")) {
++                    stakedBalance = await __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, address, networkClientId);
++                }
++                return [address, balance, stakedBalance];
+             });
+         })).then((value) => {
+             return value.reduce((obj, item) => {
+                 if (!item) {
+                     return obj;
+                 }
+-                const [address, balance] = item;
++                const [address, balance, stakedBalance] = item;
+                 return {
+                     ...obj,
+                     [address]: {
+                         balance,
++                        stakedBalance,
+                     },
+                 };
+             }, {});
+         });
+     }
+ }
+-_AccountTrackerController_refreshMutex = new WeakMap(), _AccountTrackerController_handle = new WeakMap(), _AccountTrackerController_instances = new WeakSet(), _AccountTrackerController_getCurrentChainId = function _AccountTrackerController_getCurrentChainId() {
++_AccountTrackerController_refreshMutex = new WeakMap(), _AccountTrackerController_includeStakedAssets = new WeakMap(), _AccountTrackerController_getStakedBalanceForChain = new WeakMap(), _AccountTrackerController_handle = new WeakMap(), _AccountTrackerController_instances = new WeakSet(), _AccountTrackerController_getCurrentChainId = function _AccountTrackerController_getCurrentChainId() {
+     const { selectedNetworkClientId } = this.messagingSystem.call('NetworkController:getState');
+     const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
+     return chainId;
+diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs
+index a8ba346..6b39491 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.cjs
+@@ -15,7 +15,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ var _AssetsContractController_instances, _AssetsContractController_provider, _AssetsContractController_ipfsGateway, _AssetsContractController_chainId, _AssetsContractController_registerActionHandlers, _AssetsContractController_registerEventSubscriptions, _AssetsContractController_getCorrectProvider, _AssetsContractController_getCorrectChainId;
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.AssetsContractController = exports.MISSING_PROVIDER_ERROR = exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = void 0;
++exports.AssetsContractController = exports.MISSING_PROVIDER_ERROR = exports.STAKING_CONTRACT_ADDRESS_BY_CHAINID = exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = void 0;
++// import { BigNumber } from '@ethersproject/bignumber';
++const bignumber_1 = require("@ethersproject/bignumber");
+ const contracts_1 = require("@ethersproject/contracts");
+ const providers_1 = require("@ethersproject/providers");
+ const controller_utils_1 = require("@metamask/controller-utils");
+@@ -51,6 +53,10 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [assetsUtil_1.SupportedTokenDetectionNetworks.moonbeam]: '0x6aa75276052d96696134252587894ef5ffa520af',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.moonriver]: '0x6aa75276052d96696134252587894ef5ffa520af',
+ };
++exports.STAKING_CONTRACT_ADDRESS_BY_CHAINID = {
++    [assetsUtil_1.SupportedStakedBalanceNetworks.mainnet]: '0x4fef9d741011476750a243ac70b9789a63dd47df',
++    [assetsUtil_1.SupportedStakedBalanceNetworks.holesky]: '0x37bf0883c27365cffcd0c4202918df930989891f',
++};
+ exports.MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
+ /**
+  * The name of the {@link AssetsContractController}
+@@ -333,6 +339,60 @@ class AssetsContractController {
+         }
+         return nonZeroBalances;
+     }
++    /**
++     * Get the staked ethereum balance for an address in a single call.
++     *
++     * @param address - The address to check staked ethereum balance for.
++     * @param networkClientId - Network Client ID to fetch the provider with.
++     * @returns The hex staked ethereum balance for address.
++     */
++    async getStakedBalanceForChain(address, networkClientId) {
++        const chainId = __classPrivateFieldGet(this, _AssetsContractController_instances, "m", _AssetsContractController_getCorrectChainId).call(this, networkClientId);
++        const provider = __classPrivateFieldGet(this, _AssetsContractController_instances, "m", _AssetsContractController_getCorrectProvider).call(this, networkClientId);
++        // balance defaults to zero
++        let balance = bignumber_1.BigNumber.from(0);
++        // Only fetch staked balance on supported networks
++        if (![
++            assetsUtil_1.SupportedStakedBalanceNetworks.mainnet,
++            assetsUtil_1.SupportedStakedBalanceNetworks.holesky,
++        ].includes(chainId)) {
++            return undefined;
++        }
++        // Only fetch staked balance if contract address exists
++        if (!((id) => id in exports.STAKING_CONTRACT_ADDRESS_BY_CHAINID)(chainId)) {
++            return undefined;
++        }
++        const contractAddress = exports.STAKING_CONTRACT_ADDRESS_BY_CHAINID[chainId];
++        const abi = [
++            {
++                inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
++                name: 'getShares',
++                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
++                stateMutability: 'view',
++                type: 'function',
++            },
++            {
++                inputs: [{ internalType: 'uint256', name: 'shares', type: 'uint256' }],
++                name: 'convertToAssets',
++                outputs: [{ internalType: 'uint256', name: 'assets', type: 'uint256' }],
++                stateMutability: 'view',
++                type: 'function',
++            },
++        ];
++        try {
++            const contract = new contracts_1.Contract(contractAddress, abi, provider);
++            const userShares = await contract.getShares(address);
++            // convert shares to assets only if address shares > 0 else return default balance
++            if (!userShares.lte(0)) {
++                balance = await contract.convertToAssets(userShares.toString());
++            }
++        }
++        catch (error) {
++            // if we get an error, log and return the default value
++            console.error(error);
++        }
++        return balance.toHexString();
++    }
+ }
+ exports.AssetsContractController = AssetsContractController;
+ _AssetsContractController_provider = new WeakMap(), _AssetsContractController_ipfsGateway = new WeakMap(), _AssetsContractController_chainId = new WeakMap(), _AssetsContractController_instances = new WeakSet(), _AssetsContractController_registerActionHandlers = function _AssetsContractController_registerActionHandlers() {
+diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.cts b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.cts
+index d7d9b61..b7bf69d 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.cts
+@@ -32,6 +32,10 @@ export declare const SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID: {
+     readonly "0x504": "0x6aa75276052d96696134252587894ef5ffa520af";
+     readonly "0x505": "0x6aa75276052d96696134252587894ef5ffa520af";
+ };
++export declare const STAKING_CONTRACT_ADDRESS_BY_CHAINID: {
++    readonly "0x1": "0x4fef9d741011476750a243ac70b9789a63dd47df";
++    readonly "0x4268": "0x37bf0883c27365cffcd0c4202918df930989891f";
++};
+ export declare const MISSING_PROVIDER_ERROR = "AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available";
+ /**
+  * @type BalanceMap
+@@ -98,6 +102,7 @@ export type AllowedEvents = PreferencesControllerStateChangeEvent | NetworkContr
+  * The messenger of the {@link AssetsContractController}.
+  */
+ export type AssetsContractControllerMessenger = RestrictedControllerMessenger<typeof name, AssetsContractControllerActions | AllowedActions, AssetsContractControllerEvents | AllowedEvents, AllowedActions['type'], AllowedEvents['type']>;
++export type StakedBalance = string | undefined;
+ /**
+  * Controller that interacts with contracts on mainnet through web3
+  */
+@@ -272,6 +277,14 @@ export declare class AssetsContractController {
+      * @returns The list of non-zero token balances.
+      */
+     getBalancesInSingleCall(selectedAddress: string, tokensToDetect: string[], networkClientId?: NetworkClientId): Promise<BalanceMap>;
++    /**
++     * Get the staked ethereum balance for an address in a single call.
++     *
++     * @param address - The address to check staked ethereum balance for.
++     * @param networkClientId - Network Client ID to fetch the provider with.
++     * @returns The hex staked ethereum balance for address.
++     */
++    getStakedBalanceForChain(address: string, networkClientId?: NetworkClientId): Promise<StakedBalance>;
+ }
+ export default AssetsContractController;
+ //# sourceMappingURL=AssetsContractController.d.cts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.mts b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.mts
+index a7916fb..9cbee8c 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.mts
++++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.mts
+@@ -32,6 +32,10 @@ export declare const SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID: {
+     readonly "0x504": "0x6aa75276052d96696134252587894ef5ffa520af";
+     readonly "0x505": "0x6aa75276052d96696134252587894ef5ffa520af";
+ };
++export declare const STAKING_CONTRACT_ADDRESS_BY_CHAINID: {
++    readonly "0x1": "0x4fef9d741011476750a243ac70b9789a63dd47df";
++    readonly "0x4268": "0x37bf0883c27365cffcd0c4202918df930989891f";
++};
+ export declare const MISSING_PROVIDER_ERROR = "AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available";
+ /**
+  * @type BalanceMap
+@@ -98,6 +102,7 @@ export type AllowedEvents = PreferencesControllerStateChangeEvent | NetworkContr
+  * The messenger of the {@link AssetsContractController}.
+  */
+ export type AssetsContractControllerMessenger = RestrictedControllerMessenger<typeof name, AssetsContractControllerActions | AllowedActions, AssetsContractControllerEvents | AllowedEvents, AllowedActions['type'], AllowedEvents['type']>;
++export type StakedBalance = string | undefined;
+ /**
+  * Controller that interacts with contracts on mainnet through web3
+  */
+@@ -272,6 +277,14 @@ export declare class AssetsContractController {
+      * @returns The list of non-zero token balances.
+      */
+     getBalancesInSingleCall(selectedAddress: string, tokensToDetect: string[], networkClientId?: NetworkClientId): Promise<BalanceMap>;
++    /**
++     * Get the staked ethereum balance for an address in a single call.
++     *
++     * @param address - The address to check staked ethereum balance for.
++     * @param networkClientId - Network Client ID to fetch the provider with.
++     * @returns The hex staked ethereum balance for address.
++     */
++    getStakedBalanceForChain(address: string, networkClientId?: NetworkClientId): Promise<StakedBalance>;
+ }
+ export default AssetsContractController;
+ //# sourceMappingURL=AssetsContractController.d.mts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.mjs b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.mjs
+index 15a0e56..deeb1eb 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.mjs
+@@ -16,13 +16,15 @@ function $importDefault(module) {
+     }
+     return module;
+ }
++// import { BigNumber } from '@ethersproject/bignumber';
++import { BigNumber } from "@ethersproject/bignumber";
+ import { Contract } from "@ethersproject/contracts";
+ import { Web3Provider } from "@ethersproject/providers";
+ import { IPFS_DEFAULT_GATEWAY_URL } from "@metamask/controller-utils";
+ import { getKnownPropertyNames } from "@metamask/utils";
+ import $abiSingleCallBalancesContract from "single-call-balance-checker-abi";
+ const abiSingleCallBalancesContract = $importDefault($abiSingleCallBalancesContract);
+-import { SupportedTokenDetectionNetworks } from "./assetsUtil.mjs";
++import { SupportedStakedBalanceNetworks, SupportedTokenDetectionNetworks } from "./assetsUtil.mjs";
+ import { ERC20Standard } from "./Standards/ERC20Standard.mjs";
+ import { ERC1155Standard } from "./Standards/NftStandards/ERC1155/ERC1155Standard.mjs";
+ import { ERC721Standard } from "./Standards/NftStandards/ERC721/ERC721Standard.mjs";
+@@ -52,6 +54,10 @@ export const SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [SupportedTokenDetectionNetworks.moonbeam]: '0x6aa75276052d96696134252587894ef5ffa520af',
+     [SupportedTokenDetectionNetworks.moonriver]: '0x6aa75276052d96696134252587894ef5ffa520af',
+ };
++export const STAKING_CONTRACT_ADDRESS_BY_CHAINID = {
++    [SupportedStakedBalanceNetworks.mainnet]: '0x4fef9d741011476750a243ac70b9789a63dd47df',
++    [SupportedStakedBalanceNetworks.holesky]: '0x37bf0883c27365cffcd0c4202918df930989891f',
++};
+ export const MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
+ /**
+  * The name of the {@link AssetsContractController}
+@@ -334,6 +340,60 @@ export class AssetsContractController {
+         }
+         return nonZeroBalances;
+     }
++    /**
++     * Get the staked ethereum balance for an address in a single call.
++     *
++     * @param address - The address to check staked ethereum balance for.
++     * @param networkClientId - Network Client ID to fetch the provider with.
++     * @returns The hex staked ethereum balance for address.
++     */
++    async getStakedBalanceForChain(address, networkClientId) {
++        const chainId = __classPrivateFieldGet(this, _AssetsContractController_instances, "m", _AssetsContractController_getCorrectChainId).call(this, networkClientId);
++        const provider = __classPrivateFieldGet(this, _AssetsContractController_instances, "m", _AssetsContractController_getCorrectProvider).call(this, networkClientId);
++        // balance defaults to zero
++        let balance = BigNumber.from(0);
++        // Only fetch staked balance on supported networks
++        if (![
++            SupportedStakedBalanceNetworks.mainnet,
++            SupportedStakedBalanceNetworks.holesky,
++        ].includes(chainId)) {
++            return undefined;
++        }
++        // Only fetch staked balance if contract address exists
++        if (!((id) => id in STAKING_CONTRACT_ADDRESS_BY_CHAINID)(chainId)) {
++            return undefined;
++        }
++        const contractAddress = STAKING_CONTRACT_ADDRESS_BY_CHAINID[chainId];
++        const abi = [
++            {
++                inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
++                name: 'getShares',
++                outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
++                stateMutability: 'view',
++                type: 'function',
++            },
++            {
++                inputs: [{ internalType: 'uint256', name: 'shares', type: 'uint256' }],
++                name: 'convertToAssets',
++                outputs: [{ internalType: 'uint256', name: 'assets', type: 'uint256' }],
++                stateMutability: 'view',
++                type: 'function',
++            },
++        ];
++        try {
++            const contract = new Contract(contractAddress, abi, provider);
++            const userShares = await contract.getShares(address);
++            // convert shares to assets only if address shares > 0 else return default balance
++            if (!userShares.lte(0)) {
++                balance = await contract.convertToAssets(userShares.toString());
++            }
++        }
++        catch (error) {
++            // if we get an error, log and return the default value
++            console.error(error);
++        }
++        return balance.toHexString();
++    }
+ }
+ _AssetsContractController_provider = new WeakMap(), _AssetsContractController_ipfsGateway = new WeakMap(), _AssetsContractController_chainId = new WeakMap(), _AssetsContractController_instances = new WeakSet(), _AssetsContractController_registerActionHandlers = function _AssetsContractController_registerActionHandlers() {
+     const methodsExcludedFromMessenger = [
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 index 82613cf..f7fd41e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
@@ -377,3 +988,94 @@ index 3fbbc66..4f99591 100644
  export default TokensController;
  //# sourceMappingURL=TokensController.d.cts.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.cjs b/node_modules/@metamask/assets-controllers/dist/assetsUtil.cjs
+index e90a1b6..c2e83cf 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.cjs
+@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.fetchTokenContractExchangeRates = exports.reduceInBatchesSerially = exports.divideIntoBatches = exports.ethersBigNumberToBN = exports.addUrlProtocolPrefix = exports.getFormattedIpfsUrl = exports.getIpfsCIDv1AndPath = exports.removeIpfsProtocolPrefix = exports.isTokenListSupportedForNetwork = exports.isTokenDetectionSupportedForNetwork = exports.SupportedTokenDetectionNetworks = exports.formatIconUrlWithProxy = exports.formatAggregatorNames = exports.hasNewCollectionFields = exports.compareNftMetadata = exports.TOKEN_PRICES_BATCH_SIZE = void 0;
++exports.fetchTokenContractExchangeRates = exports.reduceInBatchesSerially = exports.divideIntoBatches = exports.ethersBigNumberToBN = exports.addUrlProtocolPrefix = exports.getFormattedIpfsUrl = exports.getIpfsCIDv1AndPath = exports.removeIpfsProtocolPrefix = exports.isTokenListSupportedForNetwork = exports.isTokenDetectionSupportedForNetwork = exports.SupportedStakedBalanceNetworks = exports.SupportedTokenDetectionNetworks = exports.formatIconUrlWithProxy = exports.formatAggregatorNames = exports.hasNewCollectionFields = exports.compareNftMetadata = exports.TOKEN_PRICES_BATCH_SIZE = void 0;
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const utils_1 = require("@metamask/utils");
+ const bn_js_1 = __importDefault(require("bn.js"));
+@@ -168,6 +168,18 @@ var SupportedTokenDetectionNetworks;
+     // eslint-disable-next-line @typescript-eslint/naming-convention
+     SupportedTokenDetectionNetworks["moonriver"] = "0x505";
+ })(SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks = {}));
++/**
++ * Networks where staked balance is supported - Values are in hex format
++ */
++var SupportedStakedBalanceNetworks;
++(function (SupportedStakedBalanceNetworks) {
++    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++    // eslint-disable-next-line @typescript-eslint/naming-convention
++    SupportedStakedBalanceNetworks["mainnet"] = "0x1";
++    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++    // eslint-disable-next-line @typescript-eslint/naming-convention
++    SupportedStakedBalanceNetworks["holesky"] = "0x4268";
++})(SupportedStakedBalanceNetworks || (exports.SupportedStakedBalanceNetworks = SupportedStakedBalanceNetworks = {}));
+ /**
+  * Check if token detection is enabled for certain networks.
+  *
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.cts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.cts
+index 4007a3b..cca8a6b 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.cts
+@@ -68,6 +68,13 @@ export declare enum SupportedTokenDetectionNetworks {
+     moonbeam = "0x504",
+     moonriver = "0x505"
+ }
++/**
++ * Networks where staked balance is supported - Values are in hex format
++ */
++export declare enum SupportedStakedBalanceNetworks {
++    mainnet = "0x1",
++    holesky = "0x4268"
++}
+ /**
+  * Check if token detection is enabled for certain networks.
+  *
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.mts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.mts
+index e4d7d0a..0674deb 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.mts
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.mts
+@@ -68,6 +68,13 @@ export declare enum SupportedTokenDetectionNetworks {
+     moonbeam = "0x504",
+     moonriver = "0x505"
+ }
++/**
++ * Networks where staked balance is supported - Values are in hex format
++ */
++export declare enum SupportedStakedBalanceNetworks {
++    mainnet = "0x1",
++    holesky = "0x4268"
++}
+ /**
+  * Check if token detection is enabled for certain networks.
+  *
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.mjs b/node_modules/@metamask/assets-controllers/dist/assetsUtil.mjs
+index a53a5f0..1ae8b32 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.mjs
+@@ -165,6 +165,18 @@ export var SupportedTokenDetectionNetworks;
+     // eslint-disable-next-line @typescript-eslint/naming-convention
+     SupportedTokenDetectionNetworks["moonriver"] = "0x505";
+ })(SupportedTokenDetectionNetworks || (SupportedTokenDetectionNetworks = {}));
++/**
++ * Networks where staked balance is supported - Values are in hex format
++ */
++export var SupportedStakedBalanceNetworks;
++(function (SupportedStakedBalanceNetworks) {
++    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++    // eslint-disable-next-line @typescript-eslint/naming-convention
++    SupportedStakedBalanceNetworks["mainnet"] = "0x1";
++    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++    // eslint-disable-next-line @typescript-eslint/naming-convention
++    SupportedStakedBalanceNetworks["holesky"] = "0x4268";
++})(SupportedStakedBalanceNetworks || (SupportedStakedBalanceNetworks = {}));
+ /**
+  * Check if token detection is enabled for certain networks.
+  *
