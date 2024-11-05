@@ -9,8 +9,8 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import Tenderly from '../../tenderly';
 import {
@@ -29,7 +29,7 @@ import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
