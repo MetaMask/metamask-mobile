@@ -227,7 +227,7 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
+import { isObject, lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -704,8 +704,18 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
+    const networkConfigurations = isObject(
+      networkController.state.networkConfigurationsByChainId,
+    )
+      ? Object.values(networkController.state.networkConfigurationsByChainId)
+      : [];
+    const nativeCurrencies = [
+      ...new Set(
+        Object.values(networkConfigurations).map((n) => n.nativeCurrency),
+      ),
+    ];
     currencyRateController.startPolling({
-      networkClientId: networkController.state.selectedNetworkClientId,
+      nativeCurrencies,
     });
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
