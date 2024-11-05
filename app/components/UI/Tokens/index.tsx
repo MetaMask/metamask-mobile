@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -40,9 +40,7 @@ import {
 } from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
