@@ -73,23 +73,19 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     const walletConnectRegex = /^https?:\/\//;
-    const uuidSubjects: any[] = [];
     const inAppBrowserSubjects: any[] = [];
-    const walletConnectSubjects: any[] = [];
 
     Object.entries(subjects || {}).forEach(([key, value]) => {
       if (key === 'npm:@metamask/message-signing-snap') return;
 
-      if (uuidRegex.test(key)) {
-        uuidSubjects.push(value);
-      } else if (
-        walletConnectRegex.test((value as { origin: string }).origin)
+      if (
+        !uuidRegex.test(key) &&
+        !walletConnectRegex.test((value as { origin: string }).origin)
       ) {
-        walletConnectSubjects.push(value);
-      } else {
         inAppBrowserSubjects.push(value);
       }
     });
+
     const mappedInAppBrowserPermissions: PermissionListItemViewModel[] =
       inAppBrowserSubjects.map((subject) => ({
         dappLogoUrl: '',
@@ -102,36 +98,11 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
         permissionSource: PermissionSource.MetaMaskBrowser,
       }));
 
-    const mappedUuidPermissions: PermissionListItemViewModel[] =
-      uuidSubjects.map((subject) => ({
-        dappLogoUrl: '',
-        dappHostName: subject.origin,
-        numberOfAccountPermissions:
-          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
-        numberOfNetworkPermissions: 0,
-        permissionSource: PermissionSource.SDK,
-      }));
-
-    const mappedWalletConnectPermissions: PermissionListItemViewModel[] =
-      walletConnectSubjects.map((subject) => ({
-        dappLogoUrl: '',
-        dappHostName: subject.origin,
-        numberOfAccountPermissions:
-          subject.permissions?.eth_accounts?.caveats?.[0]?.value?.length ?? 0,
-        numberOfNetworkPermissions: 0,
-        permissionSource: PermissionSource.WalletConnect,
-      }));
-
     const mappedPermissions: PermissionListItemViewModel[] = [
       ...mappedInAppBrowserPermissions,
-      // sdk and wallet connect permissions are not supported yet, a source prop is missing from the permission controller
-      // ...mappedUuidPermissions,
-      // ...mappedWalletConnectPermissions,
     ];
 
     setInAppBrowserPermissions(mappedPermissions);
-    // console.log('>>> uuidSubjects: ', JSON.stringify(uuidSubjects));
-    // console.log('>>> mappedPermissions: ', JSON.stringify(mappedPermissions));
   }, [subjects]);
 
   useEffect(() => {
