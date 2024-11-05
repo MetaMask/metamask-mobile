@@ -3,6 +3,12 @@ import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
+import {
+  expectedUuid,
+  expectedUuid2,
+  internalAccount1,
+  internalAccount2,
+} from '../../util/test/accountsControllerTestUtils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -78,6 +84,43 @@ describe('Migration #59 - Fix crasher related to undefined selectedAccount on Ac
             internalAccounts: {
               accounts: {},
               selectedAccount: '',
+            },
+          },
+        },
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('should set selectedAccount to the id of the first account if accounts exist', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [expectedUuid]: internalAccount1,
+                [expectedUuid2]: internalAccount2,
+              },
+              selectedAccount: undefined,
+            },
+          },
+        },
+      },
+    };
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [expectedUuid]: internalAccount1,
+                [expectedUuid2]: internalAccount2,
+              },
+              selectedAccount: expectedUuid,
             },
           },
         },

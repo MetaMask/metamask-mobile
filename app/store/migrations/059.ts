@@ -18,6 +18,7 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  // Check if selectedAccount is undefined
   if (
     hasProperty(state.engine.backgroundState, 'AccountsController') &&
     isObject(state.engine.backgroundState.AccountsController) &&
@@ -35,11 +36,30 @@ export default function migrate(state: unknown) {
     state.engine.backgroundState.AccountsController.internalAccounts
       .selectedAccount === undefined
   ) {
-    Logger.log(
-      `Migration 59: AccountController's selectedAccount is undefined. Setting it to empty string.`,
-    );
-    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
-      '';
+    // Try to set the selectedAccount to be the first account id
+    const internalAccounts =
+      state.engine.backgroundState.AccountsController.internalAccounts;
+    if (
+      hasProperty(internalAccounts, 'accounts') &&
+      isObject(internalAccounts.accounts) &&
+      Object.keys(internalAccounts.accounts).length > 0
+    ) {
+      const firstAccount = Object.values(internalAccounts.accounts)[0];
+      if (isObject(firstAccount) && hasProperty(firstAccount, 'id')) {
+        Logger.log(
+          `Migration 59: Setting selectedAccount to the id of the first account.`,
+        );
+        state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+          firstAccount.id;
+      }
+    } else {
+      // Fallback to setting selectedAccount to empty string. AccountsController automatically reconciles the field
+      Logger.log(
+        `Migration 59: AccountController's selectedAccount is undefined. Setting it to empty string.`,
+      );
+      state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+        '';
+    }
   }
 
   // Return the modified state
