@@ -87,7 +87,7 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     button: {
-      marginTop: 24,
+      marginTop: 16,
       borderColor: colors.primary.default,
       borderWidth: 1,
       borderRadius: 48,
@@ -96,7 +96,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 34,
     },
     blueButton: {
-      marginTop: 24,
+      marginTop: 16,
       borderColor: colors.primary.default,
       backgroundColor: colors.primary.default,
       borderWidth: 1,
