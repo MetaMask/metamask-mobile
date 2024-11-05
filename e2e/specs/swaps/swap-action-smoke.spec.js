@@ -26,7 +26,7 @@ import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
