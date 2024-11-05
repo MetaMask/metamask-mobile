@@ -39,8 +39,20 @@ echo "Configuring git.."
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
+echo "Fetching from remote..."
+git fetch
+
 echo "Checking out ${RELEASE_BRANCH_NAME}"
-git checkout "${RELEASE_BRANCH_NAME}"
+
+# Check for branch existence
+if git branch -a | grep -q "remotes/origin/${RELEASE_BRANCH_NAME}"; then
+    echo "Branch exists, checking out."
+    git checkout -b "${RELEASE_BRANCH_NAME}" origin/"${RELEASE_BRANCH_NAME}"
+else
+    echo "Branch does not exist."
+    exit 1
+fi
+
 echo "Release Branch Checked Out"
 
 echo "Running version update scripts.."
