@@ -124,8 +124,9 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
 
     const mappedPermissions: PermissionListItemViewModel[] = [
       ...mappedInAppBrowserPermissions,
-      ...mappedUuidPermissions,
-      ...mappedWalletConnectPermissions,
+      // sdk and wallet connect permissions are not supported yet, a source prop is missing from the permission controller
+      // ...mappedUuidPermissions,
+      // ...mappedWalletConnectPermissions,
     ];
 
     setInAppBrowserPermissions(mappedPermissions);
