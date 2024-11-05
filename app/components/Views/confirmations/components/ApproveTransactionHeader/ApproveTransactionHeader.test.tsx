@@ -10,6 +10,8 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { RootState } from '../../../../../reducers';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import TransactionTypes from '../../../../../core/TransactionTypes';
 
 const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_ADDRESS_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -57,6 +59,16 @@ const mockInitialState: DeepPartial<RootState> = {
         }),
       },
     },
+  },
+};
+
+const defaultProps = {
+  from: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+  url: 'http://metamask.github.io',
+  asset: {
+    address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+    symbol: 'RAN',
+    decimals: 18,
   },
 };
 
@@ -153,5 +165,21 @@ describe('ApproveTransactionHeader', () => {
 
     const originPill = queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL);
     expect(originPill).toBeNull();
+  });
+
+  it.each([
+    ['ORIGIN_METAMASK', ORIGIN_METAMASK],
+    ['MM_FOX_CODE', process.env.MM_FOX_CODE],
+    ['MMM', TransactionTypes.MMM],
+  ])('does not render origin if %s', (_, origin) => {
+    const { queryByTestId } = renderWithProvider(
+      <ApproveTransactionHeader
+        {...defaultProps}
+        origin={origin}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeNull();
   });
 });
