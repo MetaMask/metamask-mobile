@@ -177,38 +177,6 @@ exports[`TabThumbnail should render correctly 1`] = `
         }
       />
     </View>
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "borderTopColor": "#bbc0c5",
-          "borderTopWidth": 1,
-          "flexDirection": "row",
-          "height": 36,
-          "padding": 8,
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="tail"
-        numberOfLines={1}
-        style={
-          {
-            "color": "#141618",
-            "flex": 1,
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 20,
-          }
-        }
-      >
-        Undefined account - Ethereum Main Network
-      </Text>
-    </View>
   </TouchableOpacity>
 </View>
 `;
