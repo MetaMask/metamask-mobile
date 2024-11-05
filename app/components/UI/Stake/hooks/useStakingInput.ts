@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { useState, useMemo, useCallback } from 'react';
 import {
   limitToMaximumDecimalPlaces,
@@ -38,14 +38,14 @@ const useStakingInputHandlers = () => {
     () =>
       !isStakingGasFeeError && balance.gt(estimatedGasFeeWei)
         ? balance.sub(estimatedGasFeeWei)
-        : new BN(0),
+        : new BN4(0),
 
     [balance, estimatedGasFeeWei, isStakingGasFeeError],
   );
 
   const isOverMaximum = useMemo(() => {
     const additionalFundsRequired = amountWei.sub(maxStakeableAmountWei);
-    return isNonZeroAmount && additionalFundsRequired.gt(new BN(0));
+    return isNonZeroAmount && additionalFundsRequired.gt(new BN4(0));
   }, [amountWei, isNonZeroAmount, maxStakeableAmountWei]);
 
   const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
