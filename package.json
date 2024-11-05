@@ -577,8 +577,6 @@
       "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
       "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
       "appium": false,
-      "appium>@appium/base-driver>@appium/support>sharp": false,
-      "appium>@appium/base-plugin>@appium/support>sharp": false,
       "appium>@appium/support>sharp": false
     }
   },
