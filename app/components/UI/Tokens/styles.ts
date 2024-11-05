@@ -158,6 +158,14 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 16,
       paddingTop: 8,
     },
+    controlButtonOuterWrapper: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+    },
+    controlButtonInnerWrapper: {
+      flexDirection: 'row',
+    },
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
@@ -165,6 +173,18 @@ const createStyles = (colors: Colors) =>
       borderWidth: 1,
       marginLeft: 5,
       marginRight: 5,
+      maxWidth: '60%',
+    },
+    controlIconButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      borderRadius: 50,
+      width: 50,
+      height: 40,
     },
     balanceContainer: {
       flexDirection: 'row',

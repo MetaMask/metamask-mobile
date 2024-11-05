@@ -40,6 +40,9 @@ import {
 } from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -238,32 +241,33 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       <View style={styles.actionBarWrapper}>
         {isTokenFilterEnabled ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               label={
-                tokenNetworkFilter[chainId]
-                  ? networkName ?? strings('wallet.current_network')
-                  : strings('wallet.all_networks')
+                // tokenNetworkFilter[chainId]
+                //   ? networkName ?? strings('wallet.current_network')
+                //   : strings('wallet.all_networks')
+                'A super very long network name that take a lot of space'
               }
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
               style={styles.controlButton}
             />
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.SORT_BY}
-              label={strings('wallet.sort_by')}
-              onPress={showSortControls}
-              endIconName={IconName.ArrowDown}
-              style={styles.controlButton}
-            />
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              label={strings('wallet.import')}
-              onPress={goToAddToken}
-              startIconName={IconName.Add}
-              style={styles.controlButton}
-            />
-          </ScrollView>
+            <View style={styles.controlButtonInnerWrapper}>
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.SORT_BY}
+                onPress={showSortControls}
+                iconName={IconName.SwapVertical}
+                style={styles.controlIconButton}
+              />
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                onPress={goToAddToken}
+                iconName={IconName.Add}
+                style={styles.controlIconButton}
+              />
+            </View>
+          </View>
         ) : (
           <>
             <ButtonBase
