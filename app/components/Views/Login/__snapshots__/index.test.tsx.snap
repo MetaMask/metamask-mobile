@@ -302,7 +302,7 @@ TypeError: (0 , _reactNativeDeviceInfo.getTotalMemorySync) is not a function
                 "borderRadius": 48,
                 "borderWidth": 1,
                 "height": 48,
-                "marginTop": 24,
+                "marginTop": 16,
                 "padding": 12,
                 "paddingHorizontal": 34,
               }
@@ -329,7 +329,7 @@ TypeError: (0 , _reactNativeDeviceInfo.getTotalMemorySync) is not a function
                 "borderRadius": 48,
                 "borderWidth": 1,
                 "height": 48,
-                "marginTop": 24,
+                "marginTop": 16,
                 "padding": 12,
                 "paddingHorizontal": 34,
               }
