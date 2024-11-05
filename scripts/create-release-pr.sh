@@ -38,6 +38,15 @@ RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The chan
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
+# Bump versions for the release
+./scripts/set-semvar-version.sh "${NEW_VERSION}"
+./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
+
+# Track our changes
+git add package.json android/app/build.gradle ios/MetaMask/Info.plist bitrise.yml
+
+git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
+
 gh pr create \
   --draft \
   --title "feat: ${NEW_VERSION}" \
@@ -50,10 +59,6 @@ echo "Release Branch Checked Out"
 
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 echo "Changelog Branch Created"
-
-#Bump versions for the release"
-./scripts/set-semvar-version.sh "${NEW_VERSION}"
-./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
 
 #Generate changelog and test plan csv
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
