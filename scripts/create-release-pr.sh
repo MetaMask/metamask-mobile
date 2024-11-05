@@ -60,7 +60,7 @@ echo "Running version update scripts.."
 
 echo "Adding and committing changes.."
 # Track our changes
-git add package.json android/app/build.gradle ios/MetaMask/Info.plist bitrise.yml
+git add package.json android/app/build.gradle ios/MetaMask.xcodeproj/project.pbxproj bitrise.yml
 
 # Generate a commit
 git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
