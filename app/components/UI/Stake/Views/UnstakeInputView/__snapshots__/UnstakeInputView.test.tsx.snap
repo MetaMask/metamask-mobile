@@ -56,13 +56,9 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
               {
                 "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
-                "elevation": 0,
                 "flex": 1,
-                "shadowColor": "transparent",
-                "shadowOffset": {
-                  "height": 0.5,
-                  "width": 0,
-                },
+                "shadowColor": "rgb(216, 216, 216)",
+                "shadowOffset": null,
                 "shadowOpacity": 0.85,
                 "shadowRadius": 0,
               }
@@ -115,9 +111,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                   "top": 0,
                 }
               }
-            >
-              <View />
-            </View>
+            />
             <View
               collapsable={false}
               pointerEvents="box-none"
@@ -128,74 +122,29 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={[Function]}
+              <View
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
-                    "justifyContent": "center",
                   }
                 }
               >
                 <Text
                   accessibilityRole="text"
-                  numberOfLines={1}
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 18,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
                   Unstake ETH
                 </Text>
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
-              </TouchableOpacity>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -460,7 +409,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                             >
                               Staked balance
                               : 
-                              4.59996 ETH
+                              5.79133 ETH
                             </Text>
                           </View>
                           <View

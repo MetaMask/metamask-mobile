@@ -29,7 +29,7 @@ import {
   ProviderConfig,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
@@ -181,7 +181,7 @@ const AccountPermissionsConnected = ({
         )}
         {!isMultichainVersion1Enabled && (
           <PickerNetwork
-            label={networkName}
+            label={providerConfig?.nickname || networkName}
             imageSource={networkImageSource}
             onPress={switchNetwork}
             style={styles.networkPicker}

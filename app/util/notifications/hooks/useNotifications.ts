@@ -7,12 +7,12 @@ import {
   EnableNotificationsReturn,
   DisableNotificationsReturn,
   MarkNotificationAsReadReturn,
-  ResetNotificationsStorageKeyReturn,
+  deleteNotificationsStorageKeyReturn,
 } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   MarkAsReadNotificationsParam,
-  createOnChainTriggersByAccount,
+  performDeleteStorage,
   disableNotificationServices,
   enableNotificationServices,
   fetchAndUpdateMetamaskNotifications,
@@ -20,7 +20,7 @@ import {
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/helpers';
 import { getNotificationsList } from '../../../selectors/notifications';
-
+import { usePushNotifications } from './usePushNotifications';
 /**
  * Custom hook to fetch and update the list of notifications.
  * Manages loading and error states internally.
@@ -104,12 +104,14 @@ export function useCreateNotifications(): CreateNotificationsReturn {
 export function useEnableNotifications(): EnableNotificationsReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-
+  const { switchPushNotifications } = usePushNotifications();
   const enableNotifications = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await enableNotificationServices();
+      const errorEnablingNotifications = await enableNotificationServices();
+      const errorEnablingPushNotifications = await switchPushNotifications(true);
+      const errorMessage = errorEnablingNotifications || errorEnablingPushNotifications;
 
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
@@ -122,7 +124,7 @@ export function useEnableNotifications(): EnableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [switchPushNotifications]);
 
   return {
     enableNotifications,
@@ -139,12 +141,15 @@ export function useEnableNotifications(): EnableNotificationsReturn {
 export function useDisableNotifications(): DisableNotificationsReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-
+  const { switchPushNotifications } = usePushNotifications();
   const disableNotifications = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await disableNotificationServices();
+      const errorDisablingNotifications = await disableNotificationServices();
+      const errorDisablingPushNotifications = await switchPushNotifications(false);
+      const errorMessage = errorDisablingNotifications || errorDisablingPushNotifications;
+
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -156,7 +161,7 @@ export function useDisableNotifications(): DisableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [switchPushNotifications]);
 
   return {
     disableNotifications,
@@ -206,20 +211,20 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 }
 
 /**
- * Custom hook to enable notifications by creating on-chain triggers.
+ * Custom hook to delete notifications storage key.
  * It manages loading and error states internally.
  *
- * @returns An object containing the `enableNotifications` function, loading state, and error state.
+ * @returns An object containing the `deleteNotificationsStorageKey` function, loading state, and error state.
  */
-export function useResetNotificationsStorageKey(): ResetNotificationsStorageKeyReturn {
+export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKeyReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
-  const resetNotificationsStorageKey = useCallback(async () => {
+  const deleteNotificationsStorageKey = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await createOnChainTriggersByAccount(true);
+      const errorMessage = await performDeleteStorage();
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -234,7 +239,7 @@ export function useResetNotificationsStorageKey(): ResetNotificationsStorageKeyR
   }, []);
 
   return {
-    resetNotificationsStorageKey,
+    deleteNotificationsStorageKey,
     loading,
     error,
   };

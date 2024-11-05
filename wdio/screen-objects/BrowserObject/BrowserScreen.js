@@ -2,7 +2,6 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import  {
   BrowserViewSelectorsIDs,
-
 } from '../../../e2e/selectors/Browser/BrowserView.selectors';
 
 

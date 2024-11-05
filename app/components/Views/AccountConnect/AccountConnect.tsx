@@ -38,13 +38,17 @@ import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import {
+  getHost,
+  getUrlObj,
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource, StyleSheet } from 'react-native';
+import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -71,8 +75,16 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
+import {
+  isMultichainVersion1Enabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -97,6 +109,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
   );
+  const [confirmedAddresses, setConfirmedAddresses] =
+    useState<string[]>(selectedAddresses);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
@@ -108,6 +123,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+
+  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
+    {
+      size: AvatarSize;
+      name: string;
+      imageSource: ImageSourcePropType;
+    }[]
+  >([]);
 
   const { toastRef } = useContext(ToastContext);
   const accountAvatarType = useSelector((state: RootState) =>
@@ -121,7 +144,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const isOriginWalletConnect = wc2Metadata?.id && wc2Metadata?.id.length > 0;
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
@@ -138,7 +162,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   const sdkConnection = SDKConnect.getInstance().getConnection({
     channelId: channelIdOrHostname,
   });
+
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
+
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
@@ -174,9 +202,76 @@ const AccountConnect = (props: AccountConnectProps) => {
     channelIdOrHostname,
   ]);
 
-  const urlWithProtocol = (hostname && !isUUID(hostname))
-    ? prefixUrlWithProtocol(hostname)
-    : domainTitle;
+  const urlWithProtocol =
+    hostname && !isUUID(hostname)
+      ? prefixUrlWithProtocol(getHost(hostname))
+      : domainTitle;
+
+  const { chainId } = useNetworkInfo(hostname);
+
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() =>
+    chainId ? [chainId] : [],
+  );
+  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>(() =>
+    chainId ? [chainId] : [],
+  );
+
+  useEffect(() => {
+    if (chainId) {
+      const initialNetworkAvatar = {
+        size: AvatarSize.Xs,
+        name: networkConfigurations[chainId]?.name || '',
+        // @ts-expect-error getNetworkImageSourcenot yet typed
+        imageSource: getNetworkImageSource({ chainId }),
+      };
+      setSelectedNetworkAvatars([initialNetworkAvatar]);
+
+      setSelectedChainIds([chainId]);
+    }
+  }, [chainId, networkConfigurations]);
+
+  const handleUpdateNetworkPermissions = useCallback(async () => {
+    let hasPermittedChains = false;
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      chainsToPermit = [chainId];
+    }
+
+    try {
+      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+        new URL(hostname).hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+    } catch {
+      // noop
+    }
+
+    if (hasPermittedChains) {
+      Engine.context.PermissionController.updateCaveat(
+        new URL(hostname).hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+        chainsToPermit,
+      );
+    } else {
+      Engine.context.PermissionController.grantPermissionsIncremental({
+        subject: {
+          origin: new URL(hostname).hostname,
+        },
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              {
+                type: CaveatTypes.restrictNetworkSwitching,
+                value: chainsToPermit,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }, [selectedChainIds, chainId, hostname]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
@@ -236,15 +331,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     // walletconnect channelId format: app.name.org
     // sdk channelId format: uuid
     // inappbrowser channelId format: app.name.org but origin is set
-    if (channelIdOrHostname) {
-      if (sdkConnection) {
-        return SourceType.SDK;
-      }
+    if (isOriginWalletConnect) {
       return SourceType.WALLET_CONNECT;
     }
 
+    if (sdkConnection) {
+      return SourceType.SDK;
+    }
+
     return SourceType.IN_APP_BROWSER;
-  }, [sdkConnection, channelIdOrHostname]);
+  }, [isOriginWalletConnect, sdkConnection]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -341,7 +437,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
-
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
     const activeAccountName = getAccountNameWithENS({
@@ -433,6 +528,27 @@ const AccountConnect = (props: AccountConnectProps) => {
     [trackEvent],
   );
 
+  const handleNetworksSelected = useCallback(
+    (newSelectedChainIds: string[]) => {
+      setSelectedChainIds(newSelectedChainIds);
+      setSelectedNetworkIds(newSelectedChainIds);
+
+      const newNetworkAvatars = newSelectedChainIds.map(
+        (newSelectedChainId) => ({
+          size: AvatarSize.Xs,
+          // @ts-expect-error - networkConfigurations is not typed
+          name: networkConfigurations[newSelectedChainId]?.name || '',
+          // @ts-expect-error - getNetworkImageSource is not typed
+          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
+        }),
+      );
+      setSelectedNetworkAvatars(newNetworkAvatars);
+
+      setScreen(AccountConnectScreens.SingleConnect);
+    },
+    [networkConfigurations, setScreen],
+  );
+
   const hideSheet = (callback?: () => void) =>
     sheetRef?.current?.onCloseBottomSheet?.(callback);
 
@@ -452,6 +568,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
+          handleUpdateNetworkPermissions();
           hideSheet();
           break;
         }
@@ -495,6 +612,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleCreateAccount,
     handleConnect,
     trackEvent,
+    handleUpdateNetworkPermissions,
   ]);
 
   const handleSheetDismiss = () => {
@@ -561,9 +679,19 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
+      accountAddresses: confirmedAddresses,
+      accounts,
+      // @ts-expect-error imageSource not yet typed
+      networkAvatars: selectedNetworkAvatars,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol]);
+  }, [
+    faviconSource,
+    urlWithProtocol,
+    confirmedAddresses,
+    selectedNetworkAvatars,
+    accounts,
+  ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
@@ -600,15 +728,25 @@ const AccountConnect = (props: AccountConnectProps) => {
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
-        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        onBack={() => {
+          setSelectedAddresses(confirmedAddresses);
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
         connection={sdkConnection}
         hostname={hostname}
+        onPrimaryActionButtonPress={() => {
+          setConfirmedAddresses(selectedAddresses);
+          return isMultichainVersion1Enabled
+            ? setScreen(AccountConnectScreens.SingleConnect)
+            : undefined;
+        }}
       />
     ),
     [
       accounts,
       ensByAccountAddress,
       selectedAddresses,
+      confirmedAddresses,
       isLoading,
       faviconSource,
       secureIcon,
@@ -625,11 +763,21 @@ const AccountConnect = (props: AccountConnectProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         urlWithProtocol={urlWithProtocol}
-        hostname={hostname}
+        hostname={new URL(urlWithProtocol).hostname}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        onNetworksSelected={handleNetworksSelected}
+        initialChainId={chainId}
+        selectedChainIds={selectedNetworkIds}
+        isInitializedWithPermittedChains={false}
       />
     ),
-    [isLoading, urlWithProtocol, hostname],
+    [
+      isLoading,
+      urlWithProtocol,
+      chainId,
+      handleNetworksSelected,
+      selectedNetworkIds,
+    ],
   );
 
   const renderPhishingModal = useCallback(

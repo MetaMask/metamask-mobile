@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
   linkWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 16,
   },
   footerText: {
     fontSize: 12,

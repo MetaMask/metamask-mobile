@@ -28,7 +28,6 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -43,7 +42,7 @@ import {
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
@@ -52,7 +51,7 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -91,7 +90,7 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   notificationButton: {
-    marginRight: 4,
+    marginHorizontal: 4,
   },
   disabled: {
     opacity: 0.3,
@@ -361,7 +360,7 @@ export function getPaymentRequestOptionsTitle(
         <TouchableOpacity
           onPress={goBack}
           style={styles.backButton}
-          {...generateTestId(Platform, REQUEST_SEARCH_RESULTS_BACK_BUTTON)}
+          testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
         >
           <IonicIcon
             name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -1118,7 +1117,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1177,7 +1176,7 @@ export function getNftDetailsNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <Icon
           name={IconName.ArrowLeft}
@@ -1300,7 +1299,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        testID={ImportTokenViewSelectorsIDs.BACK_BUTTON}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <IonicIcon
           name={'ios-close'}
@@ -1824,34 +1823,70 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
   };
 };
 
-export function getStakingNavbar(title, navigation, themeColors) {
+/**
+ *
+ * @param {String} title - Navbar Title.
+ * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
+ * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [options] - Optional options for navbar.
+ * @returns Staking Navbar Component.
+ */
+export function getStakingNavbar(title, navigation, themeColors, options) {
+  const { hasBackButton = true, hasCancelButton = true } = options ?? {};
+
   const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor:
+        options?.backgroundColor ?? themeColors.background.default,
+      shadowOffset: null,
+    },
+    headerLeft: {
+      marginHorizontal: 16,
+    },
     headerButtonText: {
       color: themeColors.primary.default,
       fontSize: 14,
       ...fontStyles.normal,
     },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
+    headerTitle: {
+      alignItems: 'center',
     },
   });
+
+  function navigationPop() {
+    navigation.goBack();
+  }
+
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
-    ),
-    headerLeft: () => <View />,
-    headerRight: () => (
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
-      >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
-      </TouchableOpacity>
+      <View style={innerStyles.headerTitle}>
+        <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      </View>
     ),
     headerStyle: innerStyles.headerStyle,
+    headerLeft: () =>
+      hasBackButton ? (
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.ArrowLeft}
+          onPress={navigationPop}
+          style={innerStyles.headerLeft}
+        />
+      ) : (
+        <></>
+      ),
+    headerRight: () =>
+      hasCancelButton ? (
+        <TouchableOpacity
+          onPress={() => navigation.dangerouslyGetParent()?.pop()}
+          style={styles.closeButton}
+        >
+          <Text style={innerStyles.headerButtonText}>
+            {strings('navigation.cancel')}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <></>
+      ),
   };
 }

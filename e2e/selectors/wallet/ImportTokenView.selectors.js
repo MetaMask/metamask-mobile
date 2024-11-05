@@ -10,7 +10,6 @@ export const ImportTokenViewSelectorsIDs = {
   DECIMAL_INPUT: 'input-token-decimal',
   ADDRESS_WARNING_MESSAGE: 'token-address-warning',
   PRECISION_WARNING_MESSAGE: 'token-decimals-warning',
-  BACK_BUTTON: 'asset-back-button',
   ADD_CONFIRM_CUSTOM_ASSET: 'add-confirm-custom-asset',
   ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL: 'add-cancel-custom-asset-modal',
   NEXT_BUTTON: 'token-import-next-button',

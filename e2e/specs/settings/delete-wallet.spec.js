@@ -6,7 +6,7 @@ import LoginView from '../../pages/LoginView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePasswordView';
-import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
+import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -53,7 +53,7 @@ describe(
         await CommonView.tapBackButton();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
-        await LoginView.isVisible();
+        await Assertions.checkIfVisible(LoginView.container);
 
         // should tap reset wallet button
         await LoginView.tapResetWalletButton();
