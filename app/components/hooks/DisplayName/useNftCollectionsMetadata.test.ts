@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { SimulationTokenStandard } from '@metamask/transaction-controller';
-import { NFTController } from '@metamask/assets-controllers';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   useNftCollectionsMetadata,
@@ -61,11 +60,15 @@ describe('useNftCollectionsMetadata', () => {
     });
     mockGetTokenDetails
       .mockResolvedValueOnce({
+        name: 'TEST',
+        symbol: 'TST',
         standard: TokenStandard.erc721,
-      } as ReturnType<typeof NftController.getNFTContractInfo>)
+      })
       .mockResolvedValueOnce({
+        name: 'TEST',
+        symbol: 'TST',
         standard: TokenStandard.erc721,
-      } as ReturnType<typeof NftController.getNFTContractInfo>);
+      });
   });
 
   it('calls NFT tokens API and returns the correct data structure', async () => {
@@ -99,8 +102,10 @@ describe('useNftCollectionsMetadata', () => {
     it('if there are no valid nft request', async () => {
       // getTokenStandardAndDetails returns that the standard is ERC20
       mockGetTokenDetails.mockReset().mockResolvedValueOnce({
+        name: 'TEST',
+        symbol: 'TST',
         standard: SimulationTokenStandard.erc20,
-      } as ReturnType<typeof NftController.getNFTContractInfo>);
+      });
 
       renderHook(() =>
         useNftCollectionsMetadata([

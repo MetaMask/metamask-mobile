@@ -1,44 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Name recognized address should return name 1`] = `
-<View
-  style={
-    {
-      "alignItems": "center",
-      "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 99,
-      "flexDirection": "row",
-      "gap": 5,
-      "paddingLeft": 8,
-      "paddingRight": 8,
-      "paddingVertical": 4,
-    }
-  }
->
-  Identicon
-  <Text
-    accessibilityRole="text"
-    ellipsizeMode="tail"
-    numberOfLines={1}
-    style={
-      {
-        "color": "#141618",
-        "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
-        "fontWeight": "400",
-        "letterSpacing": 0,
-        "lineHeight": 22,
-      }
-    }
-  >
-    Known name
-  </Text>
-</View>
-`;
-
-exports[`Name recognized address should show image 1`] = `
+exports[`Name recognized address should render image 1`] = `
 <View
   style={
     {
@@ -68,6 +30,44 @@ exports[`Name recognized address should show image 1`] = `
       }
     }
   />
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="tail"
+    numberOfLines={1}
+    style={
+      {
+        "color": "#141618",
+        "flexShrink": 1,
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Known name
+  </Text>
+</View>
+`;
+
+exports[`Name recognized address should return name 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#f2f4f6",
+      "borderRadius": 99,
+      "flexDirection": "row",
+      "gap": 5,
+      "paddingLeft": 8,
+      "paddingRight": 8,
+      "paddingVertical": 4,
+    }
+  }
+>
+  Identicon
   <Text
     accessibilityRole="text"
     ellipsizeMode="tail"
