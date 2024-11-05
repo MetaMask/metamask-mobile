@@ -8,7 +8,6 @@ import { StyleSheet } from 'react-native';
 const styleSheet = StyleSheet.create({
   body: {
     paddingHorizontal: 16,
-    justifyContent: 'center',
   },
   networkPicker: {
     marginVertical: 16,
