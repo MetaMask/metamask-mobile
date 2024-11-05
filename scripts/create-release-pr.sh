@@ -44,13 +44,14 @@ git fetch
 
 echo "Checking out ${RELEASE_BRANCH_NAME}"
 
-# Check for branch existence
+
+# Check if the release branch already exists on the remote
 if git branch -a | grep -q "remotes/origin/${RELEASE_BRANCH_NAME}"; then
-    echo "Branch exists, checking out."
-    git checkout -b "${RELEASE_BRANCH_NAME}" origin/"${RELEASE_BRANCH_NAME}"
+    echo "Release branch exists on remote, checking out."
+    git checkout "${RELEASE_BRANCH_NAME}"
 else
-    echo "Branch does not exist."
-    exit 1
+    echo "Release branch does not exist on remote, creating from ${BASE_BRANCH}."
+    git checkout -b "${RELEASE_BRANCH_NAME}"
 fi
 
 echo "Release Branch Checked Out"
