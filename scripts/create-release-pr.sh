@@ -35,27 +35,40 @@ RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The chan
   # Reference
   - Testing plan sheet - https://docs.google.com/spreadsheets/d/1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ/edit?gid=404070372#gid=404070372"
 
+echo "Configuring git.."
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
+echo "Running version update scripts.."
 # Bump versions for the release
 ./scripts/set-semvar-version.sh "${NEW_VERSION}"
 ./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
 
+echo "Adding and committing changes.."
 # Track our changes
 git add package.json android/app/build.gradle ios/MetaMask/Info.plist bitrise.yml
 
 git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
+
+echo "Checking out ${RELEASE_BRANCH_NAME}"
+
+git checkout "${RELEASE_BRANCH_NAME}"
+echo "Release Branch Checked Out"
+
+echo "Pushing changes to the remote.."
+
+git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
+
+echo Creating release PR..
 
 gh pr create \
   --draft \
   --title "feat: ${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
+  
 echo "Release PR Created"
 
-git checkout "${RELEASE_BRANCH_NAME}"
-echo "Release Branch Checked Out"
 
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 echo "Changelog Branch Created"
