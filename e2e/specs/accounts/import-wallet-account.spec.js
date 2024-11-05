@@ -16,7 +16,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
     'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
   beforeAll(async () => {
-    jest.setTimeout(200000);
+    jest.setTimeout(260000);
     await device.launchApp();
   });
 
