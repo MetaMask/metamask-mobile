@@ -64,6 +64,7 @@ pipelines:
   app_launch_times_pipeline:
     stages:
       - create_build_qa_android: {}
+      - create_build_qa_ios: {}
       - app_launch_times_test_stage: {}
 
   #App Upgrade pipeline. Runs on browserstack
@@ -504,6 +505,15 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - wdio_android_e2e_test
+  run_ios_app_launch_times_appium_test:
+    envs:
+      - TEST_TYPE: 'performance'
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    after_run:
+      - wdio_ios_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
@@ -1224,6 +1234,62 @@ workflows:
                   TEST_TYPE="--performance"
                 fi
                 yarn test:wdio:android:browserstack $TEST_TYPE
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Package test reports
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR/wdio/reports/
+                zip -r test-report.zip html/
+                mv test-report.zip $BITRISE_DEPLOY_DIR/
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
+          title: Deploy test report
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: standard
+  wdio_ios_e2e_test:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull browserstack app json list
+      - script@1:
+          title: Run iOS E2E tests on Browserstack
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+
+                # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
+                if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
+                  # This is incase an engineer wants to kick off the tests with an existing browserstack url
+                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
+                else
+                  # If the file is not empty, extract the app_url
+                  export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
+                  echo "BROWSERSTACK_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_APP_URL"
+                fi
+                # Check if TEST_TYPE is set to upgrade
+                if [ "$TEST_TYPE" = "upgrade" ]; then
+                  TEST_TYPE="--upgrade"
+
+                # Check if TEST_TYPE is set to performance
+                elif [ "$TEST_TYPE" = "performance" ]; then
+                  TEST_TYPE="--performance"
+                fi
+                yarn test:wdio:ios:browserstack $TEST_TYPE
       - script@1:
           is_always_run: true
           is_skippable: false
