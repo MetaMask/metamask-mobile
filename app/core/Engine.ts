@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
@@ -1564,10 +1565,16 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'TokensController:getState',
+            'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
-            'AssetsContractController:getERC20BalanceOf',
           ],
-          allowedEvents: ['TokensController:stateChange'],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'PreferencesController:stateChange',
+          ],
         }),
         interval: 180000,
         tokens: [
@@ -2007,8 +2014,12 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
+        const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
+
+        const tokenBalances = allTokenBalances?.[
+          selectedInternalAccount.address as Hex]?.[chainId] ?? {};
+
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -2018,7 +2029,7 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
+                    tokenBalances[item.address as Hex],
                     item.decimals,
                   )
                 : undefined);
@@ -2099,19 +2110,20 @@ export class Engine {
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
-      const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+
+      const { tokenBalances } = backgroundState.TokenBalancesController;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string | number }) => {
-        if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
-        ) {
-          tokenFound = true;
+      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+        for (const tokens of Object.values(chains)) {
+          for (const balance of Object.values(tokens)) {
+            if (!isZero(balance)) {
+              tokenFound = true;
+              break tokenLoop;
+            }
+          }
         }
-      });
+      }
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
@@ -2154,7 +2166,7 @@ export class Engine {
     TokensController.reset();
     NftController.reset();
 
-    TokenBalancesController.reset();
+    // TokenBalancesController.reset();
     TokenRatesController.reset();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
