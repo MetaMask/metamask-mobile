@@ -57,7 +57,7 @@ const StakeInputView = () => {
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
       .addProperties({
         selected_provider: 'consensys',
-        text: '?',
+        text: 'Tooltip Question Mark Trigger',
         location: 'Stake Input View'
       })
       .build()

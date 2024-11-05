@@ -9,6 +9,8 @@ import styleSheet from './StakingButtons.styles';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { useSelector } from 'react-redux';
+import { selectChainId } from '../../../../../../selectors/networkController';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   hasStakedPositions: boolean;
@@ -23,6 +25,7 @@ const StakingButtons = ({
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
+  const chainId = useSelector(selectChainId);
 
   const onUnstakePress = () => {
     navigate('StakeScreens', {
@@ -34,7 +37,7 @@ const StakingButtons = ({
         location: 'Token Details',
         text: 'Unstake',
         token_symbol: 'ETH',
-        chain_id: '1',
+        chain_id: chainId,
       })
       .build()
     );
@@ -48,7 +51,7 @@ const StakingButtons = ({
         location: 'Token Details',
         text: 'Stake',
         token_symbol: 'ETH',
-        chain_id: '1',
+        chain_id: chainId,
       })
       .build()
     );

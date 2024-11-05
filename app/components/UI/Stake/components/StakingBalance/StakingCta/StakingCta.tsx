@@ -20,7 +20,7 @@ interface StakingCtaProps extends Pick<ViewProps, 'style'> {
 
 const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics()
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { navigate } = useNavigation();
 
