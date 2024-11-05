@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { type BN } from 'ethereumjs-util';
+import type BN4 from 'bnjs4';
 import { useRampSDK } from '../sdk';
 import parseAmount from '../utils/parseAmount';
 import { toTokenMinimalUnit } from '../../../../util/number';
@@ -21,7 +21,7 @@ export default function useIntentAmount(
   setAmount: (amount: React.SetStateAction<string>) => void,
   setAmountNumber: (amount: React.SetStateAction<number>) => void,
   setAmountBNMinimalUnit: (
-    amount: React.SetStateAction<BN | undefined>,
+    amount: React.SetStateAction<BN4 | undefined>,
   ) => void,
   currentFiatCurrency: FiatCurrency | null,
 ) {
@@ -53,7 +53,7 @@ export default function useIntentAmount(
               toTokenMinimalUnit(
                 `${parsedAmount}`,
                 selectedAsset?.decimals ?? 0,
-              ) as BN,
+              ) as BN4,
             );
           }
         }
