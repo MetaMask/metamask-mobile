@@ -34,11 +34,6 @@ class FCMService {
     }
   };
 
-  registerTokenRefreshListener = () =>
-    messaging().onTokenRefresh((fcmToken: string) => {
-      mmStorage.saveLocal('metaMaskFcmToken', { data: fcmToken });
-  });
-
   listenForMessagesForeground = (): UnsubscribeFunc => messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
     const notificationData = parseNotification(remoteMessage);
     NotificationManager.onMessageReceived(notificationData);
