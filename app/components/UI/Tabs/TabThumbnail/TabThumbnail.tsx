@@ -112,8 +112,8 @@ const TabThumbnail = ({
         <View style={styles.tab}>
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
-        <View style={styles.footerContainer}>
-          {selectedAccount?.address && (
+        {selectedAccount && (
+          <View style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
                 badgeElement={
@@ -128,22 +128,22 @@ const TabThumbnail = ({
                 <Avatar
                   size={AvatarSize.Xs}
                   variant={AvatarVariant.Account}
-                  accountAddress={selectedAccount?.address}
+                  accountAddress={selectedAccount.address}
                 />
               </BadgeWrapper>
             </View>
-          )}
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.footerText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {`${selectedAccount?.name ?? strings('browser.undefined_account')}${
-              networkName ? ` - ${networkName}` : ''
-            }`}
-          </Text>
-        </View>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.footerText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {`${
+                selectedAccount.name ?? strings('browser.undefined_account')
+              }${networkName ? ` - ${networkName}` : ''}`}
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
     </Container>
   );
