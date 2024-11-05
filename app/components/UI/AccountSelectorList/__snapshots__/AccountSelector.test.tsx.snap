@@ -559,10 +559,50 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   numberOfLines={1}
                   style={
                     {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Account 2
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  0xd018...78E7
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
                       "alignItems": "flex-end",
                       "flexDirection": "column",
                     }
                   }
+                  testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
                 >
                   <Text
                     accessibilityRole="text"
@@ -595,40 +635,6 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     }
                   >
                     2 ETH
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "marginLeft": 16,
-                  }
-                }
-              >
-                <View
-                  style={
-                    {
-                      "alignItems": "flex-end",
-                    }
-                  }
-                  testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                        "textAlign": "right",
-                      }
-                    }
-                  >
-                    $6400.00
-2 ETH
                   </Text>
                 </View>
               </View>
@@ -1748,10 +1754,50 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Account 2
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  0xd018...78E7
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
                       "alignItems": "flex-end",
                       "flexDirection": "column",
                     }
                   }
+                  testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
                 >
                   <Text
                     accessibilityRole="text"
@@ -1784,40 +1830,6 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     }
                   >
                     2 ETH
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "marginLeft": 16,
-                  }
-                }
-              >
-                <View
-                  style={
-                    {
-                      "alignItems": "flex-end",
-                    }
-                  }
-                  testID="account-balance-by-address-0xd018538C87232FF95acbCe4870629b75640a78E7"
-                >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                        "textAlign": "right",
-                      }
-                    }
-                  >
-                    $6400.00
-2 ETH
                   </Text>
                 </View>
               </View>
