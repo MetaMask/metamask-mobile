@@ -39,6 +39,10 @@ echo "Configuring git.."
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
+echo "Checking out ${RELEASE_BRANCH_NAME}"
+git checkout "${RELEASE_BRANCH_NAME}"
+echo "Release Branch Checked Out"
+
 echo "Running version update scripts.."
 # Bump versions for the release
 ./scripts/set-semvar-version.sh "${NEW_VERSION}"
@@ -48,15 +52,10 @@ echo "Adding and committing changes.."
 # Track our changes
 git add package.json android/app/build.gradle ios/MetaMask/Info.plist bitrise.yml
 
+# Generate a commit
 git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
 
-echo "Checking out ${RELEASE_BRANCH_NAME}"
-
-git checkout "${RELEASE_BRANCH_NAME}"
-echo "Release Branch Checked Out"
-
 echo "Pushing changes to the remote.."
-
 git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
 
 echo Creating release PR..
@@ -66,17 +65,20 @@ gh pr create \
   --title "feat: ${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
-  
+
 echo "Release PR Created"
 
 
+echo "Checking out ${CHANGELOG_BRANCH_NAME}"
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 echo "Changelog Branch Created"
 
 #Generate changelog and test plan csv
+echo "Generating changelog and test plan csv.."
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 ./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
 
+echo "Adding and committing changes.."
 git add ./commits.csv
 
 if ! (git commit -am "updated changelog and generated feature test plan");
@@ -87,11 +89,15 @@ fi
 
 PR_BODY="This PR updates the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
 
+echo "Pushing changes to the remote.."
 git push --set-upstream origin "${CHANGELOG_BRANCH_NAME}"
 
+echo Creating release PR..
 gh pr create \
   --draft \
   --title "chore: ${CHANGELOG_BRANCH_NAME}" \
   --body "${PR_BODY}" \
   --base "${RELEASE_BRANCH_NAME}" \
   --head "${CHANGELOG_BRANCH_NAME}";
+
+echo "Changelog PR Created"
