@@ -227,7 +227,6 @@ export const checkAccountNameExists = async (accountName: string) => {
 export const unlockLedgerWalletAccount = async (index: number) => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
     const existingAccounts = await keyring.getAccounts();
-    console.warn(`existingAccounts: ${existingAccounts}`);
     const accountName = `Ledger ${existingAccounts.length + 1}`;
 
     if(await checkAccountNameExists(accountName)) {
