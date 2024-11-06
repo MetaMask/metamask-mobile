@@ -28,6 +28,13 @@ jest.mock('../../core/Engine', () => ({
       signTypedMessage: jest.fn(),
       withKeyring: jest.fn(),
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: []
+        },
+      }
+    }
   },
 }));
 const MockEngine = jest.mocked(Engine);
