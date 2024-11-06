@@ -4356,10 +4356,10 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^38.3.0":
-  version "38.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-38.3.0.tgz#78432ce2f1696ab5de27c9f70ae7676563699de2"
-  integrity sha512-hPvQy/HoWAf1FsYEY6TbqVhCfDMuRbtycg3oXWX/XrgyRilvSgB4fIp49h+rxpeewxDt/4LMUw+Y1d8qxQDdsw==
+"@metamask/assets-controllers@^39.0.0":
+  version "39.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-39.0.0.tgz#c21397be538d030dcb6ddbee5879fe8990d603fb"
+  integrity sha512-VeIasL1c4Ttj/Eo5CBXRQ9NpK7DFXJMTBFulwxKMSBa1tXCFmiFrVBBEnQgn9fiCXsTvc0a8hJyU+mC2rmTUjw==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/address" "^5.7.0"
@@ -4372,8 +4372,8 @@
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^10.0.1"
-    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/polling-controller" "^11.0.0"
+    "@metamask/rpc-errors" "^7.0.0"
     "@metamask/utils" "^9.1.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
@@ -4452,7 +4452,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.2":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.2":
   version "11.4.2"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.2.tgz#0186c62c841ec94f60a67d0764dc7ab59c176c51"
   integrity sha512-4zGfTTpjDgvRxo/tb3v1NBu0V/b2bqaDpSQC0noi5A4sm1yiZhyzqBY9+Zg11s8G/imp7+jvYRP1QM6OjFgIjQ==
@@ -5158,10 +5158,10 @@
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
 
-"@metamask/polling-controller@^10.0.1":
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-10.0.1.tgz#4086f253a4fc30da6b9fcdb2db8322dd98d93786"
-  integrity sha512-Ctw6NC+qkRcSXJfKpm0Kx1vWFZ1jZto9AJ4XFnMSHia/LRNY125bnbcpYjGCs5ZeUQ/OB80je6m4cLkw6ciVfA==
+"@metamask/polling-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-11.0.0.tgz#3de28c27a9be5d85879cf9bd35d03a62dbf8932c"
+  integrity sha512-fXG60Ft7lYgqC8lV8m4FL18hU4K2NnsPzoWTm1Lhen2cysLbgAzqxxGdeIFEMaDiCzcvEtLuEffY8FDKCM0ewQ==
   dependencies:
     "@metamask/base-controller" "^7.0.1"
     "@metamask/controller-utils" "^11.3.0"
@@ -5243,24 +5243,7 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-13.1.0.tgz#c5aef8e7073e097e6693cffc5f463b0632e1f1fd"
-  integrity sha512-/2Ti81CwZ/9LLpAm9Law+7z1PYbR3EiNXNKCbkppOfxxR1MbC2ps8/GFTjk7UHEMhAVG4k9ziGW8mMsutNVxmA==
-  dependencies:
-    "@metamask/json-rpc-engine" "^7.1.1"
-    "@metamask/object-multiplex" "^1.1.0"
-    "@metamask/rpc-errors" "^6.0.0"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.1.0"
-    detect-browser "^5.2.0"
-    extension-port-stream "^2.1.1"
-    fast-deep-equal "^3.1.3"
-    is-stream "^2.0.0"
-    json-rpc-middleware-stream "^4.2.1"
-    webextension-polyfill "^0.10.0"
-
-"@metamask/providers@^16.0.0":
+"@metamask/providers@^16.0.0", "@metamask/providers@^16.1.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-16.1.0.tgz#7da593d17c541580fa3beab8d9d8a9b9ce19ea07"
   integrity sha512-znVCvux30+3SaUwcUGaSf+pUckzT5ukPRpcBmy+muBLC0yaWnBcvDqGfcsw6CBIenUdFrVoAFa8B6jsuCY/a+g==
@@ -5337,7 +5320,7 @@
     "@metamask/utils" "^9.0.0"
     fast-safe-stringify "^2.0.6"
 
-"@metamask/rpc-errors@^7.0.1":
+"@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-7.0.1.tgz#0eb2231a1d5e6bb102df5ac07f365c695bf70055"
   integrity sha512-EeQGYioq845w2iBmiR9LHYqHhYIaeDTmxprHpPE3BTlkLB74P0xLv/TivOn4snNLowiC5ekOXfcUzCQszTDmSg==
@@ -5386,15 +5369,15 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@^20.1.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-20.1.0.tgz#b2ab41ec6eb191f9b21a74bf636d2b8e34d590e0"
-  integrity sha512-29pYdr9Q5YB5tGrYLEkpCh3l41W5Otg87cQ+cRf7Je0xGo34VdrIHNv6MJQcEgng5qTmR0tG3Hq23nPyZo8rSw==
+"@metamask/signature-controller@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-21.0.0.tgz#f7e10f2aab440c1a059c1867b5fba9b8cbabaeab"
+  integrity sha512-hM21XgDo0LYtNVy+k24bLLDxhgOarpCabutUu1ckTJgbE51X4YGMjH/C5I+G8T16mTwsVBb0B6h4CdeUYPoNiQ==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.1"
     "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^10.0.0"
     jsonschema "^1.2.4"
     lodash "^4.17.21"
     uuid "^8.3.2"
@@ -17523,13 +17506,6 @@ extend@~3.0.2:
   resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.2.tgz#f8b1136b4071fbd8eb140aff858b1019ec2915fa"
   integrity sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==
 
-extension-port-stream@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/extension-port-stream/-/extension-port-stream-2.1.1.tgz#ec11f2a5ed95655d8c40805d7cb0c39939ee9ef4"
-  integrity sha512-qknp5o5rj2J9CRKfVB8KJr+uXQlrojNZzdESUPhKYLXf97TPcGf6qWWKmpsNNtUyOdzFhab1ON0jzouNxHHvow==
-  dependencies:
-    webextension-polyfill ">=0.10.0 <1.0"
-
 extension-port-stream@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/extension-port-stream/-/extension-port-stream-3.0.0.tgz#00a7185fe2322708a36ed24843c81bd754925fef"
@@ -20918,15 +20894,6 @@ json-rpc-engine@^6.1.0:
   dependencies:
     "@metamask/safe-event-emitter" "^2.0.0"
     eth-rpc-errors "^4.0.2"
-
-json-rpc-middleware-stream@^4.2.1, json-rpc-middleware-stream@^4.2.3:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/json-rpc-middleware-stream/-/json-rpc-middleware-stream-4.2.3.tgz#08340846ffaa2a60287930773546eb4b7f7dbba2"
-  integrity sha512-4iFb0yffm5vo3eFKDbQgke9o17XBcLQ2c3sONrXSbcOLzP8LTojqo8hRGVgtJShhm5q4ZDSNq039fAx9o65E1w==
-  dependencies:
-    "@metamask/safe-event-emitter" "^3.0.0"
-    json-rpc-engine "^6.1.0"
-    readable-stream "^2.3.3"
 
 json-rpc-random-id@^1.0.0, json-rpc-random-id@^1.0.1:
   version "1.0.1"

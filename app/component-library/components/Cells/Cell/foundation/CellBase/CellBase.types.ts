@@ -37,6 +37,7 @@ export interface CellBaseProps {
    * Optional prop to control the style of the CellBase.
    */
   style?: StyleProp<ViewStyle> | undefined;
+
   /**
    * Optional prop to control the visibility of the secondary text icon.
    */
