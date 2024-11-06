@@ -4452,7 +4452,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.2":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.2":
   version "11.4.2"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.2.tgz#0186c62c841ec94f60a67d0764dc7ab59c176c51"
   integrity sha512-4zGfTTpjDgvRxo/tb3v1NBu0V/b2bqaDpSQC0noi5A4sm1yiZhyzqBY9+Zg11s8G/imp7+jvYRP1QM6OjFgIjQ==
@@ -5386,15 +5386,15 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@^20.1.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-20.1.0.tgz#b2ab41ec6eb191f9b21a74bf636d2b8e34d590e0"
-  integrity sha512-29pYdr9Q5YB5tGrYLEkpCh3l41W5Otg87cQ+cRf7Je0xGo34VdrIHNv6MJQcEgng5qTmR0tG3Hq23nPyZo8rSw==
+"@metamask/signature-controller@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-21.0.0.tgz#f7e10f2aab440c1a059c1867b5fba9b8cbabaeab"
+  integrity sha512-hM21XgDo0LYtNVy+k24bLLDxhgOarpCabutUu1ckTJgbE51X4YGMjH/C5I+G8T16mTwsVBb0B6h4CdeUYPoNiQ==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.1"
     "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^10.0.0"
     jsonschema "^1.2.4"
     lodash "^4.17.21"
     uuid "^8.3.2"
