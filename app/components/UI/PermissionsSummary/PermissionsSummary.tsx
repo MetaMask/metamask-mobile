@@ -41,6 +41,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
 import Engine from '../../../core/Engine';
+import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -148,7 +149,7 @@ const PermissionsSummary = ({
                   },
                 });
               }}
-              // testID={CommonSelectorsIDs.PERMISSIONS_INFO_BUTTON}
+              testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
             />
           )}
         </View>
