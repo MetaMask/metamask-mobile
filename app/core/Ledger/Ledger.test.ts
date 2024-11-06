@@ -31,10 +31,10 @@ jest.mock('../../core/Engine', () => ({
     AccountsController: {
       state: {
         internalAccounts: {
-          accounts: []
+          accounts: [],
         },
-      }
-    }
+      },
+    },
   },
 }));
 const MockEngine = jest.mocked(Engine);
@@ -271,10 +271,32 @@ describe('Ledger core', () => {
   });
 
   describe(`unlockLedgerWalletAccount`, () => {
+
     it(`calls keyring.setAccountToUnlock and addAccounts`, async () => {
       await unlockLedgerWalletAccount(1);
       expect(ledgerKeyring.setAccountToUnlock).toHaveBeenCalled();
       expect(ledgerKeyring.addAccounts).toHaveBeenCalledWith(1);
+    });
+
+    it(`throws an error if the account name has already exists`, async () => {
+      const mockAccountsController = MockEngine.context.AccountsController;
+
+      mockAccountsController.state.internalAccounts.accounts = [
+        {
+          // @ts-expect-error: The account metadata type is hard to mock
+          metadata: {
+            name: 'Ledger 1',
+          },
+        }
+      ];
+      try {
+        await unlockLedgerWalletAccount(1);
+      } catch (err) {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toBe(
+          `Account Ledger 1 already exists`
+        );
+      }
     });
   });
 });
