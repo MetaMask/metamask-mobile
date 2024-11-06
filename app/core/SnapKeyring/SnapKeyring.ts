@@ -3,6 +3,40 @@ import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
 
+const approvalType = 'snap_manageAccounts:showNameSnapAccount';
+
+/**
+ * Show the account name suggestion confirmation dialog for a given Snap.
+ *
+ * @param snapId - Snap ID to show the account name suggestion dialog for.
+ * @param controllerMessenger - The controller messenger instance.
+ * @param accountNameSuggestion - Suggested name for the new account.
+ * @returns The user's confirmation result.
+ */
+export async function showAccountNameSuggestionDialog(
+  snapId: string,
+  controllerMessenger: SnapKeyringBuilderMessenger,
+  accountNameSuggestion: string,
+): Promise<{ success: boolean; name?: string }> {
+  console.log('showAccountNameSuggestionDialog', accountNameSuggestion);
+  try {
+    const confirmationResult = (await controllerMessenger.call(
+      'ApprovalController:addRequest',
+      {
+        origin: snapId,
+        type: approvalType,
+        requestData: {
+          snapSuggestedAccountName: accountNameSuggestion,
+        },
+      },
+      true,
+    )) as { success: boolean; name?: string };
+    return confirmationResult;
+  } catch (e) {
+    throw new Error(`Error occurred while showing name account dialog.\n${e}`);
+  }
+}
+
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
  * - Here is the equivalent function on the extension: https://github.com/MetaMask/metamask-extension/blob/develop/app/scripts/lib/snap-keyring/snap-keyring.ts#L111
@@ -54,11 +88,22 @@ export const snapKeyringBuilder = (
         // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
         Logger.log(
           `SnapKeyring: addAccount called with \n
-        - address: ${address} \n
-        - handleUserInput: ${handleUserInput} \n
-        - snapId: ${snapId} \n
-        - accountNameSuggestion: ${accountNameSuggestion} \n
-        - displayConfirmation: ${displayConfirmation}`,
+                - address: ${address} \n
+                - handleUserInput: ${handleUserInput} \n
+                - snapId: ${snapId} \n
+                - accountNameSuggestion: ${accountNameSuggestion} \n
+                - displayConfirmation: ${displayConfirmation}`,
+        );
+        const accountNameConfirmationResult =
+          await showAccountNameSuggestionDialog(
+            snapId,
+            controllerMessenger,
+            accountNameSuggestion,
+          );
+
+        console.log(
+          'accountNameConfirmationResult',
+          accountNameConfirmationResult,
         );
 
         // Approve everything for now because we have not implemented snap account confirmations yet
