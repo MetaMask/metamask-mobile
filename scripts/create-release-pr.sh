@@ -39,8 +39,18 @@ echo "Configuring git.."
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
-echo "Checking out ${RELEASE_BRANCH_NAME}"
-git checkout "${RELEASE_BRANCH_NAME}"
+echo "Fetching from remote..."
+git fetch
+
+# Check if the release branch already exists on the remote
+if git branch -a | grep -q "remotes/origin/${RELEASE_BRANCH_NAME}"; then
+    echo "Release branch exists on remote, checking out."
+    git checkout "${RELEASE_BRANCH_NAME}"
+else
+    echo "Release branch does not exist on remote, creating from ${BASE_BRANCH}."
+    git checkout -b "${RELEASE_BRANCH_NAME}"
+fi
+
 echo "Release Branch Checked Out"
 
 echo "Running version update scripts.."
@@ -50,7 +60,7 @@ echo "Running version update scripts.."
 
 echo "Adding and committing changes.."
 # Track our changes
-git add package.json android/app/build.gradle ios/MetaMask/Info.plist bitrise.yml
+git add package.json android/app/build.gradle ios/MetaMask.xcodeproj/project.pbxproj bitrise.yml
 
 # Generate a commit
 git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
