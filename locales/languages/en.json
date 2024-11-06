@@ -3367,7 +3367,7 @@
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
     "user_reject_transaction": "User rejected the transaction",
     "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
-    "multiple_devices_error_message": "Mutiple devices not supported yet, please forget your previous device first before adding a new one"
+    "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one."
   },
   "account_actions": {
     "edit_name": "Edit account name",
