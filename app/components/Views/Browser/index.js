@@ -39,6 +39,9 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import Engine from '../../../core/Engine';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -137,6 +140,71 @@ export const Browser = (props) => {
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
+
+    // Check permissions for current tab
+    const hostname = new URL(tab.url).hostname;
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const permittedAccounts = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    const isConnected = permittedAccounts.length > 0;
+
+    if (isConnected) {
+      let permittedChains = [];
+      try {
+        const caveat = Engine.context.PermissionController.getCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+
+        const currentChainId = props.chainId;
+        const isNetworkPermitted = permittedChains.includes(currentChainId);
+
+        console.log('>>> Browser Tab Check:', {
+          tabId: tab.id,
+          url: tab.url,
+          hostname,
+          isConnected,
+          currentChainId,
+          networkStatus: isNetworkPermitted ? 'permitted' : 'not_permitted',
+          permittedChains,
+          permissions:
+            permissionsControllerState.subjects[hostname]?.permissions || {},
+        });
+
+        // Here you could trigger a UI notification if network is not permitted
+        if (!isNetworkPermitted) {
+          // TODO: Show network permission warning to user
+        }
+      } catch (e) {
+        console.log('>>> Browser Tab Check:', {
+          tabId: tab.id,
+          url: tab.url,
+          hostname,
+          isConnected,
+          currentChainId: props.chainId,
+          networkStatus: 'no_network_permissions',
+          permittedChains: [],
+          error: e?.message,
+          permissions:
+            permissionsControllerState.subjects[hostname]?.permissions || {},
+        });
+      }
+    } else {
+      console.log('>>> Browser Tab Check:', {
+        tabId: tab.id,
+        url: tab.url,
+        hostname,
+        isConnected,
+        currentChainId: props.chainId,
+        connectionStatus: 'not_connected',
+      });
+    }
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
