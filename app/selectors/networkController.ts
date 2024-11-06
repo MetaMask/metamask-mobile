@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { RootState } from '../reducers';
+import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
   BuiltInNetworkClientId,
   CustomNetworkClientId,
@@ -7,9 +7,9 @@ import {
   NetworkState,
   RpcEndpointType,
 } from '@metamask/network-controller';
+import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
-import { InfuraNetworkType } from '@metamask/controller-utils';
 
 interface InfuraRpcEndpoint {
   name?: string;

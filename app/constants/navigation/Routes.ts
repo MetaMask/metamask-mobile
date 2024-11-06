@@ -148,9 +148,11 @@ const Routes = {
     STAKE: 'Stake',
     STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
+    UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      MAX_INPUT: 'MaxInput',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

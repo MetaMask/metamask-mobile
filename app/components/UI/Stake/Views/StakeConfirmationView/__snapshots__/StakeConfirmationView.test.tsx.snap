@@ -45,7 +45,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               onLoadEnd={[Function]}
               source={
                 {
-                  "uri": undefined,
+                  "uri": "",
                 }
               }
               style={
@@ -638,18 +638,146 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      <SvgMock
-                        color="#141618"
-                        height={16}
-                        name="Question"
+                      <View
                         style={
                           {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 8,
                             "height": 16,
+                            "overflow": "hidden",
                             "width": 16,
                           }
                         }
-                        width={16}
-                      />
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "overflow": "hidden",
+                              },
+                              {
+                                "backgroundColor": "#1593F2",
+                                "borderRadius": 8,
+                                "height": 16,
+                                "width": 16,
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          <RNSVGSvgView
+                            bbHeight={16}
+                            bbWidth={16}
+                            focusable={false}
+                            height={16}
+                            style={
+                              [
+                                {
+                                  "backgroundColor": "transparent",
+                                  "borderWidth": 0,
+                                },
+                                {
+                                  "flex": 0,
+                                  "height": 16,
+                                  "width": 16,
+                                },
+                              ]
+                            }
+                            width={16}
+                          >
+                            <RNSVGGroup
+                              fill={
+                                {
+                                  "payload": 4278190080,
+                                  "type": 0,
+                                }
+                              }
+                            >
+                              <RNSVGRect
+                                fill={
+                                  {
+                                    "payload": 4280574177,
+                                    "type": 0,
+                                  }
+                                }
+                                height={16}
+                                matrix={
+                                  [
+                                    -0.14608302856241107,
+                                    0.9892723329629884,
+                                    -0.9892723329629884,
+                                    -0.14608302856241107,
+                                    18.877507984599454,
+                                    -1.41266974682138,
+                                  ]
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                                width={16}
+                                x={0}
+                                y={0}
+                              />
+                              <RNSVGRect
+                                fill={
+                                  {
+                                    "payload": 4294395137,
+                                    "type": 0,
+                                  }
+                                }
+                                height={16}
+                                matrix={
+                                  [
+                                    -0.02094241988335673,
+                                    -0.9997806834748455,
+                                    0.9997806834748455,
+                                    -0.02094241988335673,
+                                    -7.512435753557014,
+                                    20.161960644608932,
+                                  ]
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                                width={16}
+                                x={0}
+                                y={0}
+                              />
+                              <RNSVGRect
+                                fill={
+                                  {
+                                    "payload": 4294736640,
+                                    "type": 0,
+                                  }
+                                }
+                                height={16}
+                                matrix={
+                                  [
+                                    -0.458649554484315,
+                                    0.8886172326549487,
+                                    -0.8886172326549487,
+                                    -0.458649554484315,
+                                    14.2400072574634,
+                                    19.300266514976617,
+                                  ]
+                                }
+                                propList={
+                                  [
+                                    "fill",
+                                  ]
+                                }
+                                width={16}
+                                x={0}
+                                y={0}
+                              />
+                            </RNSVGGroup>
+                          </RNSVGSvgView>
+                        </View>
+                      </View>
                       <View
                         accessible={false}
                         style={
@@ -989,7 +1117,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  2.8%
+                  2.5%
                 </Text>
               </View>
             </View>
@@ -1100,7 +1228,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                     }
                   >
-                    $334.93
+                    $5000
                   </Text>
                   <Text
                     accessibilityRole="text"
@@ -1115,7 +1243,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       }
                     }
                   >
-                    0.13 ETH
+                    2.5 ETH
                   </Text>
                 </View>
               </View>
@@ -1260,6 +1388,157 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           </View>
         </View>
       </TouchableOpacity>
+      <TouchableOpacity
+        disabled={true}
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
+            "borderRadius": 8,
+            "borderWidth": 0,
+            "gap": 16,
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "overflow": "hidden",
+              },
+              [
+                undefined,
+              ],
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  Unstaking time
+                </Text>
+                <TouchableOpacity
+                  accessibilityLabel="Unstaking time tooltip"
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 24,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 24,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#9fa6ae"
+                    height={16}
+                    name="Question"
+                    style={
+                      {
+                        "height": 16,
+                        "width": 16,
+                      }
+                    }
+                    width={16}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-end",
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  1 to 11 days
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
     </View>
   </View>
   <View
@@ -1342,6 +1621,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        disabled={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1383,6 +1663,8 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        disabled={false}
+        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1415,7 +1697,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             }
           }
         >
-          Confirm
+          Continue
         </Text>
       </TouchableOpacity>
     </View>

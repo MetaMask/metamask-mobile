@@ -1171,7 +1171,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="clear-cookies-section"
       >
         <Text
           accessibilityRole="text"
@@ -1501,7 +1500,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.
+          Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
         </Text>
       </View>
       <View
