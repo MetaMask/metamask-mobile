@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.34.1 - Nov 6, 2024
+### Fixed
+- [#12205](https://github.com/MetaMask/metamask-mobile/pull/12205): fix: add contractBalances as dependency
+
 ## 7.34.0 - Oct 28, 2024
 ### Added
 - [#11578](https://github.com/MetaMask/metamask-mobile/pull/11578): feat: 1653 first feature flag poc (#11578)
