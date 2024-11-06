@@ -5243,24 +5243,7 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-13.1.0.tgz#c5aef8e7073e097e6693cffc5f463b0632e1f1fd"
-  integrity sha512-/2Ti81CwZ/9LLpAm9Law+7z1PYbR3EiNXNKCbkppOfxxR1MbC2ps8/GFTjk7UHEMhAVG4k9ziGW8mMsutNVxmA==
-  dependencies:
-    "@metamask/json-rpc-engine" "^7.1.1"
-    "@metamask/object-multiplex" "^1.1.0"
-    "@metamask/rpc-errors" "^6.0.0"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.1.0"
-    detect-browser "^5.2.0"
-    extension-port-stream "^2.1.1"
-    fast-deep-equal "^3.1.3"
-    is-stream "^2.0.0"
-    json-rpc-middleware-stream "^4.2.1"
-    webextension-polyfill "^0.10.0"
-
-"@metamask/providers@^16.0.0":
+"@metamask/providers@^16.0.0", "@metamask/providers@^16.1.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-16.1.0.tgz#7da593d17c541580fa3beab8d9d8a9b9ce19ea07"
   integrity sha512-znVCvux30+3SaUwcUGaSf+pUckzT5ukPRpcBmy+muBLC0yaWnBcvDqGfcsw6CBIenUdFrVoAFa8B6jsuCY/a+g==
@@ -17523,13 +17506,6 @@ extend@~3.0.2:
   resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.2.tgz#f8b1136b4071fbd8eb140aff858b1019ec2915fa"
   integrity sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==
 
-extension-port-stream@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/extension-port-stream/-/extension-port-stream-2.1.1.tgz#ec11f2a5ed95655d8c40805d7cb0c39939ee9ef4"
-  integrity sha512-qknp5o5rj2J9CRKfVB8KJr+uXQlrojNZzdESUPhKYLXf97TPcGf6qWWKmpsNNtUyOdzFhab1ON0jzouNxHHvow==
-  dependencies:
-    webextension-polyfill ">=0.10.0 <1.0"
-
 extension-port-stream@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/extension-port-stream/-/extension-port-stream-3.0.0.tgz#00a7185fe2322708a36ed24843c81bd754925fef"
@@ -20918,15 +20894,6 @@ json-rpc-engine@^6.1.0:
   dependencies:
     "@metamask/safe-event-emitter" "^2.0.0"
     eth-rpc-errors "^4.0.2"
-
-json-rpc-middleware-stream@^4.2.1, json-rpc-middleware-stream@^4.2.3:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/json-rpc-middleware-stream/-/json-rpc-middleware-stream-4.2.3.tgz#08340846ffaa2a60287930773546eb4b7f7dbba2"
-  integrity sha512-4iFb0yffm5vo3eFKDbQgke9o17XBcLQ2c3sONrXSbcOLzP8LTojqo8hRGVgtJShhm5q4ZDSNq039fAx9o65E1w==
-  dependencies:
-    "@metamask/safe-event-emitter" "^3.0.0"
-    json-rpc-engine "^6.1.0"
-    readable-stream "^2.3.3"
 
 json-rpc-random-id@^1.0.0, json-rpc-random-id@^1.0.1:
   version "1.0.1"
