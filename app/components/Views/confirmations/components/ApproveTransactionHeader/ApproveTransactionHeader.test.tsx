@@ -22,10 +22,8 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 ]);
 
 jest.mock('../../../../../core/Engine', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
-    '../../../../../util/test/accountsControllerTestUtils',
-  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../../../util/test/accountsControllerTestUtils');
   return {
     context: {
       TokensController: {
@@ -37,8 +35,8 @@ jest.mock('../../../../../core/Engine', () => {
         },
       },
       AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
   };
@@ -183,10 +181,7 @@ describe('ApproveTransactionHeader', () => {
     ['MMM', TransactionTypes.MMM],
   ])('does not render origin if %s', (_, origin) => {
     const { queryByTestId } = renderWithProvider(
-      <ApproveTransactionHeader
-        {...defaultProps}
-        origin={origin}
-      />,
+      <ApproveTransactionHeader {...defaultProps} origin={origin} />,
       { state: mockInitialState },
     );
 

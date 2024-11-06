@@ -13,10 +13,8 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { mockNetworkState } from '../../../util/test/network';
 
 jest.mock('../../../core/Engine', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
-    '../../../util/test/accountsControllerTestUtils',
-  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
     resetState: jest.fn(),
     context: {
@@ -29,8 +27,8 @@ jest.mock('../../../core/Engine', () => {
         getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
       },
       AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
   };

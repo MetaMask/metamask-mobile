@@ -12,10 +12,8 @@ import {
 const mockedEngine = Engine;
 
 jest.mock('../../../core/Engine.ts', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
-    '../../../util/test/accountsControllerTestUtils',
-  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
     init: () => mockedEngine.init({}),
     context: {
@@ -32,8 +30,8 @@ jest.mock('../../../core/Engine.ts', () => {
         },
       },
       AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
   };

@@ -54,10 +54,8 @@ jest.mock('../../../util/address', () => ({
 const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 
 jest.mock('../../../core/Engine', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
-    '../../../util/test/accountsControllerTestUtils',
-  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
     context: {
       TokensController: {
@@ -77,8 +75,8 @@ jest.mock('../../../core/Engine', () => {
         },
       },
       AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
       AssetsContractController: {
         getERC20BalanceOf: mockGetERC20BalanceOf,

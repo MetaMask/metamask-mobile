@@ -5,10 +5,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 jest.mock('../../../core/Engine', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
-    '../../../util/test/accountsControllerTestUtils',
-  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
     context: {
       PhishingController: {
@@ -29,8 +27,8 @@ jest.mock('../../../core/Engine', () => {
         },
       },
       AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
   };
