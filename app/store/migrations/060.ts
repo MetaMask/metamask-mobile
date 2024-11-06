@@ -1,5 +1,5 @@
-export default function migrate(state) {
-    state.engine.backgroundState.NotificationServicesControllerState = undefined
+export default function migrate(state: unknown) {
+    if (state.engine.backgroundState.NotificationServicesController) return state
     state.engine.backgroundState.NotificationServicesController = {
         isCheckingAccountsPresence: false,
         isFeatureAnnouncementsEnabled: false,
