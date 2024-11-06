@@ -61,7 +61,7 @@ const AccountPermissionsConfirmRevokeAll = (props: ConnectionDetailsProps) => {
         </View>
         <View style={styles.buttonsContainer}>
           <Button
-            label={'Got it'}
+            label={strings('permissions.got_it')}
             style={styles.button}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
