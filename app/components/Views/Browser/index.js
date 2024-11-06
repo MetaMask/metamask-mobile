@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useCallback } from 'react';
 import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -36,13 +36,15 @@ import BrowserTab from '../BrowserTab';
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+} from '../../../selectors/networkController';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import Engine from '../../../core/Engine';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
-import { selectChainId } from '../../../selectors/networkController';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -64,6 +66,7 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
     accountsLength,
+    chainId,
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
@@ -136,79 +139,82 @@ export const Browser = (props) => {
     });
   };
 
-  const checkTabPermissions = (tab) => {
-    if (!tab) return;
+  const checkTabPermissions = useCallback(
+    (tab) => {
+      if (!tab) return;
 
-    const hostname = new URL(tab.url).hostname;
-    const permissionsControllerState =
-      Engine.context.PermissionController.state;
-    const permittedAccounts = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
+      const hostname = new URL(tab.url).hostname;
+      const permissionsControllerState =
+        Engine.context.PermissionController.state;
+      const permittedAccounts = getPermittedAccountsByHostname(
+        permissionsControllerState,
+        hostname,
+      );
 
-    const isConnected = permittedAccounts.length > 0;
+      const isConnected = permittedAccounts.length > 0;
 
-    if (isConnected) {
-      let permittedChains = [];
-      try {
-        const caveat = Engine.context.PermissionController.getCaveat(
-          hostname,
-          PermissionKeys.permittedChains,
-          CaveatTypes.restrictNetworkSwitching,
-        );
-        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+      if (isConnected) {
+        let permittedChains = [];
+        try {
+          const caveat = Engine.context.PermissionController.getCaveat(
+            hostname,
+            PermissionKeys.permittedChains,
+            CaveatTypes.restrictNetworkSwitching,
+          );
+          permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
 
-        const currentChainId = props.chainId;
-        const isNetworkPermitted = permittedChains.includes(currentChainId);
+          const currentChainId = props.chainId;
+          const isNetworkPermitted = permittedChains.includes(currentChainId);
 
-        console.log('>>> Browser Tab Check:', {
-          tabId: tab.id,
-          url: tab.url,
-          hostname,
-          isConnected,
-          currentChainId,
-          networkStatus: isNetworkPermitted ? 'permitted' : 'not_permitted',
-          permittedChains,
-          permissions:
-            permissionsControllerState.subjects[hostname]?.permissions || {},
-        });
+          Logger.log('>>> Browser Tab Check:', {
+            tabId: tab.id,
+            url: tab.url,
+            hostname,
+            isConnected,
+            currentChainId,
+            networkStatus: isNetworkPermitted ? 'permitted' : 'not_permitted',
+            permittedChains,
+            permissions:
+              permissionsControllerState.subjects[hostname]?.permissions || {},
+          });
 
-        if (!isNetworkPermitted) {
-          // TODO: Show network permission warning to user
+          if (!isNetworkPermitted) {
+            // TODO: Show network permission warning to user
+          }
+        } catch (e) {
+          Logger.log('>>> Browser Tab Check:', {
+            tabId: tab.id,
+            url: tab.url,
+            hostname,
+            isConnected,
+            currentChainId: props.chainId,
+            networkStatus: 'no_network_permissions',
+            permittedChains: [],
+            error: e?.message,
+            permissions:
+              permissionsControllerState.subjects[hostname]?.permissions || {},
+          });
         }
-      } catch (e) {
-        console.log('>>> Browser Tab Check:', {
+      } else {
+        Logger.log('>>> Browser Tab Check:', {
           tabId: tab.id,
           url: tab.url,
           hostname,
           isConnected,
           currentChainId: props.chainId,
-          networkStatus: 'no_network_permissions',
-          permittedChains: [],
-          error: e?.message,
-          permissions:
-            permissionsControllerState.subjects[hostname]?.permissions || {},
+          connectionStatus: 'not_connected',
         });
       }
-    } else {
-      console.log('>>> Browser Tab Check:', {
-        tabId: tab.id,
-        url: tab.url,
-        hostname,
-        isConnected,
-        currentChainId: props.chainId,
-        connectionStatus: 'not_connected',
-      });
-    }
-  };
+    },
+    [props.chainId],
+  );
 
   useEffect(() => {
     const activeTab = tabs.find((tab) => tab.id === activeTabId);
     if (activeTab) {
       checkTabPermissions(activeTab);
     }
-  }, [props.chainId, activeTabId]);
+  }, [props.chainId, activeTabId, tabs, checkTabPermissions]);
 
   const switchToTab = (tab) => {
     trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
@@ -511,6 +517,10 @@ Browser.propTypes = {
   route: PropTypes.object,
   accountsLength: PropTypes.number,
   networkConfigurations: PropTypes.object,
+  /**
+   * Current network chainId
+   */
+  chainId: PropTypes.string,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';
