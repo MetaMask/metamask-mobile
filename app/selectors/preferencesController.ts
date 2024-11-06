@@ -3,7 +3,7 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
 
 const selectPreferencesControllerState = (state: RootState) =>
-  state.engine.backgroundState.PreferencesController;
+  state.engine?.backgroundState?.PreferencesController;
 
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
@@ -113,4 +113,10 @@ export const selectUseTransactionSimulations = createSelector(
         useTransactionSimulations: boolean;
       }
     ).useTransactionSimulations,
+);
+
+export const selectPrivacyMode = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.privacyMode,
 );
