@@ -21,8 +21,7 @@ class FCMService {
     try {
       const permissionStatus = await messaging().hasPermission();
       if (
-        permissionStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        permissionStatus === messaging.AuthorizationStatus.PROVISIONAL
+        permissionStatus === 1 || permissionStatus === 2
       ) {
         const fcmToken = await messaging().getToken();
         if (fcmToken) {
@@ -61,29 +60,6 @@ class FCMService {
           Logger.error(error);
         });
     }
-  };
-
-  unRegisterAppWithFCM = async () => {
-    Logger.log(
-      'unRegisterAppWithFCM status',
-      messaging().isDeviceRegisteredForRemoteMessages,
-    );
-
-    if (messaging().isDeviceRegisteredForRemoteMessages) {
-      await messaging()
-        .unregisterDeviceForRemoteMessages()
-        .then((status: unknown) => {
-          Logger.log('unregisterDeviceForRemoteMessages status', status);
-        })
-        .catch((error: Error) => {
-          Logger.error(error);
-        });
-    }
-    await messaging().deleteToken();
-    Logger.log(
-      'unRegisterAppWithFCM status',
-      messaging().isDeviceRegisteredForRemoteMessages,
-    );
   };
 }
 export default new FCMService();
