@@ -42,6 +42,7 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 import Engine from '../../../core/Engine';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
+import { selectChainId } from '../../../selectors/networkController';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -135,13 +136,9 @@ export const Browser = (props) => {
     });
   };
 
-  const switchToTab = (tab) => {
-    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
-    setActiveTab(tab.id);
-    hideTabsAndUpdateUrl(tab.url);
-    updateTabInfo(tab.url, tab.id);
+  const checkTabPermissions = (tab) => {
+    if (!tab) return;
 
-    // Check permissions for current tab
     const hostname = new URL(tab.url).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
@@ -177,7 +174,6 @@ export const Browser = (props) => {
             permissionsControllerState.subjects[hostname]?.permissions || {},
         });
 
-        // Here you could trigger a UI notification if network is not permitted
         if (!isNetworkPermitted) {
           // TODO: Show network permission warning to user
         }
@@ -205,6 +201,21 @@ export const Browser = (props) => {
         connectionStatus: 'not_connected',
       });
     }
+  };
+
+  useEffect(() => {
+    const activeTab = tabs.find((tab) => tab.id === activeTabId);
+    if (activeTab) {
+      checkTabPermissions(activeTab);
+    }
+  }, [props.chainId, activeTabId]);
+
+  const switchToTab = (tab) => {
+    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    setActiveTab(tab.id);
+    hideTabsAndUpdateUrl(tab.url);
+    updateTabInfo(tab.url, tab.id);
+    checkTabPermissions(tab);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
@@ -450,6 +461,7 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
