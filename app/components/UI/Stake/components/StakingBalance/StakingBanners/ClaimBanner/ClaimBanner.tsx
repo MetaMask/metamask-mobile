@@ -19,6 +19,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
 import Engine from '../../../../../../../core/Engine';
+import { MetaMetricsEvents, useMetrics } from '../../../../../../hooks/useMetrics';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -27,6 +28,7 @@ type StakeBannerProps = Pick<BannerProps, 'style'> & {
 const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { styles } = useStyles(styleSheet, {});
 
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
 
@@ -39,6 +41,14 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const onClaimPress = async () => {
     try {
       if (!activeAccount?.address) return;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_CLAIM_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Details'
+        })
+        .build()
+      );
 
       setIsSubmittingClaimTransaction(true);
 
