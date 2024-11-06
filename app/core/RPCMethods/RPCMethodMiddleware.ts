@@ -51,6 +51,15 @@ const Engine = ImportedEngine as any;
 
 let appVersion = '';
 
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
+  confirmAccountCreation: 'snap_manageAccounts:confirmAccountCreation',
+  confirmAccountRemoval: 'snap_manageAccounts:confirmAccountRemoval',
+  showSnapAccountRedirect: 'snap_manageAccounts:showSnapAccountRedirect',
+  showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
+};
+///: END:ONLY_INCLUDE_IF
+
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
   SIGN_MESSAGE = 'SIGN_MESSAGE',

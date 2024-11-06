@@ -2,8 +2,7 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
-
-const approvalType = 'snap_manageAccounts:showNameSnapAccount';
+import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 
 /**
  * Show the account name suggestion confirmation dialog for a given Snap.
@@ -18,13 +17,16 @@ export async function showAccountNameSuggestionDialog(
   controllerMessenger: SnapKeyringBuilderMessenger,
   accountNameSuggestion: string,
 ): Promise<{ success: boolean; name?: string }> {
-  console.log('showAccountNameSuggestionDialog', accountNameSuggestion);
+  console.log(
+    'SnapKeyring: showAccountNameSuggestionDialog',
+    accountNameSuggestion,
+  );
   try {
     const confirmationResult = (await controllerMessenger.call(
       'ApprovalController:addRequest',
       {
         origin: snapId,
-        type: approvalType,
+        type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
         requestData: {
           snapSuggestedAccountName: accountNameSuggestion,
         },
