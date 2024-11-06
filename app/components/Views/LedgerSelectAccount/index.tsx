@@ -227,17 +227,19 @@ const LedgerSelectAccount = () => {
         }
 
         await updateNewLegacyAccountsLabel();
+
+        trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+          device_type: HardwareDeviceTypes.LEDGER,
+          hd_path: getPathString(selectedOption.value),
+        });
+        navigation.pop(2);
+
       } catch (err) {
+        console.error(err);
         setErrorMsg((err as Error).message);
       } finally {
         setBlockingModalVisible(false);
       }
-
-      trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-        device_type: HardwareDeviceTypes.LEDGER,
-        hd_path: getPathString(selectedOption.value),
-      });
-      navigation.pop(2);
     },
     [
       navigation,

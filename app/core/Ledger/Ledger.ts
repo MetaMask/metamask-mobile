@@ -209,13 +209,34 @@ export const ledgerSignTypedMessage = async (
 };
 
 /**
+ *  Check if account name exists in the accounts list
+ * @param accountName - The account name to check
+ */
+export const checkAccountNameExists = async (accountName: string) => {
+  const accountsController = Engine.context.AccountsController;
+  const accounts =  Object.values(accountsController.state.internalAccounts.accounts);
+  const existingAccount = accounts.find((account) => account.metadata.name === accountName);
+  return !!existingAccount;
+};
+
+/**
  * Unlock Ledger Wallet Account with index, and add it that account to metamask
  *
  * @param index - The index of the account to unlock
  */
 export const unlockLedgerWalletAccount = async (index: number) => {
   await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    const existingAccounts = await keyring.getAccounts();
+    console.warn(`existingAccounts: ${existingAccounts}`);
+    const accountName = `Ledger ${existingAccounts.length + 1}`;
+
+    if(await checkAccountNameExists(accountName)) {
+      throw new Error(`Account ${accountName} already exists`);
+    }
+
     keyring.setAccountToUnlock(index);
     await keyring.addAccounts(1);
   });
 };
+
+
