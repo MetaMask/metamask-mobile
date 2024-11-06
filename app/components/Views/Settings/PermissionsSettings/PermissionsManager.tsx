@@ -26,6 +26,10 @@ import {
   PermissionListItemViewModel,
   PermissionSource,
 } from './PermissionItem/PermissionItem.types';
+import {
+  PermissionControllerState,
+  PermissionConstraint,
+} from '@metamask/permission-controller';
 
 interface SDKSessionsManagerProps {
   navigation: NavigationProp<ParamListBase>;
@@ -65,8 +69,10 @@ const PermissionsManager = (props: SDKSessionsManagerProps) => {
   >([]);
   const subjects = useSelector(
     (state: RootState) =>
-      // @ts-expect-error subject is not typed yet
-      state.engine.backgroundState.PermissionController.subjects,
+      (
+        state.engine.backgroundState
+          .PermissionController as PermissionControllerState<PermissionConstraint>
+      ).subjects,
   );
 
   useEffect(() => {
