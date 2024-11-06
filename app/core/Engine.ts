@@ -1623,6 +1623,7 @@ export class Engine {
             swapsUtils.LINEA_CHAIN_ID,
             swapsUtils.BASE_CHAIN_ID,
           ],
+          pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT
         },
       ),
       gasFeeController,
