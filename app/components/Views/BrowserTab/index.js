@@ -111,6 +111,8 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
   AppConstants;
@@ -301,13 +303,78 @@ export const BrowserTab = (props) => {
   const favicon = useFavicon(url.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
     useMetrics();
+
   /**
    * Is the current tab the active tab
    */
   const isTabActive = useSelector(
     (state) => state.browser.activeTab === props.id,
   );
+  // console.log('>>> rendering BrowserTab');
+  useEffect(() => {
+    if (isTabActive) {
+      const hostname = new URL(url.current).hostname;
+      const permissionsControllerState =
+        Engine.context.PermissionController.state;
+      const permittedAccounts = getPermittedAccountsByHostname(
+        permissionsControllerState,
+        hostname,
+      );
 
+      const isConnected = permittedAccounts.length > 0;
+
+      if (isConnected) {
+        let permittedChains = [];
+        try {
+          const caveat = Engine.context.PermissionController.getCaveat(
+            hostname,
+            PermissionKeys.permittedChains,
+            CaveatTypes.restrictNetworkSwitching,
+          );
+          permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+
+          // Get current network chainId from provider config
+          const currentChainId = props.chainId;
+          const isNetworkPermitted = permittedChains.includes(currentChainId);
+
+          console.log('>>> Tab expanded:', {
+            tabId: props.id,
+            url: url.current,
+            hostname,
+            isConnected,
+            currentChainId,
+            networkStatus: isNetworkPermitted ? 'permitted' : 'not_permitted',
+            permittedChains,
+            permissions:
+              permissionsControllerState.subjects[hostname]?.permissions || {},
+          });
+        } catch (e) {
+          // If error getting caveat, it means no networks are permitted yet
+          console.log('>>> Tab expanded:', {
+            tabId: props.id,
+            url: url.current,
+            hostname,
+            isConnected,
+            currentChainId: props.chainId,
+            networkStatus: 'no_network_permissions',
+            permittedChains: [],
+            error: e?.message,
+            permissions:
+              permissionsControllerState.subjects[hostname]?.permissions || {},
+          });
+        }
+      } else {
+        console.log('>>> Tab expanded:', {
+          tabId: props.id,
+          url: url.current,
+          hostname,
+          isConnected,
+          currentChainId: props.chainId,
+          connectionStatus: 'not_connected',
+        });
+      }
+    }
+  }, [isTabActive, props.chainId]);
   /**
    * Gets the url to be displayed to the user
    * For example, if it's ens then show [site].eth instead of ipfs url
