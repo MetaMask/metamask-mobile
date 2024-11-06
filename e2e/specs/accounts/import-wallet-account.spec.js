@@ -16,15 +16,19 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
     'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
   beforeAll(async () => {
-    jest.setTimeout(260000);
+    jest.setTimeout(200000);
     await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
+    await device.disableSynchronization();
     await importWalletWithRecoveryPhrase();
+    await device.enableSynchronization();
   });
 
   it('should be able to import account', async () => {
+    await device.disableSynchronization();
+    await device.enableSynchronization();
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
