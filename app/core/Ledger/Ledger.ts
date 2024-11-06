@@ -209,7 +209,8 @@ export const ledgerSignTypedMessage = async (
 };
 
 /**
- *  Check if account name exists in the accounts list
+ * Check if account name exists in the accounts list
+ *
  * @param accountName - The account name to check
  */
 export const checkAccountNameExists = async (accountName: string) => {
