@@ -131,6 +131,7 @@ import {
   validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import { setRequestSource } from '../../../../../actions/onboardNetwork';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -347,6 +348,8 @@ class Confirm extends PureComponent {
         : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
+
+    setRequestSource(baseParams.dapp_host_name, baseParams.request_source);
 
     try {
       const { SmartTransactionsController } = Engine.context;
@@ -1549,6 +1552,8 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   updateTransactionMetrics: ({ transactionId, params }) =>
     dispatch(updateTransactionMetrics({ transactionId, params })),
+  setRequestSource: (dappHostName, requestSource) =>
+    dispatch(setRequestSource(dappHostName, requestSource)),
 });
 
 export default connect(

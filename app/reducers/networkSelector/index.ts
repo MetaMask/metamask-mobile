@@ -5,6 +5,7 @@ export const initialState = {
     nativeToken: '',
     networkType: '',
     networkUrl: '',
+    requestSources: [] as { hostname: string; source: string }[],
   },
   switchedNetwork: {
     networkUrl: '',
@@ -30,6 +31,7 @@ function networkOnboardReducer(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any;
+    requestSources?: { url: string; source: string }[];
   } = {
     nativeToken: '',
     networkType: '',
@@ -38,6 +40,7 @@ function networkOnboardReducer(
     showNetworkOnboarding: false,
     type: '',
     payload: undefined,
+    requestSources: [],
   },
 ) {
   switch (action.type) {
@@ -73,6 +76,27 @@ function networkOnboardReducer(
           [action.payload]: true,
         },
       };
+    case 'SET_REQUEST_SOURCE': {
+      const { hostname, source } = action.payload;
+
+      // Map through the existing requestSources, updating the entry if it exists, or leaving it as-is
+      const updatedSources = state.networkState.requestSources.some(
+        (entry) => entry.hostname === hostname,
+      )
+        ? state.networkState.requestSources.map((entry) =>
+            entry.hostname === hostname ? { hostname, source } : entry,
+          )
+        : [...state.networkState.requestSources, { hostname, source }];
+
+      // Return the updated state with modified requestSources array
+      return {
+        ...state,
+        networkState: {
+          ...state.networkState,
+          requestSources: updatedSources,
+        },
+      };
+    }
     default:
       return state;
   }

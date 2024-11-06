@@ -40,6 +40,7 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
 import Routes from '../../constants/navigation/Routes';
 import { endTrace, trace, TraceName } from '../../util/trace';
+import { setRequestSource } from '../../actions/onboardNetwork';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -201,6 +202,20 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+/**
+ * Get the request source and set it in the redux store
+ * @param getSource - Function to get the request source
+ * @returns The request source
+ */
+export const getAndSetRequestSource = (
+  hostname: string,
+  getSource: () => string,
+) => {
+  const requestSource = getSource();
+  store.dispatch(setRequestSource(hostname, requestSource));
+  return requestSource;
+};
+
 const generateRawSignature = async ({
   version,
   req,
@@ -243,7 +258,7 @@ const generateRawSignature = async ({
       icon: icon.current,
       channelId,
       analytics: {
-        request_source: getSource(),
+        request_source: getAndSetRequestSource(hostname, getSource),
         request_platform: analytics?.platform,
       },
     },
@@ -374,7 +389,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             channelId,
             analytics: {
-              request_source: getSource(),
+              request_source: getAndSetRequestSource(hostname, getSource),
               request_platform: analytics?.platform,
             },
           },
@@ -557,7 +572,7 @@ export const getRpcMethodMiddleware = ({
             title: title.current,
             icon: icon.current,
             analytics: {
-              request_source: getSource(),
+              request_source: getAndSetRequestSource(hostname, getSource),
               request_platform: analytics?.platform,
             },
           },
@@ -613,7 +628,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             channelId,
             analytics: {
-              request_source: getSource(),
+              request_source: getAndSetRequestSource(hostname, getSource),
               request_platform: analytics?.platform,
             },
           },
@@ -857,7 +872,7 @@ export const getRpcMethodMiddleware = ({
           res,
           requestUserApproval,
           analytics: {
-            request_source: getSource(),
+            request_source: getAndSetRequestSource(hostname, getSource),
             request_platform: analytics?.platform,
           },
           startApprovalFlow,
@@ -872,7 +887,7 @@ export const getRpcMethodMiddleware = ({
           res,
           requestUserApproval,
           analytics: {
-            request_source: getSource(),
+            request_source: getAndSetRequestSource(hostname, getSource),
             request_platform: analytics?.platform,
           },
         });
