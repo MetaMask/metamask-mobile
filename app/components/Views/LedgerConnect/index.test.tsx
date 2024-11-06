@@ -372,7 +372,7 @@ describe('LedgerConnect', () => {
   it('shows error message about multiple devices support', async () => {
     isSendingLedgerCommands = true;
     isAppLaunchConfirmationNeeded = false;
-    const { findByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <LedgerConnect
         onConnectLedger={onConfirmationComplete}
         isSendingLedgerCommands={isSendingLedgerCommands}
@@ -384,7 +384,7 @@ describe('LedgerConnect', () => {
       />,
     );
     await waitFor(() => {
-      expect(findByTestId('multiple-devices-error-message')).toBeDefined();
+      expect(getByTestId('multiple-devices-error-message')).toBeDefined();
     });
   });
 });
