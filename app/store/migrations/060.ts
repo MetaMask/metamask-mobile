@@ -1,5 +1,9 @@
+import { ensureValidState } from "./util";
+
 export default function migrate(state: unknown) {
-    if (state.engine.backgroundState.NotificationServicesController) return state
+    if (!ensureValidState(state, 60)) {
+        return state;
+      }
     state.engine.backgroundState.NotificationServicesController = {
         isCheckingAccountsPresence: false,
         isFeatureAnnouncementsEnabled: false,
