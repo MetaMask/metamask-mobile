@@ -20,7 +20,7 @@ import {
   updateOnChainTriggersByAccount,
 } from '../../../actions/notification/helpers';
 import { getNotificationsList } from '../../../selectors/notifications';
-
+import { usePushNotifications } from './usePushNotifications';
 /**
  * Custom hook to fetch and update the list of notifications.
  * Manages loading and error states internally.
@@ -104,12 +104,14 @@ export function useCreateNotifications(): CreateNotificationsReturn {
 export function useEnableNotifications(): EnableNotificationsReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-
+  const { switchPushNotifications } = usePushNotifications();
   const enableNotifications = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await enableNotificationServices();
+      const errorEnablingNotifications = await enableNotificationServices();
+      const errorEnablingPushNotifications = await switchPushNotifications(true);
+      const errorMessage = errorEnablingNotifications || errorEnablingPushNotifications;
 
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
@@ -122,7 +124,7 @@ export function useEnableNotifications(): EnableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [switchPushNotifications]);
 
   return {
     enableNotifications,
@@ -139,12 +141,15 @@ export function useEnableNotifications(): EnableNotificationsReturn {
 export function useDisableNotifications(): DisableNotificationsReturn {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
-
+  const { switchPushNotifications } = usePushNotifications();
   const disableNotifications = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const errorMessage = await disableNotificationServices();
+      const errorDisablingNotifications = await disableNotificationServices();
+      const errorDisablingPushNotifications = await switchPushNotifications(false);
+      const errorMessage = errorDisablingNotifications || errorDisablingPushNotifications;
+
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
         return errorMessage;
@@ -156,7 +161,7 @@ export function useDisableNotifications(): DisableNotificationsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [switchPushNotifications]);
 
   return {
     disableNotifications,

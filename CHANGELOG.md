@@ -2,13 +2,24 @@
 
 ## Current Main Branch
 
-## 7.33.0 - Oct 17, 2024
+## 7.33.2 - Nov 1, 2024
+### Fixed
+- [#10952](https://github.com/MetaMask/metamask-mobile/pull/10952): refactor(ramp): update ramp copy (#10952)
+
+## 7.33.2 - Oct 29, 2024
+### Fixed
+- [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
+
+## 7.33.0 - Oct 3, 2024
 ### Added
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
+- [#11347](https://github.com/MetaMask/metamask-mobile/pull/11347): "chore: revert ""feat: react native fast crypto for notifications"" (#11347)"
 - [#11318](https://github.com/MetaMask/metamask-mobile/pull/11318): feat: app event manager and attribution id parameters (#11318)
 - [#11445](https://github.com/MetaMask/metamask-mobile/pull/11445): feat: add the abilty to hide the disconnect all button as well as showing and hiding the accounts row when necessary (#11445)
 - [#11386](https://github.com/MetaMask/metamask-mobile/pull/11386): feat(3299): add tracking to network switching and confirmation (#11386)
+- [#11379](https://github.com/MetaMask/metamask-mobile/pull/11379): refactor: rename the feature flag since it had a typo (#11379)
 - [#11239](https://github.com/MetaMask/metamask-mobile/pull/11239): feat(2739): permission summary view gets the ability to disconnect all (#11239)
+- [#11382](https://github.com/MetaMask/metamask-mobile/pull/11382): chore(runway): cherry-pick feat: app event manager and attribution id parameters (#11382)
 - [#11497](https://github.com/MetaMask/metamask-mobile/pull/11497): feat: simple key-> value component for text value type (#11497)
 - [#11478](https://github.com/MetaMask/metamask-mobile/pull/11478): feat: adding title to confirmation page (#11478)
 - [#11477](https://github.com/MetaMask/metamask-mobile/pull/11477): feat: adding footer section to confirmation page (#11477)
@@ -20,7 +31,7 @@
 - [#11399](https://github.com/MetaMask/metamask-mobile/pull/11399): feat: add learn more modal component for staking (#11399)
 - [#11261](https://github.com/MetaMask/metamask-mobile/pull/11261): feat: STAKE-822 build your balance component (#11261)
 - [#11294](https://github.com/MetaMask/metamask-mobile/pull/11294): feat: added KeyValueRow to component-library/components-temp (#11294)
-- [#11185](https://github.com/MetaMask/metamask-mobile/pull/11185): feat: display ""Snaps (Beta)"" decorator tag in accounts list (#11185)
+- [#11185](https://github.com/MetaMask/metamask-mobile/pull/11185): "feat: display ""Snaps (Beta)"" decorator tag in accounts list (#11185)"
 - [#10829](https://github.com/MetaMask/metamask-mobile/pull/10829): feat: Eth snap keyring (#10829)
 - [#11455](https://github.com/MetaMask/metamask-mobile/pull/11455): feat: bootstrap a reset notifications feat (#11455)
 - [#11466](https://github.com/MetaMask/metamask-mobile/pull/11466): feat: add support for external links (#11466)
