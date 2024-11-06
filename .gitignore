@@ -128,3 +128,7 @@ docs/assets/termsOfUse.html
 
 # build metadata
 android/app/src/main/assets/modules.json
+
+# Google firebase base64 derived configs
+ios/GoogleService-Info.plist
+ios/GoogleServices/GoogleService-Info.plist
