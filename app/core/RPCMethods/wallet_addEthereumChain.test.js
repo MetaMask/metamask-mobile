@@ -293,16 +293,15 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
   it('should report native currency symbol length being too long', async () => {
     const symbol = 'aaaaaaaaaaaaaaa';
-    await expect(wallet_addEthereumChain({
-      req: {
-        params: [
-          {
-            ...correctParams,
-            nativeCurrency: { symbol, decimals: 18 },
-          },
-        ],
-      },
-      ...otherOptions,
+    await expect(
+      wallet_addEthereumChain({
+        req: {
+          params: [{
+              ...correctParams,
+              nativeCurrency: { symbol, decimals: 18 },
+          }],
+        },
+        ...otherOptions,
       }),
     ).rejects.toThrow(
       `Expected 1-6 character string 'nativeCurrency.symbol'. Received:\n${symbol}`,
