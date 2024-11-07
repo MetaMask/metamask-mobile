@@ -12,6 +12,7 @@ import {
   LEDGER_LIVE_PATH,
 } from './constants';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
+import { keyringTypeToName } from '@metamask/accounts-controller';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -226,17 +227,27 @@ export const checkAccountNameExists = async (accountName: string) => {
  * @param index - The index of the account to unlock
  */
 export const unlockLedgerWalletAccount = async (index: number) => {
-  await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+  const accountsController = Engine.context.AccountsController;
+  const { unlockAccount, name}  = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
     const existingAccounts = await keyring.getAccounts();
-    const accountName = `Ledger ${existingAccounts.length + 1}`;
+    const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
+    const accountName = `${keyringName} ${existingAccounts.length + 1}`;
 
     if(await checkAccountNameExists(accountName)) {
       throw new Error(`Account ${accountName} already exists`);
     }
 
     keyring.setAccountToUnlock(index);
-    await keyring.addAccounts(1);
+    const accounts = await keyring.addAccounts(1);
+    return { unlockAccount: accounts[accounts.length - 1], name: accountName };
   });
+
+  const account =
+    accountsController.getAccountByAddress(unlockAccount);
+
+  if(account && name !== account.metadata.name) {
+    accountsController.setAccountName(account.id, name);
+  }
 };
 
 

@@ -235,7 +235,6 @@ const LedgerSelectAccount = () => {
         navigation.pop(2);
 
       } catch (err) {
-        console.error(err);
         setErrorMsg((err as Error).message);
       } finally {
         setBlockingModalVisible(false);
