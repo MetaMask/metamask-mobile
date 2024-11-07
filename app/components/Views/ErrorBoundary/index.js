@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   DevSettings,
   Image,
+  TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
@@ -18,7 +19,7 @@ import { captureSentryFeedback } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
-import { ScrollView, TextInput } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import CLIcon, {
   IconColor,
@@ -47,6 +48,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      paddingHorizontal: 8,
       backgroundColor: colors.background.default,
     },
     header: {
@@ -74,6 +76,7 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     errorMessageContainer: {
+      flexShrink: 1,
       backgroundColor: colors.error.muted,
       borderRadius: 8,
       marginTop: 10,
@@ -137,9 +140,9 @@ const createStyles = (colors) =>
       paddingHorizontal: 34,
     },
     buttonsContainer: {
-      flex: 1,
+      flexGrow: 1,
+      bottom: 10,
       justifyContent: 'flex-end',
-      marginBottom: 24,
     },
     modalButtonsWrapper: {
       flex: 1,
@@ -153,7 +156,6 @@ const createStyles = (colors) =>
       borderColor: colors.primary.default,
       minHeight: 175,
       minWidth: '100%',
-      alignSelf: 'center',
       paddingHorizontal: 16,
       paddingTop: 10,
       borderRadius: 10,
@@ -240,88 +242,82 @@ export const Fallback = (props) => {
   const handleTryAgain = () => DevSettings.reload();
 
   const handleSubmit = () => {
-    captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
     toggleModal();
+    captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
     Alert.alert(strings('error_screen.bug_report_thanks'));
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Image source={WarningIcon} style={styles.errorImage} />
         <Text style={styles.title}>{strings('error_screen.title')}</Text>
       </View>
-      <View style={styles.contentContainer}>
-        <View style={styles.container}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Info}
-            style={styles.infoBanner}
-            description={<CLText>{strings('error_screen.subtitle')}</CLText>}
+      <BannerAlert
+        severity={BannerAlertSeverity.Info}
+        style={styles.infoBanner}
+        description={<CLText>{strings('error_screen.subtitle')}</CLText>}
+      />
+      <BannerAlert
+        severity={BannerAlertSeverity.Warning}
+        description={
+          <Text style={styles.text}>
+            {strings('error_screen.save_seedphrase_1')}{' '}
+            <Text onPress={props.showExportSeedphrase} style={styles.link}>
+              {strings('error_screen.save_seedphrase_2')}
+            </Text>{' '}
+            {strings('error_screen.save_seedphrase_3')}
+          </Text>
+        }
+      />
+      <View style={styles.errorContentWrapper}>
+        <Text style={styles.errorBoxTitle}>
+          {strings('error_screen.error_message')}
+        </Text>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={props.copyErrorToClipboard}
+        >
+          <CLIcon
+            name={IconName.Copy}
+            size={IconSize.Sm}
+            color={IconColor.Primary}
           />
-          <BannerAlert
-            severity={BannerAlertSeverity.Warning}
-            description={
-              <Text style={styles.text}>
-                {strings('error_screen.save_seedphrase_1')}{' '}
-                <Text onPress={props.showExportSeedphrase} style={styles.link}>
-                  {strings('error_screen.save_seedphrase_2')}
-                </Text>{' '}
-                {strings('error_screen.save_seedphrase_3')}
-              </Text>
-            }
-          />
-          <View style={styles.errorContentWrapper}>
-            <Text style={styles.errorBoxTitle}>
-              {strings('error_screen.error_message')}
+          <Text style={styles.copyText}>{strings('error_screen.copy')}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.errorMessageContainer}>
+        <ScrollView>
+          <Text style={styles.error}>{props.errorMessage}</Text>
+        </ScrollView>
+      </View>
+      <View style={styles.buttonsContainer}>
+        {dataCollectionForMarketing && (
+          <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
+            <Text style={styles.blueButtonText}>
+              {strings('error_screen.describe')}
             </Text>
-            <TouchableOpacity
-              style={styles.row}
-              onPress={props.copyErrorToClipboard}
-            >
-              <CLIcon
-                name={IconName.Copy}
-                size={IconSize.Sm}
-                color={IconColor.Primary}
-              />
-              <Text style={styles.copyText}>
-                {strings('error_screen.copy')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.errorMessageContainer}>
-            <Text style={styles.error}>{props.errorMessage}</Text>
-          </View>
-        </View>
-        <View style={styles.buttonsContainer}>
-          {dataCollectionForMarketing && (
-            <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
-              <Text style={styles.blueButtonText}>
-                {strings('error_screen.describe')}
-              </Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={dataCollectionForMarketing ? styles.button : styles.blueButton}
+          onPress={handleContactSupport}
+        >
+          <Text
             style={
-              dataCollectionForMarketing ? styles.button : styles.blueButton
+              dataCollectionForMarketing
+                ? styles.buttonText
+                : styles.blueButtonText
             }
-            onPress={handleContactSupport}
           >
-            <Text
-              style={
-                dataCollectionForMarketing
-                  ? styles.buttonText
-                  : styles.blueButtonText
-              }
-            >
-              {strings('error_screen.contact_support')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
-            <Text style={styles.buttonText}>
-              {strings('error_screen.try_again')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            {strings('error_screen.contact_support')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
+          <Text style={styles.buttonText}>
+            {strings('error_screen.try_again')}
+          </Text>
+        </TouchableOpacity>
       </View>
       <Modal
         visible={modalVisible}
@@ -388,7 +384,7 @@ export const Fallback = (props) => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </ScrollView>
+    </View>
   );
 };
 
