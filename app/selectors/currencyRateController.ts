@@ -34,3 +34,10 @@ export const selectCurrentCurrency = createSelector(
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currentCurrency,
 );
+
+// TODO: Remove this selector
+export const selectCurrencyRates = createSelector(
+  selectCurrencyRateControllerState,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.currencyRates,
+);

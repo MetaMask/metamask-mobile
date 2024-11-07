@@ -2,6 +2,14 @@ import React, { useRef, useState, LegacyRef, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
+import { Token } from '@metamask/assets-controllers';
+import {
+  selectProviderConfig,
+  ProviderConfig,
+} from '../../../selectors/networkController';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -17,7 +25,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
-import { TokenI, TokensI } from './types';
+import { TokensI } from './types';
+import { AssetType } from '../SimulationDetails/types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -25,14 +34,17 @@ import {
   selectTokenNetworkFilter,
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectMarketData } from '../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import {
   createTokenBottomSheetFilterNavDetails,
@@ -41,6 +53,7 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { filterAssets } from './util/filterAssets';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -73,6 +86,17 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
+interface TokenI extends Token {
+  chainId: string;
+  isNative: boolean;
+  balance: number | string;
+  balanceFiat: string;
+  logo: null | string;
+  isETH: boolean;
+  tokenFiatAmount?: number;
+  string?: string;
+}
+
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const navigation =
     useNavigation<
@@ -83,6 +107,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const allNetworks = useSelector(selectNetworkConfigurations);
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const hideZeroBalanceTokens = useSelector(
@@ -93,7 +118,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
-
+  // const selectedAccountTokensChains: Record<string, any> = useSelector(
+  //   getSelectedAccountTokensAcrossChains, // TODO: Focus on this for now
+  // );
+  const allTokens = useSelector(selectAllTokens); // TODO: Could be an issue here
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const marketData = useSelector(selectMarketData);
+  const currencyRates = useSelector(selectCurrencyRates);
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
@@ -101,40 +134,200 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const styles = createStyles(colors);
 
-  const tokensList = useMemo(() => {
-    // Filter tokens based on hideZeroBalanceTokens flag
-    const tokensToDisplay = hideZeroBalanceTokens
-      ? tokens.filter(
-          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
-        )
-      : tokens;
+  const getNativeTokenInfo = (chainId: string) => {
+    const networkConfig = allNetworks?.[chainId as `0x${string}`];
 
-    // Calculate fiat balances for tokens
-    const tokenFiatBalances = conversionRate
-      ? tokensToDisplay.map((asset) =>
-          asset.isETH
-            ? parseFloat(asset.balance) * conversionRate
-            : deriveBalanceFromAssetMarketDetails(
-                asset,
-                tokenExchangeRates,
-                tokenBalances,
-                conversionRate,
-                currentCurrency,
-              ).balanceFiatCalculation,
-        )
-      : [];
+    if (networkConfig) {
+      const symbol = networkConfig.nativeCurrency || AssetType.Native;
+      const decimals = 18;
+      const name = networkConfig.name || 'Native Token';
 
-    // Combine tokens with their fiat balances
-    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
-    // this key in the controller is also used by extension, so this is for consistency in syntax and config
-    // actual balance rendering for each token list item happens in TokenListItem component
-    const tokensWithBalances = tokensToDisplay.map((token, i) => ({
-      ...token,
-      tokenFiatAmount: tokenFiatBalances[i],
-    }));
+      return {
+        symbol,
+        decimals,
+        name,
+      };
+    }
 
-    // Sort the tokens based on tokenSortConfig
-    return sortAssets(tokensWithBalances, tokenSortConfig);
+    if (providerConfig?.chainId === chainId) {
+      const symbol = providerConfig.ticker || AssetType.Native;
+      // const decimals = providerConfig.nativeCurrency?.decimals || 18; // TODO: missing from providerConfig
+      const decimals = 18;
+      const name = providerConfig.nickname || 'Native Token';
+
+      return {
+        symbol,
+        decimals,
+        name,
+      };
+    }
+
+    return { symbol: AssetType.Native, decimals: 18, name: 'Native Token' };
+  };
+
+  const getSelectedAccountNativeTokenCachedBalanceByChainId = () => {
+    const selectedAddress: string =
+      selectedAccount?.address?.toLowerCase() || '';
+
+    if (!selectedAddress) {
+      return {};
+    }
+    const balancesByChainId: Record<string, string> = {};
+    for (const [chainId, accounts] of Object.entries(accountsByChainId || {})) {
+      const accountEntry = Object.entries(accounts).find(
+        ([address]) => address.toLowerCase() === selectedAddress,
+      );
+
+      if (accountEntry) {
+        const [_, accountData] = accountEntry;
+        balancesByChainId[chainId] = accountData.balance;
+      }
+    }
+    return balancesByChainId;
+  };
+
+  const getSelectedAccountTokensAcrossChains = () => {
+    const selectedAddress: string = selectedAccount?.address || '';
+    const tokensByChain: Record<string, TokenI[]> = {};
+    const nativeTokenBalancesByChainId =
+      getSelectedAccountNativeTokenCachedBalanceByChainId();
+
+    const chainIds = new Set([
+      ...Object.keys(allTokens || {}),
+      ...Object.keys(nativeTokenBalancesByChainId || {}),
+    ]);
+
+    chainIds.forEach((chainId: string) => {
+      const hexChainId = chainId as `0x${string}`;
+      if (!tokensByChain[hexChainId]) {
+        tokensByChain[hexChainId] = [];
+      }
+
+      if (allTokens[hexChainId]?.[selectedAddress]) {
+        allTokens[hexChainId][selectedAddress].forEach((token: Token) => {
+          const tokenWithChain: TokenI = {
+            ...token,
+            chainId,
+            isNative: false,
+            balance: '0',
+            balanceFiat: '0',
+            logo: null,
+            isETH: false,
+          };
+          tokensByChain[chainId].push(tokenWithChain);
+        });
+      }
+      const nativeBalance = nativeTokenBalancesByChainId[chainId];
+      if (nativeBalance) {
+        const nativeTokenInfo = getNativeTokenInfo(chainId);
+        tokensByChain[chainId].push({
+          ...nativeTokenInfo,
+          address: '',
+          balance: nativeBalance,
+          chainId,
+          isNative: true,
+          balanceFiat: '0',
+          logo: null,
+          isETH: chainId === '0x1',
+        });
+      }
+    });
+    return tokensByChain;
+  };
+
+  const getSelectedAccountTokenBalancesAcrossChains = () => {
+    const accountTokens = getSelectedAccountTokensAcrossChains();
+
+    // TODO: read this from tokenBalances state
+    function generateRandomBalance(min = 10, max = 20) {
+      const factor = 100000; // 10^5 to get 5 decimal places
+      const randomValue = Math.random() * (max - min) + min;
+      return Math.floor(randomValue * factor) / factor;
+    }
+
+    const tokenBalancesByChain: Record<
+      `0x${string}`,
+      Record<string, number>
+    > = {};
+
+    Object.keys(accountTokens).forEach((chainId) => {
+      tokenBalancesByChain[chainId as `0x${string}`] = {};
+
+      accountTokens[chainId].forEach((token) => {
+        const { address } = token;
+
+        tokenBalancesByChain[chainId as `0x${string}`][address] =
+          generateRandomBalance();
+      });
+    });
+
+    return tokenBalancesByChain;
+  };
+
+  const consolidatedBalances = () => {
+    const tokensWithBalance: any[] = [];
+    const tokensAcrossChains = getSelectedAccountTokensAcrossChains();
+    const tokenBalancesAcrossChains =
+      getSelectedAccountTokenBalancesAcrossChains();
+
+    Object.keys(tokensAcrossChains).forEach((chainId: string) => {
+      const hexChainId = chainId as `0x${string}`;
+      tokensAcrossChains[hexChainId].forEach((token: Record<string, any>) => {
+        const { address } = token;
+
+        const balance = tokenBalancesAcrossChains[hexChainId]?.[address];
+        const baseCurrency = marketData[hexChainId]?.[address]?.currency;
+
+        const tokenMarketPrice =
+          marketData[hexChainId]?.[address]?.price || '0';
+        const tokenExchangeRate =
+          currencyRates[baseCurrency]?.conversionRate || '0';
+
+        let tokenFiatAmount =
+          Number(tokenMarketPrice) *
+          Number(tokenExchangeRate) *
+          Number(balance);
+        if (token.isNative && currencyRates) {
+          tokenFiatAmount =
+            Number(currencyRates[token.symbol]?.conversionRate ?? 0) *
+            Number(balance ?? 0);
+        }
+
+        tokensWithBalance.push({
+          ...token,
+          balance,
+          tokenFiatAmount,
+          chainId,
+          string: balance.toString(),
+        });
+      });
+    });
+
+    return tokensWithBalance;
+  };
+
+  const sortedTokensList = useMemo(() => {
+    const consolidatedTokensWithBalances = consolidatedBalances();
+    const filteredAssets = filterAssets(consolidatedTokensWithBalances, [
+      {
+        key: 'chainId',
+        opts: tokenNetworkFilter,
+        filterCallback: 'inclusive',
+      },
+    ]);
+
+    const { nativeTokens, nonNativeTokens } = filteredAssets.reduce(
+      (acc, token) => {
+        if (token.isNative) {
+          acc.nativeTokens.push(token);
+        } else {
+          acc.nonNativeTokens.push(token);
+        }
+        return acc;
+      },
+      { nativeTokens: [], nonNativeTokens: [] },
+    );
+    return sortAssets([...nativeTokens, ...nonNativeTokens], tokenSortConfig);
   }, [
     conversionRate,
     currentCurrency,
@@ -142,6 +335,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     tokenBalances,
     tokenExchangeRates,
     tokenSortConfig,
+    tokenNetworkFilter,
     tokens,
   ]);
 
@@ -232,7 +426,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
+  const allOpts: Record<string, boolean> = {};
+  Object.keys(allNetworks).forEach((chainId) => {
+    allOpts[chainId] = true;
+  });
   const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === '1';
+  const allNetworksFilterShown =
+    Object.keys(tokenNetworkFilter).length !== Object.keys(allOpts).length;
 
   return (
     <View
@@ -245,7 +445,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <ButtonBase
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {tokenNetworkFilter[chainId]
+                  {allNetworksFilterShown
                     ? networkName ?? strings('wallet.current_network')
                     : strings('wallet.all_networks')}
                 </Text>
@@ -288,9 +488,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           </>
         )}
       </View>
-      {tokensList && (
+      {sortedTokensList && (
         <TokenList
-          tokens={tokensList}
+          tokens={sortedTokensList}
           refreshing={refreshing}
           isAddTokenEnabled={isAddTokenEnabled}
           onRefresh={onRefresh}
