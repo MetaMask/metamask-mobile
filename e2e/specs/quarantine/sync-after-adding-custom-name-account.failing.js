@@ -3,21 +3,18 @@ import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
   NOTIFICATIONS_TEAM_STORAGE_KEY,
-} from '../utils/constants';
-import {
-  startMockServer,
-  stopMockServer,
-} from '../../../api-mocking/mock-server';
-import { accountsSyncMockResponse } from './mockData';
-import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListView from '../../../pages/AccountListView';
-import Assertions from '../../../utils/Assertions';
-import AddAccountModal from '../../../pages/modals/AddAccountModal';
-import AccountActionsModal from '../../../pages/modals/AccountActionsModal';
-import { mockNotificationServices } from '../utils/mocks';
-import { SmokeNotifications } from '../../../tags';
+} from '../notifications/utils/constants';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { accountsSyncMockResponse } from '../notifications/account-syncing/mockData';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import TestHelpers from '../../helpers';
+import WalletView from '../../pages/wallet/WalletView';
+import AccountListView from '../../pages/AccountListView';
+import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
+import AccountActionsModal from '../../pages/modals/AccountActionsModal';
+import { mockNotificationServices } from '../notifications/utils/mocks';
+import { SmokeNotifications } from '../../tags';
 
 describe(SmokeNotifications('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
