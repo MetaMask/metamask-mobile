@@ -62,7 +62,7 @@ const useBalance = () => {
   );
 
   const formattedStakedBalanceFiat = useMemo(
-    () =>   weiToFiat(
+    () => weiToFiat(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hexToBN(stakedBalance) as any,
@@ -77,7 +77,7 @@ const useBalance = () => {
     balanceFiat,
     balanceWei,
     balanceFiatNumber,
-    stakedBalanceWei: stakedBalance ?? '0',
+    stakedBalanceWei: hexToBN(stakedBalance).toString(),
     formattedStakedBalanceETH,
     stakedBalanceFiatNumber,
     formattedStakedBalanceFiat,

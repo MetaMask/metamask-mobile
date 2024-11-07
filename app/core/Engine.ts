@@ -1998,11 +1998,13 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
-        const totalAccountBalance = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
           selectSelectedInternalAccountChecksummedAddress
-        ].balance).add(hexToBN(accountsByChainId[toHexadecimal(chainId)][
+        ].balance);
+        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
           selectSelectedInternalAccountChecksummedAddress
-        ].stakedBalance ?? '0x00'));
+        ].stakedBalance || '0x00');
+        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
         ethFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,
