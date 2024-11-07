@@ -7,17 +7,14 @@
 app/component-library/               @MetaMask/design-system-engineers
 
 # Platform Team
+.github/CODEOWNERS                   @MetaMask/mobile-platform
 patches/                             @MetaMask/mobile-platform
 app/core/Engine.ts                   @MetaMask/mobile-platform
 app/core/Engine.test.js              @MetaMask/mobile-platform
 app/core/Analytics/                  @MetaMask/mobile-platform
 app/util/metrics/                    @MetaMask/mobile-platform
 app/components/hooks/useMetrics/     @MetaMask/mobile-platform
-
-# Supply Chain Team
-bitrise.yml                          @MetaMask/supply-chain
-yarn.lock                            @MetaMask/supply-chain
-ios/Podfile.lock                     @MetaMask/supply-chain
+app/store/migrations/                @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
