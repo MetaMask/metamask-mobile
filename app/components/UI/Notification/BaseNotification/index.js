@@ -148,10 +148,12 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       return strings('notifications.cancelled_title');
     case 'error':
       return strings('notifications.error_title');
+    case 'eth_received':
+      return strings('notifications.eth_received_title');
   }
 };
 
-const getDescription = (status, { amount = null, type = null }) => {
+export const getDescription = (status, { amount = null, type = null }) => {
   if (amount && typeof amount !== 'object') {
     return strings(`notifications.${type}_${status}_message`, { amount });
   }
