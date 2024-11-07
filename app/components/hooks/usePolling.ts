@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UsePollingOptions<PollingInput> {
   startPolling: (input: PollingInput) => string;
@@ -12,31 +12,28 @@ interface UsePollingOptions<PollingInput> {
 const usePolling = <PollingInput>(
   usePollingOptions: UsePollingOptions<PollingInput>,
 ) => {
-  const [polls, setPolls] = useState(new Map());
+
+  const pollingTokens = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     // start new polls
     for (const input of usePollingOptions.input) {
       const key = JSON.stringify(input);
-      if (!polls.has(key)) {
+      if (!pollingTokens.current.has(key)) {
         const token = usePollingOptions.startPolling(input);
-        setPolls((prevPolls) => new Map(prevPolls).set(key, token));
+        pollingTokens.current.set(key, token);
       }
     }
 
     // stop existing polls
-    for (const [inputKey, token] of polls.entries()) {
+    for (const [inputKey, token] of pollingTokens.current.entries()) {
       const exists = usePollingOptions.input.some(
         (i) => inputKey === JSON.stringify(i),
       );
 
       if (!exists) {
         usePollingOptions.stopPollingByPollingToken(token);
-        setPolls((prevPolls) => {
-          const newPolls = new Map(prevPolls);
-          newPolls.delete(inputKey);
-          return newPolls;
-        });
+        pollingTokens.current.delete(inputKey);
       }
     }
   },
@@ -46,7 +43,7 @@ const usePolling = <PollingInput>(
 
   // stop all polling on dismount
   useEffect(() => () => {
-      for (const token of polls.values()) {
+      for (const token of pollingTokens.current.values()) {
         usePollingOptions.stopPollingByPollingToken(token);
       }
     },
