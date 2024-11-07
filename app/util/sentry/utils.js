@@ -7,7 +7,6 @@ import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isE2E } from '../test/utils';
 import { store } from '../../store';
-
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -222,13 +221,6 @@ const ERROR_URL_ALLOWLIST = [
   'codefi.network',
   'segment.io',
 ];
-/**\
- * Required instrumentation for Sentry Performance to work with React Navigation
- */
-export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation({
-    enableTimeToInitialDisplay: true,
-  });
 
 /**
  * Capture Sentry user feedback and associate ID of captured exception
@@ -499,10 +491,13 @@ export function setupSentry() {
       integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: isDev || isQa ? 1.0 : 0.04,
+      profilesSampleRate: 1.0,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
       enabled: metricsOptIn === AGREED,
+      // We need to deactivate this to have the same output consistently on IOS and Android
+      enableAutoPerformanceTracing: false,
     });
   };
   init();

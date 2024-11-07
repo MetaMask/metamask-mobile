@@ -250,11 +250,14 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
+  parentSpan = trace({ name: 'Login' });
+
   async componentDidMount() {
     trace({
-      name: TraceName.LoginToPasswordEntry,
-      op: TraceOperation.LoginToPasswordEntry,
+      name: 'write password',
+      parentContext: this.parentSpan,
     });
+
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -365,6 +368,7 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
+    endTrace({ name: 'write password' });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
@@ -372,22 +376,22 @@ class Login extends PureComponent {
     if (this.state.loading || locked) return;
 
     this.setState({ loading: true, error: null });
+    trace({ name: 'Auth type', parentContext: this.parentSpan });
     const authType = await Authentication.componentAuthenticationType(
       this.state.biometryChoice,
       this.state.rememberMe,
     );
 
-    try {
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.AuthenticateUser,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+    endTrace({ name: 'Auth type' });
 
+    try {
+      trace({
+        name: TraceName.AuthenticateUser,
+        op: TraceOperation.AuthenticateUser,
+        parentContext: this.parentSpan,
+      });
+      await Authentication.userEntryAuth(password, authType);
+      endTrace({ name: TraceName.AuthenticateUser });
       Keyboard.dismiss();
 
       // Get onboarding wizard state
@@ -447,6 +451,7 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
+    endTrace({ name: 'Login' });
   };
 
   tryBiometric = async (e) => {
@@ -454,15 +459,7 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await trace(
-        {
-          name: TraceName.BiometricAuthentication,
-          op: TraceOperation.BiometricAuthentication,
-        },
-        async () => {
-          await Authentication.appTriggeredAuth();
-        },
-      );
+      await Authentication.appTriggeredAuth();
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
@@ -478,11 +475,6 @@ class Login extends PureComponent {
       Logger.log(error);
     }
     field?.blur();
-  };
-
-  triggerLogIn = () => {
-    endTrace({ name: TraceName.LoginToPasswordEntry });
-    this.onLogin();
   };
 
   toggleWarningModal = () => {
@@ -587,7 +579,7 @@ class Login extends PureComponent {
                   value={this.state.password}
                   baseColor={colors.border.default}
                   tintColor={colors.primary.default}
-                  onSubmitEditing={this.triggerLogIn}
+                  onSubmitEditing={this.onLogin}
                   endAccessory={
                     <BiometryButton
                       onPress={this.tryBiometric}
@@ -618,7 +610,7 @@ class Login extends PureComponent {
                   variant={ButtonVariants.Primary}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
-                  onPress={this.triggerLogIn}
+                  onPress={this.onLogin}
                   label={
                     this.state.loading ? (
                       <ActivityIndicator

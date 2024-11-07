@@ -99,6 +99,7 @@ import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountS
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { withProfiler } from '@sentry/react-native';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -658,4 +659,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withProfiler(Wallet));

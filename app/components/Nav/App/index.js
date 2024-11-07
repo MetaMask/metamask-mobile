@@ -34,7 +34,6 @@ import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkM
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { routingInstrumentation } from '../../../util/sentry/utils';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -674,8 +673,6 @@ const App = (props) => {
       });
 
       if (!prevNavigator.current) {
-        // Setup navigator with Sentry instrumentation
-        routingInstrumentation.registerNavigationContainer(navigator);
         // Subscribe to incoming deeplinks
         // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
         branch.subscribe((opts) => {
