@@ -1290,6 +1290,14 @@
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
+    "disabled_button": {
+      "buy": "Buying not supported for this account",
+      "sell": "Selling not supported for this account",
+      "swap": "Swapping not supported for this account",
+      "bridge": "Bridging not supported for this account",
+      "send": "Sending not supported for this account",
+      "action": "This action is not supported for this account"
+    },
     "description": "Description",
     "totalSupply": "Total Supply",
     "address": "Address",
