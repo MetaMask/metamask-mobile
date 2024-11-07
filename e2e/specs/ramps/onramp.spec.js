@@ -11,7 +11,7 @@ import {
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeAssets } from '../../tags';
+import { SmokeCore } from '../../tags';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
@@ -20,7 +20,7 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeAssets('Buy Crypto'), () => {
+describe(SmokeCore('Buy Crypto'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -52,6 +52,14 @@ describe(SmokeAssets('Buy Crypto'), () => {
     await SelectRegionView.tapContinueButton();
     await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
     await SelectPaymentMethodView.tapContinueButton();
+    await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
+    await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should skip to the Build Quote screen for returning user', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });

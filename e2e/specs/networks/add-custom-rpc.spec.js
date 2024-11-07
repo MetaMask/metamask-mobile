@@ -4,8 +4,8 @@ import { Regression } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
 import ToastModal from '../../pages/modals/ToastModal';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -17,8 +17,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
 
 const fixtureServer = new FixtureServer();
 
@@ -74,6 +72,12 @@ describe(Regression('Custom RPC Tests'), () => {
     );
 
     await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+
+    await NetworkView.tapBlockExplorerDownButton();
+    await NetworkView.tapBlockExplorerButton();
+    await NetworkView.typeInNetworkBlockExplorer(
+      `${CustomNetworks.Gnosis.providerConfig.BlockExplorerUrl}\n`,
+    );
 
     if (device.getPlatform() === 'ios') {
       await NetworkView.tapChainIDLabel(); // Focus outside of text input field

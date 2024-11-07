@@ -8,6 +8,10 @@ import {
   getIsNativeTokenTransferred,
 } from '../transactions';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import type { ControllerMessenger } from '../../core/Engine';
+
+const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
 export const getTransactionType = (
   transactionMeta: TransactionMeta,
@@ -74,25 +78,48 @@ export const getShouldUpdateApprovalRequest = (
   isSwapTransaction: boolean,
 ): boolean => isDapp || isSend || isSwapTransaction;
 
-export const getSmartTransactionMetricsProperties = (
+const waitForSmartTransactionConfirmationDone = (
+  controllerMessenger: ControllerMessenger,
+): Promise<SmartTransaction | undefined> =>
+  new Promise((resolve) => {
+    controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransactionConfirmationDone',
+      async (smartTransaction: SmartTransaction) => {
+        resolve(smartTransaction);
+      },
+    );
+    setTimeout(() => {
+      resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
+    }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
+  });
+
+export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
+  waitForSmartTransaction: boolean,
+  controllerMessenger?: ControllerMessenger,
 ) => {
   if (!transactionMeta) return {};
-
-  const smartTransaction =
+  let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
-
-  if (smartTransaction?.statusMetadata) {
-    const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
-    return {
-      duplicated,
-      timedOut,
-      proxied,
-    };
+  const shouldWaitForSmartTransactionConfirmationDoneEvent =
+    waitForSmartTransaction &&
+    !smartTransaction?.statusMetadata && // We get this after polling for a status for a Smart Transaction.
+    controllerMessenger;
+  if (shouldWaitForSmartTransactionConfirmationDoneEvent) {
+    smartTransaction = await waitForSmartTransactionConfirmationDone(
+      controllerMessenger,
+    );
   }
-
-  return {};
+  if (!smartTransaction?.statusMetadata) {
+    return {};
+  }
+  const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
+  return {
+    smart_transaction_duplicated: duplicated,
+    smart_transaction_timed_out: timedOut,
+    smart_transaction_proxied: proxied,
+  };
 };

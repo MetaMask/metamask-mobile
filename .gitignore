@@ -41,6 +41,7 @@ android/app/_build*
 
 # if we ever want to add google services
 android/app/google-services.json
+ios/GoogleService-Info.plist
 
 # node.js
 node_modules/
@@ -133,3 +134,6 @@ android/app/src/main/assets/modules.json
 .expo
 dist/
 web-build/
+
+# Google firebase base64 derived configs
+**/GoogleService-Info.plist
