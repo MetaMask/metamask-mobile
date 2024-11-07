@@ -59,12 +59,14 @@ describe('Migration #60 - Insert NotificationServicesController if missing', () 
 
   it('should insert default NotificationServicesController if missing', async () => {
     const oldState = {
+      ...initialRootState,
       engine: {
         backgroundState: {},
       },
     };
 
     const expectedState = {
+        ...initialRootState,
       engine: {
         backgroundState: {
             NotificationServicesController: DEFAULT_NOTIFICATION_SERVICES_CONTROLLER
