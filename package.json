@@ -146,7 +146,7 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
-    "@metamask/eth-ledger-bridge-keyring": "^5.0.1",
+    "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
     "@metamask/eth-query": "^4.0.0",
