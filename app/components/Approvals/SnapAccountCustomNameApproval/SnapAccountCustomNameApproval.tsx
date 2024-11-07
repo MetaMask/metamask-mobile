@@ -18,6 +18,7 @@ import BottomSheetFooter, {
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../locales/i18n';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import {
@@ -27,7 +28,6 @@ import {
 } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { InternalAccount } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../core/Engine';
 
@@ -35,21 +35,26 @@ const SnapAccountCustomNameApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
   const internalAccounts = useSelector(selectInternalAccounts);
   const [accountName, setAccountName] = useState<string>('');
+  const [isNameTaken, setIsNameTaken] = useState<boolean>(false);
 
   const { styles } = useStyles(styleSheet, {});
 
   const onAddAccountPressed = useCallback(() => {
-    onConfirm(undefined, { success: true, name: accountName });
-  }, [accountName, onConfirm]);
+    if (!isNameTaken) {
+      onConfirm(undefined, { success: true, name: accountName });
+    }
+  }, [accountName, onConfirm, isNameTaken]);
 
   console.log(
     'SnapKeyring: SnapAccountCustomNameApproval',
     JSON.stringify(approvalRequest, null, 2),
   );
 
-  function isNameTaken(name: string, accounts: InternalAccount[]) {
-    return accounts.some((account) => account.metadata.name === name);
-  }
+  const checkIfNameTaken = useCallback(
+    (name: string) =>
+      internalAccounts.some((account) => account.metadata.name === name),
+    [internalAccounts],
+  );
 
   useEffect(() => {
     if (approvalRequest?.requestData.snapSuggestedAccountName) {
@@ -59,7 +64,7 @@ const SnapAccountCustomNameApproval = () => {
       let candidateName = approvalRequest.requestData.snapSuggestedAccountName;
 
       // Keep incrementing suffix until we find an available name
-      while (isNameTaken(candidateName, internalAccounts)) {
+      while (checkIfNameTaken(candidateName)) {
         suffix += 1;
         candidateName = `${snapSuggestedAccountName} ${suffix}`;
       }
@@ -71,7 +76,7 @@ const SnapAccountCustomNameApproval = () => {
         );
       setAccountName(nextAccountName);
     }
-  }, [approvalRequest, internalAccounts]);
+  }, [approvalRequest, internalAccounts, checkIfNameTaken]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
@@ -87,6 +92,12 @@ const SnapAccountCustomNameApproval = () => {
     size: ButtonSize.Lg,
     onPress: onAddAccountPressed,
     testID: SNAP_ACCOUNT_CUSTOM_NAME_ADD_ACCOUNT_BUTTON,
+    isDisabled: isNameTaken,
+  };
+
+  const handleNameChange = (text: string) => {
+    setAccountName(text);
+    setIsNameTaken(checkIfNameTaken(text));
   };
 
   return (
@@ -107,9 +118,14 @@ const SnapAccountCustomNameApproval = () => {
         <TextInput
           style={styles.input}
           value={accountName}
-          onChangeText={(text) => setAccountName(text)}
+          onChangeText={handleNameChange}
           testID={SNAP_ACCOUNT_CUSTOM_NAME_INPUT}
         />
+        {isNameTaken && (
+          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+            {strings('snap_account_custom_name_approval.name_taken_message')}
+          </Text>
+        )}
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
