@@ -514,8 +514,8 @@ workflows:
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
+        stack: osx-xcode-15.0.x
+        machine_type_id: g2.mac.large
     after_run:
       - wdio_ios_e2e_test
 
