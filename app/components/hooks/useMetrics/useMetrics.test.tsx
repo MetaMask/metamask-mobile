@@ -2,7 +2,6 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
-  IMetaMetricsEvent,
 } from '../../../core/Analytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
@@ -43,6 +42,9 @@ const mockMetrics = {
   getDeleteRegulationId: jest.fn(() => expectedDataDeleteRegulationId),
   isDataRecorded: jest.fn(() => true),
   isEnabled: jest.fn(() => true),
+  getMetaMetricsId: jest.fn(() =>
+    Promise.resolve('4d657461-4d61-436b-8e73-46756e212121'),
+  ),
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
@@ -73,7 +75,7 @@ describe('useMetrics', () => {
         "enable": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
-        "getMetaMetricsId": undefined,
+        "getMetaMetricsId": [MockFunction],
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
         "trackEvent": [MockFunction],
@@ -83,10 +85,6 @@ describe('useMetrics', () => {
 
   it('calls MetaMetrics functions', async () => {
     const { result } = renderHook(() => useMetrics());
-
-    const event: IMetaMetricsEvent = {
-      category: 'test',
-    };
 
     const {
       trackEvent,
@@ -98,7 +96,12 @@ describe('useMetrics', () => {
       getDeleteRegulationId,
       isDataRecorded,
       isEnabled,
+      createEventBuilder,
     } = result.current;
+
+    const event = createEventBuilder({
+      category: 'test event',
+    }).build();
 
     let deletionTaskIdValue,
       dataDeleteStatusValue,

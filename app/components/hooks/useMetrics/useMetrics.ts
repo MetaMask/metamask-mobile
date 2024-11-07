@@ -74,6 +74,7 @@ import { MetaMetrics } from '../../../core/Analytics';
  *   isDataRecorded,
  *   isEnabled,
  *   getMetaMetricsId,
+ *   createEventBuilder,
  * } = useMetrics();
  */
 const useMetrics = (): IUseMetricsHook => ({
