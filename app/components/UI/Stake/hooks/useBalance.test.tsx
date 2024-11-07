@@ -7,8 +7,6 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useBalance from './useBalance';
 import { toHex } from '@metamask/controller-utils';
-import usePooledStakes from './usePooledStakes';
-import { PooledStake } from '@metamask/stake-sdk';
 
 const MOCK_ADDRESS_1 = '0x0';
 
