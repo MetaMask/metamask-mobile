@@ -25,24 +25,53 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button/Button.types';
+import { useSelector } from 'react-redux';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { InternalAccount } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import Engine from '../../../core/Engine';
 
 const SnapAccountCustomNameApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
-  console.log(
-    'SnapKeyring: SnapAccountCustomNameApproval',
-    JSON.stringify(approvalRequest, null, 2),
-  );
+  const internalAccounts = useSelector(selectInternalAccounts);
   const [accountName, setAccountName] = useState<string>('');
-
-  useEffect(() => {
-    setAccountName(approvalRequest?.requestData.snapSuggestedAccountName || '');
-  }, [approvalRequest]);
 
   const { styles } = useStyles(styleSheet, {});
 
   const onAddAccountPressed = useCallback(() => {
     onConfirm(undefined, { success: true, name: accountName });
   }, [accountName, onConfirm]);
+
+  console.log(
+    'SnapKeyring: SnapAccountCustomNameApproval',
+    JSON.stringify(approvalRequest, null, 2),
+  );
+
+  function isNameTaken(name: string, accounts: InternalAccount[]) {
+    return accounts.some((account) => account.metadata.name === name);
+  }
+
+  useEffect(() => {
+    if (approvalRequest?.requestData.snapSuggestedAccountName) {
+      let suffix = 1;
+      const snapSuggestedAccountName =
+        approvalRequest?.requestData.snapSuggestedAccountName;
+      let candidateName = approvalRequest.requestData.snapSuggestedAccountName;
+
+      // Keep incrementing suffix until we find an available name
+      while (isNameTaken(candidateName, internalAccounts)) {
+        suffix += 1;
+        candidateName = `${snapSuggestedAccountName} ${suffix}`;
+      }
+      setAccountName(candidateName);
+    } else {
+      const nextAccountName =
+        Engine.context.AccountsController.getNextAvailableAccountName(
+          KeyringTypes.snap,
+        );
+      setAccountName(nextAccountName);
+    }
+  }, [approvalRequest, internalAccounts]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,

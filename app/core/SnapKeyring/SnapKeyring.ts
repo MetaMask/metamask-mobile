@@ -122,24 +122,34 @@ export const snapKeyringBuilder = (
             accountNameConfirmationResult,
           );
 
-          // Approve everything for now because we have not implemented snap account confirmations yet
-          await handleUserInput(true);
-          await persistKeyringHelper();
-          const account = controllerMessenger.call(
-            'AccountsController:getAccountByAddress',
-            address,
-          );
-          if (!account) {
-            throw new Error(
-              `Internal account not found for address: ${address}`,
+          if (accountNameConfirmationResult.success) {
+            // Approve everything for now because we have not implemented snap account confirmations yet
+            await handleUserInput(true);
+            await persistKeyringHelper();
+            const account = controllerMessenger.call(
+              'AccountsController:getAccountByAddress',
+              address,
             );
-          }
+            if (!account) {
+              throw new Error(
+                `Internal account not found for address: ${address}`,
+              );
+            }
 
-          // Set the selected account to the new account
-          controllerMessenger.call(
-            'AccountsController:setSelectedAccount',
-            account.id,
-          );
+            // Set the selected account to the new account
+            controllerMessenger.call(
+              'AccountsController:setSelectedAccount',
+              account.id,
+            );
+
+            if (accountNameConfirmationResult.name) {
+              controllerMessenger.call(
+                'AccountsController:setAccountName',
+                account.id,
+                accountNameConfirmationResult.name,
+              );
+            }
+          }
         } catch (error) {
           console.log('SnapKeyring: addAccount error', error);
           controllerMessenger.call('ApprovalController:endFlow', {
