@@ -173,6 +173,7 @@ import {
   weiToFiatNumber,
   toHexadecimal,
   addHexPrefix,
+  hexToBN,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -1997,18 +1998,13 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
+        const totalAccountBalance = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance).add(hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].stakedBalance ?? '0x00'));
         ethFiat = weiToFiatNumber(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
-          ].balance,
-          conversionRate,
-          decimalsToShow,
-        );
-
-        ethFiat += weiToFiatNumber(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
-          ].stakedBalance ?? '0x00',
+          totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );
