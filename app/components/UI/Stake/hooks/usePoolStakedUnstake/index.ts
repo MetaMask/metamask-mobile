@@ -2,6 +2,7 @@ import { PooledStakingContract, ChainId } from '@metamask/stake-sdk';
 import { useStakeContext } from '../useStakeContext';
 import {
   TransactionParams,
+  TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { addTransaction } from '../../../../../util/transaction-controller';
@@ -50,6 +51,7 @@ const attemptUnstakeTransaction =
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: ORIGIN_METAMASK,
+        type: TransactionType.stakingUnstake,
       });
     } catch (e) {
       const errorMessage = (e as Error).message;
