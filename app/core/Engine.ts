@@ -1644,14 +1644,10 @@ export class Engine {
             `${this.keyringController.name}:signMessage`,
             `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
+            `${networkController.name}:getNetworkClientById`,
           ],
           allowedEvents: [],
         }),
-        getAllState: () => store.getState(),
-        getCurrentChainId: () =>
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId,
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
