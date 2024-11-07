@@ -291,6 +291,47 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     }
   });
 
+  it('should report native currency symbol length being too long', async () => {
+    const symbol = 'aaaaaaaaaaaaaaa';
+    try {
+      await wallet_addEthereumChain({
+        req: {
+          params: [
+            {
+              ...correctParams,
+              nativeCurrency: { symbol, decimals: 18 },
+            },
+          ],
+        },
+        ...otherOptions,
+      });
+      fail('expected an error to be thrown');
+    } catch (error) {
+      expect(error.message).toContain(
+        `Expected 1-6 character string 'nativeCurrency.symbol'. Received:\n${symbol}`,
+      );
+    }
+  });
+
+  it('should allow 1 letter native currency symbols', async () => {
+    jest.mock('./networkChecker.util');
+    jest
+      .spyOn(Engine.context.NetworkController, 'addNetwork')
+      .mockResolvedValue({ rpcEndpoints: [] });
+
+    await wallet_addEthereumChain({
+      req: {
+        params: [
+          {
+            ...correctParams,
+            nativeCurrency: { symbol: 'a', decimals: 18 },
+          },
+        ],
+      },
+      ...otherOptions,
+    });
+  });
+
   describe('Approval Flow', () => {
     it('should start and end a new approval flow if chain does not already exist', async () => {
       jest
