@@ -267,6 +267,10 @@ function startSpan<T>(
     startTime,
   };
 
+  if(!parentSpan) {
+    spanOptions.forceTransaction = true;
+  }
+
   return withScope((scope) => {
     initScope(scope, request);
 
