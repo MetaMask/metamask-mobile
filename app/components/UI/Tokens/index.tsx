@@ -168,9 +168,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.startPolling({
-          nativeCurrencies,
-        }),
+        CurrencyRateController.updateExchangeRate(nativeCurrencies),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
