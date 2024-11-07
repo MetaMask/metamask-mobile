@@ -1,6 +1,6 @@
 import {  renderHook } from '@testing-library/react-hooks';
 
-import usePolling from "./usePolling";
+import usePolling from './usePolling';
 
 describe('usePolling', () => {
 
