@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AssetList from './';
 
 describe('AssetList', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AssetList
         searchQuery={''}
         searchResults={[]}
@@ -12,6 +12,6 @@ describe('AssetList', () => {
         selectedAsset={{ address: '0xABC', symbol: 'ABC', decimals: 0 }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

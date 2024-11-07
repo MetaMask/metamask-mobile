@@ -52,5 +52,6 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event.inputs.base-branch }}
         run: |
           ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ needs.generate-build-version.outputs.build-version }}
