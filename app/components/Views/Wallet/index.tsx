@@ -100,6 +100,7 @@ import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountS
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -183,6 +184,7 @@ const Wallet = ({
    * ETH to current currency conversion rate
    */
   const conversionRate = useSelector(selectConversionRate);
+  const contractBalances = useSelector(selectContractBalances);
   /**
    * Currency code of the currently-active currency
    */
@@ -602,6 +604,7 @@ const Wallet = ({
         </>
       </View>
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tokens,
     accountBalanceByChainId,
@@ -615,6 +618,7 @@ const Wallet = ({
     ticker,
     conversionRate,
     currentCurrency,
+    contractBalances,
   ]);
   const renderLoader = useCallback(
     () => (
