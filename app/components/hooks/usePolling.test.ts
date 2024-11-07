@@ -25,7 +25,7 @@ describe('usePolling', () => {
 
     // Remove one input, and add another
     inputs[0] = 'baz';
-    rerender({ input: inputs});
+    rerender({ input: inputs });
     expect(mockStopPollingByPollingToken).toHaveBeenCalledWith('foo_token');
     expect(mockStartPolling).toHaveBeenCalledWith('baz');
 
