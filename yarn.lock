@@ -4386,7 +4386,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^3.0.0", "@metamask/base-controller@^3.2.3":
+"@metamask/base-controller@^3.2.3":
   version "3.2.3"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.3.tgz#7436a14f6789acf0814952dabaa70ee4fb7d473c"
   integrity sha512-k66oZe7BOEx0D5N5X8feE/32QlrUTmiEHHAZU/yCac2+VHllJOCEQV/cTeaAtgepnEf8O7SskvYZN+eIjgS99w==
@@ -4959,7 +4959,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^17.0.0", "@metamask/network-controller@^17.1.0":
+"@metamask/network-controller@^17.1.0":
   version "17.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-17.2.1.tgz#55d846e9e6000f3264e9ac1cc9c5b1493bac335a"
   integrity sha512-+cWbnqJyuLO+a3c9Rmdr10onNXv03J2Knl+IAR8QztAczqegtXB0pwTYlclU+j73Rsi9XWrUxS6fMGK1Vb3r9g==
@@ -5204,15 +5204,14 @@
     "@metamask/utils" "^9.0.0"
     readable-stream "3.6.2"
 
-"@metamask/ppom-validator@0.32.0":
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.32.0.tgz#e732cd946605c3abb0e11f175013dab879166004"
-  integrity sha512-BHfKp2wZRhyamQ8YooD+r24wKrYb+ORO6zvwqOva3niWo/5iTNgFt/iQ6CS5dPeklCvyVH8RAxS6Fgk7Mu7XKA==
+"@metamask/ppom-validator@0.35.1":
+  version "0.35.1"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.35.1.tgz#9ccece28f9f8947caef575849ef41f2ca15baa13"
+  integrity sha512-iaJRIFUXNBeuQwy+6B10mkPJDAmhvSyu5PAehSNSj+J2Q7Vy3AJe9GWI5t62j3IeDnwuny+Av+x/T+iI5D/b8w==
   dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^8.0.1"
-    "@metamask/network-controller" "^17.0.0"
-    "@metamask/utils" "^8.3.0"
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/utils" "^9.2.1"
     await-semaphore "^0.1.3"
     crypto-js "^4.2.0"
     elliptic "^6.5.4"
