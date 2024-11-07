@@ -11,7 +11,6 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
@@ -47,6 +46,7 @@ const AccountSelectorList = ({
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
+  privacyMode = false,
   ...props
 }: AccountSelectorListProps) => {
   // TODO: Replace "any" with type
@@ -64,7 +64,6 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const privacyMode = useSelector(selectPrivacyMode);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(

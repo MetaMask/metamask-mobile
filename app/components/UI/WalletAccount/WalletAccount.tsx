@@ -78,7 +78,11 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         accountName={accountName}
         accountAvatarType={accountAvatarType}
         onPress={() => {
-          navigate(...createAccountSelectorNavDetails({}));
+          navigate(
+            ...createAccountSelectorNavDetails({
+              privacyMode: true,
+            }),
+          );
         }}
         accountTypeLabel={
           getLabelTextByAddress(selectedAccount?.address) || undefined
