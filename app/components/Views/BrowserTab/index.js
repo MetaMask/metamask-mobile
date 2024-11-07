@@ -80,6 +80,7 @@ import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
+  OPEN_FAVORITES_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
   OPEN_IN_BROWSER_OPTION,
@@ -298,7 +299,8 @@ export const BrowserTab = (props) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
-  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
+  const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
+    useMetrics();
   /**
    * Is the current tab the active tab
    */
@@ -979,6 +981,18 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Go to favorites page
+   */
+  const goToFavorites = async () => {
+    toggleOptionsIfNeeded();
+    if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
+    await go(OLD_HOMEPAGE_URL_HOST);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
+    );
+  };
+
+  /**
    * Handle url input submit
    */
   const onUrlInputSubmit = useCallback(
@@ -1289,10 +1303,28 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Renders Go to Favorites option
+   */
+  const renderGoToFavorites = () => (
+    <Button onPress={goToFavorites} style={styles.option}>
+      <View style={styles.optionIconWrapper}>
+        <Icon name="star" size={16} style={styles.optionIcon} />
+      </View>
+      <Text
+        style={styles.optionText}
+        numberOfLines={2}
+        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
+      >
+        {strings('browser.go_to_favorites')}
+      </Text>
+    </Button>
+  );
+
+  /**
    * Render non-homepage options menu
    */
   const renderNonHomeOptions = () => {
-    if (isHomepage()) return null;
+    if (isHomepage()) return renderGoToFavorites();
 
     return (
       <React.Fragment>
@@ -1311,7 +1343,7 @@ export const BrowserTab = (props) => {
         {!isBookmark() && (
           <Button onPress={addBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
-              <Icon name="star" size={16} style={styles.optionIcon} />
+              <Icon name="plus-square" size={16} style={styles.optionIcon} />
             </View>
             <Text
               style={styles.optionText}
@@ -1322,6 +1354,7 @@ export const BrowserTab = (props) => {
             </Text>
           </Button>
         )}
+        {renderGoToFavorites()}
         <Button onPress={share} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />

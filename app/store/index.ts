@@ -72,7 +72,7 @@ const createStoreAndPersistor = async () => {
   /**
    * Initialize services after persist is completed
    */
-  const onPersistComplete = async () => {
+  const onPersistComplete = () => {
     endTrace({ name: TraceName.StorageRehydration });
 
     /**

@@ -135,6 +135,8 @@ stages:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      # - run_tag_smoke_notifications_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -159,6 +161,8 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
       - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -520,6 +524,22 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_notifications_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_notifications_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_assets_ios:
@@ -1503,7 +1523,10 @@ app:
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: false
+      MM_POOLED_STAKING_UI_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1536,16 +1559,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.32.0
+      VERSION_NAME: 7.33.2
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1450
+      VERSION_NUMBER: 1474
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.32.0
+      FLASK_VERSION_NAME: 7.33.2
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1450
+      FLASK_VERSION_NUMBER: 1474
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1563,7 +1586,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.14.0
+      NODE_VERSION: 20.17.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
@@ -1573,7 +1596,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
-    machine_type_id: g2-m1-max.5core
+    machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline

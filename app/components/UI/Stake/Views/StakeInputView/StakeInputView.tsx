@@ -17,14 +17,14 @@ import EstimatedAnnualRewardsCard from '../../components/EstimatedAnnualRewardsC
 import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
-import useBalance from '../../hooks/useBalance';
 import InputDisplay from '../../components/InputDisplay';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { balance, balanceFiatNumber, balanceWei } = useBalance();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     isEth,
@@ -45,12 +45,23 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
     isLoadingVaultData,
-  } = useStakingInputHandlers(balanceWei);
+    handleMax,
+    balanceValue,
+  } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
+      .addProperties({
+        selected_provider: 'consensys',
+        text: 'Tooltip Question Mark Trigger',
+        location: 'Stake Input View'
+      })
+      .build()
+    );
   };
 
   const handleStakePress = useCallback(() => {
@@ -64,14 +75,35 @@ const StakeInputView = () => {
         annualRewardRate,
       },
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+      .addProperties({
+        selected_provider: 'consensys',
+        tokens_to_stake_native_value: amountEth,
+        tokens_to_stake_usd_value: fiatAmount,
+      })
+      .build(),
+    );
   }, [
+    amountEth,
     navigation,
     amountWei,
     fiatAmount,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
+    trackEvent,
+    createEventBuilder
   ]);
+
+  const handleMaxButtonPress = () => {
+    navigation.navigate('StakeModals', {
+      screen: Routes.STAKING.MODALS.MAX_INPUT,
+      params: {
+        handleMaxPress: handleMax,
+      },
+    });
+  };
 
   const balanceText = strings('stake.balance');
 
@@ -80,10 +112,6 @@ const StakeInputView = () => {
     : isOverMaximum
     ? strings('stake.not_enough_eth')
     : strings('stake.review');
-
-  const balanceValue = isEth
-    ? `${balance} ETH`
-    : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
   useEffect(() => {
     navigation.setOptions(
@@ -121,6 +149,7 @@ const StakeInputView = () => {
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleAmountPress}
+        onMaxPress={handleMaxButtonPress}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}

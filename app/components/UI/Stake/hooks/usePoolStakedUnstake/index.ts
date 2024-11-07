@@ -2,6 +2,7 @@ import { PooledStakingContract, ChainId } from '@metamask/stake-sdk';
 import { useStakeContext } from '../useStakeContext';
 import {
   TransactionParams,
+  TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { addTransaction } from '../../../../../util/transaction-controller';
@@ -24,7 +25,7 @@ const generateUnstakeTxParams = (
 const attemptUnstakeTransaction =
   (pooledStakingContract: PooledStakingContract) =>
   // Note: receiver is the user address attempting to unstake.
-  async (valueWei: string, receiver: string, gasBufferPct: number = 30) => {
+  async (valueWei: string, receiver: string) => {
     try {
       const shares = await pooledStakingContract.convertToShares(valueWei);
 
@@ -37,7 +38,7 @@ const attemptUnstakeTransaction =
         await pooledStakingContract.encodeEnterExitQueueTransactionData(
           shares,
           receiver,
-          { gasLimit, gasBufferPct },
+          { gasLimit },
         );
 
       const txParams = generateUnstakeTxParams(
@@ -47,9 +48,10 @@ const attemptUnstakeTransaction =
         chainId,
       );
 
-      return addTransaction(txParams, {
+      return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: ORIGIN_METAMASK,
+        type: TransactionType.stakingUnstake,
       });
     } catch (e) {
       const errorMessage = (e as Error).message;

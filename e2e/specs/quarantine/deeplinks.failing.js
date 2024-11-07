@@ -2,9 +2,9 @@
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 
-import ConnectModal from '../../pages/modals/ConnectModal';
-import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
-import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
+import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
+import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
+import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 
 import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
@@ -99,15 +99,15 @@ describe(Regression('Deep linking Tests'), () => {
       PopularNetworksList.BNB.providerConfig.nickname,
     );
 
-    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
     await Assertions.checkIfElementToHaveText(
-      NetworkApprovalModal.displayName,
+      NetworkApprovalBottomSheet.displayName,
       PopularNetworksList.BNB.providerConfig.nickname,
     );
-    await NetworkApprovalModal.tapApproveButton();
+    await NetworkApprovalBottomSheet.tapApproveButton();
 
-    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
-    await NetworkAddedModal.tapCloseButton();
+    await Assertions.checkIfVisible(NetworkAddedBottomSheet.switchNetwork);
+    await NetworkAddedBottomSheet.tapCloseButton();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
   });
 
@@ -116,17 +116,17 @@ describe(Regression('Deep linking Tests'), () => {
       PopularNetworksList.Polygon.providerConfig.nickname,
     );
 
-    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
     await Assertions.checkIfElementToHaveText(
-      NetworkApprovalModal.displayName,
+      NetworkApprovalBottomSheet.displayName,
       PopularNetworksList.Polygon.providerConfig.nickname,
     );
 
-    await NetworkApprovalModal.tapApproveButton();
+    await NetworkApprovalBottomSheet.tapApproveButton();
     await TestHelpers.delay(1000);
 
-    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
-    await NetworkAddedModal.tapSwitchToNetwork();
+    await Assertions.checkIfVisible(NetworkAddedBottomSheet.switchNetwork);
+    await NetworkAddedBottomSheet.tapSwitchToNetwork();
 
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementToHaveText(
@@ -193,12 +193,12 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
     await TestHelpers.delay(4500);
 
-    await Assertions.checkIfVisible(ConnectModal.container);
-    await ConnectModal.tapConnectButton();
+    await Assertions.checkIfVisible(ConnectBottomSheet.container);
+    await ConnectBottomSheet.tapConnectButton();
 
     await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
     await Assertions.checkIfVisible(Browser.browserScreenID);
-    await Assertions.checkIfNotVisible(ConnectModal.container);
+    await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
   });
 });
