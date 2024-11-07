@@ -79,15 +79,15 @@ const AddressElement: React.FC<AddressElementProps> = ({
           >
             {primaryLabel}
           </Text>
-          {accountTypeLabel && (
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.accountNameLabelText}
-            >
-              {accountTypeLabel}
-            </Text>
-          )}
         </View>
+        {accountTypeLabel && (
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.accountNameLabelText}
+          >
+            {accountTypeLabel}
+          </Text>
+        )}
         {!!secondaryLabel && (
           <Text
             variant={TextVariant.BodyMD}
