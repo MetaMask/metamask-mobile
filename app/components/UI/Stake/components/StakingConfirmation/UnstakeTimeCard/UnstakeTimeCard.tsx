@@ -24,10 +24,7 @@ const UnstakingTimeCard = () => {
         }}
         value={{
           label: {
-            text: `${strings('stake.up_to_n', { count: 11 })} ${strings(
-              'stake.day',
-              { count: 11 },
-            )}`,
+            text: strings('stake.estimated_unstaking_time'),
             variant: TextVariant.BodyMD,
           },
         }}

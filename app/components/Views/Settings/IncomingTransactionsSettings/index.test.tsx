@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Networks from '../../../../util/networks';
+import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
 import IncomingTransactionsSettings from './';
 import {
   INCOMING_MAINNET_TOGGLE,
@@ -46,11 +47,34 @@ describe('IncomingTransactionsSettings', () => {
           displayNftMedia: false,
           useNftDetection: false,
         },
-      },
-    },
-    network: {
-      provider: {
-        chainId: '1',
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            [Networks[MAINNET].chainId]: {
+              blockExplorerUrls: [],
+              chainId: Networks[MAINNET].chainId,
+              defaultRpcEndpointIndex: 0,
+              name: 'Mainnet',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  url: 'some url',
+                },
+              ],
+            },
+            [Networks[LINEA_MAINNET].chainId]: {
+              blockExplorerUrls: [],
+              chainId: Networks[LINEA_MAINNET].chainId,
+              defaultRpcEndpointIndex: 0,
+              name: 'Linea Mainnet',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  url: 'some url',
+                },
+              ],
+            },
+          },
+        },
       },
     },
   };

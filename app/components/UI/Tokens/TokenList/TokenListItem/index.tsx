@@ -55,6 +55,7 @@ interface TokenListItemProps {
   showScamWarningModal: boolean;
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
+  privacyMode: boolean;
 }
 
 export const TokenListItem = ({
@@ -62,6 +63,7 @@ export const TokenListItem = ({
   showScamWarningModal,
   showRemoveMenu,
   setShowScamWarningModal,
+  privacyMode,
 }: TokenListItemProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -182,6 +184,7 @@ export const TokenListItem = ({
       asset={asset}
       balance={secondaryBalance}
       mainBalance={mainBalance}
+      privacyMode={privacyMode}
     >
       <BadgeWrapper
         badgeElement={

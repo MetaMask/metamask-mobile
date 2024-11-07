@@ -203,6 +203,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             "lineHeight": 24,
           }
         }
+        testID="fiat-balance-test-id"
       >
         456
       </Text>
@@ -220,6 +221,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             "textTransform": "uppercase",
           }
         }
+        testID="main-balance-test-id"
       >
         123
       </Text>
@@ -433,6 +435,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
             "textTransform": "uppercase",
           }
         }
+        testID="main-balance-test-id"
       >
         123
       </Text>

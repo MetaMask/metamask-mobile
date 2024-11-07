@@ -1,4 +1,5 @@
 import { USER_INTENT } from '../../../constants/permissions';
+import { Account } from '../../hooks/useAccounts';
 
 export interface PermissionsSummaryProps {
   currentPageInformation: {
@@ -21,5 +22,7 @@ export interface PermissionsSummaryProps {
     chainName: string;
     chainId: string;
   };
+  accounts?: Account[];
   accountAddresses?: string[];
+  networkAvatars?: ({ name: string; imageSource: string } | null)[];
 }

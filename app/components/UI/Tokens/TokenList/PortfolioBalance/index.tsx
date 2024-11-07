@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
@@ -15,6 +15,7 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { RootState } from '../../../../../reducers';
 import { renderFiat } from '../../../../../util/number';
 import { isTestNet } from '../../../../../util/networks';
@@ -25,16 +26,22 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 
 export const PortfolioBalance = () => {
+  const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const balance = Engine.getTotalFiatAccountBalance();
@@ -49,6 +56,7 @@ export const PortfolioBalance = () => {
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -108,35 +116,68 @@ export const PortfolioBalance = () => {
     });
   };
 
+  const renderAggregatedPercentage = () => {
+    if (isTestNet(chainId)) {
+      return null;
+    }
+
+    return (
+      <AggregatedPercentage
+        privacyMode={privacyMode}
+        ethFiat={balance?.ethFiat}
+        tokenFiat={balance?.tokenFiat}
+        tokenFiat1dAgo={balance?.tokenFiat1dAgo}
+        ethFiat1dAgo={balance?.ethFiat1dAgo}
+      />
+    );
+  };
+
+  const toggleIsBalanceAndAssetsHidden = (value: boolean) => {
+    PreferencesController.setPrivacyMode(value);
+  };
+
   return (
     <View style={styles.portfolioBalance}>
       <View>
-        <Text
-          testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-          variant={TextVariant.DisplayMD}
-        >
-          {fiatBalance}
-        </Text>
+        <View>
+          <View style={styles.balanceContainer}>
+            <SensitiveText
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
+              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+              variant={TextVariant.DisplayMD}
+            >
+              {fiatBalance}
+            </SensitiveText>
+            <TouchableOpacity
+              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+              testID="balance-container"
+            >
+              <Icon
+                style={styles.privacyIcon}
+                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                size={IconSize.Md}
+                color={colors.text.muted}
+                testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
+              />
+            </TouchableOpacity>
+          </View>
 
-        {!isTestNet(chainId) ? (
-          <AggregatedPercentage
-            ethFiat={balance?.ethFiat}
-            tokenFiat={balance?.tokenFiat}
-            tokenFiat1dAgo={balance?.tokenFiat1dAgo}
-            ethFiat1dAgo={balance?.ethFiat1dAgo}
-          />
-        ) : null}
+          {renderAggregatedPercentage()}
+        </View>
       </View>
-      <Button
-        variant={ButtonVariants.Secondary}
-        size={ButtonSize.Md}
-        width={ButtonWidthTypes.Full}
-        style={styles.buyButton}
-        onPress={onOpenPortfolio}
-        label={strings('asset_overview.portfolio_button')}
-        testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
-        endIconName={IconName.Export}
-      />
+      <View style={styles.portfolioButtonContainer}>
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
+          onPress={onOpenPortfolio}
+          label={strings('asset_overview.portfolio_button')}
+          testID={WalletViewSelectorsIDs.PORTFOLIO_BUTTON}
+          endIconName={IconName.Export}
+        />
+      </View>
     </View>
   );
 };

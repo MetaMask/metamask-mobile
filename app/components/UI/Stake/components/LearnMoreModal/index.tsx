@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import createLearnMoreModalStyles from './LearnMoreModal.styles';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 const styles = createLearnMoreModalStyles();
 
@@ -41,6 +42,7 @@ const LearnMoreModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -91,6 +93,15 @@ const LearnMoreModal = () => {
                   url: POOLED_STAKING_FAQ_URL,
                 },
               });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
+                .addProperties({
+                  selected_provider: 'consensys',
+                  text: 'Learn More',
+                  location: 'Learn More Modal'
+                })
+                .build()
+              );
             }} // Take to the faq page
             label={strings('stake.learn_more')}
             variant={ButtonVariants.Secondary}

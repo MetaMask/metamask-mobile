@@ -10,6 +10,8 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
+import { useSelector } from 'react-redux';
+import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -31,6 +33,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onReceive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const canSignTransactions = useSelector(selectCanSignTransactions);
 
   return (
     <View style={styles.activitiesButton}>
@@ -38,10 +41,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <View style={styles.buttonWrapper}>
           <WalletAction
             iconName={IconName.Add}
-            iconSize={AvatarSize.Lg}
             onPress={onBuy}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
             actionID={TokenOverviewSelectorsIDs.BUY_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
@@ -49,15 +53,15 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           </Text>
         </View>
       )}
-
       {displaySwapsButton && (
         <View style={styles.buttonWrapper}>
           <WalletAction
             iconName={IconName.SwapHorizontal}
-            iconSize={AvatarSize.Lg}
             onPress={goToSwaps}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
             actionID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
@@ -65,14 +69,14 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           </Text>
         </View>
       )}
-
       <View style={styles.buttonWrapper}>
         <WalletAction
           iconName={IconName.Bridge}
-          iconSize={AvatarSize.Lg}
           onPress={goToBridge}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
+          iconSize={AvatarSize.Lg}
+          disabled={!canSignTransactions}
           actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
@@ -82,10 +86,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       <View style={styles.buttonWrapper}>
         <WalletAction
           iconName={IconName.Arrow2Upright}
-          iconSize={AvatarSize.Lg}
           onPress={onSend}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
+          iconSize={AvatarSize.Lg}
+          disabled={!canSignTransactions}
           actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
@@ -95,10 +100,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       <View style={styles.buttonWrapper}>
         <WalletAction
           iconName={IconName.QrCode}
-          iconSize={AvatarSize.Lg}
           onPress={onReceive}
           iconStyle={styles.icon}
           containerStyle={styles.containerStyle}
+          iconSize={AvatarSize.Lg}
+          disabled={false}
           actionID={TokenOverviewSelectorsIDs.RECEIVE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>

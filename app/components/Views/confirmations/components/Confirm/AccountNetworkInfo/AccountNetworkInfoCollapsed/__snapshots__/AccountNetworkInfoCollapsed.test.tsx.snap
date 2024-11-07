@@ -154,7 +154,7 @@ exports[`AccountNetworkInfoCollapsed should match snapshot for personal sign 1`]
         }
       }
     >
-      Mainnet
+      Ethereum Mainnet
     </Text>
   </View>
 </View>

@@ -9,7 +9,6 @@ import Button, {
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import {
   getBlockExplorerByChainId,
-  TRIGGER_TYPES,
 } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
@@ -48,9 +47,9 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
       notification_id: notification.id,
       notification_type: notification.type,
-      ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-        ? { chain_id: notification?.chain_id }
-        : {}),
+      ...('chain_id' in notification && {
+        chain_id: notification.chain_id,
+      }),
       clicked_item: 'block_explorer',
     });
   };

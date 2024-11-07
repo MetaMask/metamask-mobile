@@ -12,6 +12,7 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
@@ -19,13 +20,24 @@ interface StakingCtaProps extends Pick<ViewProps, 'style'> {
 
 const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { navigate } = useNavigation();
 
-  const navigateToLearnMoreModal = () =>
+  const navigateToLearnMoreModal = () => {
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
+      .addProperties({
+        selected_provider: 'consensys',
+        text: 'Learn More',
+        location: 'Token Details'
+      })
+      .build()
+    );
+  };
 
   return (
     <View style={style}>

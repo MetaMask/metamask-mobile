@@ -28,8 +28,10 @@ const useStakingEligibility = () => {
       );
 
       setIsEligible(eligible);
+      return { isEligible: eligible };
     } catch (err) {
       setError('Failed to fetch pooled staking eligibility');
+      return { isEligible: false };
     } finally {
       setLoading(false);
     }

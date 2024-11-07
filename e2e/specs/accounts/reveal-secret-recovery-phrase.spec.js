@@ -6,11 +6,11 @@ import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/TabBarComponent.js';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
-import SrpQuizModal from '../../pages/modals/SrpQuizModal';
+import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
 import {
   SrpSecurityQuestionOneSelectorsText,
   SrpSecurityQuestionTwoSelectorsText,
-} from '../../selectors/Modals/SrpQuizModal.selectors';
+} from '../../selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase.js';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
 import FixtureServer from '../../fixtures/fixture-server.js';

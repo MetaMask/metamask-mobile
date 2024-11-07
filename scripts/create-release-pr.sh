@@ -35,29 +35,60 @@ RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}. The chan
   # Reference
   - Testing plan sheet - https://docs.google.com/spreadsheets/d/1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ/edit?gid=404070372#gid=404070372"
 
+echo "Configuring git.."
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
+
+echo "Fetching from remote..."
+git fetch
+
+# Check if the release branch already exists on the remote
+if git branch -a | grep -q "remotes/origin/${RELEASE_BRANCH_NAME}"; then
+    echo "Release branch exists on remote, checking out."
+    git checkout "${RELEASE_BRANCH_NAME}"
+else
+    echo "Release branch does not exist on remote, creating from ${BASE_BRANCH}."
+    git checkout -b "${RELEASE_BRANCH_NAME}"
+fi
+
+echo "Release Branch Checked Out"
+
+echo "Running version update scripts.."
+# Bump versions for the release
+./scripts/set-semvar-version.sh "${NEW_VERSION}"
+./scripts/set-build-version.sh "${NEW_VERSION_NUMBER}"
+
+echo "Adding and committing changes.."
+# Track our changes
+git add package.json android/app/build.gradle ios/MetaMask.xcodeproj/project.pbxproj bitrise.yml
+
+# Generate a commit
+git commit -m "bump semvar version to ${NEW_VERSION} && build version to ${NEW_VERSION_NUMBER}"
+
+echo "Pushing changes to the remote.."
+git push --set-upstream origin "${RELEASE_BRANCH_NAME}"
+
+echo Creating release PR..
 
 gh pr create \
   --draft \
   --title "feat: ${NEW_VERSION}" \
   --body "${RELEASE_BODY}" \
   --head "${RELEASE_BRANCH_NAME}";
+
 echo "Release PR Created"
 
-git checkout "${RELEASE_BRANCH_NAME}"
-echo "Release Branch Checked Out"
 
+echo "Checking out ${CHANGELOG_BRANCH_NAME}"
 git checkout -b "${CHANGELOG_BRANCH_NAME}"
 echo "Changelog Branch Created"
 
-#Bump versions for the release"
-SEMVER_VERSION="${NEW_VERSION}" VERSION_NUMBER="${NEW_VERSION_NUMBER}" yarn set-version
-
 #Generate changelog and test plan csv
+echo "Generating changelog and test plan csv.."
 node ./scripts/generate-rc-commits.mjs "${PREVIOUS_VERSION}" "${RELEASE_BRANCH_NAME}" 
 ./scripts/changelog-csv.sh  "${RELEASE_BRANCH_NAME}" 
 
+echo "Adding and committing changes.."
 git add ./commits.csv
 
 if ! (git commit -am "updated changelog and generated feature test plan");
@@ -66,13 +97,17 @@ then
     exit 1
 fi
 
-PR_BODY="This is PR updateds the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
+PR_BODY="This PR updates the change log for ${NEW_VERSION} and generates the test plan here [commit.csv](https://github.com/MetaMask/metamask-mobile/blob/${RELEASE_BRANCH_NAME}/commits.csv)"
 
+echo "Pushing changes to the remote.."
 git push --set-upstream origin "${CHANGELOG_BRANCH_NAME}"
 
+echo Creating release PR..
 gh pr create \
   --draft \
   --title "chore: ${CHANGELOG_BRANCH_NAME}" \
   --body "${PR_BODY}" \
   --base "${RELEASE_BRANCH_NAME}" \
   --head "${CHANGELOG_BRANCH_NAME}";
+
+echo "Changelog PR Created"

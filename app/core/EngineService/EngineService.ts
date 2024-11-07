@@ -53,7 +53,6 @@ class EngineService {
         name: 'AddressBookController',
         key: `${engine.context.AddressBookController.name}:stateChange`,
       },
-      { name: 'AssetsContractController' },
       { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',
@@ -141,6 +140,10 @@ class EngineService {
       {
         name: 'NotificationServicesController',
         key: 'NotificationServicesController:stateChange',
+      },
+      {
+        name: 'NotificationServicesPushController',
+        key: 'NotificationServicesPushController:stateChange',
       },
       ///: END:ONLY_INCLUDE_IF
       {

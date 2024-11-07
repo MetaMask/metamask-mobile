@@ -3,7 +3,7 @@ import React, { PureComponent } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
@@ -333,8 +333,8 @@ class SignatureRequest extends PureComponent {
     return (
       <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
-          cancelTestID={SigningModalSelectorsIDs.CANCEL_BUTTON}
-          confirmTestID={SigningModalSelectorsIDs.SIGN_BUTTON}
+          cancelTestID={SigningBottomSheetSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={SigningBottomSheetSelectorsIDs.SIGN_BUTTON}
           cancelText={strings('signature_request.cancel')}
           confirmText={
             isLedgerAccount

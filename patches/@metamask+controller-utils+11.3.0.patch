@@ -1,0 +1,18 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/types.cjs b/node_modules/@metamask/controller-utils/dist/types.cjs
+index b8c00f2..6268fb0 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.cjs
++++ b/node_modules/@metamask/controller-utils/dist/types.cjs
+@@ -97,11 +97,11 @@ exports.BlockExplorerUrl = {
+     [BuiltInNetworkName.LineaMainnet]: 'https://lineascan.build',
+ };
+ exports.NetworkNickname = {
+-    [BuiltInNetworkName.Mainnet]: 'Mainnet',
++    [BuiltInNetworkName.Mainnet]: 'Ethereum Mainnet',
+     [BuiltInNetworkName.Goerli]: 'Goerli',
+     [BuiltInNetworkName.Sepolia]: 'Sepolia',
+     [BuiltInNetworkName.LineaGoerli]: 'Linea Goerli',
+     [BuiltInNetworkName.LineaSepolia]: 'Linea Sepolia',
+-    [BuiltInNetworkName.LineaMainnet]: 'Linea Mainnet',
++    [BuiltInNetworkName.LineaMainnet]: 'Linea',
+ };
+ //# sourceMappingURL=types.cjs.map

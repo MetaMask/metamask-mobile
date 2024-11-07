@@ -1928,7 +1928,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2150,7 +2150,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2374,7 +2374,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2598,7 +2598,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2822,7 +2822,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -3044,7 +3044,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >

@@ -30,8 +30,20 @@ const CellSelectWithMenuMeta = {
       control: { type: 'boolean' },
       defaultValue: SAMPLE_CELLSELECT_WITH_BUTTON_PROPS.isDisabled,
     },
+    withAvatar: {
+      control: { type: 'boolean' },
+      defaultValue: true,
+    },
+    showSecondaryTextIcon: {
+      control: { type: 'boolean' },
+      defaultValue: true,
+    },
+    onTextClick: {
+      action: 'clicked',
+    },
   },
 };
+
 export default CellSelectWithMenuMeta;
 
 export const CellMultiSelectWithMenu = {

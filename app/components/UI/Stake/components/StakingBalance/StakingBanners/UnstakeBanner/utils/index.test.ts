@@ -11,7 +11,7 @@ describe('Unstake Banner Utils', () => {
       );
 
       expect(result).toBe(
-        `Unstaking ${MOCK_ETH_AMOUNT} ETH in progress. Come back later to claim it.`,
+        `Unstaking ${MOCK_ETH_AMOUNT} ETH in progress. Come back in a few days to claim it.`,
       );
     });
 

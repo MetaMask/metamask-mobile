@@ -2,7 +2,7 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 import {
- 
+
   HOME_SUGGESTION,
   UNISWAP_SUGGESTION,
 
@@ -16,7 +16,7 @@ import { BrowserURLBarSelectorsIDs } from '../../../e2e/selectors/Browser/Browse
 
 class AddressBarScreen {
   get urlCancelButton() {
-    return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID);
+    return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID);
   }
 
   get urlModalInput() {
@@ -32,7 +32,7 @@ class AddressBarScreen {
   }
 
   get urlClearIcon() {
-    return Selectors.getXpathElementByResourceId(BrowserViewSelectorsIDs.URL_CLEAR_ICON);
+    return Selectors.getXpathElementByResourceId(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
 
   async isAddressInputViewDisplayed() {

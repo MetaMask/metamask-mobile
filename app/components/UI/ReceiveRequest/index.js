@@ -28,7 +28,7 @@ import { isNetworkRampSupported } from '../Ramp/utils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
+import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';

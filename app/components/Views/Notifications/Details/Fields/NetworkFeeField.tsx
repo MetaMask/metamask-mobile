@@ -24,11 +24,12 @@ import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 import {
   type Notification,
-  TRIGGER_TYPES,
 } from '../../../../../util/notifications';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
+
+export const NETWORK_FEE_FIELD_TESTID = 'network-fee-field';
 
 type NetworkFeeFieldProps = ModalFieldNetworkFee & {
   notification: Notification;
@@ -38,7 +39,7 @@ type NetworkFeeFieldProps = ModalFieldNetworkFee & {
 
 type NetworkFee = Awaited<ReturnType<ModalFieldNetworkFee['getNetworkFees']>>;
 
-function useNetworkFee({ getNetworkFees }: NetworkFeeFieldProps) {
+export function useNetworkFee({ getNetworkFees }: NetworkFeeFieldProps) {
   const [data, setData] = useState<NetworkFee | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   useEffect(() => {
@@ -140,9 +141,9 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
       trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
         notification_id: notification.id,
         notification_type: notification.type,
-        ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-          ? { chain_id: notification?.chain_id }
-          : {}),
+        ...('chain_id' in notification && {
+          chain_id: notification.chain_id,
+        }),
         clicked_item: 'fee_details',
       });
     }
@@ -150,7 +151,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
 
   return (
     <>
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity testID={NETWORK_FEE_FIELD_TESTID} onPress={onPress}>
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}

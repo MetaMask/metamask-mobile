@@ -14,7 +14,9 @@ interface ClearEventsAction {
 
 export type OnboardingActionTypes = SaveEventAction | ClearEventsAction;
 
-export function saveOnboardingEvent(eventArgs: [IMetaMetricsEvent]): SaveEventAction {
+export function saveOnboardingEvent(
+  eventArgs: [IMetaMetricsEvent],
+): SaveEventAction {
   return {
     type: SAVE_EVENT,
     event: eventArgs,

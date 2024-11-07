@@ -258,10 +258,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   return (
-    <View
-      style={styles.wrapper}
-      testID={TokenOverviewSelectorsIDs.CONTAINER}
-    >
+    <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
         renderWarning()
       ) : (

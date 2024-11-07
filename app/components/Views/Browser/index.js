@@ -4,8 +4,7 @@ import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
   closeAllTabs,
   closeTab,
@@ -370,7 +369,7 @@ export const Browser = (props) => {
   return (
     <View
       style={baseStyles.flexGrow}
-      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
+      testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
       {renderBrowserTabs()}
       {renderTabsView()}

@@ -1,17 +1,14 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import {
-  PAYMENT_REQUEST_CLOSE_BUTTON,
-  PAYMENT_REQUEST_QR_CODE_CLOSE_ICON,
-} from './testIDs/Screens/RequestToken.testIds';
+import { SendLinkViewSelectorsIDs } from '../../e2e/selectors/Receive/SendLinkView.selectors';
 
 class SendLinkScreen {
   get requestCloseButton() {
-    return Selectors.getElementByPlatform(PAYMENT_REQUEST_CLOSE_BUTTON);
+    return Selectors.getElementByPlatform(SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON);
   }
 
   get closeRequestPaymentQRIcon() {
-    return Selectors.getElementByPlatform(PAYMENT_REQUEST_QR_CODE_CLOSE_ICON);
+    return Selectors.getElementByPlatform(SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON);
   }
 
   async closePaymentRequest() {

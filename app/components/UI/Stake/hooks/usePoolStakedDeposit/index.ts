@@ -1,6 +1,7 @@
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import {
   TransactionParams,
+  TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
@@ -63,6 +64,7 @@ const attemptDepositTransaction =
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: ORIGIN_METAMASK,
+        type: TransactionType.stakingDeposit,
       });
     } catch (e) {
       const errorMessage = (e as Error).message;

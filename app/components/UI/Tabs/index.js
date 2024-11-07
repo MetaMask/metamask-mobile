@@ -12,12 +12,7 @@ import {
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
-import {
-  MULTI_TAB_ADD_BUTTON,
-  MULTI_TAB_CLOSE_ALL_BUTTON,
-  MULTI_TAB_DONE_BUTTON,
-  MULTI_TAB_NO_TABS_MESSAGE,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
@@ -233,7 +228,7 @@ class Tabs extends PureComponent {
 
     return (
       <View style={styles.noTabs}>
-        <Text style={styles.noTabsTitle} testID={MULTI_TAB_NO_TABS_MESSAGE}>
+        <Text style={styles.noTabsTitle} testID={BrowserViewSelectorsIDs.NO_TABS_MESSAGE}>
           {strings('browser.no_tabs_title')}
         </Text>
         <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
@@ -286,7 +281,7 @@ class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={closeAllTabs}
-          testID={MULTI_TAB_CLOSE_ALL_BUTTON}
+          testID={BrowserViewSelectorsIDs.CLOSE_ALL_TABS}
         >
           <Text
             style={[
@@ -301,7 +296,7 @@ class Tabs extends PureComponent {
           <TouchableOpacity
             style={styles.newTabIconButton}
             onPress={this.onNewTabPress}
-            testID={MULTI_TAB_ADD_BUTTON}
+            testID={BrowserViewSelectorsIDs.ADD_NEW_TAB}
           >
             <MaterialCommunityIcon
               name="plus"
@@ -314,7 +309,7 @@ class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
           onPress={closeTabsView}
-          testID={MULTI_TAB_DONE_BUTTON}
+          testID={BrowserViewSelectorsIDs.DONE_BUTTON}
         >
           <Text
             style={[

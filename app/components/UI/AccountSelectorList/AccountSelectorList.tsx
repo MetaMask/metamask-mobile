@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, Platform, View } from 'react-native';
+import { Alert, ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -11,7 +11,11 @@ import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import Text from '../../../component-library/components/Texts/Text';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import { TextColor } from '../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
@@ -29,8 +33,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -61,30 +64,46 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
+  const privacyMode = useSelector(selectPrivacyMode);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => (
-      <View
-        style={styles.balancesContainer}
-        {...generateTestId(
-          Platform,
-          `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`,
-        )}
-      >
-        <Text style={styles.balanceLabel}>{fiatBalance}</Text>
-        {tokens && (
-          <AvatarGroup
-            avatarPropsList={tokens.map((tokenObj) => ({
-              ...tokenObj,
-              variant: AvatarVariant.Token,
-            }))}
-          />
-        )}
-      </View>
-    ),
-    [styles.balancesContainer, styles.balanceLabel],
+    ({ fiatBalance, tokens }: Assets, address: string) => {
+      const fiatBalanceStrSplit = fiatBalance.split('\n');
+      const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
+      const tokenTicker = fiatBalanceStrSplit[1] || '';
+      return (
+        <View
+          style={styles.balancesContainer}
+          testID={`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+        >
+          <SensitiveText
+            length={SensitiveTextLength.Long}
+            style={styles.balanceLabel}
+            isHidden={privacyMode}
+          >
+            {fiatBalanceAmount}
+          </SensitiveText>
+          <SensitiveText
+            length={SensitiveTextLength.Short}
+            style={styles.balanceLabel}
+            isHidden={privacyMode}
+            color={privacyMode ? TextColor.Alternative : TextColor.Default}
+          >
+            {tokenTicker}
+          </SensitiveText>
+          {tokens && (
+            <AvatarGroup
+              avatarPropsList={tokens.map((tokenObj) => ({
+                ...tokenObj,
+                variant: AvatarVariant.Token,
+              }))}
+            />
+          )}
+        </View>
+      );
+    },
+    [styles.balancesContainer, styles.balanceLabel, privacyMode],
   );
 
   const onLongPress = useCallback(

@@ -3,7 +3,7 @@ import {
   AccountListViewSelectorsIDs,
   AccountListViewSelectorsText,
 } from '../selectors/AccountListView.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 
@@ -38,12 +38,19 @@ class AccountListView {
 
   get connectAccountsButton() {
     return Matchers.getElementByID(
-      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
   getAccountElementAtIndex(index) {
     return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
+  }
+
+  getAccountElementByAccountName(accountName) {
+    return Matchers.getElementByIDAndLabel(
+      CellModalSelectorsIDs.BASE_TITLE,
+      accountName,
+    );
   }
 
   getSelectElement(index) {

@@ -1907,7 +1907,6 @@ function SwapsQuotesView({
               adjustsFontSizeToFit
               allowFontScaling
             >
-              ~
               {renderFromTokenMinimalUnit(
                 selectedQuote.destinationAmount,
                 destinationToken.decimals,

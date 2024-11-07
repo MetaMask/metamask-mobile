@@ -3,7 +3,6 @@ import {
   getFixturesServerPort,
   getGanachePort,
   getLocalTestDappPort,
-  getMockttpPort,
 } from './fixtures/utils';
 import Utilities from './utils/Utilities';
 
@@ -277,7 +276,6 @@ export default class TestHelpers {
       await device.reverseTcpPort(getGanachePort());
       await device.reverseTcpPort(getFixturesServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
-      await device.reverseTcpPort(getMockttpPort());
     }
   }
 }

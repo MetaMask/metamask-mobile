@@ -1,4 +1,7 @@
-import { MOCK_GET_POOLED_STAKES_API_RESPONSE, MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT } from '../__mocks__/mockData';
+import {
+  MOCK_GET_POOLED_STAKES_API_RESPONSE,
+  MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT,
+} from '../__mocks__/mockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -38,7 +41,10 @@ const initialState = {
 };
 
 jest.mock('../hooks/usePooledStakes');
-const mockUsePooledStakes = (pooledStake: PooledStake, exchangeRate: string) => {
+const mockUsePooledStakes = (
+  pooledStake: PooledStake,
+  exchangeRate: string,
+) => {
   (usePooledStakes as jest.MockedFn<typeof usePooledStakes>).mockReturnValue({
     pooledStakesData: pooledStake,
     exchangeRate,
@@ -63,13 +69,15 @@ describe('useBalance', () => {
   });
 
   it('returns balance and fiat values based on account and pooled stake data', async () => {
-    mockUsePooledStakes(MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0], MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate);
+    mockUsePooledStakes(
+      MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0],
+      MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
+    );
     const { result } = renderHookWithProvider(() => useBalance(), {
       state: initialState,
     });
 
-
-    expect(result.current.balance).toBe('12345678.90988'); // ETH balance
+    expect(result.current.balanceETH).toBe('12345678.90988'); // ETH balance
     expect(result.current.balanceWei.toString()).toBe(
       '12345678909876543210000000',
     ); // Wei balance
@@ -82,7 +90,10 @@ describe('useBalance', () => {
   });
 
   it('returns default values when no selected address and no account data', async () => {
-    mockUsePooledStakes(MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0], MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate);
+    mockUsePooledStakes(
+      MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0],
+      MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
+    );
     const { result } = renderHookWithProvider(() => useBalance(), {
       state: {
         ...initialState,
@@ -103,19 +114,22 @@ describe('useBalance', () => {
       },
     });
 
-    expect(result.current.balance).toBe('0'); // ETH balance
+    expect(result.current.balanceETH).toBe('0'); // ETH balance
     expect(result.current.balanceWei.toString()).toBe('0'); // Wei balance
     expect(result.current.balanceFiat).toBe('$0.00'); // Fiat balance
     expect(result.current.balanceFiatNumber).toBe(0); // Fiat number balance
   });
 
   it('returns correct stake amounts and fiat values based on account with high amount of assets', async () => {
-    mockUsePooledStakes(MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT.accounts[0], MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT.exchangeRate);
+    mockUsePooledStakes(
+      MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT.accounts[0],
+      MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT.exchangeRate,
+    );
     const { result } = renderHookWithProvider(() => useBalance(), {
       state: initialState,
     });
 
-    expect(result.current.balance).toBe('12345678.90988'); // ETH balance
+    expect(result.current.balanceETH).toBe('12345678.90988'); // ETH balance
     expect(result.current.balanceWei.toString()).toBe(
       '12345678909876543210000000',
     );

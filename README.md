@@ -41,18 +41,25 @@ cd metamask-mobile
 
 **Firebase Messaging Setup**
 
-Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` file in the `android/app` or `GoogleService-Info.plist` file in the `ios` directory. In case you don't have FCM account, you can use `./android/app/google-services-example.json` for Android or `./ios/GoogleServices/GoogleService-Info-example.plist` for iOS and follow the steps below to populate the correct environment variables in the `.env` files (`.ios.env`, `.js.env`, `.android.env`), adding `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` variable depending on the environment you are running the app (ios/android).
+Before running the app, keep in mind that MetaMask uses FCM (Firebase Cloud Message) to empower communications. Based on this, as an external contributor you would preferably need to provide your own FREE Firebase project config file with a matching client for package name `io.metamask`, and update your `google-services.json` file in the `android/app` or `GoogleService-Info.plist` file in the `ios` directory.
+
+**External Contributors**
+In case you don't have FCM account, you can use `./android/app/google-services-example.json` for Android or `./ios/GoogleServices/GoogleService-Info-example.plist` for iOS and follow the steps below to populate the correct environment variables in the `.env` files (`.ios.env`, `.js.env`, `.android.env`), adding `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` variable depending on the environment you are running the app (ios/android).
+
+**Internal Contributors**
+
+We should access the Firebase project config file from 1Password.
 
 The value you should provide to `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` is the base64 encoded version of your Firebase project config file, which can be generated as follows:
 
 **For Android**
 ```bash
-echo "export GOOGLE_SERVICES_B64_ANDROID=\"$(base64 -w0 -i ./android/app/google-services-example.json)\"" | tee -a .js.env .ios.env .android.env
+export GOOGLE_SERVICES_B64_ANDROID="$(base64 -w0 -i ./android/app/google-services-example.json)" && echo "export GOOGLE_SERVICES_B64_ANDROID=\"$GOOGLE_SERVICES_B64_ANDROID\"" | tee -a .js.env .ios.env
 ```
 
 **For iOS**
 ```bash
-echo "export GOOGLE_SERVICES_B64_IOS=\"$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info-example.plist)\"" | tee -a .js.env .ios.env
+export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info-example.plist)" && echo "export GOOGLE_SERVICES_B64_IOS=\"$GOOGLE_SERVICES_B64_IOS\"" | tee -a .js.env .ios.env
 ```
 
 [!CAUTION]

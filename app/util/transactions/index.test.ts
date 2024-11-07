@@ -40,6 +40,7 @@ import {
 } from '.';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -1019,6 +1020,19 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
     expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
+
+  it.each([
+    TransactionType.stakingClaim,
+    TransactionType.stakingDeposit,
+    TransactionType.stakingUnstake,
+  ])('returns transaction type if type is %s', async (type) => {
+    const transaction = { type };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+
+    expect(actionKey).toBe(type);
+  });
 });
 
 describe('Transactions utils :: getFourByteSignature', () => {
@@ -1086,14 +1100,17 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
-    const result = await getTransactionReviewActionKey(transaction, chainId);
+    const result = await getTransactionReviewActionKey(
+      { transaction },
+      chainId,
+    );
     expect(result).toEqual(expectedReviewActionKey);
   });
 
   it('returns correct review action key', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
     const result = await getTransactionReviewActionKey(
-      { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE },
+      { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);

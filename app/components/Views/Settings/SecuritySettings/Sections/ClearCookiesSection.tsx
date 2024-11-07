@@ -5,7 +5,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import Logger from '../../../../../util/Logger';
 import ActionModal from '../../../../UI/ActionModal';
-import { ClearCookiesSectionSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearCookiesSection.selectors';
 import Text, {
   TextVariant,
   TextColor,
@@ -82,10 +81,7 @@ const ClearCookiesSection = () => {
 
   return (
     <>
-      <View
-        style={styles.setting}
-        testID={ClearCookiesSectionSelectorsIDs.CONTAINER}
-      >
+      <View style={styles.setting}>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.clear_browser_cookies_desc')}
         </Text>

@@ -20,7 +20,7 @@ import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
 

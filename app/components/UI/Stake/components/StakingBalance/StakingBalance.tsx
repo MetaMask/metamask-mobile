@@ -62,7 +62,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     exchangeRate,
     hasStakedPositions,
     hasEthToUnstake,
-    isLoadingPooledStakesData,
   } = usePooledStakes();
   const { vaultData } = useVaultData();
   const annualRewardRate = vaultData?.apy || '';
@@ -91,13 +90,13 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
-  if (!isStakingSupportedChain || isLoadingPooledStakesData) {
+  if (!isStakingSupportedChain) {
     return <></>;
   }
 
   return (
     <View>
-      {hasStakedPositions && isEligibleForPooledStaking && (
+      {hasStakedPositions && (
         <AssetElement
           asset={asset}
           mainBalance={stakedBalanceETH}
@@ -125,7 +124,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         {!isEligibleForPooledStaking ? (
           <Banner
             variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Warning}
+            severity={BannerAlertSeverity.Info}
             description={strings('stake.banner_text.geo_blocked')}
             style={styles.bannerStyles}
           />
@@ -142,7 +141,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
                     )}
                     timeRemaining={
                       !Number(withdrawalTimestamp)
-                        ? { days: 11, hours: 0, minutes: 0 } // default to 11 days.
+                        ? { days: 0, hours: 0, minutes: 0 } // default to 0 days.
                         : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
                     }
                     style={styles.bannerStyles}

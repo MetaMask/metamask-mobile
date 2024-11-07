@@ -80,36 +80,37 @@ export const getShouldUpdateApprovalRequest = (
 
 const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: ControllerMessenger,
-): Promise<SmartTransaction | undefined> => new Promise((resolve) => {
-  controllerMessenger.subscribe(
-    'SmartTransactionsController:smartTransactionConfirmationDone',
-    async (smartTransaction: SmartTransaction) => {
-      resolve(smartTransaction);
-    },
-  );
-  setTimeout(() => {
-    resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
-  }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
-});
+): Promise<SmartTransaction | undefined> =>
+  new Promise((resolve) => {
+    controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransactionConfirmationDone',
+      async (smartTransaction: SmartTransaction) => {
+        resolve(smartTransaction);
+      },
+    );
+    setTimeout(() => {
+      resolve(undefined); // In a rare case we don't get the "smartTransactionConfirmationDone" event within 10 seconds, we resolve with undefined to continue.
+    }, TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT);
+  });
 
 export const getSmartTransactionMetricsProperties = async (
   smartTransactionsController: SmartTransactionsController,
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
-  controllerMessenger?: ControllerMessenger
+  controllerMessenger?: ControllerMessenger,
 ) => {
   if (!transactionMeta) return {};
   let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
     );
-  const shouldWaitForSmartTransactionConfirmationDoneEvent = 
-    waitForSmartTransaction && 
+  const shouldWaitForSmartTransactionConfirmationDoneEvent =
+    waitForSmartTransaction &&
     !smartTransaction?.statusMetadata && // We get this after polling for a status for a Smart Transaction.
     controllerMessenger;
   if (shouldWaitForSmartTransactionConfirmationDoneEvent) {
     smartTransaction = await waitForSmartTransactionConfirmationDone(
-      controllerMessenger
+      controllerMessenger,
     );
   }
   if (!smartTransaction?.statusMetadata) {

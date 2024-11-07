@@ -133,6 +133,8 @@ export const UnpopularNetworkList = [
 export const CustomNetworkImgMapping: Record<`0x${string}`, string> = {
   '0xe': require('../../images/flare-mainnet.png'), // Flare Mainnet
   '0x13': require('../../images/songbird.png'), // Songbird Testnet
+  '0x8157': require('../../images/ape-network.png'), // ApeChain testnet
+  '0x8173': require('../../images/ape-network.png'), // ApeChain mainnet
   '0x659': require('../../images/gravity.png'), // Gravity Alpha Mainnet
   [toHex(8217)]: require('../../images/kaia.png'), // Kaia Mainnet
   [toHex(1001)]: require('../../images/kaia.png'), // Kaia Kairos Testnet

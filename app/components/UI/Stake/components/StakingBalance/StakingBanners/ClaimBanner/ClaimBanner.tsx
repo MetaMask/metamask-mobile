@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
@@ -19,6 +19,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
 import Engine from '../../../../../../../core/Engine';
+import { MetaMetricsEvents, useMetrics } from '../../../../../../hooks/useMetrics';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -27,6 +28,10 @@ type StakeBannerProps = Pick<BannerProps, 'style'> & {
 const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { styles } = useStyles(styleSheet, {});
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
+    useState(false);
+
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
@@ -34,22 +39,53 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { pooledStakesData, refreshPooledStakes } = usePooledStakes();
 
   const onClaimPress = async () => {
-    if (!activeAccount?.address) return;
+    try {
+      if (!activeAccount?.address) return;
 
-    const txRes = await attemptPoolStakedClaimTransaction(
-      activeAccount?.address,
-      pooledStakesData,
-    );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_CLAIM_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Details'
+        })
+        .build()
+      );
 
-    const transactionId = txRes?.transactionMeta.id;
+      setIsSubmittingClaimTransaction(true);
 
-    Engine.controllerMessenger.subscribeOnceIf(
-      'TransactionController:transactionConfirmed',
-      () => {
-        refreshPooledStakes();
-      },
-      (transactionMeta) => transactionMeta.id === transactionId,
-    );
+      const txRes = await attemptPoolStakedClaimTransaction(
+        activeAccount?.address,
+        pooledStakesData,
+      );
+
+      const transactionId = txRes?.transactionMeta.id;
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        () => {
+          refreshPooledStakes();
+          setIsSubmittingClaimTransaction(false);
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionFailed',
+        () => {
+          setIsSubmittingClaimTransaction(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionRejected',
+        () => {
+          setIsSubmittingClaimTransaction(false);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+    } catch (e) {
+      setIsSubmittingClaimTransaction(false);
+    }
   };
 
   return (
@@ -65,6 +101,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
             })}
           </Text>
           <Button
+            testID={'claim-banner-claim-eth-button'}
             variant={ButtonVariants.Link}
             style={styles.claimButton}
             label={
@@ -76,6 +113,8 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
               </Text>
             }
             onPress={onClaimPress}
+            disabled={isSubmittingClaimTransaction}
+            loading={isSubmittingClaimTransaction}
           />
         </>
       }

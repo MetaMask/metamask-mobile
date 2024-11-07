@@ -662,7 +662,7 @@ class Send extends PureComponent {
    */
   trackEditScreen = async () => {
     const { transaction } = this.props;
-    const actionKey = await getTransactionReviewActionKey(transaction);
+    const actionKey = await getTransactionReviewActionKey({ transaction });
     this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
