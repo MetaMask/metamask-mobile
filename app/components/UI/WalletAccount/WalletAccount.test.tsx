@@ -126,7 +126,9 @@ describe('WalletAccount', () => {
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
     expect(mockNavigate).toHaveBeenCalledWith(
-      ...createAccountSelectorNavDetails({}),
+      ...createAccountSelectorNavDetails({
+        privacyMode: false,
+      }),
     );
   });
   it('displays the correct account name', () => {
