@@ -1,9 +1,8 @@
-import migrate from './060';
+import migrate, { DEFAULT_NOTIFICATION_SERVICES_CONTROLLER } from './060';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
-import { DEFAULT_NOTIFICATION_SERVICES_CONTROLLER } from './060'
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),

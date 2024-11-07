@@ -1,4 +1,4 @@
-import { ensureValidState } from "./util";
+import { ensureValidState } from './util';
 import { hasProperty, isObject } from '@metamask/utils';
 
 export const DEFAULT_NOTIFICATION_SERVICES_CONTROLLER = {
@@ -12,7 +12,7 @@ export const DEFAULT_NOTIFICATION_SERVICES_CONTROLLER = {
     metamaskNotificationsList: [],
     metamaskNotificationsReadList: [],
     subscriptionAccountsSeen: [],
-}
+};
 
 export default function migrate(state: unknown) {
     if (!ensureValidState(state, 60)) {
@@ -23,7 +23,7 @@ export default function migrate(state: unknown) {
         !hasProperty(state.engine.backgroundState, 'NotificationServicesController') ||
         !isObject(state.engine.backgroundState.NotificationServicesController)
     ) {
-        state.engine.backgroundState.NotificationServicesController = DEFAULT_NOTIFICATION_SERVICES_CONTROLLER
+        state.engine.backgroundState.NotificationServicesController = DEFAULT_NOTIFICATION_SERVICES_CONTROLLER;
     }
     return state;
 }
