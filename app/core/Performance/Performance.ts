@@ -2,6 +2,7 @@
 import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
 import { isTest } from '../../util/test/utils';
+import { endTrace, trace } from '../../util/trace';
 
 /**
  * Service for measuring app performance
@@ -61,6 +62,18 @@ class Performance {
 
         setPerformanceValues(appStartTime);
 
+        const now = Date.now();
+
+        const appLaunchTime = now - appStartTime;
+
+        trace({
+          name: 'Load scripts',
+          startTime: appLaunchTime,
+        });
+        endTrace({
+          name: 'Load scripts',
+          timeStamp: now,
+        });
       }
     }).observe({ type: 'react-native-mark', buffered: true });
   };

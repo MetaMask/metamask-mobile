@@ -49,11 +49,6 @@ const createStoreAndPersistor = async () => {
     middlewares.push(createReduxFlipperDebugger());
   }
 
-  trace({
-    name: TraceName.CreateStore,
-    op: TraceOperation.CreateStore,
-  });
-
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -62,19 +57,10 @@ const createStoreAndPersistor = async () => {
 
   sagaMiddleware.run(rootSaga);
 
-  endTrace({ name: TraceName.CreateStore });
-
-  trace({
-    name: TraceName.StorageRehydration,
-    op: TraceOperation.StorageRehydration,
-  });
-
   /**
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
-    endTrace({ name: TraceName.StorageRehydration });
-
     /**
      * EngineService.initalizeEngine(store) with SES/lockdown:
      * Requires ethjs nested patches (lib->src)
@@ -101,16 +87,8 @@ const createStoreAndPersistor = async () => {
       store.dispatch({
         type: 'FETCH_FEATURE_FLAGS',
       });
-    trace(
-      {
-        name: TraceName.EngineInitialization,
-        op: TraceOperation.EngineInitialization,
-        tags: getTraceTags(store.getState()),
-      },
-      () => {
-        EngineService.initalizeEngine(store);
-      },
-    );
+
+    EngineService.initalizeEngine(store);
 
     Authentication.init(store);
     AppStateEventProcessor.init(store);
@@ -121,13 +99,7 @@ const createStoreAndPersistor = async () => {
 };
 
 (async () => {
-  await trace(
-    {
-      name: TraceName.UIStartup,
-      op: TraceOperation.UIStartup,
-    },
-    async () => await createStoreAndPersistor(),
-  );
+  await createStoreAndPersistor();
 })();
 
 export { store, persistor };

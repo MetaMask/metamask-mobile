@@ -135,18 +135,10 @@ class LockScreen extends PureComponent {
       // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
 
-      await trace(
-        {
-          name: TraceName.BiometricAuthentication,
-          op: TraceOperation.BiometricAuthentication,
-        },
-        async () => {
-          await Authentication.appTriggeredAuth({
-            bioStateMachineId,
-            disableAutoLogout: true,
-          });
-        },
-      );
+      await Authentication.appTriggeredAuth({
+        bioStateMachineId,
+        disableAutoLogout: true,
+      });
 
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');

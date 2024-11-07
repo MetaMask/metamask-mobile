@@ -31,6 +31,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import { endTrace, trace } from '../../util/trace';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -435,7 +436,10 @@ class AuthenticationService {
     try {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trace({ name: 'get generic password' });
       const credentials: any = await SecureKeychain.getGenericPassword();
+      endTrace({ name: 'get generic password' });
+
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -444,7 +448,11 @@ class AuthenticationService {
           this.authData,
         );
       }
+      trace({ name: 'login vault creation' });
+
       await this.loginVaultCreation(password);
+      endTrace({ name: 'login vault creation' });
+
       this.dispatchLogin();
       this.store?.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();

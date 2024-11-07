@@ -28,6 +28,7 @@ export enum TraceName {
   LoginToPasswordEntry = 'Login to Password Entry',
   AuthenticateUser = 'Authenticate User',
   BiometricAuthentication = 'Biometrics Authentication',
+  AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   CreateStore = 'Create Store',
   CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',

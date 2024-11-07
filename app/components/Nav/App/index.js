@@ -588,9 +588,10 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
-              name: TraceName.BiometricAuthentication,
+              name: TraceName.AppStartBiometricAuthentication,
               op: TraceOperation.BiometricAuthentication,
             },
             async () => {
@@ -613,6 +614,8 @@ const App = (props) => {
             }),
           );
         }
+        console.log('ENTER IS THIS ENTERING HERE WHEN ITS PASSWORD ');
+
         await Authentication.lockApp({ reset: false });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
