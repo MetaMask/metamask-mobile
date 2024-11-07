@@ -17,6 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
     root: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
+      paddingHorizontal: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       minHeight: 200,
@@ -27,9 +28,15 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       justifyContent: 'center',
     },
-    description: {
-      textAlign: 'center',
-      paddingBottom: 16,
+    inputTitle: {
+      textAlign: 'left',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 4,
+      padding: 10,
+      marginVertical: 10,
     },
   });
 };

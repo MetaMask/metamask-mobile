@@ -3615,7 +3615,7 @@
   },
   "snap_account_custom_name_approval": {
     "title": "Add account to MetaMask",
-    "input": "Account name",
+    "input_title": "Account name",
     "add_account_button": "Add account"
   }
 }

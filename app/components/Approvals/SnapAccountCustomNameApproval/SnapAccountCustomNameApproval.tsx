@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import React from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { TextInput, View } from 'react-native';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../../../core/RPCMethods/RPCMethodMiddleware';
@@ -8,6 +8,7 @@ import {
   SNAP_ACCOUNT_CUSTOM_NAME_ADD_ACCOUNT_BUTTON,
   SNAP_ACCOUNT_CUSTOM_NAME_APPROVAL,
   SNAP_ACCOUNT_CUSTOM_NAME_CANCEL_BUTTON,
+  SNAP_ACCOUNT_CUSTOM_NAME_INPUT,
 } from './SnapAccountCustomNameApproval.constants';
 import styleSheet from './SnapAccountCustomNameApproval.styles';
 import { useStyles } from '../../hooks/useStyles';
@@ -27,8 +28,21 @@ import {
 
 const SnapAccountCustomNameApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
+  //   console.log(
+  //     'SnapKeyring: SnapAccountCustomNameApproval',
+  //     JSON.stringify(approvalRequest, null, 2),
+  //   );
+  const [accountName, setAccountName] = useState<string>('');
+
+  useEffect(() => {
+    setAccountName(approvalRequest?.requestData.snapSuggestedAccountName || '');
+  }, [approvalRequest]);
 
   const { styles } = useStyles(styleSheet, {});
+
+  const onAddAccountPressed = useCallback(() => {
+    onConfirm();
+  }, [onConfirm]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
@@ -42,7 +56,7 @@ const SnapAccountCustomNameApproval = () => {
     variant: ButtonVariants.Primary,
     label: strings('snap_account_custom_name_approval.add_account_button'),
     size: ButtonSize.Lg,
-    onPress: onConfirm,
+    onPress: onAddAccountPressed,
     testID: SNAP_ACCOUNT_CUSTOM_NAME_ADD_ACCOUNT_BUTTON,
   };
 
@@ -58,9 +72,15 @@ const SnapAccountCustomNameApproval = () => {
         <SheetHeader
           title={strings('snap_account_custom_name_approval.title')}
         />
-        <Text style={styles.description} variant={TextVariant.BodyMD}>
-          Account name
+        <Text style={styles.inputTitle} variant={TextVariant.BodyMDBold}>
+          {strings('snap_account_custom_name_approval.input_title')}
         </Text>
+        <TextInput
+          style={styles.input}
+          value={accountName}
+          onChangeText={(text) => setAccountName(text)}
+          testID={SNAP_ACCOUNT_CUSTOM_NAME_INPUT}
+        />
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
