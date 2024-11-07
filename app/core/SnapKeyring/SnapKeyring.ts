@@ -4,6 +4,11 @@ import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 
+interface CreateAccountConfirmationResult {
+  success: boolean;
+  name?: string;
+}
+
 /**
  * Show the account name suggestion confirmation dialog for a given Snap.
  *
@@ -16,11 +21,7 @@ export async function showAccountNameSuggestionDialog(
   snapId: string,
   controllerMessenger: SnapKeyringBuilderMessenger,
   accountNameSuggestion: string,
-): Promise<{ success: boolean; name?: string }> {
-  console.log(
-    'SnapKeyring: showAccountNameSuggestionDialog',
-    accountNameSuggestion,
-  );
+): Promise<CreateAccountConfirmationResult> {
   try {
     const confirmationResult = (await controllerMessenger.call(
       'ApprovalController:addRequest',
@@ -32,8 +33,15 @@ export async function showAccountNameSuggestionDialog(
         },
       },
       true,
-    )) as { success: boolean; name?: string };
-    return confirmationResult;
+    )) as CreateAccountConfirmationResult;
+
+    if (confirmationResult) {
+      return {
+        success: confirmationResult.success,
+        name: confirmationResult.name,
+      };
+    }
+    return { success: false };
   } catch (e) {
     throw new Error(`Error occurred while showing name account dialog.\n${e}`);
   }
@@ -96,34 +104,52 @@ export const snapKeyringBuilder = (
                 - accountNameSuggestion: ${accountNameSuggestion} \n
                 - displayConfirmation: ${displayConfirmation}`,
         );
-        const accountNameConfirmationResult =
-          await showAccountNameSuggestionDialog(
-            snapId,
-            controllerMessenger,
-            accountNameSuggestion,
+
+        const { id: addAccountFlowId } = controllerMessenger.call(
+          'ApprovalController:startFlow',
+        );
+
+        try {
+          const accountNameConfirmationResult =
+            await showAccountNameSuggestionDialog(
+              snapId,
+              controllerMessenger,
+              accountNameSuggestion,
+            );
+
+          console.log(
+            'SnapKeyring: accountNameConfirmationResult',
+            accountNameConfirmationResult,
           );
 
-        console.log(
-          'accountNameConfirmationResult',
-          accountNameConfirmationResult,
-        );
+          // Approve everything for now because we have not implemented snap account confirmations yet
+          await handleUserInput(true);
+          await persistKeyringHelper();
+          const account = controllerMessenger.call(
+            'AccountsController:getAccountByAddress',
+            address,
+          );
+          if (!account) {
+            throw new Error(
+              `Internal account not found for address: ${address}`,
+            );
+          }
 
-        // Approve everything for now because we have not implemented snap account confirmations yet
-        await handleUserInput(true);
-        await persistKeyringHelper();
-        const account = controllerMessenger.call(
-          'AccountsController:getAccountByAddress',
-          address,
-        );
-        if (!account) {
-          throw new Error(`Internal account not found for address: ${address}`);
+          // Set the selected account to the new account
+          controllerMessenger.call(
+            'AccountsController:setSelectedAccount',
+            account.id,
+          );
+        } catch (error) {
+          console.log('SnapKeyring: addAccount error', error);
+          controllerMessenger.call('ApprovalController:endFlow', {
+            id: addAccountFlowId,
+          });
+        } finally {
+          controllerMessenger.call('ApprovalController:endFlow', {
+            id: addAccountFlowId,
+          });
         }
-
-        // Set the selected account to the new account
-        controllerMessenger.call(
-          'AccountsController:setSelectedAccount',
-          account.id,
-        );
       },
 
       removeAccount: async (

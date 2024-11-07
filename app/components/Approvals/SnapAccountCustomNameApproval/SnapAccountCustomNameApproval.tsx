@@ -28,10 +28,10 @@ import {
 
 const SnapAccountCustomNameApproval = () => {
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
-  //   console.log(
-  //     'SnapKeyring: SnapAccountCustomNameApproval',
-  //     JSON.stringify(approvalRequest, null, 2),
-  //   );
+  console.log(
+    'SnapKeyring: SnapAccountCustomNameApproval',
+    JSON.stringify(approvalRequest, null, 2),
+  );
   const [accountName, setAccountName] = useState<string>('');
 
   useEffect(() => {
@@ -41,8 +41,8 @@ const SnapAccountCustomNameApproval = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const onAddAccountPressed = useCallback(() => {
-    onConfirm();
-  }, [onConfirm]);
+    onConfirm(undefined, { success: true, name: accountName });
+  }, [accountName, onConfirm]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
