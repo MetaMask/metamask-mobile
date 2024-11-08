@@ -9,13 +9,13 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
-import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
+import { trace, endTrace } from '../util/trace';
 
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
-import { getTraceTags } from '../util/sentry/tags';
+import getUIStartupSpan from '../core/Performance/UIStartup';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -28,6 +28,10 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
+  trace({
+    name: 'Store init',
+    parentContext: getUIStartupSpan(),
+  });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E
     ? await ReadOnlyNetworkStore.getState()
@@ -93,6 +97,7 @@ const createStoreAndPersistor = async () => {
     Authentication.init(store);
     AppStateEventProcessor.init(store);
     LockManagerService.init(store);
+    endTrace({ name: 'Store init' });
   };
 
   persistor = persistStore(store, null, onPersistComplete);

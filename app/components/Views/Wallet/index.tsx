@@ -99,7 +99,8 @@ import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountS
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
-import { withProfiler } from '@sentry/react-native';
+
+import getNetworkSwitchParentSpan from './WalletParentSpans';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -320,6 +321,7 @@ const Wallet = ({
    * Callback to trigger when pressing the navigation title.
    */
   const onTitlePress = useCallback(() => {
+    getNetworkSwitchParentSpan();
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
@@ -659,7 +661,4 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withProfiler(Wallet));
+export default connect(mapStateToProps, mapDispatchToProps)(Wallet);

@@ -7,6 +7,8 @@ import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 import { isE2E } from '../test/utils';
 import { store } from '../../store';
+import { Performance } from '../../core/Performance';
+import Device from '../device';
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -398,6 +400,18 @@ function rewriteReport(report) {
  * @returns {(event|null)}
  */
 export function excludeEvents(event) {
+  // This is needed because store starts to initialise before performance observers completes to measure app start time
+  if (event.transaction === 'UIStartup' && Device.isAndroid()) {
+    const appLaunchTime = Performance.appLaunchTime;
+    const formattedAppLaunchTime = (event.start_timestamp = Number(
+      `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime
+        .toString()
+        .slice(10)}`,
+    ));
+    if (event.start_timestamp !== formattedAppLaunchTime) {
+      event.start_timestamp = formattedAppLaunchTime;
+    }
+  }
   //Modify or drop event here
   if (event?.transaction === 'Route Change') {
     //Route change is dropped because is does not reflect a screen we can action on.

@@ -3,6 +3,7 @@ import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
 import { isTest } from '../../util/test/utils';
 import { endTrace, trace } from '../../util/trace';
+import getUIStartupSpan from './UIStartup';
 
 /**
  * Service for measuring app performance
@@ -13,6 +14,7 @@ async function setPerformanceValues(appStartTime: number) {
 }
 
 class Performance {
+  static appLaunchTime: number;
   /**
    * Measures app start and JS bundle loading times
    */
@@ -65,10 +67,14 @@ class Performance {
         const now = Date.now();
 
         const appLaunchTime = now - appStartTime;
+        this.appLaunchTime = appLaunchTime;
+
+        const parentSpan = getUIStartupSpan(appLaunchTime);
 
         trace({
           name: 'Load scripts',
           startTime: appLaunchTime,
+          parentContext: parentSpan,
         });
         endTrace({
           name: 'Load scripts',

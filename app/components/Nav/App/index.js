@@ -135,7 +135,13 @@ import Engine from '../../../core/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -573,6 +579,8 @@ const App = (props) => {
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
 
+  trace({ name: 'Nav init', parentContext: getUIStartupSpan() });
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -624,9 +632,15 @@ const App = (props) => {
         );
       }
     };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
+    appTriggeredAuth()
+      .catch((error) => {
+        Logger.error(error, 'App: Error in appTriggeredAuth');
+      })
+      .finally(() => {
+        endTrace({ name: 'Nav init' });
+
+        endTrace({ name: 'UIStartup' });
+      });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
