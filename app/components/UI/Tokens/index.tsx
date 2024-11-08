@@ -232,7 +232,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === '1';
+  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
   return (
     <View
