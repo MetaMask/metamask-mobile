@@ -177,7 +177,6 @@ const createStyles = (colors: Colors) =>
     },
     controlButtonText: {
       color: colors.text.default,
-      ...fontStyles.normal,
     },
     controlIconButton: {
       backgroundColor: colors.background.default,
