@@ -65,6 +65,7 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -136,6 +137,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
     USER_INTENT.None,
   );
+
+  const { chainId } = useNetworkInfo(hostname);
 
   useEffect(() => {
     let currentlyPermittedChains: string[] = [];
@@ -718,6 +721,39 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onEditNetworks: () =>
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
+      onAddNetwork: () => {
+        let currentlyPermittedChains: string[] = [];
+        try {
+          const caveat = Engine.context.PermissionController.getCaveat(
+            hostname,
+            PermissionKeys.permittedChains,
+            CaveatTypes.restrictNetworkSwitching,
+          );
+          if (Array.isArray(caveat?.value)) {
+            currentlyPermittedChains = caveat.value.filter(
+              (item): item is string => typeof item === 'string',
+            );
+          }
+        } catch (e) {
+          // noop
+        }
+
+        // Add current chainId if no chains are permitted yet
+        if (chainId) {
+          currentlyPermittedChains = [chainId, ...currentlyPermittedChains];
+        } else {
+          throw new Error('No chainId provided');
+        }
+
+        Engine.context.PermissionController.updateCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+          currentlyPermittedChains,
+        );
+
+        hideSheet();
+      },
       // showActionButtons: true,
       onBack: () =>
         isRenderedAsBottomSheet
@@ -743,6 +779,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     setSelectedAddresses,
     networkAvatars,
     accounts,
+    chainId,
+    hideSheet,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {
