@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -40,6 +40,9 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
+import { useSelector } from 'react-redux';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -64,6 +67,13 @@ const PermissionsSummary = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
+  const providerConfig = useSelector(selectProviderConfig);
+
+  const hostname = useMemo(
+    () => new URL(currentPageInformation.url).hostname,
+    [currentPageInformation.url],
+  );
+  const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -290,7 +300,7 @@ const PermissionsSummary = ({
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
             <View style={styles.permissionRequestNetworkInfo}>
-              {isNetworkSwitch && (
+              {(isNetworkSwitch || isNonDappNetworkSwitch) && (
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
@@ -298,19 +308,32 @@ const PermissionsSummary = ({
                         {strings('permissions.requesting_for')}
                       </TextComponent>
                       <TextComponent variant={TextVariant.BodySMMedium}>
-                        {chainName}
+                        {isNonDappNetworkSwitch
+                          ? networkInfo?.networkName || providerConfig.nickname
+                          : chainName}
                       </TextComponent>
                     </TextComponent>
                   </View>
                   <Avatar
                     variant={AvatarVariant.Network}
                     size={AvatarSize.Xs}
-                    name={chainName}
-                    imageSource={chainImage}
+                    name={
+                      isNonDappNetworkSwitch
+                        ? networkInfo?.networkName || providerConfig.nickname
+                        : chainName
+                    }
+                    imageSource={
+                      isNonDappNetworkSwitch
+                        ? // @ts-expect-error getNetworkImageSource is not implemented in typescript
+                          getNetworkImageSource({
+                            chainId: providerConfig.chainId,
+                          })
+                        : chainImage
+                    }
                   />
                 </>
               )}
-              {!isNetworkSwitch && (
+              {!isNetworkSwitch && !isNonDappNetworkSwitch && (
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
@@ -332,7 +355,7 @@ const PermissionsSummary = ({
               )}
             </View>
           </View>
-          {!isNetworkSwitch && renderEndAccessory()}
+          {!isNetworkSwitch && !isNonDappNetworkSwitch && renderEndAccessory()}
         </View>
       </TouchableOpacity>
     );
@@ -356,6 +379,14 @@ const PermissionsSummary = ({
                   })}
             </TextComponent>
           </View>
+          {isNonDappNetworkSwitch && (
+            <TextComponent
+              variant={TextVariant.BodyMD}
+              style={styles.description}
+            >
+              {strings('permissions.non_permitted_network_description')}
+            </TextComponent>
+          )}
           {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
@@ -375,7 +406,7 @@ const PermissionsSummary = ({
               />
             </View>
           )}
-          {showActionButtons && (
+          {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
               <StyledButton
                 type={'cancel'}
@@ -396,6 +427,32 @@ const PermissionsSummary = ({
               >
                 {strings('accounts.connect')}
               </StyledButton>
+            </View>
+          )}
+          {isNonDappNetworkSwitch && (
+            <View style={styles.nonDappNetworkSwitchButtons}>
+              <View style={styles.actionButtonsContainer}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('permissions.add_this_network')}
+                  onPress={toggleRevokeAllPermissionsModal}
+                  size={ButtonSize.Lg}
+                  style={{
+                    ...styles.disconnectButton,
+                  }}
+                />
+              </View>
+              <View style={styles.actionButtonsContainer}>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  label={strings('permissions.choose_from_permitted_networks')}
+                  onPress={toggleRevokeAllPermissionsModal}
+                  size={ButtonSize.Lg}
+                  style={{
+                    ...styles.disconnectButton,
+                  }}
+                />
+              </View>
             </View>
           )}
         </View>

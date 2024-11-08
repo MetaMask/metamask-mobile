@@ -1867,7 +1867,11 @@
     "manage_permissions": "Manage Permissions",
     "edit": "Edit",
     "cancel": "Cancel",
-    "title_add_network_permission": "Add network permission"
+    "title_add_network_permission": "Add network permission",
+    "add_this_network": "Add this network",
+    "choose_from_permitted_networks": "Choose from permitted networks",
+    "this_site_cant": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
+    "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network."
   },
   "select": {
     "cancel": "Cancel",

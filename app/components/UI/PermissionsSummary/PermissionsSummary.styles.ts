@@ -78,6 +78,7 @@ const createStyles = (params: {
       maxWidth: '75%',
     },
     permissionRequestNetworkName: {
+      marginRight: 4,
       maxWidth: '75%',
     },
     avatarGroup: {
@@ -122,6 +123,14 @@ const createStyles = (params: {
     editTextContainer: {
       width: 56,
       alignItems: 'center',
+    },
+    nonDappNetworkSwitchButtons: {
+      marginTop: 16,
+      gap: 20,
+    },
+    description: {
+      marginHorizontal: 24,
+      marginBottom: 16,
     },
   });
 };
