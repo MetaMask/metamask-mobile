@@ -1,5 +1,11 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+} from 'react';
 import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -45,6 +51,8 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 import Engine from '../../../core/Engine';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
+import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import Routes from '../../../constants/navigation/Routes';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -81,6 +89,7 @@ export const Browser = (props) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+  const [isNetworkPermitted, setIsNetworkPermitted] = useState(true);
 
   // networkConfigurations has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
   const nonTestnetNetworks =
@@ -165,62 +174,46 @@ export const Browser = (props) => {
 
           const currentChainId = props.chainId;
           const isNetworkPermitted = permittedChains.includes(currentChainId);
-
-          Logger.log('>>> Browser Tab Check:', {
-            tabId: tab.id,
-            url: tab.url,
-            hostname,
-            isConnected,
-            currentChainId,
-            networkStatus: isNetworkPermitted ? 'permitted' : 'not_permitted',
-            permittedChains,
-            permissions:
-              permissionsControllerState.subjects[hostname]?.permissions || {},
-          });
+          setIsNetworkPermitted(isNetworkPermitted);
 
           if (!isNetworkPermitted) {
-            // TODO: Show network permission warning to user
+            console.log(
+              '>>> network not permitted, opening account permissions screen',
+            );
+
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+              params: {
+                isNonDappNetworkSwitch: true,
+                hostInfo: {
+                  metadata: {
+                    origin: new URL(tab.url).hostname,
+                  },
+                },
+                isRenderedAsBottomSheet: true,
+                initialScreen: AccountPermissionsScreens.Connected,
+              },
+            });
           }
         } catch (e) {
-          Logger.log('>>> Browser Tab Check:', {
-            tabId: tab.id,
-            url: tab.url,
-            hostname,
-            isConnected,
-            currentChainId: props.chainId,
-            networkStatus: 'no_network_permissions',
-            permittedChains: [],
-            error: e?.message,
-            permissions:
-              permissionsControllerState.subjects[hostname]?.permissions || {},
-          });
+          console.log('>>> Browser Tab Check exception', e);
+          setIsNetworkPermitted(false);
         }
       } else {
-        Logger.log('>>> Browser Tab Check:', {
-          tabId: tab.id,
-          url: tab.url,
-          hostname,
-          isConnected,
-          currentChainId: props.chainId,
-          connectionStatus: 'not_connected',
-        });
+        setIsNetworkPermitted(true);
+        console.log('>>> dapp not connected, skipping permission check: ');
       }
     },
-    [props.chainId],
+    [props.chainId, route.params?.showTabs],
   );
-
-  useEffect(() => {
-    const activeTab = tabs.find((tab) => tab.id === activeTabId);
-    if (activeTab) {
-      checkTabPermissions(activeTab);
-    }
-  }, [props.chainId, activeTabId, tabs, checkTabPermissions]);
 
   const switchToTab = (tab) => {
     trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
+
+    // Skip permission check if we're transitioning to tabs view
     checkTabPermissions(tab);
   };
 
@@ -231,7 +224,7 @@ export const Browser = (props) => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
-      if (activeAccountAddress) {
+      if (activeAccountAddress && isNetworkPermitted) {
         const accountName = getAccountNameWithENS({
           accountAddress: activeAccountAddress,
           accounts,
@@ -262,7 +255,14 @@ export const Browser = (props) => {
       hasAccounts.current = true;
       prevSiteHostname.current = hostname;
     }
-  }, [browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
+  }, [
+    browserUrl,
+    accounts,
+    ensByAccountAddress,
+    accountAvatarType,
+    toastRef,
+    isNetworkPermitted,
+  ]);
 
   // componentDidMount
   useEffect(

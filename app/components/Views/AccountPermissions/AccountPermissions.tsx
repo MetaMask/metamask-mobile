@@ -75,6 +75,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     },
     isRenderedAsBottomSheet = true,
     initialScreen = AccountPermissionsScreens.Connected,
+    isNonDappNetworkSwitch = false,
   } = props.route.params;
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
@@ -118,7 +119,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
-    useState<AccountPermissionsScreens>(initialScreen);
+    useState<AccountPermissionsScreens>(
+      isNonDappNetworkSwitch
+        ? AccountPermissionsScreens.PermissionsSummary
+        : initialScreen,
+    );
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
@@ -698,6 +703,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const renderPermissionsScreens = useCallback(() => {
+    // console.log('>>> renderPermissionsScreens', permissionsScreen);
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
         return renderConnectedScreen();
@@ -722,6 +728,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderPermissionsSummaryScreen,
   ]);
 
+  // console.log('>>> isRenderedAsBottomSheet', isRenderedAsBottomSheet);
   return isRenderedAsBottomSheet ? (
     <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>
   ) : (

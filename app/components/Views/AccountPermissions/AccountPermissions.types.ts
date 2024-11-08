@@ -24,6 +24,7 @@ export interface AccountPermissionsProps {
       };
       isRenderedAsBottomSheet?: boolean;
       initialScreen?: AccountPermissionsScreens;
+      isNonDappNetworkSwitch?: boolean;
     };
   };
 }
