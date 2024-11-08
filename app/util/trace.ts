@@ -33,7 +33,7 @@ export enum TraceName {
   CreateStore = 'Create Store',
   CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
   StorageRehydration = 'Storage Rehydration',
-  UIStartup = 'UIStartup',
+  UIStartup = 'UI Startup',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
