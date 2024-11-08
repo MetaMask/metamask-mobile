@@ -31,7 +31,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { endTrace, trace } from '../../util/trace';
+import { TraceName, endTrace, trace } from '../../util/trace';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -402,7 +402,10 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
+      trace({ name: TraceName.VaultCreation });
       await this.loginVaultCreation(password);
+      endTrace({ name: TraceName.VaultCreation });
+
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       this.authData = authData;
@@ -436,9 +439,7 @@ class AuthenticationService {
     try {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      trace({ name: 'get generic password' });
       const credentials: any = await SecureKeychain.getGenericPassword();
-      endTrace({ name: 'get generic password' });
 
       const password = credentials?.password;
       if (!password) {
@@ -448,10 +449,9 @@ class AuthenticationService {
           this.authData,
         );
       }
-      trace({ name: 'login vault creation' });
-
+      trace({ name: TraceName.VaultCreation });
       await this.loginVaultCreation(password);
-      endTrace({ name: 'login vault creation' });
+      endTrace({ name: TraceName.VaultCreation });
 
       this.dispatchLogin();
       this.store?.dispatch(authSuccess(bioStateMachineId));

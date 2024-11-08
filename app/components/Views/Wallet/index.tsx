@@ -101,8 +101,6 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
-import getNetworkSwitchParentSpan from './WalletParentSpans';
-
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     base: {
@@ -323,7 +321,6 @@ const Wallet = ({
    * Callback to trigger when pressing the navigation title.
    */
   const onTitlePress = useCallback(() => {
-    getNetworkSwitchParentSpan();
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });

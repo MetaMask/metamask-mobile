@@ -584,7 +584,7 @@ const App = (props) => {
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
 
-  trace({ name: 'Nav init', parentContext: getUIStartupSpan() });
+  trace({ name: TraceName.NavInit, parentContext: getUIStartupSpan() });
 
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -642,9 +642,9 @@ const App = (props) => {
         Logger.error(error, 'App: Error in appTriggeredAuth');
       })
       .finally(() => {
-        endTrace({ name: 'Nav init' });
+        endTrace({ name: TraceName.NavInit });
 
-        endTrace({ name: 'UIStartup' });
+        endTrace({ name: TraceName.UIStartup });
       });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 

@@ -250,11 +250,12 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
-  parentSpan = trace({ name: 'Login' });
+  parentSpan = trace({ name: TraceName.Login, op: TraceOperation.Login });
 
   async componentDidMount() {
     trace({
-      name: 'write password',
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
       parentContext: this.parentSpan,
     });
 
@@ -368,7 +369,7 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
-    endTrace({ name: 'write password' });
+    endTrace({ name: TraceName.LoginUserInteraction });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
@@ -376,22 +377,22 @@ class Login extends PureComponent {
     if (this.state.loading || locked) return;
 
     this.setState({ loading: true, error: null });
-    trace({ name: 'Auth type', parentContext: this.parentSpan });
     const authType = await Authentication.componentAuthenticationType(
       this.state.biometryChoice,
       this.state.rememberMe,
     );
 
-    endTrace({ name: 'Auth type' });
-
     try {
-      trace({
-        name: TraceName.AuthenticateUser,
-        op: TraceOperation.AuthenticateUser,
-        parentContext: this.parentSpan,
-      });
-      await Authentication.userEntryAuth(password, authType);
-      endTrace({ name: TraceName.AuthenticateUser });
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+          parentContext: this.parentSpan,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
       Keyboard.dismiss();
 
       // Get onboarding wizard state
@@ -451,15 +452,25 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
-    endTrace({ name: 'Login' });
+    endTrace({ name: TraceName.Login });
   };
 
   tryBiometric = async (e) => {
     if (e) e.preventDefault();
+    endTrace({ name: TraceName.LoginUserInteraction });
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      await Authentication.appTriggeredAuth();
+      await trace(
+        {
+          name: TraceName.LoginBiometricAuthentication,
+          op: TraceOperation.Login,
+          parentContext: this.parentSpan,
+        },
+        async () => {
+          await Authentication.appTriggeredAuth();
+        },
+      );
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
       if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
       this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);

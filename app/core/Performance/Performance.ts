@@ -19,9 +19,6 @@ class Performance {
    * Measures app start and JS bundle loading times
    */
   static setupPerformanceObservers = () => {
-    // Don't run in release mode
-    if (!isTest) return;
-
     new PerformanceObserver((list) => {
       // Get measurement entries
       const entries = list.getEntries();

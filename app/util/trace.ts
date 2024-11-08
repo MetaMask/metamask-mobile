@@ -25,15 +25,23 @@ export enum TraceName {
   Signature = 'Signature',
   LoadScripts = 'Load Scripts',
   SetupStore = 'Setup Store',
-  LoginToPasswordEntry = 'Login to Password Entry',
+  LoginUserInteraction = 'Login User Interaction',
   AuthenticateUser = 'Authenticate User',
-  BiometricAuthentication = 'Biometrics Authentication',
+  LoginBiometricAuthentication = 'Login Biometrics Authentication',
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   CreateStore = 'Create Store',
   CreateNewWalletToChoosePassword = 'Create New Wallet to Choose Password',
   StorageRehydration = 'Storage Rehydration',
   UIStartup = 'UIStartup',
+  NavInit = 'Navigation Initialization',
+  Login = 'Login',
+  NetworkSwitch = 'Network Switch',
+  SwitchBuiltInNetwork = 'Switch to Built in Network',
+  SwitchCustomNetwork = 'Switch to Custom Network',
+  GetGenericPassword = 'Get Generic Password',
+  VaultCreation = 'Login Vault Creation',
+  StorePassword = 'Store Password',
 }
 
 export enum TraceOperation {
@@ -47,6 +55,7 @@ export enum TraceOperation {
   CreateNewWalletToChoosePassword = 'custom.create.new.wallet',
   StorageRehydration = 'custom.storage.rehydration',
   UIStartup = 'custom.ui.startup',
+  Login = 'Login',
 }
 
 const ID_DEFAULT = 'default';

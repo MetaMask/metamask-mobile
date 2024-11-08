@@ -22,7 +22,6 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { CommonActions } from '@react-navigation/native';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
