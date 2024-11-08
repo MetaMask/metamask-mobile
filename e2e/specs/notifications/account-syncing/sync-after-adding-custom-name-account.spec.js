@@ -21,8 +21,9 @@ import { SmokeNotifications } from '../../../tags';
 
 describe(SmokeNotifications('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
+  let decryptedAccountNames = '';
 
-  it('syncs newly added accounts with custom names and retrieves them after importing the same SRP', async () => {
+  beforeAll(async () => {
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
@@ -35,7 +36,7 @@ describe(SmokeNotifications('Account syncing'), () => {
       getResponse: accountsSyncMockResponse,
     });
 
-    const decryptedAccountNames = await Promise.all(
+    decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {
         const decryptedAccountName = await SDK.Encryption.decryptString(
           response.Data,
@@ -49,7 +50,13 @@ describe(SmokeNotifications('Account syncing'), () => {
       newInstance: true,
       delete: true,
     });
+  });
 
+  afterAll(async () => {
+    await stopMockServer();
+  });
+
+  it('syncs newly added accounts with custom names', async () => {
     await importWalletWithRecoveryPhrase(
       NOTIFICATIONS_TEAM_SEED_PHRASE,
       NOTIFICATIONS_TEAM_PASSWORD,
@@ -75,7 +82,9 @@ describe(SmokeNotifications('Account syncing'), () => {
       WalletView.accountName,
       NEW_ACCOUNT_NAME,
     );
+  });
 
+  it('retrieves same accounts after importing the same SRP', async () => {
     await device.launchApp({
       newInstance: true,
       delete: true,
@@ -92,7 +101,5 @@ describe(SmokeNotifications('Account syncing'), () => {
     await Assertions.checkIfVisible(
       await AccountListView.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
     );
-
-    await stopMockServer();
   });
 });
