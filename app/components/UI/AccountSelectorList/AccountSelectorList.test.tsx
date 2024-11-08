@@ -208,11 +208,11 @@ describe('AccountSelectorList', () => {
       expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
   });
-  it('renders "Snaps (beta)" tag for Snap accounts', async () => {
-    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap([
-      MOCK_ADDRESS_1,
-      MOCK_ADDRESS_2,
-    ]);
+  it('renders the snap name tag for Snap accounts', async () => {
+    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap(
+      [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+      'MetaMask Simple Snap Keyring',
+    );
 
     const stateWithSnapAccount = {
       ...initialState,
@@ -228,7 +228,7 @@ describe('AccountSelectorList', () => {
     const { queryByText } = renderComponent(stateWithSnapAccount);
 
     await waitFor(async () => {
-      const snapTag = await queryByText('Snaps (beta)');
+      const snapTag = await queryByText('MetaMask Simple Snap Keyring');
       expect(snapTag).toBeDefined();
     });
   });

@@ -18,8 +18,8 @@ import SensitiveText, {
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
-  safeToChecksumAddress,
   getLabelTextByAddress,
+  safeToChecksumAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -218,7 +218,7 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
+          tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
         >
