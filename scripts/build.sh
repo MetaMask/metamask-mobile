@@ -224,7 +224,8 @@ prebuild_android(){
 buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
+	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
+	npx expo run:android --no-install --variant 'prodDebug' --port=$WATCHER_PORT $SIM_OPTION
 }
 
 buildAndroidRunQA(){
@@ -246,7 +247,8 @@ buildIosSimulator(){
 	else
 		SIM_OPTION=""
 	fi
-	react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
+	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
+	npx expo run:ios --no-install --configuration Debug --port=$WATCHER_PORT $SIM_OPTION
 }
 
 buildIosSimulatorQA(){
