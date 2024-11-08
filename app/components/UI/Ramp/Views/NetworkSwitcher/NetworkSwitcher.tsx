@@ -168,7 +168,7 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        CurrencyRateController.updateExchangeRate(ticker);
+        CurrencyRateController.updateExchangeRate([ticker]);
         NetworkController.setActiveNetwork(networkClientId);
         navigateToGetStarted();
       }
