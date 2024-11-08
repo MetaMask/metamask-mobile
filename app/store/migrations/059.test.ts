@@ -13,7 +13,7 @@ jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-describe('Migration #58 - Update default search engine from DDG to Google', () => {
+describe('Migration #59 - Update default search engine from DDG to Google', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -22,7 +22,7 @@ describe('Migration #58 - Update default search engine from DDG to Google', () =
   const invalidStates = [
     {
       state: null,
-      errorMessage: "FATAL ERROR: Migration 58: Invalid state error: 'object'",
+      errorMessage: "FATAL ERROR: Migration 59: Invalid state error: 'object'",
       scenario: 'state is invalid',
     },
     {
@@ -30,7 +30,7 @@ describe('Migration #58 - Update default search engine from DDG to Google', () =
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 58: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 59: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -40,7 +40,7 @@ describe('Migration #58 - Update default search engine from DDG to Google', () =
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 58: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 59: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -51,7 +51,7 @@ describe('Migration #58 - Update default search engine from DDG to Google', () =
         settings: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 58: Invalid Settings state error: 'object'",
+        "FATAL ERROR: Migration 59: Invalid Settings state error: 'object'",
       scenario: 'Settings object is invalid',
     },
   ];
