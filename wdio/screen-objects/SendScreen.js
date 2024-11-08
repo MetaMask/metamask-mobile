@@ -42,7 +42,7 @@ class SendScreen {
 
   get confirmAmount() {
     // eslint-disable-next-line no-undef
-    return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
+    return Selectors.getElementByPlatform(CONFIRM_TXN_AMOUNT);
   }
 
   get addAddressButton() {

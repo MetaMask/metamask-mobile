@@ -22,7 +22,7 @@ export const mockEvents = {
       response: suggestedGasApiResponses.error,
       responseCode: 500,
     },
-    
+
     /**
      * Ganache gas fees endpoint with a mock 200 success response.
      * @property {string} urlEndpoint - API endpoint for Ganache gas fees.
@@ -31,6 +31,27 @@ export const mockEvents = {
     suggestedGasFeesApiGanache: {
       urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
       response: suggestedGasFeesApiGanache,
+      responseCode: 200,
+    },
+
+    securityAlertApiSupportedChains: {
+      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/supportedChains',
+      response: [
+          '0xa4b1',
+          '0xa86a',
+          '0x2105',
+          '0x138d5',
+          '0x38',
+          '0xe708',
+          '0x1',
+          '0x1b6e6',
+          '0xcc',
+          '0xa',
+          '0x89',
+          '0x82750',
+          '0xaa36a7',
+          '0x144'
+        ],
       responseCode: 200,
     },
   },
@@ -52,6 +73,29 @@ export const mockEvents = {
         priorityFee: '2',
         maxFee: '2.000855333',
       },
+    },
+
+    securityAlertApiValidate: {
+      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+      response: {
+        block: 20733513,
+        result_type: 'Benign',
+        reason: '',
+        description: '',
+        features: [],
+      },
+      requestBody: {
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: '0x5cfe73b6021e818b776b421b1c4db2474086a7e1',
+            data: '0x',
+            to: '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4',
+            value: '0xde0b6b3a7640000',
+          },
+        ],
+      },
+      responseCode: 201,
     },
   },
 };

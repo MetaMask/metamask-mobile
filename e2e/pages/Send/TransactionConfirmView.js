@@ -40,7 +40,7 @@ class TransactionConfirmationView {
 
   get transactionAmount() {
     return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
+      TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
@@ -74,6 +74,12 @@ class TransactionConfirmationView {
   get editPriorityLegacyModal() {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.LEGACY_CONTAINER,
+    );
+  }
+
+  get securityAlertBanner() {
+    return Matchers.getElementByID(
+      TransactionConfirmViewSelectorsIDs.SECURITY_ALERT_BANNER,
     );
   }
 

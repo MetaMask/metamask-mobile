@@ -1,5 +1,5 @@
  
-export const COMFIRM_TXN_AMOUNT = 'confirm-txn-amount';
+export const CONFIRM_TXN_AMOUNT = 'confirm-txn-amount';
 export const TRANSACTION_VIEW_CONTAINER_ID = 'txn-confirm-screen';
 export const CONFIRM_TRANSACTION_BUTTON_ID = 'txn-confirm-send-button';
 export const NAVBAR_TITLE_TEXT = 'navbar-title-text';
