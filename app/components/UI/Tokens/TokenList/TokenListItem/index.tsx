@@ -43,12 +43,16 @@ import AssetElement from '../../../AssetElement';
 import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
 import images from 'images/image-icons';
 import { TokenI } from '../../types';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
+
+export function getImageForChainId(chainId: string) {
+  // TODO: Fetch by image url by chain id
+}
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -89,14 +93,20 @@ export const TokenListItem = ({
 
   const itemAddress = safeToChecksumAddress(asset.address);
 
-  const { balanceFiat, balanceValueFormatted } =
-    deriveBalanceFromAssetMarketDetails(
-      asset,
-      tokenExchangeRates,
-      tokenBalances,
-      conversionRate,
-      currentCurrency,
-    );
+  const { _, balanceValueFormatted } = deriveBalanceFromAssetMarketDetails(
+    asset,
+    tokenExchangeRates,
+    tokenBalances,
+    conversionRate,
+    currentCurrency,
+  );
+
+  // format pricing here
+  const { tokenFiatAmount } = asset;
+  const balanceFiat = new Intl.NumberFormat(I18n.locale, {
+    currency: currentCurrency.toUpperCase(),
+    style: 'currency',
+  }).format(tokenFiatAmount);
 
   const pricePercentChange1d = itemAddress
     ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
@@ -175,7 +185,7 @@ export const TokenListItem = ({
       ...token,
     });
   };
-
+  console.log('network badge source:', getImageForChainId(chainId));
   return (
     <AssetElement
       key={itemAddress || '0x'}

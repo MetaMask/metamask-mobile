@@ -118,14 +118,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
-  // const selectedAccountTokensChains: Record<string, any> = useSelector(
-  //   getSelectedAccountTokensAcrossChains, // TODO: Focus on this for now
-  // );
-  const allTokens = useSelector(selectAllTokens); // TODO: Could be an issue here
+
+  const allTokens = useSelector(selectAllTokens);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const marketData = useSelector(selectMarketData);
+
   const currencyRates = useSelector(selectCurrencyRates);
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
