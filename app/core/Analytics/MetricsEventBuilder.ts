@@ -83,7 +83,7 @@ class TrackingEvent implements ITrackingEvent {
 class MetricsEventBuilder {
   readonly #trackingEvent: ITrackingEvent;
 
-  constructor(event: IMetaMetricsEvent | ITrackingEvent) {
+  private constructor(event: IMetaMetricsEvent | ITrackingEvent) {
     if (isTrackingEvent(event)) {
       this.#trackingEvent = event;
       return;

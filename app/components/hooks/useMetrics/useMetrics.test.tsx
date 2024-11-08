@@ -101,7 +101,10 @@ describe('useMetrics', () => {
 
     const event = createEventBuilder({
       category: 'test event',
-    }).build();
+    })
+      .addProperties({ prop: 'value' })
+      .addSensitiveProperties({ secret: 'value' })
+      .build();
 
     let deletionTaskIdValue,
       dataDeleteStatusValue,
