@@ -20,6 +20,9 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
+
+  self.moduleName = @"MetaMask";
+
   [FIRApp configure];
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
@@ -41,8 +44,7 @@
                                                    moduleName:@"MetaMask"
                                             initialProperties:@{@"foxCode": foxCode}];
 
-
-
+  self.initialProps = @{@"foxCode": foxCode};
 
   rootView.backgroundColor = [UIColor colorNamed:@"ThemeColors"];
 
@@ -61,6 +63,8 @@
 
   //Uncomment the following line to enable the splashscreen on ios
   //[RNSplashScreen show];
+
+  [super application:application didFinishLaunchingWithOptions:launchOptions];
 
   return YES;
 }
