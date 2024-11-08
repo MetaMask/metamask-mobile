@@ -702,8 +702,50 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderNetworkPermissionSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onEdit: () => {
+        setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions);
+        setSelectedAddresses(
+          permittedAccountsByHostname.map(toChecksumHexAddress),
+        );
+      },
+      onEditNetworks: () =>
+        setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
+      onUserAction: setUserIntent,
+      // showActionButtons: true,
+      onBack: () =>
+        isRenderedAsBottomSheet
+          ? setPermissionsScreen(AccountPermissionsScreens.Connected)
+          : navigation.navigate('PermissionsManager'),
+      isRenderedAsBottomSheet,
+      accountAddresses: permittedAccountsByHostname.map(toChecksumHexAddress),
+      accounts,
+      networkAvatars,
+      isNetworkSwitch: true,
+      showActionButtons: false,
+      isDisconnectAllShown: false,
+      isNonDappNetworkSwitch: true,
+    };
+
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [
+    faviconSource,
+    urlWithProtocol,
+    isRenderedAsBottomSheet,
+    navigation,
+    permittedAccountsByHostname,
+    setSelectedAddresses,
+    networkAvatars,
+    accounts,
+  ]);
+
   const renderPermissionsScreens = useCallback(() => {
-    // console.log('>>> renderPermissionsScreens', permissionsScreen);
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
         return renderConnectedScreen();
@@ -716,16 +758,20 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
       case AccountPermissionsScreens.PermissionsSummary:
-        return renderPermissionsSummaryScreen();
+        return isNonDappNetworkSwitch
+          ? renderNetworkPermissionSummaryScreen()
+          : renderPermissionsSummaryScreen();
     }
   }, [
     permissionsScreen,
+    isNonDappNetworkSwitch,
     renderConnectedScreen,
     renderConnectMoreAccountsScreen,
     renderEditAccountsPermissionsScreen,
     renderConnectNetworksScreen,
     renderRevokeScreen,
     renderPermissionsSummaryScreen,
+    renderNetworkPermissionSummaryScreen,
   ]);
 
   // console.log('>>> isRenderedAsBottomSheet', isRenderedAsBottomSheet);

@@ -1866,7 +1866,8 @@
     "connected_to": "Connected to ",
     "manage_permissions": "Manage Permissions",
     "edit": "Edit",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "title_add_network_permission": "Add network permission"
   },
   "select": {
     "cancel": "Cancel",

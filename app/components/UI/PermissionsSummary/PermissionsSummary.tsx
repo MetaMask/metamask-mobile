@@ -55,6 +55,7 @@ const PermissionsSummary = ({
   isRenderedAsBottomSheet = true,
   isDisconnectAllShown = true,
   isNetworkSwitch = false,
+  isNonDappNetworkSwitch = false,
   accountAddresses = [],
   accounts = [],
   networkAvatars = [],
@@ -113,7 +114,7 @@ const PermissionsSummary = ({
     return (
       <View style={styles.header}>
         <View style={styles.startAccessory}>
-          {onBack && (
+          {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
@@ -344,7 +345,9 @@ const PermissionsSummary = ({
           {renderHeader()}
           <View style={styles.title}>
             <TextComponent variant={TextVariant.HeadingSM}>
-              {!isAlreadyConnected || isNetworkSwitch
+              {isNonDappNetworkSwitch
+                ? strings('permissions.title_add_network_permission')
+                : !isAlreadyConnected || isNetworkSwitch
                 ? strings('permissions.title_dapp_url_wants_to', {
                     dappUrl: new URL(currentPageInformation.url).hostname,
                   })
@@ -353,7 +356,6 @@ const PermissionsSummary = ({
                   })}
             </TextComponent>
           </View>
-          {/*TODO These should be conditional upon which permissions are being requested*/}
           {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
