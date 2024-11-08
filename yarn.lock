@@ -5661,10 +5661,10 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/transaction-controller@^38.2.0":
-  version "38.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-38.2.0.tgz#45b12b871b7502cdf2d8a6846f7ed006787bb3b1"
-  integrity sha512-fTN9oPt5p9Wh5AoeX3ahZmwVs/TqQVZxqMw8YT7Tbcmyw1n1gRZIo2KDOSZnWM8cchOzppHp4e/QEcxpSdki8w==
+"@metamask/transaction-controller@^38.3.0":
+  version "38.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-38.3.0.tgz#51d4c5739da004b0e498b40273f838ee6f17be04"
+  integrity sha512-Ogj534hgT6ng6iTL0Wf3aHf17kZcY0F1xHFdGX9fXLLkPeTEIPisiYbZrZhzT4N00QJzBt+RMVLoeg42H3cozw==
   dependencies:
     "@ethereumjs/common" "^3.2.0"
     "@ethereumjs/tx" "^4.2.0"
