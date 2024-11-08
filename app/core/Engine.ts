@@ -195,7 +195,10 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { NotificationServicesController, NotificationServicesPushController } from '@metamask/notification-services-controller';
+import {
+  NotificationServicesController,
+  NotificationServicesPushController,
+} from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -701,9 +704,9 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.startPollingByNetworkClientId(
-      networkController.state.selectedNetworkClientId,
-    );
+    currencyRateController.startPolling({
+      networkClientId: networkController.state.selectedNetworkClientId,
+    });
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -1306,17 +1309,19 @@ export class Engine {
         },
       });
 
-      const notificationServicesPushControllerMessenger =
+    const notificationServicesPushControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'NotificationServicesPushController',
         allowedActions: ['AuthenticationController:getBearerToken'],
         allowedEvents: [],
       });
 
-      const notificationServicesPushController =
+    const notificationServicesPushController =
       new NotificationServicesPushController.Controller({
         messenger: notificationServicesPushControllerMessenger,
-        state: initialState.NotificationServicesPushController || { fcmToken: '' },
+        state: initialState.NotificationServicesPushController || {
+          fcmToken: '',
+        },
         env: {
           apiKey: process.env.FIREBASE_API_KEY ?? '',
           authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
@@ -1466,6 +1471,7 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
+      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
@@ -1632,14 +1638,10 @@ export class Engine {
             `${this.keyringController.name}:signMessage`,
             `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
+            `${networkController.name}:getNetworkClientById`,
           ],
           allowedEvents: [],
         }),
-        getAllState: () => store.getState(),
-        getCurrentChainId: () =>
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId,
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
