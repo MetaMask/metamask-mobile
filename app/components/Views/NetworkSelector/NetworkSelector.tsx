@@ -253,7 +253,7 @@ const NetworkSelector = () => {
           networkConfigurationId,
         );
       } else {
-        CurrencyRateController.updateExchangeRate(ticker);
+        CurrencyRateController.updateExchangeRate([ticker]);
 
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
@@ -372,7 +372,7 @@ const NetworkSelector = () => {
           networkConfiguration.defaultRpcEndpointIndex
         ].networkClientId ?? type;
 
-      CurrencyRateController.updateExchangeRate(ticker);
+      CurrencyRateController.updateExchangeRate([ticker]);
       NetworkController.setActiveNetwork(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
