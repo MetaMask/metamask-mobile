@@ -627,7 +627,6 @@ const App = (props) => {
             }),
           );
         }
-        console.log('ENTER IS THIS ENTERING HERE WHEN ITS PASSWORD ');
 
         await Authentication.lockApp({ reset: false });
         trackErrorAsAnalytics(
