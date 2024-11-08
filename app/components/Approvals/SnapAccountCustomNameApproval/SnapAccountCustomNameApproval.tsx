@@ -45,11 +45,6 @@ const SnapAccountCustomNameApproval = () => {
     }
   }, [accountName, onConfirm, isNameTaken]);
 
-  console.log(
-    'SnapKeyring: SnapAccountCustomNameApproval',
-    JSON.stringify(approvalRequest, null, 2),
-  );
-
   const checkIfNameTaken = useCallback(
     (name: string) =>
       internalAccounts.some((account) => account.metadata.name === name),
