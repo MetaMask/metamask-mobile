@@ -3618,5 +3618,11 @@
     "input_title": "Account name",
     "add_account_button": "Add account",
     "name_taken_message": "This account name already exists"
+  },
+  "snap_keyring": {
+    "snap_account_created": "Account created",
+    "snap_account_created_description": "Your new account is ready to use!",
+    "snap_account_creation_failed": "Account creation failed",
+    "snap_account_creation_failed_description": "{{snapName}} didn't manage to create an account for you."
   }
 }
