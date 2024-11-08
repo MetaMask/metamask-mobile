@@ -2,9 +2,11 @@
 
 ## Current Main Branch
 
-## 7.34.1 - Nov 6, 2024
+## 7.34.1 - Nov 8, 2024
 ### Fixed
 - [#12205](https://github.com/MetaMask/metamask-mobile/pull/12205): fix: add contractBalances as dependency
+- [#12236](https://github.com/MetaMask/metamask-mobile/pull/12236): fix: Add migration to fix NotificationServicesController bug (#12236)
+- [#12228](https://github.com/MetaMask/metamask-mobile/pull/12228): fix: Update transaction-controller version
 
 ## 7.34.0 - Oct 28, 2024
 ### Added
