@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
-import { isTest } from '../../util/test/utils';
-import { endTrace, trace } from '../../util/trace';
+import { TraceName, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
+import { isTest } from '../../util/test/utils';
 
 /**
  * Service for measuring app performance
@@ -47,20 +47,31 @@ class Performance {
         // the total app start time is then the maximum of the two durations
         const appStartTime = Math.max(nativeLaunchDuration, jsBundleDuration);
 
-        // eslint-disable-next-line no-console
-        console.info(`-------------------------------------------------------`);
-        console.info(`---------------🕙 PERFORMANCE NUMBERS 🕙---------------`);
-        console.info(`-------------------------------------------------------`);
-        console.info(`NATIVE LAUNCH TIME - ${nativeLaunchDuration}ms`);
-        console.info(`JS BUNDLE LOAD TIME - ${jsBundleDuration}ms`);
-        console.info(
-          `APP START TIME = MAX(NATIVE LAUNCH TIME, JS BUNDLE LOAD TIME) - ${appStartTime}ms`,
-        );
-        console.info(`-------------------------------------------------------`);
-        console.info(`-------------------------------------------------------`);
+        if (isTest) {
+          // eslint-disable-next-line no-console
+          console.info(
+            `-------------------------------------------------------`,
+          );
+          console.info(
+            `---------------🕙 PERFORMANCE NUMBERS 🕙---------------`,
+          );
+          console.info(
+            `-------------------------------------------------------`,
+          );
+          console.info(`NATIVE LAUNCH TIME - ${nativeLaunchDuration}ms`);
+          console.info(`JS BUNDLE LOAD TIME - ${jsBundleDuration}ms`);
+          console.info(
+            `APP START TIME = MAX(NATIVE LAUNCH TIME, JS BUNDLE LOAD TIME) - ${appStartTime}ms`,
+          );
+          console.info(
+            `-------------------------------------------------------`,
+          );
+          console.info(
+            `-------------------------------------------------------`,
+          );
 
-        setPerformanceValues(appStartTime);
-
+          setPerformanceValues(appStartTime);
+        }
         const now = Date.now();
 
         const appLaunchTime = now - appStartTime;
@@ -69,13 +80,13 @@ class Performance {
         const parentSpan = getUIStartupSpan(appLaunchTime);
 
         trace({
-          name: 'Load scripts',
+          name: TraceName.LoadScripts,
           startTime: appLaunchTime,
           parentContext: parentSpan,
         });
         endTrace({
-          name: 'Load scripts',
-          timeStamp: now,
+          name: TraceName.LoadScripts,
+          timestamp: now,
         });
       }
     }).observe({ type: 'react-native-mark', buffered: true });
