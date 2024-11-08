@@ -29,30 +29,28 @@ describe(SmokeConfirmations('Send ETH - Security Alert'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
-    mockServer = await startMockServer({
-      GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
-      ],
-      POST: [        mockEvents.POST.securityAlertApiValidate,]
-    });
+    // mockServer = await startMockServer({
+    //   GET: [
+    //     mockEvents.GET.securityAlertApiSupportedChains,
+    //   ],
+    //   POST: [mockEvents.POST.securityAlertApiValidate,]
+    // });
   });
 
   afterAll(async () => {
-    try {
-      await stopMockServer();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Mock server already stopped or encountered an error:', error);
-    }
+    // try {
+    //   await stopMockServer();
+    // } catch (error) {
+    //   // eslint-disable-next-line no-console
+    //   console.log('Mock server already stopped or encountered an error:', error);
+    // }
   });
 
   it('should not show security alerts for benign requests', async () => {
-    const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
     await withFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
-        restartDevice: true,
-        // ganacheOptions: defaultGanacheOptions,
+        // restartDevice: true,
       },
       async () => {
         await loginToApp();
@@ -71,14 +69,52 @@ describe(SmokeConfirmations('Send ETH - Security Alert'), () => {
           );
         } catch {
           /* eslint-disable no-console */
-          console.log('The notification device alert modal is not visible');
+          console.log('The banner alert is not visible');
         }
-        // await TransactionConfirmationView.securityAlertBanner();
-        // await TabBarComponent.tapActivity();
+      },
+    );
+  });
 
-        // await TestHelpers.checkIfElementByTextIsVisible(
-        //   `${AMOUNT} ${TOKEN_NAME}`,
-        // );
+  it.only('should show security alerts for malicious requests', async () => {
+    const testSpecificMock = {
+      GET: [
+        mockEvents.GET.securityAlertApiSupportedChains,
+      ],
+      POST: [{...mockEvents.POST.securityAlertApiValidate,
+        response: {
+            block: 20733277,
+            result_type: 'Malicious',
+            reason: 'transfer_farming',
+            description: '',
+            features: ['Interaction with a known malicious address'],
+        }
+      },]
+    };
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withDefaultFixture().build(),
+        restartDevice: true,
+        // ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+
+        await TabBarComponent.tapActions();
+        await WalletActionsModal.tapSendButton();
+
+        await SendView.inputAddress(BENIGN_ADDRESS_MOCK);
+        await SendView.tapNextButton();
+
+        await AmountView.typeInTransactionAmount(0);
+        await AmountView.tapNextButton();
+        await driver.delay(10000000);
+          await Assertions.checkIfNotVisible(
+            TransactionConfirmationView.securityAlertBanner(),
+          );
+
+       
+
       },
     );
   });

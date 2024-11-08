@@ -9,6 +9,7 @@ import createStaticServer from '../create-static-server';
 import { getFixturesServerPort, getLocalTestDappPort } from './utils';
 import Utilities from '../utils/Utilities';
 import { device } from 'detox';
+import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -99,9 +100,16 @@ export async function withFixtures(options, testSuite) {
     dappOptions,
     dappPath = undefined,
     dappPaths,
+    testSpecificMock,
   } = options;
 
   const fixtureServer = new FixtureServer();
+  // let mockServer;
+
+  if (testSpecificMock) {
+    await startMockServer(testSpecificMock);
+  }
+
   let ganacheServer;
   if (!disableGanache) {
     ganacheServer = new Ganache();
@@ -191,6 +199,10 @@ export async function withFixtures(options, testSuite) {
       }
     }
     await stopFixtureServer(fixtureServer);
+
+    if (testSpecificMock) {
+      await stopMockServer();
+    }
   }
 }
 

@@ -32,6 +32,7 @@ import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
+import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -123,6 +124,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
           severity={BannerAlertSeverity.Warning}
           title={title}
           description={description}
+          testID={TransactionConfirmViewSelectorsIDs.SECURITY_ALERT_BANNER}
         />
       </View>
     );

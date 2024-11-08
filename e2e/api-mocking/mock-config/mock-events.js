@@ -76,7 +76,7 @@ export const mockEvents = {
     },
 
     securityAlertApiValidate: {
-      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
       response: {
         block: 20733513,
         result_type: 'Benign',
@@ -88,10 +88,10 @@ export const mockEvents = {
         method: 'eth_sendTransaction',
         params: [
           {
-            from: '0x5cfe73b6021e818b776b421b1c4db2474086a7e1',
+            from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
             data: '0x',
             to: '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4',
-            value: '0xde0b6b3a7640000',
+            value: '0x0',
           },
         ],
       },
