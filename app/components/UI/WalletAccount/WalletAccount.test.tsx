@@ -37,6 +37,19 @@ const mockAccount: Account = {
   isSelected: true,
 };
 
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
+      },
+    },
+  };
+});
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
