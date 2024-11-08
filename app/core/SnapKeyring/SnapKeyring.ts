@@ -3,9 +3,6 @@ import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
-import { IconName } from '../../component-library/components/Icons/Icon';
-import { showError, showSuccess } from './utils/showResult';
-import { strings } from '../../../locales/i18n';
 
 interface CreateAccountConfirmationResult {
   success: boolean;
@@ -98,8 +95,6 @@ export const snapKeyringBuilder = (
         accountNameSuggestion = '',
         _displayConfirmation = false,
       ) => {
-        const learnMoreLink =
-          'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/how-to-add-accounts-in-your-wallet/';
         const { id: addAccountFlowId } = controllerMessenger.call(
           'ApprovalController:startFlow',
         );
@@ -139,41 +134,9 @@ export const snapKeyringBuilder = (
                   accountNameConfirmationResult.name,
                 );
               }
-              await showSuccess(
-                controllerMessenger,
-                snapId,
-                {
-                  icon: IconName.UserCircleAdd,
-                  title: strings('snap_keyring.snap_account_created'),
-                },
-                {
-                  message: strings(
-                    'snap_keyring.snap_account_created_description',
-                  ),
-                  address,
-                  learnMoreLink,
-                },
-              );
             } catch (e) {
               // Error occurred while naming the account
               const error = (e as Error).message;
-
-              await showError(
-                controllerMessenger,
-                snapId,
-                {
-                  icon: IconName.UserCircleAdd,
-                  title: strings('snap_keyring.snap_account_creation_failed'),
-                },
-                {
-                  message: strings(
-                    'snap_keyring.snap_account_creation_failed_description',
-                    { snapName: snapId },
-                  ),
-                  learnMoreLink,
-                  error,
-                },
-              );
               throw new Error(
                 `Error occurred while creating snap account: ${error}`,
               );
