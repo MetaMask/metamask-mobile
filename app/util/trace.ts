@@ -42,6 +42,8 @@ export enum TraceName {
   GetGenericPassword = 'Get Generic Password',
   VaultCreation = 'Login Vault Creation',
   StorePassword = 'Store Password',
+  AccountList = 'Account List',
+  StoreInit = 'Store Initialization',
 }
 
 export enum TraceOperation {

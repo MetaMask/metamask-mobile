@@ -90,6 +90,8 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import { TraceName, endTrace, trace } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 interface infuraNetwork {
   name: string;
@@ -131,7 +133,10 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-  const parentSpan = trace({ name: TraceName.NetworkSwitch });
+  const parentSpan = trace({
+    name: TraceName.NetworkSwitch,
+    tags: getTraceTags(store.getState()),
+  });
   const {
     chainId: selectedChainId,
     rpcUrl: selectedRpcUrl,

@@ -9,7 +9,7 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
-import { trace, endTrace } from '../util/trace';
+import { trace, endTrace, TraceName } from '../util/trace';
 
 import thunk from 'redux-thunk';
 
@@ -29,7 +29,7 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
   trace({
-    name: 'Store init',
+    name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
@@ -97,7 +97,7 @@ const createStoreAndPersistor = async () => {
     Authentication.init(store);
     AppStateEventProcessor.init(store);
     LockManagerService.init(store);
-    endTrace({ name: 'Store init' });
+    endTrace({ name: TraceName.StoreInit });
   };
 
   persistor = persistStore(store, null, onPersistComplete);

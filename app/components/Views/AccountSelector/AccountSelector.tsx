@@ -35,6 +35,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
@@ -53,7 +54,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     AccountSelectorScreens.AccountSelector,
   );
-
+  useEffect(() => {
+    endTrace({ name: TraceName.AccountList });
+  }, []);
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));

@@ -72,6 +72,8 @@ import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -250,7 +252,11 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
-  parentSpan = trace({ name: TraceName.Login, op: TraceOperation.Login });
+  parentSpan = trace({
+    name: TraceName.Login,
+    op: TraceOperation.Login,
+    tags: getTraceTags(store.getState()),
+  });
 
   async componentDidMount() {
     trace({
