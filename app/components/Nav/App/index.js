@@ -63,6 +63,7 @@ import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
+import ConnectionDetails from '../../../components/Views/AccountPermissions/ConnectionDetails';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -423,6 +424,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
       component={AccountPermissionsConfirmRevokeAll}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.CONNECTION_DETAILS}
+      component={ConnectionDetails}
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}

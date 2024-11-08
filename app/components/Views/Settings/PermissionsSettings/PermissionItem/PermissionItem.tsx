@@ -11,13 +11,10 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import styleSheet from './PermissionItem.style';
-import {
-  PermissionListItemViewModel,
-  PermissionSource,
-} from './PermissionItem.types';
+import { PermissionListItemViewModel } from './PermissionItem.types';
 import WebsiteIcon from '../../../../../components/UI/WebsiteIcon';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
+import { useFavicon } from '../../../../hooks/useFavicon';
 
 interface PermissionListItemProps {
   item: PermissionListItemViewModel;
@@ -29,10 +26,11 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
   onPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const faviconUrl = useFavicon(item.dappHostName);
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.iconContainer}>
-        <WebsiteIcon style={styles.icon} url={item.dappLogoUrl} />
+        <WebsiteIcon style={styles.icon} icon={faviconUrl} />
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.row}>
@@ -40,31 +38,18 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
         </View>
         <View style={styles.row}>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {item.numberOfAccountPermissions}
+            {item.numberOfAccountPermissions}{' '}
             {item.numberOfAccountPermissions > 1
               ? strings('app_settings.accounts')
               : strings('app_settings.account')}
           </Text>
           <Text style={styles.dot}> • </Text>
           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {item.numberOfNetworkPermissions}
+            {item.numberOfNetworkPermissions}{' '}
             {item.numberOfNetworkPermissions > 1
               ? strings('app_settings.networks')
               : strings('app_settings.network')}
           </Text>
-        </View>
-        <View style={styles.row}>
-          <View>
-            <Tag
-              label={
-                item.permissionSource === PermissionSource.SDK
-                  ? 'SDK'
-                  : item.permissionSource === PermissionSource.MetaMaskBrowser
-                  ? 'MetaMask Browser'
-                  : 'WalletConnect'
-              }
-            ></Tag>
-          </View>
         </View>
       </View>
       <View style={styles.chevronContainer}>

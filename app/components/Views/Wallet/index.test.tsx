@@ -5,58 +5,67 @@ import { act, screen } from '@testing-library/react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 import { AppState } from 'react-native';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS,
-]);
+jest.mock('../../../util/address', () => {
+  const actual = jest.requireActual('../../../util/address');
+  return {
+    ...actual,
+    getLabelTextByAddress: jest.fn(),
+  };
+});
 
-jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
-  context: {
-    NftController: {
-      allNfts: {
-        [MOCK_ADDRESS]: {
-          [MOCK_ADDRESS]: [],
-        },
-      },
-      allNftContracts: {
-        [MOCK_ADDRESS]: {
-          [MOCK_ADDRESS]: [],
-        },
-      },
-    },
-    TokenRatesController: {
-      poll: jest.fn(),
-    },
-    TokenDetectionController: {
-      detectTokens: jest.fn(),
-    },
-    NftDetectionController: {
-      detectNfts: jest.fn(),
-    },
-    AccountTrackerController: {
-      refresh: jest.fn(),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    getTotalFiatAccountBalance: jest.fn(),
+    context: {
+      NftController: {
+        allNfts: {
+          [MOCK_ADDRESS]: {
+            [MOCK_ADDRESS]: [],
           },
-        ],
+        },
+        allNftContracts: {
+          [MOCK_ADDRESS]: {
+            [MOCK_ADDRESS]: [],
+          },
+        },
+      },
+      TokenRatesController: {
+        poll: jest.fn(),
+      },
+      TokenDetectionController: {
+        detectTokens: jest.fn(),
+      },
+      NftDetectionController: {
+        detectNfts: jest.fn(),
+      },
+      AccountTrackerController: {
+        refresh: jest.fn(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+            },
+          ],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-    AccountsController: {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
-  },
-}));
+  };
+});
 
 const mockInitialState = {
   networkOnboarded: {
@@ -113,6 +122,21 @@ jest.mock('../../../util/notifications/hooks/useAccountSyncing', () => ({
   useAccountSyncing: jest.fn().mockReturnValue({
     dispatchAccountSyncing: jest.fn(),
     error: undefined,
+  }),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  getInternalAccountByAddress: jest.fn().mockReturnValue({
+    address: MOCK_ADDRESS,
+    balance: '0x0',
+    name: 'Account 1',
+    type: 'default',
+    metadata: {
+      keyring: {
+        type: 'HD Key Tree',
+      },
+    },
   }),
 }));
 

@@ -7,6 +7,7 @@ import { WalletViewSelectorsIDs } from '../selectors/wallet/WalletView.selectors
 import { ConnectAccountBottomSheetSelectorsIDs } from '../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
+import TestHelpers from '../helpers';
 
 class AccountListView {
   get accountList() {
@@ -105,6 +106,7 @@ class AccountListView {
 
   async swipeToDismissAccountsModal() {
     await Gestures.swipe(this.title, 'down', 'fast', 0.6);
+    await TestHelpers.delay(2000);
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {

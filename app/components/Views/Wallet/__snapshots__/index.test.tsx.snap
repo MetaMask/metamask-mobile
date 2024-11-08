@@ -291,7 +291,7 @@ exports[`Wallet should render correctly 1`] = `
                                     "overflow": "hidden",
                                   },
                                   {
-                                    "backgroundColor": "#C7144F",
+                                    "backgroundColor": "#FC4800",
                                     "borderRadius": 8,
                                     "height": 16,
                                     "width": 16,
@@ -331,19 +331,19 @@ exports[`Wallet should render correctly 1`] = `
                                   <RNSVGRect
                                     fill={
                                       {
-                                        "payload": 4294711651,
+                                        "payload": 4278291575,
                                         "type": 0,
                                       }
                                     }
                                     height={16}
                                     matrix={
                                       [
-                                        0.46329603511986217,
-                                        0.8862035792312145,
-                                        -0.8862035792312145,
-                                        0.46329603511986217,
-                                        14.533838247048674,
-                                        -4.145301667327908,
+                                        -0.41310442982454204,
+                                        -0.910683660806177,
+                                        0.910683660806177,
+                                        -0.41310442982454204,
+                                        4.404802817153955,
+                                        20.16808402411075,
                                       ]
                                     }
                                     propList={
@@ -358,19 +358,19 @@ exports[`Wallet should render correctly 1`] = `
                                   <RNSVGRect
                                     fill={
                                       {
-                                        "payload": 4280576225,
+                                        "payload": 4278410587,
                                         "type": 0,
                                       }
                                     }
                                     height={16}
                                     matrix={
                                       [
-                                        -0.5778576243835052,
-                                        0.8161375900801603,
-                                        -0.8161375900801603,
-                                        -0.5778576243835052,
-                                        25.81008357317059,
-                                        8.619501547206044,
+                                        0.903335292863301,
+                                        -0.42893513340314526,
+                                        0.42893513340314526,
+                                        0.903335292863301,
+                                        -9.297010789302583,
+                                        3.362634662066926,
                                       ]
                                     }
                                     propList={
@@ -385,19 +385,19 @@ exports[`Wallet should render correctly 1`] = `
                                   <RNSVGRect
                                     fill={
                                       {
-                                        "payload": 4278407261,
+                                        "payload": 4294382337,
                                         "type": 0,
                                       }
                                     }
                                     height={16}
                                     matrix={
                                       [
-                                        0.7046342099635947,
-                                        -0.7095707365365209,
-                                        0.7095707365365209,
-                                        0.7046342099635947,
-                                        -12.612859343389378,
-                                        -2.3055131539418934,
+                                        -0.6921431738704069,
+                                        -0.7217602280983622,
+                                        0.7217602280983622,
+                                        -0.6921431738704069,
+                                        -6.169639630140347,
+                                        15.20799235933167,
                                       ]
                                     }
                                     propList={
@@ -427,7 +427,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                             testID="account-label"
                           >
-                            Account 1
+                            Account 2
                           </Text>
                         </View>
                       </View>
@@ -460,7 +460,7 @@ exports[`Wallet should render correctly 1`] = `
                       }
                     }
                   >
-                    0xC495...D272
+                    0xC496...a756
                   </Text>
                 </View>
               </View>
