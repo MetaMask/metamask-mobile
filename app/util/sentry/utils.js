@@ -401,7 +401,7 @@ function rewriteReport(report) {
  */
 export function excludeEvents(event) {
   // This is needed because store starts to initialise before performance observers completes to measure app start time
-  if (event.transaction === 'UIStartup' && Device.isAndroid()) {
+  if (event?.transaction === 'UIStartup' && Device.isAndroid()) {
     const appLaunchTime = Performance.appLaunchTime;
     const formattedAppLaunchTime = (event.start_timestamp = Number(
       `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime

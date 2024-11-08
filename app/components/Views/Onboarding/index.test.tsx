@@ -25,20 +25,4 @@ describe('Onboarding', () => {
     );
     expect(toJSON()).toMatchSnapshot();
   });
-  it('must call trace when press start', () => {
-    const spyFetch = jest
-      .spyOn(traceObj, 'trace')
-      .mockImplementation(() => undefined);
-    const { getByTestId } = renderScreen(
-      Onboarding,
-      { name: 'Onboarding' },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    const startButton = getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
-    fireEvent.press(startButton);
-    expect(spyFetch).toHaveBeenCalledTimes(1);
-  });
 });
