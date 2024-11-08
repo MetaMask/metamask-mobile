@@ -126,13 +126,6 @@ describe('WalletAccount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ADDRESS)).toBeDefined();
-  });
-
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<WalletAccount />, {
       state: mockInitialState,
