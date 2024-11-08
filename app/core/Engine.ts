@@ -704,8 +704,14 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
+    const currentNetworkConfig =
+      networkController.getNetworkConfigurationByNetworkClientId(
+        networkController?.state.selectedNetworkClientId,
+      );
     currencyRateController.startPolling({
-      networkClientId: networkController.state.selectedNetworkClientId,
+      nativeCurrencies: currentNetworkConfig?.nativeCurrency
+        ? [currentNetworkConfig?.nativeCurrency]
+        : [],
     });
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1638,14 +1644,10 @@ export class Engine {
             `${this.keyringController.name}:signMessage`,
             `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
+            `${networkController.name}:getNetworkClientById`,
           ],
           allowedEvents: [],
         }),
-        getAllState: () => store.getState(),
-        getCurrentChainId: () =>
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId,
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),

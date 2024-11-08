@@ -6,6 +6,7 @@ import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
+import Tag from '../../../component-library/components/Tags/Tag';
 
 // Internal dependencies.
 import styleSheet from './CellSelectWithMenu.styles';
@@ -34,6 +35,7 @@ const CellSelectWithMenu = ({
   isSelected = false,
   children,
   withAvatar = true,
+  showSecondaryTextIcon = true,
   ...props
 }: CellSelectWithMenuProps) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -77,13 +79,26 @@ const CellSelectWithMenu = ({
                 >
                   {secondaryText}
                 </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Xss}
-                  style={styles.arrowStyle}
-                />
+                {showSecondaryTextIcon && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xss}
+                    style={styles.arrowStyle}
+                  />
+                )}
               </TouchableOpacity>
             </TouchableWithoutFeedback>
+          )}
+          {!!tagLabel && (
+            <Tag
+              testID={CellModalSelectorsIDs.TAG_LABEL}
+              label={tagLabel}
+              style={
+                isSelected
+                  ? [styles.tagLabel, styles.selectedTag]
+                  : styles.tagLabel
+              }
+            />
           )}
         </View>
         {children && <View style={styles.optionalAccessory}>{children}</View>}
