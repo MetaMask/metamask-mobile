@@ -829,7 +829,7 @@ export class NetworkSettings extends PureComponent {
       url.set('protocol', 'https:');
     }
 
-    CurrencyRateController.updateExchangeRate(ticker);
+    CurrencyRateController.updateExchangeRate([ticker]);
     const existingNetwork = this.props.networkConfigurations[chainId];
 
     const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
