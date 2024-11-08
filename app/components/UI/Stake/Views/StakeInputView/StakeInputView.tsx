@@ -22,6 +22,8 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { BN } from 'ethereumjs-util';
 import useStakingGasFee from '../../hooks/useStakingGasFee';
 
+const DEFAULT_GAS_IMPACT_PERCENTAGE = 30;
+
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
@@ -56,7 +58,7 @@ const StakeInputView = () => {
   );
 
   const shouldDisplayGasFeeImpact = useCallback(
-    (maxGasPercent: number = 30) => {
+    (maxGasPercent: number = DEFAULT_GAS_IMPACT_PERCENTAGE) => {
       if (isLoadingStakingGasFee) return;
 
       const percentageOfTxInGas = estimatedGasFeeWei

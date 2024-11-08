@@ -206,7 +206,7 @@ describe('StakeInputView', () => {
       });
     });
 
-    it('navigates to gas impact modal when gas cost is 30% of deposit amount', () => {
+    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', () => {
       jest.spyOn(useStakingGasFee, 'default').mockReturnValue({
         estimatedGasFeeWei: toWei('0.25'),
         isLoadingStakingGasFee: false,

@@ -87,7 +87,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
             {strings('stake.gas_cost_impact')}
           </Text>
         </BottomSheetHeader>
-        <Text style={styles.contentBody}>
+        <Text style={styles.content}>
           {strings('stake.gas_cost_impact_warning')}
         </Text>
         <BottomSheetFooter

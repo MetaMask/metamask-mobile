@@ -5,7 +5,7 @@ const styleSheet = () =>
     container: {
       paddingHorizontal: 16,
     },
-    contentBody: {
+    content: {
       paddingBottom: 16,
     },
     footer: {
