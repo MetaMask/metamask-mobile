@@ -104,7 +104,7 @@ index aac84e5..983c3f1 100644
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      return chainId;
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts
-index 0bb6c27..6b7d8cd 100644
+index 144e018..6b7d8cd 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.cts
 @@ -2,6 +2,7 @@ import type { AccountsControllerSelectedEvmAccountChangeEvent, AccountsControlle
@@ -133,16 +133,16 @@ index 0bb6c27..6b7d8cd 100644
      networkClientId: NetworkClientId;
  };
  declare const AccountTrackerController_base: (abstract new (...args: any[]) => {
--    readonly "__#784842@#intervalIds": Record<string, NodeJS.Timeout>;
--    "__#784842@#intervalLength": number | undefined;
+-    readonly "__#787890@#intervalIds": Record<string, NodeJS.Timeout>;
+-    "__#787890@#intervalLength": number | undefined;
 +    readonly "__#784968@#intervalIds": Record<string, NodeJS.Timeout>;
 +    "__#784968@#intervalLength": number | undefined;
      setIntervalLength(intervalLength: number): void;
      getIntervalLength(): number | undefined;
      _startPolling(input: AccountTrackerPollingInput): void;
      _stopPollingByPollingTokenSetId(key: string): void;
--    readonly "__#784834@#pollingTokenSets": Map<string, Set<string>>;
--    "__#784834@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
+-    readonly "__#787882@#pollingTokenSets": Map<string, Set<string>>;
+-    "__#787882@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
 +    readonly "__#784960@#pollingTokenSets": Map<string, Set<string>>;
 +    "__#784960@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
      _executePoll(input: AccountTrackerPollingInput): Promise<void>;
@@ -178,7 +178,7 @@ index 0bb6c27..6b7d8cd 100644
  }
  export default AccountTrackerController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts
-index 5ca0b5f..20d566f 100644
+index b25212c..20d566f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.mts
 @@ -2,6 +2,7 @@ import type { AccountsControllerSelectedEvmAccountChangeEvent, AccountsControlle
@@ -207,16 +207,16 @@ index 5ca0b5f..20d566f 100644
      networkClientId: NetworkClientId;
  };
  declare const AccountTrackerController_base: (abstract new (...args: any[]) => {
--    readonly "__#784842@#intervalIds": Record<string, NodeJS.Timeout>;
--    "__#784842@#intervalLength": number | undefined;
+-    readonly "__#787890@#intervalIds": Record<string, NodeJS.Timeout>;
+-    "__#787890@#intervalLength": number | undefined;
 +    readonly "__#784968@#intervalIds": Record<string, NodeJS.Timeout>;
 +    "__#784968@#intervalLength": number | undefined;
      setIntervalLength(intervalLength: number): void;
      getIntervalLength(): number | undefined;
      _startPolling(input: AccountTrackerPollingInput): void;
      _stopPollingByPollingTokenSetId(key: string): void;
--    readonly "__#784834@#pollingTokenSets": Map<string, Set<string>>;
--    "__#784834@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
+-    readonly "__#787882@#pollingTokenSets": Map<string, Set<string>>;
+-    "__#787882@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
 +    readonly "__#784960@#pollingTokenSets": Map<string, Set<string>>;
 +    "__#784960@#callbacks": Map<string, Set<(input: AccountTrackerPollingInput) => void>>;
      _executePoll(input: AccountTrackerPollingInput): Promise<void>;
