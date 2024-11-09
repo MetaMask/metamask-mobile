@@ -99,6 +99,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         <View
           style={
             {
+              "alignItems": "flex-end",
               "flex": 1,
               "paddingRight": 16,
             }
@@ -860,6 +861,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         <View
           style={
             {
+              "alignItems": "flex-end",
               "flex": 1,
               "paddingRight": 16,
             }

@@ -2,7 +2,6 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -32,6 +31,12 @@ class WalletView {
   get navbarNetworkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON,
+    );
+  }
+
+  async getNavbarNetworkPicker() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
     );
   }
 
@@ -75,12 +80,14 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  get mainWalletAccountActions() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+  get currentMainWalletAccountActions() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+    );
   }
 
-  async tapMainWalletAccountActions() {
-    await Gestures.waitAndTap(this.mainWalletAccountActions);
+  async tapCurrentMainWalletAccountActions() {
+    await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
   async tapOnToken(token) {

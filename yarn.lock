@@ -4348,10 +4348,10 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^39.0.0":
-  version "39.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-39.0.0.tgz#c21397be538d030dcb6ddbee5879fe8990d603fb"
-  integrity sha512-VeIasL1c4Ttj/Eo5CBXRQ9NpK7DFXJMTBFulwxKMSBa1tXCFmiFrVBBEnQgn9fiCXsTvc0a8hJyU+mC2rmTUjw==
+"@metamask/assets-controllers@^41.0.0":
+  version "41.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-41.0.0.tgz#b6d5b0064015bbd45bf9a85370c5c4ffd486de1d"
+  integrity sha512-FwnkCxV8IZPN8aCb2xWj4lB2hwVwW4UKkU+0XnD236EAUcWsWYUMf9Z1NNBE2t/NlOKs9xXjfdJRNG3dPJ71dg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/address" "^5.7.0"
@@ -4359,14 +4359,14 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^7.0.1"
+    "@metamask/base-controller" "^7.0.2"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/controller-utils" "^11.4.2"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^11.0.0"
-    "@metamask/rpc-errors" "^7.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/polling-controller" "^12.0.1"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/utils" "^10.0.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
@@ -4444,7 +4444,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.2":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.2":
   version "11.4.2"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.2.tgz#0186c62c841ec94f60a67d0764dc7ab59c176c51"
   integrity sha512-4zGfTTpjDgvRxo/tb3v1NBu0V/b2bqaDpSQC0noi5A4sm1yiZhyzqBY9+Zg11s8G/imp7+jvYRP1QM6OjFgIjQ==
@@ -5150,14 +5150,14 @@
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
 
-"@metamask/polling-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-11.0.0.tgz#3de28c27a9be5d85879cf9bd35d03a62dbf8932c"
-  integrity sha512-fXG60Ft7lYgqC8lV8m4FL18hU4K2NnsPzoWTm1Lhen2cysLbgAzqxxGdeIFEMaDiCzcvEtLuEffY8FDKCM0ewQ==
+"@metamask/polling-controller@^12.0.1":
+  version "12.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.1.tgz#89593c892d7fbbc93ccb6fe45dd2d820839f3d93"
+  integrity sha512-ZCF7UBuyxk9utdmOAh9/VBT780OxRPN5pD0wJaRwsFnFM3FFOFmvmojqnw8Kz4lSglyETtOBBMvzyQsnqoXQEQ==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/controller-utils" "^11.3.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/utils" "^10.0.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
@@ -5361,15 +5361,15 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/signature-controller@^20.1.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-20.1.0.tgz#b2ab41ec6eb191f9b21a74bf636d2b8e34d590e0"
-  integrity sha512-29pYdr9Q5YB5tGrYLEkpCh3l41W5Otg87cQ+cRf7Je0xGo34VdrIHNv6MJQcEgng5qTmR0tG3Hq23nPyZo8rSw==
+"@metamask/signature-controller@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-21.0.0.tgz#f7e10f2aab440c1a059c1867b5fba9b8cbabaeab"
+  integrity sha512-hM21XgDo0LYtNVy+k24bLLDxhgOarpCabutUu1ckTJgbE51X4YGMjH/C5I+G8T16mTwsVBb0B6h4CdeUYPoNiQ==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.1"
     "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^10.0.0"
     jsonschema "^1.2.4"
     lodash "^4.17.21"
     uuid "^8.3.2"
@@ -5636,10 +5636,10 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/transaction-controller@^38.2.0":
-  version "38.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-38.2.0.tgz#45b12b871b7502cdf2d8a6846f7ed006787bb3b1"
-  integrity sha512-fTN9oPt5p9Wh5AoeX3ahZmwVs/TqQVZxqMw8YT7Tbcmyw1n1gRZIo2KDOSZnWM8cchOzppHp4e/QEcxpSdki8w==
+"@metamask/transaction-controller@^38.3.0":
+  version "38.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-38.3.0.tgz#51d4c5739da004b0e498b40273f838ee6f17be04"
+  integrity sha512-Ogj534hgT6ng6iTL0Wf3aHf17kZcY0F1xHFdGX9fXLLkPeTEIPisiYbZrZhzT4N00QJzBt+RMVLoeg42H3cozw==
   dependencies:
     "@ethereumjs/common" "^3.2.0"
     "@ethereumjs/tx" "^4.2.0"

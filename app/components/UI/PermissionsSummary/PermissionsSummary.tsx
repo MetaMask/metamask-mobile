@@ -40,6 +40,8 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
+import Engine from '../../../core/Engine';
+import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -63,6 +65,8 @@ const PermissionsSummary = ({
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
+
+  const hostname = new URL(currentPageInformation.url).hostname;
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -124,7 +128,31 @@ const PermissionsSummary = ({
         </View>
 
         <View style={styles.logoContainer}>{renderTopIcon()}</View>
-        <View style={styles.endAccessory}></View>
+        <View style={styles.endAccessory}>
+          {!isRenderedAsBottomSheet && (
+            <ButtonIcon
+              size={ButtonIconSizes.Sm}
+              iconName={IconName.Info}
+              iconColor={IconColor.Default}
+              onPress={() => {
+                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                  screen: Routes.SHEET.CONNECTION_DETAILS,
+                  params: {
+                    hostInfo: {
+                      metadata: {
+                        origin:
+                          currentPageInformation?.url &&
+                          new URL(currentPageInformation?.url).hostname,
+                      },
+                    },
+                    connectionDateTime: new Date().getTime(),
+                  },
+                });
+              }}
+              testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
+            />
+          )}
+        </View>
       </View>
     );
   }
@@ -150,20 +178,24 @@ const PermissionsSummary = ({
     </View>
   );
 
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
         hostInfo: {
           metadata: {
-            origin:
-              currentPageInformation?.url &&
-              new URL(currentPageInformation?.url).hostname,
+            origin: hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, currentPageInformation?.url]);
+  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
@@ -346,10 +378,10 @@ const PermissionsSummary = ({
             <TextComponent variant={TextVariant.HeadingSM}>
               {!isAlreadyConnected || isNetworkSwitch
                 ? strings('permissions.title_dapp_url_wants_to', {
-                    dappUrl: new URL(currentPageInformation.url).hostname,
+                    dappUrl: hostname,
                   })
                 : strings('permissions.title_dapp_url_has_approval_to', {
-                    dappUrl: new URL(currentPageInformation.url).hostname,
+                    dappUrl: hostname,
                   })}
             </TextComponent>
           </View>
