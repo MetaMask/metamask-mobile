@@ -136,7 +136,6 @@ class WalletView {
   }
 
   async tapImportTokensFooterLink() {
-    await TestHelpers.delay(2000); // Wait for the footer link to be visible
     await Gestures.waitAndTap(this.importTokensFooterLink);
   }
 
