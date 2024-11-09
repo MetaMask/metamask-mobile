@@ -15,11 +15,13 @@ export function useERC20Tokens(requests: UseDisplayNameRequest[]) {
     const contractAddress = value.toLowerCase();
     const chainId = variation as Hex;
 
-    const { name: tokenName, symbol, iconUrl} =
-      erc20TokensByChain[chainId]?.data?.[contractAddress] ?? {};
+    const {
+      name: tokenName,
+      symbol,
+      iconUrl: image,
+    } = erc20TokensByChain[chainId]?.data?.[contractAddress] ?? {};
 
     const name = preferContractSymbol && symbol ? symbol : tokenName;
-    const image = iconUrl;
 
     return { name, image };
   });

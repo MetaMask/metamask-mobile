@@ -1,37 +1,33 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Identicon from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+
+const ADDRESS_MOCK = '0x123';
+const URI_MOCK = 'https://example.com/image.png';
 
 describe('Identicon', () => {
-  const mockStore = configureMockStore();
+  it('renders Blockie from address', () => {
+    const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
+      state: {
+        settings: { useBlockieIcon: true },
+      },
+    });
 
-  it('should render correctly when useBlockieIcon is true', () => {
-    const initialState = {
-      settings: { useBlockieIcon: true },
-    };
-    const store = mockStore(initialState);
-
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Identicon />
-      </Provider>,
-    );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render correctly when useBlockieIcon is false', () => {
-    const initialState = {
-      settings: { useBlockieIcon: false },
-    };
-    const store = mockStore(initialState);
+  it('renders Jazzicon', () => {
+    const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
+      state: {
+        settings: { useBlockieIcon: false },
+      },
+    });
 
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Identicon />
-      </Provider>,
-    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders custom URI', () => {
+    const wrapper = renderWithProvider(<Identicon imageUri={URI_MOCK} />);
     expect(wrapper).toMatchSnapshot();
   });
 });
