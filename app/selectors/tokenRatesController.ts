@@ -21,5 +21,7 @@ export const selectMarketData = createSelector(
     // TODO: CONTROLLER WORK: Market data is only fetching for the current chain
     // while extension is pulling all market data we may need to update the
     // controller to fetch all market data
+    // Waiting for core release for this to support multi chain:
+    // https://github.com/MetaMask/core/pull/4832/files
     tokenRatesControllerState.marketData,
 );

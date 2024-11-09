@@ -52,6 +52,7 @@ import useStakingChain from '../../../Stake/hooks/useStakingChain';
 
 export function getImageForChainId(chainId: string) {
   // TODO: Fetch by image url by chain id
+  console.log('chainId:', chainId);
 }
 
 interface TokenListItemProps {
@@ -165,7 +166,7 @@ export const TokenListItem = ({
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
   const { isStakingSupportedChain } = useStakingChain();
-
+  console.log('images', images);
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
