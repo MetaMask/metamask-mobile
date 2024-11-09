@@ -3,10 +3,6 @@ import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { Token } from '@metamask/assets-controllers';
-import {
-  selectProviderConfig,
-  ProviderConfig,
-} from '../../../selectors/networkController';
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
@@ -20,6 +16,7 @@ import Logger from '../../../util/Logger';
 import {
   selectChainId,
   selectNetworkConfigurations,
+  selectProviderConfig,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
@@ -34,13 +31,15 @@ import {
   selectTokenNetworkFilter,
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectMarketData } from '../../../selectors/tokenRatesController';
+import {
+  selectContractExchangeRates,
+  selectMarketData,
+} from '../../../selectors/tokenRatesController';
+
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -130,7 +129,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const allTokens = useSelector(selectAllTokens);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+  const providerConfig = useSelector(selectProviderConfig);
   const marketData = useSelector(selectMarketData);
 
   const currencyRates = useSelector(selectCurrencyRates);
@@ -138,6 +137,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const networkName = useSelector(selectNetworkName);
 
   const styles = createStyles(colors);
 

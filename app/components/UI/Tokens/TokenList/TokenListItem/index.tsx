@@ -166,7 +166,7 @@ export const TokenListItem = ({
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
   const { isStakingSupportedChain } = useStakingChain();
-  console.log('images', images);
+  // console.log('images', images);
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
@@ -186,7 +186,7 @@ export const TokenListItem = ({
       ...token,
     });
   };
-  console.log('network badge source:', getImageForChainId(chainId));
+  // console.log('network badge source:', getImageForChainId(chainId));
   return (
     <AssetElement
       key={itemAddress || '0x'}
