@@ -17,7 +17,9 @@
 #endif
 #endif
 
+#if DEBUG
 #include <EXDevLauncher/EXDevLauncherController.h>
+#endif
 
 @implementation AppDelegate
 
@@ -87,9 +89,11 @@
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
+  #if DEBUG
   if ([EXDevLauncherController.sharedInstance onDeepLink:url options:options]) {
     return true;
   }
+  #endif
   return [RNBranch application:app openURL:url options:options];
 }
 
