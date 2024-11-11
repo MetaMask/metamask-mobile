@@ -155,9 +155,9 @@ function validateNativeCurrency(nativeCurrency) {
   }
   const ticker = nativeCurrency?.symbol || 'ETH';
 
-  if (typeof ticker !== 'string' || ticker.length < 2 || ticker.length > 6) {
+  if (typeof ticker !== 'string' || ticker.length < 1 || ticker.length > 6) {
     throw rpcErrors.invalidParams({
-      message: `Expected 2-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`,
+      message: `Expected 1-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`,
     });
   }
 

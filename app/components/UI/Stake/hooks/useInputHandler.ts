@@ -13,6 +13,7 @@ import {
   fromWei,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
+import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
 
 interface InputHandlerParams {
   balance: BN;
@@ -26,6 +27,8 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const isNonZeroAmount = useMemo(() => amountWei.gt(new BN(0)), [amountWei]);
 
@@ -107,8 +110,18 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
         2,
       ).toString();
       setFiatAmount(newFiatAmount);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
+        .addProperties({
+          location: 'Stake',
+          amount: value,
+          is_max: value === 1,
+          mode: isEth ? 'native' : 'fiat'
+        })
+        .build()
+      );
     },
-    [balance, conversionRate],
+    [balance, conversionRate, createEventBuilder, isEth, trackEvent],
   );
 
   const handleMaxInput = useCallback(
@@ -129,8 +142,18 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
         2,
       ).toString();
       setFiatAmount(fiatValue);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
+        .addProperties({
+          location: 'Stake',
+          amount: ethValue,
+          is_max: true,
+          mode: isEth ? 'native' : 'fiat'
+        })
+        .build()
+      );
     },
-    [conversionRate],
+    [conversionRate, createEventBuilder, isEth, trackEvent],
   );
 
   const currencyToggleValue = isEth

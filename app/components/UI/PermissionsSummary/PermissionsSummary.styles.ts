@@ -110,7 +110,11 @@ const createStyles = (params: {
       justifyContent: 'space-between',
     },
     startAccessory: { flex: 1, paddingLeft: 16 },
-    endAccessory: { flex: 1, paddingRight: 16 },
+    endAccessory: {
+      flex: 1,
+      paddingRight: 16,
+      alignItems: 'flex-end',
+    },
     editArrow: {
       marginHorizontal: 16,
     },

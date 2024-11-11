@@ -60,6 +60,17 @@ const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 
+const mockRoute = {
+  params: {
+    selectedAccount: {
+      address: MOCK_ADDRESS,
+      metadata: {
+        name: 'Test Account',
+      },
+    },
+  },
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -69,6 +80,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
+    useRoute: () => mockRoute,
   };
 });
 
