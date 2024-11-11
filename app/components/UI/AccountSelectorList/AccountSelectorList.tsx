@@ -7,11 +7,11 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Hex } from '@metamask/utils';
 
 // External dependencies.
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
@@ -47,6 +47,7 @@ const AccountSelectorList = ({
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
+  privacyMode = false,
   ...props
 }: AccountSelectorListProps) => {
   // TODO: Replace "any" with type
@@ -64,7 +65,7 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const privacyMode = useSelector(selectPrivacyMode);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
