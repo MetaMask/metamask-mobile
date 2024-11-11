@@ -47,7 +47,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
+import { CHAIN_ID_TOKEN_IMAGE_MAP } from '../../../../../util/networks/networks';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 
 interface TokenListItemProps {
@@ -156,15 +156,15 @@ export const TokenListItem = ({
 
   const { isStakingSupportedChain } = useStakingChain();
 
-  const NetworkBadgeSource = () => {
+  const getNetworkBadgeSrc = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
     if (isMainnet) return images.ETHEREUM;
 
     if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-    if (CustomNetworkImgMapping[chainId]) {
-      return CustomNetworkImgMapping[chainId];
+    if (CHAIN_ID_TOKEN_IMAGE_MAP[chainId]) {
+      return CHAIN_ID_TOKEN_IMAGE_MAP[chainId];
     }
 
     return ticker ? images[ticker] : undefined;
@@ -190,7 +190,7 @@ export const TokenListItem = ({
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
-            imageSource={NetworkBadgeSource()}
+            imageSource={getNetworkBadgeSrc()}
             name={networkName}
           />
         }

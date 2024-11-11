@@ -168,6 +168,13 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
+  const setTokenNetworkFilter = useCallback((chainId: string) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setTokenNetworkFilter({
+      [chainId]: true,
+    });
+  }, []);
+
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
       const { NetworkController } = Engine.context;
@@ -259,7 +266,7 @@ const NetworkSelector = () => {
 
         await NetworkController.setActiveNetwork(networkClientId);
       }
-
+      setTokenNetworkFilter(chainId);
       sheetRef.current?.onCloseBottomSheet();
       trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: getDecimalChainId(chainId),
@@ -374,6 +381,7 @@ const NetworkSelector = () => {
 
       CurrencyRateController.updateExchangeRate(ticker);
       NetworkController.setActiveNetwork(clientId);
+      setTokenNetworkFilter(networkConfiguration.chainId);
       closeRpcModal();
       AccountTrackerController.refresh();
 

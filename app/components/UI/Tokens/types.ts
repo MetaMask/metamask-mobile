@@ -22,3 +22,5 @@ export interface TokenI {
   logo: string | undefined;
   isETH: boolean | undefined;
 }
+
+export type HexString = `0x${string}`;
