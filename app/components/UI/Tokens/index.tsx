@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import {
@@ -47,6 +47,7 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -90,7 +91,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectChainId);
-  const networkClientId = useSelector(selectNetworkClientId);
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
   const hideZeroBalanceTokens = useSelector(
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
@@ -109,6 +112,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const networkName = useSelector(selectNetworkName);
   const allNetworks = useSelector(selectNetworkConfigurations);
   console.log('current ccurrency', currentCurrency);
+  const nativeCurrencies = [
+    ...new Set(
+      Object.values(networkConfigurationsByChainId).map(
+        (n) => n.nativeCurrency,
+      ),
+    ),
+  ];
+
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
@@ -192,9 +203,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.startPolling({
-          networkClientId,
-        }),
+        CurrencyRateController.updateExchangeRate(nativeCurrencies),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
@@ -251,10 +260,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === '1';
   const allNetworksFilterShown =
     Object.keys(tokenNetworkFilter).length !==
     Object.keys(allNetworksEnabled).length;
+  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
   return (
     <View
@@ -263,7 +272,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       <View style={styles.actionBarWrapper}>
         {isTokenFilterEnabled ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               label={
                 allNetworksFilterShown
@@ -274,21 +283,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               endIconName={IconName.ArrowDown}
               style={styles.controlButton}
             />
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.SORT_BY}
-              label={strings('wallet.sort_by')}
-              onPress={showSortControls}
-              endIconName={IconName.ArrowDown}
-              style={styles.controlButton}
-            />
-            <ButtonBase
-              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              label={strings('wallet.import')}
-              onPress={goToAddToken}
-              startIconName={IconName.Add}
-              style={styles.controlButton}
-            />
-          </ScrollView>
+            <View style={styles.controlButtonInnerWrapper}>
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.SORT_BY}
+                onPress={showSortControls}
+                iconName={IconName.SwapVertical}
+                style={styles.controlIconButton}
+              />
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                onPress={goToAddToken}
+                iconName={IconName.Add}
+                style={styles.controlIconButton}
+              />
+            </View>
+          </View>
         ) : (
           <>
             <ButtonBase
