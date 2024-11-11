@@ -17,12 +17,14 @@ import { View } from 'react-native';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     isEth,
@@ -64,7 +66,16 @@ const UnstakeInputView = () => {
         amountFiat: fiatAmount,
       },
     });
-  }, [amountWei, fiatAmount, navigation]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
+      .addProperties({
+        selected_provider: 'consensys',
+        tokens_to_stake_native_value: amountEth,
+        tokens_to_stake_usd_value: fiatAmount,
+      })
+      .build(),
+    );
+  }, [amountEth, amountWei, createEventBuilder, fiatAmount, navigation, trackEvent]);
 
   return (
     <ScreenLayout style={styles.container}>
