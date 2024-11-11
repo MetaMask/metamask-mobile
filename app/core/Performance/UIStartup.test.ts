@@ -1,4 +1,3 @@
-import { TraceName, trace } from '../../util/trace';
 // eslint-disable-next-line import/no-namespace
 import * as traceObj from '../../util/trace';
 
@@ -6,6 +5,9 @@ jest.mock('../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     UIStartup: 'UIStartup',
+  },
+  TraceOperation: {
+    UIStartup: 'ui.startup',
   },
 }));
 
@@ -22,20 +24,31 @@ describe('getUIStartupSpan', () => {
 
   it('should call trace with correct parameters when UIStartupSpan is not set', () => {
     const startTime = 12345;
-    const mockTraceContext = { name: TraceName.UIStartup, startTime };
-    jest.spyOn(traceObj, 'trace').mockImplementation(() => mockTraceContext);
-
-    const result = getUIStartupSpan(startTime);
-
-    expect(trace).toHaveBeenCalledWith({
-      name: TraceName.UIStartup,
+    const mockTraceContext = {
+      name: traceObj.TraceName.UIStartup,
       startTime,
+      op: traceObj.TraceOperation.UIStartup,
+    };
+    const spyFetch = jest
+      .spyOn(traceObj, 'trace')
+      .mockImplementation(() => mockTraceContext);
+
+    getUIStartupSpan(startTime);
+
+    expect(spyFetch).toHaveBeenCalledWith({
+      name: traceObj.TraceName.UIStartup,
+      startTime,
+      op: traceObj.TraceOperation.UIStartup,
     });
   });
 
   it('should return the existing UIStartupSpan if already set', () => {
     const startTime = 12345;
-    const mockTraceContext = { name: TraceName.UIStartup, startTime };
+    const mockTraceContext = {
+      name: traceObj.TraceName.UIStartup,
+      startTime,
+      op: traceObj.TraceOperation.UIStartup,
+    };
 
     const spyFetch = jest
       .spyOn(traceObj, 'trace')
@@ -53,7 +66,11 @@ describe('getUIStartupSpan', () => {
 
   it('should not call trace again if UIStartupSpan is already set', () => {
     const startTime = 12345;
-    const mockTraceContext = { name: TraceName.UIStartup, startTime };
+    const mockTraceContext = {
+      name: traceObj.TraceName.UIStartup,
+      startTime,
+      op: traceObj.TraceOperation.UIStartup,
+    };
     jest.spyOn(traceObj, 'trace').mockImplementation(() => mockTraceContext);
 
     // First call to set the UIStartupSpan
@@ -62,6 +79,6 @@ describe('getUIStartupSpan', () => {
     // Second call should return the same UIStartupSpan without calling trace again
     getUIStartupSpan();
 
-    expect(trace).toHaveBeenCalledTimes(1);
+    expect(traceObj.trace).toHaveBeenCalledTimes(1);
   });
 });
