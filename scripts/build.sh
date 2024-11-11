@@ -331,7 +331,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
+		npx expo run:ios --no-install --configuration Release
 	fi
 }
 
