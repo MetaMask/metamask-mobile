@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 
 // External dependencies
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -37,6 +38,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const yourAccountRef = useRef(null);
   const accountActionsRef = useRef(null);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const privacyMode = useSelector(selectPrivacyMode);
   const { ensName } = useEnsNameByAddress(selectedAccount?.address);
   const defaultName = selectedAccount?.metadata?.name;
   const accountName = useMemo(
@@ -86,7 +88,11 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
             tags: getTraceTags(store.getState()),
             op: TraceOperation.AccountList,
           });
-          navigate(...createAccountSelectorNavDetails({}));
+          navigate(
+            ...createAccountSelectorNavDetails({
+              privacyMode,
+            }),
+          );
         }}
         accountTypeLabel={
           getLabelTextByAddress(selectedAccount?.address) || undefined
