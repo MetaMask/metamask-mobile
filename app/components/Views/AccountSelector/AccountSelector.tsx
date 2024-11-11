@@ -40,7 +40,8 @@ import { TraceName, endTrace } from '../../../util/trace';
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
-  const { onSelectAccount, checkBalanceError } = route.params || {};
+  const { onSelectAccount, checkBalanceError, privacyMode } =
+    route.params || {};
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   // TODO: Replace "any" with type
@@ -95,6 +96,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isRemoveAccountEnabled
+          privacyMode={privacyMode}
           testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ID}
         />
         <View style={styles.sheet}>
@@ -109,7 +111,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         </View>
       </Fragment>
     ),
-    [accounts, _onSelectAccount, ensByAccountAddress, onRemoveImportedAccount],
+    [
+      accounts,
+      _onSelectAccount,
+      ensByAccountAddress,
+      onRemoveImportedAccount,
+      privacyMode,
+    ],
   );
 
   const renderAddAccountActions = useCallback(
