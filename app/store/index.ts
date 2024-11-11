@@ -9,7 +9,7 @@ import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
-import { trace, endTrace, TraceName } from '../util/trace';
+import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 
 import thunk from 'redux-thunk';
 
@@ -31,6 +31,7 @@ const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
+    op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E

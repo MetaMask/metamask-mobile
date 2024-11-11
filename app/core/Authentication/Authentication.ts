@@ -31,7 +31,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, endTrace, trace } from '../../util/trace';
+import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -402,7 +402,10 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      trace({ name: TraceName.VaultCreation });
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
       await this.loginVaultCreation(password);
       endTrace({ name: TraceName.VaultCreation });
 
@@ -449,7 +452,10 @@ class AuthenticationService {
           this.authData,
         );
       }
-      trace({ name: TraceName.VaultCreation });
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
       await this.loginVaultCreation(password);
       endTrace({ name: TraceName.VaultCreation });
 

@@ -89,7 +89,12 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
-import { TraceName, endTrace, trace } from '../../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 
@@ -136,6 +141,7 @@ const NetworkSelector = () => {
   const parentSpan = trace({
     name: TraceName.NetworkSwitch,
     tags: getTraceTags(store.getState()),
+    op: TraceOperation.NetworkSwitch,
   });
   const {
     chainId: selectedChainId,
@@ -240,7 +246,11 @@ const NetworkSelector = () => {
       NetworkController,
       SelectedNetworkController,
     } = Engine.context;
-    trace({ name: TraceName.SwitchCustomNetwork, parentContext: parentSpan });
+    trace({
+      name: TraceName.SwitchCustomNetwork,
+      parentContext: parentSpan,
+      op: TraceOperation.SwitchCustomNetwork,
+    });
     if (networkConfiguration) {
       const {
         name: nickname,
@@ -354,7 +364,11 @@ const NetworkSelector = () => {
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: InfuraNetworkType) => {
-    trace({ name: TraceName.SwitchBuiltInNetwork, parentContext: parentSpan });
+    trace({
+      name: TraceName.SwitchBuiltInNetwork,
+      parentContext: parentSpan,
+      op: TraceOperation.SwitchBuiltInNetwork,
+    });
     const {
       NetworkController,
       CurrencyRateController,

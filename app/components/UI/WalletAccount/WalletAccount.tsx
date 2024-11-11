@@ -24,7 +24,7 @@ import Logger from '../../../util/Logger';
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
-import { TraceName, trace } from '../../../util/trace';
+import { TraceName, TraceOperation, trace } from '../../../util/trace';
 import { store } from '../../../store';
 import { getTraceTags } from '../../../util/sentry/tags';
 
@@ -84,6 +84,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
           trace({
             name: TraceName.AccountList,
             tags: getTraceTags(store.getState()),
+            op: TraceOperation.AccountList,
           });
           navigate(...createAccountSelectorNavDetails({}));
         }}

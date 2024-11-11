@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
-import { TraceName, endTrace, trace } from '../../util/trace';
+import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
 import { isTest } from '../../util/test/utils';
 
@@ -83,6 +83,7 @@ class Performance {
           name: TraceName.LoadScripts,
           startTime: appLaunchTime,
           parentContext: parentSpan,
+          op: TraceOperation.LoadScripts,
         });
         endTrace({
           name: TraceName.LoadScripts,

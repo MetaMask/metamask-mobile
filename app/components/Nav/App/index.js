@@ -589,7 +589,11 @@ const App = (props) => {
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
 
-  trace({ name: TraceName.NavInit, parentContext: getUIStartupSpan() });
+  trace({
+    name: TraceName.NavInit,
+    parentContext: getUIStartupSpan(),
+    op: TraceOperation.NavInit,
+  });
 
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
