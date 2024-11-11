@@ -152,11 +152,7 @@ import {
   LoggingControllerActions,
   LoggingControllerEvents,
 } from '@metamask/logging-controller';
-import {
-  LedgerKeyring,
-  LedgerMobileBridge,
-  LedgerTransportMiddleware,
-} from '@metamask/eth-ledger-bridge-keyring';
+
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import {
   isMainnetByChainId,
@@ -766,12 +762,6 @@ export class Engine {
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
     additionalKeyrings.push(qrKeyringBuilder);
-
-    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-    const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
-    additionalKeyrings.push(ledgerKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({

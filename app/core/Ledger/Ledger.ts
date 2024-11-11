@@ -3,10 +3,6 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
 import {
-  LedgerKeyring,
-  LedgerMobileBridge,
-} from '@metamask/eth-ledger-bridge-keyring';
-import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
   LEDGER_LIVE_PATH,
@@ -25,9 +21,9 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
  * @returns The stored Ledger Keyring
  */
 export const withLedgerKeyring = async <CallbackResult = void>(
-  operation: (keyring: LedgerKeyring) => Promise<CallbackResult>,
+  operation: (keyring) => Promise<CallbackResult>,
 ): Promise<CallbackResult> => {
-  const keyringController = Engine.context.KeyringController;
+  /*   const keyringController = Engine.context.KeyringController;
   return await keyringController.withKeyring(
     { type: ExtendedKeyringTypes.ledger },
     // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
@@ -36,7 +32,7 @@ export const withLedgerKeyring = async <CallbackResult = void>(
     // Instead create it only in response to an explicit user action, and do
     // not allow Ledger interactions until after that has been done.
     { createIfMissing: true },
-  );
+  ); */
 };
 
 /**
@@ -47,10 +43,10 @@ export const withLedgerKeyring = async <CallbackResult = void>(
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
-  transport: BleTransport,
+  transport,
   deviceId: string,
 ): Promise<string> => {
-  const appAndVersion = await withLedgerKeyring(
+  /*   const appAndVersion = await withLedgerKeyring(
     async (keyring: LedgerKeyring) => {
       keyring.setHdPath(LEDGER_LIVE_PATH);
       keyring.setDeviceId(deviceId);
@@ -61,7 +57,7 @@ export const connectLedgerHardware = async (
     },
   );
 
-  return appAndVersion.appName;
+  return appAndVersion.appName; */
 };
 
 /**
