@@ -987,7 +987,7 @@ const App = (props) => {
           <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
           <Stack.Screen
             name="EditAccountName"
-            component={EditAccountNameFlow}
+            component={EditAccountName}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen

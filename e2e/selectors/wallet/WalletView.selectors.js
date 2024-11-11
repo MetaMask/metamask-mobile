@@ -23,13 +23,14 @@ export const WalletViewSelectorsIDs = {
   ACCOUNT_OVERVIEW: 'account-overview',
   ACCOUNT_ACTIONS: 'main-wallet-account-actions',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
-  ACCOUNT_ADDRESS: 'wallet-account-address',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
   COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
+  NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
   IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
   SORT_ALPHABETICAL: 'sort-alphabetical',
   SORT_BY: 'sort-by',
+  NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
 };
 
 export const WalletViewSelectorsText = {
