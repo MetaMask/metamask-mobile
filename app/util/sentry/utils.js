@@ -9,6 +9,7 @@ import { isE2E } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
+import { TraceName } from '../trace';
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -401,7 +402,7 @@ function rewriteReport(report) {
  */
 export function excludeEvents(event) {
   // This is needed because store starts to initialise before performance observers completes to measure app start time
-  if (event?.transaction === 'UIStartup' && Device.isAndroid()) {
+  if (event?.transaction === TraceName.UIStartup && Device.isAndroid()) {
     const appLaunchTime = Performance.appLaunchTime;
     const formattedAppLaunchTime = (event.start_timestamp = Number(
       `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime
