@@ -89,6 +89,14 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 interface infuraNetwork {
   name: string;
@@ -130,7 +138,11 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-
+  const parentSpan = trace({
+    name: TraceName.NetworkSwitch,
+    tags: getTraceTags(store.getState()),
+    op: TraceOperation.NetworkSwitch,
+  });
   const {
     chainId: selectedChainId,
     rpcUrl: selectedRpcUrl,
@@ -234,7 +246,11 @@ const NetworkSelector = () => {
       NetworkController,
       SelectedNetworkController,
     } = Engine.context;
-
+    trace({
+      name: TraceName.SwitchCustomNetwork,
+      parentContext: parentSpan,
+      op: TraceOperation.SwitchCustomNetwork,
+    });
     if (networkConfiguration) {
       const {
         name: nickname,
@@ -261,6 +277,8 @@ const NetworkSelector = () => {
       }
 
       sheetRef.current?.onCloseBottomSheet();
+      endTrace({ name: TraceName.SwitchCustomNetwork });
+      endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: getDecimalChainId(chainId),
         from_network: selectedNetworkName,
@@ -346,6 +364,11 @@ const NetworkSelector = () => {
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: InfuraNetworkType) => {
+    trace({
+      name: TraceName.SwitchBuiltInNetwork,
+      parentContext: parentSpan,
+      op: TraceOperation.SwitchBuiltInNetwork,
+    });
     const {
       NetworkController,
       CurrencyRateController,
@@ -383,7 +406,8 @@ const NetworkSelector = () => {
     }
 
     sheetRef.current?.onCloseBottomSheet();
-
+    endTrace({ name: TraceName.SwitchBuiltInNetwork });
+    endTrace({ name: TraceName.NetworkSwitch });
     trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: getDecimalChainId(selectedChainId),
       from_network: selectedNetworkName,
