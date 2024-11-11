@@ -309,7 +309,9 @@ describe('NetworkSwitcher View', () => {
     ).toMatchInlineSnapshot(`
       [
         [
-          "POL",
+          [
+            "POL",
+          ],
         ],
       ]
     `);
