@@ -30,6 +30,9 @@ const createStyles = (params: {
       marginRight: 24,
       marginLeft: 24,
     },
+    bottomButtonsContainer: {
+      marginTop: 16,
+    },
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
@@ -108,14 +111,17 @@ const createStyles = (params: {
       justifyContent: 'space-between',
     },
     startAccessory: { flex: 1, paddingLeft: 16 },
-    endAccessory: { flex: 1, paddingRight: 16 },
+    endAccessory: {
+      flex: 1,
+      paddingRight: 16,
+      alignItems: 'flex-end',
+    },
     editArrow: {
       marginHorizontal: 16,
     },
     walletIcon: { alignSelf: 'flex-start' },
     dataIcon: { alignSelf: 'flex-start' },
     disconnectAllContainer: {
-      marginTop: 16,
       marginHorizontal: 24,
       flexDirection: 'row',
     },
