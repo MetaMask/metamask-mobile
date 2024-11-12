@@ -38,7 +38,7 @@ export const selectDetectedTokens = createSelector(
     tokensControllerState?.detectedTokens,
 );
 
-const selectAllTokens = createSelector(
+export const selectAllTokens = createSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
     tokensControllerState?.allTokens,

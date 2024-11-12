@@ -1,10 +1,11 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import {
   selectContractExchangeRates,
-  selectAllMarketData,
+  // selectAllMarketData,
+  selectMarketData,
 } from '../../../selectors/tokenRatesController';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { useTheme } from '../../../util/theme';
@@ -15,7 +16,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
-  selectNetworkClientId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
@@ -48,6 +48,7 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { getSelectedAccountTokensAcrossChains } from '../../../selectors/multichain';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -99,19 +100,24 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   );
 
   // TODO: @salim controller work: Mock selector for all market data
-  const allMarketData = selectAllMarketData;
+  const allMarketData = useSelector(selectMarketData);
   // TODO: @salim controller work: Mock selector for currency rates
   const currencyRates = selectAllCurrencyRates;
   // console.log('currency rates:', currencyRates);
   const allCurrencyRates = useSelector(selectCurrencyRates);
-  console.log('all currency rates:', allCurrencyRates);
+  // console.log('all market data:', Object.keys(allMarketData));
+  // console.log('all currency rates:', allCurrencyRates);
+  const selectedAccountTokensChains = useSelector(
+    getSelectedAccountTokensAcrossChains,
+  );
+  // console.log("selected account tokens chains", selectedAccountTokensChains)
 
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const allNetworks = useSelector(selectNetworkConfigurations);
-  console.log('current ccurrency', currentCurrency);
+  // console.log('current ccurrency', currentCurrency);
   const nativeCurrencies = [
     ...new Set(
       Object.values(networkConfigurationsByChainId).map(
