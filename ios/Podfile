@@ -49,6 +49,14 @@ end
 # end
 
 def common_target_logic
+  use_expo_modules!
+  post_integrate do |installer|
+    begin
+      expo_patch_react_imports!(installer)
+    rescue => e
+      Pod::UI.warn e
+    end
+  end
 	config = use_native_modules!
 
   # Flags change depending on the env values.
@@ -103,14 +111,6 @@ def common_target_logic
 end
 
 target 'MetaMask' do
-  use_expo_modules!
-  post_integrate do |installer|
-    begin
-      expo_patch_react_imports!(installer)
-    rescue => e
-      Pod::UI.warn e
-    end
-  end
   common_target_logic
 end
 
