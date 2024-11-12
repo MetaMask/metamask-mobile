@@ -10,6 +10,7 @@ export enum UserProfileProperty {
   SECURITY_PROVIDERS = 'security_providers',
   PRIMARY_CURRENCY = 'primary_currency',
   CURRENT_CURRENCY = 'current_currency',
+  PRIVACY_MODE_ENABLED = 'privacy_mode_toggle',
 }
 
 export interface UserProfileMetaData {
@@ -22,4 +23,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
+  [UserProfileProperty.PRIVACY_MODE_ENABLED]?: string;
 }
