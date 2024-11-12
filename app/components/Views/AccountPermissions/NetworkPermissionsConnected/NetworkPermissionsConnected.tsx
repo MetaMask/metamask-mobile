@@ -14,6 +14,7 @@ import {
   getDecimalChainId,
   isMultichainVersion1Enabled,
   getNetworkImageSource,
+  handleNetworkSwitch,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -261,7 +262,16 @@ const AccountPermissionsConnected = ({
           networks={networks}
           onSelectNetwork={(chainId) => {
             console.log('>>> onSelectNetwork chainId: ', chainId);
-            switchNetwork();
+            const networkName = handleNetworkSwitch(getDecimalChainId(chainId));
+
+            if (networkName) {
+              trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+                chain_id: getDecimalChainId(chainId),
+                from_network: providerConfig?.nickname || networkName,
+                to_network: networkName,
+              });
+              onDismissSheet();
+            }
           }}
           selectedChainIds={[]}
           isMultiSelect={false}
