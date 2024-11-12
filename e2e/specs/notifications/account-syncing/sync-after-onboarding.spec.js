@@ -18,17 +18,7 @@ import { mockNotificationServices } from '../utils/mocks';
 import { SmokeNotifications } from '../../../tags';
 
 describe(SmokeNotifications('Account syncing'), () => {
-  it('retrieves all previously synced accounts', async () => {
-    const decryptedAccountNames = await Promise.all(
-      accountsSyncMockResponse.map(async (response) => {
-        const decryptedAccountName = await SDK.Encryption.decryptString(
-          response.Data,
-          NOTIFICATIONS_TEAM_STORAGE_KEY,
-        );
-        return JSON.parse(decryptedAccountName).n;
-      }),
-    );
-
+  beforeAll(async () => {
     const mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
     });
@@ -47,6 +37,22 @@ describe(SmokeNotifications('Account syncing'), () => {
       newInstance: true,
       delete: true,
     });
+  });
+
+  afterAll(async () => {
+    await stopMockServer();
+  });
+
+  it('retrieves all previously synced accounts', async () => {
+    const decryptedAccountNames = await Promise.all(
+      accountsSyncMockResponse.map(async (response) => {
+        const decryptedAccountName = await SDK.Encryption.decryptString(
+          response.Data,
+          NOTIFICATIONS_TEAM_STORAGE_KEY,
+        );
+        return JSON.parse(decryptedAccountName).n;
+      }),
+    );
 
     await importWalletWithRecoveryPhrase(
       NOTIFICATIONS_TEAM_SEED_PHRASE,
@@ -61,7 +67,5 @@ describe(SmokeNotifications('Account syncing'), () => {
         await AccountListView.getAccountElementByAccountName(accountName),
       );
     }
-
-    await stopMockServer();
   });
 });
