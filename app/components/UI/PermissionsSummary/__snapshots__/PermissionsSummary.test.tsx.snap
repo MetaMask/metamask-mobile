@@ -563,13 +563,18 @@ exports[`PermissionsSummary should render correctly 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-    <View>
+    <View
+      style={
+        {
+          "marginTop": 16,
+        }
+      }
+    >
       <View
         style={
           {
             "flexDirection": "row",
             "marginHorizontal": 24,
-            "marginTop": 16,
           }
         }
       >
@@ -1058,13 +1063,18 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-    <View>
+    <View
+      style={
+        {
+          "marginTop": 16,
+        }
+      }
+    >
       <View
         style={
           {
             "flexDirection": "row",
             "marginHorizontal": 24,
-            "marginTop": 16,
           }
         }
       >
@@ -1248,7 +1258,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               ]
             }
           >
-            Connect
+            Confirm
           </Text>
         </TouchableOpacity>
       </View>
