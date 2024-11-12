@@ -66,6 +66,7 @@ import { CaveatTypes } from '../../../core/Permissions/constants';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -706,7 +707,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const renderChooseFromPermittedNetworksScreen = useCallback(
     () => (
-      <AccountPermissionsConnected
+      <NetworkPermissionsConnected
         isLoading={isLoading}
         onSetSelectedAddresses={setSelectedAddresses}
         onSetPermissionsScreen={setPermissionsScreen}

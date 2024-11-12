@@ -1880,9 +1880,11 @@
     "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}",
     "title_add_network_permission": "Add network permission",
     "add_this_network": "Add this network",
+    "permitted_networks": "Permitted networks",
     "choose_from_permitted_networks": "Choose from permitted networks",
     "this_site_cant": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
-    "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network."
+    "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
+    "edit_permissions": "Edit permissions"
   },
   "select": {
     "cancel": "Cancel",
