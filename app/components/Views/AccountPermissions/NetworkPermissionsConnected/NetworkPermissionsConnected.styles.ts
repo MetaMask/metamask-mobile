@@ -27,7 +27,7 @@ const styleSheet = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
-  sectionTitle: { marginBottom: 16, textAlign: 'center' },
+  sectionTitle: { marginBottom: 16 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -35,6 +35,12 @@ const styleSheet = StyleSheet.create({
     margin: 16,
   },
   managePermissionsButton: { marginHorizontal: 16, marginTop: 16 },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoButtonContainer: { alignSelf: 'flex-start', marginLeft: 4 },
 });
 
 export default styleSheet;

@@ -1884,7 +1884,8 @@
     "choose_from_permitted_networks": "Choose from permitted networks",
     "this_site_cant": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
     "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
-    "edit_permissions": "Edit permissions"
+    "edit_permissions": "Edit permissions",
+    "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site."
   },
   "select": {
     "cancel": "Cancel",

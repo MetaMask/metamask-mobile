@@ -30,6 +30,13 @@ import {
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
 
 // Internal dependencies.
 import { NetworkPermissionsConnectedProps } from './NetworkPermissionsConnected.types';
@@ -174,9 +181,23 @@ const AccountPermissionsConnected = ({
           />
         )}
         {isMultichainVersion1Enabled && (
-          <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
-            {strings('permissions.permitted_networks')}
-          </Text>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
+              {strings('permissions.permitted_networks')}
+            </Text>
+            <View style={styles.infoButtonContainer}>
+              <ButtonIcon
+                size={ButtonIconSizes.Md}
+                iconName={IconName.Info}
+                iconColor={IconColor.Default}
+                onPress={() => {
+                  navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                    screen: Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET,
+                  });
+                }}
+              />
+            </View>
+          </View>
         )}
         {!isMultichainVersion1Enabled && (
           <PickerNetwork
