@@ -1,4 +1,5 @@
 import AppConstants from '../../../app/core/AppConstants';
+import { TraceName, endTrace, trace } from '../../util/trace';
 
 if (process.env.JEST_WORKER_ID !== undefined) {
   // monkeypatch for Jest
@@ -28,6 +29,47 @@ if (process.env.JEST_WORKER_ID !== undefined) {
 
 const originalSend = global.XMLHttpRequest.prototype.send;
 const originalOpen = global.XMLHttpRequest.prototype.open;
+/**
+ * This creates a trace of each URL request to sentry, sending just the hostname.
+ * Currently this is only used when basic functionality is enabled.
+ */
+export function createLoggingXHROverride() {
+  let currentUrl = '';
+
+  global.XMLHttpRequest.prototype.open = function (
+    method: string,
+    url: string | URL,
+    async?: boolean,
+    user?: string | null,
+    password?: string | null,
+  ) {
+    currentUrl = url?.toString();
+    const hostname = new URL(currentUrl).hostname;
+    trace({
+      name: hostname as TraceName,
+    });
+    return originalOpen.apply(this, [
+      method,
+      currentUrl,
+      async,
+      user,
+      password,
+    ]);
+  };
+
+  global.XMLHttpRequest.prototype.send = function (...args: unknown[]) {
+    const hostname = new URL(currentUrl).hostname;
+    this.addEventListener('load', () => {
+      endTrace({ name: hostname as TraceName });
+    });
+
+    this.addEventListener('error', () => {
+      endTrace({ name: hostname as TraceName });
+    });
+
+    return originalSend.call(this, ...args);
+  };
+}
 
 export function overrideXMLHttpRequest() {
   // Store the URL of the current request - only valid under assumption of no new requests being initiated between `open` and `send` of one
