@@ -715,6 +715,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             ? setScreen(AccountConnectScreens.SingleConnect)
             : undefined;
         }}
+        screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
     [
