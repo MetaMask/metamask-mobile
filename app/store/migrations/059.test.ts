@@ -1,7 +1,7 @@
-import migrate, { DEFAULT_NOTIFICATION_SERVICES_CONTROLLER } from './058';
+import migrate from './059';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import initialRootState, { backgroundState } from '../../util/test/initial-root-state';
+import initialRootState from '../../util/test/initial-root-state';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 jest.mock('@sentry/react-native', () => ({
@@ -13,7 +13,7 @@ jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-describe('Migration #58 - Insert NotificationServicesController if missing', () => {
+describe('Migration #59 - Update default search engine from DDG to Google', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -22,7 +22,7 @@ describe('Migration #58 - Insert NotificationServicesController if missing', () 
   const invalidStates = [
     {
       state: null,
-      errorMessage: "FATAL ERROR: Migration 58: Invalid state error: 'object'",
+      errorMessage: "FATAL ERROR: Migration 59: Invalid state error: 'object'",
       scenario: 'state is invalid',
     },
     {
@@ -30,7 +30,7 @@ describe('Migration #58 - Insert NotificationServicesController if missing', () 
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 58: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 59: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -40,8 +40,19 @@ describe('Migration #58 - Insert NotificationServicesController if missing', () 
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 58: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 59: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {},
+        },
+        settings: null,
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 59: Invalid Settings state error: 'object'",
+      scenario: 'Settings object is invalid',
     },
   ];
 
@@ -57,22 +68,23 @@ describe('Migration #58 - Insert NotificationServicesController if missing', () 
     });
   }
 
-  it('should insert default NotificationServicesController if missing', async () => {
+  it('should update the search engine to Google', async () => {
     const oldState = {
-      ...initialRootState,
       engine: {
-        backgroundState,
+        backgroundState: {},
       },
+      settings: {
+        searchEngine: 'DuckDuckGo',
+      }
     };
 
     const expectedState = {
-        ...initialRootState,
       engine: {
-        backgroundState: {
-            ...backgroundState,
-            NotificationServicesController: DEFAULT_NOTIFICATION_SERVICES_CONTROLLER
-        },
+        backgroundState: {},
       },
+      settings: {
+        searchEngine: 'Google',
+      }
     };
 
     const migratedState = await migrate(oldState);
