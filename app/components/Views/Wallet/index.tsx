@@ -4,7 +4,6 @@ import {
   StyleSheet,
   View,
   TextStyle,
-  InteractionManager,
   Linking,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
@@ -36,7 +35,6 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,

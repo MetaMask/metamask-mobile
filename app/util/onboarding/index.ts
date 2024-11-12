@@ -7,8 +7,6 @@ import {
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import StorageWrapper from '../../store/storage-wrapper';
-import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import { store } from '../../store';
 
 const isVersionSeenAndGreaterThanMinAppVersion = (
   versionSeen: string | null,
