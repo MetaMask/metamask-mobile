@@ -422,7 +422,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     }
 
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
-      setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
+      if (isNonDappNetworkSwitch) {
+        setPermissionsScreen(
+          AccountPermissionsScreens.ChooseFromPermittedNetworks,
+        );
+      } else {
+        setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
+      }
+
       setNetworkSelectorUserIntent(USER_INTENT.None);
       const networkToastProps: ToastOptions = {
         variant: ToastVariants.Network,
@@ -662,7 +669,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
-          setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
+          setPermissionsScreen(
+            AccountPermissionsScreens.ChooseFromPermittedNetworks,
+          )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
       />

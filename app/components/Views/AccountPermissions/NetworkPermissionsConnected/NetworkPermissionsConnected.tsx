@@ -225,7 +225,7 @@ const AccountPermissionsConnected = ({
           size={ButtonSize.Lg}
           onPress={() => {
             onSetPermissionsScreen(
-              AccountPermissionsScreens.PermissionsSummary,
+              AccountPermissionsScreens.ConnectMoreNetworks,
             );
           }}
           width={ButtonWidthTypes.Full}
