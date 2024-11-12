@@ -54,7 +54,16 @@ exports[`Wallet should render correctly 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": {
+                  "alternative": "#f2f4f6",
+                  "alternativeHover": "#e7ebee",
+                  "alternativePressed": "#dbe0e6",
+                  "default": "#ffffff",
+                  "defaultHover": "#f5f5f5",
+                  "defaultPressed": "#ebebeb",
+                  "hover": "#0000000a",
+                  "pressed": "#00000014",
+                },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
@@ -116,41 +125,10 @@ exports[`Wallet should render correctly 1`] = `
                 }
               }
             >
-              <Image
-                resizeMethod="auto"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
-                style={
-                  {
-                    "height": 24,
-                    "marginLeft": 16,
-                    "width": 24,
-                  }
-                }
-                testID="fox-icon"
-              />
-            </View>
-            <View
-              collapsable={false}
-              pointerEvents="box-none"
-              style={
-                {
-                  "marginHorizontal": 72,
-                  "opacity": 1,
-                }
-              }
-            >
               <View
                 style={
                   {
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "marginTop": 5,
+                    "marginLeft": 16,
                   }
                 }
               >
@@ -170,9 +148,14 @@ exports[`Wallet should render correctly 1`] = `
                   testID="open-networks-button"
                 >
                   <View
-                    style={null}
+                    style={
+                      {
+                        "marginRight": 8,
+                      }
+                    }
                   >
                     <View
+                      accessibilityLabel="Ethereum Mainnet"
                       style={
                         {
                           "alignItems": "center",
@@ -184,6 +167,7 @@ exports[`Wallet should render correctly 1`] = `
                           "width": 16,
                         }
                       }
+                      testID="network-avatar-picker"
                     >
                       <Image
                         onError={[Function]}
@@ -205,25 +189,6 @@ exports[`Wallet should render correctly 1`] = `
                       />
                     </View>
                   </View>
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#141618",
-                        "flexShrink": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                        "marginHorizontal": 8,
-                      }
-                    }
-                    testID="open-networks-text"
-                  >
-                    Ethereum Mainnet
-                  </Text>
                   <SvgMock
                     color="#141618"
                     height={12}
@@ -238,6 +203,266 @@ exports[`Wallet should render correctly 1`] = `
                     width={12}
                   />
                 </TouchableOpacity>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
+                  "opacity": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                    "marginTop": 5,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#bbc0c5",
+                        "borderRadius": 4,
+                        "borderWidth": 0,
+                        "flexDirection": "row",
+                        "padding": 0,
+                      }
+                    }
+                    testID="account-picker"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "justifyContent": "center",
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderRadius": 8,
+                                "height": 16,
+                                "marginRight": 8,
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "overflow": "hidden",
+                                  },
+                                  {
+                                    "backgroundColor": "#FC4800",
+                                    "borderRadius": 8,
+                                    "height": 16,
+                                    "width": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <RNSVGSvgView
+                                bbHeight={16}
+                                bbWidth={16}
+                                focusable={false}
+                                height={16}
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": 16,
+                                      "width": 16,
+                                    },
+                                  ]
+                                }
+                                width={16}
+                              >
+                                <RNSVGGroup
+                                  fill={
+                                    {
+                                      "payload": 4278190080,
+                                      "type": 0,
+                                    }
+                                  }
+                                >
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278291575,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.41310442982454204,
+                                        -0.910683660806177,
+                                        0.910683660806177,
+                                        -0.41310442982454204,
+                                        4.404802817153955,
+                                        20.16808402411075,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278410587,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        0.903335292863301,
+                                        -0.42893513340314526,
+                                        0.42893513340314526,
+                                        0.903335292863301,
+                                        -9.297010789302583,
+                                        3.362634662066926,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4294382337,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.6921431738704069,
+                                        -0.7217602280983622,
+                                        0.7217602280983622,
+                                        -0.6921431738704069,
+                                        -6.169639630140347,
+                                        15.20799235933167,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 14,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                            testID="account-label"
+                          >
+                            Account 2
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <SvgMock
+                      color="#141618"
+                      height={12}
+                      name="ArrowDown"
+                      style={
+                        {
+                          "height": 12,
+                          "marginLeft": 8,
+                          "width": 12,
+                        }
+                      }
+                      width={12}
+                    />
+                  </TouchableOpacity>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#6a737d",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "textAlign": "center",
+                      }
+                    }
+                  >
+                    0xC496...a756
+                  </Text>
+                </View>
               </View>
             </View>
             <View
@@ -267,10 +492,58 @@ exports[`Wallet should render correctly 1`] = `
                 <View
                   style={
                     {
-                      "alignItems": "center",
-                      "flex": 1,
-                      "justifyContent": "center",
-                      "position": "relative",
+                      "marginHorizontal": 4,
+                    }
+                  }
+                  testID="navbar-address-copy-button"
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <RNGestureHandlerButton
+                      collapsable={false}
+                      onGestureEvent={[Function]}
+                      onGestureHandlerEvent={[Function]}
+                      onGestureHandlerStateChange={[Function]}
+                      onHandlerStateChange={[Function]}
+                      rippleColor={0}
+                      testID="wallet-account-copy-button"
+                    >
+                      <View
+                        accessible={true}
+                        collapsable={false}
+                        style={
+                          {
+                            "opacity": 1,
+                            "padding": 4,
+                          }
+                        }
+                      >
+                        <SvgMock
+                          color="#141618"
+                          height={24}
+                          name="Copy"
+                          style={
+                            {
+                              "height": 24,
+                              "width": 24,
+                            }
+                          }
+                          width={24}
+                        />
+                      </View>
+                    </RNGestureHandlerButton>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "marginHorizontal": 4,
                     }
                   }
                 />
@@ -294,9 +567,9 @@ exports[`Wallet should render correctly 1`] = `
                   testID="wallet-scan-button"
                 >
                   <SvgMock
-                    color="#0376c9"
+                    color="#141618"
                     height={24}
-                    name="Scan"
+                    name="ScanBarcode"
                     style={
                       {
                         "height": 24,
@@ -483,408 +756,108 @@ exports[`Wallet should render correctly 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
+                    <View
                       style={
                         {
-                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
                     >
-                      <RCTScrollView
-                        collapsable={false}
-                        onGestureHandlerEvent={[Function]}
-                        onGestureHandlerStateChange={[Function]}
+                      <View
                         style={
                           {
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
-                            "paddingHorizontal": 24,
                           }
                         }
+                        testID="wallet-screen"
                       >
-                        <View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                              }
+                        <View
+                          style={
+                            {
+                              "marginTop": 20,
+                              "paddingHorizontal": 16,
+                              "widht": "80%",
                             }
-                          >
-                            <Image
-                              source={
-                                {
-                                  "default": {
-                                    "uri": "MockImage",
-                                  },
-                                }
-                              }
-                              style={
-                                {
-                                  "height": 50,
-                                  "marginTop": 24,
-                                  "width": 50,
-                                }
-                              }
-                            />
-                            <Text
-                              style={
-                                {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Bold",
-                                  "fontSize": 24,
-                                  "fontWeight": "600",
-                                  "lineHeight": 34,
-                                }
-                              }
-                            >
-                              An error occurred
-                            </Text>
-                            <Text
-                              style={
-                                {
-                                  "color": "#6a737d",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "lineHeight": 20,
-                                  "marginTop": 8,
-                                  "textAlign": "center",
-                                }
-                              }
-                            >
-                              Your information can't be shown. Don’t worry, your wallet and funds are safe.
-                            </Text>
-                          </View>
+                          }
+                        >
                           <View
                             style={
                               {
                                 "backgroundColor": "#d738471a",
-                                "borderRadius": 8,
-                                "marginTop": 24,
+                                "borderColor": "#d73847",
+                                "borderLeftWidth": 4,
+                                "borderRadius": 4,
+                                "flexDirection": "row",
+                                "padding": 12,
+                                "paddingLeft": 8,
                               }
                             }
+                            testID="banneralert"
                           >
-                            <Text
-                              style={
-                                {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "lineHeight": 20,
-                                  "padding": 8,
-                                }
-                              }
-                            >
-                              View: Wallet
-TypeError: Cannot read properties of undefined (reading 'internalAccounts')
-                            </Text>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                              }
-                            }
-                          >
-                            <TouchableOpacity
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "borderColor": "#0376c9",
-                                  "borderRadius": 50,
-                                  "borderWidth": 1,
-                                  "marginTop": 24,
-                                  "padding": 12,
-                                  "paddingHorizontal": 34,
-                                }
-                              }
-                            >
-                              <Text
-                                style={
-                                  {
-                                    "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontWeight": "400",
-                                    "textAlign": "center",
-                                  }
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    [
-                                      {
-                                        "color": undefined,
-                                        "fontSize": 15,
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                                  
-                                Try again
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "marginTop": 24,
-                              }
-                            }
-                          >
-                            <Text
-                              style={
-                                {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "lineHeight": 20,
-                                }
-                              }
-                            >
-                              <Text>
-                                Please report this issue so we can fix it:
-                              </Text>
-                            </Text>
                             <View
                               style={
                                 {
-                                  "marginBottom": 24,
-                                  "marginTop": 16,
-                                  "paddingLeft": 14,
+                                  "marginRight": 8,
+                                }
+                              }
+                            >
+                              <SvgMock
+                                color="#d73847"
+                                height={24}
+                                name="Danger"
+                                style={
+                                  {
+                                    "height": 24,
+                                    "width": 24,
+                                  }
+                                }
+                                width={24}
+                              />
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
                                 }
                               }
                             >
                               <Text
+                                accessibilityRole="text"
                                 style={
                                   {
                                     "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "lineHeight": 20,
+                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    [
-                                      {
-                                        "color": undefined,
-                                        "fontSize": 20,
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                                  
-                                Take a screenshot of this screen.
+                                Basic functionality is off
                               </Text>
                               <Text
-                                style={
-                                  [
-                                    {
-                                      "marginTop": 14,
-                                    },
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "lineHeight": 20,
-                                    },
-                                  ]
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    [
-                                      {
-                                        "color": undefined,
-                                        "fontSize": 14,
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                                  
-                                <Text
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                    }
-                                  }
-                                >
-                                  Copy
-                                </Text>
-                                 
-                                the error message to clipboard.
-                              </Text>
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "marginTop": 14,
-                                    },
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "lineHeight": 20,
-                                    },
-                                  ]
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    [
-                                      {
-                                        "color": undefined,
-                                        "fontSize": 14,
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                                  
-                                Submit a ticket
-                                 
-                                <Text
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                    }
-                                  }
-                                >
-                                  here.
-                                </Text>
-                                 
-                                Please include the error message and the screenshot.
-                              </Text>
-                              <Text
-                                style={
-                                  [
-                                    {
-                                      "marginTop": 14,
-                                    },
-                                    {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "lineHeight": 20,
-                                    },
-                                  ]
-                                }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    [
-                                      {
-                                        "color": undefined,
-                                        "fontSize": 14,
-                                      },
-                                      undefined,
-                                      {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      {},
-                                    ]
-                                  }
-                                >
-                                  
-                                </Text>
-                                  
-                                Send us a bug report
-                                 
-                                <Text
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                    }
-                                  }
-                                >
-                                  here.
-                                </Text>
-                                 
-                                Please include details about what happened.
-                              </Text>
-                            </View>
-                            <Text
-                              style={
-                                {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "lineHeight": 20,
-                                }
-                              }
-                            >
-                              If this error persists,
-                               
-                              <Text
+                                accessibilityRole="text"
                                 onPress={[Function]}
                                 style={
                                   {
                                     "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
                                   }
                                 }
                               >
-                                save your Secret Recovery Phrase
+                                Turn on basic functionality
                               </Text>
-                               
-                              & re-install the app. Note: you can NOT restore your wallet without your Secret Recovery Phrase.
-                            </Text>
+                            </View>
                           </View>
                         </View>
-                      </RCTScrollView>
-                    </RNCSafeAreaView>
+                      </View>
+                    </View>
                   </View>
                 </View>
               </View>
