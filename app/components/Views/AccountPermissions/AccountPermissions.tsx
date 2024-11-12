@@ -705,6 +705,39 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderChooseFromPermittedNetworksScreen = useCallback(
+    () => (
+      <AccountPermissionsConnected
+        isLoading={isLoading}
+        onSetSelectedAddresses={setSelectedAddresses}
+        onSetPermissionsScreen={setPermissionsScreen}
+        onDismissSheet={hideSheet}
+        accounts={accountsFilteredByPermissions.permitted}
+        ensByAccountAddress={ensByAccountAddress}
+        selectedAddresses={[activeAddress]}
+        favicon={faviconSource}
+        hostname={hostname}
+        urlWithProtocol={urlWithProtocol}
+        secureIcon={secureIcon}
+        accountAvatarType={accountAvatarType}
+      />
+    ),
+    [
+      ensByAccountAddress,
+      activeAddress,
+      isLoading,
+      accountsFilteredByPermissions,
+      setSelectedAddresses,
+      setPermissionsScreen,
+      hideSheet,
+      faviconSource,
+      hostname,
+      urlWithProtocol,
+      secureIcon,
+      accountAvatarType,
+    ],
+  );
+
   const renderNetworkPermissionSummaryScreen = useCallback(() => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
@@ -754,7 +787,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
         hideSheet();
       },
-      // showActionButtons: true,
       onBack: () =>
         isRenderedAsBottomSheet
           ? setPermissionsScreen(AccountPermissionsScreens.Connected)
@@ -767,6 +799,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       showActionButtons: false,
       isDisconnectAllShown: false,
       isNonDappNetworkSwitch: true,
+      onChooseFromPermittedNetworks: () => {
+        setPermissionsScreen(
+          AccountPermissionsScreens.ChooseFromPermittedNetworks,
+        );
+      },
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -781,6 +818,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accounts,
     chainId,
     hideSheet,
+    hostname,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {
@@ -795,6 +833,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return renderConnectNetworksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
+      case AccountPermissionsScreens.ChooseFromPermittedNetworks:
+        return renderChooseFromPermittedNetworksScreen();
       case AccountPermissionsScreens.PermissionsSummary:
         return isNonDappNetworkSwitch
           ? renderNetworkPermissionSummaryScreen()
@@ -808,6 +848,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderEditAccountsPermissionsScreen,
     renderConnectNetworksScreen,
     renderRevokeScreen,
+    renderChooseFromPermittedNetworksScreen,
     renderPermissionsSummaryScreen,
     renderNetworkPermissionSummaryScreen,
   ]);

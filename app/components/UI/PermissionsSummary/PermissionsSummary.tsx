@@ -62,7 +62,8 @@ const PermissionsSummary = ({
   accountAddresses = [],
   accounts = [],
   networkAvatars = [],
-  onAddNetwork = () => {},
+  onAddNetwork = () => undefined,
+  onChooseFromPermittedNetworks = () => undefined,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
@@ -447,7 +448,7 @@ const PermissionsSummary = ({
                 <Button
                   variant={ButtonVariants.Secondary}
                   label={strings('permissions.choose_from_permitted_networks')}
-                  onPress={toggleRevokeAllPermissionsModal}
+                  onPress={onChooseFromPermittedNetworks}
                   size={ButtonSize.Lg}
                   style={{
                     ...styles.disconnectButton,

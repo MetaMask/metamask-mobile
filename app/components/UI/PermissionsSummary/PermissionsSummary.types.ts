@@ -27,4 +27,5 @@ export interface PermissionsSummaryProps {
   accountAddresses?: string[];
   networkAvatars?: ({ name: string; imageSource: string } | null)[];
   isNonDappNetworkSwitch?: boolean;
+  onChooseFromPermittedNetworks?: () => void;
 }

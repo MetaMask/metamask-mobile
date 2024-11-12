@@ -8,6 +8,7 @@ export enum AccountPermissionsScreens {
   ConnectMoreNetworks = 'ConnectMoreNetworks',
   Revoke = 'Revoke',
   PermissionsSummary = 'PermissionsSummary',
+  ChooseFromPermittedNetworks = 'ChooseFromPermittedNetworks',
 }
 
 /**

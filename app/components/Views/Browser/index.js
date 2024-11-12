@@ -177,9 +177,9 @@ export const Browser = (props) => {
           setIsNetworkPermitted(isNetworkPermitted);
 
           if (!isNetworkPermitted) {
-            console.log(
-              '>>> network not permitted, opening account permissions screen',
-            );
+            // console.log(
+            //   '>>> network not permitted, opening account permissions screen',
+            // );
 
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
@@ -196,15 +196,15 @@ export const Browser = (props) => {
             });
           }
         } catch (e) {
-          console.log('>>> Browser Tab Check exception', e);
+          // console.log('>>> Browser Tab Check exception', e);
           setIsNetworkPermitted(false);
         }
       } else {
         setIsNetworkPermitted(true);
-        console.log('>>> dapp not connected, skipping permission check: ');
+        // console.log('>>> dapp not connected, skipping permission check: ');
       }
     },
-    [props.chainId, route.params?.showTabs],
+    [props.chainId, navigation],
   );
 
   const switchToTab = (tab) => {
