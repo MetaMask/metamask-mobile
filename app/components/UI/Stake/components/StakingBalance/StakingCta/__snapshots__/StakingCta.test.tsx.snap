@@ -72,7 +72,7 @@ exports[`StakingCta render matches snapshot 1`] = `
         }
       }
     >
-      annually.
+      annually. 
     </Text>
     <Text
       accessibilityRole="link"
