@@ -82,6 +82,7 @@ async function main(): Promise<void> {
       },
     });
 
+    
     if (createStatusCheckResponse.status === 201) {
       console.log(
         `Created '${statusCheckName}' check with skipped status for commit ${latestCommitHash}`,
