@@ -50,7 +50,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
       },
     ] = entry;
 
-    currencyRateController.updateExchangeRate(ticker);
+    currencyRateController.updateExchangeRate([ticker]);
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
     networkController.setActiveNetwork(networkClientId);
