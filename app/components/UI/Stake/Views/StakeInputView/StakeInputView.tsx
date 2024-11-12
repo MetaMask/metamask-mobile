@@ -19,10 +19,6 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { BN } from 'ethereumjs-util';
-import useStakingGasFee from '../../hooks/useStakingGasFee';
-
-const DEFAULT_GAS_IMPACT_PERCENTAGE = 30;
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -51,24 +47,8 @@ const StakeInputView = () => {
     isLoadingVaultData,
     handleMax,
     balanceValue,
+    isHighGasCostImpact,
   } = useStakingInputHandlers();
-
-  const { estimatedGasFeeWei, isLoadingStakingGasFee } = useStakingGasFee(
-    amountWei.toString(),
-  );
-
-  const shouldDisplayGasFeeImpact = useCallback(
-    (maxGasPercent: number = DEFAULT_GAS_IMPACT_PERCENTAGE) => {
-      if (isLoadingStakingGasFee) return;
-
-      const percentageOfTxInGas = estimatedGasFeeWei
-        .mul(new BN(100))
-        .div(amountWei);
-
-      return percentageOfTxInGas.gt(new BN(maxGasPercent));
-    },
-    [amountWei, estimatedGasFeeWei, isLoadingStakingGasFee],
-  );
 
   const navigateToLearnMoreModal = () => {
     navigation.navigate('StakeModals', {
@@ -86,7 +66,7 @@ const StakeInputView = () => {
   };
 
   const handleStakePress = useCallback(() => {
-    if (shouldDisplayGasFeeImpact()) {
+    if (isHighGasCostImpact()) {
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.GAS_IMPACT,
         params: {
@@ -120,7 +100,7 @@ const StakeInputView = () => {
         .build(),
     );
   }, [
-    shouldDisplayGasFeeImpact,
+    isHighGasCostImpact,
     navigation,
     amountWei,
     fiatAmount,
@@ -200,9 +180,7 @@ const StakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={
-            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
-          }
+          isDisabled={isOverMaximum || !isNonZeroAmount}
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />
