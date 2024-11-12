@@ -539,11 +539,15 @@ class DrawerView extends PureComponent {
         this.setState({ showProtectWalletModal: true });
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-          {
-            wallet_protection_required: false,
-            source: 'Backup Alert',
-          },
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
+            )
+            .addProperties({
+              wallet_protection_required: false,
+              source: 'Backup Alert',
+            })
+            .build(),
         );
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
@@ -602,20 +606,25 @@ class DrawerView extends PureComponent {
         onSelectAccount: this.hideDrawer,
       }),
     );
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
-  };
-
-  trackEvent = (event) => {
-    this.props.metrics.trackEvent(event);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME)
+        .build(),
+    );
   };
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
     const { providerConfig } = this.props;
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      source: 'In-app Navigation',
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
+        .addProperties({
+          source: 'In-app Navigation',
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
   };
 
   onReceive = () => {
@@ -623,7 +632,11 @@ class DrawerView extends PureComponent {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
     });
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE)
+        .build(),
+    );
   };
 
   onSend = async () => {
