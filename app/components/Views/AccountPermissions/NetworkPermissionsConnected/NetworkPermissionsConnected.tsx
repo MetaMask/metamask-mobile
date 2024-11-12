@@ -13,6 +13,7 @@ import PickerNetwork from '../../../../component-library/components/Pickers/Pick
 import {
   getDecimalChainId,
   isMultichainVersion1Enabled,
+  getNetworkImageSource,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -37,6 +38,8 @@ import {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
+import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 
 // Internal dependencies.
 import { NetworkPermissionsConnectedProps } from './NetworkPermissionsConnected.types';
@@ -154,6 +157,21 @@ const AccountPermissionsConnected = ({
     [onConnectMoreAccounts, isLoading],
   );
 
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const networks = Object.entries(networkConfigurations).map(
+    ([key, network]) => ({
+      id: key,
+      name: network.name,
+      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+      isSelected: false,
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      imageSource: getNetworkImageSource({
+        chainId: network?.chainId,
+      }),
+    }),
+  );
+
   return (
     <>
       {!isMultichainVersion1Enabled && (
@@ -209,14 +227,17 @@ const AccountPermissionsConnected = ({
           />
         )}
       </View>
-      <AccountSelectorList
-        onSelectAccount={switchActiveAccount}
-        accounts={accounts}
-        ensByAccountAddress={ensByAccountAddress}
-        isLoading={isLoading}
-        selectedAddresses={selectedAddresses}
-        isRemoveAccountEnabled
-      />
+      <View style={styles.networkSelectorListContainer}>
+        <NetworkSelectorList
+          networks={networks}
+          onSelectNetwork={(chainId) => {
+            console.log('>>> onSelectNetwork chainId: ', chainId);
+            switchNetwork();
+          }}
+          selectedChainIds={[]}
+          isMultiSelect={false}
+        />
+      </View>
       {isMultichainVersion1Enabled && (
         <Button
           style={styles.managePermissionsButton}

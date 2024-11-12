@@ -41,6 +41,10 @@ const styleSheet = StyleSheet.create({
     justifyContent: 'center',
   },
   infoButtonContainer: { alignSelf: 'flex-start', marginLeft: 4 },
+  networkSelectorListContainer: {
+    marginBottom: 16,
+    marginTop: 4,
+  },
 });
 
 export default styleSheet;

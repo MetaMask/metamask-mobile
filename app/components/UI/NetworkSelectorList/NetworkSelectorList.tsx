@@ -67,7 +67,6 @@ const NetworkSelectorList = ({
             size: AvatarSize.Sm,
           }}
           disabled={isDisabled}
-          style={styles.networkItemContainer}
         >
           {renderRightAccessory?.(id, name)}
         </Cell>
