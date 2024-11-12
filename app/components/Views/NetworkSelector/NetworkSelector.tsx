@@ -238,7 +238,6 @@ const NetworkSelector = () => {
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
     const {
-      CurrencyRateController,
       NetworkController,
       SelectedNetworkController,
     } = Engine.context;
@@ -251,7 +250,6 @@ const NetworkSelector = () => {
       const {
         name: nickname,
         chainId,
-        nativeCurrency: ticker,
         rpcEndpoints,
         defaultRpcEndpointIndex,
       } = networkConfiguration;
@@ -365,7 +363,6 @@ const NetworkSelector = () => {
     });
     const {
       NetworkController,
-      CurrencyRateController,
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
