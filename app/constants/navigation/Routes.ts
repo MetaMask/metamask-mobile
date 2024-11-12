@@ -103,6 +103,7 @@ const Routes = {
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     REVOKE_ALL_ACCOUNT_PERMISSIONS: 'RevokeAllAccountPermissions',
+    CONNECTION_DETAILS: 'ConnectionDetails',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
