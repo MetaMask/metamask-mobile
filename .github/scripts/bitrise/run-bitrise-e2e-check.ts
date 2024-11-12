@@ -230,7 +230,7 @@ async function main(): Promise<void> {
 
     // Post pending status
     console.log(`Posting pending status for commit ${latestCommitHash}`);
-
+    
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,

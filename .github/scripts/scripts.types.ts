@@ -14,7 +14,6 @@ export enum PullRequestTriggerType {
 export enum StatusCheckStatusType {
   InProgress = 'in_progress',
   Completed = 'completed',
-  Skipped = 'skipped'
 }
 
 /**
