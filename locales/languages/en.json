@@ -3578,7 +3578,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "It can take between 1 and 11 days for your unstaking request to be processed. The exact duration depends on ETH staking activity."
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
