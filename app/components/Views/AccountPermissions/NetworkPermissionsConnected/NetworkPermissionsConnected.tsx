@@ -40,6 +40,9 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import Engine from '../../../../core/Engine';
+import { PermissionKeys } from '../../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../../core/Permissions/constants';
 
 // Internal dependencies.
 import { NetworkPermissionsConnectedProps } from './NetworkPermissionsConnected.types';
@@ -159,8 +162,35 @@ const AccountPermissionsConnected = ({
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const networks = Object.entries(networkConfigurations).map(
-    ([key, network]) => ({
+  // Get permitted chain IDs
+  const getPermittedChainIds = () => {
+    try {
+      const caveat = Engine.context.PermissionController.getCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      if (Array.isArray(caveat?.value)) {
+        return caveat.value.filter(
+          (item): item is string => typeof item === 'string',
+        );
+      }
+    } catch (e) {
+      // noop
+    }
+    // If no permitted chains found, default to current chain
+    return providerConfig?.chainId ? [providerConfig.chainId] : [];
+  };
+
+  const permittedChainIds = getPermittedChainIds();
+
+  // Filter networks to only show permitted ones, excluding the active network
+  const networks = Object.entries(networkConfigurations)
+    .filter(
+      ([key]) =>
+        permittedChainIds.includes(key) && key !== providerConfig?.chainId,
+    )
+    .map(([key, network]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -169,8 +199,7 @@ const AccountPermissionsConnected = ({
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
-    }),
-  );
+    }));
 
   return (
     <>
