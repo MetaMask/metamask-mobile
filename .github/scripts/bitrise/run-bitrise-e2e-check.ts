@@ -42,6 +42,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Logging for Pipeline debugging
+  console.log(`Trigger action: ${triggerAction}`);
+  console.log(`event: ${context.eventName}`);
+  console.log(`pullRequestNumber: ${pullRequestNumber}`);
+
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   const { data: prData } = await octokit.rest.pulls.get({
@@ -95,6 +100,8 @@ async function main(): Promise<void> {
     triggerAction === PullRequestTriggerType.Labeled &&
     context.payload?.label?.name === e2eLabel
   ) {
+
+    console.log(`Starting Bitrise build for commit ${latestCommitHash}`);
     // Configure Bitrise configuration for API call
     const data = {
       build_params: {
@@ -222,6 +229,8 @@ async function main(): Promise<void> {
     }
 
     // Post pending status
+    console.log(`Posting pending status for commit ${latestCommitHash}`);
+
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
