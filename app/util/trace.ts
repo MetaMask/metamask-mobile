@@ -55,6 +55,8 @@ export enum TraceOperation {
   AccountList = 'account.list',
   StoreInit = 'store.initialization',
   Login = 'login',
+  Http = 'custom.http',
+  NoBasicFunctionalityHttp = 'custom.no.basic.functionality.http',
 }
 
 const ID_DEFAULT = 'default';

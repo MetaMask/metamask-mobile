@@ -1,7 +1,10 @@
 import {
+  createLoggingXHROverride,
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
+// eslint-disable-next-line import/no-namespace
+import * as trace from '../../util/trace';
 
 const blockedURLs = [
   'https://example.com/price-api?foo=bar',
@@ -61,6 +64,47 @@ describe('overrideXMLHttpRequest', () => {
       req.send('{"foo": "bar"}');
     }),
   );
+
+  it('should trace XMLHttpRequest calls', (done) => {
+    const mockTrace = jest.spyOn(trace, 'trace').mockImplementation();
+    overrideXMLHttpRequest();
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => {
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'api.example.com',
+        op: trace.TraceOperation.NoBasicFunctionalityHttp,
+      });
+      done();
+    };
+    xhr.open('GET', 'https://api.example.com/data');
+    xhr.send();
+  });
+});
+
+describe('createLoggingXHROverride', () => {
+  let mockTrace: jest.SpyInstance;
+  beforeEach(() => {
+    mockTrace = jest.spyOn(trace, 'trace').mockImplementation();
+    createLoggingXHROverride();
+  });
+
+  afterEach(() => {
+    restoreXMLHttpRequest();
+    jest.clearAllMocks();
+  });
+
+  it('should trace XMLHttpRequest calls', (done) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => {
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'api.example.com',
+        op: trace.TraceOperation.Http,
+      });
+      done();
+    };
+    xhr.open('GET', 'https://api.example.com/data');
+    xhr.send();
+  });
 });
 
 describe('restoreXMLHttpRequest', () => {

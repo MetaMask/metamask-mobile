@@ -1,5 +1,5 @@
 import AppConstants from '../../../app/core/AppConstants';
-import { TraceName, endTrace, trace } from '../../util/trace';
+import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 
 if (process.env.JEST_WORKER_ID !== undefined) {
   // monkeypatch for Jest
@@ -47,6 +47,7 @@ export function createLoggingXHROverride() {
     const hostname = new URL(currentUrl).hostname;
     trace({
       name: hostname as TraceName,
+      op: TraceOperation.Http,
     });
     return originalOpen.apply(this, [
       method,
@@ -99,6 +100,13 @@ export function overrideXMLHttpRequest() {
     password?: string | null,
   ) {
     currentUrl = url?.toString();
+
+    const hostname = new URL(currentUrl).hostname;
+    trace({
+      name: hostname as TraceName,
+      op: TraceOperation.NoBasicFunctionalityHttp,
+    });
+
     return originalOpen.apply(this, [
       method,
       currentUrl,
@@ -110,6 +118,15 @@ export function overrideXMLHttpRequest() {
 
   // Override the 'send' method to implement the blocking logic
   global.XMLHttpRequest.prototype.send = function (...args: unknown[]) {
+    const hostname = new URL(currentUrl).hostname;
+    this.addEventListener('load', () => {
+      endTrace({ name: hostname as TraceName });
+    });
+
+    this.addEventListener('error', () => {
+      endTrace({ name: hostname as TraceName });
+    });
+
     // Check if the current request should be blocked
     if (shouldBlockRequest(currentUrl)) {
       handleError(); // Trigger an error callback or handle the blocked request as needed

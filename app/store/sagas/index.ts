@@ -126,9 +126,10 @@ export function* basicFunctionalityToggle() {
 
     if (basicFunctionalityEnabled) {
       restoreXMLHttpRequest();
+      // apply metrics if enabled
       createLoggingXHROverride();
     } else {
-      restoreXMLHttpRequest();
+      // apply global blocklist and metrics if enabled
       overrideXMLHttpRequest();
     }
   }
