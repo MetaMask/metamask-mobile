@@ -74,7 +74,7 @@ async function main(): Promise<void> {
       name: statusCheckName,
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Success,
+      conclusion: CompletedConclusionType.Skipped,
       started_at: new Date().toISOString(),
       output: {
         title: statusCheckTitle,
