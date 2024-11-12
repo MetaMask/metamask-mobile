@@ -46,7 +46,7 @@ pipelines:
     stages:
       - build_e2e_ios_android_stage: {}
       - run_release_e2e_ios_android_stage: {}
-      - run_testrail_update_automated_test_results: {}
+      - report_results_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -172,6 +172,9 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
+  report_results_stage:
+    workflows:
+      - run_testrail_update_automated_test_results: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
