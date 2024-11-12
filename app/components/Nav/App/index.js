@@ -34,7 +34,6 @@ import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkM
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { routingInstrumentation } from '../../../util/sentry/utils';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -138,7 +137,13 @@ import Engine from '../../../core/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -584,6 +589,12 @@ const App = (props) => {
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
 
+  trace({
+    name: TraceName.NavInit,
+    parentContext: getUIStartupSpan(),
+    op: TraceOperation.NavInit,
+  });
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -599,9 +610,10 @@ const App = (props) => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
-              name: TraceName.BiometricAuthentication,
+              name: TraceName.AppStartBiometricAuthentication,
               op: TraceOperation.BiometricAuthentication,
             },
             async () => {
@@ -624,6 +636,7 @@ const App = (props) => {
             }),
           );
         }
+
         await Authentication.lockApp({ reset: false });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -632,9 +645,15 @@ const App = (props) => {
         );
       }
     };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
+    appTriggeredAuth()
+      .catch((error) => {
+        Logger.error(error, 'App: Error in appTriggeredAuth');
+      })
+      .finally(() => {
+        endTrace({ name: TraceName.NavInit });
+
+        endTrace({ name: TraceName.UIStartup });
+      });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -684,8 +703,6 @@ const App = (props) => {
       });
 
       if (!prevNavigator.current) {
-        // Setup navigator with Sentry instrumentation
-        routingInstrumentation.registerNavigationContainer(navigator);
         // Subscribe to incoming deeplinks
         // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
         branch.subscribe((opts) => {
@@ -970,7 +987,7 @@ const App = (props) => {
           <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
           <Stack.Screen
             name="EditAccountName"
-            component={EditAccountNameFlow}
+            component={EditAccountName}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen

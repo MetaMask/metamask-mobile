@@ -1,17 +1,19 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, View } from 'react-native';
+import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Hex } from '@metamask/utils';
 
 // External dependencies.
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
+import { InternalAccount } from '@metamask/keyring-api';
 import { useStyles } from '../../../component-library/hooks';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
@@ -29,11 +31,13 @@ import { AvatarVariant } from '../../../component-library/components/Avatars/Ava
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -47,8 +51,10 @@ const AccountSelectorList = ({
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
+  privacyMode = false,
   ...props
 }: AccountSelectorListProps) => {
+  const { navigate } = useNavigation();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
@@ -64,7 +70,8 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const privacyMode = useSelector(selectPrivacyMode);
+
+  const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
@@ -170,6 +177,23 @@ const AccountSelectorList = ({
     ],
   );
 
+  const onNavigateToAccountActions = useCallback(
+    (selectedAccount: string) => {
+      const account = internalAccounts.find(
+        (accountData: InternalAccount) =>
+          accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
+      );
+
+      if (!account) return;
+
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ACCOUNT_ACTIONS,
+        params: { selectedAccount: account },
+      });
+    },
+    [navigate, internalAccounts],
+  );
+
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
       item: { name, address, assets, type, isSelected, balanceError },
@@ -183,7 +207,7 @@ const AccountSelectorList = ({
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
         ? CellVariant.MultiSelect
-        : CellVariant.Select;
+        : CellVariant.SelectWithMenu;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
@@ -194,12 +218,16 @@ const AccountSelectorList = ({
         );
       }
 
-      const cellStyle = {
+      const cellStyle: ViewStyle = {
         opacity: isLoading ? 0.5 : 1,
       };
+      if (!isMultiSelect) {
+        cellStyle.alignItems = 'center';
+      }
 
       return (
         <Cell
+          key={address}
           onLongPress={() => {
             onLongPress({
               address,
@@ -212,6 +240,7 @@ const AccountSelectorList = ({
           isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
+          showSecondaryTextIcon={false}
           tertiaryText={balanceError}
           onPress={() => onSelectAccount?.(address, isSelectedAccount)}
           avatarProps={{
@@ -222,6 +251,10 @@ const AccountSelectorList = ({
           tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
+          buttonProps={{
+            onButtonClick: () => onNavigateToAccountActions(address),
+            buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+          }}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets, address))}
@@ -229,6 +262,7 @@ const AccountSelectorList = ({
       );
     },
     [
+      onNavigateToAccountActions,
       accountAvatarType,
       onSelectAccount,
       renderAccountBalances,
