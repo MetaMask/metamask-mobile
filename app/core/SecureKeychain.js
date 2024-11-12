@@ -28,6 +28,7 @@ const defaultOptions = {
 };
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 
 /**
  * Class that wraps Keychain from react-native-keychain
@@ -63,7 +64,9 @@ export default {
 
     if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
       MetaMetrics.getInstance().trackEvent(
-        MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
+        ).build(),
       );
 
     Object.freeze(instance);
