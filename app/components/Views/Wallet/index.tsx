@@ -10,7 +10,6 @@ import {
   StyleSheet,
   View,
   TextStyle,
-  InteractionManager,
   Linking,
   AppState,
   AppStateStatus,
@@ -44,7 +43,6 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
