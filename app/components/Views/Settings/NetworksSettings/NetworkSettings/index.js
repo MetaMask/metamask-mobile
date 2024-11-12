@@ -822,14 +822,13 @@ export class NetworkSettings extends PureComponent {
     shouldNetworkSwitchPopToWallet,
     navigation,
   }) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
     const url = new URL(rpcUrl);
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
     }
 
-    CurrencyRateController.updateExchangeRate([ticker]);
     const existingNetwork = this.props.networkConfigurations[chainId];
 
     const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
@@ -1530,7 +1529,7 @@ export class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1538,7 +1537,6 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    CurrencyRateController.updateExchangeRate([NetworksTicker.mainnet]);
     NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
