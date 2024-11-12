@@ -153,8 +153,8 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: 16,
-      paddingRight: 16,
+      paddingLeft: 8,
+      paddingRight: 8,
       paddingBottom: 16,
       paddingTop: 8,
     },
