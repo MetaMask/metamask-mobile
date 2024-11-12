@@ -1538,7 +1538,7 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
+    CurrencyRateController.updateExchangeRate([NetworksTicker.mainnet]);
     NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {

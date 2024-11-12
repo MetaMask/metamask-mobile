@@ -706,15 +706,7 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
-    const currentNetworkConfig =
-      networkController.getNetworkConfigurationByNetworkClientId(
-        networkController?.state.selectedNetworkClientId,
-      );
-    currencyRateController.startPolling({
-      nativeCurrencies: currentNetworkConfig?.nativeCurrency
-        ? [currentNetworkConfig?.nativeCurrency]
-        : [],
-    });
+
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
