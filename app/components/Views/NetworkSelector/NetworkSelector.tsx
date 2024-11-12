@@ -37,9 +37,7 @@ import Networks, {
 } from '../../../util/networks';
 import {
   LINEA_MAINNET,
-  LINEA_SEPOLIA,
   MAINNET,
-  SEPOLIA,
 } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -65,7 +63,6 @@ import createStyles from './NetworkSelector.styles';
 import {
   BUILT_IN_NETWORKS,
   InfuraNetworkType,
-  TESTNET_TICKER_SYMBOLS,
 } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -268,8 +265,6 @@ const NetworkSelector = () => {
           networkConfigurationId,
         );
       } else {
-        CurrencyRateController.updateExchangeRate([ticker]);
-
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
         await NetworkController.setActiveNetwork(networkClientId);
@@ -378,13 +373,6 @@ const NetworkSelector = () => {
     if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
-      let ticker = type;
-      if (type === LINEA_SEPOLIA) {
-        ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
-      }
-      if (type === SEPOLIA) {
-        ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
-      }
 
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
@@ -394,7 +382,6 @@ const NetworkSelector = () => {
           networkConfiguration.defaultRpcEndpointIndex
         ].networkClientId ?? type;
 
-      CurrencyRateController.updateExchangeRate([ticker]);
       NetworkController.setActiveNetwork(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
