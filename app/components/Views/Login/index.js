@@ -72,6 +72,8 @@ import Label from '../../../component-library/components/Form/Label';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -250,11 +252,19 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
+  parentSpan = trace({
+    name: TraceName.Login,
+    op: TraceOperation.Login,
+    tags: getTraceTags(store.getState()),
+  });
+
   async componentDidMount() {
     trace({
-      name: TraceName.LoginToPasswordEntry,
-      op: TraceOperation.LoginToPasswordEntry,
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
+      parentContext: this.parentSpan,
     });
+
     this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
@@ -365,6 +375,7 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
@@ -381,13 +392,13 @@ class Login extends PureComponent {
       await trace(
         {
           name: TraceName.AuthenticateUser,
-          op: TraceOperation.AuthenticateUser,
+          op: TraceOperation.Login,
+          parentContext: this.parentSpan,
         },
         async () => {
           await Authentication.userEntryAuth(password, authType);
         },
       );
-
       Keyboard.dismiss();
 
       // Get onboarding wizard state
@@ -447,17 +458,20 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
+    endTrace({ name: TraceName.Login });
   };
 
   tryBiometric = async (e) => {
     if (e) e.preventDefault();
+    endTrace({ name: TraceName.LoginUserInteraction });
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
       await trace(
         {
-          name: TraceName.BiometricAuthentication,
-          op: TraceOperation.BiometricAuthentication,
+          name: TraceName.LoginBiometricAuthentication,
+          op: TraceOperation.Login,
+          parentContext: this.parentSpan,
         },
         async () => {
           await Authentication.appTriggeredAuth();
@@ -478,11 +492,6 @@ class Login extends PureComponent {
       Logger.log(error);
     }
     field?.blur();
-  };
-
-  triggerLogIn = () => {
-    endTrace({ name: TraceName.LoginToPasswordEntry });
-    this.onLogin();
   };
 
   toggleWarningModal = () => {
@@ -587,7 +596,7 @@ class Login extends PureComponent {
                   value={this.state.password}
                   baseColor={colors.border.default}
                   tintColor={colors.primary.default}
-                  onSubmitEditing={this.triggerLogIn}
+                  onSubmitEditing={this.onLogin}
                   endAccessory={
                     <BiometryButton
                       onPress={this.tryBiometric}
@@ -618,7 +627,7 @@ class Login extends PureComponent {
                   variant={ButtonVariants.Primary}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
-                  onPress={this.triggerLogIn}
+                  onPress={this.onLogin}
                   label={
                     this.state.loading ? (
                       <ActivityIndicator

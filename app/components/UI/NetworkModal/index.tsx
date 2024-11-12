@@ -321,7 +321,7 @@ const NetworkModals = (props: NetworkProps) => {
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
 
-    CurrencyRateController.updateExchangeRate(ticker);
+    CurrencyRateController.updateExchangeRate([ticker]);
 
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
