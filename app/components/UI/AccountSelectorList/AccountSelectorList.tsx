@@ -14,7 +14,6 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell';
 import { InternalAccount } from '@metamask/keyring-api';
 import { useStyles } from '../../../component-library/hooks';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
@@ -52,6 +51,7 @@ const AccountSelectorList = ({
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
+  privacyMode = false,
   ...props
 }: AccountSelectorListProps) => {
   const { navigate } = useNavigation();
@@ -72,7 +72,6 @@ const AccountSelectorList = ({
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);
-  const privacyMode = useSelector(selectPrivacyMode);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
