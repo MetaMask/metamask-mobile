@@ -57,7 +57,7 @@ import {
   UnpopularNetworkList,
 } from '../../../../../util/networks/customNetworks';
 import { NetworksI } from '../../../../../components/Views/Settings/IncomingTransactionsSettings/index.types';
-
+import { selectMarketData } from '../../../../../selectors/tokenRatesController';
 interface TokenListItemProps {
   asset: TokenI;
   showScamWarningModal: boolean;
@@ -92,7 +92,8 @@ export const TokenListItem = ({
   // const primaryCurrency = useSelector(
   //   (state: RootState) => state.settings.primaryCurrency,
   // );
-
+  const multiChainMarketData = useSelector(selectMarketData);
+  // console.log('multiChainMarketData', multiChainMarketData);
   const styles = createStyles(colors);
 
   const itemAddress = safeToChecksumAddress(asset.address);
@@ -106,9 +107,25 @@ export const TokenListItem = ({
   //     currentCurrency,
   //   );
 
-  const pricePercentChange1d = itemAddress
-    ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
-    : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+  // const pricePercentChange1d = itemAddress
+  //   ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
+  //   : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+
+  // const pricePercentChange1d =
+  //   multiChainMarketData?.[asset.chainId as HexString]?.[
+  //     asset.address as HexString
+  //   ]?.pricePercentChange1d;
+
+  const tokenPercentageChange = asset.address
+    ? multiChainMarketData?.[asset.chainId as HexString]?.[
+        asset.address as HexString
+      ]?.pricePercentChange1d
+    : null;
+
+  const pricePercentChange1d = asset.isNative
+    ? multiChainMarketData?.[asset.chainId as HexString]?.[zeroAddress()]
+        ?.pricePercentChange1d
+    : tokenPercentageChange;
 
   // // render balances according to primary currency
   // let mainBalance;
@@ -163,9 +180,7 @@ export const TokenListItem = ({
     if (isTestNet(currentChainId))
       return getTestNetImageByChainId(currentChainId);
 
-    const defaultNetwork = getDefaultNetworkByChainId(
-      currentChainId,
-    ) as NetworksI;
+    const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as any;
 
     if (defaultNetwork) {
       return defaultNetwork.imageSource;
@@ -220,7 +235,7 @@ export const TokenListItem = ({
           />
         }
       >
-        {asset.isETH ? (
+        {asset.isNative ? (
           <NetworkAssetLogo
             chainId={asset.chainId as HexString}
             style={styles.ethLogo}
@@ -254,7 +269,7 @@ export const TokenListItem = ({
           )}
         </View>
         {/* TODO: Make sure this works later */}
-        {asset.chainId && !isTestNet(asset.chainId) ? (
+        {!isTestNet(asset.chainId as HexString) ? (
           <PercentageChange value={pricePercentChange1d} />
         ) : null}
       </View>

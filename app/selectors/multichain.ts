@@ -205,7 +205,7 @@ export function getSelectedAccountTokensAcrossChains(state: RootState): {
         aggregators: [],
         image: '',
         logo: isETH ? '../images/eth-logo-new.png' : '',
-        isETH: true,
+        isETH,
         decimals: nativeTokenInfo?.decimals || 18,
         name: isETH ? `Ethereum` : ticker,
         symbol: getTicker(nativeTokenInfo?.symbol),
