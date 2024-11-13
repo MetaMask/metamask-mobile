@@ -1540,6 +1540,8 @@ export class Engine {
           assetsContractController.getBalancesInSingleCall.bind(
             assetsContractController,
           ),
+        platform: 'mobile',
+        useAccountsAPI: true,
       }),
 
       new NftDetectionController({
