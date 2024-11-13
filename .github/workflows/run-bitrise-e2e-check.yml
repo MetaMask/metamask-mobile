@@ -5,9 +5,12 @@ on:
     types: [edited, deleted]
   pull_request:
     types: [opened, reopened, labeled, unlabeled, synchronize]
+  merge_group: # Trigger on merge queue events to satisfy the branch protection rules
+    types: [checks_requested]
 
 env:
   E2E_LABEL: 'Run Smoke E2E'
+  NO_E2E_LABEL: 'No E2E Smoke Needed'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
   WORKFLOW_NAME: 'run-bitrise-e2e-check'
 
