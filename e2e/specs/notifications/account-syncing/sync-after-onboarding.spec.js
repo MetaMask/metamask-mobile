@@ -19,6 +19,9 @@ import { SmokeNotifications } from '../../../tags';
 
 describe(SmokeNotifications('Account syncing'), () => {
   beforeAll(async () => {
+    jest.setTimeout(200000);
+    await TestHelpers.reverseServerPort();
+
     const mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
     });
@@ -29,9 +32,6 @@ describe(SmokeNotifications('Account syncing'), () => {
     userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
       getResponse: accountsSyncMockResponse,
     });
-
-    jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
 
     await device.launchApp({
       newInstance: true,
