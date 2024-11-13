@@ -27,7 +27,8 @@ const HD_ACCOUNT_1_PRIVATE_KEY =
   '242251a690016cfcf8af43fb1ad7ff4c66c269bbca03f9f076ee8db93c191594';
 const IMPORTED_ACCOUNT_2_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-const IMPORTED_ACCOUNT_2_INDEX = 1;
+const IMPORTED_ACCOUNT_0_INDEX = 0;
+const IMPORTED_ACCOUNT_1_INDEX = 1;
 
 describe(Regression('reveal private key'), () => {
   const PASSWORD = '123123123';
@@ -85,15 +86,43 @@ describe(Regression('reveal private key'), () => {
     );
   });
 
-  it('reveals the correct private key for an imported account from the account menu ', async () => {
+  it('reveals the correct private key for the first account in the account list ', async () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await AccountListView.tapToSelectActiveAccountAtIndex(
-      IMPORTED_ACCOUNT_2_INDEX,
+    await AccountListView.tapEditAccountActionsAtIndex(
+      IMPORTED_ACCOUNT_0_INDEX,
     );
-    await Assertions.checkIfVisible(WalletView.container);
 
-    await WalletView.tapMainWalletAccountActions();
+    await AccountActionsModal.tapShowPrivateKey();
+    await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
+    await RevealPrivateKey.tapToReveal();
+    await Assertions.checkIfVisible(RevealPrivateKey.container);
+    await Assertions.checkIfTextIsDisplayed(
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_PRIVATE_KEY_TITLE_TEXT,
+    );
+    await Assertions.checkIfTextIsDisplayed(HD_ACCOUNT_1_PRIVATE_KEY);
+
+    // Copy to clipboard
+    // Android devices running OS version < 11 (API level 29) will not see the copy to clipboard button presented
+    // This will cause the following step to fail if e2e were being run on an older android OS prior to our minimum API level 29
+    // See details here: https://github.com/MetaMask/metamask-mobile/pull/4170
+    await RevealPrivateKey.tapToCopyCredentialToClipboard();
+    await RevealPrivateKey.tapToRevealPrivateCredentialQRCode();
+    await Assertions.checkIfVisible(
+      RevealPrivateKey.revealCredentialQRCodeImage,
+    );
+    await RevealPrivateKey.scrollToDone();
+    await RevealPrivateKey.tapDoneButton();
+    await Assertions.checkIfVisible(WalletView.container);
+  });
+
+  it('reveals the correct private key for the second account in the account list which is also an imported account', async () => {
+    await TabBarComponent.tapWallet();
+    await WalletView.tapIdenticon();
+    await AccountListView.tapEditAccountActionsAtIndex(
+      IMPORTED_ACCOUNT_1_INDEX,
+    );
+
     await AccountActionsModal.tapShowPrivateKey();
     await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
     await RevealPrivateKey.tapToReveal();
