@@ -95,7 +95,7 @@ import {
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 //import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { useAccountName } from '../../hooks/useAccountName';
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
+//import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -151,6 +151,10 @@ interface WalletProps {
   hideNftFetchingLoadingIndicator: () => void;
 }
 
+const Wallet2 = () => {
+  return <View style={{ flex: 1, backgroundColor: 'red' }}></View>;
+};
+
 /**
  * Main view for the wallet
  */
@@ -165,7 +169,7 @@ const Wallet = ({
   const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
   //  const { listNotifications } = useListNotifications();
-  const { dispatchAccountSyncing } = useAccountSyncing();
+  //const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -418,31 +422,36 @@ const Wallet = ({
   // Layout effect when component/view is visible
   // - fetches notifications
   // - dispatches account syncing
-  useLayoutEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (
-        appState.current?.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        //   listNotifications();
-        dispatchAccountSyncing();
-      }
+  useLayoutEffect(
+    () => {
+      const handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (
+          appState.current?.match(/inactive|background/) &&
+          nextAppState === 'active'
+        ) {
+          //   listNotifications();
+          //  dispatchAccountSyncing();
+        }
 
-      appState.current = nextAppState;
-    };
+        appState.current = nextAppState;
+      };
 
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
+      const subscription = AppState.addEventListener(
+        'change',
+        handleAppStateChange,
+      );
 
-    // listNotifications();
-    dispatchAccountSyncing();
+      // listNotifications();
+      //  dispatchAccountSyncing();
 
-    return () => {
-      subscription.remove();
-    };
-  }, [dispatchAccountSyncing]);
+      return () => {
+        subscription.remove();
+      };
+    },
+    [
+      /* dispatchAccountSyncing */
+    ],
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -693,5 +702,5 @@ const mapDispatchToProps = (dispatch: any) => ({
   hideNftFetchingLoadingIndicator: () =>
     dispatch(hideNftFetchingLoadingIndicatorAction()),
 });
-
+//export default Wallet2;
 export default connect(mapStateToProps, mapDispatchToProps)(Wallet);
