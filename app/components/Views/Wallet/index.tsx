@@ -93,7 +93,7 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+//import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { useAccountName } from '../../hooks/useAccountName';
 import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 
@@ -164,7 +164,7 @@ const Wallet = ({
 }: WalletProps) => {
   const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
-  const { listNotifications } = useListNotifications();
+  //  const { listNotifications } = useListNotifications();
   const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -424,7 +424,7 @@ const Wallet = ({
         appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        listNotifications();
+        //   listNotifications();
         dispatchAccountSyncing();
       }
 
@@ -436,13 +436,13 @@ const Wallet = ({
       handleAppStateChange,
     );
 
-    listNotifications();
+    // listNotifications();
     dispatchAccountSyncing();
 
     return () => {
       subscription.remove();
     };
-  }, [listNotifications, dispatchAccountSyncing]);
+  }, [dispatchAccountSyncing]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -533,12 +533,9 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = [
-      ...(tokens || []),
-    ];
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
-
       balance = renderFromWei(accountBalanceByChainId.balance);
       const nativeAsset = {
         // TODO: Add name property to Token interface in controllers.
@@ -575,8 +572,8 @@ const Wallet = ({
             conversionRate,
             currentCurrency,
           ),
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
         assets.push(stakedAsset);
       }
