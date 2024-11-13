@@ -255,7 +255,7 @@ workflows:
       - restore-cache@2:
           title: Restore Node
           inputs:
-            - key: node-${{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
       - script@1:
           title: node, yarn, corepack installation
           inputs:
