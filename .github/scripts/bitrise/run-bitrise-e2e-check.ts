@@ -22,33 +22,32 @@ function isMergeQueue(): boolean {
 }
 
 
-function shouldRunBitriseE2E(hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
-  // Don't run if it's a fork
-  if (isFork) {
-    return [false, "The pull request is from a fork."];
+function shouldRunBitriseE2E(antiLabel: boolean, hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
+
+  const conditions = [
+    {condition: hasSmokeTestLabel, message: "The smoke test label is present.", shouldRun: true},
+    {condition: isFork, message: "The pull request is from a fork.", shouldRun: false},
+    {condition: isDocs, message: "The pull request is documentation related.", shouldRun: false},
+    {condition: isMergeQueue, message: "The pull request is part of a merge queue.", shouldRun: false},
+    {condition: antiLabel, message: "The pull request has the anti-label.", shouldRun: false}
+  ];
+
+  // Iterate through conditions to determine action
+  for (const {condition, message, shouldRun} of conditions) {
+    if (condition) {
+      return [shouldRun, message];
+    }
   }
 
-  // Don't run if it's related to documentation
-  if (isDocs) {
-    return [false, "The pull request is documentation related."];
-  }
-
-  if (isMergeQueue) {
-    return [false, "The pull request is part of a merge queue."];
-  }
-
-  // Check if the smoke test label is present
-  if (hasSmokeTestLabel) {
-    return [true, "The smoke test label is present."];
-  } else {
-    return [false, "The smoke test label is not present."];
-  }
+  // Default case if no conditions met
+  return [false, "Unexpected scenario or no relevant labels found."];
 }
 
 
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
+  const antiLabel = process.env.NO_E2E_LABEL;
   const e2ePipeline = process.env.E2E_PIPELINE;
   const workflowName = process.env.WORKFLOW_NAME;
   const triggerAction = context.payload.action as PullRequestTriggerType;
@@ -75,6 +74,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  if (!antiLabel) {
+    core.setFailed('NO_E2E_LABEL not found');
+    process.exit(1);
+  }
+
   // Logging for Pipeline debugging
   console.log(`Trigger action: ${triggerAction}`);
   console.log(`event: ${context.eventName}`);
@@ -94,28 +98,43 @@ async function main(): Promise<void> {
   // Get the latest commit hash
   const latestCommitHash = prData.head.sha;
 
-
-
-  // Check if the e2e smoke label is applied
+  // Grab flags and labels
   const labels = prData.labels;
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
+  const hasAntiLabel = labels.some((label) => label.name === antiLabel);
+  const fork = context.payload.pull_request?.head.repo.fork || false;
+  const mergeQueue = (context.eventName === 'merge_group')
 
-  const fork = isFork();
-  const mergeQueue = isMergeQueue();
 
   console.log(`Docs: ${docs}`);
   console.log(`Fork: ${fork}`);
   console.log(`Merge Queue: ${mergeQueue}`);
   console.log(`Has smoke test label: ${hasSmokeTestLabel}`);
+  console.log(`Anti label: ${hasAntiLabel}`);
 
-  const [shouldRun, reason] = shouldRunBitriseE2E(hasSmokeTestLabel, docs, fork, mergeQueue);
+
+  // One of these two labels must exist if not we bomb out
+  if (!hasSmokeTestLabel && !hasAntiLabel) {
+    core.setFailed(
+      `At least 1 E2E Label must be Applied either ${e2eLabel} or ${antiLabel}`,
+    );
+    process.exit(1);
+  }
+
+  const [shouldRun, reason] = shouldRunBitriseE2E(hasAntiLabel, hasSmokeTestLabel, docs, fork, mergeQueue);
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
-  // Pass check since e2e smoke label is not applied
+  // 
   if (!shouldRun) {
     console.log(
       `Skipping Bitrise status check. due to the following reason: ${reason}`,
     );
+
+    if (antiLabel) {
+      console.log(`Ommitting status check since ${antiLabel} label is applied`);
+      return; // Break out of action early
+    }
+
     // Post success status (skipped)
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
@@ -123,16 +142,13 @@ async function main(): Promise<void> {
       name: statusCheckName,
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Skipped,
+      conclusion: CompletedConclusionType.Success, 
       started_at: new Date().toISOString(),
       output: {
         title: statusCheckTitle,
         summary: `Skip run since ${reason}`,
       },
     });
-
-
-
 
     if (createStatusCheckResponse.status === 201) {
       console.log(

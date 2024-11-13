@@ -1,0 +1,47 @@
+########################################################
+# This workflow will automatically convert newly PRs to draft
+# and apply the label 'No E2E Smoke Needed' which will
+# prevent the PR from running the E2E smoke test.
+#
+# When developers are ready to merge to main they should
+# swap the label out for 'Run Smoke E2E' to trigger the
+# smoke test which wil enable the PR to be mergeable per
+# the branch protection rules of main.
+
+#########################################################
+name: Auto Draft and Label PR
+
+on:
+  pull_request:
+    types: [opened]
+    branches:
+    - main
+
+permissions:
+    pull-requests: write
+    contents: read
+    issues: write
+
+jobs:
+  process_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Convert PR to Draft and Add Label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Convert PR to draft
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              draft: true
+            });
+            
+            // Add label to PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['No E2E Smoke Needed']
+            });
