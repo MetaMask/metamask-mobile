@@ -3369,7 +3369,8 @@
     "add_account": "Add account",
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
-    "import_account": "Import account"
+    "import_account": "Import account",
+    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",

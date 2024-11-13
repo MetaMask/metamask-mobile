@@ -1,0 +1,4 @@
+export enum MultichainNetworks {
+  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
+  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
+}
