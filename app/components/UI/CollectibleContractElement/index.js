@@ -13,7 +13,7 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
   IconColor,
@@ -320,7 +320,7 @@ CollectibleContractElement.propTypes = {
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

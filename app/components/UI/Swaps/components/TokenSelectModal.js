@@ -53,7 +53,7 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -580,7 +580,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),

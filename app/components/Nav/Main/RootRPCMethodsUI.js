@@ -59,7 +59,7 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Confirm from '../../../components/Views/confirmations/Confirm';
@@ -559,7 +559,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   providerType: selectProviderType(state),
