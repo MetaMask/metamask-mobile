@@ -312,6 +312,7 @@ workflows:
             - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
             - paths: |-
                 ../.nvm/
+                ../../../root/.nvm/
   install_applesimutils:
     steps:
       - script@1:
