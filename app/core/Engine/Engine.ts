@@ -1690,7 +1690,7 @@ export class Engine {
     );
 
     if (selectedInternalAccount) {
-      const selectSelectedInternalAccountChecksummedAddress =
+      const selectSelectedInternalAccountFormattedAddress =
         toChecksumHexAddress(selectedInternalAccount.address);
       const { currentCurrency } = CurrencyRateController.state;
       const { chainId, ticker } = NetworkController.getNetworkClientById(
@@ -1718,17 +1718,17 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountChecksummedAddress
+          selectSelectedInternalAccountFormattedAddress
         ]
       ) {
         const balanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
+            selectSelectedInternalAccountFormattedAddress
           ].balance,
         );
         const stakedBalanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
+            selectSelectedInternalAccountFormattedAddress
           ].stakedBalance || '0x00',
         );
         const totalAccountBalance = balanceBN

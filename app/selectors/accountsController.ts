@@ -5,7 +5,11 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  EthMethod,
+  InternalAccount,
+} from '@metamask/keyring-api';
 
 /**
  *
@@ -62,11 +66,21 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 /**
  * A memoized selector that returns the selected internal account address in checksum format
  */
-export const selectSelectedInternalAccountChecksummedAddress = createSelector(
+export const selectSelectedInternalAccountFormattedAddress = createSelector(
   selectSelectedInternalAccount,
   (account) => {
     const selectedAddress = account?.address;
-    return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
+    if (selectedAddress) {
+      // Ethereum accounts should always be checksummed
+      if (
+        account.type === EthAccountType.Eoa ||
+        account.type === EthAccountType.Erc4337
+      ) {
+        return toChecksumHexAddress(selectedAddress);
+      }
+      return selectedAddress;
+    }
+    return undefined;
   },
 );
 

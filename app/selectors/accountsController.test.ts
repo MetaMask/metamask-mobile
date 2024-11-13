@@ -6,7 +6,7 @@ import StorageWrapper from '../store/storage-wrapper';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -155,9 +155,9 @@ describe('Accounts Controller Selectors', () => {
       );
     });
   });
-  describe('selectSelectedInternalAccountChecksummedAddress', () => {
+  describe('selectSelectedInternalAccountFormattedAddress', () => {
     it('returns selected internal account address in checksum format', () => {
-      const result = selectSelectedInternalAccountChecksummedAddress({
+      const result = selectSelectedInternalAccountFormattedAddress({
         engine: {
           backgroundState: {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -169,7 +169,7 @@ describe('Accounts Controller Selectors', () => {
       expect(result).toEqual(checksummedAddress);
     });
     it('returns undefined if selected account does not exist', () => {
-      const result = selectSelectedInternalAccountChecksummedAddress({
+      const result = selectSelectedInternalAccountFormattedAddress({
         engine: {
           backgroundState: {
             AccountsController: {

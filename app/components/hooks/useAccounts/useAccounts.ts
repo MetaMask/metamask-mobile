@@ -30,7 +30,7 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount, EthAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'ethers';
 
@@ -53,6 +53,10 @@ const useAccounts = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
+  console.log(
+    'Bitcoin/ useAccounts',
+    JSON.stringify(internalAccounts, null, 2),
+  );
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(
@@ -129,23 +133,28 @@ const useAccounts = ({
       (internalAccount: InternalAccount, index: number) => {
         const {
           address,
+          type,
           metadata: {
             name,
-            keyring: { type },
+            keyring: { type: keyringType },
           },
         } = internalAccount;
         // This should be changed at controller-utils core package
-        const checksummedAddress = toChecksumHexAddress(address) as Hex;
+        // const checksummedAddress = toChecksumHexAddress(address) as Hex;
+        const formattedAddress =
+          type === EthAccountType.Eoa ? toChecksumHexAddress(address) : address;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
         }
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
+          accountInfoByAddress?.[formattedAddress]?.balance || '0x0';
         const stakedBalanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.stakedBalance || '0x0';
-        const totalBalanceWeiHex = BigNumber.from(balanceWeiHex).add(BigNumber.from(stakedBalanceWeiHex)).toHexString();
+          accountInfoByAddress?.[formattedAddress]?.stakedBalance || '0x0';
+        const totalBalanceWeiHex = BigNumber.from(balanceWeiHex)
+          .add(BigNumber.from(stakedBalanceWeiHex))
+          .toHexString();
         const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
@@ -161,7 +170,7 @@ const useAccounts = ({
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           name,
-          address: checksummedAddress,
+          address: formattedAddress,
           type: type as KeyringTypes,
           yOffset,
           isSelected,
@@ -177,7 +186,7 @@ const useAccounts = ({
         if (balanceError) {
           yOffset += 22;
         }
-        if (type !== KeyringTypes.hd) {
+        if (keyringType !== KeyringTypes.hd) {
           yOffset += 24;
         }
         return mappedAccount;
