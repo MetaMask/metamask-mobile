@@ -13,6 +13,31 @@ main().catch((error: Error): void => {
   process.exit(1);
 });
 
+function isFork(): boolean {
+  return context.payload.pull_request?.head.repo.fork || false;
+}
+
+
+function shouldRunBitriseE2E(hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean): [boolean, string] {
+  // Don't run if it's a fork
+  if (isFork) {
+    return [false, "The pull request is from a fork."];
+  }
+
+  // Don't run if it's related to documentation
+  if (isDocs) {
+    return [false, "The pull request is documentation related."];
+  }
+
+  // Check if the smoke test label is present
+  if (hasSmokeTestLabel) {
+    return [true, "The smoke test label is present."];
+  } else {
+    return [false, "The smoke test label is not present."];
+  }
+}
+
+
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
@@ -55,17 +80,30 @@ async function main(): Promise<void> {
     pull_number: pullRequestNumber,
   });
 
+  const docs = prData.title.startsWith("docs:");
+
   // Get the latest commit hash
   const latestCommitHash = prData.head.sha;
+
+
 
   // Check if the e2e smoke label is applied
   const labels = prData.labels;
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
 
+  const fork = isFork();
+
+  console.log(`Docs: ${docs}`);
+  console.log(`Fork: ${fork}`);
+  console.log(`Has smoke test label: ${hasSmokeTestLabel}`);
+
+  const [shouldRun, reason] = shouldRunBitriseE2E(hasSmokeTestLabel, docs, fork);
+  console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
+
   // Pass check since e2e smoke label is not applied
-  if (!hasSmokeTestLabel) {
+  if (!shouldRun) {
     console.log(
-      `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
+      `Skipping Bitrise status check. due to the following reason: ${reason}`,
     );
     // Post success status (skipped)
     const createStatusCheckResponse = await octokit.rest.checks.create({
@@ -78,13 +116,13 @@ async function main(): Promise<void> {
       started_at: new Date().toISOString(),
       output: {
         title: statusCheckTitle,
-        summary: 'Skip run since no E2E smoke label is applied',
+        summary: `Skip run since ${reason}`,
       },
     });
 
 
 
-    
+
     if (createStatusCheckResponse.status === 201) {
       console.log(
         `Created '${statusCheckName}' check with skipped status for commit ${latestCommitHash}`,
