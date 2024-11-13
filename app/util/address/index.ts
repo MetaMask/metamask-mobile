@@ -70,9 +70,9 @@ type FormatAddressType = 'short' | 'mid' | 'full';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
 
-  if (!isValidAddress(rawAddress)) {
-    return rawAddress;
-  }
+  // if (!isValidAddress(rawAddress)) {
+  //   return rawAddress;
+  // }
 
   if (type && type === 'short') {
     formattedAddress = renderShortAddress(rawAddress);
@@ -95,11 +95,7 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  */
 export function renderShortAddress(address: string, chars = 4) {
   if (!address) return address;
-  const checksummedAddress = toChecksumAddress(address);
-  return `${checksummedAddress.substr(
-    0,
-    chars + 2,
-  )}...${checksummedAddress.substr(-chars)}`;
+  return `${address.substr(0, chars + 2)}...${address.substr(-chars)}`;
 }
 
 export function renderSlightlyLongAddress(
@@ -107,11 +103,7 @@ export function renderSlightlyLongAddress(
   chars = 4,
   initialChars = 20,
 ) {
-  const checksummedAddress = toChecksumAddress(address);
-  return `${checksummedAddress.slice(
-    0,
-    chars + initialChars,
-  )}...${checksummedAddress.slice(-chars)}`;
+  return `${address.slice(0, chars + initialChars)}...${address.slice(-chars)}`;
 }
 
 /**
