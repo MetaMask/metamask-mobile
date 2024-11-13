@@ -61,7 +61,7 @@ const PersonalSign = ({
   showExpandedMessage,
 }: PersonalSignProps) => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
     // TODO: Replace "any" with type
@@ -119,8 +119,9 @@ const PersonalSign = ({
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams(),
+          createEventBuilder(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED)
+            .addProperties(getAnalyticsParams())
+            .build(),
         );
       }
     };
@@ -134,7 +135,12 @@ const PersonalSign = ({
         onSignatureError,
       );
     };
-  }, [getAnalyticsParams, messageParams.metamaskId, trackEvent]);
+  }, [
+    getAnalyticsParams,
+    messageParams.metamaskId,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
@@ -157,14 +163,22 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SIGNATURE_REJECTED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SIGNATURE_APPROVED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
