@@ -17,8 +17,12 @@ function isFork(): boolean {
   return context.payload.pull_request?.head.repo.fork || false;
 }
 
+function isMergeQueue(): boolean {
+  return context.eventName === 'merge_group';
+}
 
-function shouldRunBitriseE2E(hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean): [boolean, string] {
+
+function shouldRunBitriseE2E(hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
   // Don't run if it's a fork
   if (isFork) {
     return [false, "The pull request is from a fork."];
@@ -27,6 +31,10 @@ function shouldRunBitriseE2E(hasSmokeTestLabel: boolean, isDocs: boolean, isFork
   // Don't run if it's related to documentation
   if (isDocs) {
     return [false, "The pull request is documentation related."];
+  }
+
+  if (isMergeQueue) {
+    return [false, "The pull request is part of a merge queue."];
   }
 
   // Check if the smoke test label is present
@@ -72,6 +80,7 @@ async function main(): Promise<void> {
   console.log(`event: ${context.eventName}`);
   console.log(`pullRequestNumber: ${pullRequestNumber}`);
 
+
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   const { data: prData } = await octokit.rest.pulls.get({
@@ -92,12 +101,14 @@ async function main(): Promise<void> {
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
 
   const fork = isFork();
+  const mergeQueue = isMergeQueue();
 
   console.log(`Docs: ${docs}`);
   console.log(`Fork: ${fork}`);
+  console.log(`Merge Queue: ${mergeQueue}`);
   console.log(`Has smoke test label: ${hasSmokeTestLabel}`);
 
-  const [shouldRun, reason] = shouldRunBitriseE2E(hasSmokeTestLabel, docs, fork);
+  const [shouldRun, reason] = shouldRunBitriseE2E(hasSmokeTestLabel, docs, fork, mergeQueue);
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
   // Pass check since e2e smoke label is not applied
