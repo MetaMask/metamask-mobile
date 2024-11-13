@@ -44,6 +44,14 @@ describe(SmokeNotifications('Account syncing'), () => {
   });
 
   it('retrieves all previously synced accounts', async () => {
+    await importWalletWithRecoveryPhrase(
+      NOTIFICATIONS_TEAM_SEED_PHRASE,
+      NOTIFICATIONS_TEAM_PASSWORD,
+    );
+
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListView.accountList);
+
     const decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {
         const decryptedAccountName = await SDK.Encryption.decryptString(
@@ -53,14 +61,6 @@ describe(SmokeNotifications('Account syncing'), () => {
         return JSON.parse(decryptedAccountName).n;
       }),
     );
-
-    await importWalletWithRecoveryPhrase(
-      NOTIFICATIONS_TEAM_SEED_PHRASE,
-      NOTIFICATIONS_TEAM_PASSWORD,
-    );
-
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
 
     for (const accountName of decryptedAccountNames) {
       await Assertions.checkIfVisible(
