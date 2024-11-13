@@ -168,7 +168,7 @@
     "@metamask/permission-controller": "^11.0.0",
     "@metamask/phishing-controller": "^12.0.3",
     "@metamask/post-message-stream": "^8.0.0",
-    "@metamask/ppom-validator": "0.32.0",
+    "@metamask/ppom-validator": "0.35.1",
     "@metamask/preferences-controller": "^13.1.0",
     "@metamask/profile-sync-controller": "^0.9.7",
     "@metamask/react-native-actionsheet": "2.4.2",
