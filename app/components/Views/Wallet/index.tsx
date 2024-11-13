@@ -35,6 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -66,7 +67,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -94,11 +94,13 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useAccountName } from '../../hooks/useAccountName';
 import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -182,6 +184,7 @@ const Wallet = ({
    * ETH to current currency conversion rate
    */
   const conversionRate = useSelector(selectConversionRate);
+  const contractBalances = useSelector(selectContractBalances);
   /**
    * Currency code of the currently-active currency
    */
@@ -227,6 +230,14 @@ const Wallet = ({
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  const accountName = useAccountName();
+
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   useEffect(() => {
     if (
@@ -436,6 +447,10 @@ const Wallet = ({
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
+        selectedAddress || '',
+        accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -449,6 +464,9 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
+    selectedAddress,
+    accountName,
+    accountAvatarType,
     navigation,
     colors,
     networkName,
@@ -512,34 +530,58 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    let assets = tokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let stakedBalance: any = 0;
+
+    const assets = [
+      ...(tokens || []),
+    ];
 
     if (accountBalanceByChainId) {
-      balance = renderFromWei(accountBalanceByChainId.balance);
 
-      assets = [
-        {
-          // TODO: Add name property to Token interface in controllers.
-          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-          symbol: getTicker(ticker),
-          isETH: true,
-          balance,
+      balance = renderFromWei(accountBalanceByChainId.balance);
+      const nativeAsset = {
+        // TODO: Add name property to Token interface in controllers.
+        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+        symbol: getTicker(ticker),
+        isETH: true,
+        balance,
+        balanceFiat: weiToFiat(
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hexToBN(accountBalanceByChainId.balance) as any,
+          conversionRate,
+          currentCurrency,
+        ),
+        logo: '../images/eth-logo-new.png',
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      assets.push(nativeAsset);
+
+      let stakedAsset;
+      if (accountBalanceByChainId.stakedBalance) {
+        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
+        stakedAsset = {
+          ...nativeAsset,
+          nativeAsset,
+          name: 'Staked Ethereum',
+          isStaked: true,
+          balance: stakedBalance,
           balanceFiat: weiToFiat(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.balance) as any,
+            hexToBN(accountBalanceByChainId.stakedBalance) as any,
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo-new.png',
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-        ...(tokens || []),
-      ];
-    } else {
-      assets = tokens;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        assets.push(stakedAsset);
+      }
     }
+
     return (
       <View
         style={styles.wrapper}
@@ -557,9 +599,6 @@ const Wallet = ({
               }
             />
           </View>
-        ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
@@ -589,13 +628,12 @@ const Wallet = ({
         </>
       </View>
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,
@@ -604,6 +642,7 @@ const Wallet = ({
     ticker,
     conversionRate,
     currentCurrency,
+    contractBalances,
   ]);
   const renderLoader = useCallback(
     () => (

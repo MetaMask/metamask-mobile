@@ -174,6 +174,7 @@ import {
   weiToFiatNumber,
   toHexadecimal,
   addHexPrefix,
+  hexToBN,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -267,6 +268,7 @@ import { getSmartTransactionMetricsProperties } from '../util/smart-transactions
 import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
+import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -706,8 +708,14 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
+    const currentNetworkConfig =
+      networkController.getNetworkConfigurationByNetworkClientId(
+        networkController?.state.selectedNetworkClientId,
+      );
     currencyRateController.startPolling({
-      networkClientId: networkController.state.selectedNetworkClientId,
+      nativeCurrencies: currentNetworkConfig?.nativeCurrency
+        ? [currentNetworkConfig?.nativeCurrency]
+        : [],
     });
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -953,6 +961,11 @@ export class Engine {
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
+      getStakedBalanceForChain:
+        assetsContractController.getStakedBalanceForChain.bind(
+          assetsContractController,
+        ),
+      includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1986,10 +1999,15 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
+        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance);
+        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].stakedBalance || '0x00');
+        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
         ethFiat = weiToFiatNumber(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
-          ].balance,
+          totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );
