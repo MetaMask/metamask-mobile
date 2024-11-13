@@ -136,7 +136,7 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_notifications_ios: {}
-      # - run_tag_smoke_notifications_android: {}
+      - run_tag_smoke_notifications_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -1586,7 +1586,13 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
+      PORTFOLIO_VIEW: false
+    - opts:
+        is_expand: false
       MM_MULTICHAIN_V1_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
       MM_POOLED_STAKING_UI_ENABLED: true
@@ -1625,16 +1631,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.33.2
+      VERSION_NAME: 7.34.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1474
+      VERSION_NUMBER: 1475
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.33.2
+      FLASK_VERSION_NAME: 7.34.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1474
+      FLASK_VERSION_NUMBER: 1475
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -317,8 +317,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             "flexDirection": "row",
                             "justifyContent": "space-between",
                             "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                             "paddingTop": 8,
                           }
                         }
@@ -340,9 +340,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="sort-by"
                         >
                           <Text
                             accessibilityRole="none"
@@ -390,6 +394,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -1563,8 +1570,8 @@ exports[`Tokens should render correctly 1`] = `
                             "flexDirection": "row",
                             "justifyContent": "space-between",
                             "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                             "paddingTop": 8,
                           }
                         }
@@ -1586,9 +1593,13 @@ exports[`Tokens should render correctly 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="sort-by"
                         >
                           <Text
                             accessibilityRole="none"
@@ -1636,6 +1647,9 @@ exports[`Tokens should render correctly 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -2809,8 +2823,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             "flexDirection": "row",
                             "justifyContent": "space-between",
                             "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                             "paddingTop": 8,
                           }
                         }
@@ -2832,9 +2846,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="sort-by"
                         >
                           <Text
                             accessibilityRole="none"
@@ -2882,6 +2900,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }

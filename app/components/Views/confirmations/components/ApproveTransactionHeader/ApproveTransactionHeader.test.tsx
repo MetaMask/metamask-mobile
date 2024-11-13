@@ -21,18 +21,26 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      addToken: () => undefined,
-    },
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      TokensController: {
+        addToken: () => undefined,
+      },
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -173,10 +181,7 @@ describe('ApproveTransactionHeader', () => {
     ['MMM', TransactionTypes.MMM],
   ])('does not render origin if %s', (_, origin) => {
     const { queryByTestId } = renderWithProvider(
-      <ApproveTransactionHeader
-        {...defaultProps}
-        origin={origin}
-      />,
+      <ApproveTransactionHeader {...defaultProps} origin={origin} />,
       { state: mockInitialState },
     );
 
