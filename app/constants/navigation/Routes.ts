@@ -103,6 +103,7 @@ const Routes = {
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     REVOKE_ALL_ACCOUNT_PERMISSIONS: 'RevokeAllAccountPermissions',
+    CONNECTION_DETAILS: 'ConnectionDetails',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
@@ -113,6 +114,8 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
+    TOKEN_FILTER: 'TokenFilter',
+    CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

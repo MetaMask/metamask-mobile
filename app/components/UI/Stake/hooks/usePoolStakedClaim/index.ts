@@ -1,7 +1,10 @@
 import { PooledStake, PooledStakingContract } from '@metamask/stake-sdk';
 import { useStakeContext } from '../useStakeContext';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { WalletDevice } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 import { addTransaction } from '../../../../../util/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
@@ -42,6 +45,7 @@ const attemptMultiCallClaimTransaction = async (
   return addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     origin: ORIGIN_METAMASK,
+    type: TransactionType.stakingClaim,
   });
 };
 
@@ -84,6 +88,7 @@ const attemptSingleClaimTransaction = async (
   return addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     origin: ORIGIN_METAMASK,
+    type: TransactionType.stakingClaim,
   });
 };
 
