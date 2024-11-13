@@ -48,6 +48,7 @@ const StakeInputView = () => {
     handleMax,
     balanceValue,
     isHighGasCostImpact,
+    isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
@@ -180,7 +181,9 @@ const StakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={isOverMaximum || !isNonZeroAmount}
+          isDisabled={
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
+          }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />
