@@ -17,6 +17,10 @@ import { AddAccountActionsProps } from './AddAccountActions.types';
 import { AddAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAccountModal.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { CaipChainId } from '@metamask/utils';
+import { KeyringClient } from '@metamask/keyring-api';
+import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { MultichainNetworks } from '../../../core/SnapKeyring/constants';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
@@ -64,6 +68,26 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     }
   }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const createBitcoinAccount = async (scope: CaipChainId) => {
+    try {
+      setIsLoading(true);
+      // Client to create the account using the Bitcoin Snap
+      const client = new KeyringClient(new BitcoinWalletSnapSender());
+
+      // This will trigger the Snap account creation flow (+ account renaming)
+      await client.createAccount({
+        scope,
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('Bitcoin account creation failed', error);
+    } finally {
+      setIsLoading(true);
+    }
+  };
+  ///: END:ONLY_INCLUDE_IF
+
   return (
     <SafeAreaView>
       <Fragment>
@@ -79,6 +103,16 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             disabled={isLoading}
             testID={AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON}
           />
+          {/* ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps) */}
+          <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
+            }}
+            disabled={isLoading}
+          />
+          {/* ///: END:ONLY_INCLUDE_IF */}
           <AccountAction
             actionTitle={strings('account_actions.import_account')}
             iconName={IconName.Import}
