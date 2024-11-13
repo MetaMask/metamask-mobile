@@ -198,7 +198,8 @@
       "sortCallback": "stringNumeric"
     },
     "tokenNetworkFilter": {},
-    "privacyMode": false
+    "privacyMode": false,
+    "useMultiRpcMigration": true
   },
   "TokenBalancesController": {
     "contractBalances": {}
