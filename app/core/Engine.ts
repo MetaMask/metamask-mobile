@@ -1581,6 +1581,7 @@ export class Engine {
           allowedActions: [
             'AccountsController:getSelectedAccount',
             'AssetsContractController:getERC20BalanceOf',
+            'NetworkController:getNetworkClientById',
           ],
           allowedEvents: ['TokensController:stateChange'],
         }),
