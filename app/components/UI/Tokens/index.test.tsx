@@ -365,9 +365,9 @@ describe('Tokens', () => {
   });
 
   it('triggers bottom sheet when sort controls are pressed', async () => {
-    const { getByText } = renderComponent(initialState);
+    const { getByTestId } = renderComponent(initialState);
 
-    await fireEvent.press(getByText('Sort by'));
+    await fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
 
     await waitFor(() => {
       expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
