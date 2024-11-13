@@ -40,8 +40,7 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
         [UserProfileProperty.PRIVACY_MODE_ENABLED]:
       preferencesController?.privacyMode
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
+        ? true : false,
   };
 };
 

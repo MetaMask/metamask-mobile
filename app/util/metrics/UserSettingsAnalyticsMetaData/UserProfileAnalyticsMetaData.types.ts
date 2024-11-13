@@ -23,5 +23,5 @@ export interface UserProfileMetaData {
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
-  [UserProfileProperty.PRIVACY_MODE_ENABLED]?: string;
+  [UserProfileProperty.PRIVACY_MODE_ENABLED]?: boolean;
 }
