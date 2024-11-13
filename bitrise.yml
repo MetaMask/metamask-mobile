@@ -1207,7 +1207,7 @@ workflows:
                 APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_APP_URL
                 APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
@@ -1237,13 +1237,13 @@ workflows:
 
                 # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
                 if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_ANDROID_APP_URL.
                   # This is incase an engineer wants to kick off the tests with an existing browserstack url
-                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
+                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_ANDROID_APP_URL."
                 else
                   # If the file is not empty, extract the app_url
-                  export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
-                  echo "BROWSERSTACK_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_APP_URL"
+                  export BROWSERSTACK_ANDROID_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
+                  echo "BROWSERSTACK_ANDROID_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_ANDROID_APP_URL"
                 fi
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
@@ -1293,13 +1293,13 @@ workflows:
 
                 # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
                 if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_IOS_APP_URL.
                   # This is incase an engineer wants to kick off the tests with an existing browserstack url
-                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
+                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_IOS_APP_URL."
                 else
                   # If the file is not empty, extract the app_url
-                  export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
-                  echo "BROWSERSTACK_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_APP_URL"
+                  export BROWSERSTACK_IOS_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
+                  echo "BROWSERSTACK_IOS_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_IOS_APP_URL"
                 fi
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
@@ -1456,7 +1456,7 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 IPA_PATH=ios/build/output/MetaMask-QA.ipa
                 IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_APP_URL
                 mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
