@@ -389,7 +389,7 @@ const PermissionsSummary = ({
           {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
-        <View>
+        <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
@@ -424,7 +424,9 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {strings('accounts.connect')}
+                {isNetworkSwitch
+                  ? strings('confirmation_modal.confirm_cta')
+                  : strings('accounts.connect')}
               </StyledButton>
             </View>
           )}

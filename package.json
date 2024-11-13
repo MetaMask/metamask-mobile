@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.33.2",
+  "version": "7.34.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -146,9 +146,9 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
+    "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
-    "@metamask/eth-ledger-bridge-keyring": "^4.1.0",
     "@metamask/eth-query": "^4.0.0",
     "@metamask/eth-sig-util": "^7.0.2",
     "@metamask/eth-snap-keyring": "^4.3.3",

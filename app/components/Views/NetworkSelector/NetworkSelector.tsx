@@ -84,7 +84,6 @@ import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRe
 import { Hex } from '@metamask/utils';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';
@@ -509,6 +508,10 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
+    const rpcUrl =
+      networkConfigurations?.[chainId]?.rpcEndpoints?.[
+        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      ].url;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
@@ -529,7 +532,7 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
-          secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
+          secondaryText={hideKeyFromUrl(rpcUrl)}
           buttonProps={{
             onButtonClick: () => {
               openModal(chainId, false, LINEA_MAINNET, true);
