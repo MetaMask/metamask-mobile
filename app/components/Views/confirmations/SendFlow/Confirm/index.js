@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import PropTypes from 'prop-types';
 import Eth from '@metamask/ethjs-query';
+import { isEmpty } from 'lodash';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -486,11 +487,18 @@ class Confirm extends PureComponent {
     const { TransactionController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
 
-    const { result, transactionMeta } =
-      await TransactionController.addTransaction(transactionParams, {
-        deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        origin: TransactionTypes.MMM,
-      });
+    let result, transactionMeta;
+    try {
+      ({ result, transactionMeta } = await TransactionController.addTransaction(
+        transactionParams,
+        {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        },
+      ));
+    } catch (error) {
+      Logger.error(error, 'error while adding transaction (Confirm)');
+    }
 
     setTransactionId(transactionMeta.id);
 
@@ -1305,6 +1313,7 @@ class Confirm extends PureComponent {
       EIP1559GasObject,
       EIP1559GasTransaction,
       legacyGasObject,
+      transactionMeta,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1477,6 +1486,7 @@ class Confirm extends PureComponent {
           <StyledButton
             type={'confirm'}
             disabled={
+              isEmpty(transactionMeta) ||
               transactionConfirmed ||
               !gasEstimationReady ||
               Boolean(errorMessage) ||
