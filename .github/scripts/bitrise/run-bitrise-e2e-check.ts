@@ -320,6 +320,9 @@ async function main(): Promise<void> {
   const lastCommentPage = Math.ceil(
     numberOfTotalComments / numberOfCommentsToCheck,
   );
+
+  console.log("Listing Comments..")
+
   const { data: latestCommentBatch } = await octokit.rest.issues.listComments({
     owner,
     repo,
@@ -351,6 +354,8 @@ async function main(): Promise<void> {
 
   // Bitrise comment doesn't exist, post fail status
   if (!bitriseComment) {
+
+    console.log(`Btrise comment not detected for commit ${latestCommitHash}`);
     // Post fail status
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
