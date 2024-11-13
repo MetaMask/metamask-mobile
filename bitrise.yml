@@ -1212,6 +1212,11 @@ workflows:
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_ANDROID_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_ANDROID_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1224,10 +1229,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - pull-intermediate-files@1:
-          inputs:
-            - artifact_sources: .*
-          title: Pull browserstack app json list
       - script@1:
           title: Run Android E2E tests on Browserstack
           is_always_run: true
@@ -1235,16 +1236,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
-                if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_ANDROID_APP_URL.
-                  # This is incase an engineer wants to kick off the tests with an existing browserstack url
-                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_ANDROID_APP_URL."
-                else
-                  # If the file is not empty, extract the app_url
-                  export BROWSERSTACK_ANDROID_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
-                  echo "BROWSERSTACK_ANDROID_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_ANDROID_APP_URL"
-                fi
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
@@ -1280,31 +1271,15 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - pull-intermediate-files@1:
-          inputs:
-            - artifact_sources: .*
-          title: Pull browserstack app json list
       - script@1:
           title: Run iOS E2E tests on Browserstack
           is_always_run: true
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-
-                # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
-                if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_IOS_APP_URL.
-                  # This is incase an engineer wants to kick off the tests with an existing browserstack url
-                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_IOS_APP_URL."
-                else
-                  # If the file is not empty, extract the app_url
-                  export BROWSERSTACK_IOS_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
-                  echo "BROWSERSTACK_IOS_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_IOS_APP_URL"
-                fi
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
-
                 # Check if TEST_TYPE is set to performance
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
@@ -1460,6 +1435,11 @@ workflows:
                 mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_IOS_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_IOS_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
