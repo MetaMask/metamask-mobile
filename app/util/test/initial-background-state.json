@@ -197,6 +197,7 @@
       "order": "dsc",
       "sortCallback": "stringNumeric"
     },
+    "tokenNetworkFilter": {},
     "privacyMode": false
   },
   "TokenBalancesController": {

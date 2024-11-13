@@ -101,4 +101,4 @@ const TokenSortBottomSheet = () => {
   );
 };
 
-export default TokenSortBottomSheet;
+export { TokenSortBottomSheet };

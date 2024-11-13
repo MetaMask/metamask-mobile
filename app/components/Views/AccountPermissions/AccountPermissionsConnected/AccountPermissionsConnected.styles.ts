@@ -27,7 +27,7 @@ const styleSheet = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
-  sectionTitle: { marginBottom: 26, marginTop: 12 },
+  sectionTitle: { marginVertical: 16 },
   favicon: {
     marginRight: 8,
     width: 16,
@@ -38,7 +38,6 @@ const styleSheet = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     margin: 16,
-    height: 32,
   },
   managePermissionsButton: { marginHorizontal: 16 },
 });

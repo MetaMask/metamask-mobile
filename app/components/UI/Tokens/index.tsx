@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -21,7 +21,10 @@ import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { selectTokenSortConfig } from '../../../selectors/preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectTokenSortConfig,
+} from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -31,8 +34,13 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+import {
+  createTokenBottomSheetFilterNavDetails,
+  createTokensBottomSheetNavDetails,
+} from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -74,6 +82,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectChainId);
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
@@ -85,6 +94,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
+  const networkName = useSelector(selectNetworkName);
   const nativeCurrencies = [
     ...new Set(
       Object.values(networkConfigurationsByChainId).map(
@@ -149,6 +159,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       setTokenToRemove(token);
       actionSheet.current.show();
     }
+  };
+
+  const showFilterControls = () => {
+    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
   };
 
   const showSortControls = () => {
@@ -225,25 +239,61 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
+  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        <ButtonBase
-          label={strings('wallet.sort_by')}
-          onPress={showSortControls}
-          endIconName={IconName.ArrowDown}
-          style={styles.controlButton}
-        />
-        <ButtonBase
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-          label={strings('wallet.import')}
-          onPress={goToAddToken}
-          startIconName={IconName.Add}
-          style={styles.controlButton}
-        />
+        {isTokenFilterEnabled ? (
+          <View style={styles.controlButtonOuterWrapper}>
+            <ButtonBase
+              label={
+                <Text style={styles.controlButtonText} numberOfLines={1}>
+                  {tokenNetworkFilter[chainId]
+                    ? networkName ?? strings('wallet.current_network')
+                    : strings('wallet.all_networks')}
+                </Text>
+              }
+              onPress={showFilterControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <View style={styles.controlButtonInnerWrapper}>
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.SORT_BY}
+                onPress={showSortControls}
+                iconName={IconName.SwapVertical}
+                style={styles.controlIconButton}
+              />
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                onPress={goToAddToken}
+                iconName={IconName.Add}
+                style={styles.controlIconButton}
+              />
+            </View>
+          </View>
+        ) : (
+          <>
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.SORT_BY}
+              label={strings('wallet.sort_by')}
+              onPress={showSortControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+              label={strings('wallet.import')}
+              onPress={goToAddToken}
+              startIconName={IconName.Add}
+              style={styles.controlButton}
+            />
+          </>
+        )}
       </View>
       {tokensList && (
         <TokenList

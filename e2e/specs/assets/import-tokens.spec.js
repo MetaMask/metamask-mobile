@@ -70,6 +70,8 @@ describe(SmokeAssets('Import Tokens'), () => {
   });
 
   it('should add a token via token footer link', async () => {
+    await TestHelpers.delay(2000); // Wait for the footer link to be visible
+    
     await WalletView.tapImportTokensFooterLink();
     await ImportTokensView.searchToken('SNX');
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
