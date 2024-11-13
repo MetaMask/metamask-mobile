@@ -66,7 +66,6 @@ const AccountSelectorList = ({
       : AvatarAccountType.JazzIcon,
   );
 
-  const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
