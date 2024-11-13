@@ -276,7 +276,7 @@ When(/^I tap on the Activity tab option$/, async () => {
 });
 
 When(/^I install upgrade the app$/, async () => {
-  await driver.installApp(process.env.BROWSERSTACK_APP_URL)
+  await driver.installApp(process.env.BROWSERSTACK_ANDROID_APP_URL)
 });
 
 When(/^I scroll up$/, async () => {
