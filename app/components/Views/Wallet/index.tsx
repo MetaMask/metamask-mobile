@@ -525,7 +525,6 @@ const Wallet = ({
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
   }, [navigation]);
-
   const renderContent = useCallback(() => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -533,12 +532,9 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = [
-      ...(tokens || []),
-    ];
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
-
       balance = renderFromWei(accountBalanceByChainId.balance);
       const nativeAsset = {
         // TODO: Add name property to Token interface in controllers.
@@ -560,6 +556,7 @@ const Wallet = ({
       assets.push(nativeAsset);
 
       let stakedAsset;
+      // TODO: Need to handle staked asset in multi chain
       if (accountBalanceByChainId.stakedBalance) {
         stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
         stakedAsset = {
@@ -575,8 +572,8 @@ const Wallet = ({
             conversionRate,
             currentCurrency,
           ),
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
         assets.push(stakedAsset);
       }
