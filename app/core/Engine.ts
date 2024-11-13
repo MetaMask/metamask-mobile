@@ -1907,14 +1907,12 @@ export class Engine {
       TokenDetectionController,
       TokenListController,
       TransactionController,
-      TokenRatesController,
     } = this.context;
 
     TokenListController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-    TokenRatesController.start();
   }
 
   configureControllersOnNetworkChange() {
@@ -2157,11 +2155,11 @@ export class Engine {
     // SelectedNetworkController.unsetAllDomains()
 
     //Clear assets info
-    TokensController.reset();
-    NftController.reset();
+    TokensController.resetState();
+    NftController.resetState();
 
-    TokenBalancesController.reset();
-    TokenRatesController.reset();
+    TokenBalancesController.resetState();
+    TokenRatesController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({
