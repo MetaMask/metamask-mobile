@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-index 97182f2..634de2e 100644
+index 97182f2..107ef23 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 @@ -17,7 +17,7 @@ const metadata = {
@@ -11,18 +11,19 @@ index 97182f2..634de2e 100644
      securityAlertsEnabled: { persist: true, anonymous: true },
      selectedAddress: { persist: true, anonymous: false },
      showTestNetworks: { persist: true, anonymous: true },
-@@ -26,6 +26,10 @@ const metadata = {
+@@ -26,6 +26,11 @@ const metadata = {
      useTokenDetection: { persist: true, anonymous: true },
      smartTransactionsOptInStatus: { persist: true, anonymous: false },
      useTransactionSimulations: { persist: true, anonymous: true },
 +    useSafeChainsListValidation: { persist: true, anonymous: true },
 +    showMultiRpcModal: { persist: false, anonymous: false },
 +    tokenSortConfig: { persist: true, anonymous: false },
++    tokenNetworkFilter: { persist: true, anonymous: false },
 +    privacyMode: { persist: true, anonymous: true },
  };
  const name = 'PreferencesController';
  /**
-@@ -41,7 +45,7 @@ function getDefaultPreferencesState() {
+@@ -41,7 +46,7 @@ function getDefaultPreferencesState() {
          isIpfsGatewayEnabled: true,
          isMultiAccountBalancesEnabled: true,
          lostIdentities: {},
@@ -31,7 +32,7 @@ index 97182f2..634de2e 100644
          securityAlertsEnabled: false,
          selectedAddress: '',
          showIncomingTransactions: {
-@@ -71,6 +75,14 @@ function getDefaultPreferencesState() {
+@@ -71,6 +76,15 @@ function getDefaultPreferencesState() {
          useTokenDetection: true,
          smartTransactionsOptInStatus: false,
          useTransactionSimulations: true,
@@ -42,11 +43,12 @@ index 97182f2..634de2e 100644
 +          order: 'dsc',
 +          sortCallback: 'stringNumeric'
 +        },
++        tokenNetworkFilter: {},
 +        privacyMode: false,
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
-@@ -209,22 +221,22 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -209,22 +223,22 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -76,7 +78,7 @@ index 97182f2..634de2e 100644
                  state.useNftDetection = false;
              }
          });
-@@ -305,6 +317,49 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -305,6 +319,59 @@ class PreferencesController extends base_controller_1.BaseController {
              state.useTransactionSimulations = useTransactionSimulations;
          });
      }
@@ -114,6 +116,16 @@ index 97182f2..634de2e 100644
 +      });
 +    }
 +    /**
++     * Set the token network filter configuration setting.
++     *
++     * @param tokenNetworkFilter - Object describing token sort configuration.
++     */
++    setTokenNetworkFilter(tokenNetworkFilter) {
++      this.update((state) => {
++        state.tokenNetworkFilter = tokenNetworkFilter;
++      });
++    }
++    /**
 +     * A setter for the user preferences to enable/disable privacy mode.
 +     *
 +     * @param privacyMode - true to enable privacy mode, false to disable it.
@@ -127,7 +139,7 @@ index 97182f2..634de2e 100644
  exports.PreferencesController = PreferencesController;
  _PreferencesController_instances = new WeakSet(), _PreferencesController_syncIdentities = function _PreferencesController_syncIdentities(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
-index 04a9d6f..77a9548 100644
+index 04a9d6f..5885d5b 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 @@ -65,7 +65,7 @@ export type PreferencesState = {
@@ -139,7 +151,7 @@ index 04a9d6f..77a9548 100644
      /**
       * Controls whether "security alerts" are enabled
       */
-@@ -100,6 +100,22 @@ export type PreferencesState = {
+@@ -100,6 +100,26 @@ export type PreferencesState = {
       * Controls whether transaction simulations are enabled
       */
      useTransactionSimulations: boolean;
@@ -152,9 +164,13 @@ index 04a9d6f..77a9548 100644
 +     */
 +    showMultiRpcModal: boolean;
 +    /**
-+     * Controls whether Multi rpc modal is displayed or not
++     * Controls token sorting controls
 +     */
 +    tokenSortConfig: Record<string, string>;
++    /**
++     * Controls token filtering controls
++     */
++    tokenNetworkFilter: Record<string, string>;
 +    /**
 +     * Controls whether balance and assets are hidden or not
 +     */
@@ -162,7 +178,7 @@ index 04a9d6f..77a9548 100644
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
-@@ -120,7 +136,7 @@ export declare function getDefaultPreferencesState(): {
+@@ -120,7 +140,7 @@ export declare function getDefaultPreferencesState(): {
      isIpfsGatewayEnabled: boolean;
      isMultiAccountBalancesEnabled: boolean;
      lostIdentities: {};
@@ -171,18 +187,19 @@ index 04a9d6f..77a9548 100644
      securityAlertsEnabled: boolean;
      selectedAddress: string;
      showIncomingTransactions: {
-@@ -150,6 +166,10 @@ export declare function getDefaultPreferencesState(): {
+@@ -150,6 +170,11 @@ export declare function getDefaultPreferencesState(): {
      useTokenDetection: boolean;
      smartTransactionsOptInStatus: boolean;
      useTransactionSimulations: boolean;
 +    useSafeChainsListValidation: boolean;
 +    showMultiRpcModal: boolean;
 +    tokenSortConfig: Record<string, string>;
++    tokenNetworkFilter: Record<string, boolean>;
 +    privacyMode: boolean;
  };
  /**
   * Controller that stores shared settings and exposes convenience methods
-@@ -218,11 +238,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -218,11 +243,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -197,7 +214,7 @@ index 04a9d6f..77a9548 100644
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -266,6 +286,29 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -266,6 +291,35 @@ export declare class PreferencesController extends BaseController<typeof name, P
       * @param useTransactionSimulations - true to enable transaction simulations, false to disable it.
       */
      setUseTransactionSimulations(useTransactionSimulations: boolean): void;
@@ -219,6 +236,12 @@ index 04a9d6f..77a9548 100644
 +     */
 +    setTokenSortConfig(tokenSortConfig: Record<string, string>): void;
 +    /**
++     * Set the token sort configuration setting.
++     *
++     * @param tokenNetworkFilter - Object describing token sort configuration.
++     */
++    setTokenNetworkFilter(tokenNetworkFilter: Record<string, boolean>): void;
++    /**
 +     * A setter for the user preferences to enable/disable privacy mode.
 +     *
 +     * @param privacyMode - true to enable privacy mode, false to disable it.
@@ -227,3 +250,4 @@ index 04a9d6f..77a9548 100644
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.cts.map
+\ No newline at end of file

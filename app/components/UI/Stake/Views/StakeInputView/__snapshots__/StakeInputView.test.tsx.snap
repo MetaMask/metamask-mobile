@@ -426,7 +426,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
