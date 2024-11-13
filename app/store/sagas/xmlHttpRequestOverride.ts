@@ -46,9 +46,8 @@ function createXHROverride(options: XHROverrideOptions) {
     password?: string | null,
   ) {
     currentUrl = url?.toString();
-    const hostname = new URL(currentUrl).hostname;
     trace({
-      name: hostname as TraceName,
+      name: currentUrl as TraceName,
       op: options.operation,
     });
     return originalOpen.apply(this, [
@@ -61,13 +60,12 @@ function createXHROverride(options: XHROverrideOptions) {
   };
 
   global.XMLHttpRequest.prototype.send = function (...args: unknown[]) {
-    const hostname = new URL(currentUrl).hostname;
     this.addEventListener('load', () => {
-      endTrace({ name: hostname as TraceName });
+      endTrace({ name: currentUrl as TraceName });
     });
 
     this.addEventListener('error', () => {
-      endTrace({ name: hostname as TraceName });
+      endTrace({ name: currentUrl as TraceName });
     });
 
     if (options.beforeSend && options.beforeSend(currentUrl)) {

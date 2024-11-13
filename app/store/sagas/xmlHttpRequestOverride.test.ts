@@ -71,7 +71,7 @@ describe('overrideXMLHttpRequest', () => {
     const xhr = new XMLHttpRequest();
     xhr.onload = () => {
       expect(mockTrace).toHaveBeenCalledWith({
-        name: 'api.example.com',
+        name: 'https://api.example.com/data',
         op: trace.TraceOperation.NoBasicFunctionalityHttp,
       });
       done();
@@ -97,7 +97,7 @@ describe('createLoggingXHROverride', () => {
     const xhr = new XMLHttpRequest();
     xhr.onload = () => {
       expect(mockTrace).toHaveBeenCalledWith({
-        name: 'api.example.com',
+        name: 'https://api.example.com/data',
         op: trace.TraceOperation.Http,
       });
       done();
