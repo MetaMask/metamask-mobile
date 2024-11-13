@@ -37,3 +37,13 @@ jobs:
               pull_number: context.payload.pull_request.number,
               draft: true
             });
+
+            // Check if the PR title includes "docs:"
+            if (context.payload.pull_request.title.includes('docs:')) {
+              // Add label "No E2E Smoke Needed"
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: ['No E2E Smoke Needed']
+              });
