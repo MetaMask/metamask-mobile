@@ -9,7 +9,7 @@
 # the branch protection rules of main.
 
 #########################################################
-name: Auto Draft and Label PR
+name: Auto Draft
 
 on:
   pull_request:
@@ -36,12 +36,4 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
               draft: true
-            });
-            
-            // Add label to PR
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              labels: ['No E2E Smoke Needed']
             });

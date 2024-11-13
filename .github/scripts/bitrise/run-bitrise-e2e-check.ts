@@ -13,15 +13,7 @@ main().catch((error: Error): void => {
   process.exit(1);
 });
 
-function isFork(): boolean {
-  return context.payload.pull_request?.head.repo.fork || false;
-}
-
-function isMergeQueue(): boolean {
-  return context.eventName === 'merge_group';
-}
-
-
+// Determine whether E2E should run and provide the associated reason
 function shouldRunBitriseE2E(antiLabel: boolean, hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
 
   const conditions = [
@@ -129,11 +121,6 @@ async function main(): Promise<void> {
     console.log(
       `Skipping Bitrise status check. due to the following reason: ${reason}`,
     );
-
-    if (antiLabel) {
-      console.log(`Ommitting status check since ${antiLabel} label is applied`);
-      return; // Break out of action early
-    }
 
     // Post success status (skipped)
     const createStatusCheckResponse = await octokit.rest.checks.create({
