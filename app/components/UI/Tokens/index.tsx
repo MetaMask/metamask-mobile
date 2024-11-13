@@ -1,5 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
