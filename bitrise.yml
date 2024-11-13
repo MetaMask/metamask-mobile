@@ -518,7 +518,7 @@ workflows:
       - code_setup
     steps:
       - script@1:
-          title: 'Report Automated Test Results to TestRail'
+          title: 'Add Automated Test Results to TestRail'
           inputs:
             - content: |-
                 #!/usr/bin/env bash

@@ -20,8 +20,8 @@ axios
     );
     console.log(`test case id count: ${automatedcaseids.length}`);
     return axios.post(addTestRun, {
-      name: 'Automated Test Run with script',
-      description: 'Automated test run created via API using script',
+      name: 'Automated Test Run on bitrise release_e2e_pipline',
+      description: 'Automated test run on release branch',
       include_all: false,
       case_ids: automatedcaseids,
     });
