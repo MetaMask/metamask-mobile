@@ -23,4 +23,8 @@ export interface TokenI {
   isETH: boolean | undefined;
   isStaked?: boolean | undefined;
   nativeAsset?: TokenI | undefined;
+  chainId?: string;
+  isNative?: boolean;
 }
+
+export type HexString = `0x${string}`;

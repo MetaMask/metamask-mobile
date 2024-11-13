@@ -14,3 +14,9 @@ export const selectContractExchangeRates = createSelector(
   (chainId: Hex, tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData[chainId],
 );
+
+export const selectMarketData = createSelector(
+  selectTokenRatesControllerState,
+  (tokenRatesControllerState: TokenRatesControllerState) =>
+    tokenRatesControllerState.marketData,
+);
