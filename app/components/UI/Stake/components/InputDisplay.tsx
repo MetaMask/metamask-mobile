@@ -43,7 +43,6 @@ const InputDisplay = ({
   isOverMaximum,
   balanceText,
   balanceValue,
-  isNonZeroAmount,
   isEth,
   amountEth,
   fiatAmount,
@@ -70,10 +69,7 @@ const InputDisplay = ({
         )}
       </View>
       <View style={styles.amountRow}>
-        <Text
-          color={isNonZeroAmount ? TextColor.Default : TextColor.Muted}
-          variant={TextVariant.DisplayMD}
-        >
+        <Text color={TextColor.Default} variant={TextVariant.DisplayMD}>
           {isEth ? amountEth : fiatAmount}
         </Text>
         <Text color={TextColor.Muted} variant={TextVariant.DisplayMD}>
