@@ -6,7 +6,6 @@ export const TransactionConfirmViewSelectorsIDs = {
   CONFIRM_TRANSACTION_BUTTON_ID: 'txn-confirm-send-button',
   NAVBAR_TITLE_TEXT: 'navbar-title-text',
   TRANSACTION_ACCOUNT_BALANCE: 'account-balance',
-  SECURITY_ALERT_BANNER: 'security-alert-banner',
 };
 
 export const TransactionConfirmViewSelectorsText = {

@@ -32,7 +32,7 @@ import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
-import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../../../../e2e/selectors/ConfirmationView.selectors';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -124,7 +124,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
           severity={BannerAlertSeverity.Warning}
           title={title}
           description={description}
-          testID={TransactionConfirmViewSelectorsIDs.SECURITY_ALERT_BANNER}
+          testID={ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER}
         />
       </View>
     );
@@ -179,6 +179,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       title={title}
       description={description}
       {...bannerProps}
+      testID={ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER}
     >
       {renderDetails()}
     </BannerAlert>

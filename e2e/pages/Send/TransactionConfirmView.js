@@ -8,6 +8,7 @@ import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
 } from '../../selectors/TransactionConfirmView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/ConfirmationView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {
@@ -79,7 +80,13 @@ class TransactionConfirmationView {
 
   get securityAlertBanner() {
     return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.SECURITY_ALERT_BANNER,
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+    );
+  }
+
+  get securityAlertResponseFailedBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
     );
   }
 
