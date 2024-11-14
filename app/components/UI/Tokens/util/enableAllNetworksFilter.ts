@@ -6,13 +6,13 @@ export type KnownNetworkConfigurations = {
   [K in (typeof NETWORK_CHAIN_ID)[keyof typeof NETWORK_CHAIN_ID]]: NetworkConfiguration;
 };
 
-export const enableAllNetworksFilter = (
-  networks: KnownNetworkConfigurations,
-): Record<Hex, boolean> => {
+export function enableAllNetworksFilter(
+  networks: Partial<KnownNetworkConfigurations>,
+) {
   const allOpts: Record<Hex, boolean> = {};
   Object.keys(networks).forEach((chainId) => {
     const hexChainId = chainId as Hex;
     allOpts[hexChainId] = true;
   });
   return allOpts;
-};
+}
