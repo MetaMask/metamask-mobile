@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -12,8 +6,6 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
-  AppState,
-  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
@@ -93,8 +85,6 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -161,10 +151,7 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
-  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
-  const { listNotifications } = useListNotifications();
-  const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -406,35 +393,6 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-  // Layout effect when component/view is visible
-  // - fetches notifications
-  // - dispatches account syncing
-  useLayoutEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (
-        appState.current?.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        listNotifications();
-        dispatchAccountSyncing();
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
-
-    listNotifications();
-    dispatchAccountSyncing();
-
-    return () => {
-      subscription.remove();
-    };
-  }, [listNotifications, dispatchAccountSyncing]);
-
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
@@ -514,7 +472,8 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    let assets = tokens;
+
+    let assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
@@ -539,9 +498,8 @@ const Wallet = ({
         } as any,
         ...(tokens || []),
       ];
-    } else {
-      assets = tokens;
     }
+
     return (
       <View
         style={styles.wrapper}

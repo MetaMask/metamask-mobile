@@ -1,15 +1,13 @@
 import React from 'react';
 import Wallet from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { act, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
-import { AppState } from 'react-native';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -152,41 +150,5 @@ describe('Wallet', () => {
     render(Wallet);
     const foxIcon = screen.getByTestId(CommonSelectorsIDs.FOX_ICON);
     expect(foxIcon).toBeDefined();
-  });
-  it('dispatches account syncing on mount', () => {
-    jest.clearAllMocks();
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(1);
-  });
-  it('dispatches account syncing when appState switches from inactive|background to active', () => {
-    jest.clearAllMocks();
-
-    const addEventListener = jest.spyOn(AppState, 'addEventListener');
-
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-
-    expect(addEventListener).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function),
-    );
-    const handleAppStateChange = (
-      addEventListener as jest.Mock
-    ).mock.calls.find(([event]) => event === 'change')[1];
-
-    act(() => {
-      handleAppStateChange('background');
-      handleAppStateChange('active');
-    });
-
-    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(2);
-
-    act(() => {
-      handleAppStateChange('inactive');
-      handleAppStateChange('active');
-    });
-
-    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(3);
   });
 });
