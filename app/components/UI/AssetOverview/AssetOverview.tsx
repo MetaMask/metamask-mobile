@@ -1,10 +1,9 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -259,10 +258,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   return (
-    <View
-      style={styles.wrapper}
-      {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
-    >
+    <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {asset.hasBalanceError ? (
         renderWarning()
       ) : (

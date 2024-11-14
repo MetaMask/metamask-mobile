@@ -82,6 +82,7 @@ jest.mock('../../hooks/useBalance', () => ({
   default: () => ({
     stakedBalanceWei: mockPooledStakeData.assets,
     stakedBalanceFiat: MOCK_STAKED_ETH_ASSET.balanceFiat,
+    formattedStakedBalanceETH: '5.79133 ETH',
   }),
 }));
 

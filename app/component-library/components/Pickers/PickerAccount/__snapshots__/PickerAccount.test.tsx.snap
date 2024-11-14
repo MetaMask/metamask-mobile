@@ -1,223 +1,242 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PickerAccount should render correctly 1`] = `
-<TouchableOpacity
-  onPress={[Function]}
+<View
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
-      "borderRadius": 4,
-      "borderWidth": 1,
-      "flexDirection": "row",
-      "padding": 16,
+      "justifyContent": "center",
     }
   }
 >
-  <View
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
-        "flex": 1,
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c5",
+        "borderRadius": 4,
+        "borderWidth": 0,
         "flexDirection": "row",
+        "padding": 0,
       }
     }
   >
     <View
       style={
         {
-          "backgroundColor": "#ffffff",
-          "borderRadius": 16,
-          "height": 32,
-          "marginRight": 16,
-          "overflow": "hidden",
-          "width": 32,
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
         }
       }
     >
       <View
         style={
-          [
-            {
-              "overflow": "hidden",
-            },
-            {
-              "backgroundColor": "#03415D",
-              "borderRadius": 16,
-              "height": 32,
-              "width": 32,
-            },
-            undefined,
-          ]
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          }
         }
       >
-        <RNSVGSvgView
-          bbHeight={32}
-          bbWidth={32}
-          focusable={false}
-          height={32}
+        <View
           style={
-            [
-              {
-                "backgroundColor": "transparent",
-                "borderWidth": 0,
-              },
-              {
-                "flex": 0,
-                "height": 32,
-                "width": 32,
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
           }
-          width={32}
         >
-          <RNSVGGroup
-            fill={
+          <View
+            style={
               {
-                "payload": 4278190080,
-                "type": 0,
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 16,
+                "marginRight": 8,
+                "overflow": "hidden",
+                "width": 16,
               }
             }
           >
-            <RNSVGRect
-              fill={
-                {
-                  "payload": 4294034178,
-                  "type": 0,
+            <View
+              style={
+                [
+                  {
+                    "overflow": "hidden",
+                  },
+                  {
+                    "backgroundColor": "#03415D",
+                    "borderRadius": 8,
+                    "height": 16,
+                    "width": 16,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <RNSVGSvgView
+                bbHeight={16}
+                bbWidth={16}
+                focusable={false}
+                height={16}
+                style={
+                  [
+                    {
+                      "backgroundColor": "transparent",
+                      "borderWidth": 0,
+                    },
+                    {
+                      "flex": 0,
+                      "height": 16,
+                      "width": 16,
+                    },
+                  ]
                 }
+                width={16}
+              >
+                <RNSVGGroup
+                  fill={
+                    {
+                      "payload": 4278190080,
+                      "type": 0,
+                    }
+                  }
+                >
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294034178,
+                        "type": 0,
+                      }
+                    }
+                    height={16}
+                    matrix={
+                      [
+                        0.969445349895139,
+                        0.24530738587880202,
+                        -0.24530738587880202,
+                        0.969445349895139,
+                        2.9295789921527566,
+                        -2.0153776690455607,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={16}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294711613,
+                        "type": 0,
+                      }
+                    }
+                    height={16}
+                    matrix={
+                      [
+                        0.6320293026648508,
+                        -0.7749444887041796,
+                        0.7749444887041796,
+                        0.6320293026648508,
+                        -6.636678807575937,
+                        2.9249454420477825,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={16}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294745088,
+                        "type": 0,
+                      }
+                    }
+                    height={16}
+                    matrix={
+                      [
+                        0.33873792024529126,
+                        0.9408807689542256,
+                        -0.9408807689542256,
+                        0.33873792024529126,
+                        25.4423757555534,
+                        2.5600769771708034,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={16}
+                    x={0}
+                    y={0}
+                  />
+                </RNSVGGroup>
+              </RNSVGSvgView>
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
-              height={32}
-              matrix={
-                [
-                  0.969445349895139,
-                  0.24530738587880202,
-                  -0.24530738587880202,
-                  0.969445349895139,
-                  5.859157984305513,
-                  -4.030755338091121,
-                ]
-              }
-              propList={
-                [
-                  "fill",
-                ]
-              }
-              width={32}
-              x={0}
-              y={0}
-            />
-            <RNSVGRect
-              fill={
-                {
-                  "payload": 4294711613,
-                  "type": 0,
-                }
-              }
-              height={32}
-              matrix={
-                [
-                  0.6320293026648508,
-                  -0.7749444887041796,
-                  0.7749444887041796,
-                  0.6320293026648508,
-                  -13.273357615151873,
-                  5.849890884095565,
-                ]
-              }
-              propList={
-                [
-                  "fill",
-                ]
-              }
-              width={32}
-              x={0}
-              y={0}
-            />
-            <RNSVGRect
-              fill={
-                {
-                  "payload": 4294745088,
-                  "type": 0,
-                }
-              }
-              height={32}
-              matrix={
-                [
-                  0.33873792024529126,
-                  0.9408807689542256,
-                  -0.9408807689542256,
-                  0.33873792024529126,
-                  50.8847515111068,
-                  5.120153954341607,
-                ]
-              }
-              propList={
-                [
-                  "fill",
-                ]
-              }
-              width={32}
-              x={0}
-              y={0}
-            />
-          </RNSVGGroup>
-        </RNSVGSvgView>
+            }
+            testID="account-label"
+          >
+            Orangefox.eth
+          </Text>
+        </View>
       </View>
     </View>
-    <View
+    <SvgMock
+      color="#141618"
+      height={12}
+      name="ArrowDown"
       style={
         {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
+          "height": 12,
+          "marginLeft": 8,
+          "width": 12,
         }
       }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
-            "fontWeight": "500",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-        testID="account-label"
-      >
-        Orangefox.eth
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-        0x2990...a21a
-      </Text>
-    </View>
-  </View>
-  <SvgMock
-    color="#141618"
-    height={20}
-    name="ArrowDown"
+      width={12}
+    />
+  </TouchableOpacity>
+  <Text
+    accessibilityRole="text"
     style={
       {
-        "height": 20,
-        "marginLeft": 16,
-        "width": 20,
+        "color": "#6a737d",
+        "fontFamily": "EuclidCircularB-Medium",
+        "fontSize": 12,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 20,
+        "textAlign": "center",
       }
     }
-    width={20}
-  />
-</TouchableOpacity>
+  >
+    0x2990...a21a
+  </Text>
+</View>
 `;

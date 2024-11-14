@@ -2,12 +2,12 @@
 import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import TokenOverview from '../../pages/TokenOverview';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
@@ -24,7 +24,7 @@ describe(SmokeCore('Send ERC Token'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
   });
 
   it('should add Sepolia testnet to my networks list', async () => {

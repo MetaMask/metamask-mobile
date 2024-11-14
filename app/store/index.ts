@@ -15,6 +15,7 @@ import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
+import getUIStartupSpan from '../core/Performance/UIStartup';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -27,6 +28,11 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 let store: Store<RootState, any>, persistor;
 const createStoreAndPersistor = async () => {
+  trace({
+    name: TraceName.StoreInit,
+    parentContext: getUIStartupSpan(),
+    op: TraceOperation.StoreInit,
+  });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
   const initialState = isE2E
     ? await ReadOnlyNetworkStore.getState()
@@ -48,11 +54,6 @@ const createStoreAndPersistor = async () => {
     middlewares.push(createReduxFlipperDebugger());
   }
 
-  trace({
-    name: TraceName.CreateStore,
-    op: TraceOperation.CreateStore,
-  });
-
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -61,19 +62,10 @@ const createStoreAndPersistor = async () => {
 
   sagaMiddleware.run(rootSaga);
 
-  endTrace({ name: TraceName.CreateStore });
-
-  trace({
-    name: TraceName.StorageRehydration,
-    op: TraceOperation.StorageRehydration,
-  });
-
   /**
    * Initialize services after persist is completed
    */
-  const onPersistComplete = async () => {
-    endTrace({ name: TraceName.StorageRehydration });
-
+  const onPersistComplete = () => {
     /**
      * EngineService.initalizeEngine(store) with SES/lockdown:
      * Requires ethjs nested patches (lib->src)
@@ -100,32 +92,20 @@ const createStoreAndPersistor = async () => {
       store.dispatch({
         type: 'FETCH_FEATURE_FLAGS',
       });
-    trace(
-      {
-        name: TraceName.EngineInitialization,
-        op: TraceOperation.EngineInitialization,
-      },
-      () => {
-        EngineService.initalizeEngine(store);
-      },
-    );
+
+    EngineService.initalizeEngine(store);
 
     Authentication.init(store);
     AppStateEventProcessor.init(store);
     LockManagerService.init(store);
+    endTrace({ name: TraceName.StoreInit });
   };
 
   persistor = persistStore(store, null, onPersistComplete);
 };
 
 (async () => {
-  await trace(
-    {
-      name: TraceName.UIStartup,
-      op: TraceOperation.UIStartup,
-    },
-    async () => await createStoreAndPersistor(),
-  );
+  await createStoreAndPersistor();
 })();
 
 export { store, persistor };

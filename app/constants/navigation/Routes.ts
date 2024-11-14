@@ -103,6 +103,7 @@ const Routes = {
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     REVOKE_ALL_ACCOUNT_PERMISSIONS: 'RevokeAllAccountPermissions',
+    CONNECTION_DETAILS: 'ConnectionDetails',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
@@ -112,6 +113,9 @@ const Routes = {
     SHOW_TOKEN_ID: 'ShowTokenId',
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
+    TOKEN_SORT: 'TokenSort',
+    TOKEN_FILTER: 'TokenFilter',
+    CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -150,6 +154,8 @@ const Routes = {
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
+      MAX_INPUT: 'MaxInput',
+      GAS_IMPACT: 'GasImpact',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

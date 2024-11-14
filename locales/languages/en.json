@@ -439,6 +439,9 @@
     },
     "import": "Import",
     "sort_by": "Sort by",
+    "filter_by": "Filter by",
+    "current_network": "Current Network",
+    "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
@@ -695,6 +698,8 @@
     "yes_remove_it": "Yes, remove it",
     "remove_hardware_account": "Remove hardware account",
     "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
+    "remove_snap_account": "Remove snap account",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
     "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Accounts",
@@ -740,15 +745,18 @@
     "now_active": "now active.",
     "network_added": "was successfully added",
     "network_deleted": "was successfully deleted",
+    "network_permissions_updated": "Network permissions updated",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
     "account_connected": "account connected.",
+    "accounts_permissions_updated": "Accounts permissions updated",
     "accounts_disconnected": "accounts disconnected.",
     "account_disconnected": "account disconnected.",
     "disconnected": "disconnected.",
     "disconnected_all": "All accounts disconnected.",
     "disconnected_from": "Disconnected from {{dappHostName}}",
+    "permissions_updated": "Permissions updated",
     "nft_detection_enabled": "NFT autodetection enabled"
   },
   "connect_qr_hardware": {
@@ -1059,13 +1067,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
-        "remove_button_label": "Remove {{snapName}}"
+        "remove_button_label": "Remove {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Remove Snap",
+          "description": "Removing this Snap removes these accounts from MetaMask:",
+          "remove_account_snap_alert_description_1": "Type",
+          "remove_account_snap_alert_description_2": "to confirm you want to remove this snap:",
+          "banner_title": "Be sure you can access any accounts created by this Snap on your own before removing it",
+          "cancel_button": "Cancel",
+          "continue_button": "Continue",
+          "remove_snap_button": "Remove Snap",
+          "remove_snap_error": "Failed to remove {{snapName}}",
+          "remove_snap_success": "{{snapName}} removed"
+        }
       },
       "snap_details": {
         "install_date": "Installed on {{date}}",
         "install_origin": "Install Origin",
         "enabled": "Enabled",
         "version": "Version"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Account name",
+        "public_address": "Public Address"
       },
       "snap_permissions": {
         "approved_date": "Approved on {{date}}",
@@ -1266,6 +1290,14 @@
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
+    "disabled_button": {
+      "buy": "Buying not supported for this account",
+      "sell": "Selling not supported for this account",
+      "swap": "Swapping not supported for this account",
+      "bridge": "Bridging not supported for this account",
+      "send": "Sending not supported for this account",
+      "action": "This action is not supported for this account"
+    },
     "description": "Description",
     "totalSupply": "Total Supply",
     "address": "Address",
@@ -1577,6 +1609,7 @@
     "share": "Share",
     "bookmark": "Bookmark",
     "add_to_favorites": "Add to Favorites",
+    "go_to_favorites": "Go to Favorites",
     "error": "Error",
     "cancel": "Cancel",
     "go_back": "Go back",
@@ -1646,6 +1679,9 @@
     "tx_review_approve": "Approve",
     "tx_review_increase_allowance": "Increase Allowance",
     "tx_review_set_approval_for_all": "Set Approval For All",
+    "tx_review_staking_claim": "Staking Claim",
+    "tx_review_staking_deposit": "Staking Deposit",
+    "tx_review_staking_unstake": "Unstake",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -1834,11 +1870,17 @@
     "wants_to_see_your_accounts": "See your accounts and suggest transactions",
     "requesting_for": "Requesting for ",
     "requesting_for_accounts": "Requesting for {{numberOfAccounts}} accounts",
+    "requesting_for_networks": "Requesting for {{numberOfNetworks}} networks",
+    "n_networks_connect": "{{numberOfNetworks}} networks connected ",
+    "network_connected": "network connected ",
     "see_your_accounts": "See your accounts and suggest transactions",
     "connected_to": "Connected to ",
     "manage_permissions": "Manage Permissions",
     "edit": "Edit",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "got_it": "Got it",
+    "connection_details_title": "Connection Details",
+    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}"
   },
   "select": {
     "cancel": "Cancel",
@@ -2163,7 +2205,7 @@
       "label_swapped": "Swapped",
       "label_to": "To"
     },
-    "received_from": "Received from {{address}}",
+    "received_from": "Received {{amount}} {{ticker}} from {{address}}",
     "nft_sent": "Sent NFT to {{address}}",
     "erc721_sent": "Sent NFT to {{address}}",
     "erc1155_sent": "Sent NFT to {{address}}",
@@ -2180,8 +2222,23 @@
     "success_withdrawal_title": "Withdrawal Complete!",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "metamask_swap_completed_title": "Swap completed",
+    "erc20_sent_title": "Funds sent",
+    "erc20_received_title": "Funds received",
+    "eth_sent_title": "Funds sent",
+    "eth_received_title": "Funds received",
+    "rocketpool_stake_completed_title": "Stake complete",
+    "rocketpool_unstake_completed_title": "Unstake complete",
+    "lido_stake_completed_title": "Stake complete",
+    "lido_withdrawal_requested_title": "Withdrawal requested",
+    "lido_withdrawal_completed_title": "Withdrawal completed",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
+    "erc721_sent_title": "NFT sent",
+    "erc721_received_title": "NFT received",
+    "erc1155_sent_title": "NFT sent",
+    "erc1155_received_title": "NFT received",
+    "default_message_title": "MetaMask",
+    "default_message_description": "Tap to view",
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
     "pending_deposit_message": "Waiting for deposit to complete",
@@ -2197,6 +2254,49 @@
     "cancelled_message": "Tap to view this transaction",
     "received_message": "Tap to view this transaction",
     "received_payment_message": "You received {{amount}} DAI",
+    "eth_received_message": "You received some ETH",
+    "metamask_swap_completed_message": "Swapped {{symbolIn}} for {{symbolOut}}",
+    "erc20_sent_message": "Sent to {{address}}",
+    "erc20_received_message": "Received from {{address}}",
+    "eth_sent_message": "Sent to {{address}}",
+    "rocketpool_stake_completed_message": "Staked",
+    "rocketpool_unstake_completed_message": "Unstaking complete",
+    "lido_stake_completed_message": "Staked",
+    "lido_withdrawal_requested_message": "Unstaking requested",
+    "lido_withdrawal_completed_message": "Unstaking complete",
+    "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
+    "push_notification_content": {
+      "metamask_swap_completed_title": "Swap completed",
+      "metamask_swap_completed_description": "Your MetaMask Swap was successful",
+      "erc20_sent_title": "Funds sent",
+      "erc20_sent_description": "You successfully sent {{amount}} {{token}}",
+      "erc20_received_title": "Funds received",
+      "erc20_received_description": "You received {{amount}} {{token}}",
+      "eth_sent_title": "Funds sent",
+      "eth_sent_description": "You successfully sent {{amount}} ETH",
+      "eth_received_title": "Funds received",
+      "eth_received_description": "You received {{amount}} {{token}}",
+      "rocketpool_stake_completed_title": "Stake complete",
+      "rocketpool_stake_completed_description": "Your RocketPool stake was successful",
+      "rocketpool_unstake_completed_title": "Unstake complete",
+      "rocketpool_unstake_completed_description": "Your RocketPool unstake was successful",
+      "lido_stake_completed_title": "Stake complete",
+      "lido_stake_completed_description": "Your Lido stake was successful",
+      "lido_withdrawal_requested_title": "Withdrawal requested",
+      "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted",
+      "lido_withdrawal_completed_title": "Withdrawal completed",
+      "lido_withdrawal_completed_description": "Your Lido withdrawal was successful",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
+      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is now ready to be withdrawn",
+      "erc721_sent_title": "NFT sent",
+      "erc721_sent_description": "You've successfully sent an NFT",
+      "erc721_received_title": "NFT received",
+      "erc721_received_description": "You received a new NFT",
+      "erc1155_sent_title": "NFT sent",
+      "erc1155_sent_description": "You've successfully sent an NFT",
+      "erc1155_received_title": "NFT received",
+      "erc1155_received_description": "You received a new NFT"
+    },
     "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Something went wrong",
     "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
@@ -2727,7 +2827,7 @@
     "tap_to_swap": "Tap to Swap",
     "swipe_to_swap": "Swipe to swap",
     "swipe_to": "Swipe to",
-    "swap": "swap",
+    "swap": "Swap",
     "completed_swap": "Swap!",
     "metamask_swap_fee": "MetaMask Swap fee",
     "fee_text": {
@@ -2833,13 +2933,21 @@
     "bug_report_prompt_title": "Tell us what happened",
     "bug_report_prompt_description": "Add details so we can figure out what went wrong.",
     "bug_report_thanks": "Thanks! We’ll take a look soon.",
-    "save_seedphrase_1": "If this error persists,",
+    "save_seedphrase_1": "If you keep getting this error,",
     "save_seedphrase_2": "save your Secret Recovery Phrase",
-    "save_seedphrase_3": "& re-install the app. Note: you can NOT restore your wallet without your Secret Recovery Phrase.",
+    "save_seedphrase_3": "and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
     "copied_clipboard": "Copied to clipboard",
     "ok": "OK",
     "cancel": "Cancel",
-    "send": "Send"
+    "send": "Send",
+    "submit": "Submit",
+    "modal_title": "Describe what happened",
+    "modal_placeholder": "Sharing details like how we can reproduce the bug will help us fix the problem.",
+    "error_message": "Error message:",
+    "copy": "Copy",
+    "describe": "Describe what happened",
+    "try_again": "Try again",
+    "contact_support": "Contact support"
   },
   "whats_new": {
     "title": "What's new",
@@ -3340,7 +3448,7 @@
     "earn_eth_rewards":"Earn ETH rewards",
     "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
     "flexible_unstaking":"Flexible unstaking",
-    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
     "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more":"Learn more",
     "got_it":"Got it",
@@ -3371,7 +3479,7 @@
         "base": "Unstaking {{amountEth}} ETH in progress. Come back in",
         "and": "and",
         "to_claim_it": "to claim it.",
-        "default": "Unstaking {{amountEth}} ETH in progress. Come back later to claim it."
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
       },
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
@@ -3389,7 +3497,16 @@
     "estimated_changes": "Estimated changes",
     "you_receive": "You receive",
     "up_to_n": "Up to {{count}}",
-    "unstaking_to": "Unstaking to"
+    "unstaking_to": "Unstaking to",
+    "max_modal": {
+      "title": "Max",
+      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+    },
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days",
+    "proceed_anyway": "Proceed anyway",
+    "gas_cost_impact": "Gas cost impact",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3467,7 +3584,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -3489,5 +3606,11 @@
       "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
     }
+  },
+  "change_in_simulation_modal": {
+    "title": "Results have changed",
+    "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
+    "proceed": "Proceed",
+    "reject": "Reject the transaction"
   }
 }
