@@ -29,11 +29,13 @@ const attemptUnstakeTransaction =
   // Note: receiver is the user address attempting to unstake.
   async (valueWei: string, receiver: string) => {
     try {
-      // STAKE-867: This is a temporary check for if we intend to unstake all and if so send the
-      // total user shares this is done here as a quick fix for mobile but will be refactored in
-      //the future this is done to avoid the case where contract level rounding error causes 1 wei
-      // of dust to be left over when converting valueWei to shares and unstaking. Here we ensure
-      // that all the user's shares are unstaked when unstaking all.
+      // STAKE-867: This is temporary logic for the unstake all action
+      // if we are unstaking the total assets we send the total shares
+      // the user has in the vault through getShares contract method
+      // this is a quick fix for mobile only and will be refactored to cover
+      // portfolio in the future. We avoid the case where contract level rounding
+      // error causes 1 wei dust to be left when converting assets to shares
+      // and attempting to unstake all assets
       let shares;
       if (valueWei === stakedBalanceWei) {
         // create the interface for the getShares method and call getShares to get user shares

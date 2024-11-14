@@ -88,7 +88,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
   contract: {
     ...new Contract('0x0000000000000000000000000000000000000000', []),
     provider: {
-      call: jest.fn().mockResolvedValue('0x00000sommeresponse'),
+      call: jest.fn(),
     },
   } as unknown as Contract,
   convertToShares: mockConvertToShares,
@@ -149,14 +149,13 @@ describe('usePoolStakedUnstake', () => {
 
     it('attempts to create and submit an unstake all transaction', async () => {
       jest.spyOn(ethers.utils, 'Interface').mockImplementation(() => ({
-        encodeFunctionData: jest.fn().mockReturnValue('0x0000000000000000000000000000000000000000000000000000000000000000'),
+        encodeFunctionData: jest.fn(),
         decodeFunctionResult: jest.fn().mockReturnValue([BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI)]),
       } as unknown as ethers.utils.Interface));
 
       const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
         state: mockInitialState,
       });
-      mockPooledStakingContractService.contract.provider.call = jest.fn();
 
       await result.current.attemptUnstakeTransaction(
         MOCK_UNSTAKE_ALL_VALUE_WEI,
