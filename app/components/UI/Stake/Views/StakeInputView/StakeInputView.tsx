@@ -19,7 +19,7 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { withMetaMetrics } from '../../utils/withMetaMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -54,15 +54,6 @@ const StakeInputView = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        text: 'Tooltip Question Mark Trigger',
-        location: 'Stake Input View'
-      })
-      .build()
-    );
   };
 
   const handleStakePress = useCallback(() => {
@@ -78,12 +69,12 @@ const StakeInputView = () => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        tokens_to_stake_native_value: amountEth,
-        tokens_to_stake_usd_value: fiatAmount,
-      })
-      .build(),
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
     );
   }, [
     amountEth,
@@ -94,7 +85,7 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
     trackEvent,
-    createEventBuilder
+    createEventBuilder,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -152,7 +143,15 @@ const StakeInputView = () => {
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={navigateToLearnMoreModal}
+          onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+            event: MetaMetricsEvents.TOOLTIP_OPENED,
+            properties: {
+              selected_provider: 'consensys',
+              text: 'Tooltip Opened',
+              location: 'Stake Input View',
+              tooltip_name: 'MetaMask Pool Estimated Rewards',
+            },
+          })}
           isLoading={isLoadingVaultData}
         />
       </View>

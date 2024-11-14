@@ -19,7 +19,7 @@ import InputDisplay from '../../components/InputDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
-import { withMetaMetrics } from '../../utils/withMetaMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
@@ -69,14 +69,21 @@ const UnstakeInputView = () => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        tokens_to_stake_native_value: amountEth,
-        tokens_to_stake_usd_value: fiatAmount,
-      })
-      .build(),
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
     );
-  }, [amountEth, amountWei, createEventBuilder, fiatAmount, navigation, trackEvent]);
+  }, [
+    amountEth,
+    amountWei,
+    createEventBuilder,
+    fiatAmount,
+    navigation,
+    trackEvent,
+  ]);
 
   return (
     <ScreenLayout style={styles.container}>

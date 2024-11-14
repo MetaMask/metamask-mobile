@@ -391,6 +391,9 @@ enum EVENT_NAME {
   // Connection
   CONNECTION_DROPPED = 'Connection dropped',
   CONNECTION_RESTORED = 'Connection restored',
+
+  // Tooltip
+  TOOLTIP_OPENED = 'Tooltip Opened',
 }
 
 enum ACTIONS {
@@ -556,6 +559,7 @@ const events = {
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
   DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
+  TOOLTIP_OPENED: generateOpt(EVENT_NAME.TOOLTIP_OPENED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   BASIC_FUNCTIONALITY_ENABLED: generateOpt(

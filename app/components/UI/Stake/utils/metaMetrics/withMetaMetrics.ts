@@ -1,9 +1,9 @@
 import {
   IMetaMetricsEvent,
   JsonMap,
-} from '../../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetrics } from '../../../../core/Analytics';
+} from '../../../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetrics } from '../../../../../core/Analytics';
 
 interface WithMetaMetricsEvent {
   event: IMetaMetricsEvent;
