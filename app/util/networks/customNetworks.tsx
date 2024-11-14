@@ -1,4 +1,6 @@
+import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -130,10 +132,26 @@ export const UnpopularNetworkList = [
   },
 ];
 
-export const CustomNetworkImgMapping: Record<`0x${string}`, string> = {
-  '0xe': require('../../images/flare-mainnet.png'), // Flare Mainnet
-  '0x13': require('../../images/songbird.png'), // Songbird Testnet
-  '0x8157': require('../../images/ape-network.png'), // ApeChain testnet
-  '0x8173': require('../../images/ape-network.png'), // ApeChain mainnet
-  '0x659': require('../../images/gravity.png'), // Gravity Alpha Mainnet
+export const NETWORK_CHAIN_ID: {
+  readonly FLARE_MAINNET: '0xe';
+  readonly SONGBIRD_TESTNET: '0x13';
+  readonly APE_CHAIN_TESTNET: '0x8157';
+  readonly APE_CHAIN_MAINNET: '0x8173';
+  readonly GRAVITY_ALPHA_MAINNET: '0x659';
+} & typeof CHAIN_IDS = {
+  FLARE_MAINNET: '0xe',
+  SONGBIRD_TESTNET: '0x13',
+  APE_CHAIN_TESTNET: '0x8157',
+  APE_CHAIN_MAINNET: '0x8173',
+  GRAVITY_ALPHA_MAINNET: '0x659',
+  ...CHAIN_IDS,
+};
+
+/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+export const CustomNetworkImgMapping: Record<Hex, string> = {
+  [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
+  [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
+  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/ape-network.png'),
+  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/ape-network.png'),
+  [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
 };
