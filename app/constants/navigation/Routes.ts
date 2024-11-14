@@ -155,6 +155,7 @@ const Routes = {
     MODALS: {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
+      GAS_IMPACT: 'GasImpact',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
