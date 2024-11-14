@@ -206,6 +206,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     tokenExchangeRates,
     tokenSortConfig,
     tokenNetworkFilter,
+    selectedAccountTokensChains,
+    conversionRate,
   ]);
 
   const showRemoveMenu = (token: TokenI) => {

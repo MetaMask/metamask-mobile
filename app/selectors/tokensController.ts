@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { selectSelectedInternalAccount } from './accountsController';
+import { selectSelectedInternalAccountAddress } from './accountsController';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
@@ -39,15 +39,19 @@ export const selectDetectedTokens = createSelector(
     tokensControllerState?.detectedTokens,
 );
 
+export const selectAllTokens = createSelector(
+  selectTokensControllerState,
+  (tokensControllerState: TokensControllerState) =>
+    tokensControllerState?.allTokens,
+);
+
 export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectTokensControllerState,
-  selectSelectedInternalAccount,
-  (tokensControllerState, selectedAccount) => {
-    if (!selectedAccount) {
+  selectSelectedInternalAccountAddress,
+  (tokensControllerState, selectedAddress) => {
+    if (!selectedAddress) {
       return {};
     }
-
-    const { address: selectedAddress } = selectedAccount;
 
     return Object.entries(tokensControllerState?.allDetectedTokens).reduce<{
       [chainId: string]: Token[];
@@ -62,12 +66,6 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
       return acc;
     }, {});
   },
-);
-
-export const selectAllTokens = createSelector(
-  selectTokensControllerState,
-  (tokensControllerState: TokensControllerState) =>
-    tokensControllerState?.allTokens,
 );
 
 export const selectAllTokensFlat = createSelector(

@@ -8,7 +8,7 @@ import { selectAllTokens } from './tokensController';
 import { selectTokensBalances } from './tokenBalancesController';
 import { selectAccountsByChainId } from './accountTrackerController';
 import { selectNetworkConfigurations } from './networkController';
-import { selectMarketData } from './tokenRatesController';
+import { selectTokenMarketData as selectMarketData } from './tokenRatesController';
 import {
   selectCurrentCurrency,
   selectConversionRateByTicker,
@@ -37,21 +37,21 @@ interface AccountsByChainId {
   [chainId: string]: ChainAccounts;
 }
 
-type TokenBalances = {
+interface TokenBalances {
   [address: string]: {
     [chainId: string]: {
       [tokenAddress: string]: string;
     };
   };
-};
+}
 
-type TokensByAddress = {
+interface TokensByAddress {
   [address: string]: TokenI[];
-};
+}
 
-type AllTokens = {
+interface AllTokens {
   [chainId: string]: TokensByAddress;
-};
+}
 
 export function getNativeTokenInfo(state: RootState, chainId: HexString) {
   const networkConfigurationsByChainId = selectNetworkConfigurations(state);

@@ -1,18 +1,20 @@
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import Engine from '../../../core/Engine';
 import usePolling from '../usePolling';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import Engine from '../../../core/Engine';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { Hex } from '@metamask/utils';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketData,
+} from '../../../selectors/tokenRatesController';
 
-const useTokenRatesPolling = () => {
+const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  // Selectors returning state updated by the polling
   const contractExchangeRates = useSelector(selectContractExchangeRates);
-
-  const input = Object.values(networkConfigurations).map(({ chainId }) => ({
-    chainId,
-  }));
+  const tokenMarketData = useSelector(selectTokenMarketData);
 
   const { TokenRatesController } = Engine.context;
 
@@ -20,11 +22,14 @@ const useTokenRatesPolling = () => {
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),
     stopPollingByPollingToken:
       TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
-    input,
+    input: (chainIds ?? Object.keys(networkConfigurations)).map((chainId) => ({
+      chainId: chainId as Hex,
+    })),
   });
 
   return {
     contractExchangeRates,
+    tokenMarketData,
   };
 };
 

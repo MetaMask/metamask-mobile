@@ -708,15 +708,7 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
-    const currentNetworkConfig =
-      networkController.getNetworkConfigurationByNetworkClientId(
-        networkController?.state.selectedNetworkClientId,
-      );
-    currencyRateController.startPolling({
-      nativeCurrencies: currentNetworkConfig?.nativeCurrency
-        ? [currentNetworkConfig?.nativeCurrency]
-        : [],
-    });
+
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -1550,6 +1542,8 @@ export class Engine {
           assetsContractController.getBalancesInSingleCall.bind(
             assetsContractController,
           ),
+        platform: 'mobile',
+        useAccountsAPI: true,
       }),
 
       new NftDetectionController({
@@ -1580,16 +1574,22 @@ export class Engine {
           name: 'TokenBalancesController',
           allowedActions: [
             'AccountsController:getSelectedAccount',
-            'AssetsContractController:getERC20BalanceOf',
+            'NetworkController:getState',
             'NetworkController:getNetworkClientById',
+            'PreferencesController:getState',
+            'TokensController:getState',
           ],
-          allowedEvents: ['TokensController:stateChange'],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'NetworkController:stateChange',
+            'PreferencesController:stateChange',
+          ],
         }),
         interval: 180000,
-        tokens: [
-          ...tokensController.state.tokens,
-          ...tokensController.state.detectedTokens,
-        ],
+        // tokens: [
+        //   ...tokensController.state.tokens,
+        //   ...tokensController.state.detectedTokens,
+        // ],
         state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
@@ -1802,7 +1802,7 @@ export class Engine {
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
-    this.handleVaultBackup();
+    // this.handleVaultBackup();
     this._addTransactionControllerListeners();
 
     Engine.instance = this;
@@ -1917,14 +1917,12 @@ export class Engine {
       TokenDetectionController,
       TokenListController,
       TransactionController,
-      TokenRatesController,
     } = this.context;
 
     TokenListController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-    TokenRatesController.start();
   }
 
   configureControllersOnNetworkChange() {
@@ -2000,13 +1998,19 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
-        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].balance);
-        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+        const balanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].balance,
+        );
+        const stakedBalanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].stakedBalance || '0x00',
+        );
+        const totalAccountBalance = balanceBN
+          .add(stakedBalanceBN)
+          .toString('hex');
         ethFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,
@@ -2023,8 +2027,23 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
+        const { tokenBalances: contractBalances } =
           TokenBalancesController.state;
+
+        const selectedNetworkClientId =
+          NetworkController.state.selectedNetworkClientId;
+        const chainId = NetworkController.getNetworkClientById(
+          selectedNetworkClientId,
+        ).configuration.chainId;
+        const selectedInternalAccount = AccountsController.getAccount(
+          AccountsController.state.internalAccounts.selectedAccount,
+        );
+
+        const tokenBalances =
+          contractBalances?.[selectedInternalAccount?.address as Hex]?.[
+            chainId
+          ];
+
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -2034,7 +2053,7 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
+                    tokenBalances[item.address as Hex],
                     item.decimals,
                   )
                 : undefined);
@@ -2112,18 +2131,32 @@ export class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
+      const { NetworkController, AccountsController } = this.context;
+
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
+
+      const selectedNetworkClientId =
+        backgroundState.NetworkController.selectedNetworkClientId;
+      const chainId = NetworkController.getNetworkClientById(
+        selectedNetworkClientId,
+      ).configuration.chainId;
+      const selectedInternalAccount = AccountsController.getAccount(
+        AccountsController.state.internalAccounts.selectedAccount,
+      );
+
       const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+        backgroundState.TokenBalancesController.tokenBalances?.[
+          selectedInternalAccount?.address as Hex
+        ]?.[chainId];
 
       let tokenFound = false;
       tokens.forEach((token: { address: string | number }) => {
         if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
+          tokenBalances[token.address as Hex] &&
+          !isZero(tokenBalances[token.address as Hex])
         ) {
           tokenFound = true;
         }
@@ -2167,11 +2200,11 @@ export class Engine {
     // SelectedNetworkController.unsetAllDomains()
 
     //Clear assets info
-    TokensController.reset();
-    NftController.reset();
+    TokensController.resetState();
+    NftController.resetState();
 
-    TokenBalancesController.reset();
-    TokenRatesController.reset();
+    TokenBalancesController.resetState();
+    TokenRatesController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({
