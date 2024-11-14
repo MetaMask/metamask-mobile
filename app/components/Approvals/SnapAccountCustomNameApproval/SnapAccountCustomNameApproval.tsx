@@ -51,27 +51,37 @@ const SnapAccountCustomNameApproval = () => {
     [internalAccounts],
   );
 
-  useEffect(() => {
-    if (approvalRequest?.requestData.snapSuggestedAccountName) {
+  const generateUniqueNameWithSuffix = useCallback(
+    (baseName: string): string => {
       let suffix = 1;
-      const snapSuggestedAccountName =
-        approvalRequest?.requestData.snapSuggestedAccountName;
-      let candidateName = approvalRequest.requestData.snapSuggestedAccountName;
+      let candidateName = baseName;
 
-      // Keep incrementing suffix until we find an available name
       while (checkIfNameTaken(candidateName)) {
         suffix += 1;
-        candidateName = `${snapSuggestedAccountName} ${suffix}`;
+        candidateName = `${baseName} ${suffix}`;
       }
-      setAccountName(candidateName);
-    } else {
-      const nextAccountName =
-        Engine.context.AccountsController.getNextAvailableAccountName(
-          KeyringTypes.snap,
-        );
-      setAccountName(nextAccountName);
-    }
-  }, [approvalRequest, internalAccounts, checkIfNameTaken]);
+      return candidateName;
+    },
+    [checkIfNameTaken],
+  );
+
+  const getInitialAccountName = useCallback(
+    (suggestedName?: string): string => {
+      if (suggestedName) {
+        return generateUniqueNameWithSuffix(suggestedName);
+      }
+      return Engine.context.AccountsController.getNextAvailableAccountName(
+        KeyringTypes.snap,
+      );
+    },
+    [generateUniqueNameWithSuffix],
+  );
+
+  useEffect(() => {
+    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
+    const initialName = getInitialAccountName(suggestedName);
+    setAccountName(initialName);
+  }, [approvalRequest, getInitialAccountName]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
