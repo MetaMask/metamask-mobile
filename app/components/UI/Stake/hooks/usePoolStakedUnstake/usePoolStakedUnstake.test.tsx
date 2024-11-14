@@ -10,7 +10,6 @@ import {
 import { BigNumber, Contract, ethers } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import useBalance from '../useBalance';
-import { hexToBN } from '@metamask/controller-utils';
 
 const MOCK_ADDRESS_1 = '0x0';
 
