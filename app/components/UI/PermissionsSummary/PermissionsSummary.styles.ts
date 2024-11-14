@@ -60,6 +60,9 @@ const createStyles = (params: {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    logoContainerNonDapp: {
+      marginTop: 8,
+    },
     domainLogoContainer: {
       width: 32,
       height: 32,

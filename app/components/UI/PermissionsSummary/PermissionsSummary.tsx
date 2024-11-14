@@ -138,7 +138,14 @@ const PermissionsSummary = ({
           )}
         </View>
 
-        <View style={styles.logoContainer}>{renderTopIcon()}</View>
+        <View
+          style={[
+            styles.logoContainer,
+            isNonDappNetworkSwitch && styles.logoContainerNonDapp,
+          ]}
+        >
+          {renderTopIcon()}
+        </View>
         <View style={styles.endAccessory}>
           {!isRenderedAsBottomSheet && (
             <ButtonIcon

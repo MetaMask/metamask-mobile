@@ -866,7 +866,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   // console.log('>>> isRenderedAsBottomSheet', isRenderedAsBottomSheet);
   return isRenderedAsBottomSheet ? (
-    <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>
+    <BottomSheet ref={sheetRef} isInteractable={!isNonDappNetworkSwitch}>
+      {renderPermissionsScreens()}
+    </BottomSheet>
   ) : (
     renderPermissionsScreens()
   );
