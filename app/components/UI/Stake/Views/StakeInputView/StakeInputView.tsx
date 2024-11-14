@@ -48,6 +48,8 @@ const StakeInputView = () => {
     isLoadingVaultData,
     handleMax,
     balanceValue,
+    isHighGasCostImpact,
+    isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
@@ -57,6 +59,20 @@ const StakeInputView = () => {
   };
 
   const handleStakePress = useCallback(() => {
+    if (isHighGasCostImpact()) {
+      navigation.navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountWei: amountWei.toString(),
+          amountFiat: fiatAmount,
+          annualRewardsETH,
+          annualRewardsFiat,
+          annualRewardRate,
+        },
+      });
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
@@ -77,7 +93,7 @@ const StakeInputView = () => {
         .build(),
     );
   }, [
-    amountEth,
+    isHighGasCostImpact,
     navigation,
     amountWei,
     fiatAmount,
@@ -86,6 +102,7 @@ const StakeInputView = () => {
     annualRewardRate,
     trackEvent,
     createEventBuilder,
+    amountEth,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -173,7 +190,9 @@ const StakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={isOverMaximum || !isNonZeroAmount}
+          isDisabled={
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
+          }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />
