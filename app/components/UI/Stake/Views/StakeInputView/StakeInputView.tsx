@@ -19,6 +19,7 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../utils/withMetaMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -136,7 +137,16 @@ const StakeInputView = () => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitch}
+        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
+          event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          properties: {
+            selected_provider: 'consensys',
+            text: 'Currency Switch Trigger',
+            location: 'Stake Input View',
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isEth ? 'fiat' : 'native',
+          },
+        })}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
