@@ -91,8 +91,6 @@ import {
   TransactionMeta,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
-// TODO: Remove subpath import once `@metamask/transaction-controller` is upgraded to `36.1.0`
-import { TransactionControllerOptions } from '@metamask/transaction-controller/dist/types/TransactionController';
 import {
   GasFeeController,
   GasFeeState,
@@ -1775,11 +1773,14 @@ export class Engine {
           'NotificationServicesController:stateChange',
           'PermissionController:stateChange',
           'PhishingController:stateChange',
+          'PPOMController:stateChange',
           'PreferencesController:stateChange',
           'SignatureController:stateChange',
           'SmartTransactionsController:stateChange',
           'SnapController:stateChange',
           'SnapsRegistry:stateChange',
+          // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
+          // 'SwapsController:stateChange',
           'SubjectMetadataController:stateChange',
           'TokenBalancesController:stateChange',
           'TokenListController:stateChange',
@@ -1787,12 +1788,6 @@ export class Engine {
           'TokensController:stateChange',
           'TransactionController:stateChange',
           'UserStorageController:stateChange',
-
-          // TODO: Remove `ts-expect-error` directive once `PPOMController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
-          'PPOMController:stateChange',
-          // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
-          // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
         ],
       }),
     });
