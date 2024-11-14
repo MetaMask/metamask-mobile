@@ -498,6 +498,13 @@ class Confirm extends PureComponent {
       ));
     } catch (error) {
       Logger.error(error, 'error while adding transaction (Confirm)');
+      navigation?.dangerouslyGetParent()?.pop();
+      Alert.alert(
+        strings('transactions.transaction_error'),
+        error && error.message,
+        [{ text: 'OK' }],
+      );
+      return;
     }
 
     setTransactionId(transactionMeta.id);
