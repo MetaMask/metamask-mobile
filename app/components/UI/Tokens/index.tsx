@@ -2,6 +2,7 @@ import React, { useRef, useState, LegacyRef, useMemo } from 'react';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -29,7 +30,6 @@ import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -40,7 +40,10 @@ import {
 } from './TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { getSelectedAccountTokensAcrossChains } from '../../../selectors/multichain';
+import { filterAssets } from './util/filterAssets';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -91,10 +94,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
 
+  const selectedAccountTokensChains = useSelector(
+    getSelectedAccountTokensAcrossChains,
+  );
+  // console.log('selected account tokens chains ->', selectedAccountTokensChains);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
+  const allNetworks = useSelector(selectNetworkConfigurations);
+
   const nativeCurrencies = [
     ...new Set(
       Object.values(networkConfigurationsByChainId).map(
@@ -107,43 +116,88 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const allNetworksEnabled = useMemo(
+    () => enableAllNetworksFilter(allNetworks),
+    [allNetworks],
+  );
 
   const styles = createStyles(colors);
 
+  // TODO: Original implementation
+  // const tokensList = useMemo(() => {
+  //   // Filter tokens based on hideZeroBalanceTokens flag
+  //   const tokensToDisplay = hideZeroBalanceTokens
+  //     ? tokens.filter(
+  //         ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
+  //       )
+  //     : tokens;
+
+  //   const tokenFiatBalances = conversionRate
+  //     ? tokensToDisplay.map((asset) =>
+  //         asset.isETH
+  //           ? parseFloat(asset.balance) * conversionRate
+  //           : deriveBalanceFromAssetMarketDetails(
+  //               asset,
+  //               tokenExchangeRates,
+  //               tokenBalances,
+  //               conversionRate,
+  //               currentCurrency,
+  //             ).balanceFiatCalculation,
+  //       )
+  //     : [];
+
+  //   // Combine tokens with their fiat balances
+  //   // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
+  //   // this key in the controller is also used by extension, so this is for consistency in syntax and config
+  //   // actual balance rendering for each token list item happens in TokenListItem component
+  //   const tokensWithBalances = tokensToDisplay.map((token, i) => ({
+  //     ...token,
+  //     tokenFiatAmount: tokenFiatBalances[i],
+  //   }));
+
+  //   // Sort the tokens based on tokenSortConfig
+  //   return sortAssets(tokensWithBalances, tokenSortConfig);
+  // }, [
+  //   conversionRate,
+  //   currentCurrency,
+  //   hideZeroBalanceTokens,
+  //   tokenBalances,
+  //   tokenExchangeRates,
+  //   tokenSortConfig,
+  //   tokens,
+  // ]);
+
+  // TODO: Multi chain implementation
   const tokensList = useMemo(() => {
-    // Filter tokens based on hideZeroBalanceTokens flag
-    const tokensToDisplay = hideZeroBalanceTokens
-      ? tokens.filter(
-          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
-        )
-      : tokens;
+    const allTokens = Object.values(selectedAccountTokensChains).flat();
+    const filteredAssets = filterAssets(allTokens, [
+      {
+        key: 'chainId',
+        opts: tokenNetworkFilter,
+        filterCallback: 'inclusive',
+      },
+    ]);
 
-    // Calculate fiat balances for tokens
-    const tokenFiatBalances = conversionRate
-      ? tokensToDisplay.map((asset) =>
-          asset.isETH
-            ? parseFloat(asset.balance) * conversionRate
-            : deriveBalanceFromAssetMarketDetails(
-                asset,
-                tokenExchangeRates,
-                tokenBalances,
-                conversionRate,
-                currentCurrency,
-              ).balanceFiatCalculation,
-        )
-      : [];
-
-    // Combine tokens with their fiat balances
-    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
-    // this key in the controller is also used by extension, so this is for consistency in syntax and config
-    // actual balance rendering for each token list item happens in TokenListItem component
-    const tokensWithBalances = tokensToDisplay.map((token, i) => ({
-      ...token,
-      tokenFiatAmount: tokenFiatBalances[i],
-    }));
-
-    // Sort the tokens based on tokenSortConfig
-    return sortAssets(tokensWithBalances, tokenSortConfig);
+    const { nativeTokens, nonNativeTokens } = filteredAssets.reduce<{
+      nativeTokens: TokenI[];
+      nonNativeTokens: TokenI[];
+    }>(
+      (
+        acc: { nativeTokens: TokenI[]; nonNativeTokens: TokenI[] },
+        currToken: TokenI,
+      ) => {
+        if (currToken.isNative) {
+          acc.nativeTokens.push(currToken);
+        } else {
+          acc.nonNativeTokens.push(currToken);
+        }
+        return acc;
+      },
+      { nativeTokens: [], nonNativeTokens: [] },
+    );
+    const assets = [...nativeTokens, ...nonNativeTokens];
+    return sortAssets(assets, tokenSortConfig);
+    // return allTokens;
   }, [
     conversionRate,
     currentCurrency,
@@ -151,7 +205,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     tokenBalances,
     tokenExchangeRates,
     tokenSortConfig,
-    tokens,
+    tokenNetworkFilter,
+    selectedAccountTokensChains,
+    conversionRate,
+    
   ]);
 
   const showRemoveMenu = (token: TokenI) => {
@@ -183,11 +240,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        ...Object.values(networkConfigurationsByChainId).map((network) =>
-          TokenRatesController.updateExchangeRatesByChainId(
-            { chainId: network.chainId, nativeCurrency: network.nativeCurrency }
-          ),
-        ),
+        TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
         Logger.error(error, 'Error while refreshing tokens');
@@ -243,6 +296,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
+  const allNetworksFilterShown =
+    Object.keys(tokenNetworkFilter).length !==
+    Object.keys(allNetworksEnabled).length;
   const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
   return (
@@ -255,11 +311,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               label={
-                <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {tokenNetworkFilter[chainId]
-                    ? networkName ?? strings('wallet.current_network')
-                    : strings('wallet.all_networks')}
-                </Text>
+                allNetworksFilterShown
+                  ? networkName || strings('wallet.current_network')
+                  : strings('wallet.all_networks')
               }
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}

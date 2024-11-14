@@ -533,12 +533,10 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = [
-      ...(tokens || []),
-    ];
+    console.log('tokens ....', tokens);
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
-
       balance = renderFromWei(accountBalanceByChainId.balance);
       const nativeAsset = {
         // TODO: Add name property to Token interface in controllers.
@@ -575,8 +573,8 @@ const Wallet = ({
             conversionRate,
             currentCurrency,
           ),
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
         assets.push(stakedAsset);
       }

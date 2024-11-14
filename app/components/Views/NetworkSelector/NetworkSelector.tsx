@@ -35,10 +35,7 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
 } from '../../../util/networks';
-import {
-  LINEA_MAINNET,
-  MAINNET,
-} from '../../../constants/network';
+import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -176,6 +173,13 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
+  const setTokenNetworkFilter = useCallback((chainId: string) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setTokenNetworkFilter({
+      [chainId]: true,
+    });
+  }, []);
+
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
       const { NetworkController } = Engine.context;
@@ -237,10 +241,7 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const {
-      NetworkController,
-      SelectedNetworkController,
-    } = Engine.context;
+    const { NetworkController, SelectedNetworkController } = Engine.context;
     trace({
       name: TraceName.SwitchCustomNetwork,
       parentContext: parentSpan,
@@ -268,6 +269,7 @@ const NetworkSelector = () => {
         await NetworkController.setActiveNetwork(networkClientId);
       }
 
+      setTokenNetworkFilter(chainId);
       sheetRef.current?.onCloseBottomSheet();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
@@ -370,7 +372,6 @@ const NetworkSelector = () => {
     if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
-
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
 
@@ -380,6 +381,7 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       NetworkController.setActiveNetwork(clientId);
+      setTokenNetworkFilter(networkConfiguration.chainId);
       closeRpcModal();
       AccountTrackerController.refresh();
 

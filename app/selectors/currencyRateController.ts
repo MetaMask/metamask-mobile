@@ -37,7 +37,16 @@ export const selectCurrentCurrency = createSelector(
 
 export const selectCurrencyRates = createSelector(
   selectCurrencyRateControllerState,
-  (
-    currencyRateControllerState: CurrencyRateState,
-  ) => currencyRateControllerState?.currencyRates,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.currencyRates,
+);
+
+export const selectConversionRateByTicker = createSelector(
+  selectCurrencyRateControllerState,
+  (_: RootState, ticker: string) => ticker,
+  (currencyRateControllerState: CurrencyRateState, ticker: string) =>
+    ticker
+      ? currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate ||
+        0
+      : 0,
 );
