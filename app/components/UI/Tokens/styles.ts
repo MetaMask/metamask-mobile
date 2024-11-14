@@ -9,6 +9,17 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    bottomSheetWrapper: {
+      alignItems: 'flex-start',
+    },
+    bottomSheetTitle: {
+      alignSelf: 'center',
+      paddingTop: 16,
+      paddingBottom: 16,
+    },
+    bottomSheetText: {
+      width: '100%',
+    },
     emptyView: {
       backgroundColor: colors.background.default,
       justifyContent: 'center',
@@ -99,13 +110,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       marginHorizontal: 16,
       justifyContent: 'space-between',
-      marginVertical: 24,
-    },
-    fiatBalance: {
-      ...fontStyles.normal,
-      fontSize: 32,
-      lineHeight: 40,
-      fontWeight: '500',
+      paddingTop: 24,
     },
     portfolioLink: { marginLeft: 8 },
     bottomModal: {
@@ -144,6 +149,55 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.border.muted,
       alignSelf: 'center',
       marginTop: 4,
+    },
+    actionBarWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingLeft: 8,
+      paddingRight: 8,
+      paddingBottom: 16,
+      paddingTop: 8,
+    },
+    controlButtonOuterWrapper: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+    },
+    controlButtonInnerWrapper: {
+      flexDirection: 'row',
+    },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+    },
+    controlButtonText: {
+      color: colors.text.default,
+    },
+    controlIconButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      borderRadius: 50,
+      width: 50,
+      height: 40,
+    },
+    balanceContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    privacyIcon: {
+      marginLeft: 8,
+    },
+    portfolioButtonContainer: {
+      alignItems: 'center',
     },
   });
 

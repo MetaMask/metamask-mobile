@@ -1,7 +1,6 @@
 import { CurrencyRateController } from '@metamask/assets-controllers';
-import { InfuraNetworkType, toHex } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import { NetworkController } from '@metamask/network-controller';
-import { getNetworkTypeById } from './index';
 import Engine from '../../core/Engine';
 import {
   selectChainId,
@@ -41,20 +40,21 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   );
 
   if (entry) {
-    const [networkConfigurationId, networkConfiguration] = entry;
-    const { ticker, nickname } = networkConfiguration;
-    currencyRateController.updateExchangeRate(ticker);
-    networkController.setActiveNetwork(networkConfigurationId);
+    const [
+      ,
+      {
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints,
+        defaultRpcEndpointIndex,
+      },
+    ] = entry;
+
+    currencyRateController.updateExchangeRate([ticker]);
+    const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+    networkController.setActiveNetwork(networkClientId);
     return nickname;
-  }
-
-  const networkType = getNetworkTypeById(switchToChainId);
-
-  if (networkType) {
-    currencyRateController.updateExchangeRate('ETH');
-    // TODO: Align mobile and core types to remove this type cast
-    networkController.setProviderType(networkType as InfuraNetworkType);
-    return networkType;
   }
 };
 

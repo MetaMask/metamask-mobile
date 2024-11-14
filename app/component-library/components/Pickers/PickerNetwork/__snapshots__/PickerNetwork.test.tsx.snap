@@ -16,34 +16,40 @@ exports[`PickerNetwork renders correctly 1`] = `
   }
 >
   <View
-    style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderRadius": 8,
-        "height": 16,
-        "justifyContent": "center",
-        "overflow": "hidden",
-        "width": 16,
-      }
-    }
+    style={null}
   >
-    <Image
-      onError={[Function]}
-      resizeMode="contain"
-      source={
-        {
-          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-        }
-      }
+    <View
+      accessibilityLabel="Ethereum Mainnet"
       style={
         {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
           "height": 16,
+          "justifyContent": "center",
+          "overflow": "hidden",
           "width": 16,
         }
       }
-      testID="network-avatar-image"
-    />
+      testID="network-avatar-picker"
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        testID="network-avatar-image"
+      />
+    </View>
   </View>
   <Text
     accessibilityRole="text"

@@ -1,17 +1,14 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
-import NetworkView from '../../pages/Settings/NetworksView';
-import SettingsView from '../../pages/Settings/SettingsView';
-import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
-import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
+import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
+import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import Assertions from '../../utils/Assertions';
-
-const Arbitrum = 'Arbitrum One';
 
 describe(Regression('Add all popular networks'), () => {
   beforeAll(async () => {
@@ -28,13 +25,15 @@ describe(Regression('Add all popular networks'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapNetworks();
-        await NetworkView.tapAddNetworkButton();
-        await NetworkView.tapNetworkByName(Arbitrum);
-        await Assertions.checkIfVisible(NetworkApprovalModal.container);
-        await NetworkApprovalModal.tapApproveButton();
-        await NetworkAddedModal.tapCloseButton();
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
+
+        await Assertions.checkIfVisible(
+          NetworkListModal.addPopularNetworkButton,
+        );
+        await NetworkListModal.tapAddNetworkButton();
+        await NetworkApprovalBottomSheet.tapApproveButton();
+        await NetworkAddedBottomSheet.tapCloseButton();
       },
     );
   });

@@ -23,15 +23,12 @@ import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
+import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
@@ -271,7 +268,6 @@ ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
-  ticker: selectTicker(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,

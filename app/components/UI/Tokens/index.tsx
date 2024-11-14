@@ -1,5 +1,5 @@
-import React, { useRef, useState, LegacyRef } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState, LegacyRef, useMemo } from 'react';
+import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -11,7 +11,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
-  selectNetworkClientId,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
@@ -20,7 +20,27 @@ import { TokenList } from './TokenList';
 import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import {
+  selectTokenNetworkFilter,
+  selectTokenSortConfig,
+} from '../../../selectors/preferencesController';
+import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import {
+  createTokenBottomSheetFilterNavDetails,
+  createTokensBottomSheetNavDetails,
+} from './TokensBottomSheet';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { selectNetworkName } from '../../../selectors/networkInfos';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -48,28 +68,105 @@ export interface MarketDataDetails {
   totalVolume: number;
 }
 
-const Tokens: React.FC<TokensI> = ({ tokens }) => {
-  const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
-  const { data: tokenBalances } = useTokenBalancesController();
+interface TokenListNavigationParamList {
+  AddAsset: { assetType: string };
+  [key: string]: undefined | object;
+}
 
+const Tokens: React.FC<TokensI> = ({ tokens }) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
+    >();
+  const { colors } = useTheme();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { data: tokenBalances } = useTokenBalancesController();
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectChainId);
-  const networkClientId = useSelector(selectNetworkClientId);
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
   const hideZeroBalanceTokens = useSelector(
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
 
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
+  const networkName = useSelector(selectNetworkName);
+  const nativeCurrencies = [
+    ...new Set(
+      Object.values(networkConfigurationsByChainId).map(
+        (n) => n.nativeCurrency,
+      ),
+    ),
+  ];
+
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
+  const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   const styles = createStyles(colors);
+
+  const tokensList = useMemo(() => {
+    // Filter tokens based on hideZeroBalanceTokens flag
+    const tokensToDisplay = hideZeroBalanceTokens
+      ? tokens.filter(
+          ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
+        )
+      : tokens;
+
+    // Calculate fiat balances for tokens
+    const tokenFiatBalances = conversionRate
+      ? tokensToDisplay.map((asset) =>
+          asset.isETH
+            ? parseFloat(asset.balance) * conversionRate
+            : deriveBalanceFromAssetMarketDetails(
+                asset,
+                tokenExchangeRates,
+                tokenBalances,
+                conversionRate,
+                currentCurrency,
+              ).balanceFiatCalculation,
+        )
+      : [];
+
+    // Combine tokens with their fiat balances
+    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
+    // this key in the controller is also used by extension, so this is for consistency in syntax and config
+    // actual balance rendering for each token list item happens in TokenListItem component
+    const tokensWithBalances = tokensToDisplay.map((token, i) => ({
+      ...token,
+      tokenFiatAmount: tokenFiatBalances[i],
+    }));
+
+    // Sort the tokens based on tokenSortConfig
+    return sortAssets(tokensWithBalances, tokenSortConfig);
+  }, [
+    conversionRate,
+    currentCurrency,
+    hideZeroBalanceTokens,
+    tokenBalances,
+    tokenExchangeRates,
+    tokenSortConfig,
+    tokens,
+  ]);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {
       setTokenToRemove(token);
       actionSheet.current.show();
     }
+  };
+
+  const showFilterControls = () => {
+    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+  };
+
+  const showSortControls = () => {
+    navigation.navigate(...createTokensBottomSheetNavDetails({}));
   };
 
   const onRefresh = async () => {
@@ -85,7 +182,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.startPollingByNetworkClientId(networkClientId),
+        CurrencyRateController.updateExchangeRate(nativeCurrencies),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
@@ -109,39 +206,106 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           tokenSymbol: symbol,
         }),
       });
-      trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'assets_list',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: [`${symbol} - ${tokenAddress}`],
-        chain_id: getDecimalChainId(chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+          .addProperties({
+            location: 'assets_list',
+            token_standard: 'ERC20',
+            asset_type: 'token',
+            tokens: [`${symbol} - ${tokenAddress}`],
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
     } catch (err) {
       Logger.log(err, 'Wallet: Failed to hide token!');
     }
   };
 
+  const goToAddToken = () => {
+    setIsAddTokenEnabled(false);
+    navigation.push('AddAsset', { assetType: 'token' });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'manual',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+    setIsAddTokenEnabled(true);
+  };
+
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const tokensToDisplay = hideZeroBalanceTokens
-    ? tokens.filter((token) => {
-        const { address, isETH } = token;
-        return !isZero(tokenBalances[address]) || isETH;
-      })
-    : tokens;
+  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
-      <TokenList
-        tokens={tokensToDisplay}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        showRemoveMenu={showRemoveMenu}
-      />
+      <View style={styles.actionBarWrapper}>
+        {isTokenFilterEnabled ? (
+          <View style={styles.controlButtonOuterWrapper}>
+            <ButtonBase
+              label={
+                <Text style={styles.controlButtonText} numberOfLines={1}>
+                  {tokenNetworkFilter[chainId]
+                    ? networkName ?? strings('wallet.current_network')
+                    : strings('wallet.all_networks')}
+                </Text>
+              }
+              onPress={showFilterControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <View style={styles.controlButtonInnerWrapper}>
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.SORT_BY}
+                onPress={showSortControls}
+                iconName={IconName.SwapVertical}
+                style={styles.controlIconButton}
+              />
+              <ButtonIcon
+                testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+                onPress={goToAddToken}
+                iconName={IconName.Add}
+                style={styles.controlIconButton}
+              />
+            </View>
+          </View>
+        ) : (
+          <>
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.SORT_BY}
+              label={strings('wallet.sort_by')}
+              onPress={showSortControls}
+              endIconName={IconName.ArrowDown}
+              style={styles.controlButton}
+            />
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+              label={strings('wallet.import')}
+              onPress={goToAddToken}
+              startIconName={IconName.Add}
+              style={styles.controlButton}
+            />
+          </>
+        )}
+      </View>
+      {tokensList && (
+        <TokenList
+          tokens={tokensList}
+          refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
+          onRefresh={onRefresh}
+          showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
+          setIsAddTokenEnabled={setIsAddTokenEnabled}
+        />
+      )}
       <ActionSheet
         ref={actionSheet as LegacyRef<typeof ActionSheet>}
         title={strings('wallet.remove_token_title')}

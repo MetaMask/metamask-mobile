@@ -1,6 +1,10 @@
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Platform, SafeAreaView, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -10,14 +14,12 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import { useNavigation } from '@react-navigation/native';
 
 import { useStyles } from '../../../../component-library/hooks';
 import { USER_INTENT } from '../../../../constants/permissions';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
-import { Network } from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList.types';
 
 // Internal dependencies.
 import ConnectNetworkModalSelectorsIDs from '../../../../../e2e/selectors/Modals/ConnectNetworkModal.selectors';
@@ -26,7 +28,11 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
-import { PopularList } from '../../../../util/networks/customNetworks';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import Engine from '../../../../core/Engine';
+import { PermissionKeys } from '../../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../../core/Permissions/constants';
+import { getNetworkImageSource } from '../../../../util/networks';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -35,35 +41,128 @@ const NetworkConnectMultiSelector = ({
   hostname,
   onBack,
   isRenderedAsBottomSheet = true,
+  onNetworksSelected,
+  initialChainId,
+  selectedChainIds: propSelectedChainIds,
+  isInitializedWithPermittedChains = true,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
-  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
+  const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const mockNetworks: Network[] = PopularList.map((network) => ({
-    id: network.chainId,
-    name: network.nickname,
-    rpcUrl: network.rpcUrl,
-    isSelected: false,
-    imageSource: network.rpcPrefs.imageSource,
-  }));
+  useEffect(() => {
+    if (propSelectedChainIds && !isInitializedWithPermittedChains) {
+      setSelectedChainIds(propSelectedChainIds);
+      setOriginalChainIds(propSelectedChainIds);
+    }
+  }, [propSelectedChainIds, isInitializedWithPermittedChains]);
+
+  useEffect(() => {
+    if (!isInitializedWithPermittedChains) return;
+
+    let currentlyPermittedChains: string[] = [];
+    try {
+      const caveat = Engine.context.PermissionController.getCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      if (Array.isArray(caveat?.value)) {
+        currentlyPermittedChains = caveat.value.filter(
+          (item): item is string => typeof item === 'string',
+        );
+      }
+    } catch (e) {
+      // noop
+    }
+
+    if (currentlyPermittedChains.length === 0 && initialChainId) {
+      currentlyPermittedChains = [initialChainId];
+    }
+
+    setSelectedChainIds(currentlyPermittedChains);
+    setOriginalChainIds(currentlyPermittedChains);
+  }, [hostname, isInitializedWithPermittedChains, initialChainId]);
+
+  const handleUpdateNetworkPermissions = useCallback(async () => {
+    if (onNetworksSelected) {
+      onNetworksSelected(selectedChainIds);
+    } else {
+      let hasPermittedChains = false;
+      try {
+        hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+      } catch {
+        // noop
+      }
+
+      if (hasPermittedChains) {
+        Engine.context.PermissionController.updateCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+          selectedChainIds,
+        );
+      } else {
+        Engine.context.PermissionController.grantPermissionsIncremental({
+          subject: {
+            origin: hostname,
+          },
+          approvedPermissions: {
+            [PermissionKeys.permittedChains]: {
+              caveats: [
+                {
+                  type: CaveatTypes.restrictNetworkSwitching,
+                  value: selectedChainIds,
+                },
+              ],
+            },
+          },
+        });
+      }
+      onUserAction(USER_INTENT.Confirm);
+    }
+  }, [selectedChainIds, hostname, onUserAction, onNetworksSelected]);
+
+  const networks = Object.entries(networkConfigurations).map(
+    ([key, network]: [string, NetworkConfiguration]) => ({
+      id: key,
+      name: network.name,
+      rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+      isSelected: false,
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      imageSource: getNetworkImageSource({
+        chainId: network?.chainId,
+      }),
+    }),
+  );
 
   const onSelectNetwork = useCallback(
-    (clickedNetworkId) => {
-      const selectedAddressIndex = selectedNetworkIds.indexOf(clickedNetworkId);
+    (clickedChainId) => {
+      const selectedAddressIndex = selectedChainIds.indexOf(clickedChainId);
       // Reconstruct selected network ids.
-      const newNetworkList = mockNetworks.reduce((acc, { id }) => {
-        if (clickedNetworkId === id) {
+      const newNetworkList = networks.reduce((acc, { id }) => {
+        if (clickedChainId === id) {
           selectedAddressIndex === -1 && acc.push(id);
-        } else if (selectedNetworkIds.includes(id)) {
+        } else if (selectedChainIds.includes(id)) {
           acc.push(id);
         }
         return acc;
       }, [] as string[]);
-      setSelectedNetworkIds(newNetworkList);
+      setSelectedChainIds(newNetworkList);
     },
-    [mockNetworks, selectedNetworkIds],
+    [networks, selectedChainIds],
   );
+
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
 
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -74,16 +173,16 @@ const NetworkConnectMultiSelector = ({
             origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, urlWithProtocol]);
+  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
-  const areAllNetworksSelected = mockNetworks
+  const areAllNetworksSelected = networks
     .map(({ id }) => id)
-    .every((id) => selectedNetworkIds.includes(id));
-
-  const areAnyNetworksSelected = selectedNetworkIds?.length !== 0;
-  const areNoNetworksSelected = selectedNetworkIds?.length === 0;
+    .every((id) => selectedChainIds?.includes(id));
+  const areAnyNetworksSelected = selectedChainIds?.length !== 0;
+  const areNoNetworksSelected = selectedChainIds?.length === 0;
 
   const renderSelectAllCheckbox = useCallback((): React.JSX.Element | null => {
     const areSomeNetworksSelectedButNotAll =
@@ -91,13 +190,13 @@ const NetworkConnectMultiSelector = ({
 
     const selectAll = () => {
       if (isLoading) return;
-      const allSelectedNetworkIds = mockNetworks.map(({ id }) => id);
-      setSelectedNetworkIds(allSelectedNetworkIds);
+      const allSelectedChainIds = networks.map(({ id }) => id);
+      setSelectedChainIds(allSelectedChainIds);
     };
 
     const unselectAll = () => {
       if (isLoading) return;
-      setSelectedNetworkIds([]);
+      setSelectedChainIds([]);
     };
 
     const onPress = () => {
@@ -118,29 +217,32 @@ const NetworkConnectMultiSelector = ({
   }, [
     areAllNetworksSelected,
     areAnyNetworksSelected,
-    mockNetworks,
+    networks,
     isLoading,
-    setSelectedNetworkIds,
+    setSelectedChainIds,
     styles.selectAllContainer,
   ]);
 
-  const renderCtaButtons = useCallback(() => {
-    const isConnectDisabled = Boolean(!selectedNetworkIds.length) || isLoading;
+  const isUpdateDisabled =
+    selectedChainIds.length === 0 ||
+    isLoading ||
+    isEqual(selectedChainIds, originalChainIds);
 
-    return (
+  const renderCtaButtons = useCallback(
+    () => (
       <View style={styles.buttonsContainer}>
         <View style={styles.updateButtonContainer}>
           {areAnyNetworksSelected && (
             <Button
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
-              onPress={() => onUserAction(USER_INTENT.Confirm)}
+              onPress={handleUpdateNetworkPermissions}
               size={ButtonSize.Lg}
               style={{
                 ...styles.buttonPositioning,
-                ...(isConnectDisabled && styles.disabledOpacity),
+                ...(isUpdateDisabled && styles.disabledOpacity),
               }}
-              disabled={isConnectDisabled}
+              disabled={isUpdateDisabled}
               {...generateTestId(
                 Platform,
                 ConnectNetworkModalSelectorsIDs.SELECT_MULTI_BUTTON,
@@ -172,17 +274,17 @@ const NetworkConnectMultiSelector = ({
           </View>
         )}
       </View>
-    );
-  }, [
-    areAnyNetworksSelected,
-    isLoading,
-    onUserAction,
-    selectedNetworkIds,
-    styles,
-    areNoNetworksSelected,
-    hostname,
-    toggleRevokeAllNetworkPermissionsModal,
-  ]);
+    ),
+    [
+      handleUpdateNetworkPermissions,
+      areAnyNetworksSelected,
+      styles,
+      areNoNetworksSelected,
+      hostname,
+      toggleRevokeAllNetworkPermissionsModal,
+      isUpdateDisabled,
+    ],
+  );
 
   const renderNetworkConnectMultiSelector = useCallback(
     () => (
@@ -194,8 +296,8 @@ const NetworkConnectMultiSelector = ({
           />
           <View style={styles.bodyContainer}>{renderSelectAllCheckbox()}</View>
           <NetworkSelectorList
-            networks={mockNetworks}
-            selectedNetworkIds={selectedNetworkIds}
+            networks={networks}
+            selectedChainIds={selectedChainIds}
             onSelectNetwork={onSelectNetwork}
           ></NetworkSelectorList>
           <View style={styles.bodyContainer}>{renderCtaButtons()}</View>
@@ -203,10 +305,10 @@ const NetworkConnectMultiSelector = ({
       </SafeAreaView>
     ),
     [
-      mockNetworks,
+      networks,
       onSelectNetwork,
       renderCtaButtons,
-      selectedNetworkIds,
+      selectedChainIds,
       styles.bodyContainer,
       styles.bottomSheetContainer,
       onBack,

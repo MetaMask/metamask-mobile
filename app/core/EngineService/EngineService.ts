@@ -7,6 +7,9 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import { getTraceTags } from '../../util/sentry/tags';
+import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import getUIStartupSpan from '../Performance/UIStartup';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -27,6 +30,12 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initalizeEngine = (store: any) => {
+    trace({
+      name: TraceName.EngineInitialization,
+      op: TraceOperation.EngineInitialization,
+      parentContext: getUIStartupSpan(),
+      tags: getTraceTags(store.getState()),
+    });
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     // TODO: Replace "any" with type
@@ -34,6 +43,7 @@ class EngineService {
     const Engine = UntypedEngine as any;
     Engine.init(state);
     this.updateControllers(store, Engine);
+    endTrace({ name: TraceName.EngineInitialization });
   };
 
   // TODO: Replace "any" with type
@@ -53,28 +63,34 @@ class EngineService {
         name: 'AddressBookController',
         key: `${engine.context.AddressBookController.name}:stateChange`,
       },
-      { name: 'AssetsContractController' },
-      { name: 'NftController' },
+      { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',
+        key: `${engine.context.TokensController.name}:stateChange`,
       },
       {
         name: 'TokenDetectionController',
         key: `${engine.context.TokenDetectionController.name}:stateChange`,
       },
-      { name: 'NftDetectionController' },
+      {
+        name: 'NftDetectionController',
+        key: 'NftDetectionController:stateChange',
+      },
       {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
       },
-      { name: 'AccountTrackerController' },
+      {
+        name: 'AccountTrackerController',
+        key: 'AccountTrackerController:stateChange',
+      },
       {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
       },
       {
         name: 'PhishingController',
-        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+        key: `${engine.context.PhishingController.name}:stateChange`,
       },
       {
         name: 'PreferencesController',
@@ -88,7 +104,7 @@ class EngineService {
         name: 'TokenBalancesController',
         key: `${engine.context.TokenBalancesController.name}:stateChange`,
       },
-      { name: 'TokenRatesController' },
+      { name: 'TokenRatesController', key: 'TokenRatesController:stateChange' },
       {
         name: 'TransactionController',
         key: `${engine.context.TransactionController.name}:stateChange`,
@@ -134,6 +150,10 @@ class EngineService {
       {
         name: 'NotificationServicesController',
         key: 'NotificationServicesController:stateChange',
+      },
+      {
+        name: 'NotificationServicesPushController',
+        key: 'NotificationServicesPushController:stateChange',
       },
       ///: END:ONLY_INCLUDE_IF
       {

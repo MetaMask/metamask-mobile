@@ -154,16 +154,22 @@ function NetworkSwitcher() {
   const switchNetwork = useCallback(
     (networkConfiguration) => {
       const { CurrencyRateController, NetworkController } = Engine.context;
-      const entry = Object.entries(networkConfigurations).find(
-        ([_a, { chainId }]) => chainId === networkConfiguration.chainId,
+      const config = Object.values(networkConfigurations).find(
+        ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
-      if (entry) {
-        const [networkConfigurationId] = entry;
-        const { ticker } = networkConfiguration;
+      if (config) {
+        const {
+          nativeCurrency: ticker,
+          rpcEndpoints,
+          defaultRpcEndpointIndex,
+        } = config;
 
-        CurrencyRateController.updateExchangeRate(ticker);
-        NetworkController.setActiveNetwork(networkConfigurationId);
+        const { networkClientId } =
+          rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+
+        CurrencyRateController.updateExchangeRate([ticker]);
+        NetworkController.setActiveNetwork(networkClientId);
         navigateToGetStarted();
       }
     },
