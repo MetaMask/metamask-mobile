@@ -47,6 +47,8 @@ const StakeInputView = () => {
     isLoadingVaultData,
     handleMax,
     balanceValue,
+    isHighGasCostImpact,
+    isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
@@ -55,16 +57,30 @@ const StakeInputView = () => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        text: 'Tooltip Question Mark Trigger',
-        location: 'Stake Input View'
-      })
-      .build()
+        .addProperties({
+          selected_provider: 'consensys',
+          text: 'Tooltip Question Mark Trigger',
+          location: 'Stake Input View',
+        })
+        .build(),
     );
   };
 
   const handleStakePress = useCallback(() => {
+    if (isHighGasCostImpact()) {
+      navigation.navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountWei: amountWei.toString(),
+          amountFiat: fiatAmount,
+          annualRewardsETH,
+          annualRewardsFiat,
+          annualRewardRate,
+        },
+      });
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
@@ -77,15 +93,15 @@ const StakeInputView = () => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        tokens_to_stake_native_value: amountEth,
-        tokens_to_stake_usd_value: fiatAmount,
-      })
-      .build(),
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
     );
   }, [
-    amountEth,
+    isHighGasCostImpact,
     navigation,
     amountWei,
     fiatAmount,
@@ -93,7 +109,8 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
     trackEvent,
-    createEventBuilder
+    createEventBuilder,
+    amountEth,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -164,7 +181,9 @@ const StakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={isOverMaximum || !isNonZeroAmount}
+          isDisabled={
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
+          }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />
