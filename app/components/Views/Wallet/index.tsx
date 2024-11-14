@@ -101,6 +101,7 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import useBalance from '../../UI/Stake/hooks/useBalance';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -326,6 +327,8 @@ const Wallet = ({
    */
   useCheckMultiRpcModal();
 
+  const { stakedBalanceWei, formattedStakedBalanceFiat } = useBalance();
+
   /**
    * Callback to trigger when pressing the navigation title.
    */
@@ -530,15 +533,10 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let stakedBalance: any = 0;
 
-    const assets = [
-      ...(tokens || []),
-    ];
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
-
       balance = renderFromWei(accountBalanceByChainId.balance);
       const nativeAsset = {
         // TODO: Add name property to Token interface in controllers.
@@ -559,27 +557,17 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
-      let stakedAsset;
-      if (accountBalanceByChainId.stakedBalance) {
-        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
-        stakedAsset = {
-          ...nativeAsset,
-          nativeAsset,
-          name: 'Staked Ethereum',
-          isStaked: true,
-          balance: stakedBalance,
-          balanceFiat: weiToFiat(
-            // TODO: Replace "any" with type
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.stakedBalance) as any,
-            conversionRate,
-            currentCurrency,
-          ),
+      const stakedAsset = {
+        ...nativeAsset,
+        nativeAsset,
+        name: 'Staked Ethereum',
+        isStaked: true,
+        balance: renderFromWei(stakedBalanceWei),
+        balanceFiat: formattedStakedBalanceFiat,
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        assets.push(stakedAsset);
-      }
+      } as any;
+      assets.push(stakedAsset);
     }
 
     return (

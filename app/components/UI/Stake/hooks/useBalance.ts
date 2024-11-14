@@ -27,9 +27,13 @@ const useBalance = () => {
     ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';
 
-  const stakedBalance = selectedAddress
+  const rawStakedBalance = selectedAddress
     ? accountsByChainId[chainId]?.[selectedAddress]?.stakedBalance || '0'
     : '0';
+
+  const stakedBalance = hexToBN(rawStakedBalance).lte(hexToBN('1'))
+    ? '0'
+    : rawStakedBalance;
 
   const balanceETH = useMemo(
     () => renderFromWei(rawAccountBalance),
@@ -62,13 +66,14 @@ const useBalance = () => {
   );
 
   const formattedStakedBalanceFiat = useMemo(
-    () => weiToFiat(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hexToBN(stakedBalance) as any,
-    conversionRate,
-    currentCurrency,
-  ),
+    () =>
+      weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(stakedBalance) as any,
+        conversionRate,
+        currentCurrency,
+      ),
     [currentCurrency, stakedBalance, conversionRate],
   );
 
