@@ -27,6 +27,12 @@ import {
   TokenListControllerEvents,
   TokenBalancesControllerActions,
   TokenBalancesControllerEvents,
+  NftControllerEvents,
+  AccountTrackerControllerEvents,
+  AccountTrackerControllerActions,
+  NftControllerActions,
+  TokenRatesControllerActions,
+  TokenRatesControllerEvents,
 } from '@metamask/assets-controllers';
 // TODO: Remove subpath import once it is exported at the package-level in `@metamask/assets-controllers@37.0.0`
 import { TokenBalancesControllerState } from '@metamask/assets-controllers/dist/types/TokenBalancesController';
@@ -114,6 +120,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
+  PPOMControllerActions,
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
@@ -285,10 +292,8 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
-  // TODO: uncomment once `AccountTrackerController` is upgraded to V2
-  // | AccountTrackerControllerActions
-  // TODO: uncomment once `NftController` is upgraded to V2
-  // | NftControllerActions
+  | AccountTrackerControllerActions
+  | NftControllerActions
   // TODO: uncomment once `SwapsController` is upgraded to V2
   // | SwapsControllerActions
   | AddressBookControllerActions
@@ -308,20 +313,18 @@ type GlobalActions =
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
-  // TODO: uncomment once `PPOMController` is upgraded to V2
-  // | PPOMControllerActions
+  | PPOMControllerActions
   | TokenBalancesControllerActions
   | TokensControllerActions
+  | TokenRatesControllerActions
   | TokenListControllerActions
   | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions;
 
 type GlobalEvents =
-  // TODO: uncomment once `AccountTrackerController` is upgraded to V2
-  // | AccountTrackerControllerEvents
-  // TODO: uncomment once `NftController` is upgraded to V2
-  // | NftControllerEvents
+  | AccountTrackerControllerEvents
+  | NftControllerEvents
   // TODO: uncomment once `SwapsController` is upgraded to V2
   // | SwapsControllerEvents
   | AddressBookControllerEvents
@@ -344,6 +347,7 @@ type GlobalEvents =
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
   | TokensControllerEvents
+  | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
@@ -1696,6 +1700,7 @@ class Engine {
            * V1/V2 controllers with correctly defined messengers and `stateChange` events.
            */
           'AccountsController:stateChange',
+          'AccountTrackerController:stateChange',
           'AddressBookController:stateChange',
           'ApprovalController:stateChange',
           'AuthenticationController:stateChange',
@@ -1704,6 +1709,7 @@ class Engine {
           'KeyringController:stateChange',
           'LoggingController:stateChange',
           'NetworkController:stateChange',
+          'NftController:stateChange',
           'NotificationServicesController:stateChange',
           'PermissionController:stateChange',
           'PhishingController:stateChange',
@@ -1715,32 +1721,16 @@ class Engine {
           'SubjectMetadataController:stateChange',
           'TokenBalancesController:stateChange',
           'TokenListController:stateChange',
+          'TokenRatesController:stateChange',
           'TokensController:stateChange',
           'TransactionController:stateChange',
           'UserStorageController:stateChange',
 
-          /**
-           * V1/V2 controllers incorrectly defined with a `messagingSystem` that is missing its `stateChange` event.
-           * These `stateChange` events must be included in the datamodel's events allowlist.
-           */
-          // TODO: Remove `ts-expect-error` directive once `NftController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
-          // @ts-expect-error BaseControllerV1, has `messagingSystem` but as private field, messenger defined without `stateChange` event type
-          'NftController:stateChange',
           // TODO: Remove `ts-expect-error` directive once `PPOMController` is upgraded to a version that fixes its `messagingSystem` and `stateChange` event.
           // @ts-expect-error BaseControllerV2, messenger defined without `stateChange` event type
           'PPOMController:stateChange',
-
-          /**
-           * V1 controllers that should be excluded from the datamodel's events allowlist for now.
-           * For each of the following, an error will be logged to the console - "Error: Event missing from allow list: ExampleController:stateChange"
-           * TODO: Each of these events should be added to the allowlist once its controller is migrated to V2.
-           */
-          // TODO: uncomment once `AccountTrackerController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
-          // 'AccountTrackerController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
           // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
           // 'SwapsController:stateChange', // BaseControllerV1, no `messagingSystem`
-          // TODO: uncomment once `TokenRatesController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
-          // 'TokenRatesController:stateChange', // StaticIntervalPollingControllerV1, no `messagingSystem`
         ],
       }),
     });
