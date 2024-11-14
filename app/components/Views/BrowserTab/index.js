@@ -109,8 +109,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { useIsFocused } from '@react-navigation/native';
-import handleWebViewFocus from '../../../util/browser/webViewFocus';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
@@ -278,11 +276,9 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
-  const previousChainIdRef = useRef('0x1');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
-  const isFocused = useIsFocused();
 
   const url = useRef('');
   const title = useRef('');
@@ -721,16 +717,6 @@ export const BrowserTab = (props) => {
       );
     };
   }, [goBack, isTabActive, props.navigation]);
-
-  useEffect(() => {
-    handleWebViewFocus({
-      webviewRef,
-      isFocused,
-      chainId: props.chainId,
-      previousChainId: previousChainIdRef.current,
-    });
-    previousChainIdRef.current = props.chainId;
-  }, [webviewRef, isFocused, props.chainId]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key

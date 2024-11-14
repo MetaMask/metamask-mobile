@@ -3,7 +3,7 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
 
 const selectPreferencesControllerState = (state: RootState) =>
-  state.engine.backgroundState.PreferencesController;
+  state.engine?.backgroundState?.PreferencesController;
 
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
@@ -39,6 +39,18 @@ export const selectUseSafeChainsListValidation = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useSafeChainsListValidation,
+);
+
+export const selectTokenSortConfig = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenSortConfig,
+);
+
+export const selectTokenNetworkFilter = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenNetworkFilter,
 );
 
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
@@ -107,4 +119,10 @@ export const selectUseTransactionSimulations = createSelector(
         useTransactionSimulations: boolean;
       }
     ).useTransactionSimulations,
+);
+
+export const selectPrivacyMode = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.privacyMode,
 );

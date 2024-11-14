@@ -586,3 +586,9 @@ export const deprecatedGetNetworkId = async () => {
 
 export const isMultichainVersion1Enabled =
   process.env.MM_MULTICHAIN_V1_ENABLED === '1';
+
+export const isChainPermissionsFeatureEnabled =
+  process.env.MM_CHAIN_PERMISSIONS === '1';
+
+export const isPermissionsSettingsV1Enabled =
+  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === '1';

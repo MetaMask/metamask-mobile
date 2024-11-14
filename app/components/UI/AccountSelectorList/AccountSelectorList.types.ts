@@ -56,4 +56,8 @@ export interface AccountSelectorListProps
    * Optional boolean to enable removing accounts.
    */
   isRemoveAccountEnabled?: boolean;
+  /**
+   * Optional boolean to indicate if privacy mode is enabled.
+   */
+  privacyMode?: boolean;
 }

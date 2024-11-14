@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import Eth from 'ethjs-query';
+import Eth from '@metamask/ethjs-query';
 import {
   View,
   StyleSheet,
@@ -17,6 +17,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import {
   WalletDevice,
   TransactionStatus,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { query, toHex } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
@@ -1002,6 +1003,21 @@ function SwapsQuotesView({
           transactionMeta.id,
         );
 
+        // TODO: remove this when linea swaps issue is resolved with better transaction awaiting
+        if (
+          [
+            CHAIN_IDS.LINEA_MAINNET,
+            CHAIN_IDS.LINEA_GOERLI,
+            CHAIN_IDS.LINEA_SEPOLIA,
+          ].includes(chainId)
+        ) {
+          Logger.log('Delaying submitting trade tx to make Linea confirmation more likely',);
+          const waitPromise = new Promise((resolve) =>
+            setTimeout(resolve, 5000),
+          );
+          await waitPromise;
+        }
+
         setRecipient(selectedAddress);
 
         const approvalTransactionMetaId = transactionMeta.id;
@@ -1049,6 +1065,7 @@ function SwapsQuotesView({
       setRecipient,
       resetTransaction,
       shouldUseSmartTransaction,
+      chainId,
     ],
   );
 
@@ -1890,7 +1907,6 @@ function SwapsQuotesView({
               adjustsFontSizeToFit
               allowFontScaling
             >
-              ~
               {renderFromTokenMinimalUnit(
                 selectedQuote.destinationAmount,
                 destinationToken.decimals,

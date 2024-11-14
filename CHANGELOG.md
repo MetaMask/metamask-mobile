@@ -103,6 +103,14 @@
 - [#11633](https://github.com/MetaMask/metamask-mobile/pull/11633): fix(ramp): disable button while confirming off-ramp transaction (#11633)
 - [#11431](https://github.com/MetaMask/metamask-mobile/pull/11431): fix: refactor notifications unit tests (#11431)
 
+## 7.33.2 - Nov 1, 2024
+### Fixed
+- [#10952](https://github.com/MetaMask/metamask-mobile/pull/10952): refactor(ramp): update ramp copy (#10952)
+
+## 7.33.1 - Oct 29, 2024
+### Fixed
+- [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
+
 ## 7.33.0 - Oct 17, 2024
 ### Added
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)

@@ -398,6 +398,7 @@ describe('getRpcMethodMiddleware', () => {
       }),
       caveatSpecifications: getCaveatSpecifications({
         getInternalAccounts: mockGetInternalAccounts,
+        findNetworkClientIdByChainId: jest.fn(),
       }),
       // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
@@ -1293,13 +1294,17 @@ describe('getRpcMethodMiddleware', () => {
       ).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.SignatureController.newUnsignedPersonalMessage,
-      ).toHaveBeenCalledWith({
-        data: dataMock,
-        from: addressMock,
-        meta: expect.any(Object),
-        origin: hostMock,
-        requestId: 1,
-      });
+      ).toHaveBeenCalledWith(
+        {
+          data: dataMock,
+          from: addressMock,
+          meta: expect.any(Object),
+          origin: hostMock,
+          requestId: 1,
+        },
+        expect.any(Object),
+        expect.any(Object),
+      );
     });
 
     it('returns resolved value from message promise', async () => {
@@ -1352,13 +1357,9 @@ describe('getRpcMethodMiddleware', () => {
         },
         expect.any(Object),
         version,
+        { parseJsonData: false },
+        expect.any(Object),
       ];
-
-      if (version !== 'V1') {
-        expectedParams.push({
-          parseJsonData: false,
-        });
-      }
 
       expect(
         Engine.context.SignatureController.newUnsignedTypedMessage,

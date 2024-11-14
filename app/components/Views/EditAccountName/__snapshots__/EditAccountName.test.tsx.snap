@@ -47,7 +47,7 @@ exports[`EditAccountName should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c5",
+            "borderColor": "#0376c9",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -87,7 +87,7 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="account-name-input"
-            value="Account 1"
+            value="Test Account"
           />
         </View>
       </View>
@@ -120,7 +120,7 @@ exports[`EditAccountName should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c5",
+            "borderColor": "#0376c9",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",

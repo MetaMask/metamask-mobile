@@ -11,7 +11,7 @@ import {
 import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import PropTypes from 'prop-types';
-import Eth from 'ethjs-query';
+import Eth from '@metamask/ethjs-query';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,

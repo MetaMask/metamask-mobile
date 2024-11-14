@@ -1,0 +1,86 @@
+import React from 'react';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import StakeButton from './index';
+import Routes from '../../../../../constants/navigation/Routes';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
+
+jest.mock('../../constants', () => ({
+  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    STAKE_BUTTON_CLICKED: 'Stake Button Clicked',
+  },
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
+  },
+}));
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest
+      .fn()
+      .mockResolvedValueOnce({ isEligible: true }),
+  }),
+}));
+
+const renderComponent = () =>
+  renderWithProvider(<StakeButton asset={MOCK_STAKED_ETH_ASSET} />);
+
+describe('StakeButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders correctly', () => {
+    const { getByTestId } = renderComponent();
+    expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
+  });
+
+  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+    const { getByTestId } = renderComponent();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
+    });
+  });
+});

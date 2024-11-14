@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -11,6 +12,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -42,12 +44,14 @@ const createStyles = (colors: Colors) =>
 
 interface EstimatedAnnualRewardsCardProps {
   estimatedAnnualRewards: string;
+  isLoading?: boolean;
   onIconPress: () => void;
 }
 
 const EstimatedAnnualRewardsCard = ({
   estimatedAnnualRewards,
   onIconPress,
+  isLoading = false,
 }: EstimatedAnnualRewardsCardProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -63,13 +67,27 @@ const EstimatedAnnualRewardsCard = ({
             onPress={onIconPress}
             accessibilityLabel="Learn More"
           >
-            <Icon name={IconName.Question} color={IconColor.Alternative} />
+            <Icon
+              name={IconName.Question}
+              color={IconColor.Alternative}
+              size={IconSize.Sm}
+            />
           </TouchableOpacity>
         </View>
         <View style={styles.rewardRateContainer}>
-          <Text color={TextColor.Success} variant={TextVariant.BodyMDMedium}>
-            {estimatedAnnualRewards}
-          </Text>
+          {isLoading ? (
+            <SkeletonPlaceholder>
+              <SkeletonPlaceholder.Item
+                width={60}
+                height={20}
+                borderRadius={6}
+              />
+            </SkeletonPlaceholder>
+          ) : (
+            <Text color={TextColor.Success} variant={TextVariant.BodyMDMedium}>
+              {estimatedAnnualRewards}
+            </Text>
+          )}
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}

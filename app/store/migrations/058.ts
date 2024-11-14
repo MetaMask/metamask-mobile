@@ -1,29 +1,24 @@
+import { captureException } from '@sentry/react-native';
+import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { hasProperty, isObject } from '@metamask/utils';
-
-export const DEFAULT_NOTIFICATION_SERVICES_CONTROLLER = {
-    isCheckingAccountsPresence: false,
-    isFeatureAnnouncementsEnabled: false,
-    isFetchingMetamaskNotifications: false,
-    isMetamaskNotificationsFeatureSeen: false,
-    isNotificationServicesEnabled: false,
-    isUpdatingMetamaskNotifications: false,
-    isUpdatingMetamaskNotificationsAccount: [],
-    metamaskNotificationsList: [],
-    metamaskNotificationsReadList: [],
-    subscriptionAccountsSeen: [],
-};
 
 export default function migrate(state: unknown) {
-    if (!ensureValidState(state, 60)) {
-        return state;
-    }
-
-    if (
-        !hasProperty(state.engine.backgroundState, 'NotificationServicesController') ||
-        !isObject(state.engine.backgroundState.NotificationServicesController)
-    ) {
-        state.engine.backgroundState.NotificationServicesController = DEFAULT_NOTIFICATION_SERVICES_CONTROLLER;
-    }
+  if (!ensureValidState(state, 58)) {
+    // Increment the migration number as appropriate
     return state;
+  }
+
+  if (!isObject(state.settings)) {
+    captureException(
+      new Error(
+        `FATAL ERROR: Migration 58: Invalid Settings state error: '${typeof state.settings}'`,
+      ),
+    );
+    return state;
+  }
+
+  state.settings.searchEngine = 'Google';
+
+  // Return the modified state
+  return state;
 }

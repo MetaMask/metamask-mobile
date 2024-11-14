@@ -91,6 +91,8 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
+import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -136,13 +138,12 @@ const Settings: React.FC = () => {
     loading: disableNotificationsLoading,
     error: disableNotificationsError,
   } = useDisableNotifications();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserHistory = useSelector((state: any) => state.browser.history);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lockTime = useSelector((state: any) => state.settings.lockTime);
+  const browserHistory = useSelector(
+    (state: RootState) => state.browser.history,
+  );
+
+  const lockTime = useSelector((state: RootState) => state.settings.lockTime);
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
@@ -152,11 +153,21 @@ const Settings: React.FC = () => {
   );
 
   const seedphraseBackedUp = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user.seedphraseBackedUp,
+    (state: RootState) => state.user.seedphraseBackedUp,
   );
+
+  /**
+   * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
+   */
+  useCheckNftAutoDetectionModal();
+
+  /**
+   * Show multi rpc modal if there are networks duplicated and if never showed before
+   */
+  useCheckMultiRpcModal();
+
   const type = useSelector(selectProviderType);
+
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {

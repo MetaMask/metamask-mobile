@@ -1,8 +1,8 @@
 import { Regression } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -55,8 +55,10 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
+
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
@@ -80,10 +82,9 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
-      ETHEREUM,
-    );
+
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(networkPicker, ETHEREUM);
   });
 
   it('should toggle off the Test Network switch', async () => {

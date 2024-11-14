@@ -33,7 +33,7 @@ exports[`TokenValueStack render matches snapshot 1`] = `
           onLoadEnd={[Function]}
           source={
             {
-              "uri": undefined,
+              "uri": "",
             }
           }
           style={

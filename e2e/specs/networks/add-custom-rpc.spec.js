@@ -4,8 +4,8 @@ import { Regression } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
 import ToastModal from '../../pages/modals/ToastModal';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -102,8 +102,9 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
   });
@@ -113,8 +114,9 @@ describe(Regression('Custom RPC Tests'), () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
 
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
   });
@@ -126,22 +128,28 @@ describe(Regression('Custom RPC Tests'), () => {
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
+
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
   });
 
   it('should switch back to Gnosis', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
+
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
+
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.scrollToTopOfNetworkList();
     // Change to back to Gnosis Network
@@ -149,8 +157,8 @@ describe(Regression('Custom RPC Tests'), () => {
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
