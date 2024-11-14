@@ -89,15 +89,13 @@ export const swapsSmartTxFlagEnabled = createSelector(
 export const selectSwapsChainFeatureFlags = createSelector(
   swapsStateSelector,
   chainIdSelector,
-  (swapsState, chainId) => {
-    return {
-      ...swapsState[chainId].featureFlags,
-      smartTransactions: {
-        ...swapsState[chainId].featureFlags.smartTransactions,
-        ...swapsState.featureFlags.smartTransactions,
-      },
-    };
-  },
+  (swapsState, chainId) => ({
+    ...swapsState[chainId].featureFlags,
+    smartTransactions: {
+      ...(swapsState[chainId].featureFlags?.smartTransactions || {}),
+      ...(swapsState.featureFlags?.smartTransactions || {}),
+    },
+  }),
 );
 
 /**
