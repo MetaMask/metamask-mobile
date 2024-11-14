@@ -323,6 +323,7 @@ type GlobalActions =
   | AuthenticationController.Actions
   | UserStorageController.Actions
   | NotificationServicesController.Actions
+  | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -359,6 +360,7 @@ type GlobalEvents =
   | AuthenticationController.Events
   | UserStorageController.Events
   | NotificationServicesController.Events
+  | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
