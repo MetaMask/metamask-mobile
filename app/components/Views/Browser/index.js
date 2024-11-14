@@ -53,6 +53,7 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import Routes from '../../../constants/navigation/Routes';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -213,8 +214,7 @@ export const Browser = (props) => {
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
 
-    // Skip permission check if we're transitioning to tabs view
-    checkTabPermissions(tab);
+    isMultichainVersion1Enabled && checkTabPermissions(tab);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
@@ -224,7 +224,14 @@ export const Browser = (props) => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
-      if (activeAccountAddress && isNetworkPermitted) {
+
+      // If multichain is not enabled, only check for active account
+      // If multichain is enabled, check both active account and network permission
+      const shouldShowToast = isMultichainVersion1Enabled
+        ? activeAccountAddress && isNetworkPermitted
+        : activeAccountAddress;
+
+      if (shouldShowToast) {
         const accountName = getAccountNameWithENS({
           accountAddress: activeAccountAddress,
           accounts,
