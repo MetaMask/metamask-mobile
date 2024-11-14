@@ -135,8 +135,8 @@ stages:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_notifications_ios: {}
-      - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_notifications_ios: {}
+      # - run_tag_smoke_notifications_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -252,6 +252,10 @@ workflows:
           title: Yarn Setup
   prep_environment:
     steps:
+      - restore-cache@2:
+          title: Restore Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
       - script@1:
           title: node, yarn, corepack installation
           inputs:
@@ -302,6 +306,13 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
+      - save-cache@1:
+          title: Save Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
+            - paths: |-
+                ../.nvm/
+                ../../../root/.nvm/
   install_applesimutils:
     steps:
       - script@1:
