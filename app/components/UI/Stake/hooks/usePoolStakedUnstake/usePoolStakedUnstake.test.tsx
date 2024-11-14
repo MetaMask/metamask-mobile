@@ -1,3 +1,4 @@
+import { hexToBN } from '@metamask/controller-utils';
 import usePoolStakedUnstake from '.';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -7,7 +8,7 @@ import {
   StakingType,
   ChainId,
 } from '@metamask/stake-sdk';
-import { BigNumber, Contract, ethers } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import useBalance from '../useBalance';
 
@@ -35,6 +36,7 @@ const MOCK_UNSTAKE_GAS_LIMIT = 73135;
 const MOCK_UNSTAKE_VALUE_WEI = '10000000000000000'; // 0.01 ETH
 const MOCK_STAKED_BALANCE_VALUE_WEI = '20000000000000000'; // 0.02 ETH
 const MOCK_UNSTAKE_ALL_VALUE_WEI = MOCK_STAKED_BALANCE_VALUE_WEI;
+const MOCK_USER_SHARES = '20000000000008000';
 
 const ENCODED_TX_UNSTAKE_DATA = {
   chainId: 1,
@@ -56,6 +58,10 @@ const mockEncodeEnterExitQueueTransactionData = jest
 const mockConvertToShares = jest
   .fn()
   .mockResolvedValue({ hex: '0x230fa39a9b6ca0', type: 'BigNumber' });
+
+const mockGetShares = jest
+  .fn()
+  .mockResolvedValue(hexToBN(MOCK_USER_SHARES));
 
 let mockAddTransaction: jest.Mock;
 
@@ -92,6 +98,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
     },
   } as unknown as Contract,
   convertToShares: mockConvertToShares,
+  getShares: mockGetShares,
   encodeClaimExitedAssetsTransactionData: jest.fn(),
   encodeDepositTransactionData: jest.fn(),
   encodeEnterExitQueueTransactionData: mockEncodeEnterExitQueueTransactionData,
@@ -141,6 +148,7 @@ describe('usePoolStakedUnstake', () => {
         MOCK_RECEIVER_ADDRESS,
       );
 
+      expect(mockGetShares).toHaveBeenCalledTimes(0);
       expect(mockConvertToShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
@@ -148,16 +156,6 @@ describe('usePoolStakedUnstake', () => {
     });
 
     it('attempts to create and submit an unstake all transaction', async () => {
-      jest.spyOn(ethers.utils, 'Interface').mockImplementation(
-        () =>
-          ({
-            encodeFunctionData: jest.fn(),
-            decodeFunctionResult: jest
-              .fn()
-              .mockReturnValue([BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI)]),
-          } as unknown as ethers.utils.Interface),
-      );
-
       const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
         state: mockInitialState,
       });
@@ -168,13 +166,10 @@ describe('usePoolStakedUnstake', () => {
       );
 
       expect(mockConvertToShares).toHaveBeenCalledTimes(0);
+      expect(mockGetShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(
-        BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI).toString(),
-        MOCK_RECEIVER_ADDRESS,
-        { gasLimit: MOCK_UNSTAKE_GAS_LIMIT },
-      );
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES).toString(), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });
