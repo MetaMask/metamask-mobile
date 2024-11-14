@@ -1,17 +1,31 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
+import { Hex } from '@metamask/utils';
 import { zeroAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
+import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useTheme } from '../../../../../util/theme';
+import { TOKEN_RATE_UNDEFINED } from '../../constants';
+import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import {
-  selectContractExchangeRates,
-  selectTokenMarketData,
-} from '../../../../../selectors/tokenRatesController';
+  selectChainId,
+  selectProviderConfig,
+  selectTicker,
+} from '../../../../../selectors/networkController';
+import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
+import { RootState } from '../../../../../reducers';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   getTestNetImageByChainId,
+  isLineaMainnetByChainId,
+  isMainnetByChainId,
   isTestNet,
 } from '../../../../../util/networks';
 import createStyles from '../../styles';
@@ -26,17 +40,16 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import AssetElement from '../../../AssetElement';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
+import images from 'images/image-icons';
 import { TokenI } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import { CHAIN_ID_TOKEN_IMAGE_MAP } from '../../../../../util/networks/networks';
+import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
-import {
-  PopularList,
-  UnpopularNetworkList,
-} from '../../../../../util/networks/customNetworks';
+
 interface TokenListItemProps {
   asset: TokenI;
   showScamWarningModal: boolean;
@@ -54,57 +67,40 @@ export const TokenListItem = ({
 }: TokenListItemProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  // const { data: tokenBalances } = useTokenBalancesController();
+  const { data: tokenBalances } = useTokenBalancesController();
 
-  // const { type } = useSelector(selectProviderConfig);
-  // const chainId = useSelector(selectChainId);
-  // const ticker = useSelector(selectTicker);
-  // const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
-  //   chainId,
-  //   ticker,
-  //   type,
-  // );
+  const { type } = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
+  const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
+    chainId,
+    ticker,
+    type,
+  );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  // const currentCurrency = useSelector(selectCurrentCurrency);
-  // const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
-  // const primaryCurrency = useSelector(
-  //   (state: RootState) => state.settings.primaryCurrency,
-  // );
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-  // console.log('multiChainMarketData', multiChainMarketData);
+  const primaryCurrency = useSelector(
+    (state: RootState) => state.settings.primaryCurrency,
+  );
+
   const styles = createStyles(colors);
 
   const itemAddress = safeToChecksumAddress(asset.address);
 
-  // const { balanceFiat, balanceValueFormatted } =
-  //   deriveBalanceFromAssetMarketDetails(
-  //     asset,
-  //     tokenExchangeRates,
-  //     tokenBalances,
-  //     conversionRate,
-  //     currentCurrency,
-  //   );
+  const { balanceFiat, balanceValueFormatted } =
+    deriveBalanceFromAssetMarketDetails(
+      asset,
+      tokenExchangeRates,
+      tokenBalances,
+      conversionRate,
+      currentCurrency,
+    );
 
-  // const pricePercentChange1d = itemAddress
-  //   ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
-  //   : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
-
-  // const pricePercentChange1d =
-  //   multiChainMarketData?.[asset.chainId as HexString]?.[
-  //     asset.address as HexString
-  //   ]?.pricePercentChange1d;
-
-  const tokenPercentageChange = asset.address
-    ? multiChainMarketData?.[asset.chainId as HexString]?.[
-        asset.address as HexString
-      ]?.pricePercentChange1d
-    : null;
-
-  const pricePercentChange1d = asset.isNative
-    ? multiChainMarketData?.[asset.chainId as HexString]?.[zeroAddress()]
-        ?.pricePercentChange1d
-    : tokenPercentageChange;
+  const pricePercentChange1d = itemAddress
+    ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
+    : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
 
   // render balances according to primary currency
   let mainBalance;
@@ -153,36 +149,26 @@ export const TokenListItem = ({
     secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
   }
 
+  asset = { ...asset, balanceFiat };
+
+  const isMainnet = isMainnetByChainId(chainId);
+  const isLineaMainnet = isLineaMainnetByChainId(chainId);
+
   const { isStakingSupportedChain } = useStakingChain();
 
-  const getNetworkBadgeSrc = useCallback((currentChainId: HexString) => {
-    if (isTestNet(currentChainId))
-      return getTestNetImageByChainId(currentChainId);
+  const NetworkBadgeSource = () => {
+    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
-    const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as any;
+    if (isMainnet) return images.ETHEREUM;
 
-    if (defaultNetwork) {
-      return defaultNetwork.imageSource;
+    if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+    if (CustomNetworkImgMapping[chainId]) {
+      return CustomNetworkImgMapping[chainId];
     }
 
-    const unpopularNetwork = UnpopularNetworkList.find(
-      (networkConfig) => networkConfig.chainId === currentChainId,
-    );
-
-    const customNetworkImg = CHAIN_ID_TOKEN_IMAGE_MAP[currentChainId];
-
-    const popularNetwork = PopularList.find(
-      (networkConfig) => networkConfig.chainId === currentChainId,
-    );
-
-    const network = unpopularNetwork || popularNetwork;
-    if (network) {
-      return network.rpcPrefs.imageSource;
-    }
-    if (customNetworkImg) {
-      return customNetworkImg;
-    }
-  }, []);
+    return ticker ? images[ticker] : undefined;
+  };
 
   const onItemPress = (token: TokenI) => {
     // if the asset is staked, navigate to the native asset details
@@ -201,28 +187,21 @@ export const TokenListItem = ({
       onPress={onItemPress}
       onLongPress={asset.isETH ? null : showRemoveMenu}
       asset={asset}
-      balance={asset.balanceFiat}
-      mainBalance={asset.balance}
+      balance={secondaryBalance}
+      mainBalance={mainBalance}
       privacyMode={privacyMode}
     >
       <BadgeWrapper
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
-            imageSource={getNetworkBadgeSrc(asset.chainId as HexString)}
+            imageSource={NetworkBadgeSource()}
             name={networkName}
           />
         }
       >
-        {asset.isNative ? (
-          <NetworkAssetLogo
-            chainId={asset.chainId as HexString}
-            style={styles.ethLogo}
-            ticker={asset.symbol}
-            big={false}
-            biggest={false}
-            testID={'PLACE HOLDER'}
-          />
+        {asset.isETH ? (
+          <NetworkMainAssetLogo style={styles.ethLogo} />
         ) : (
           <AvatarToken
             name={asset.symbol}
@@ -247,8 +226,7 @@ export const TokenListItem = ({
             <StakeButton asset={asset} />
           )}
         </View>
-        {/* TODO: Make sure this works later */}
-        {!isTestNet(asset.chainId as HexString) ? (
+        {!isTestNet(chainId) ? (
           <PercentageChange value={pricePercentChange1d} />
         ) : null}
       </View>
