@@ -1,9 +1,11 @@
+import { getTraceTags } from '../../util/sentry/tags';
 import {
   TraceContext,
   TraceName,
   TraceOperation,
   trace,
 } from '../../util/trace';
+import { store } from '../../store';
 
 let UIStartupSpan: TraceContext;
 
