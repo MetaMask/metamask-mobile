@@ -31,12 +31,13 @@ const createStyles = (params: {
       marginLeft: 24,
     },
     bottomButtonsContainer: {
-      marginTop: 16,
+      marginTop: 8,
     },
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
       paddingHorizontal: 24,
+      marginTop: 8,
     },
     buttonPositioning: {
       flex: 1,
@@ -123,6 +124,7 @@ const createStyles = (params: {
     dataIcon: { alignSelf: 'flex-start' },
     disconnectAllContainer: {
       marginHorizontal: 24,
+      marginTop: 8,
       flexDirection: 'row',
     },
     disconnectButton: { flex: 1 },
@@ -131,8 +133,7 @@ const createStyles = (params: {
       alignItems: 'center',
     },
     nonDappNetworkSwitchButtons: {
-      marginTop: 16,
-      gap: 20,
+      gap: 16,
     },
     description: {
       marginHorizontal: 24,
