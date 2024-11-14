@@ -2,6 +2,12 @@
 
 ## Current Main Branch
 
+## 7.34.1 - Nov 8, 2024
+### Fixed
+- [#12205](https://github.com/MetaMask/metamask-mobile/pull/12205): fix: add contractBalances as dependency
+- [#12236](https://github.com/MetaMask/metamask-mobile/pull/12236): fix: Add migration to fix NotificationServicesController bug (#12236)
+- [#12228](https://github.com/MetaMask/metamask-mobile/pull/12228): fix: Update transaction-controller version
+
 ## 7.34.0 - Oct 28, 2024
 ### Added
 - [#11578](https://github.com/MetaMask/metamask-mobile/pull/11578): feat: 1653 first feature flag poc (#11578)
@@ -101,7 +107,7 @@
 ### Fixed
 - [#10952](https://github.com/MetaMask/metamask-mobile/pull/10952): refactor(ramp): update ramp copy (#10952)
 
-## 7.33.2 - Oct 29, 2024
+## 7.33.1 - Oct 29, 2024
 ### Fixed
 - [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
 
