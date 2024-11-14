@@ -1,11 +1,14 @@
 import {
   toChecksumAddress,
-  isValidAddress,
+  isValidAddress as isValidEthereumAddress,
   addHexPrefix,
   isValidChecksumAddress,
   //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { validate as validateBitcoinAddress } from 'bitcoin-address-validation';
+///: END:ONLY_INCLUDE_IF
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
@@ -70,19 +73,31 @@ type FormatAddressType = 'short' | 'mid' | 'full';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
 
-  // if (!isValidAddress(rawAddress)) {
-  //   return rawAddress;
-  // }
-
-  if (type && type === 'short') {
-    formattedAddress = renderShortAddress(rawAddress);
-  } else if (type && type === 'mid') {
-    formattedAddress = renderSlightlyLongAddress(rawAddress);
-  } else {
-    formattedAddress = renderFullAddress(rawAddress);
+  // Check if it's a valid Ethereum address
+  if (isValidEthereumAddress(rawAddress)) {
+    if (type && type === 'short') {
+      formattedAddress = renderShortAddress(rawAddress);
+    } else if (type && type === 'mid') {
+      formattedAddress = renderSlightlyLongAddress(rawAddress);
+    } else {
+      formattedAddress = renderFullAddress(rawAddress);
+    }
+    return formattedAddress;
   }
 
-  return formattedAddress;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  // If not Ethereum, check if it's a valid Bitcoin address
+  if (validateBitcoinAddress(rawAddress)) {
+    if (type && type === 'short') {
+      formattedAddress = renderShortAddress(rawAddress);
+    } else if (type && type === 'mid') {
+      formattedAddress = renderSlightlyLongAddress(rawAddress);
+    }
+    return formattedAddress;
+  }
+  ///: END:ONLY_INCLUDE_IF
+
+  return rawAddress;
 };
 
 /**
@@ -390,7 +405,7 @@ export function isValidHexAddress(
       return isValidChecksumAddress(addressToCheck);
     }
   }
-  return isValidAddress(addressToCheck);
+  return isValidEthereumAddress(addressToCheck);
 }
 
 /**
