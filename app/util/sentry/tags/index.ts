@@ -14,6 +14,7 @@ export function getTraceTags(state: RootState) {
   if (!state?.engine?.backgroundState?.TransactionController) return;
   if (!state?.engine?.backgroundState?.NotificationServicesController) return;
   if (!Object.keys(state?.engine?.backgroundState).length) return;
+
   const unlocked = state.user.userLoggedIn;
   const accountCount = selectInternalAccounts(state).length;
   const nftCount = selectAllNftsFlat(state).length;
