@@ -66,7 +66,7 @@ pipelines:
       - create_build_qa_android: {}
       - app_launch_times_test_stage: {}
 
-#App Upgrade pipeline. Runs on browserstack
+  #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
       - create_build_qa_android: {}
@@ -135,18 +135,20 @@ stages:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_assets_ios: {}
+      # - run_tag_smoke_notifications_ios: {}
+      # - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
+      # - run_tag_smoke_swaps_ios: {}
+      # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -159,6 +161,8 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
       - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -166,6 +170,7 @@ stages:
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
+      - run_android_app_launch_times_appium_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -247,17 +252,22 @@ workflows:
           title: Yarn Setup
   prep_environment:
     steps:
+      - restore-cache@2:
+          title: Restore Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
       - script@1:
+          title: node, yarn, corepack installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Gems being installed with bundler gem"
-                bundle install
+                bundle install --gemfile=ios/Gemfile
                 echo "Node $NODE_VERSION being installed"
 
                 set -e
 
-                # Install and enable NVM
+                # Add and enable NVM
                 wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
                 echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
                 sha256sum -c install-nvm.sh.SHA256SUM
@@ -265,8 +275,29 @@ workflows:
                 source "${HOME}/.nvm/nvm.sh"
                 echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
 
-                nvm install ${NODE_VERSION}
+                 # Retry logic for Node installation
+                MAX_ATTEMPTS=3
+                ATTEMPT=1
+                until [ $ATTEMPT -gt $MAX_ATTEMPTS ]
+                do
+                  echo "Attempt $ATTEMPT to install Node.js"
+                  nvm install ${NODE_VERSION}
+                  INSTALL_STATUS=$? # Capture the exit status of the nvm install command
+                  if [ $INSTALL_STATUS -eq 0 ]; then
+                      echo "Node.js installation successful!"
+                      break
+                  else
+                      echo "Node.js installation failed with exit code $INSTALL_STATUS"
+                      ATTEMPT=$((ATTEMPT+1))
+                      echo "Node.js installation failed, retrying in 5 seconds..."
+                      sleep 5
+                  fi
+                done
 
+                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+                  echo "Node.js installation failed after $MAX_ATTEMPTS attempts."
+                  exit 1
+                fi
                 envman add --key PATH --value $PATH
 
                 node --version
@@ -275,15 +306,23 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
-          title: Install node, yarn and corepack
-  install_detox:
+      - save-cache@1:
+          title: Save Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
+            - paths: |-
+                ../.nvm/
+                ../../../root/.nvm/
+  install_applesimutils:
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              scripts/detox-setup.sh
-        title: Install Detox Dependencies
+      - script@1:
+          title: applesimutils installation
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "Now installing applesimutils..."
+                brew tap wix/brew
+                brew install applesimutils
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -333,7 +372,7 @@ workflows:
           is_always_run: false
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: standard
 
   # Send a Slack message when workflow succeeds
@@ -397,6 +436,9 @@ workflows:
                 >[!NOTE]
                 >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
 
+                > [!TIP]
+                >- Check the [documentation](https://www.notion.so/metamask-consensys/Bitrise-Pipeline-Overview-43159500c43748a389556f0593e8834b#26052f2ea6e24f8c9cfdb57a7522dc1f) if you have any doubts on how to understand the failure on bitrise
+
                 <!-- BITRISE_TAG -->
                 <!-- BITRISE_FAIL_TAG -->
             - repository_url: '$GIT_REPOSITORY_URL'
@@ -438,7 +480,7 @@ workflows:
   android_build_regression_tests:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
@@ -447,7 +489,7 @@ workflows:
   android_run_regression_tests:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
@@ -456,12 +498,12 @@ workflows:
   run_tag_upgrade_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://f0eefdd04dd0b913eb8b6494e4990e3e9f1c2bd3' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.26.1
-      - PRODUCTION_BUILD_NUMBER: 1360
+      - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.30.0
+      - PRODUCTION_BUILD_NUMBER: 1410
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -473,7 +515,7 @@ workflows:
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     after_run:
       - wdio_android_e2e_test
@@ -488,11 +530,27 @@ workflows:
   run_tag_smoke_accounts_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_notifications_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_notifications_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_assets_ios:
@@ -504,7 +562,7 @@ workflows:
   run_tag_smoke_assets_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
@@ -520,7 +578,7 @@ workflows:
   run_tag_smoke_confirmations_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
@@ -536,7 +594,7 @@ workflows:
   run_tag_smoke_swaps_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -555,7 +613,7 @@ workflows:
   run_tag_smoke_core_android:
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
@@ -565,7 +623,6 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -581,20 +638,17 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
+      - file-downloader@1:
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
       - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 sudo apt update
-                sudo apt install ccache
+                sudo apt install ccache -y
       - restore-cache@2:
           title: Restore CCache
           inputs:
@@ -622,7 +676,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -643,11 +697,10 @@ workflows:
     meta:
       bitrise.io:
         machine_type_id: elite-xl
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
   android_e2e_test:
     before_run:
       - setup
-      - install_detox
       - prep_environment
     after_run:
       - notify_failure
@@ -674,13 +727,6 @@ workflows:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - script@1:
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
             - api_level: '34'
@@ -710,7 +756,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -731,7 +777,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy test screenshots
           is_always_run: true
@@ -739,15 +785,15 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: E2E_Android_Failure_Screenshots
+            - zip_name: E2E_Android_Failure_Artifacts
     meta:
       bitrise.io:
         machine_type_id: elite-xl
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
   ios_api_specs:
     before_run:
       - setup
-      - install_detox
+      - install_applesimutils
       - prep_environment
     after_run:
       - notify_failure
@@ -796,7 +842,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                yarn test:api-specs
+                yarn test:api-specs --retries 1
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -812,9 +858,11 @@ workflows:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
   ios_e2e_build:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
+      - install_applesimutils
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -877,7 +925,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -898,9 +946,11 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - setup
-      - install_detox
+      - install_applesimutils
       - prep_environment
     after_run:
       - notify_failure
@@ -933,7 +983,7 @@ workflows:
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
       - script:
           inputs:
             - content: |-
@@ -964,7 +1014,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -985,7 +1035,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           run_if: .IsBuildFailed
@@ -993,7 +1043,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Screenshots'
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -1027,13 +1077,6 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
       - script@1:
           inputs:
             - content: |-
@@ -1080,8 +1123,13 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+    after_run:
+      - build_android_release
   build_android_qa:
     before_run:
       - code_setup
@@ -1103,13 +1151,7 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
+
       - script@1:
           inputs:
             - content: |-
@@ -1151,7 +1193,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   _upload_apk_to_browserstack:
     steps:
@@ -1196,7 +1238,7 @@ workflows:
 
                 # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
                 if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL. 
+                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
                   # This is incase an engineer wants to kick off the tests with an existing browserstack url
                   echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
                 else
@@ -1208,7 +1250,7 @@ workflows:
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
 
-                # Check if TEST_TYPE is set to performance  
+                # Check if TEST_TYPE is set to performance
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
@@ -1231,7 +1273,7 @@ workflows:
           title: Deploy test report
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: standard
   deploy_android_to_store:
     steps:
@@ -1257,6 +1299,8 @@ workflows:
           inputs:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1295,7 +1339,14 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  build_ios_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+    after_run:
+      - build_ios_release
   build_ios_qa:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - code_setup
     after_run:
@@ -1420,13 +1471,7 @@ workflows:
           inputs:
             - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
+
       - script@1:
           inputs:
             - content: |-
@@ -1473,7 +1518,7 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
 
 app:
@@ -1486,7 +1531,19 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
+      PORTFOLIO_VIEW: false
+    - opts:
+        is_expand: false
       MM_MULTICHAIN_V1_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_POOLED_STAKING_UI_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1519,16 +1576,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.28.0
+      VERSION_NAME: 7.34.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1375
+      VERSION_NUMBER: 1475
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.28.0
+      FLASK_VERSION_NAME: 7.34.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1375
+      FLASK_VERSION_NUMBER: 1475
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1546,7 +1603,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.12.2
+      NODE_VERSION: 20.17.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
@@ -1556,13 +1613,15 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
-    machine_type_id: g2-m1-max.5core
+    machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
-    pipeline: release_e2e_pipeline
+    pipeline: pr_regression_e2e_pipeline
   - push_branch: main
-    pipeline: pr_smoke_e2e_pipeline
+    pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
+  - tag: 'v*.*.*-RC-*'
+    pipeline: release_e2e_pipeline

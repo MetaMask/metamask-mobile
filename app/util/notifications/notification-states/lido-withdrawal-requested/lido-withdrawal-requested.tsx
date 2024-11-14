@@ -1,5 +1,9 @@
 import { strings } from '../../../../../locales/i18n';
-import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
@@ -77,7 +81,7 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
         },
       ],
       footer: {
-        type: ModalFieldType.BLOCK_EXPLORER,
+        type: ModalFooterType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

@@ -78,7 +78,7 @@ export const selectPendingSmartTransactionsBySender = (state: RootState) => {
         // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
         // Doesn't matter too much because we only care about the pending stx, confirmed txs are handled like normal
         // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on client side tx.id
-        // To fix that we do transactionController.update({ swapsTransactions: newSwapsTransactions }) in app/util/smart-transactions/smart-tx.ts
+        // To fix that we create a duplicate swaps transaction for the stx.uuid in the smart publish hook.
         id: stx.uuid,
         status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
           ? SmartTransactionStatuses.CANCELLED

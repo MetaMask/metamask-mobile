@@ -21,7 +21,6 @@ const SAMPLE_CELLSELECT_WITH_BUTTON_AVATARPROPS: AvatarProps = {
   type: AvatarAccountType.JazzIcon,
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export const SAMPLE_CELLSELECT_WITH_BUTTON_PROPS: CellSelectWithMenuProps = {
   title: SAMPLE_CELLSELECT_WITH_BUTTON_TITLE,
   secondaryText: SAMPLE_CELLSELECT_WITH_BUTTON_SECONDARYTEXT,

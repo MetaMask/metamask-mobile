@@ -31,7 +31,11 @@ const handleSwitchToggle = jest.fn();
 describe('ProfileSyncing', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <ProfileSyncingComponent handleSwitchToggle={handleSwitchToggle} />,
+      <ProfileSyncingComponent
+        handleSwitchToggle={handleSwitchToggle}
+        isBasicFunctionalityEnabled={false}
+        isProfileSyncingEnabled={false}
+      />,
     );
     expect(toJSON()).toMatchSnapshot();
   });

@@ -18,10 +18,15 @@ export interface Network {
 }
 
 export interface ExtendedNetwork extends Network {
+  name?: string;
   formattedRpcUrl?: string | null;
 }
 
 export interface CustomNetworkProps {
+  /**
+   * Boolean check to track if Popular network or Custom network form is open
+   */
+  showPopularNetworkModal: boolean;
   /**
    * is network modal open
    */
@@ -41,7 +46,7 @@ export interface CustomNetworkProps {
   /**
    * show network modal
    */
-  showNetworkModal: (networkConfiguration: Network) => void;
+  showNetworkModal: (networkConfiguration: Network & ExtendedNetwork) => void;
   /**
    * Switch tab between popular and custom networks
    */

@@ -67,6 +67,7 @@ export default function ActionView({
   keyboardShouldPersistTaps = 'never',
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
+  scrollViewTestID,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -79,6 +80,7 @@ export default function ActionView({
         style={[baseStyles.flexGrow, style]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+        testID={scrollViewTestID}
       >
         <TouchableWithoutFeedback
           style={baseStyles.flexGrow}
@@ -219,4 +221,9 @@ ActionView.propTypes = {
    * Optional Confirm button state - this can be Error/Warning/Normal.
    */
   confirmButtonState: PropTypes.string,
+
+  /**
+   * Optional TestID for the parent scroll View
+   */
+  scrollViewTestID: PropTypes.string,
 };

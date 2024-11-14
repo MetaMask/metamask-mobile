@@ -38,9 +38,9 @@ import {
   TOKEN_METHOD_APPROVE,
   getTransactionReviewActionKey,
 } from '.';
-import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -736,31 +736,6 @@ describe('Transaction utils :: calculateEIP1559Times', () => {
   });
 });
 
-describe('Transactions utils :: buildUnserializedTransaction', () => {
-  it('returns a transaction that can be serialized and fed to an Optimism smart contract', () => {
-    const unserializedTransaction = buildUnserializedTransaction({
-      txParams: {
-        nonce: '0x0',
-        gasPrice: `0x${new BN('100').toString(16)}`,
-        gas: `0x${new BN('21000').toString(16)}`,
-        to: '0x0000000000000000000000000000000000000000',
-        value: `0x${new BN('10000000000000').toString(16)}`,
-        data: '0x0',
-      },
-      chainId: '10',
-      metamaskNetworkId: '10',
-    });
-    expect(unserializedTransaction.toJSON()).toMatchObject({
-      nonce: '0x0',
-      gasPrice: '0x64',
-      gasLimit: '0x5208',
-      to: '0x0000000000000000000000000000000000000000',
-      value: '0x9184e72a000',
-      data: '0x00',
-    });
-  });
-});
-
 const dappTxMeta = {
   chainId: '0x1',
   origin: 'pancakeswap.finance',
@@ -1045,6 +1020,19 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
     expect(actionKey).toBe(TOKEN_METHOD_INCREASE_ALLOWANCE);
   });
+
+  it.each([
+    TransactionType.stakingClaim,
+    TransactionType.stakingDeposit,
+    TransactionType.stakingUnstake,
+  ])('returns transaction type if type is %s', async (type) => {
+    const transaction = { type };
+    const chainId = '1';
+
+    const actionKey = await getTransactionActionKey(transaction, chainId);
+
+    expect(actionKey).toBe(type);
+  });
 });
 
 describe('Transactions utils :: getFourByteSignature', () => {
@@ -1112,14 +1100,17 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const chainId = '1';
   it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
-    const result = await getTransactionReviewActionKey(transaction, chainId);
+    const result = await getTransactionReviewActionKey(
+      { transaction },
+      chainId,
+    );
     expect(result).toEqual(expectedReviewActionKey);
   });
 
   it('returns correct review action key', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
     const result = await getTransactionReviewActionKey(
-      { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE },
+      { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);

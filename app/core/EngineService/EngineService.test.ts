@@ -69,6 +69,7 @@ jest.mock('../Engine', () => {
           AuthenticationController: { subscribe: jest.fn() },
           UserStorageController: { subscribe: jest.fn() },
           NotificationServicesController: { subscribe: jest.fn() },
+          SelectedNetworkController: { subscribe: jest.fn() },
         },
       };
       return instance;

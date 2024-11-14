@@ -22,6 +22,7 @@ describe('TransactionDetails', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <TransactionDetails
+          // @ts-expect-error - TransactionDetails needs to be converted to typescript
           transactionObject={{
             networkID: '1',
             status: 'confirmed',
@@ -29,6 +30,7 @@ describe('TransactionDetails', () => {
               nonce: '',
             },
           }}
+          //@ts-expect-error - TransactionDetails needs to be converted to typescript
           transactionDetails={{
             renderFrom: '0x0',
             renderTo: '0x1',

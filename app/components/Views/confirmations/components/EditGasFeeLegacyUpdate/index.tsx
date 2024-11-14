@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import BigNumber from 'bignumber.js';
 /* eslint-disable react/display-name */
 import React, { useCallback, useMemo, useState } from 'react';
@@ -43,6 +45,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -252,7 +255,7 @@ const EditGasFeeLegacy = ({
   };
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID={EditGasViewSelectorsIDs.LEGACY_CONTAINER}>
       <ScrollView style={styles.wrapper}>
         <TouchableWithoutFeedback>
           <View>

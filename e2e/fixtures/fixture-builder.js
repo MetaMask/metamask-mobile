@@ -143,43 +143,79 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-                ticker: 'ETH',
-              },
               networksMetadata: {
-                goerli: {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-goerli': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-sepolia': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-mainnet': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
                 mainnet: {
-                  EIPS: {},
-                  status: 'unknown',
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
-                sepolia: {
-                  EIPS: {},
-                  status: 'unknown',
+                networkId1: {
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
               },
-              networkConfigurations: {
-                networkId1: {
-                  rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1338',
-                  ticker: 'ETH',
-                  nickname: 'Localhost',
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'mainnet',
+                      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                      type: 'infura',
+                      name: 'Ethereum Network default RPC',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://etherscan.io'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Ethereum Main Network',
+                  nativeCurrency: 'ETH',
+                },
+                '0x539': {
+                  chainId: '0x539',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'networkId1',
+                      url: `http://localhost:${getGanachePort()}`,
+                      type: 'custom',
+                      name: 'Local RPC',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: [],
+                  name: 'Localhost',
+                  nativeCurrency: 'ETH',
+                },
+                '0xaa36a7': {
+                  blockExplorerUrls: [],
+                  chainId: '0xaa36a7',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Sepolia',
+                  nativeCurrency: 'SepoliaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'sepolia',
+                      type: 'infura',
+                      url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
+                '0xe705': {
+                  blockExplorerUrls: [],
+                  chainId: '0xe705',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Linea Sepolia',
+                  nativeCurrency: 'LineaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'linea-sepolia',
+                      type: 'infura',
+                      url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
                 },
               },
             },
@@ -221,7 +257,6 @@ class FixtureBuilder {
                     options: {},
                     methods: [
                       'personal_sign',
-                      'eth_sign',
                       'eth_signTransaction',
                       'eth_signTypedData_v1',
                       'eth_signTypedData_v3',
@@ -242,7 +277,7 @@ class FixtureBuilder {
                   importTime: 1684232000456,
                 },
               },
-              ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+              ipfsGateway: 'https://dweb.link/ipfs/',
               lostIdentities: {},
               selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
               useTokenDetection: true,
@@ -250,9 +285,6 @@ class FixtureBuilder {
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
-              disabledRpcMethodPreferences: {
-                eth_sign: false,
-              },
               showTestNetworks: true,
               _U: 0,
               _V: 1,
@@ -266,7 +298,7 @@ class FixtureBuilder {
                     importTime: 1684232000456,
                   },
                 },
-                ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+                ipfsGateway: 'https://dweb.link/ipfs/',
                 lostIdentities: {},
                 selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
                 useTokenDetection: true,
@@ -274,9 +306,6 @@ class FixtureBuilder {
                 displayNftMedia: true,
                 useSafeChainsListValidation: false,
                 isMultiAccountBalancesEnabled: true,
-                disabledRpcMethodPreferences: {
-                  eth_sign: false,
-                },
                 showTestNetworks: true,
                 showIncomingTransactions: {
                   '0x1': true,
@@ -392,6 +421,19 @@ class FixtureBuilder {
               pendingApprovalCount: 0,
               approvalFlows: [],
             },
+            UserStorageController: {},
+            NotificationServicesController: {
+              subscriptionAccountsSeen: [],
+              isMetamaskNotificationsFeatureSeen: false,
+              isNotificationServicesEnabled: false,
+              isFeatureAnnouncementsEnabled: false,
+              metamaskNotificationsList: [],
+              metamaskNotificationsReadList: [],
+              isUpdatingMetamaskNotifications: false,
+              isFetchingMetamaskNotifications: false,
+              isUpdatingMetamaskNotificationsAccount: [],
+              isCheckingAccountsPresence: false,
+            },
           },
         },
         privacy: {
@@ -404,7 +446,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://home.metamask.io/',
+              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
               id: 1692550481062,
             },
           ],
@@ -419,7 +461,7 @@ class FixtureBuilder {
           signMessageModalVisible: true,
         },
         settings: {
-          searchEngine: 'DuckDuckGo',
+          searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
           useBlockieIcon: true,
@@ -569,7 +611,7 @@ class FixtureBuilder {
             },
             {
               active: true,
-              chainId: 1338,
+              chainId: 1337,
               chainName: 'Localhost',
               shortName: 'Localhost',
               nativeTokenSupported: true,
@@ -646,22 +688,49 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+    const networkController =
+      this.fixture.state.engine.backgroundState.NetworkController;
 
-    if (data.providerConfig.ticker !== 'ETH')
+    // Extract providerConfig data
+    const { providerConfig } = data;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(networkController.networkConfigurationsByChainId).length + 1
+    }`;
+
+    // Define the network configuration
+    const networkConfig = {
+      chainId: providerConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: providerConfig.rpcUrl,
+          type: providerConfig.type,
+          name: providerConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: providerConfig.nickname,
+      nativeCurrency: providerConfig.ticker,
+    };
+
+    // Add the new network configuration to the object
+    networkController.networkConfigurationsByChainId[providerConfig.chainId] =
+      networkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    networkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Merge the rest of the data
+    merge(networkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH') {
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
         data.providerConfig.ticker;
-    return this;
-  }
+    }
 
-  withAddressBookController(data) {
-    merge(
-      this.fixture.state.engine.backgroundState.AddressBookController
-        ? this.fixture.state.engine.backgroundState.AddressBookController
-        : (this.fixture.state.engine.backgroundState.AddressBookController =
-            {}),
-      data,
-    );
     return this;
   }
 
@@ -707,51 +776,129 @@ class FixtureBuilder {
   withGanacheNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: '0x53a',
-        rpcUrl: `http://localhost:${getGanachePort()}`,
-        nickname: 'Localhost',
-        ticker: 'ETH',
-      },
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    // Define the Ganache network configuration
+    const ganacheNetworkConfig = {
+      chainId: '0x539',
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: `http://localhost:${getGanachePort()}`,
+          type: 'custom',
+          name: 'Localhost',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: 'Localhost',
+      nativeCurrency: 'ETH',
     };
+
+    // Add the new Ganache network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId['0x539'] =
+      ganacheNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
     return this;
   }
 
   withSepoliaNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: CustomNetworks.Sepolia.providerConfig.chainId,
-        rpcUrl: CustomNetworks.Sepolia.providerConfig.rpcTarget,
-        nickname: CustomNetworks.Sepolia.providerConfig.nickname,
-        ticker: CustomNetworks.Sepolia.providerConfig.ticker,
-      },
+    // Extract Sepolia network configuration from CustomNetworks
+    const sepoliaConfig = CustomNetworks.Sepolia.providerConfig;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+
+    // Define the Sepolia network configuration
+    const sepoliaNetworkConfig = {
+      chainId: sepoliaConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: sepoliaConfig.rpcTarget,
+          type: 'custom',
+          name: sepoliaConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: sepoliaConfig.nickname,
+      nativeCurrency: sepoliaConfig.ticker,
     };
+
+    // Add the new Sepolia network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId[
+      sepoliaConfig.chainId
+    ] = sepoliaNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Set isCustomNetwork to true (if this property still exists in the new state)
+    fixtures.NetworkController.isCustomNetwork = true;
+
     return this;
   }
 
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
-    const networkIDs = {}; // Object to store network configurations
+    const networkConfigurationsByChainId = {
+      ...fixtures.NetworkController.networkConfigurationsByChainId,
+    }; // Object to store network configurations
 
-    // Loop through each network in PopularNetworkList
+    // Loop through each network in PopularNetworksList
     for (const key in PopularNetworksList) {
       const network = PopularNetworksList[key];
-      const { rpcUrl, chainId, ticker, nickname } = network.providerConfig;
+      const {
+        rpcUrl: rpcTarget,
+        chainId,
+        ticker,
+        nickname,
+      } = network.providerConfig;
 
-      networkIDs[nickname] = { rpcUrl, chainId, ticker, nickname };
+      // Generate a unique key for the new network client ID
+      const newNetworkClientId = `networkClientId${
+        Object.keys(networkConfigurationsByChainId).length + 1
+      }`;
+
+      // Define the network configuration
+      const networkConfig = {
+        chainId,
+        rpcEndpoints: [
+          {
+            networkClientId: newNetworkClientId,
+            url: rpcTarget,
+            type: 'custom',
+            name: nickname,
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        blockExplorerUrls: [],
+        name: nickname,
+        nativeCurrency: ticker,
+      };
+
+      // Add the new network configuration to the object
+      networkConfigurationsByChainId[chainId] = networkConfig;
     }
 
-    // Assign networkIDs object to NetworkController in fixtures
+    // Assign networkConfigurationsByChainId object to NetworkController in fixtures
     fixtures.NetworkController = {
+      ...fixtures.NetworkController,
       isCustomNetwork: true,
-      networkConfigurations: networkIDs,
+      networkConfigurationsByChainId,
     };
 
     return this;

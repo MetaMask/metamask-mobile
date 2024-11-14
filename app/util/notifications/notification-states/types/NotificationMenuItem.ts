@@ -29,11 +29,16 @@ export interface NotificationMenuItem {
   /**
    * This is the small badge icon on the notification icon
    */
-  badgeIcon?: IconName;
+  badgeIcon: IconName;
 
   /**
    * Timestamp of the notification.
    * This is meant to be a stringified date
    */
   createdAt: string;
+
+  /**
+   * A boolean that indicates if the notification is read or not
+   */
+  isRead?: boolean;
 }

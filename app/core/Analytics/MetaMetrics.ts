@@ -20,6 +20,7 @@ import {
 } from '../../constants/storage';
 
 import {
+  CombinedProperties,
   DataDeleteDate,
   DataDeleteRegulationId,
   DataDeleteResponseStatus,
@@ -29,15 +30,18 @@ import {
   IDeleteRegulationStatusResponse,
   IMetaMetrics,
   IMetaMetricsEvent,
+  isCombinedProperties,
   ISegmentClient,
+  ITrackingEvent,
+  isTrackingEvent,
 } from './MetaMetrics.types';
-import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import preProcessAnalyticsEvent from '../../util/events/preProcessAnalyticsEvent';
 import { isE2E } from '../../util/test/utils';
+import convertLegacyProperties from '../../util/events/convertLegacyProperties';
+import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -55,6 +59,15 @@ import { isE2E } from '../../util/test/utils';
  * ```
  * const metrics = MetaMetrics.getInstance();
  * metrics.trackEvent(event, { property: 'value' });
+ * ```
+ *
+ * or using the new properties structure:
+ * ```
+ * const metrics = MetaMetrics.getInstance();
+ * metrics.trackEvent(event, {
+ *   properties: {property: 'value' },
+ *   sensitiveProperties: {sensitiveProperty: 'sensitiveValue' }
+ * );
  * ```
  *
  * ## Enabling MetaMetrics
@@ -326,14 +339,14 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * Track an analytics event
+   * Send an analytics event to the Segment SDK track function
    *
    * @param event - Analytics event name
    * @param properties - Object containing any event relevant traits or properties (optional)
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
    */
-  #trackEvent = (
+  #trackWithSdkClient = (
     event: string,
     properties: JsonMap,
     saveDataRecording = true,
@@ -494,7 +507,6 @@ class MetaMetrics implements IMetaMetrics {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
-        anonymousId: METAMETRICS_ANONYMOUS_ID,
         // allow custom flush interval and event limit for dev and testing
         // each is optional and can be set in the .js.env file
         // if not set, the default values from the Segment SDK will be used
@@ -512,6 +524,7 @@ class MetaMetrics implements IMetaMetrics {
         );
 
       const segmentClient = isE2E ? undefined : createClient(config);
+      segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 
       this.instance = new MetaMetrics(segmentClient as SegmentClient);
     }
@@ -606,79 +619,157 @@ class MetaMetrics implements IMetaMetrics {
     return Promise.resolve();
   };
 
-  handleEvent = (
+  /**
+   * Legacy event tracking
+   *
+   * @param event - Legacy analytics event
+   * @param properties - Object containing any event relevant traits or properties (optional).
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
+   */
+  trackEvent(
+    // Legacy signature
     event: IMetaMetricsEvent,
-    params: JsonMap,
-    saveDataRecording: boolean,
-    anon?: boolean,
-  ) => {
-    if (!params || Object.keys(params).length === 0) {
-      this.#trackEvent(
-        event?.category,
-        { anonymous: anon || false, ...event?.properties },
-        saveDataRecording,
-      );
-    }
-    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
-
-    // Log all non-anonymous properties
-    if (Object.keys(userParams).length) {
-      this.#trackEvent(
-        event?.category,
-        { anonymous: false, ...event?.properties, ...userParams },
-        saveDataRecording,
-      );
-    }
-
-    // Log all anonymous properties
-    if (Object.keys(anonymousParams).length) {
-      this.#trackEvent(
-        event.category,
-        { anonymous: true, ...anonymousParams },
-        saveDataRecording,
-      );
-      this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
-    }
-  };
+    properties?: CombinedProperties,
+    saveDataRecording?: boolean,
+  ): void;
 
   /**
-   * Track an anonymous event
+   * Track an event
    *
-   * This will track the event twice: once with the anonymous ID and once with the user ID
+   * The function allows to track non-anonymous and anonymous events:
+   * - with properties and without properties,
+   * - with a unique trackEvent function
    *
-   * - The anynomous event has properties set so you can know *what* but not *who*
-   * - The non-anonymous event has no properties so you can know *who* but not *what*
+   * ## Regular non-anonymous events
+   * Regular events are tracked with the user ID and can have properties set
    *
-   * @param event - Analytics event name
-   * @param properties - Object containing any event relevant traits or properties (optional)
+   * ## Anonymous events
+   * Anonymous tracking track sends two events: one with the anonymous ID and one with the user ID
+   * - The anonymous event includes sensitive properties so you can know **what** but not **who**
+   * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
+   *
+   * @example prefer using the hook {@link useMetrics} in your components
+   * const { trackEvent, createEventBuilder } = useMetrics();
+   *
+   * @example basic non-anonymous tracking with no properties:
+   * trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
+   *
+   * @example track with non-anonymous properties:
+   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+   *   option_chosen: 'Browser Bottom Bar Menu',
+   *   number_of_tabs: undefined,
+   * });
+   *
+   * @example you can also track with non-anonymous properties (new properties structure):
+   * trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+   *   properties: {
+   *     option_chosen: 'Browser Bottom Bar Menu',
+   *     number_of_tabs: undefined,
+   *   },
+   * });
+   *
+   * @example track an anonymous event (without properties)
+   * trackEvent(MetaMetricsEvents.SWAP_COMPLETED);
+   *
+   * @example track an anonymous event with properties
+   * trackEvent(MetaMetricsEvents.GAS_FEES_CHANGED, {
+   *   sensitiveProperties: { ...parameters },
+   * });
+   *
+   * @example track an event with both anonymous and non-anonymous properties
+   * trackEvent(MetaMetricsEvents.MY_EVENT, {
+   *   properties: { ...nonAnonymousParameters },
+   *   sensitiveProperties: { ...anonymousParameters },
+   * });
+   *
+   * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
+  trackEvent(
+    // New signature
+    event: ITrackingEvent,
+    saveDataRecording?: boolean,
+  ): void;
+
+  /*
+   * Implementation for both legacy deprecated and new signatures
+   *
+   * Use the new `trackEvent(ITrackingEvent,boolean)` signature
+   */
+  trackEvent(
+    _event: IMetaMetricsEvent | ITrackingEvent,
+    _propertiesOrSaveData?: CombinedProperties | boolean,
+    _saveData?: boolean,
   ): void {
-    if (this.enabled) {
-      this.handleEvent(event, properties, saveDataRecording, true);
+    if (!this.enabled) {
+      return;
+    }
+
+    // type guard for optional boolean properties
+    const isSaveDataRecording = (value: unknown): value is boolean =>
+      typeof value === 'boolean';
+
+    // set all the implementation variables to match one of the two signatures
+    const isNewEventType = _event && isTrackingEvent(_event);
+    const legacyProperties = isCombinedProperties(_propertiesOrSaveData)
+      ? _propertiesOrSaveData
+      : {};
+    const hasProperties = isNewEventType
+      ? _event.hasProperties
+      : legacyProperties && Object.keys(legacyProperties).length;
+    const saveDataRecording = isSaveDataRecording(_propertiesOrSaveData)
+      ? _propertiesOrSaveData
+      : _saveData ?? true;
+
+    // if event does not have properties, only send the non-anonymous empty event
+    // and return to prevent any additional processing
+    if (!hasProperties) {
+      this.#trackWithSdkClient(
+        isNewEventType ? _event.name : _event?.category,
+        isNewEventType
+          ? { anonymous: false }
+          : { anonymous: false, ..._event?.properties },
+        saveDataRecording,
+      );
+      return;
+    }
+
+    // if event is new format, use the props directly,
+    // otherwise if it is legacy and has properties, convert then to the new EventProperties format first,
+    const convertedLegacyProperties = convertLegacyProperties(legacyProperties);
+
+    // Log all non-anonymous properties, or an empty event if there's no non-anon props.
+    // In any case, there's a non-anon event tracked, see MetaMetrics.test.ts Tracking table.
+    this.#trackWithSdkClient(
+      isNewEventType ? _event.name : _event?.category,
+      {
+        anonymous: false,
+        ...(isNewEventType
+          ? _event.properties
+          : convertedLegacyProperties.properties),
+      },
+      saveDataRecording,
+    );
+
+    const isAnonymous = isNewEventType
+      ? _event.isAnonymous
+      : convertedLegacyProperties.sensitiveProperties &&
+        Object.keys(convertedLegacyProperties.sensitiveProperties).length;
+
+    // Track all anonymous properties in an anonymous event
+    if (isAnonymous) {
+      this.#trackWithSdkClient(
+        isNewEventType ? _event.name : _event?.category,
+        {
+          anonymous: true,
+          ...convertedLegacyProperties.sensitiveProperties,
+          ...convertedLegacyProperties.properties,
+        },
+        saveDataRecording,
+      );
     }
   }
-
-  /**
-   * Track an event - the regular way
-   *
-   * @param event - Analytics event name
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   */
-  trackEvent = (
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
-  ): void => {
-    if (this.enabled) {
-      this.handleEvent(event, properties, saveDataRecording);
-    }
-  };
 
   /**
    * Clear the internal state of the library for the current user and reset the user ID

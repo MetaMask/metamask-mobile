@@ -6,6 +6,8 @@ import {
 import AccountRightButton from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -13,9 +15,15 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-        },
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+        }),
+      },
+      SelectedNetworkController: {
+        domains: {},
       },
     },
   },

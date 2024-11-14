@@ -3,15 +3,24 @@ import {
   connectLedgerHardware,
   forgetLedger,
   getDeviceId,
+  getHDPath,
+  getLedgerAccounts,
   getLedgerAccountsByOperation,
+  isValidPath,
   ledgerSignTypedMessage,
   openEthereumAppOnLedger,
+  setHDPath,
   unlockLedgerWalletAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
+import {
+  LEDGER_BIP44_PATH,
+  LEDGER_LEGACY_PATH,
+  LEDGER_LIVE_PATH,
+} from './constants';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -25,6 +34,7 @@ const MockEngine = jest.mocked(Engine);
 
 interface mockKeyringType {
   addAccounts: jest.Mock;
+  getAccounts: jest.Mock;
   bridge: {
     getAppNameAndVersion: jest.Mock;
     updateTransportMethod: jest.Mock;
@@ -39,6 +49,7 @@ interface mockKeyringType {
   getPreviousPage: jest.Mock;
   setDeviceId: jest.Mock;
   setHdPath: jest.Mock;
+  hdPath: string;
   setAccountToUnlock: jest.Mock;
 }
 
@@ -101,7 +112,14 @@ describe('Ledger core', () => {
       ]),
       setDeviceId: jest.fn(),
       setHdPath: jest.fn(),
+      hdPath: LEDGER_LIVE_PATH,
       setAccountToUnlock: jest.fn(),
+      getAccounts: jest
+        .fn()
+        .mockResolvedValue([
+          '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+          '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+        ]),
     };
 
     mockKeyringController.withKeyring.mockImplementation(
@@ -160,6 +178,54 @@ describe('Ledger core', () => {
     it('returns deviceId', async () => {
       const value = await getDeviceId();
       expect(value).toBe('deviceId');
+    });
+  });
+
+  describe('isValidHDPath', () => {
+    it('returns true for valid HD path', () => {
+      expect(isValidPath(LEDGER_LIVE_PATH)).toBeTruthy();
+      expect(isValidPath(LEDGER_BIP44_PATH)).toBeTruthy();
+      expect(isValidPath(LEDGER_LEGACY_PATH)).toBeTruthy();
+    });
+
+    it('returns false for invalid HD path', () => {
+      expect(isValidPath('')).toBeFalsy();
+      expect(isValidPath('Invalid')).toBeFalsy();
+      expect(isValidPath('m/44/60/0')).toBeFalsy();
+    });
+  });
+
+  describe('setHDPath', () => {
+    it('calls keyring.setHdPath with valid HD path', async () => {
+      await setHDPath(LEDGER_LIVE_PATH);
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalledWith(LEDGER_LIVE_PATH);
+    });
+
+    it('calls keyring.setHdPath with invalid HD path', async () => {
+      try {
+        await setHDPath('');
+      } catch (err) {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toBe('HD Path is invalid: ');
+      }
+    });
+  });
+
+  describe('getHDPath', () => {
+    it('calls keyring.getHdPath', async () => {
+      const path = await getHDPath();
+      expect(path).toBe(LEDGER_LIVE_PATH);
+    });
+  });
+
+  describe('getLedgerAccounts', () => {
+    it('calls keyring.getAccounts', async () => {
+      const accounts = await getLedgerAccounts();
+      expect(ledgerKeyring.getAccounts).toHaveBeenCalled();
+      expect(accounts).toEqual([
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+      ]);
     });
   });
 

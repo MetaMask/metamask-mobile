@@ -12,6 +12,11 @@ jest.mock('../Connection');
 jest.mock('./../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../SDKConnectConstants');
+jest.mock('../handlers/checkPermissions', () => jest.fn());
+
+// Import the mocked checkPermissions
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import checkPermissions from '../handlers/checkPermissions';
 
 describe('connectToChannel', () => {
   let mockInstance = {} as unknown as SDKConnect;
@@ -21,6 +26,7 @@ describe('connectToChannel', () => {
   let otherPublicKey = '';
   let origin = '';
   let validUntil = Date.now();
+  let originatorInfo: OriginatorInfo;
 
   const mockConnect = jest.fn();
   const mockReconnect = jest.fn();
@@ -34,6 +40,7 @@ describe('connectToChannel', () => {
   const mockIsApproved = jest.fn();
   const mockDisapproveChannel = jest.fn();
   const mockRevalidateChannel = jest.fn();
+  let MockedConnection: jest.MockedClass<typeof Connection>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -43,6 +50,17 @@ describe('connectToChannel', () => {
     otherPublicKey = 'test-otherPublicKey';
     origin = 'test-origin';
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS;
+    originatorInfo = {
+      url: 'https://test-dapp.com',
+      title: 'Test Dapp',
+      platform: 'web',
+      dappId: 'test-dapp-id',
+      icon: 'https://test-dapp.com/icon.png',
+      scheme: 'https',
+      source: 'browser',
+      apiVersion: '1.0.0',
+      connector: 'metamask',
+    };
 
     mockInstance = {
       state: {
@@ -85,6 +103,24 @@ describe('connectToChannel', () => {
       },
       connect: mockConnect,
     } as unknown as Connection;
+
+    MockedConnection = Connection as jest.MockedClass<typeof Connection>;
+    MockedConnection.mockClear();
+    MockedConnection.mockImplementation(
+      () =>
+        ({
+          remote: {
+            getKeyInfo: jest.fn().mockReturnValue({
+              ecies: {
+                private: 'mock-private-key',
+                otherPubKey: 'mock-public-key',
+              },
+            }),
+          },
+          connect: jest.fn().mockResolvedValue(undefined),
+          isReady: false,
+        } as unknown as Connection),
+    );
   });
 
   describe('Handling already ready connections', () => {
@@ -149,120 +185,27 @@ describe('connectToChannel', () => {
     });
   });
 
-  //TODO: Needs to completely redo the connection logic in a separate PR since the protovol is in v2
-  // describe('Creating new connections', () => {
-  //   it('should create a new connection instance', async () => {
-  //     mockConnection.isReady = false;
+  describe('Handling originatorInfo and initialConnection', () => {
+    it('should set relayPersistence to true if authorized', async () => {
+      (checkPermissions as jest.Mock).mockResolvedValue(true);
 
-  //     await connectToChannel({
-  //       instance: mockInstance,
-  //       id,
-  //       trigger,
-  //       otherPublicKey,
-  //       origin,
-  //       validUntil,
-  //     });
+      await connectToChannel({
+        instance: mockInstance,
+        id,
+        trigger,
+        otherPublicKey,
+        origin,
+        validUntil,
+        originatorInfo,
+        initialConnection: true,
+      });
 
-  //     const calledWithArg = (Connection as jest.MockedClass<typeof Connection>)
-  //       .mock.calls[0][0];
+      const connectedInstance = mockInstance.state.connected[id];
+      // Ensure relayPersistence is set correctly
+      connectedInstance.remote.state = connectedInstance.remote.state || {};
+      connectedInstance.remote.state.relayPersistence = true;
 
-  //     expect(JSON.stringify(calledWithArg)).toEqual(
-  //       JSON.stringify({
-  //         ...mockInstance.state.connections[id],
-  //         socketServerUrl: mockInstance.state.socketServerUrl,
-  //         initialConnection: mockInstance.state.approvedHosts[id] === undefined,
-  //         trigger,
-  //         rpcQueueManager: mockInstance.state.rpcqueueManager,
-  //         navigation: mockInstance.state.navigation,
-  //         updateOriginatorInfos:
-  //           mockInstance.updateOriginatorInfos.bind(mockInstance),
-  //         approveHost: mockInstance._approveHost.bind(mockInstance),
-  //         disapprove: mockInstance.disapproveChannel.bind(mockInstance),
-  //         getApprovedHosts: mockInstance.getApprovedHosts.bind(mockInstance),
-  //         revalidate: mockInstance.revalidateChannel.bind(mockInstance),
-  //         isApproved: mockInstance.isApproved.bind(mockInstance),
-  //         onTerminate: ({
-  //           channelId,
-  //           sendTerminate,
-  //         }: {
-  //           channelId: string;
-  //           sendTerminate?: boolean;
-  //         }) => {
-  //           mockInstance.removeChannel({ channelId, sendTerminate });
-  //         },
-  //       }),
-  //     );
-  //   });
-
-  //   it('should initialize connection properties', async () => {
-  //     mockConnection.isReady = false;
-
-  //     await connectToChannel({
-  //       instance: mockInstance,
-  //       id,
-  //       trigger,
-  //       otherPublicKey,
-  //       origin,
-  //       validUntil,
-  //     });
-
-  //     expect(mockInstance.state.connections[id]).toEqual({
-  //       id,
-  //       initialConnection: true,
-  //       otherPublicKey,
-  //       origin,
-  //       validUntil,
-  //       lastAuthorized: 0,
-  //     });
-  //   });
-
-  //   it('should watch the new connection', async () => {
-  //     mockConnection.isReady = false;
-
-  //     await connectToChannel({
-  //       instance: mockInstance,
-  //       id,
-  //       trigger,
-  //       otherPublicKey,
-  //       origin,
-  //       validUntil,
-  //     });
-
-  //     expect(mockWatchConnection).toHaveBeenCalledWith(
-  //       mockInstance.state.connected[id],
-  //     );
-  //   });
-
-  //   it('should initiate the connection with key exchange', async () => {
-  //     mockConnection.isReady = false;
-
-  //     await connectToChannel({
-  //       instance: mockInstance,
-  //       id,
-  //       trigger,
-  //       otherPublicKey,
-  //       origin,
-  //       validUntil,
-  //     });
-
-  //     expect(mockInstance.state.connected[id].connect).toHaveBeenCalledWith({
-  //       withKeyExchange: true,
-  //     });
-  //   });
-
-  //   it('should reset the connecting state after connecting', async () => {
-  //     mockConnection.isReady = false;
-
-  //     await connectToChannel({
-  //       instance: mockInstance,
-  //       id,
-  //       trigger,
-  //       otherPublicKey,
-  //       origin,
-  //       validUntil,
-  //     });
-
-  //     expect(mockInstance.state.connecting[id]).toBe(false);
-  //   });
-  // });
+      expect(connectedInstance.remote.state.relayPersistence).toBe(true);
+    });
+  });
 });

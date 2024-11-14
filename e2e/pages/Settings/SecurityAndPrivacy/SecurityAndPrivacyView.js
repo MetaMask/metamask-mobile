@@ -19,6 +19,12 @@ class SecurityAndPrivacy {
     );
   }
 
+  get securityAndPrivacyHeading() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
+    );
+  }
+
   get deleteWalletButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
@@ -33,6 +39,18 @@ class SecurityAndPrivacy {
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
+    );
+  }
+
+  get autoLockSection() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
+    );
+  }
+
+  get autoLockDefault30Seconds() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
     );
   }
 
@@ -53,9 +71,14 @@ class SecurityAndPrivacy {
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
-
   get showPrivateKey() {
     return Matchers.getElementByText('Show private key');
+  }
+
+  get showPrivateKeyButton() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+    );
   }
 
   get backUpNow() {
@@ -76,6 +99,12 @@ class SecurityAndPrivacy {
     );
   }
 
+  get revealPrivateKeyButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY,
+    );
+  }
+
   async tapRevealSecretRecoveryPhraseButton() {
     await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
   }
@@ -88,6 +117,12 @@ class SecurityAndPrivacy {
     await Gestures.waitAndTap(this.deleteWalletButton);
   }
 
+  async scrollToRevealPrivateKey() {
+    await Gestures.scrollToElement(
+      this.revealPrivateKeyButton,
+      this.scrollViewIdentifier,
+    );
+  }
   async scrollToChangePasswordView() {
     await Gestures.scrollToElement(
       this.changePasswordButton,
@@ -116,12 +151,27 @@ class SecurityAndPrivacy {
     );
   }
 
+  async scrollToAutoLockSection() {
+    await Gestures.scrollToElement(
+      this.autoLockSection,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapAutoLock30Seconds() {
+    await Gestures.waitAndTap(this.autoLockDefault30Seconds);
+  }
+
   async tapMetaMetricsToggle() {
     await Gestures.waitAndTap(this.metaMetricsToggle);
   }
 
   async tapTurnOnRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
+  }
+
+  async tapShowPrivateKeyButton() {
+    await Gestures.waitAndTap(this.showPrivateKey);
   }
 }
 

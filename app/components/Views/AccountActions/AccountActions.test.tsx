@@ -1,7 +1,7 @@
 import React from 'react';
 import Share from 'react-native-share';
 
-import { Alert } from 'react-native';
+import { Alert, AlertButton } from 'react-native';
 
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
@@ -65,6 +65,18 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+    }),
+    useRoute: () => ({
+      params: {
+        selectedAccount: {
+          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          metadata: {
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
+      },
     }),
   };
 });
@@ -130,7 +142,7 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
         title: 'etherscan.io',
       },
     });
@@ -144,7 +156,7 @@ describe('AccountActions', () => {
     fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+      message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
     });
   });
 
@@ -162,6 +174,14 @@ describe('AccountActions', () => {
       {
         credentialName: 'private_key',
         shouldUpdateNav: true,
+        selectedAccount: {
+          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          metadata: {
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
       },
     );
   });
@@ -173,7 +193,16 @@ describe('AccountActions', () => {
 
     fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT));
 
-    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName');
+    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
+      selectedAccount: {
+        address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+        metadata: {
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+    });
   });
 
   describe('clicks remove account', () => {
@@ -193,19 +222,24 @@ describe('AccountActions', () => {
         getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
       );
 
-      expect(Alert.alert).toHaveBeenCalled();
+      const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
+
+      expect(alertFnMock).toHaveBeenCalled();
 
       //Check Alert title and description match.
-      expect(Alert.alert.mock.calls[0][0]).toBe(
+      expect(alertFnMock.mock.calls[0][0]).toBe(
         strings('accounts.remove_hardware_account'),
       );
-      expect(Alert.alert.mock.calls[0][1]).toBe(
+      expect(alertFnMock.mock.calls[0][1]).toBe(
         strings('accounts.remove_hw_account_alert_description'),
       );
 
       //Click remove button
       await act(async () => {
-        Alert.alert.mock.calls[0][2][1].onPress();
+        const alertButtons = alertFnMock.mock.calls[0][2] as AlertButton[];
+        if (alertButtons[1].onPress !== undefined) {
+          alertButtons[1].onPress();
+        }
       });
 
       await waitFor(() => {

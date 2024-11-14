@@ -29,7 +29,9 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
+import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
@@ -67,7 +69,6 @@ import {
 } from '../../../core/Transaction/TransactionError';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
   speedUpTransaction,
   updateIncomingTransactions,
@@ -853,7 +854,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper} testID={TOKEN_OVERVIEW_TXN_SCREEN}>
+        <View style={styles.wrapper}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}
@@ -907,10 +908,9 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
-  primaryCurrency: state.settings.primaryCurrency,
+  primaryCurrency: selectPrimaryCurrency(state),
   tokens: selectTokensByAddress(state),
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
 });
 

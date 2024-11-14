@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 // External dependencies.
 import { AnimationDuration } from '../../../constants/animation.constants';
 import { SAMPLE_ACCORDIONHEADER_TITLE } from './foundation/AccordionHeader/AccordionHeader.constants';

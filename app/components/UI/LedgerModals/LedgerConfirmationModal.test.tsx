@@ -146,6 +146,7 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('renders OpenETHAppStep when app launch confirmation is needed', () => {
+    jest.useFakeTimers();
     (useLedgerBluetooth as jest.Mock).mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: true,
@@ -160,6 +161,11 @@ describe('LedgerConfirmationModal', () => {
         deviceId={'test'}
       />,
     );
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
     expect(getByTestId(OPEN_ETH_APP_STEP)).toBeTruthy();
   });
 
@@ -295,7 +301,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(1);
@@ -324,7 +330,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     const retryButton = getByTestId(RETRY_BUTTON);
@@ -351,7 +357,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onConfirmation).toHaveBeenCalled();
@@ -385,7 +391,7 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line no-empty-function
     await act(async () => {});
 
     expect(onConfirmation).not.toHaveBeenCalled();
@@ -401,24 +407,10 @@ describe('LedgerConfirmationModal', () => {
   });
 
   it('calls onRejection when user refuses confirmation', async () => {
-    const onRejection = jest.fn();
-    (useLedgerBluetooth as jest.Mock).mockReturnValue({
-      isSendingLedgerCommands: true,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(),
-      error: LedgerCommunicationErrors.UserRefusedConfirmation,
-    });
-
-    renderWithProvider(
-      <LedgerConfirmationModal
-        onConfirmation={jest.fn()}
-        onRejection={onRejection}
-        deviceId={'test'}
-      />,
+    checkLedgerCommunicationErrorFlow(
+      LedgerCommunicationErrors.UserRefusedConfirmation,
+      strings('ledger.user_reject_transaction'),
+      strings('ledger.user_reject_transaction_message'),
     );
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    await act(async () => {});
-
-    expect(onRejection).toHaveBeenCalled();
   });
 });

@@ -5,7 +5,6 @@ import {
   ExtractEventHandler,
 } from '@metamask/base-controller';
 
-// eslint-disable-next-line import/prefer-default-export
 export class ExtendedControllerMessenger<
   Action extends ActionConstraint,
   Event extends EventConstraint,

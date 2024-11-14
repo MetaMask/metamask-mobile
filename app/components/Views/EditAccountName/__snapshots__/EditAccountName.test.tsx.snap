@@ -32,7 +32,7 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -47,7 +47,7 @@ exports[`EditAccountName should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c5",
+            "borderColor": "#0376c9",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -87,7 +87,7 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="account-name-input"
-            value="Account 1"
+            value="Test Account"
           />
         </View>
       </View>
@@ -105,7 +105,7 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -120,7 +120,7 @@ exports[`EditAccountName should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c5",
+            "borderColor": "#0376c9",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -197,14 +197,13 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -238,14 +237,13 @@ exports[`EditAccountName should render correctly 1`] = `
         }
       }
       testID="edit-account-name-save-button"
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

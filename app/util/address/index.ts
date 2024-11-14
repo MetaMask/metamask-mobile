@@ -32,11 +32,17 @@ import TransactionTypes from '../../core/TransactionTypes';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
+import Logger from '../../../app/util/Logger';
 import { InternalAccount } from '@metamask/keyring-api';
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkState } from '@metamask/network-controller';
-import { AccountImportStrategy } from '@metamask/keyring-controller';
+import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import {
+  AccountImportStrategy,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
 
 const {
@@ -217,6 +223,17 @@ export function isHardwareAccount(
 }
 
 /**
+ * Determines if an address belongs to a snap account
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isSnapAccount(address: string) {
+  const keyring = getKeyringByAddress(address);
+  return keyring && keyring.type === KeyringTypes.snap;
+}
+
+/**
  * judge address is a hardware account that require external operation or not
  *
  * @param {String} address - String corresponding to an address
@@ -227,22 +244,45 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
- * gets i18n account label tag text based on address
+ * gets the internal account by address
  *
  * @param {String} address - String corresponding to an address
- * @returns {String} - Returns address's i18n label text
+ * @returns {InternalAccount | undefined} - Returns the internal account by address
+ */
+function getInternalAccountByAddress(
+  address: string,
+): InternalAccount | undefined {
+  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
+  return Object.values(accounts).find(
+    (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
+  );
+}
+
+/**
+ * gets account label tag text based on address
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's translated label text
  */
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
-  const keyring = getKeyringByAddress(address);
+  const internalAccount = getInternalAccountByAddress(address);
+  const keyring = internalAccount?.metadata?.keyring;
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.ledger:
-        return 'accounts.ledger';
+        return strings('accounts.ledger');
       case ExtendedKeyringTypes.qr:
-        return 'accounts.qr_hardware';
+        return strings('accounts.qr_hardware');
       case ExtendedKeyringTypes.simple:
-        return 'accounts.imported';
+        return strings('accounts.imported');
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      case KeyringTypes.snap:
+        return (
+          internalAccount?.metadata.snap?.name ||
+          strings('accounts.snap_account_tag')
+        );
+      ///: END:ONLY_INCLUDE_IF
     }
   }
   return null;
@@ -374,7 +414,7 @@ export function isValidHexAddress(
  */
 function checkIfAddressAlreadySaved(
   address: string,
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   chainId: Hex,
   internalAccounts: InternalAccount[],
 ) {
@@ -419,7 +459,7 @@ function checkIfAddressAlreadySaved(
  */
 export async function validateAddressOrENS(
   toAccount: string,
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   internalAccounts: InternalAccount[],
   chainId: Hex,
 ) {
@@ -582,8 +622,8 @@ export async function getAddress(
 
 export const getTokenDetails = async (
   tokenAddress: string,
-  userAddress: string,
-  tokenId: string,
+  userAddress?: string,
+  tokenId?: string,
 ) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(
@@ -606,10 +646,26 @@ export const getTokenDetails = async (
   };
 };
 
+export const getTokenDecimal = async (
+  address: string,
+  networkClientId?: NetworkClientId,
+) => {
+  const { AssetsContractController } = Engine.context;
+  try {
+    const tokenDecimal = await AssetsContractController.getERC20TokenDecimals(
+      address,
+      networkClientId,
+    );
+    return tokenDecimal;
+  } catch (err) {
+    await Logger.log('Error getting token decimal: ', err);
+  }
+};
+
 export const shouldShowBlockExplorer = (
   providerType: NetworkType,
   providerRpcTarget: string,
-  networkConfigurations: NetworkState['networkConfigurations'],
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'],
 ) => {
   if (providerType === RPC) {
     return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);

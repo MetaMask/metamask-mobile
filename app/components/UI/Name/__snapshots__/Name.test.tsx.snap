@@ -25,7 +25,7 @@ exports[`Name recognized address should return name 1`] = `
       {
         "color": "#141618",
         "flexShrink": 1,
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -74,7 +74,7 @@ exports[`Name unknown address displays checksummed address 1`] = `
       {
         "color": "#141618",
         "flexShrink": 1,
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,

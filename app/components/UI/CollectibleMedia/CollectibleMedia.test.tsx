@@ -1,13 +1,25 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { mockNetworkState } from '../../../util/test/network';
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
+      },
+    },
   },
 };
 

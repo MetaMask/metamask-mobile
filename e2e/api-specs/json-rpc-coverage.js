@@ -24,11 +24,11 @@ import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.select
 import { getGanachePort } from '../fixtures/utils';
 
 const port = getGanachePort(8545, process.pid);
-const chainId = 1338;
+const chainId = 1337;
 
 const main = async () => {
   const openrpcDocument = await parseOpenRPCDocument(
-    'https://metamask.github.io/api-specs/latest/openrpc.json',
+    'https://metamask.github.io/api-specs/0.10.8/openrpc.json',
   );
 
   const signTypedData4 = openrpcDocument.methods.find(

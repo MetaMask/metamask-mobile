@@ -1,3 +1,4 @@
+import { RpcEndpointType } from '@metamask/network-controller';
 import Engine from '../Engine';
 import wallet_watchAsset from './wallet_watchAsset';
 // eslint-disable-next-line import/no-namespace
@@ -6,6 +7,8 @@ import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
 } from '../../constants/error';
+
+import { mockNetworkState } from '../../util/test/network';
 
 jest.mock('../Engine', () => {
   const {
@@ -23,14 +26,6 @@ jest.mock('../Engine', () => {
       AssetsContractController: {
         getERC20TokenDecimals: jest.fn(),
         getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
-      },
-      NetworkController: {
-        state: {
-          networkConfigurations: {},
-          providerConfig: {
-            chainId: '0x1',
-          },
-        },
       },
       TokensController: {
         watchAsset: jest.fn(),
@@ -65,10 +60,13 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            networkConfigurations: {},
-            providerConfig: {
+            ...mockNetworkState({
               chainId: '0x1',
-            },
+              id: '0x1',
+              nickname: 'mainnet',
+              ticker: 'ETH',
+              type: 'infura' as RpcEndpointType,
+            }),
           },
         },
       },

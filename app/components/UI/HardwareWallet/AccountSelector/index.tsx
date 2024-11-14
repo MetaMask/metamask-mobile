@@ -27,7 +27,7 @@ interface ISelectQRAccountsProps {
   onCheck?: (index: number) => void;
   onUnlock: (accountIndex: number[]) => void;
   onForget: () => void;
-  title: string;
+  title?: string;
 }
 
 const AccountSelector = (props: ISelectQRAccountsProps) => {
@@ -84,7 +84,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      {title && <Text style={styles.title}>{title}</Text>}
       <FlatList
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}
@@ -120,7 +120,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           onPress={prevPage}
           {...generateTestId(Platform, ACCOUNT_SELECTOR_PREVIOUS_BUTTON)}
         >
-          {<Icon name={'chevron-left'} color={colors.primary.default} />}{' '}
+          <Icon name={'chevron-left'} color={colors.primary.default} />
           <Text style={styles.paginationText}>
             {strings('account_selector.prev')}
           </Text>

@@ -83,18 +83,18 @@ const LoginOptionsSettings = ({
 
   return (
     <View testID={LOGIN_OPTIONS}>
-      <View style={styles.setting}>
-        {biometryType ? (
+      {biometryType ? (
+        <View style={styles.setting}>
           <SecurityOptionToggle
             title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
             value={biometryChoice}
             onOptionUpdated={onBiometricsOptionUpdated}
             testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
           />
-        ) : null}
-      </View>
-      <View style={styles.setting}>
-        {biometryType && !biometryChoice ? (
+        </View>
+      ) : null}
+      {biometryType && !biometryChoice ? (
+        <View style={styles.setting}>
           <SecurityOptionToggle
             title={
               Device.isIos()
@@ -105,8 +105,8 @@ const LoginOptionsSettings = ({
             onOptionUpdated={onPasscodeOptionUpdated}
             testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
           />
-        ) : null}
-      </View>
+        </View>
+      ) : null}
     </View>
   );
 };

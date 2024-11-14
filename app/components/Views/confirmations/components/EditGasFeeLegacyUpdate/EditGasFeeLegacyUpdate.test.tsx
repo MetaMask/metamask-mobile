@@ -1,10 +1,15 @@
 import React from 'react';
 
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import EditGasFeeLegacyUpdate from '.';
+import { RootState } from '../../../../../reducers';
 
-const mockInitialState = (txnType = 'none') => ({
+const mockInitialState: (
+  txnType?: 'none' | 'eth_gasPrice' | 'fee-market' | 'legacy' | undefined,
+) => DeepPartial<RootState> = (txnType = 'none') => ({
   engine: {
     backgroundState: {
       ...backgroundState,

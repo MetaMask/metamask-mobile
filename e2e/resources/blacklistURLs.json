@@ -8,11 +8,12 @@
     ".*static.cx.metamask.io/.*",
     ".*rpc.tenderly.co/.*",
     ".*api-goerli.etherscan.io/.*",
-    ".*cloudflare-ipfs.com/.*",
+    ".*gateway.pinata.cloud/.*",
     ".*stale.*",
     ".*phishing-detection.metafi.codefi.network/.*",
     ".*phishing-detection.cx.metamask.io/.*",
     ".*eth.llamarpc.com/.*",
-    ".*token-api.metaswap.codefi.network/.*"
+    ".*token-api.metaswap.codefi.network/.*",
+    ".*gas.api.cx.metamask.io/networks/*"
   ]
 }

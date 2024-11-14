@@ -3,8 +3,11 @@
  */
 export enum AccountPermissionsScreens {
   Connected = 'Connected',
-  Connect = 'Connect',
+  ConnectMoreAccounts = 'ConnectMoreAccounts',
+  EditAccountsPermissions = 'EditAccountsPermissions',
+  ConnectMoreNetworks = 'ConnectMoreNetworks',
   Revoke = 'Revoke',
+  PermissionsSummary = 'PermissionsSummary',
 }
 
 /**
@@ -19,6 +22,8 @@ export interface AccountPermissionsProps {
       hostInfo: {
         metadata: { origin: string };
       };
+      isRenderedAsBottomSheet?: boolean;
+      initialScreen?: AccountPermissionsScreens;
     };
   };
 }

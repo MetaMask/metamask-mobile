@@ -71,7 +71,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "logs": "object",
       },
       "NetworkController": {
-        "networkConfigurations": "object",
+        "networkConfigurationsByChainId": "object",
         "networksMetadata": {
           "mainnet": {
             "EIPS": {
@@ -79,11 +79,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
             },
             "status": "available",
           },
-        },
-        "providerConfig": {
-          "chainId": "0x1",
-          "ticker": "ETH",
-          "type": "mainnet",
         },
         "selectedNetworkClientId": "string",
       },
@@ -95,9 +90,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       "NftDetectionController": "object",
       "PermissionController": {},
       "PreferencesController": {
-        "disabledRpcMethodPreferences": {
-          "eth_sign": false,
-        },
         "displayNftMedia": true,
         "featureFlags": {},
         "identities": "object",
@@ -201,7 +193,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "hideZeroBalanceTokens": false,
     "lockTime": 30000,
     "primaryCurrency": "ETH",
-    "searchEngine": "DuckDuckGo",
+    "searchEngine": "Google",
     "useBlockieIcon": true,
   },
   "signatureRequest": "object",
@@ -213,7 +205,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   "transactionMetrics": "object",
   "user": {
     "ambiguousAddressEntries": "object",
-    "appTheme": "os",
     "backUpSeedphraseVisible": false,
     "gasEducationCarouselSeen": false,
     "initialScreen": "",

@@ -4,23 +4,18 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { Notification } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
-import {
-  NavigationProp,
-  ParamListBase,
-  RouteProp,
-} from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+import { hasNotificationComponents, NotificationComponentState } from '../../../../util/notifications/notification-states';
 import Header from './Title';
 import { createStyles } from './styles';
 import ModalField from './Fields';
 import ModalHeader from './Headers';
 import ModalFooter from './Footers';
-import { NotificationModalDetails } from '../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import { toLocaleDate } from '../../../../util/date';
 
 interface Props {
@@ -52,10 +47,14 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
     }
   }, [notification, markNotificationAsRead]);
 
+
   const state =
-    NotificationComponentState[notification?.type]?.createModalDetails?.(
-      notification,
-    );
+    notification?.type &&
+    hasNotificationComponents(notification.type)
+      ? NotificationComponentState[notification.type]?.createModalDetails?.(
+          notification,
+        )
+      : undefined;
 
   const HeaderLeft = useCallback(
     () => (
@@ -73,7 +72,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   const HeaderTitle = useCallback(
     () => (
       <Header
-        title={state?.title || ''}
+        title={state?.title ?? ''}
         subtitle={toLocaleDate(state?.createdAt)}
       />
     ),
@@ -104,35 +103,17 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
             modalField={field}
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
+            notification={notification}
           />
         ))}
 
         {/* Modal Footers */}
-        {state.footer && <ModalFooter modalFooter={state.footer} />}
+        {state.footer && (
+          <ModalFooter modalFooter={state.footer} notification={notification} />
+        )}
       </View>
     </ScrollView>
   );
 };
 
 export default NotificationsDetails;
-
-NotificationsDetails.navigationOptions = ({
-  route,
-  navigation,
-  state,
-}: {
-  route: RouteProp<{ params: { notification: Notification } }, 'params'>;
-  navigation: NavigationProp<Record<string, undefined>>;
-  state: NotificationModalDetails;
-}) => {
-  const notification = route?.params?.notification;
-  if (!notification) {
-    navigation.goBack();
-    return {};
-  }
-
-  if (!state) {
-    navigation.goBack();
-    return {};
-  }
-};

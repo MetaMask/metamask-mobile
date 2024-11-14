@@ -4,8 +4,7 @@ import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
   closeAllTabs,
   closeTab,
@@ -67,6 +66,7 @@ export const Browser = (props) => {
   const { trackEvent } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
+  const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
@@ -114,8 +114,8 @@ export const Browser = (props) => {
     [navigation, route, colors],
   );
 
-  const newTab = (url) => {
-    createNewTab(url || AppConstants.HOMEPAGE_URL);
+  const newTab = (url, linkType) => {
+    createNewTab(url || AppConstants.HOMEPAGE_URL, linkType);
   };
 
   const updateTabInfo = (url, tabID) =>
@@ -222,15 +222,15 @@ export const Browser = (props) => {
     [tabs],
   );
 
-  // Handle deeplinks.
+  // Handle links with associated timestamp.
   useEffect(
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
-        // Open url from deeplink.
-        newTab(newTabUrl);
+        // Open url from link.
+        newTab(newTabUrl, linkType);
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
@@ -359,6 +359,7 @@ export const Browser = (props) => {
         id={tab.id}
         key={`tab_${tab.id}`}
         initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+        linkType={tab.linkType}
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
@@ -368,7 +369,7 @@ export const Browser = (props) => {
   return (
     <View
       style={baseStyles.flexGrow}
-      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
+      testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
       {renderBrowserTabs()}
       {renderTabsView()}
@@ -384,7 +385,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  createNewTab: (url) => dispatch(createNewTab(url)),
+  createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
   closeAllTabs: () => dispatch(closeAllTabs()),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),

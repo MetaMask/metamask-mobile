@@ -4,8 +4,9 @@ import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
-import ConnectModal from '../pages/modals/ConnectModal';
-import AssetWatchModal from '../pages/modals/AssetWatchModal';
+import ConnectBottomSheet from '../pages/Browser/ConnectBottomSheet';
+import AssetWatchBottomSheet from '../pages/Transactions/AssetWatchBottomSheet';
+import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import fs from 'fs';
@@ -58,10 +59,20 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(ConnectModal.container);
-            await ConnectModal.tapConnectButton();
-            await Assertions.checkIfNotVisible(ConnectModal.container);
+            await Assertions.checkIfVisible(ConnectBottomSheet.container);
+            await ConnectBottomSheet.tapConnectButton();
+            await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
             await TestHelpers.delay(3000);
+
+            try {
+              await Assertions.checkIfVisible(SpamFilterModal.title);
+              await SpamFilterModal.tapCloseButton();
+              await Assertions.checkIfNotVisible(SpamFilterModal.title);
+            } catch {
+              /* eslint-disable no-console */
+
+              console.log('The spam modal is not visible');
+            }
           }
 
           // we need this because mobile doesnt support just raw json signTypedData, it requires a stringified version
@@ -136,7 +147,7 @@ export default class ConfirmationsRejectRule {
           let cancelButton;
           await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
-            await AssetWatchModal.tapCancelButton();
+            await AssetWatchBottomSheet.tapCancelButton();
           } else {
             cancelButton = await Matchers.getElementByText('Cancel');
             await Gestures.waitAndTap(cancelButton);

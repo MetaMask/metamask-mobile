@@ -1,11 +1,14 @@
 import { ImageSourcePropType } from 'react-native';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 import { getNetworkFees } from '../../methods/common';
-import { FeatureAnnouncementRawNotification } from '../../types/featureAnnouncement';
 import {
   ModalFieldType,
   ModalFooterType,
   ModalHeaderType,
 } from '../../constants';
+
+type FeatureAnnouncementRawNotification =
+  NotificationServicesController.Types.FeatureAnnouncementRawNotification;
 
 // The Notification Modal is highly customizable.
 // It contains any number of "Fields", as well as a footer for an action/link
@@ -47,14 +50,6 @@ export interface ModalFieldNetwork {
    * Name of the network. E.g. Ethereum
    */
   name?: string;
-  /**
-   * Boolean to determine if the network fee is collapsed or not
-   */
-  isCollapsed: boolean;
-  /**
-   * Function to set the network fee collapsed state
-   */
-  setIsCollapsed: (isCollapsed: boolean) => void;
 }
 
 export interface ModalFieldAsset {
@@ -139,14 +134,6 @@ export interface ModalFieldNetworkFee {
   type: ModalFieldType.NETWORK_FEE;
 
   getNetworkFees: () => ReturnType<typeof getNetworkFees>;
-  /**
-   * Boolean to determine if the network fee is collapsed or not
-   */
-  isCollapsed: boolean;
-  /**
-   * Function to set the network fee collapsed state
-   */
-  setIsCollapsed: (isCollapsed: boolean) => void;
 }
 
 export interface ModalFieldAnnouncementDescription {

@@ -150,14 +150,13 @@ exports[`Step1 should render correctly 1`] = `
               }
             }
             testID="onboarding-wizard-no-thanks-button"
-            variant="Primary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -192,14 +191,13 @@ exports[`Step1 should render correctly 1`] = `
               }
             }
             testID="onboarding-wizard-next-button"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

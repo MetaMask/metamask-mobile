@@ -18,6 +18,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const testIds = {
   section: REVEAL_PRIVATE_KEY_SECTION,
@@ -61,6 +62,7 @@ const RevealPrivateKey = () => {
         width={ButtonWidthTypes.Full}
         onPress={goToExportPrivateKey}
         style={styles.confirm}
+        testID={SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY}
       />
     </View>
   );

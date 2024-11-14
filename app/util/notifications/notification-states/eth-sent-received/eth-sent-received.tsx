@@ -1,7 +1,15 @@
 import { strings } from '../../../../../locales/i18n';
-import { ModalFieldType, TRIGGER_TYPES } from '../../constants';
+import {
+  ModalFieldType,
+  ModalFooterType,
+  TRIGGER_TYPES,
+} from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
-import { NotificationState } from '../types/NotificationState';
+import {
+  label_address_from,
+  label_address_to,
+  NotificationState,
+} from '../types/NotificationState';
 import {
   getNativeTokenDetailsByChainId,
   getNotificationBadge,
@@ -70,17 +78,13 @@ const state: NotificationState<NativeSentReceiveNotification> = {
       fields: [
         {
           type: ModalFieldType.ADDRESS,
-          label: isSent(notification)
-            ? strings('notifications.modal.label_address_to_you')
-            : strings('notifications.modal.label_address_to'),
-          address: notification.data.to,
+          label: label_address_from(notification),
+          address: notification.data.from,
         },
         {
-          type: ModalFieldType.TRANSACTION,
-          label: isSent(notification)
-            ? strings('notifications.modal.label_address_from')
-            : strings('notifications.modal.label_address_from_you'),
-          address: notification.data.from,
+          type: ModalFieldType.ADDRESS,
+          label: label_address_to(notification),
+          address: notification.data.to,
         },
         {
           type: ModalFieldType.TRANSACTION,
@@ -113,7 +117,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
         },
       ],
       footer: {
-        type: ModalFieldType.BLOCK_EXPLORER,
+        type: ModalFooterType.BLOCK_EXPLORER,
         chainId: notification.chain_id,
         txHash: notification.tx_hash,
       },

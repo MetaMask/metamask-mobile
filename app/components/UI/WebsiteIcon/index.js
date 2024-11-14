@@ -8,7 +8,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withFaviconAwareness from '../../hooks/useFavicon/withFaviconAwareness';
 import { isNumber } from 'lodash';
 import { isFaviconSVG } from '../../../util/favicon';
-import { SvgUri } from 'react-native-svg/src/xml';
+import { SvgUri } from 'react-native-svg';
 
 const createStyles = (colors) =>
   StyleSheet.create({

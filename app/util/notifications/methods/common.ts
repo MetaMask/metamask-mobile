@@ -1,8 +1,15 @@
+import dayjs, { Dayjs } from 'dayjs';
+import isYesterday from 'dayjs/plugin/isYesterday';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+import notifee from '@notifee/react-native';
+import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-
+import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { hexWEIToDecETH, hexWEIToDecGWEI } from '../../conversions';
@@ -11,42 +18,26 @@ import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import CHAIN_SCANS_URLS from '../constants/urls';
+import I18n, { strings } from '../../../../locales/i18n';
+
+// Extend dayjs with the plugins
+dayjs.extend(isYesterday);
+dayjs.extend(localeData);
+dayjs.extend(relativeTime);
 
 const { UI } = NotificationServicesController;
-/**
- * Checks if 2 date objects are on the same day
- *
- * @param currentDate
- * @param dateToCheck
- * @returns boolean if dates are same day.
- */
-const isSameDay = (currentDate: Date, dateToCheck: Date) =>
-  currentDate.getFullYear() === dateToCheck.getFullYear() &&
-  currentDate.getMonth() === dateToCheck.getMonth() &&
-  currentDate.getDate() === dateToCheck.getDate();
-
-/**
- * Checks if a date is "yesterday" from the current date
- *
- * @param currentDate
- * @param dateToCheck
- * @returns boolean if dates were "yesterday"
- */
-const isYesterday = (currentDate: Date, dateToCheck: Date) => {
-  const yesterday = new Date(currentDate);
-  yesterday.setDate(currentDate.getDate() - 1);
-  return isSameDay(yesterday, dateToCheck);
-};
-
-/**
- * Checks if 2 date objects are in the same year.
- *
- * @param currentDate
- * @param dateToCheck
- * @returns boolean if dates were in same year
- */
-const isSameYear = (currentDate: Date, dateToCheck: Date) =>
-  currentDate.getFullYear() === dateToCheck.getFullYear();
+export const USER_STORAGE_VERSION_KEY: unique symbol = 'v' as never;
+export function formatRelative(
+  date: Dayjs,
+  currentDate: Dayjs,
+  locale: string = 'en',
+): string {
+  dayjs.locale(locale);
+  if (date.from(currentDate) === 'a day ago') {
+    return strings('notifications.yesterday');
+  }
+  return date.from(currentDate);
+}
 
 /**
  * Formats a given date into different formats based on how much time has elapsed since that date.
@@ -54,41 +45,34 @@ const isSameYear = (currentDate: Date, dateToCheck: Date) =>
  * @param date - The date to be formatted.
  * @returns The formatted date.
  */
-export function formatMenuItemDate(date: Date) {
-  const currentDate = new Date();
+export function formatMenuItemDate(date?: Date, locale: string = 'en'): string {
+  if (!date) {
+    return strings('notifications.no_date');
+  }
+  const currentDate = dayjs();
+  const dayjsDate = dayjs(date);
+
+  dayjs.locale(locale);
 
   // E.g. 12:21
-  if (isSameDay(currentDate, date)) {
-    return new Intl.DateTimeFormat('en', {
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: false,
-    }).format(date);
+  if (dayjsDate.isSame(currentDate, 'day')) {
+    return dayjsDate.format('HH:mm');
   }
 
   // E.g. Yesterday
-  if (isYesterday(currentDate, date)) {
-    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-      -1,
-      'day',
-    );
+  if (dayjs().add(-1, 'day').isYesterday()) {
+    return formatRelative(dayjsDate, currentDate, I18n.locale);
   }
 
   // E.g. 21 Oct
-  if (isSameYear(currentDate, date)) {
-    return new Intl.DateTimeFormat('en', {
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+  if (dayjsDate.isSame(currentDate, 'year')) {
+    return dayjsDate.format('D MMM');
   }
 
   // E.g. 21 Oct 2022
-  return new Intl.DateTimeFormat('en', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  return dayjsDate.format('D MMM YYYY');
 }
+
 /**
  * Generates a unique key based on the provided text, index, and a random string.
  *
@@ -197,7 +181,6 @@ export function getProviderByChainId(chainId: HexChainId) {
       networkClientId,
     )?.provider;
 
-  // @ts-expect-error TODO: remove this annotation once the `Eip1193Provider` class is released
   return provider && new Web3Provider(provider);
 }
 
@@ -216,9 +199,11 @@ export const getNetworkFees = async (
   }
 
   try {
-    const receipt = await provider.getTransactionReceipt(notification.tx_hash);
-    const transaction = await provider.getTransaction(notification.tx_hash);
-    const block = await provider.getBlock(notification.block_number);
+    const [receipt, transaction, block] = await Promise.all([
+      provider.getTransactionReceipt(notification.tx_hash),
+      provider.getTransaction(notification.tx_hash),
+      provider.getBlock(notification.block_number),
+    ]);
 
     const calculateUsdAmount = (value: string, decimalPlaces?: number) =>
       formatAmount(
@@ -256,6 +241,7 @@ export const getNetworkFees = async (
       baseFee,
       priorityFee,
       maxFeePerGas,
+      chainId,
     };
   } catch (error) {
     throw new Error(
@@ -375,7 +361,7 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
     return {
       name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
       symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
-      image: images.MATIC,
+      image: images.POL,
     };
   }
   if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
@@ -487,3 +473,86 @@ export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
 
   return formatAmount(numericAmount);
 };
+
+export const hasInitialNotification = async () =>
+  Boolean(await notifee.getInitialNotification());
+
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(strings('notifications.timeout'))), ms),
+  );
+  return Promise.race([promise, timeout]);
+}
+
+export interface NotificationTrigger {
+  id: string
+  chainId: string
+  kind: string
+  address: string
+}
+
+type MapTriggerFn<Result> = (trigger: NotificationTrigger) => Result
+
+interface TraverseTriggerOpts<Result> {
+  address?: string
+  mapTrigger?: MapTriggerFn<Result>
+}
+
+const triggerToId = (trigger: NotificationTrigger) => trigger.id;
+const triggerIdentity = (trigger: NotificationTrigger) => trigger;
+
+export function traverseUserStorageTriggers<ResultTriggers = NotificationTrigger>(
+  userStorage: UserStorage,
+  options?: TraverseTriggerOpts<ResultTriggers>,
+) {
+  const triggers: ResultTriggers[] = [];
+  const mapTrigger = options?.mapTrigger ?? (triggerIdentity as MapTriggerFn<ResultTriggers>);
+
+  for (const address in userStorage) {
+    if (address === (USER_STORAGE_VERSION_KEY as unknown as string)) continue;
+    if (options?.address && address !== options.address) continue;
+    for (const chain_id in userStorage[address]) {
+      for (const uuid in userStorage[address]?.[chain_id]) {
+        if (uuid) {
+          triggers.push(
+            mapTrigger({
+              id: uuid,
+              kind: userStorage[address]?.[chain_id]?.[uuid]?.k,
+              chainId: chain_id,
+              address,
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  return triggers;
+}
+
+export function getUUIDs(userStorage: UserStorage, address: string): string[] {
+  return traverseUserStorageTriggers(userStorage, {
+    address,
+    mapTrigger: triggerToId,
+  });
+}
+
+export function getAllUUIDs(userStorage: UserStorage): string[] {
+  const uuids = traverseUserStorageTriggers(userStorage, {
+    mapTrigger: triggerToId,
+  });
+  return uuids;
+}
+
+export function parseNotification(remoteMessage: FirebaseMessagingTypes.RemoteMessage) {
+  const notification = remoteMessage.data?.data;
+  const parsedNotification = typeof notification === 'string' ? JSON.parse(notification) : notification;
+
+  const notificationData = {
+    type: parsedNotification?.type || parsedNotification?.data?.kind,
+    transaction: parsedNotification?.data,
+    duration: 5000,
+  };
+
+  return notificationData;
+}

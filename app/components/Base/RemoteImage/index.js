@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Image,
@@ -37,6 +37,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import useSvgUriViewBox from '../../hooks/useSvgUriViewBox';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import Logger from '../../../util/Logger';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -66,22 +67,35 @@ const RemoteImage = (props) => {
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const networkName = useSelector(selectNetworkName);
-  const resolvedIpfsUrl = useMemo(() => {
-    try {
-      const url = new URL(props.source.uri);
-      if (url.protocol !== 'ipfs:') return false;
-      const ipfsUrl = getFormattedIpfsUrl(ipfsGateway, props.source.uri, false);
-      return ipfsUrl;
-    } catch {
-      return false;
-    }
-  }, [props.source.uri, ipfsGateway]);
+  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState(false);
 
-  const uri = resolvedIpfsUrl || source.uri;
+  const uri =
+    resolvedIpfsUrl ||
+    (source.uri === undefined || source.uri?.startsWith('ipfs')
+      ? ''
+      : source.uri);
 
   const onError = ({ nativeEvent: { error } }) => setError(error);
 
   const [dimensions, setDimensions] = useState(null);
+
+  useEffect(() => {
+    resolveIpfsUrl();
+    async function resolveIpfsUrl() {
+      try {
+        const url = new URL(props.source.uri);
+        if (url.protocol !== 'ipfs:') setResolvedIpfsUrl(false);
+        const ipfsUrl = await getFormattedIpfsUrl(
+          ipfsGateway,
+          props.source.uri,
+          false,
+        );
+        setResolvedIpfsUrl(ipfsUrl);
+      } catch (err) {
+        setResolvedIpfsUrl(false);
+      }
+    }
+  }, [props.source.uri, ipfsGateway]);
 
   useEffect(() => {
     const calculateImageDimensions = (imageWidth, imageHeight) => {
@@ -112,7 +126,7 @@ const RemoteImage = (props) => {
         setDimensions({ width: calculatedWidth, height: calculatedHeight });
       },
       () => {
-        console.error('Failed to get image dimensions');
+        Logger.log('Failed to get image dimensions');
       },
     );
   }, [uri]);

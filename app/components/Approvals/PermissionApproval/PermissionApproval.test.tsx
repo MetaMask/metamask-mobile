@@ -73,7 +73,7 @@ describe('PermissionApproval', () => {
     jest.resetAllMocks();
     (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
       trackEvent: mockTrackEvent,
-      trackAnonymousEvent: jest.fn(),
+      createEventBuilder: jest.fn(),
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),

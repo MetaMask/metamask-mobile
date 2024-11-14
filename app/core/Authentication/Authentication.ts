@@ -29,6 +29,9 @@ import {
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
 import StorageWrapper from '../../store/storage-wrapper';
+import NavigationService from '../NavigationService';
+import Routes from '../../constants/navigation/Routes';
+import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -345,7 +348,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -378,7 +381,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -399,7 +402,13 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
       await this.loginVaultCreation(password);
+      endTrace({ name: TraceName.VaultCreation });
+
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       this.authData = authData;
@@ -407,7 +416,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -434,6 +443,7 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
+
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -442,7 +452,13 @@ class AuthenticationService {
           this.authData,
         );
       }
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
       await this.loginVaultCreation(password);
+      endTrace({ name: TraceName.VaultCreation });
+
       this.dispatchLogin();
       this.store?.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
@@ -450,7 +466,7 @@ class AuthenticationService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.store?.dispatch(authError(bioStateMachineId));
-      !disableAutoLogout && this.lockApp(false);
+      !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
@@ -462,20 +478,21 @@ class AuthenticationService {
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  lockApp = async (reset = true): Promise<void> => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
+  lockApp = async ({ reset = true, locked = false } = {}): Promise<void> => {
+    const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
+    });
   };
 
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
 }
-// eslint-disable-next-line import/prefer-default-export
+
 export const Authentication = new AuthenticationService();

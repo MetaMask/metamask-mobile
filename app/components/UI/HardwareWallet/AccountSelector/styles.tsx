@@ -11,11 +11,23 @@ export const createStyle = (colors: any) =>
       flex: 1,
       width: '100%',
       paddingHorizontal: 32,
+      marginTop: 20,
     },
     title: {
       marginTop: 40,
       fontSize: 24,
       marginBottom: 24,
+      ...fontStyles.normal,
+      color: colors.text.default,
+    },
+    warning: {
+      fontSize: 14,
+      marginBottom: 5,
+      ...fontStyles.bold,
+    },
+    subMsg: {
+      fontSize: 12,
+      marginBottom: 5,
       ...fontStyles.normal,
       color: colors.text.default,
     },

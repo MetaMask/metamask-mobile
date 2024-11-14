@@ -2,8 +2,8 @@
 import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { ListItemProps } from '../../components/List/ListItem/ListItem.types';
-import { IconName } from '../../components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { ListItemProps } from '../../../component-library/components/List/ListItem/ListItem.types';
 import { GestureResponderEvent } from 'react-native-modal';
 
 /**
@@ -27,9 +27,43 @@ export interface ListItemMultiSelectButtonProps
   buttonIcon?: IconName;
 
   /**
-   * Optional button onClick function
+   * Optional button onClick rpc modal function
    */
-  onButtonClick?: ((event: GestureResponderEvent) => void) | undefined;
+  onTextClick?: (() => void) | undefined;
+
+  /**
+   * Optional property to add avatar
+   */
+  withAvatar?: boolean;
+
+  /**
+   * Optional property to show icon
+   */
+  showButtonIcon?: boolean;
+
+  /**
+   * Optional button props
+   */
+  buttonProps?: {
+    /**
+     * Optional button onClick function
+     */
+    onButtonClick?: ((event: GestureResponderEvent) => void) | undefined;
+    /**
+     * Optional property to show text button
+     */
+    textButton?: string | null;
+
+    /**
+     * Optional property to show button icon
+     */
+    showButtonIcon?: boolean;
+
+    /**
+     * Optional property for button test ID
+     */
+    buttonTestId?: string;
+  };
 }
 
 /**

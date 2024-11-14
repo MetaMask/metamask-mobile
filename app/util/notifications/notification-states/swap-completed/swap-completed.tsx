@@ -54,8 +54,8 @@ const state: NotificationState<SwapCompletedNotification> = {
     );
     return {
       title: strings('notifications.modal.title_swapped', {
-        symbol1: notification.data.token_in.symbol,
-        symbol2: notification.data.token_out.symbol,
+        symbolIn: notification.data.token_in.symbol,
+        symbolOut: notification.data.token_out.symbol,
       }),
       createdAt: notification.createdAt.toString(),
       fields: [

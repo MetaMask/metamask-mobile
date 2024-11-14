@@ -7,7 +7,6 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
       "alignItems": "center",
       "backgroundColor": "#ffffff",
       "flexDirection": "row",
-      "paddingRight": 20,
     }
   }
 >
@@ -15,11 +14,11 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
     disabled={false}
     style={
       {
-        "backgroundColor": "#ffffff",
+        "flex": 1,
         "opacity": 1,
         "padding": 16,
         "position": "relative",
-        "width": "95%",
+        "zIndex": 1,
       }
     }
   >
@@ -28,20 +27,36 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
       accessible={true}
       style={
         {
-          "alignItems": "center",
-          "flexDirection": "row",
+          "alignItems": "flex-start",
+          "flexDirection": "column",
           "padding": 16,
           "paddingBottom": 0,
           "paddingLeft": 0,
           "paddingRight": 0,
           "paddingTop": 0,
+          "zIndex": 2,
         }
       }
     >
-      <View />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View />
+      </View>
     </View>
   </TouchableOpacity>
-  <View>
+  <View
+    style={
+      {
+        "paddingRight": 20,
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}

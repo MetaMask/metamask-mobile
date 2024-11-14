@@ -16,11 +16,13 @@ const AvatarBase: React.FC<AvatarBaseProps> = ({
   size = DEFAULT_AVATARBASE_SIZE,
   style,
   children,
+  includesBorder = false,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     size,
     style,
+    includesBorder,
   });
 
   return (

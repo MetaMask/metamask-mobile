@@ -132,11 +132,15 @@ describe('ConnectQRHardware', () => {
   mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
     (addresses) =>
       Promise.resolve(
-        addresses.map((address) => ({
-          [address]: {
-            balance: '0x0',
+        addresses.reduce(
+          (acc: { [key: string]: { balance: string } }, address) => {
+            acc[address] = {
+              balance: '0x0',
+            };
+            return acc;
           },
-        })),
+          {},
+        ),
       ),
   );
 

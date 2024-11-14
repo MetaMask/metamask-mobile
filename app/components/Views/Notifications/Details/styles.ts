@@ -120,7 +120,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
       alignSelf: 'center',
     },
     ctaBtn: {
-      bottom: 0,
+      bottom: 10,
       position: 'absolute',
       width: '90%',
       alignSelf: 'center',
@@ -210,17 +210,18 @@ export const createStyles = ({ colors, typography }: Theme) =>
       flexWrap: 'wrap',
     },
     headerText: {
-      width: '100%',
+      width: Device.isAndroid() ? '80%' : '100%',
       textAlign: 'center',
     },
     announcementDescriptionText: {
-      ...typography.lBodyMD,
+      ...typography.sBodyMD,
       color: colors.text.default,
       marginHorizontal: 1,
       // Announcement Description has some underlying padding that we want to remove.
       marginTop: -16,
+      textAlign: 'justify',
     },
     backIcon: {
-      marginHorizontal: 16,
+      marginLeft: 16,
     },
   });
