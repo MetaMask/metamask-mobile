@@ -48,16 +48,22 @@ export const selectAllTokens = createSelector(
 export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectTokensControllerState,
   selectSelectedInternalAccountAddress,
-  (tokensControllerState, selectedAddress) => {
+  (
+    tokensControllerState: TokensControllerState,
+    selectedAddress: string | null,
+  ) => {
+    // Updated return type to specify the structure more clearly
     if (!selectedAddress) {
-      return {};
+      return {} as { [chainId: string]: Token[] }; // Specify return type
     }
 
-    return Object.entries(tokensControllerState?.allDetectedTokens).reduce<{
+    return Object.entries(
+      tokensControllerState?.allDetectedTokens || {},
+    ).reduce<{
       [chainId: string]: Token[];
     }>((acc, [chainId, chainTokens]) => {
-      const tokensForAddress = chainTokens[selectedAddress];
-      if (tokensForAddress) {
+      const tokensForAddress = chainTokens[selectedAddress] || [];
+      if (tokensForAddress.length > 0) {
         acc[chainId] = tokensForAddress.map((token: Token) => ({
           ...token,
           chainId,
@@ -73,7 +79,8 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
 // detected tokens if the user has chosen it in the past
 export const selectAllDetectedTokensFlat = createSelector(
   selectAllDetectedTokensForSelectedAddress,
-  (detectedTokensByChain) => {
+  (detectedTokensByChain: { [chainId: string]: Token[] }) => {
+    // Updated type here
     if (Object.keys(detectedTokensByChain).length === 0) {
       return [];
     }
@@ -90,15 +97,17 @@ export const selectAllDetectedTokensFlat = createSelector(
 
 export const selectAllTokensFlat = createSelector(
   selectAllTokens,
-  (tokensByAccountByChain) => {
+  (tokensByAccountByChain: {
+    [account: string]: { [chainId: string]: Token[] };
+  }): Token[] => {
     if (Object.values(tokensByAccountByChain).length === 0) {
       return [];
     }
     const tokensByAccountArray = Object.values(tokensByAccountByChain);
 
-    return tokensByAccountArray.reduce((acc, tokensByAccount) => {
-      const tokensArray = Object.values(tokensByAccount);
+    return tokensByAccountArray.reduce<Token[]>((acc, tokensByAccount) => {
+      const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
-    }, [] as Token[]);
+    }, []);
   },
 );

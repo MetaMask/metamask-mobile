@@ -42,6 +42,11 @@ import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/Dete
 import { TokenI } from '../../UI/Tokens/types';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { organizeTokensByChainId } from '../../UI/Tokens/util/organizeTokensByChainId';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import { NetworkBadgeSource } from '../../UI/AssetOverview/Balance/Balance';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -256,6 +261,16 @@ const DetectedTokens = () => {
     const isChecked = !ignoredTokens[address];
 
     return (
+      // <BadgeWrapper
+      //   // style={styles.badgeWrapper}
+      //   badgeElement={
+      //     <Badge
+      //       variant={BadgeVariant.Network}
+      //       imageSource={NetworkBadgeSource(chainId, item.symbol)}
+      //       // name={networkName}
+      //     />
+      //   }
+      // >
       <Token
         token={item}
         selected={isChecked}
@@ -269,6 +284,7 @@ const DetectedTokens = () => {
           setIgnoredTokens(newIgnoredTokens);
         }}
       />
+      // </BadgeWrapper>
     );
   };
 

@@ -73,6 +73,7 @@ export const TokenListFooter = ({
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
   ) as TokenI[];
+
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
   // TODO: Can probably create "isAllNetworks" selector for these

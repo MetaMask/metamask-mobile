@@ -220,9 +220,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         AccountTrackerController,
         CurrencyRateController,
         TokenRatesController,
+        NetworkController,
+        AccountsController,
       } = Engine.context;
+
+      const networkConfigurations =
+        NetworkController.state.networkConfigurationsByChainId;
+      const chainIds = Object.keys(networkConfigurations);
+      const selectedAddress =
+        AccountsController.state.internalAccounts.selectedAccount;
+
       const actions = [
-        TokenDetectionController.detectTokens(),
+        TokenDetectionController.detectTokens({
+          chainIds: [chainIds] as Hex[],
+          selectedAddress,
+        }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
         TokenRatesController.updateExchangeRates(),

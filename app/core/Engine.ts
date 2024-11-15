@@ -2042,7 +2042,7 @@ export class Engine {
         const tokenBalances =
           contractBalances?.[selectedInternalAccount?.address as Hex]?.[
             chainId
-          ];
+          ] ?? {};
 
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
