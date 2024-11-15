@@ -118,6 +118,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
+  PPOMControllerActions,
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
@@ -173,6 +174,7 @@ import {
   weiToFiatNumber,
   toHexadecimal,
   addHexPrefix,
+  hexToBN,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -195,7 +197,10 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
-import { NotificationServicesController, NotificationServicesPushController } from '@metamask/notification-services-controller';
+import {
+  NotificationServicesController,
+  NotificationServicesPushController,
+} from '@metamask/notification-services-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -263,6 +268,7 @@ import { getSmartTransactionMetricsProperties } from '../util/smart-transactions
 import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
+import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -312,6 +318,7 @@ type GlobalActions =
   | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  | PPOMControllerActions
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions
@@ -701,9 +708,7 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.startPollingByNetworkClientId(
-      networkController.state.selectedNetworkClientId,
-    );
+
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -948,6 +953,11 @@ export class Engine {
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
+      getStakedBalanceForChain:
+        assetsContractController.getStakedBalanceForChain.bind(
+          assetsContractController,
+        ),
+      includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1306,17 +1316,19 @@ export class Engine {
         },
       });
 
-      const notificationServicesPushControllerMessenger =
+    const notificationServicesPushControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'NotificationServicesPushController',
         allowedActions: ['AuthenticationController:getBearerToken'],
         allowedEvents: [],
       });
 
-      const notificationServicesPushController =
+    const notificationServicesPushController =
       new NotificationServicesPushController.Controller({
         messenger: notificationServicesPushControllerMessenger,
-        state: initialState.NotificationServicesPushController || { fcmToken: '' },
+        state: initialState.NotificationServicesPushController || {
+          fcmToken: '',
+        },
         env: {
           apiKey: process.env.FIREBASE_API_KEY ?? '',
           authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
@@ -1633,14 +1645,10 @@ export class Engine {
             `${this.keyringController.name}:signMessage`,
             `${this.keyringController.name}:signTypedMessage`,
             `${loggingController.name}:add`,
+            `${networkController.name}:getNetworkClientById`,
           ],
           allowedEvents: [],
         }),
-        getAllState: () => store.getState(),
-        getCurrentChainId: () =>
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId,
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
@@ -1660,11 +1668,10 @@ export class Engine {
         ).configuration.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: [`${networkController.name}:stateChange`],
+          allowedEvents: [`${networkController.name}:networkDidChange`],
         }),
         onPreferencesChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1984,10 +1991,15 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
+        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance);
+        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].stakedBalance || '0x00');
+        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
         ethFiat = weiToFiatNumber(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
-          ].balance,
+          totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );

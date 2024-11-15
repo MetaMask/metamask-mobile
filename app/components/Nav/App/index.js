@@ -57,11 +57,13 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
-import TokenSortBottomSheet from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
+import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
+import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet.tsx';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
+import ConnectionDetails from '../../../components/Views/AccountPermissions/ConnectionDetails';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -430,12 +432,20 @@ const RootModalFlow = () => (
       component={AccountPermissionsConfirmRevokeAll}
     />
     <Stack.Screen
+      name={Routes.SHEET.CONNECTION_DETAILS}
+      component={ConnectionDetails}
+    />
+    <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
       component={NetworkSelector}
     />
     <Stack.Screen
       name={Routes.SHEET.TOKEN_SORT}
       component={TokenSortBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TOKEN_FILTER}
+      component={TokenFilterBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
@@ -982,7 +992,7 @@ const App = (props) => {
           <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
           <Stack.Screen
             name="EditAccountName"
-            component={EditAccountNameFlow}
+            component={EditAccountName}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen

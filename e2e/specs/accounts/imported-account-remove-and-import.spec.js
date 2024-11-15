@@ -24,6 +24,7 @@ const fixtureServer = new FixtureServer();
 // It should NEVER hold any eth or token
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+const ACCOUNT_INDEX = 1;
 
 describe(
   Regression('removes and reimports an account using a private key'),
@@ -50,7 +51,7 @@ describe(
       await WalletView.tapIdenticon();
 
       // Remove the imported account
-      await AccountListView.longPressImportedAccount();
+      await AccountListView.longPressAccountAtIndex(ACCOUNT_INDEX);
       await AccountListView.tapYesToRemoveImportedAccountAlertButton();
       await Assertions.checkIfNotVisible(AccountListView.accountTypeLabel);
 
@@ -61,8 +62,14 @@ describe(
       await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
       await Assertions.checkIfVisible(SuccessImportAccountView.container);
       await SuccessImportAccountView.tapCloseButton();
-      await Assertions.checkIfElementToHaveText(
-        AccountListView.accountTypeLabel,
+
+      const tagElement = await AccountListView.accountTagLabel;
+      const tagElementAttribute = await tagElement.getAttributes();
+      const tagLabel = tagElementAttribute.label;
+
+      // Check if the account type label is visible
+      await Assertions.checkIfTextMatches(
+        tagLabel,
         AccountListViewSelectorsText.ACCOUNT_TYPE_LABEL_TEXT,
       );
     });

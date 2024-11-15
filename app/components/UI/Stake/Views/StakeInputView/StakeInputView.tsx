@@ -19,6 +19,7 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -47,6 +48,8 @@ const StakeInputView = () => {
     isLoadingVaultData,
     handleMax,
     balanceValue,
+    isHighGasCostImpact,
+    isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
   const navigateToLearnMoreModal = () => {
@@ -65,6 +68,20 @@ const StakeInputView = () => {
   };
 
   const handleStakePress = useCallback(() => {
+    if (isHighGasCostImpact()) {
+      navigation.navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountWei: amountWei.toString(),
+          amountFiat: fiatAmount,
+          annualRewardsETH,
+          annualRewardsFiat,
+          annualRewardRate,
+        },
+      });
+      return;
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
@@ -77,15 +94,15 @@ const StakeInputView = () => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        tokens_to_stake_native_value: amountEth,
-        tokens_to_stake_usd_value: fiatAmount,
-      })
-      .build(),
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
     );
   }, [
-    amountEth,
+    isHighGasCostImpact,
     navigation,
     amountWei,
     fiatAmount,
@@ -93,7 +110,8 @@ const StakeInputView = () => {
     annualRewardsFiat,
     annualRewardRate,
     trackEvent,
-    createEventBuilder
+    createEventBuilder,
+    amountEth,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -136,13 +154,30 @@ const StakeInputView = () => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitch}
+        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
+          event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          properties: {
+            selected_provider: 'consensys',
+            text: 'Currency Switch Trigger',
+            location: 'Stake Input View',
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isEth ? 'fiat' : 'native',
+          },
+        })}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={navigateToLearnMoreModal}
+          onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+            event: MetaMetricsEvents.TOOLTIP_OPENED,
+            properties: {
+              selected_provider: 'consensys',
+              text: 'Tooltip Opened',
+              location: 'Stake Input View',
+              tooltip_name: 'MetaMask Pool Estimated Rewards',
+            },
+          })}
           isLoading={isLoadingVaultData}
         />
       </View>
@@ -164,7 +199,9 @@ const StakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={isOverMaximum || !isNonZeroAmount}
+          isDisabled={
+            isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
+          }
           width={ButtonWidthTypes.Full}
           onPress={handleStakePress}
         />

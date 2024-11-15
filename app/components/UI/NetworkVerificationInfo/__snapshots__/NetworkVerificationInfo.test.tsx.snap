@@ -94,6 +94,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           style={null}
         >
           <View
+            accessibilityLabel="Test Chain"
             style={
               {
                 "alignItems": "center",
@@ -105,6 +106,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
                 "width": 16,
               }
             }
+            testID="network-avatar-picker"
           >
             <Image
               onError={[Function]}

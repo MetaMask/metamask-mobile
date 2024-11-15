@@ -3,7 +3,7 @@ import {
   getShouldStartApprovalRequest,
   getShouldUpdateApprovalRequest,
   getTransactionType,
-  getSmartTransactionMetricsProperties
+  getSmartTransactionMetricsProperties,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import type { ControllerMessenger } from '../../core/Engine';
@@ -328,7 +328,7 @@ describe('Smart Transactions utils', () => {
         smartTransactionsController,
         undefined,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({});
     });
@@ -342,13 +342,15 @@ describe('Smart Transactions utils', () => {
           proxied: true,
         },
       };
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(smartTransaction);
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(smartTransaction);
 
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({
         smart_transaction_duplicated: true,
@@ -366,18 +368,24 @@ describe('Smart Transactions utils', () => {
           proxied: false,
         },
       };
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(undefined);
-      (controllerMessenger.subscribe as jest.Mock).mockImplementation((event, callback) => {
-        if (event === 'SmartTransactionsController:smartTransactionConfirmationDone') {
-          setTimeout(() => callback(smartTransaction), 100);
-        }
-      });
-
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(undefined);
+      (controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (event, callback) => {
+          if (
+            event ===
+            'SmartTransactionsController:smartTransactionConfirmationDone'
+          ) {
+            setTimeout(() => callback(smartTransaction), 100);
+          }
+        },
+      );
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         true,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({
         smart_transaction_duplicated: false,
@@ -388,13 +396,15 @@ describe('Smart Transactions utils', () => {
 
     it('returns empty object if smartTransaction is not found and waitForSmartTransaction is false', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(undefined);
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(undefined);
 
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({});
     });
@@ -402,13 +412,15 @@ describe('Smart Transactions utils', () => {
     it('returns empty object if smartTransaction is found but statusMetadata is undefined', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {};
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(smartTransaction);
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(smartTransaction);
 
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({});
     });
@@ -422,13 +434,15 @@ describe('Smart Transactions utils', () => {
           proxied: true,
         },
       };
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(smartTransaction);
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(smartTransaction);
 
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({
         smart_transaction_duplicated: true,
