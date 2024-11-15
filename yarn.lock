@@ -5366,15 +5366,7 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^6.3.1", "@metamask/rpc-errors@^6.4.0":
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-6.4.0.tgz#a7ce01c06c9a347ab853e55818ac5654a73bd006"
-  integrity sha512-1ugFO1UoirU2esS3juZanS/Fo8C8XYocCuBpfZI5N7ECtoG+zu0wF+uWZASik6CkO6w9n/Iebt4iI4pT0vptpg==
-  dependencies:
-    "@metamask/utils" "^9.0.0"
-    fast-safe-stringify "^2.0.6"
-
-"@metamask/rpc-errors@^7.0.1":
+"@metamask/rpc-errors@7.0.1", "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^6.3.1", "@metamask/rpc-errors@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-7.0.1.tgz#0eb2231a1d5e6bb102df5ac07f365c695bf70055"
   integrity sha512-EeQGYioq845w2iBmiR9LHYqHhYIaeDTmxprHpPE3BTlkLB74P0xLv/TivOn4snNLowiC5ekOXfcUzCQszTDmSg==
