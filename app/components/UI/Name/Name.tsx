@@ -48,20 +48,22 @@ const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
 };
 
 const Name: React.FC<NameProperties> = ({
-  chainId,
   preferContractSymbol,
   type,
   value,
+  variation,
 }) => {
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
-  const { image, name, variant } = useDisplayName(
+
+  const { image, name, variant } = useDisplayName({
+    preferContractSymbol,
     type,
     value,
-    chainId,
-    preferContractSymbol,
-  );
+    variation,
+  });
+
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: variant,
   });
@@ -72,11 +74,7 @@ const Name: React.FC<NameProperties> = ({
 
   return (
     <View style={styles.base}>
-      {image ? (
-        <Image source={{ uri: image }} style={styles.image} />
-      ) : (
-        <Identicon address={value} diameter={16} />
-      )}
+      <Identicon address={value} diameter={16} imageUri={image} />
       <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
         {name}
       </NameLabel>

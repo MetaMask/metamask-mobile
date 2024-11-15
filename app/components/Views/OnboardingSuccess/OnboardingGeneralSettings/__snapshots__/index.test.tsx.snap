@@ -185,6 +185,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           style={null}
         >
           <View
+            accessibilityLabel="Ethereum Main Network"
             style={
               {
                 "alignItems": "center",
@@ -197,6 +198,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
                 "width": 16,
               }
             }
+            testID="network-avatar-picker"
           >
             <Text
               accessibilityRole="text"

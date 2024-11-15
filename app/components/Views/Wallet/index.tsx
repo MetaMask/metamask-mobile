@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -12,8 +6,6 @@ import {
   TextStyle,
   InteractionManager,
   Linking,
-  AppState,
-  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
@@ -35,6 +27,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -66,7 +59,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -93,8 +85,7 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
+import { useAccountName } from '../../hooks/useAccountName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -161,10 +152,7 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
-  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
-  const { listNotifications } = useListNotifications();
-  const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -229,6 +217,14 @@ const Wallet = ({
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  const accountName = useAccountName();
+
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   useEffect(() => {
     if (
@@ -406,38 +402,13 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-  // Layout effect when component/view is visible
-  // - fetches notifications
-  // - dispatches account syncing
-  useLayoutEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (
-        appState.current?.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        listNotifications();
-        dispatchAccountSyncing();
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
-
-    listNotifications();
-    dispatchAccountSyncing();
-
-    return () => {
-      subscription.remove();
-    };
-  }, [listNotifications, dispatchAccountSyncing]);
-
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
+        selectedAddress || '',
+        accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -451,6 +422,9 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
+    selectedAddress,
+    accountName,
+    accountAvatarType,
     navigation,
     colors,
     networkName,
@@ -514,34 +488,55 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    let assets = tokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let stakedBalance: any = 0;
+
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
+      const nativeAsset = {
+        // TODO: Add name property to Token interface in controllers.
+        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+        symbol: getTicker(ticker),
+        isETH: true,
+        balance,
+        balanceFiat: weiToFiat(
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hexToBN(accountBalanceByChainId.balance) as any,
+          conversionRate,
+          currentCurrency,
+        ),
+        logo: '../images/eth-logo-new.png',
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      assets.push(nativeAsset);
 
-      assets = [
-        {
-          // TODO: Add name property to Token interface in controllers.
-          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-          symbol: getTicker(ticker),
-          isETH: true,
-          balance,
+      let stakedAsset;
+      if (accountBalanceByChainId.stakedBalance) {
+        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
+        stakedAsset = {
+          ...nativeAsset,
+          nativeAsset,
+          name: 'Staked Ethereum',
+          isStaked: true,
+          balance: stakedBalance,
           balanceFiat: weiToFiat(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.balance) as any,
+            hexToBN(accountBalanceByChainId.stakedBalance) as any,
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo-new.png',
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-        ...(tokens || []),
-      ];
-    } else {
-      assets = tokens;
+        } as any;
+        assets.push(stakedAsset);
+      }
     }
+
     return (
       <View
         style={styles.wrapper}
@@ -559,9 +554,6 @@ const Wallet = ({
               }
             />
           </View>
-        ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
@@ -595,10 +587,8 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,

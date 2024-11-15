@@ -7,6 +7,7 @@ import { NameType } from './Name.types';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
@@ -49,6 +50,7 @@ describe('Name', () => {
           <Name
             type={NameType.EthereumAddress}
             value={UNKNOWN_ADDRESS_NOT_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
           />
         </Provider>,
       );
@@ -72,6 +74,7 @@ describe('Name', () => {
           <Name
             type={NameType.EthereumAddress}
             value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
           />
         </Provider>,
       );

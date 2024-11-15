@@ -43,6 +43,7 @@ import type { TokenI } from '../../../Tokens/types';
 import useBalance from '../../hooks/useBalance';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { selectChainId } from '../../../../../selectors/networkController';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -62,6 +63,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     exchangeRate,
     hasStakedPositions,
     hasEthToUnstake,
+    isLoadingPooledStakesData,
   } = usePooledStakes();
   const { vaultData } = useVaultData();
   const annualRewardRate = vaultData?.apy || '';
@@ -94,6 +96,74 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     return <></>;
   }
 
+  const renderStakingContent = () => {
+    if (isLoadingPooledStakesData) {
+      return (
+        <SkeletonPlaceholder>
+          <SkeletonPlaceholder.Item height={50} borderRadius={6} />
+        </SkeletonPlaceholder>
+      );
+    }
+
+    if (!isEligibleForPooledStaking) {
+      return (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={BannerAlertSeverity.Info}
+          description={strings('stake.banner_text.geo_blocked')}
+          style={styles.bannerStyles}
+        />
+      );
+    }
+
+    return (
+      <>
+        {unstakingRequests.map(
+          ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
+            assetsToDisplay && (
+              <UnstakingBanner
+                key={positionTicket}
+                amountEth={fixDisplayAmount(
+                  multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
+                  4,
+                )}
+                timeRemaining={
+                  !Number(withdrawalTimestamp)
+                    ? { days: 0, hours: 0, minutes: 0 } // default to 0 days.
+                    : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
+                }
+                style={styles.bannerStyles}
+              />
+            ),
+        )}
+
+        {hasClaimableEth && (
+          <ClaimBanner
+            claimableAmount={claimableEth}
+            style={styles.bannerStyles}
+          />
+        )}
+
+        {!hasStakedPositions && (
+          <StakingCta
+            style={styles.stakingCta}
+            estimatedRewardRate={formatPercent(annualRewardRate, {
+              inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+              outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+              fixed: 1,
+            })}
+          />
+        )}
+
+        <StakingButtons
+          style={styles.buttonsContainer}
+          hasEthToUnstake={hasEthToUnstake}
+          hasStakedPositions={hasStakedPositions}
+        />
+      </>
+    );
+  };
+
   return (
     <View>
       {hasStakedPositions && (
@@ -120,61 +190,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         </AssetElement>
       )}
 
-      <View style={styles.container}>
-        {!isEligibleForPooledStaking ? (
-          <Banner
-            variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Info}
-            description={strings('stake.banner_text.geo_blocked')}
-            style={styles.bannerStyles}
-          />
-        ) : (
-          <>
-            {unstakingRequests.map(
-              ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
-                assetsToDisplay && (
-                  <UnstakingBanner
-                    key={positionTicket}
-                    amountEth={fixDisplayAmount(
-                      multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
-                      4,
-                    )}
-                    timeRemaining={
-                      !Number(withdrawalTimestamp)
-                        ? { days: 0, hours: 0, minutes: 0 } // default to 0 days.
-                        : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
-                    }
-                    style={styles.bannerStyles}
-                  />
-                ),
-            )}
-
-            {hasClaimableEth && (
-              <ClaimBanner
-                claimableAmount={claimableEth}
-                style={styles.bannerStyles}
-              />
-            )}
-
-            {!hasStakedPositions && (
-              <StakingCta
-                style={styles.stakingCta}
-                estimatedRewardRate={formatPercent(annualRewardRate, {
-                  inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-                  outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-                  fixed: 1,
-                })}
-              />
-            )}
-
-            <StakingButtons
-              style={styles.buttonsContainer}
-              hasEthToUnstake={hasEthToUnstake}
-              hasStakedPositions={hasStakedPositions}
-            />
-          </>
-        )}
-      </View>
+      <View style={styles.container}>{renderStakingContent()}</View>
     </View>
   );
 };
