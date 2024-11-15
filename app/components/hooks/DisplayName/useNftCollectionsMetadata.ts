@@ -1,8 +1,6 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { Collection } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
-import { selectChainId } from '../../../selectors/networkController';
 import { useAsyncResult } from '../useAsyncResult';
 import Engine from '../../../core/Engine';
 import { getTokenDetails } from '../../../util/address';
@@ -63,11 +61,8 @@ async function fetchCollections(
   return collectionsData;
 }
 
-export function useNftCollectionsMetadata(
-  requests: UseDisplayNameRequest[],
-  providedChainId?: Hex,
-) {
-  const chainId = useSelector(selectChainId) || providedChainId;
+export function useNftCollectionsMetadata(requests: UseDisplayNameRequest[]) {
+  const chainId = requests[0].variation;
 
   const memoisedContracts = useMemo(
     () =>
@@ -78,7 +73,7 @@ export function useNftCollectionsMetadata(
   );
 
   const { value: collectionsMetadata } = useAsyncResult(
-    () => fetchCollections(memoisedContracts, chainId),
+    () => fetchCollections(memoisedContracts, chainId as Hex),
     [JSON.stringify(memoisedContracts), chainId],
   );
 

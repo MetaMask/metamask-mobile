@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { SimulationTokenStandard } from '@metamask/transaction-controller';
-import { selectChainId } from '../../../selectors/networkController';
 import {
   useNftCollectionsMetadata,
   TokenStandard,
@@ -8,13 +7,6 @@ import {
 import Engine from '../../../core/Engine';
 import { getTokenDetails } from '../../../util/address';
 import { NameType } from '../../UI/Name/Name.types';
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (selector: any) => selector(),
-}));
 
 jest.mock('../../../util/address', () => ({
   getTokenDetails: jest.fn(),
@@ -49,13 +41,11 @@ const ERC_721_COLLECTION_2_MOCK = {
 
 describe('useNftCollectionsMetadata', () => {
   const { NftController } = Engine.context;
-  const mockSelectChainId = jest.mocked(selectChainId);
   const mockGetTokenDetails = jest.mocked(getTokenDetails);
   const mockGetNFTContractInfo = jest.mocked(NftController.getNFTContractInfo);
 
   beforeEach(() => {
     jest.resetAllMocks();
-    mockSelectChainId.mockReturnValue(CHAIN_ID_MOCK);
     mockGetNFTContractInfo.mockResolvedValue({
       collections: [ERC_721_COLLECTION_1_MOCK, ERC_721_COLLECTION_2_MOCK],
     });
@@ -78,10 +68,12 @@ describe('useNftCollectionsMetadata', () => {
         {
           value: ERC_721_ADDRESS_1,
           type: NameType.EthereumAddress,
+          variation: CHAIN_ID_MOCK,
         },
         {
           value: ERC_721_ADDRESS_2,
           type: NameType.EthereumAddress,
+          variation: CHAIN_ID_MOCK,
         },
       ]),
     );
@@ -115,6 +107,7 @@ describe('useNftCollectionsMetadata', () => {
           {
             value: '0xERC20Address',
             type: NameType.EthereumAddress,
+            variation: CHAIN_ID_MOCK,
           },
         ]),
       );
@@ -129,6 +122,7 @@ describe('useNftCollectionsMetadata', () => {
           {
             value: '0xERC20Address',
             type: NameType.EthereumAddress,
+            variation: CHAIN_ID_MOCK,
           },
         ]),
       );
@@ -142,10 +136,12 @@ describe('useNftCollectionsMetadata', () => {
         {
           value: ERC_721_ADDRESS_1,
           type: NameType.EthereumAddress,
+          variation: CHAIN_ID_MOCK,
         },
         {
           value: ERC_721_ADDRESS_2,
           type: NameType.EthereumAddress,
+          variation: CHAIN_ID_MOCK,
         },
       ]),
     );

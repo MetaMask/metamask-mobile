@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TextProps, View, Image } from 'react-native';
+import { TextProps, View } from 'react-native';
 
 import { useStyles } from '../../../component-library/hooks';
 import Text, {
