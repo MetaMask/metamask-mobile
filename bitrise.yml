@@ -1576,16 +1576,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.34.1
+      VERSION_NAME: 7.36.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1482
+      VERSION_NUMBER: 1496
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.34.1
+      FLASK_VERSION_NAME: 7.36.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1482
+      FLASK_VERSION_NUMBER: 1496
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
