@@ -74,7 +74,12 @@ const Name: React.FC<NameProperties> = ({
 
   return (
     <View style={styles.base}>
-      <Identicon address={value} diameter={16} imageUri={image} />
+      <Identicon
+        address={value}
+        diameter={16}
+        imageUri={image}
+        customStyle={styles.imageStyle}
+      />
       <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
         {name}
       </NameLabel>
