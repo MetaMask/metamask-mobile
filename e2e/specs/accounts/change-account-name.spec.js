@@ -20,14 +20,21 @@ import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/LoginView';
+import AccountListView from '../../pages/AccountListView';
 
 const fixtureServer = new FixtureServer();
 const NEW_ACCOUNT_NAME = 'Edited Name';
+const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
+const MAIN_ACCOUNT_INDEX = 0;
+const IMPORTED_ACCOUNT_INDEX = 1;
 
 describe(Regression('Change Account Name'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().withGanacheNetwork().build();
+    const fixture = new FixtureBuilder()
+      .withGanacheNetwork()
+      .withImportedAccountKeyringController()
+      .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
@@ -43,7 +50,9 @@ describe(Regression('Change Account Name'), () => {
 
   it('renames an account and verifies the new name persists after locking and unlocking the wallet', async () => {
     // Open account actions and edit account name
-    await WalletView.tapMainWalletAccountActions();
+    await TabBarComponent.tapWallet();
+    await WalletView.tapIdenticon();
+    await AccountListView.tapEditAccountActionsAtIndex(MAIN_ACCOUNT_INDEX);
     await AccountActionsModal.tapEditAccount();
     await Gestures.clearField(EditAccountNameView.accountNameInput);
     await TestHelpers.typeTextAndHideKeyboard(
@@ -71,6 +80,46 @@ describe(Regression('Change Account Name'), () => {
     await Assertions.checkIfElementToHaveText(
       WalletView.accountName,
       NEW_ACCOUNT_NAME,
+    );
+  });
+
+  it('import an account, edits the name, and verifies the new name persists after locking and unlocking the wallet', async () => {
+    // Open account actions bottom sheet and choose imported account
+    await WalletView.tapIdenticon();
+    await AccountListView.tapToSelectActiveAccountAtIndex(
+      IMPORTED_ACCOUNT_INDEX,
+    );
+
+    // Edit imported account name
+    await WalletView.tapIdenticon();
+    await AccountListView.tapEditAccountActionsAtIndex(IMPORTED_ACCOUNT_INDEX);
+    await AccountActionsModal.tapEditAccount();
+    await Gestures.clearField(EditAccountNameView.accountNameInput);
+    await TestHelpers.typeTextAndHideKeyboard(
+      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
+      NEW_IMPORTED_ACCOUNT_NAME,
+    );
+    await EditAccountNameView.tapSave();
+
+    // Verify updated name
+    await Assertions.checkIfElementToHaveText(
+      WalletView.accountName,
+      NEW_IMPORTED_ACCOUNT_NAME,
+    );
+
+    // Lock wallet
+    await Assertions.checkIfVisible(TabBarComponent.tabBarSettingButton);
+    await TabBarComponent.tapSettings();
+    await SettingsView.scrollToLockButton();
+    await SettingsView.tapLock();
+    await SettingsView.tapYesAlertButton();
+    await Assertions.checkIfVisible(LoginView.container);
+
+    // Unlock wallet and verify updated name persists
+    await loginToApp();
+    await Assertions.checkIfElementToHaveText(
+      WalletView.accountName,
+      NEW_IMPORTED_ACCOUNT_NAME,
     );
   });
 });

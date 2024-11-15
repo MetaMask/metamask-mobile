@@ -490,7 +490,7 @@ class DrawerView extends PureComponent {
     return label ? (
       <View style={[styles.importedWrapper]}>
         <Text numberOfLines={1} style={styles.importedText}>
-          {strings(label)}
+          {label}
         </Text>
       </View>
     ) : null;

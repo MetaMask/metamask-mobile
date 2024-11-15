@@ -34,6 +34,8 @@ const PickerNetwork = ({
           size={AvatarSize.Xs}
           name={label}
           imageSource={imageSource}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER}
+          accessibilityLabel={label}
         />
       </View>
       {hideNetworkName ? null : (

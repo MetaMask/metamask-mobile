@@ -19,6 +19,7 @@ import InputDisplay from '../../components/InputDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
@@ -68,14 +69,21 @@ const UnstakeInputView = () => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        tokens_to_stake_native_value: amountEth,
-        tokens_to_stake_usd_value: fiatAmount,
-      })
-      .build(),
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
     );
-  }, [amountEth, amountWei, createEventBuilder, fiatAmount, navigation, trackEvent]);
+  }, [
+    amountEth,
+    amountWei,
+    createEventBuilder,
+    fiatAmount,
+    navigation,
+    trackEvent,
+  ]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -88,7 +96,16 @@ const UnstakeInputView = () => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitch}
+        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
+          event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          properties: {
+            selected_provider: 'consensys',
+            text: 'Currency Switch Trigger',
+            location: 'Unstake Input View',
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isEth ? 'fiat' : 'native',
+          },
+        })}
         currencyToggleValue={currencyToggleValue}
       />
       <UnstakeInputViewBanner style={styles.unstakeBanner} />

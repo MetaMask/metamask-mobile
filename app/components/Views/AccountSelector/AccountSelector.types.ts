@@ -35,6 +35,10 @@ export interface AccountSelectorParams {
    * @param balance - The ticker balance of an account in wei and hex string format.
    */
   checkBalanceError?: UseAccountsParams['checkBalanceError'];
+  /**
+   * Optional boolean to indicate if privacy mode is enabled.
+   */
+  privacyMode?: boolean;
 }
 
 /**

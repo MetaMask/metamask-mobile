@@ -55,8 +55,10 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
+
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(
+      networkPicker,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
   });
@@ -80,10 +82,9 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementToHaveText(
-      WalletView.navbarNetworkText,
-      ETHEREUM,
-    );
+
+    const networkPicker = await WalletView.getNavbarNetworkPicker();
+    await Assertions.checkIfElementHasLabel(networkPicker, ETHEREUM);
   });
 
   it('should toggle off the Test Network switch', async () => {

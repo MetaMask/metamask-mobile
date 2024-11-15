@@ -10,6 +10,17 @@ import { TRIGGER_TYPES } from '../../constants';
  */
 export type Notification = NotificationServicesController.Types.INotification;
 
+export type HandleNotificationCallback = (
+  data: Notification['data'] | undefined
+) => void
+
+export enum PressActionId {
+  OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
+  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id'
+}
+
+export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
+
 /**
  * NotificationFC is the shared component interface for all notification components
  */
@@ -84,6 +95,22 @@ export const NotificationTransactionTypes = {
   cancelled: 'cancelled',
   received: 'received',
   received_payment: 'received_payment',
+  eth_received: 'eth_received',
+  features_announcement: 'features_announcement',
+  metamask_swap_completed: 'metamask_swap_completed',
+  erc20_sent: 'erc20_sent',
+  erc20_received: 'erc20_received',
+  eth_sent: 'eth_sent',
+  rocketpool_stake_completed: 'rocketpool_stake_completed',
+  rocketpool_unstake_completed: 'rocketpool_unstake_completed',
+  lido_stake_completed: 'lido_stake_completed',
+  lido_withdrawal_requested: 'lido_withdrawal_requested',
+  lido_withdrawal_completed: 'lido_withdrawal_completed',
+  lido_stake_ready_to_be_withdrawn: 'lido_stake_ready_to_be_withdrawn',
+  erc721_sent: 'erc721_sent',
+  erc721_received: 'erc721_received',
+  erc1155_sent: 'erc1155_sent',
+  erc1155_received: 'erc1155_received',
 } as const;
 
 export type NotificationTransactionTypesType =
@@ -96,10 +123,10 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-  | 'lido_stake_completed'
-  | 'rocketpool_stake_completed'
-  | 'rocketpool_unstake_completed'
-  | 'lido_withdrawal_completed',
+NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+| NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',

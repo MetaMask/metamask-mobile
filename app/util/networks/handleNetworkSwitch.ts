@@ -1,4 +1,3 @@
-import { CurrencyRateController } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import { NetworkController } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
@@ -22,8 +21,6 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     return;
   }
 
-  const currencyRateController = Engine.context
-    .CurrencyRateController as CurrencyRateController;
   const networkController = Engine.context
     .NetworkController as NetworkController;
   const chainId = selectChainId(store.getState());
@@ -44,13 +41,11 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
       ,
       {
         name: nickname,
-        nativeCurrency: ticker,
         rpcEndpoints,
         defaultRpcEndpointIndex,
       },
     ] = entry;
 
-    currencyRateController.updateExchangeRate(ticker);
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
     networkController.setActiveNetwork(networkClientId);

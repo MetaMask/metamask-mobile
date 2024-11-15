@@ -7,16 +7,12 @@ import { SET_APPROVAL_FOR_ALL_SIGNATURE } from '../../../../../util/transactions
 import { cloneDeep } from 'lodash';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
-import {
-  getTokenDetails,
-} from '../../../../../util/address';
+import { getTokenDetails } from '../../../../../util/address';
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
-  getTokenDetails: jest.fn()
+  getTokenDetails: jest.fn(),
 }));
-
-
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -27,22 +23,29 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    context: {
+      KeyringController: {
+        getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
+      },
+      AssetsContractController: {
+        getERC20BalanceOf: jest.fn().mockResolvedValue(0x0186a0),
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
     },
-    AssetsContractController: {
-        getERC20BalanceOf: jest
-        .fn()
-        .mockResolvedValue(0x0186a0),
-    }
-  },
-  controllerMessenger: {
-    subscribe: jest.fn(),
-    unsubscribe: jest.fn(),
-  },
-}));
+    controllerMessenger: {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
+  };
+});
 
 const data = `0x${SET_APPROVAL_FOR_ALL_SIGNATURE}00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001`;
 const transaction = {
@@ -96,7 +99,7 @@ describe('ApproveTransactionModal', () => {
   it('Approve button is enabled when standard is defined', async () => {
     const mockGetTokenDetails = getTokenDetails as jest.Mock;
     mockGetTokenDetails.mockReturnValue({
-      standard: 'ERC20'
+      standard: 'ERC20',
     });
     const state = cloneDeep(initialState);
     state.engine.backgroundState.AccountTrackerController.accounts = [];
@@ -110,16 +113,14 @@ describe('ApproveTransactionModal', () => {
           iconUrl:
             'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
           type: 'erc20',
-          aggregators: [
-            'Aave',
-          ],
+          aggregators: ['Aave'],
           occurrences: 10,
           fees: {
             '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
             '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
           },
         },
-      }
+      },
     };
 
     state.transaction = {
@@ -135,13 +136,10 @@ describe('ApproveTransactionModal', () => {
       data,
     };
     const mockOnConfirm = jest.fn();
-    const {getByTestId } = renderScreen(
-
+    const { getByTestId } = renderScreen(
       () => (
         // eslint-disable-next-line react/react-in-jsx-scope
-        <ApproveTransactionModal
-        onConfirm={mockOnConfirm}
-        />
+        <ApproveTransactionModal onConfirm={mockOnConfirm} />
       ),
       { name: 'Approve' },
       { state },
@@ -172,16 +170,14 @@ describe('ApproveTransactionModal', () => {
           iconUrl:
             'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
           type: 'erc20',
-          aggregators: [
-            'Aave',
-          ],
+          aggregators: ['Aave'],
           occurrences: 10,
           fees: {
             '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
             '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
           },
         },
-      }
+      },
     };
 
     state.transaction = {
@@ -197,13 +193,10 @@ describe('ApproveTransactionModal', () => {
       data,
     };
     const mockOnConfirm = jest.fn();
-    const {getByTestId } = renderScreen(
-
+    const { getByTestId } = renderScreen(
       () => (
         // eslint-disable-next-line react/react-in-jsx-scope
-        <ApproveTransactionModal
-        onConfirm={mockOnConfirm}
-        />
+        <ApproveTransactionModal onConfirm={mockOnConfirm} />
       ),
       { name: 'Approve' },
       { state },
@@ -215,5 +208,4 @@ describe('ApproveTransactionModal', () => {
       expect(isDisabled).toBe(true);
     });
   });
-
 });

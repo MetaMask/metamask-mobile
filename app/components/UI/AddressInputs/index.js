@@ -178,11 +178,7 @@ const createStyles = (colors, layout = 'horizontal') => {
   });
 };
 
-const AddressName = ({
-  toAddressName,
-  confusableCollection = [],
-  accountLabel,
-}) => {
+const AddressName = ({ toAddressName, confusableCollection = [] }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   if (confusableCollection.length) {
@@ -214,14 +210,6 @@ const AddressName = ({
       <Text style={styles.textAddress} numberOfLines={1}>
         {toAddressName}
       </Text>
-      {accountLabel && (
-        <Text
-          variant={TextVariant.BodySMBold}
-          style={styles.accountNameLabelText}
-        >
-          {strings(accountLabel)}
-        </Text>
-      )}
     </View>
   );
 };
@@ -229,7 +217,6 @@ const AddressName = ({
 AddressName.propTypes = {
   toAddressName: PropTypes.string,
   confusableCollection: PropTypes.array,
-  accountLabel: PropTypes.string,
 };
 
 export const AddressTo = (props) => {
@@ -252,7 +239,6 @@ export const AddressTo = (props) => {
     isFromAddressBook = false,
     layout = 'horizontal',
   } = props;
-  const accountLabel = getLabelTextByAddress(toSelectedAddress);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -292,7 +278,6 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
-                      accountLabel={accountLabel}
                     />
                   )}
                   <View style={styles.addressWrapper}>
@@ -414,7 +399,6 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
-                      accountLabel={accountLabel}
                     />
 
                     <View style={styles.addressWrapper}>
@@ -582,7 +566,6 @@ export const AddressFrom = (props) => {
     fromAccountAddress,
     layout = 'horizontal',
   } = props;
-  const accountLabel = getLabelTextByAddress(fromAccountAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -603,14 +586,6 @@ export const AddressFrom = (props) => {
         <View style={[baseStyles.flexGrow, styles.address]}>
           <View style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
-            {accountLabel && (
-              <Text
-                variant={TextVariant.BodySMBold}
-                style={styles.accountNameLabelText}
-              >
-                {strings(accountLabel)}
-              </Text>
-            )}
           </View>
           <Text style={styles.textBalance}>{`${strings(
             'transactions.address_from_balance',

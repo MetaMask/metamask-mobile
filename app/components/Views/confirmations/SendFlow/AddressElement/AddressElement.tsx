@@ -16,7 +16,6 @@ import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
-import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
@@ -80,14 +79,6 @@ const AddressElement: React.FC<AddressElementProps> = ({
           >
             {primaryLabel}
           </Text>
-          {accountTypeLabel && (
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.accountNameLabelText}
-            >
-              {strings(accountTypeLabel)}
-            </Text>
-          )}
         </View>
         {!!secondaryLabel && (
           <Text
@@ -96,6 +87,14 @@ const AddressElement: React.FC<AddressElementProps> = ({
             numberOfLines={1}
           >
             {secondaryLabel}
+          </Text>
+        )}
+        {accountTypeLabel && (
+          <Text
+            variant={TextVariant.BodySM}
+            style={styles.accountNameLabelText}
+          >
+            {accountTypeLabel}
           </Text>
         )}
       </View>

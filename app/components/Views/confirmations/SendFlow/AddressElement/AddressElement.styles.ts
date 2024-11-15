@@ -22,12 +22,12 @@ const styleSheet = (colors: Colors) =>
       color: colors.text.alternative,
     },
     accountNameLabelText: {
-      marginLeft: 4,
       paddingHorizontal: 8,
       color: colors.text.alternative,
       borderWidth: 1,
       borderRadius: 8,
       borderColor: colors.border.default,
+      alignSelf: 'flex-start',
     },
     accountNameLabel: {
       flexDirection: 'row',

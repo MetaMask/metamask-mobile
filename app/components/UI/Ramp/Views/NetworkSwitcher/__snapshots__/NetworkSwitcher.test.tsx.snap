@@ -1065,6 +1065,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     style={null}
                                                   >
                                                     <View
+                                                      accessibilityLabel="Cronos Mainnet"
                                                       style={
                                                         {
                                                           "alignItems": "center",
@@ -1077,6 +1078,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                           "width": 16,
                                                         }
                                                       }
+                                                      testID="network-avatar-picker"
                                                     >
                                                       <Text
                                                         accessibilityRole="text"

@@ -126,37 +126,46 @@ jest.mock('../../../../../lib/ppom/ppom-util', () => ({
   isChainSupported: jest.fn(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  rejectPendingApproval: jest.fn(),
-  context: {
-    TokensController: {
-      addToken: jest.fn(),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
-          },
-        ],
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../../../util/test/accountsControllerTestUtils');
+  return {
+    rejectPendingApproval: jest.fn(),
+    context: {
+      TokensController: {
+        addToken: jest.fn(),
       },
-    },
-    TransactionController: {
-      addTransaction: jest.fn().mockResolvedValue({
-        result: {},
-        transactionMeta: {
-          id: 1,
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
+            },
+          ],
         },
-      }),
-      updateSecurityAlertResponse: jest.fn(),
-    },
-    PreferencesController: {
-      state: {
-        securityAlertsEnabled: true,
+      },
+      TransactionController: {
+        addTransaction: jest.fn().mockResolvedValue({
+          result: {},
+          transactionMeta: {
+            id: 1,
+          },
+        }),
+        updateSecurityAlertResponse: jest.fn(),
+      },
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
+
 jest.mock('../../../../../util/custom-gas', () => ({
   ...jest.requireActual('../../../../../util/custom-gas'),
   getGasLimit: jest.fn(),

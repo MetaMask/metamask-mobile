@@ -8,6 +8,7 @@ import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
 import MaxInputModal from '../components/MaxInputModal';
+import GasImpactModal from '../components/GasImpactModal';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -55,6 +56,11 @@ const StakeModalStack = () => (
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.MAX_INPUT}
         component={MaxInputModal}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.STAKING.MODALS.GAS_IMPACT}
+        component={GasImpactModal}
         options={{ headerShown: false }}
       />
     </ModalStack.Navigator>

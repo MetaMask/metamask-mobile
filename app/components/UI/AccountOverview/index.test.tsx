@@ -11,23 +11,31 @@ import {
 
 const mockedEngine = Engine;
 
-jest.mock('../../../core/Engine.ts', () => ({
-  init: () => mockedEngine.init({}),
-  context: {
-    KeyringController: {
-      getQRKeyringState: async () => ({ subscribe: () => ({}) }),
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-            index: 0,
-            type: 'HD Key Tree',
-          },
-        ],
+jest.mock('../../../core/Engine.ts', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    init: () => mockedEngine.init({}),
+    context: {
+      KeyringController: {
+        getQRKeyringState: async () => ({ subscribe: () => ({}) }),
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+              index: 0,
+              type: 'HD Key Tree',
+            },
+          ],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
 
 const mockInitialState = {
   settings: {},

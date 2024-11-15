@@ -9,6 +9,10 @@ interface NavigationMock {
   navigate: jest.Mock;
 }
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 jest.unmock('./NotificationManager');
 
 const mockNavigate: jest.Mock = jest.fn();
@@ -101,13 +105,22 @@ describe('NotificationManager', () => {
       'cancelled',
     ];
   selectedNotificationTypes.forEach((type) => {
-    it(`should construct title and message for ${type}`, () => {
+    it(`constructs title and message for ${type}`, () => {
       const { title, message } = constructTitleAndMessage({
         type: NotificationTransactionTypes[type],
       });
 
       expect(title).toBe(strings(`notifications.${type}_title`));
       expect(message).toBe(strings(`notifications.${type}_message`));
+    });
+
+    it('constructs default title and message for unknown type', () => {
+      const { title, message } = constructTitleAndMessage({
+        type: 'unknown',
+      });
+
+      expect(title).toBe(strings('notifications.default_message_title'));
+      expect(message).toBe(strings('notifications.default_message_description'));
     });
   });
 });

@@ -97,6 +97,17 @@ const useStakingInputHandlers = () => {
     ? `${balanceETH} ETH`
     : `${balanceFiatNumber?.toString()} ${currentCurrency.toUpperCase()}`;
 
+  const getDepositTxGasPercentage = useCallback(
+    () => estimatedGasFeeWei.mul(new BN(100)).div(amountWei).toString(),
+    [amountWei, estimatedGasFeeWei],
+  );
+
+  // Gas fee make up 30% or more of the deposit amount.
+  const isHighGasCostImpact = useCallback(
+    () => new BN(getDepositTxGasPercentage()).gt(new BN(30)),
+    [getDepositTxGasPercentage],
+  );
+
   return {
     amountEth,
     amountWei,
@@ -122,6 +133,8 @@ const useStakingInputHandlers = () => {
     handleMax,
     isLoadingStakingGasFee,
     balanceValue,
+    getDepositTxGasPercentage,
+    isHighGasCostImpact,
   };
 };
 

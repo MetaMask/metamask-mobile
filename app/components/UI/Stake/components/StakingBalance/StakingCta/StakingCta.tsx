@@ -30,12 +30,12 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        text: 'Learn More',
-        location: 'Token Details'
-      })
-      .build()
+        .addProperties({
+          selected_provider: 'consensys',
+          text: 'Learn More',
+          location: 'Token Details',
+        })
+        .build(),
     );
   };
 
@@ -51,7 +51,7 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
         <Text style={styles.rightPad} color={TextColor.Success}>
           {estimatedRewardRate}
         </Text>
-        <Text>{strings('stake.stake_your_eth_cta.annually')}</Text>
+        <Text>{`${strings('stake.stake_your_eth_cta.annually')} `}</Text>
         <Button
           label={strings('stake.stake_your_eth_cta.learn_more_with_period')}
           variant={ButtonVariants.Link}
