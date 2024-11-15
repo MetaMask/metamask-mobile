@@ -5,17 +5,16 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 import NotificationsDetails from './index';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
+import { NotificationComponentState } from '../../../../util/notifications/notification-states';
 
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
   },
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
 };
 
@@ -46,10 +45,11 @@ describe('NotificationsDetails', () => {
   beforeEach(() => {
     navigation = {
       navigate: jest.fn(),
+      setOptions: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>;
   });
 
-  it('should renders correctly', () => {
+  it('renders correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
         <NotificationsDetails
@@ -64,5 +64,33 @@ describe('NotificationsDetails', () => {
     );
 
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('derives state correctly based on notification type', () => {
+    const notificationType = MOCK_NOTIFICATIONS[1].type as keyof typeof NotificationComponentState;
+
+    (NotificationComponentState[notificationType] as unknown) = {
+      createModalDetails: jest.fn().mockReturnValue({
+        title: 'Test Title',
+        createdAt: new Date().toISOString(),
+        header: 'Test Header',
+        fields: [],
+        footer: 'Test Footer',
+      }),
+    };
+
+    const result = render(
+      <Provider store={store}>
+        <NotificationsDetails
+          navigation={navigation}
+          route={{
+            params: {
+              notification: MOCK_NOTIFICATIONS[1],
+            },
+          }}
+        />
+      </Provider>,
+    );
+    expect(result).toBeTruthy();
   });
 });

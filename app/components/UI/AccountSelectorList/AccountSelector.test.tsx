@@ -5,10 +5,18 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockAccountsControllerStateWithSnap,
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+} from '../../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { AccountSelectorListProps } from './AccountSelectorList.types';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -26,17 +34,26 @@ jest.mock('../../../util/address', () => {
   };
 });
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
-        network: '1',
-        providerConfig: {
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
           ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
-        },
+          chainId: CHAIN_IDS.MAINNET,
+        }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
@@ -48,16 +65,6 @@ const initialState = {
       PreferencesController: {
         isMultiAccountBalancesEnabled: true,
         selectedAddress: BUSINESS_ACCOUNT,
-        identities: {
-          [BUSINESS_ACCOUNT]: {
-            address: BUSINESS_ACCOUNT,
-            name: 'Business Account',
-          },
-          [PERSONAL_ACCOUNT]: {
-            address: PERSONAL_ACCOUNT,
-            name: 'Personal Account',
-          },
-        },
       },
       CurrencyRateController: {
         currentCurrency: 'usd',
@@ -76,8 +83,9 @@ const initialState = {
 
 const onSelectAccount = jest.fn();
 const onRemoveImportedAccount = jest.fn();
-
-const AccountSelectorListUseAccounts = () => {
+const AccountSelectorListUseAccounts: React.FC<AccountSelectorListProps> = ({
+  privacyMode = false,
+}) => {
   const { accounts, ensByAccountAddress } = useAccounts();
   return (
     <AccountSelectorList
@@ -86,6 +94,7 @@ const AccountSelectorListUseAccounts = () => {
       accounts={accounts}
       ensByAccountAddress={ensByAccountAddress}
       isRemoveAccountEnabled
+      privacyMode={privacyMode}
     />
   );
 };
@@ -112,7 +121,7 @@ const renderComponent = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any = {},
   AccountSelectorListTest = AccountSelectorListUseAccounts,
-) => renderWithProvider(<AccountSelectorListTest />, { state });
+) => renderWithProvider(<AccountSelectorListTest {...state} />, { state });
 
 describe('AccountSelectorList', () => {
   beforeEach(() => {
@@ -120,21 +129,21 @@ describe('AccountSelectorList', () => {
     onRemoveImportedAccount.mockClear();
   });
 
-  it('should render correctly', async () => {
+  it('renders correctly', async () => {
     const { toJSON } = renderComponent(initialState);
     await waitFor(() => expect(toJSON()).toMatchSnapshot());
   });
 
-  it('should render all accounts with balances', async () => {
+  it('renders all accounts with balances', async () => {
     const { queryByTestId, getAllByTestId, toJSON } =
       renderComponent(initialState);
 
     await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
       const personalAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -174,7 +183,7 @@ describe('AccountSelectorList', () => {
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
-        `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -186,7 +195,7 @@ describe('AccountSelectorList', () => {
     });
   });
 
-  it('should render all accounts with right acessory', async () => {
+  it('renders all accounts with right accessory', async () => {
     const { getAllByTestId, toJSON } = renderComponent(
       initialState,
       AccountSelectorListRightAccessoryUseAccounts,
@@ -197,6 +206,81 @@ describe('AccountSelectorList', () => {
       expect(rightAccessories.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+  it('renders correct account names', async () => {
+    const { getAllByTestId } = renderComponent(initialState);
+
+    await waitFor(() => {
+      const accountNameItems = getAllByTestId('cellbase-avatar-title');
+      expect(within(accountNameItems[0]).getByText('Account 1')).toBeDefined();
+      expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
+    });
+  });
+  it('renders the snap name tag for Snap accounts', async () => {
+    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap(
+      [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+      'MetaMask Simple Snap Keyring',
+    );
+
+    const stateWithSnapAccount = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountsController: mockAccountsWithSnap,
+        },
+      },
+    };
+
+    const { queryByText } = renderComponent(stateWithSnapAccount);
+
+    await waitFor(async () => {
+      const snapTag = await queryByText('MetaMask Simple Snap Keyring');
+      expect(snapTag).toBeDefined();
+    });
+  });
+  it('Text is not hidden when privacy mode is off', async () => {
+    const state = {
+      ...initialState,
+      privacyMode: false,
+    };
+
+    const { queryByTestId } = renderComponent(state);
+
+    await waitFor(() => {
+      const businessAccountItem = queryByTestId(
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      );
+
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText(regex.usd(3200)),
+      ).toBeDefined();
+
+      expect(within(businessAccountItem).queryByText('••••••')).toBeNull();
+    });
+  });
+  it('Text is hidden when privacy mode is on', async () => {
+    const state = {
+      ...initialState,
+      privacyMode: true,
+    };
+
+    const { queryByTestId } = renderComponent(state);
+
+    await waitFor(() => {
+      const businessAccountItem = queryByTestId(
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      );
+
+      expect(within(businessAccountItem).queryByText(regex.eth(1))).toBeNull();
+      expect(
+        within(businessAccountItem).queryByText(regex.usd(3200)),
+      ).toBeNull();
+
+      expect(within(businessAccountItem).getByText('••••••')).toBeDefined();
     });
   });
 });

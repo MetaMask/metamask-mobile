@@ -1,15 +1,23 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
 
 import { ResultType, Reason } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from './TransactionBlockaidBanner';
+import { RootState } from '../../../../../reducers';
 
-jest.mock('../../../../../util/blockaid', () => ({
-  isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
-  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+  },
 }));
 
 jest.mock('react-native-gzip', () => ({
@@ -18,17 +26,16 @@ jest.mock('react-native-gzip', () => ({
   deflate: (val: any) => val,
 }));
 
-const mockState = {
+const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      NetworkController: { providerConfig: { chainId: '0x1' } },
       PreferencesController: { securityAlertsEnabled: true },
     },
   },
   transaction: {
-    currentTransactionSecurityAlertResponse: {
-      id: '123',
-      response: {
+    id: 123,
+    securityAlertResponses: {
+      123: {
         result_type: ResultType.Warning,
         reason: Reason.approvalFarming,
         block: 123,
@@ -61,23 +68,18 @@ describe('TransactionBlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should not render if currentTransactionSecurityAlertResponse.id is undefined', async () => {
-    const wrapper = renderWithProvider(<TransactionBlockaidBanner />, {
-      state: {
-        ...mockState,
-        transaction: {
-          currentTransactionSecurityAlertResponse: {
-            response: {
-              result_type: ResultType.Warning,
-              reason: Reason.approvalFarming,
-              block: 123,
-              req: {},
-              chainId: '0x1',
-            },
+  it('should not render if securityAlertResponses.id is undefined', async () => {
+    const wrapper = renderWithProvider(
+      <TransactionBlockaidBanner transactionId="123" />,
+      {
+        state: {
+          ...mockState,
+          transaction: {
+            securityAlertResponses: {},
           },
         },
       },
-    });
+    );
 
     expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();

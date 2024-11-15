@@ -40,7 +40,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -91,36 +91,42 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         }
       >
         <View
-          style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#ffffff",
-              "borderRadius": 8,
-              "height": 16,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "width": 16,
-            }
-          }
+          style={null}
         >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              {
-                "default": {
-                  "uri": "MockImage",
-                },
-              }
-            }
+          <View
+            accessibilityLabel="Test Chain"
             style={
               {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
                 "height": 16,
+                "justifyContent": "center",
+                "overflow": "hidden",
                 "width": 16,
               }
             }
-            testID="network-avatar-image"
-          />
+            testID="network-avatar-picker"
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={
+                {
+                  "default": {
+                    "uri": "MockImage",
+                  },
+                }
+              }
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
         </View>
         <Text
           accessibilityRole="text"
@@ -129,7 +135,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             {
               "color": "#141618",
               "flexShrink": 1,
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -190,7 +196,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -247,7 +253,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -264,7 +270,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -300,7 +306,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -315,7 +321,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -331,7 +337,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -346,7 +352,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -362,7 +368,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -377,7 +383,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -406,7 +412,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -468,6 +474,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
+      onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
@@ -486,14 +493,13 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         }
       }
       testID="approve-network-cancel-button"
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#0376c9",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -508,6 +514,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
+      onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
@@ -526,14 +533,13 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         }
       }
       testID="approve-network-approve-button"
-      variant="Primary"
     >
       <Text
         accessibilityRole="text"
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

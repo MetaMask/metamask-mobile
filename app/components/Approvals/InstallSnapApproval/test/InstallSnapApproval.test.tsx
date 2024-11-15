@@ -1,8 +1,9 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import InstallSnapApproval from '../InstallSnapApproval';
 import { ApprovalRequest } from '@metamask/approval-controller';
+import configureMockStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
+import InstallSnapApproval from '../InstallSnapApproval';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import {
   SNAP_INSTALL_CANCEL,
@@ -127,20 +128,46 @@ describe('InstallSnapApprovalFlow', () => {
     expectsResult: false,
   };
 
+  const mockStore = configureMockStore();
+  const mockInitialState = {
+    settings: {},
+    engine: {
+      backgroundState: {
+        SubjectMetadataController: {
+          subjectMetadata: {},
+        },
+        SnapController: {
+          snaps: {},
+        },
+      },
+    },
+  };
+  const store = mockStore(mockInitialState);
+
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Wrapper = ({ children }: any) => (
+    <Provider store={store}>{children}</Provider>
+  );
+
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders InstallSnapConnectionRequest component initially when approval type is wallet_requestPermissions', () => {
     mockApprovalRequest(requestPermissionsData);
-    const { getByTestId } = render(<InstallSnapApproval />);
+    const { getByTestId } = render(<InstallSnapApproval />, {
+      wrapper: Wrapper,
+    });
     const connectionRequest = getByTestId(SNAP_INSTALL_CONNECTION_REQUEST);
     expect(connectionRequest).toBeDefined();
   });
 
   it('renders InstallSnapPermissionsRequest when approval type is wallet_installSnap', async () => {
     mockApprovalRequest(installSnapData);
-    const { findByTestId } = render(<InstallSnapApproval />);
+    const { findByTestId } = render(<InstallSnapApproval />, {
+      wrapper: Wrapper,
+    });
     const permissionsRequest = await findByTestId(
       SNAP_INSTALL_PERMISSIONS_REQUEST,
     );
@@ -149,7 +176,9 @@ describe('InstallSnapApprovalFlow', () => {
 
   it('calls onConfirm when Approve button is pressed in InstallSnapPermissionsRequest', async () => {
     mockApprovalRequest(installSnapData);
-    const { getByTestId } = render(<InstallSnapApproval />);
+    const { getByTestId } = render(<InstallSnapApproval />, {
+      wrapper: Wrapper,
+    });
     const permissionsApproveButton = getByTestId(
       SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
     );
@@ -159,7 +188,9 @@ describe('InstallSnapApprovalFlow', () => {
 
   it('renders InstallSnapSuccess on successful installation', async () => {
     mockApprovalRequest(installSnapData);
-    const { getByTestId, findByTestId } = render(<InstallSnapApproval />);
+    const { getByTestId, findByTestId } = render(<InstallSnapApproval />, {
+      wrapper: Wrapper,
+    });
     const permissionsRequest = await findByTestId(
       SNAP_INSTALL_PERMISSIONS_REQUEST,
     );
@@ -178,7 +209,9 @@ describe('InstallSnapApprovalFlow', () => {
       throw new Error('Installation error');
     });
 
-    const { getByTestId, findByTestId } = render(<InstallSnapApproval />);
+    const { getByTestId, findByTestId } = render(<InstallSnapApproval />, {
+      wrapper: Wrapper,
+    });
     const permissionsRequest = getByTestId(SNAP_INSTALL_PERMISSIONS_REQUEST);
     expect(permissionsRequest).toBeDefined();
     const permissionsConfirmButton = getByTestId(
@@ -192,10 +225,11 @@ describe('InstallSnapApprovalFlow', () => {
 
   it('calls onCancel on cancel button click', () => {
     mockApprovalRequest(installSnapData);
-    const { getByTestId } = render(<InstallSnapApproval />);
+    const { getByTestId } = render(<InstallSnapApproval />, {
+      wrapper: Wrapper,
+    });
     const cancelButton = getByTestId(SNAP_INSTALL_CANCEL);
     fireEvent.press(cancelButton);
     expect(onReject).toHaveBeenCalledTimes(1);
   });
 });
-///: END:ONLY_INCLUDE_IF

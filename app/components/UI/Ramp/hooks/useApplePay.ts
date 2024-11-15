@@ -95,7 +95,7 @@ function useApplePay(quote: QuoteResponse) {
     }
   }, [quote]);
 
-  return [showRequest];
+  return [showRequest] as const;
 }
 
 export default useApplePay;

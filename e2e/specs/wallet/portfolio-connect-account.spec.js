@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeCore } from '../../tags';
+import { Regression } from '../../tags';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -9,15 +9,15 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import BrowserView from '../../pages/Browser/BrowserView';
 import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
 import Assertions from '../../utils/Assertions';
-import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 const fixtureServer = new FixtureServer();
-describe(SmokeCore('Connect account to Portfolio'), () => {
+describe(Regression('Connect account to Portfolio'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withKeyringController().build();
@@ -50,17 +50,17 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
       /* eslint-disable no-console */
       console.log('The Portfolio privacy modal is not visible');
     }
-    await PortfolioHomePage.tapConnectMetaMask();
     await device.disableSynchronization();
-    await ConnectModal.tapConnectButton();
+    await PortfolioHomePage.tapConnectMetaMask();
+    await ConnectBottomSheet.tapConnectButton();
     await device.enableSynchronization();
   });
 
   it('should not open additional browser tabs to portfolio', async () => {
-    await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
+    await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
     await TabBarComponent.tapWallet();
     await WalletView.tapPortfolio();
     await BrowserView.waitForBrowserPageToLoad();
-    await Assertions.checkIfHasText(BrowserView.tabsNumber, '1');
+    await Assertions.checkIfElementToHaveText(BrowserView.tabsNumber, '1');
   });
 });

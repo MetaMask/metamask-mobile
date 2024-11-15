@@ -5,7 +5,7 @@ import { ChainId } from '@metamask/controller-utils';
 import { render } from '@testing-library/react-native';
 
 import NetworkMainAssetLogo from '.';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../Swaps/components/TokenIcon', () => {
   const originalModule = jest.requireActual('../Swaps/components/TokenIcon');
@@ -18,9 +18,7 @@ jest.mock('../Swaps/components/TokenIcon', () => {
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
   network: {
     provider: {

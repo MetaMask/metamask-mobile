@@ -30,6 +30,10 @@ import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../hooks/useInterval';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../../routes/utils';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -174,11 +178,11 @@ const OrderDetails = () => {
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(
-      order?.orderType === OrderOrderTypeEnum.Buy
-        ? Routes.RAMP.BUY
-        : Routes.RAMP.SELL,
-    );
+    if (order?.orderType === OrderOrderTypeEnum.Buy) {
+      navigation.navigate(...createBuyNavigationDetails());
+    } else {
+      navigation.navigate(...createSellNavigationDetails());
+    }
   }, [navigation, order?.orderType]);
 
   useInterval(

@@ -22,13 +22,13 @@ DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+approval-controller+*.patch"
 COMMENT_LINE_COUNT=7
 
-COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-approval-controller-3-5-2\
+COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-approval-controller-7-0-1\
 +This patch backports various transaction controller features from the main branch of MetaMask/core\
 +Steps to update patch:\
-+* Create a new core branch from: patch/mobile-approval-controller-3-5-2\
++* Create a new core branch from: patch/mobile-approval-controller-7-0-1\
 +* Run "yarn build" in the core monorepo\
 +* Run "yarn patch:approval <core-directory>" in the mobile repo\
-+* Once the new patch is merged, add your changes to: patch/mobile-approval-controller-3-5-2'
++* Once the new patch is merged, add your changes to: patch/mobile-approval-controller-7-0-1'
 
 COMMENT_DIFF='diff --git a/node_modules/@metamask/approval-controller/dist/.patch.txt b/node_modules/@metamask/approval-controller/dist/.patch.txt\
 new file mode 100644\

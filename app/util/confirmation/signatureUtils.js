@@ -11,6 +11,7 @@ import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
 import { getDecimalChainId } from '../networks';
+import Logger from '../Logger';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -23,31 +24,40 @@ export const getAnalyticsParams = (
   signType,
   securityAlertResponse,
 ) => {
+  if (!messageParams || typeof messageParams !== 'object') {
+    throw new Error('Invalid messageParams provided');
+  }
+
+  const { currentPageInformation = {}, meta = {} } = messageParams;
+  const pageInfo = { ...currentPageInformation, ...meta };
+
+  const analyticsParams = {
+    account_type: getAddressAccountType(messageParams.from),
+    dapp_host_name: 'N/A',
+    chain_id: null,
+    signature_type: signType,
+    version: messageParams?.version || 'N/A',
+    ...pageInfo.analytics,
+  };
+
   try {
-    const { currentPageInformation, meta } = messageParams;
-    const pageInfo = meta || currentPageInformation || {};
-
     const chainId = selectChainId(store.getState());
+    analyticsParams.chain_id = getDecimalChainId(chainId);
 
-    const url = pageInfo.url && new URL(pageInfo?.url);
-
-    let blockaidParams = {};
-    if (securityAlertResponse) {
-      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    if (pageInfo.url) {
+      const url = new URL(pageInfo.url);
+      analyticsParams.dapp_host_name = url.host;
     }
 
-    return {
-      account_type: getAddressAccountType(messageParams.from),
-      dapp_host_name: url && url?.host,
-      chain_id: getDecimalChainId(chainId),
-      signature_type: signType,
-      version: messageParams?.version,
-      ...pageInfo?.analytics,
-      ...blockaidParams,
-    };
+    if (securityAlertResponse) {
+      const blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+      Object.assign(analyticsParams, blockaidParams);
+    }
   } catch (error) {
-    return {};
+    Logger.error(error, 'Error processing analytics parameters:');
   }
+
+  return analyticsParams;
 };
 
 export const walletConnectNotificationTitle = (confirmation, isError) => {

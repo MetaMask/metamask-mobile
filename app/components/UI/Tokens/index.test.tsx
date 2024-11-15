@@ -5,26 +5,53 @@ import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import Engine from '../../../core/Engine';
-import {
-  getAssetTestId,
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Engine from '../../../core/Engine';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 
-const mockEngine = Engine;
+jest.mock('../../../core/NotificationManager', () => ({
+  showSimpleNotification: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('./TokensBottomSheet', () => ({
+  createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn(() => Promise.resolve()),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(() => Promise.resolve()),
+    },
+    TokenRatesController: {
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
     },
   },
 }));
@@ -32,7 +59,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       TokensController: {
         tokens: [
           {
@@ -62,6 +89,7 @@ const initialState = {
             iconUrl: '',
           },
         ],
+        detectedTokens: [],
       },
       TokenRatesController: {
         marketData: {
@@ -93,6 +121,9 @@ const initialState = {
     primaryCurrency: 'usd',
     hideZeroBalanceTokens: true,
   },
+  security: {
+    dataCollectionForMarketing: true,
+  },
 };
 
 const mockNavigate = jest.fn();
@@ -108,6 +139,22 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../UI/Stake/constants', () => ({
+  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isEligible: true,
+    isLoadingEligibility: false,
+    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+      isEligible: true,
+    }),
+    error: false,
+  })),
+}));
 
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
@@ -132,6 +179,7 @@ describe('Tokens', () => {
     mockNavigate.mockClear();
     mockPush.mockClear();
   });
+
   it('should render correctly', () => {
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
@@ -139,7 +187,6 @@ describe('Tokens', () => {
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
-    // ETH and BAT should display
 
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
@@ -159,7 +206,6 @@ describe('Tokens', () => {
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
     expect(getByText('Link')).toBeDefined();
-    // All three should display
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -168,51 +214,29 @@ describe('Tokens', () => {
     fireEvent.press(getByText('Ethereum'));
     expect(mockNavigate).toHaveBeenCalledWith('Asset', {
       ...initialState.engine.backgroundState.TokensController.tokens[0],
+      tokenFiatAmount: NaN,
     });
   });
 
   it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
-    fireEvent.press(getByTestId(IMPORT_TOKEN_BUTTON_ID));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
     expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
   });
 
   it('shows remove menu when remove button is pressed', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
     fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
-    expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
-  it('fiat balance must be defined', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toBeDefined();
-  });
-  it('portfolio button should render correctly', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON)).toBeDefined();
-  });
-  it('navigates to Portfolio url when portfolio button is pressed', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PORTFOLIO_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
-    });
-  });
   it('should display unable to find conversion rate', async () => {
     const state = {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           TokensController: {
+            detectedTokens: [],
             tokens: [
               {
                 name: 'Link',
@@ -253,21 +277,100 @@ describe('Tokens', () => {
       await findByText(strings('wallet.unable_to_find_conversion_rate')),
     ).toBeDefined();
   });
+
   it('renders stake button correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
     expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
-  it('navigates to Portfolio Stake url when stake button is pressed', () => {
+
+  it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: false }),
+      error: false,
+    });
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
-        timestamp: 123,
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        params: {
+          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+          timestamp: 123,
+        },
+        screen: Routes.BROWSER.VIEW,
+      });
+    });
+  });
+
+  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: true }),
+      error: false,
+    });
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
+    });
+  });
+
+  it('should refresh tokens and call necessary controllers', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.scroll(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        nativeEvent: {
+          contentOffset: { y: 100 }, // Simulate scroll offset
+          contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
+          layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
+        },
       },
-      screen: Routes.BROWSER.VIEW,
+    );
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      {
+        refreshing: true,
+      },
+    );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.TokenDetectionController.detectTokens,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.AccountTrackerController.refresh,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.CurrencyRateController.updateExchangeRate,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.TokenRatesController.updateExchangeRates,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  it('triggers bottom sheet when sort controls are pressed', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    await fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
+
+    await waitFor(() => {
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
     });
   });
 });

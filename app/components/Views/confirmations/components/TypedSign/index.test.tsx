@@ -9,12 +9,12 @@ import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetrics } from '../../../../../core/Analytics';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 
 jest.mock('../../../../../core/Analytics/MetaMetrics');
 
@@ -24,28 +24,41 @@ const mockMetrics = {
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
-jest.mock('../../../../../core/Engine', () => ({
-  acceptPendingApproval: jest.fn(),
-  rejectPendingApproval: jest.fn(),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../../../util/test/accountsControllerTestUtils');
+  return {
+    acceptPendingApproval: jest.fn(),
+    rejectPendingApproval: jest.fn(),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+        getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
+        getOrAddQRKeyring: jest.fn(),
       },
-      getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getOrAddQRKeyring: jest.fn(),
-    },
-    SignatureController: {
-      hub: {
-        on: jest.fn(),
-        removeListener: jest.fn(),
+      SignatureController: {
+        hub: {
+          on: jest.fn(),
+          removeListener: jest.fn(),
+        },
+      },
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-  controllerMessenger: {
-    subscribe: jest.fn(),
-  },
-}));
+    controllerMessenger: {
+      subscribe: jest.fn(),
+    },
+  };
+});
 
 jest.mock('../../../../../core/NotificationManager');
 
@@ -66,7 +79,7 @@ const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
@@ -131,7 +144,7 @@ describe('TypedSign', () => {
       expect(container).toMatchSnapshot();
 
       const signButton = await container.findByTestId(
-        SigningModalSelectorsIDs.SIGN_BUTTON,
+        SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
       );
       fireEvent.press(signButton);
       expect(mockConfirm).toHaveBeenCalledTimes(1);
@@ -167,7 +180,7 @@ describe('TypedSign', () => {
         );
 
         const signButton = await container.findByTestId(
-          SigningModalSelectorsIDs.SIGN_BUTTON,
+          SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
         );
         fireEvent.press(signButton);
 
@@ -226,7 +239,7 @@ describe('TypedSign', () => {
         );
 
         const rejectButton = await container.findByTestId(
-          SigningModalSelectorsIDs.CANCEL_BUTTON,
+          SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
         );
         fireEvent.press(rejectButton);
 
@@ -267,7 +280,7 @@ describe('TypedSign', () => {
       expect(container).toMatchSnapshot();
 
       const rejectButton = await container.findByTestId(
-        SigningModalSelectorsIDs.CANCEL_BUTTON,
+        SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
       expect(mockReject).toHaveBeenCalledTimes(1);
@@ -310,7 +323,7 @@ describe('TypedSign', () => {
       );
 
       const rejectButton = await container.findByTestId(
-        SigningModalSelectorsIDs.CANCEL_BUTTON,
+        SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
 
@@ -348,7 +361,7 @@ describe('TypedSign', () => {
       );
 
       const rejectButton = await container.findByTestId(
-        SigningModalSelectorsIDs.CANCEL_BUTTON,
+        SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
       );
       fireEvent.press(rejectButton);
 
@@ -365,11 +378,12 @@ describe('TypedSign', () => {
       expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
-        dapp_host_name: undefined,
-        chain_id: undefined,
+        dapp_host_name: 'N/A',
+        chain_id: '1',
         signature_type: undefined,
-        version: undefined,
+        version: 'N/A',
         security_alert_response: 'Benign',
+        security_alert_source: undefined,
         security_alert_reason: '',
         ppom_eth_chainId_count: 1,
       });
@@ -390,7 +404,7 @@ describe('TypedSign', () => {
       );
 
       const signButton = await container.findByTestId(
-        SigningModalSelectorsIDs.SIGN_BUTTON,
+        SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
       );
       fireEvent.press(signButton);
 
@@ -405,11 +419,12 @@ describe('TypedSign', () => {
       expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
       expect(lastMockCall[1]).toEqual({
         account_type: 'Metamask',
-        dapp_host_name: undefined,
-        chain_id: undefined,
-        version: undefined,
+        dapp_host_name: 'N/A',
+        chain_id: '1',
+        version: 'N/A',
         signature_type: undefined,
         security_alert_response: 'Benign',
+        security_alert_source: undefined,
         security_alert_reason: '',
         ppom_eth_chainId_count: 1,
       });

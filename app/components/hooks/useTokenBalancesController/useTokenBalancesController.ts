@@ -1,11 +1,10 @@
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
 import { ControllerHookType } from '../controllerHook.types';
-import { BN } from 'ethereumjs-util';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 interface TokenBalances {
-  [address: string]: BN;
+  [address: string]: string;
 }
 
 const useTokenBalancesController = (): ControllerHookType<TokenBalances> => {

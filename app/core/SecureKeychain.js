@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from '../store/async-storage-wrapper';
+import StorageWrapper from '../store/storage-wrapper';
 import { Platform } from 'react-native';
 import { MetaMetricsEvents, MetaMetrics } from '../core/Analytics';
 import {
@@ -80,8 +80,8 @@ export default {
 
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
-    await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-    await AsyncStorage.removeItem(PASSCODE_CHOICE);
+    await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+    await StorageWrapper.removeItem(PASSCODE_CHOICE);
     // This is called to remove other auth types and set the user back to the default password login
     await MetaMetrics.getInstance().addTraitsToUser({
       [UserProfileProperty.AUTHENTICATION_TYPE]: AUTHENTICATION_TYPE.PASSWORD,
@@ -120,6 +120,7 @@ export default {
     const metrics = MetaMetrics.getInstance();
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
+
       await metrics.addTraitsToUser({
         [UserProfileProperty.AUTHENTICATION_TYPE]:
           AUTHENTICATION_TYPE.BIOMETRIC,
@@ -147,26 +148,53 @@ export default {
     });
 
     if (type === this.TYPES.BIOMETRICS) {
-      await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-      await AsyncStorage.removeItem(PASSCODE_CHOICE);
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE, TRUE);
+      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(PASSCODE_CHOICE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
 
       // If the user enables biometrics, we're trying to read the password
       // immediately so we get the permission prompt
       if (Platform.OS === 'ios') {
-        await this.getGenericPassword();
+        try {
+          await this.getGenericPassword();
+        } catch (error) {
+          // Specifically check for user cancellation
+          if (error.message === 'User canceled the operation.') {
+            // Store password without biometrics
+            const encryptedPassword = await instance.encryptPassword(password);
+            await Keychain.setGenericPassword(
+              'metamask-user',
+              encryptedPassword,
+              {
+                ...defaultOptions,
+              },
+            );
+
+            // Update storage to reflect disabled biometrics
+            await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+            await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+
+            // Update metrics
+            await metrics.addTraitsToUser({
+              [UserProfileProperty.AUTHENTICATION_TYPE]:
+                AUTHENTICATION_TYPE.PASSWORD,
+            });
+
+            return;
+          }
+        }
       }
     } else if (type === this.TYPES.PASSCODE) {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-      await AsyncStorage.removeItem(PASSCODE_DISABLED);
-      await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+      await StorageWrapper.removeItem(PASSCODE_DISABLED);
+      await StorageWrapper.setItem(PASSCODE_CHOICE, TRUE);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
     } else if (type === this.TYPES.REMEMBER_ME) {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE);
-      await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-      await AsyncStorage.removeItem(PASSCODE_CHOICE);
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(BIOMETRY_CHOICE);
+      await StorageWrapper.setItem(PASSCODE_DISABLED, TRUE);
+      await StorageWrapper.removeItem(PASSCODE_CHOICE);
+      await StorageWrapper.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
       //Don't need to add any parameter
     }
   },

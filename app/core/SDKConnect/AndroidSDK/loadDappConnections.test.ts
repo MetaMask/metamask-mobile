@@ -1,10 +1,10 @@
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/storage-wrapper';
 import loadDappConnections from './loadDappConnections';
 
 jest.mock('../../../core/AppConstants');
-jest.mock('react-native-default-preference', () => ({
-  get: jest.fn().mockResolvedValue(''),
-  set: jest.fn().mockResolvedValue(''),
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn().mockResolvedValue(''),
+  setItem: jest.fn().mockResolvedValue(''),
 }));
 jest.mock('../utils/DevLogger');
 jest.mock('../../../store', () => ({
@@ -32,7 +32,7 @@ describe('loadDappConnections', () => {
   it('should parse the retrieved connections', async () => {
     const mockConnections = {};
 
-    (DefaultPreference.get as jest.Mock).mockResolvedValueOnce(
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(
       JSON.stringify(mockConnections),
     );
 

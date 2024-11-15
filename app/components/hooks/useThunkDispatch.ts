@@ -1,16 +1,12 @@
+import { ThunkAction as ReduxThunkAction, ThunkDispatch } from 'redux-thunk';
 import { useDispatch } from 'react-redux';
-import { AnyAction, Store } from 'redux';
+import { AnyAction } from 'redux';
+import { RootState } from '../../reducers';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Dispatch = Store<any, AnyAction>['dispatch'];
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GetState = Store<any, AnyAction>['getState'];
-
-export type ThunkAction = (dispatch: Dispatch, getState: GetState) => void;
+export type ThunkAction = ReduxThunkAction<void, RootState, unknown, AnyAction>;
 
 function useThunkDispatch() {
-  return useDispatch<(thunkAction: ThunkAction) => void>();
+  return useDispatch<ThunkDispatch<RootState, unknown, AnyAction>>();
 }
+
 export default useThunkDispatch;

@@ -1,6 +1,5 @@
 import Engine from '../core/Engine';
 import { BNToHex } from '../util/number';
-import EthQuery from 'ethjs-query';
 import Logger from '../util/Logger';
 import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
 
@@ -30,10 +29,9 @@ const getBalance = async (address, ethQuery) =>
  * Add additional accounts in the wallet based on balance
  */
 export default async () => {
-  const { KeyringController, NetworkController } = Engine.context;
-  const { provider } = NetworkController.getProviderAndBlockTracker();
+  const { KeyringController } = Engine.context;
 
-  const ethQuery = new EthQuery(provider);
+  const ethQuery = Engine.getGlobalEthQuery();
   let accounts = await KeyringController.getAccounts();
   let lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
 

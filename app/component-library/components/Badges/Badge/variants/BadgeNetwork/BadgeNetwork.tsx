@@ -12,7 +12,7 @@ import Avatar, { AvatarVariant } from '../../../../Avatars/Avatar';
 import { BadgeNetworkProps } from './BadgeNetwork.types';
 import styleSheet from './BadgeNetwork.styles';
 import {
-  BADGE_NETWORK_TEST_ID,
+  BADGENETWORK_TEST_ID,
   DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
 } from './BadgeNetwork.constants';
 
@@ -21,6 +21,7 @@ const BadgeNetwork = ({
   name,
   imageSource,
   size = DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
+  isScaled = true,
 }: BadgeNetworkProps) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
@@ -28,11 +29,12 @@ const BadgeNetwork = ({
     style,
     containerSize,
     size,
+    isScaled,
   });
   return (
     <BadgeBase
       style={styles.base}
-      testID={BADGE_NETWORK_TEST_ID}
+      testID={BADGENETWORK_TEST_ID}
       onLayout={onLayoutContainerSize}
     >
       <Avatar

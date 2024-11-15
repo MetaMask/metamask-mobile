@@ -115,20 +115,6 @@ class Assertions {
   }
 
   /**
-   * Check if an element with the specified ID has the specified text.
-   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
-   * @param {string} text - The expected text content.
-   * @param {number} timeout - Timeout in milliseconds.
-   */
-  static async checkIfHasText(elementId, text, timeout = TIMEOUT) {
-    // rename this. checkIfELEMENTHasText makes it clear
-
-    return waitFor(await elementId)
-      .toHaveText(text)
-      .withTimeout(timeout);
-  }
-
-  /**
    * Check if the toggle with the specified ID is in the "on" state.
    * @param {Promise<Detox.IndexableNativeElement>} elementID - The ID of the toggle element.
    */
@@ -142,6 +128,27 @@ class Assertions {
    */
   static async checkIfToggleIsOff(elementID) {
     return expect(await elementID).toHaveToggleValue(false);
+  }
+
+  /**
+   * Check if two text values match exactly.
+   * @param {string} actualText - The actual text value to check.
+   * @param {string} expectedText - The expected text value to match against.
+   */
+  static async checkIfTextMatches(actualText, expectedText) {
+    try {
+      if (!actualText || !expectedText) {
+        throw new Error('Both actual and expected text must be provided');
+      }
+
+      return expect(actualText).toBe(expectedText);
+    } catch (error) {
+      if (actualText !== expectedText) {
+        throw new Error(
+          `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"`,
+        );
+      }
+    }
   }
 }
 

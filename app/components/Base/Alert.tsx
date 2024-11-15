@@ -141,7 +141,10 @@ const Alert = ({
             onPress={onDismiss}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
           >
-            <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+            {
+              // All this component is deprecated so it should be replaced and removed
+              <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+            }
           </TouchableOpacity>
         </View>
       )}

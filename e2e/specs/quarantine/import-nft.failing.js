@@ -1,8 +1,8 @@
 'use strict';
 import { SmokeAssets } from '../../tags';
-import TestHelpers from '../../helpers';
-import WalletView from '../../pages/WalletView';
-import AddCustomTokenView from '../../pages/AddCustomTokenView';
+import Assertions from '../../utils/Assertions';
+import WalletView from '../../pages/wallet/WalletView';
+import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import { loginToApp } from '../../viewHelper';
 import {
   withFixtures,
@@ -12,7 +12,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 describe(SmokeAssets('Import NFT'), () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     jest.setTimeout(150000);
   });
 
@@ -38,23 +38,23 @@ describe(SmokeAssets('Import NFT'), () => {
         await WalletView.scrollDownOnNFTsTab();
         // Tap on the add collectibles button
         await WalletView.tapImportNFTButton();
-        await AddCustomTokenView.isVisible();
+        await Assertions.checkIfVisible(ImportNFTView.container);
         // Input incorrect contract address
-        await AddCustomTokenView.typeInNFTAddress('1234');
-        await AddCustomTokenView.typeInNFTIdentifier('');
-        await AddCustomTokenView.isNFTAddressWarningVisible();
-        await AddCustomTokenView.tapBackButton();
+        await ImportNFTView.typeInNFTAddress('1234');
+        await ImportNFTView.typeInNFTIdentifier('');
+        await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
+        //await ImportNFTView.tapBackButton();
         await WalletView.tapImportNFTButton();
-        await AddCustomTokenView.isVisible();
-        await AddCustomTokenView.typeInNFTAddress(erc1155ContractAddress);
-        await AddCustomTokenView.typeInNFTIdentifier('1');
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(ImportNFTView.container);
+        await ImportNFTView.typeInNFTAddress(erc1155ContractAddress);
+        await ImportNFTView.typeInNFTIdentifier('1');
+        await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load
-        await TestHelpers.delay(3000);
-        await WalletView.isNFTVisibleInWallet('TestDappNFTs');
+        await Assertions.checkIfVisible(WalletView.nftInWallet('TestDappNFTs'));
         // Tap on Collectible
         await WalletView.tapOnNFTInWallet('TestDappNFTs');
-        await WalletView.isNFTNameVisible('TestDappNFTs #1');
+        //TODO: isNFTNameVisible have been removed. Update it for valid implementations
+        //await WalletView.isNFTNameVisible('TestDappNFTs #1');
         await WalletView.scrollUpOnNFTsTab();
       },
     );

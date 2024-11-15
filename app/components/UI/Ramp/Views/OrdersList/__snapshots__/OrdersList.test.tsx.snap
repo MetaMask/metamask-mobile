@@ -138,6 +138,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -186,14 +187,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -225,14 +225,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -264,14 +263,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -305,85 +303,52 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -403,56 +368,33 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -465,7 +407,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#1c8234",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -477,356 +419,34 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                0.01231
-                 
-                ETH
-              </Text>
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                $34.23 
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-    </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    >
-      <TouchableHighlight
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        style={
-          {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
-          }
-        }
-        underlayColor="#f2f4f6"
-      >
-        <View
-          style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
-                  "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
                   {
                     "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Image
-                resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
-                style={
-                  {
-                    "height": 28,
-                    "width": 28,
-                  }
-                }
-              />
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                Test Provider
-                :
-                 
-                Purchased ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 12,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
-                    "lineHeight": 20,
+                    "lineHeight": 22,
                   }
-                }
-              >
-                Pending
-              </Text>
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
                 }
               >
                 0.01231
@@ -834,47 +454,16 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -903,37 +492,52 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -953,56 +557,33 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -1015,7 +596,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1027,57 +608,223 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#bbc0c566",
+          }
+        }
+        underlayColor="#f2f4f6"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={
+                  {
+                    "default": {
+                      "uri": "MockImage",
                     },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  }
+                }
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 ...
@@ -1085,47 +832,16 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 ...
@@ -1298,6 +1014,7 @@ exports[`OrdersList renders correctly 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -1346,14 +1063,13 @@ exports[`OrdersList renders correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1385,14 +1101,13 @@ exports[`OrdersList renders correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1424,14 +1139,13 @@ exports[`OrdersList renders correctly 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1465,85 +1179,52 @@ exports[`OrdersList renders correctly 1`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -1563,56 +1244,33 @@ exports[`OrdersList renders correctly 1`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -1625,7 +1283,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#1c8234",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1637,57 +1295,34 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 0.01231
@@ -1695,47 +1330,16 @@ exports[`OrdersList renders correctly 1`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -1764,85 +1368,52 @@ exports[`OrdersList renders correctly 1`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -1862,56 +1433,33 @@ exports[`OrdersList renders correctly 1`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -1924,7 +1472,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1936,356 +1484,34 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                0.01231
-                 
-                ETH
-              </Text>
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                $34.23 
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-    </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    >
-      <TouchableHighlight
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        style={
-          {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
-          }
-        }
-        underlayColor="#f2f4f6"
-      >
-        <View
-          style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
-                  "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
                   {
                     "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Image
-                resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
-                style={
-                  {
-                    "height": 28,
-                    "width": 28,
-                  }
-                }
-              />
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                Test Provider
-                :
-                 
-                Purchased ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 12,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
-                    "lineHeight": 20,
+                    "lineHeight": 22,
                   }
-                }
-              >
-                Pending
-              </Text>
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
                 }
               >
                 0.01231
@@ -2293,47 +1519,16 @@ exports[`OrdersList renders correctly 1`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -2362,37 +1557,52 @@ exports[`OrdersList renders correctly 1`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -2412,56 +1622,33 @@ exports[`OrdersList renders correctly 1`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -2474,7 +1661,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -2486,57 +1673,223 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#bbc0c566",
+          }
+        }
+        underlayColor="#f2f4f6"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={
+                  {
+                    "default": {
+                      "uri": "MockImage",
                     },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  }
+                }
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 ...
@@ -2544,47 +1897,16 @@ exports[`OrdersList renders correctly 1`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 ...
@@ -2667,6 +1989,7 @@ exports[`OrdersList renders empty buy message 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -2715,14 +2038,13 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2754,14 +2076,13 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2793,14 +2114,13 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2833,7 +2153,7 @@ exports[`OrdersList renders empty buy message 1`] = `
         style={
           {
             "color": "#9fa6ae",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2918,6 +2238,7 @@ exports[`OrdersList renders empty sell message 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -2966,14 +2287,13 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3005,14 +2325,13 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3044,14 +2363,13 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3084,7 +2402,7 @@ exports[`OrdersList renders empty sell message 1`] = `
         style={
           {
             "color": "#9fa6ae",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -3195,6 +2513,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -3243,14 +2562,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3282,14 +2600,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3321,14 +2638,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3362,85 +2678,52 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -3460,56 +2743,33 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -3522,7 +2782,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -3534,57 +2794,34 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 0.01231
@@ -3592,47 +2829,16 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -3741,6 +2947,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -3789,14 +2996,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3828,14 +3034,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3867,14 +3072,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3908,85 +3112,52 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -4006,56 +3177,33 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -4068,7 +3216,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4080,57 +3228,34 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 0.01231
@@ -4138,47 +3263,16 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -4351,6 +3445,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
 >
   <View>
     <View
+      collapsable={false}
       onLayout={[Function]}
     >
       <RCTScrollView
@@ -4399,14 +3494,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Primary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4438,14 +3532,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4477,14 +3570,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "paddingHorizontal": 16,
                 }
               }
-              variant="Secondary"
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4518,85 +3610,52 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -4616,56 +3675,33 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -4678,7 +3714,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#1c8234",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4690,57 +3726,34 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 0.01231
@@ -4748,47 +3761,16 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -4817,85 +3799,52 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
-          <Text
+          <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
                   "color": "#141618",
                   "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                  {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
           <View
             style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -4915,56 +3864,33 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -4977,7 +3903,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4989,356 +3915,34 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                0.01231
-                 
-                ETH
-              </Text>
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                $34.23 
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-    </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    >
-      <TouchableHighlight
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        style={
-          {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#bbc0c566",
-          }
-        }
-        underlayColor="#f2f4f6"
-      >
-        <View
-          style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            style={
-              [
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
-                  "fontWeight": "400",
-                  "marginVertical": 2,
-                },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
                   {
                     "color": "#141618",
                     "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "marginBottom": 10,
-                  },
-                  undefined,
-                ],
-              ]
-            }
-          >
-            Oct 13 at 8:07 pm
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Image
-                resizeMode="stretch"
-                source={
-                  {
-                    "default": {
-                      "uri": "MockImage",
-                    },
-                  }
-                }
-                style={
-                  {
-                    "height": 28,
-                    "width": 28,
-                  }
-                }
-              />
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                Test Provider
-                :
-                 
-                Purchased ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 12,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
-                    "lineHeight": 20,
+                    "lineHeight": 22,
                   }
-                }
-              >
-                Pending
-              </Text>
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
                 }
               >
                 0.01231
@@ -5346,47 +3950,16 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 $34.23 
@@ -5415,37 +3988,52 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         underlayColor="#f2f4f6"
       >
         <View
+          accessibilityRole="none"
+          accessible={true}
           style={
-            [
-              {
-                "padding": 15,
-              },
-              undefined,
-            ]
+            {
+              "padding": 16,
+            }
           }
         >
           <View
             style={
-              [
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
                 {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                },
-                undefined,
-              ]
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
             }
           >
             <View
               style={
-                [
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginRight": 15,
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": -1,
+                }
               }
+              testID="listitemcolumn"
             >
               <Image
                 resizeMode="stretch"
@@ -5465,56 +4053,33 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               />
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "flex": 1,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 Test Provider
@@ -5527,7 +4092,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#0376c9",
-                    "fontFamily": "Euclid Circular B",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -5539,57 +4104,223 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
             </View>
             <View
+              accessible={false}
               style={
-                [
-                  {
-                    "alignItems": "flex-end",
-                    "flex": 0.6,
-                  },
-                  undefined,
-                ]
+                {
+                  "width": 16,
+                }
               }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
             >
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#bbc0c566",
+          }
+        }
+        underlayColor="#f2f4f6"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={
+                  {
+                    "default": {
+                      "uri": "MockImage",
                     },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#141618",
-                        "fontSize": 15,
-                      },
-                      undefined,
-                    ],
-                  ]
+                  }
+                }
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#0376c9",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
                 }
               >
                 ...
@@ -5597,47 +4328,16 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 ETH
               </Text>
               <Text
+                accessibilityRole="text"
                 style={
-                  [
-                    {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
-                      "marginVertical": 2,
-                    },
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                      {
-                        "color": "#6a737d",
-                        "fontSize": 12,
-                        "textTransform": "uppercase",
-                      },
-                      undefined,
-                    ],
-                  ]
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
                 }
               >
                 ...

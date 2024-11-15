@@ -183,8 +183,7 @@ describe('Migration #20', () => {
                 chainId: '137',
                 nickname: 'Polygon Mainnet',
                 rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-                rpcUrl:
-                  'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
                 ticker: 'MATIC',
               },
               {
@@ -193,8 +192,7 @@ describe('Migration #20', () => {
                 rpcPrefs: {
                   blockExplorerUrl: 'https://optimistic.etherscan.io',
                 },
-                rpcUrl:
-                  'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
                 ticker: 'ETH',
               },
             ],
@@ -222,8 +220,7 @@ describe('Migration #20', () => {
                 chainId: '137',
                 nickname: 'Polygon Mainnet',
                 rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-                rpcUrl:
-                  'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                rpcUrl: 'https://polygon-mainnet.infura.io/v3/12345',
                 ticker: 'MATIC',
               },
               networkId3: {
@@ -232,8 +229,7 @@ describe('Migration #20', () => {
                 rpcPrefs: {
                   blockExplorerUrl: 'https://optimistic.etherscan.io',
                 },
-                rpcUrl:
-                  'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                rpcUrl: 'https://optimism-mainnet.infura.io/v3/12345',
                 ticker: 'ETH',
               },
             },

@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React from 'react';
 import TransactionReview from '.';
 import configureMockStore from 'redux-mock-store';
@@ -7,13 +9,16 @@ import { Provider } from 'react-redux';
 import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../../../reducers';
 
 jest.mock('../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../util/transactions'),
@@ -53,19 +58,32 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState =
     MOCK_ADDRESS_3,
   );
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-          },
-        ],
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+            },
+          ],
+        },
+      },
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
 
 jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
@@ -83,10 +101,10 @@ jest.mock('react-native-gzip', () => ({
   deflate: (val: any) => val,
 }));
 
-const mockState = {
+const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           [MOCK_ADDRESS_1]: {
@@ -95,22 +113,9 @@ const mockState = {
         },
       },
       PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_3,
-        identities: {
-          [MOCK_ADDRESS_1]: { name: 'Account 1' },
-          [MOCK_ADDRESS_2]: { name: 'Account 2' },
-          [MOCK_ADDRESS_3]: { name: 'Account 3' },
-        },
         securityAlertsEnabled: true,
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
-          type: 'sepolia',
-          nickname: 'Sepolia',
-        },
-      },
     },
   },
   settings: {
@@ -162,9 +167,9 @@ jest.mock('react-redux', () => {
         ...mockState,
         transaction: {
           ...mockState.transaction,
-          currentTransactionSecurityAlertResponse: {
-            id: '123',
-            response: securityAlertResponse,
+          id: 123,
+          securityAlertResponses: {
+            123: securityAlertResponse,
           },
         },
       }),
@@ -210,6 +215,7 @@ describe('TransactionReview', () => {
       block: 123,
       req: {},
       chainId: '0x1',
+      features: ['test', 'test'],
     };
 
     const blockaidMetricsParamsSpy = jest
@@ -235,9 +241,8 @@ describe('TransactionReview', () => {
             ...mockState.transaction,
             id: '123',
             securityAlertResponse,
-            currentTransactionSecurityAlertResponse: {
-              id: '123',
-              response: securityAlertResponse,
+            securityAlertResponses: {
+              123: securityAlertResponse,
             },
           },
         },
@@ -262,17 +267,9 @@ describe('TransactionReview', () => {
     fireEvent.press(await getByText('Report an issue'));
 
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
-    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith({
-      id: '123',
-      response: {
-        providerRequestsCount: {},
-        reason: 'blur_farming',
-        result_type: 'Malicious',
-        block: 123,
-        req: {},
-        chainId: '0x1',
-      },
-    });
+    expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith(
+      securityAlertResponse,
+    );
   });
 
   it('should have enabled confirm button if from account has balance', async () => {

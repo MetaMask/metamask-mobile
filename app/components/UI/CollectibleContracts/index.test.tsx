@@ -3,8 +3,10 @@ import { shallow } from 'enzyme';
 import CollectibleContracts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-hooks';
 
 // eslint-disable-next-line import/no-namespace
@@ -14,6 +16,9 @@ import Engine from '../../../core/Engine';
 
 import TestHelpers from '../../../../e2e/helpers';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -51,7 +56,7 @@ const initialState = {
     favorites: {},
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const store = mockStore(initialState);
@@ -73,20 +78,20 @@ describe('CollectibleContracts', () => {
   });
 
   it('should only get owned collectibles', () => {
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '0x1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -94,7 +99,7 @@ describe('CollectibleContracts', () => {
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
-              [MOCK_ADDRESS]: {
+              [MOCK_ADDRESS.toLowerCase()]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -126,7 +131,7 @@ describe('CollectibleContracts', () => {
               },
             },
             allNftContracts: {
-              [MOCK_ADDRESS]: {
+              [MOCK_ADDRESS.toLowerCase()]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -190,20 +195,20 @@ describe('CollectibleContracts', () => {
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
       },
     ];
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -213,16 +218,14 @@ describe('CollectibleContracts', () => {
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
               [MOCK_ADDRESS]: {
-                '1': [],
+                '0x1': [],
               },
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '1': [],
+                '0x1': [],
               },
             },
           },
@@ -303,20 +306,20 @@ describe('CollectibleContracts', () => {
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
       },
     ];
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -327,21 +330,16 @@ describe('CollectibleContracts', () => {
           },
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
               [MOCK_ADDRESS]: {
-                '1': [],
+                '0x1': [],
               },
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '1': [],
+                '0x1': [],
               },
             },
-          },
-          NftDetectionController: {
-            detectNfts: jest.fn(),
           },
         },
       },
@@ -420,20 +418,20 @@ describe('CollectibleContracts', () => {
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
       },
     ];
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [MOCK_ADDRESS]: { balance: '0' } },
@@ -443,21 +441,16 @@ describe('CollectibleContracts', () => {
             displayNftMedia: true,
           },
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
               [MOCK_ADDRESS]: {
-                '1': [],
+                '0x1': [],
               },
             },
             allNftContracts: {
               [MOCK_ADDRESS]: {
-                '1': [],
+                '0x1': [],
               },
             },
-          },
-          NftDetectionController: {
-            detectNfts: jest.fn(),
           },
         },
       },
@@ -498,21 +491,21 @@ describe('CollectibleContracts', () => {
 
   it('shows spinner if nfts are still being fetched', async () => {
     const CURRENT_ACCOUNT = '0x1a';
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
         isNftFetchingProgress: true,
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
@@ -529,21 +522,16 @@ describe('CollectibleContracts', () => {
             },
           },
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
               [CURRENT_ACCOUNT]: {
-                '1': [],
+                '0x1': [],
               },
             },
             allNftContracts: {
               [CURRENT_ACCOUNT]: {
-                '1': [],
+                '0x1': [],
               },
             },
-          },
-          NftDetectionController: {
-            detectNfts: jest.fn(),
           },
         },
       },
@@ -558,20 +546,20 @@ describe('CollectibleContracts', () => {
 
   it('Does not show spinner if nfts are not still being fetched', async () => {
     const CURRENT_ACCOUNT = '0x1a';
-    const mockState = {
+    const mockState: DeepPartial<RootState> = {
       collectibles: {
         favorites: {},
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            network: '1',
-            providerConfig: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
               ticker: 'ETH',
-              type: 'mainnet',
-              chainId: '1',
-            },
+            }),
           },
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
@@ -588,21 +576,16 @@ describe('CollectibleContracts', () => {
             },
           },
           NftController: {
-            addNft: jest.fn(),
-            updateNftMetadata: jest.fn(),
             allNfts: {
               [CURRENT_ACCOUNT]: {
-                '1': [],
+                '0x1': [],
               },
             },
             allNftContracts: {
               [CURRENT_ACCOUNT]: {
-                '1': [],
+                '0x1': [],
               },
             },
-          },
-          NftDetectionController: {
-            detectNfts: jest.fn(),
           },
         },
       },

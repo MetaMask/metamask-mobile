@@ -4,15 +4,15 @@ import { Regression } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import Browser from '../../pages/Browser/BrowserView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-import DeleteWalletModal from '../../pages/modals/DeleteWalletModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
 import LoginView from '../../pages/LoginView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -57,7 +57,7 @@ describe(
           await TabBarComponent.tapSettings();
           await SettingsView.tapLock();
           await SettingsView.tapYesAlertButton();
-          await LoginView.isVisible();
+          await Assertions.checkIfVisible(LoginView.container);
 
           // should tap reset wallet button
           await LoginView.tapResetWalletButton();
@@ -68,12 +68,15 @@ describe(
           await DeleteWalletModal.tapIUnderstandButton();
           await DeleteWalletModal.typeDeleteInInputBox();
           await DeleteWalletModal.tapDeleteMyWalletButton();
+          await Assertions.checkIfNotVisible(DeleteWalletModal.container);
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
           if (device.getPlatform() === 'ios') {
             await Assertions.checkIfVisible(ToastModal.notificationTitle);
+            await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+          } else {
+            await TestHelpers.delay(3000);
           }
-          await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
           await OnboardingView.tapCreateWallet();
 
           // Create new wallet
@@ -89,7 +92,7 @@ describe(
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();
           await OnboardingSuccessView.tapDone();
-          await WalletView.isVisible();
+          await Assertions.checkIfVisible(WalletView.container);
           await ProtectYourWalletModal.tapRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();
@@ -99,6 +102,7 @@ describe(
           await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+          await NetworkListModal.scrollToBottomOfNetworkList();
           await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
         },
       );

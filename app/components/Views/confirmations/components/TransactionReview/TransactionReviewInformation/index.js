@@ -60,7 +60,7 @@ import { selectContractExchangeRates } from '../../../../../../selectors/tokenRa
 import { createBrowserNavDetails } from '../../../../Browser';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import Routes from '../../../../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 
@@ -303,7 +303,7 @@ class TransactionReviewInformation extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -666,7 +666,7 @@ class TransactionReviewInformation extends PureComponent {
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       (!gasEstimateType ||

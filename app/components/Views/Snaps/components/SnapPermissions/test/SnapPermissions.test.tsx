@@ -33,7 +33,8 @@ describe('SnapPermissions', () => {
   const snapGetBip44EntropyTitle = (protocol: string) =>
     `Control your ${protocol} accounts and assets`;
   const snapGetEntropyTitle = 'Derive arbitrary keys unique to this snap';
-  const endowmentKeyringTitle = 'endowment:keyring';
+  const endowmentKeyringTitle =
+    'Allow requests for adding and controlling Ethereum accounts';
   const endowmentWebassemblyTitle = 'Support for WebAssembly';
   const endowmentEthereumProviderTitle = 'Access the Ethereum provider';
   const endowmentUnknownTitle = 'Unknown permission';
@@ -42,6 +43,7 @@ describe('SnapPermissions', () => {
     'See the origins of websites that suggest transactions';
   const endowmentExtendRuntimeTitle = 'Extend runtime';
   const snapDialogTitle = 'Display custom dialogs';
+  const snapManageAccountsTitle = 'Add and control Ethereum accounts';
 
   const mockCoinTypes = [
     { coinType: 0 }, // Bitcoin
@@ -399,6 +401,13 @@ describe('SnapPermissions', () => {
         caveats: null,
         date: mockDate2,
       },
+      snap_manageAccounts: {
+        caveats: null,
+        date: mockDate2,
+        id: '_jJdNdRnD5pXD728ngmHY',
+        invoker: 'npm:@metamask/snap-simple-keyring-snap',
+        parentCapability: 'snap_manageAccounts',
+      },
     };
 
     const { getAllByTestId } = render(
@@ -409,7 +418,7 @@ describe('SnapPermissions', () => {
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
-    expect(permissionCells.length).toBe(21);
+    expect(permissionCells.length).toBe(22);
     expect(permissionCellTitles[0].props.children).toBe(longRunningTitle);
     expect(permissionCellDates[0].props.children).toBe(
       'Approved on May 24 at 5:35 pm',
@@ -508,6 +517,10 @@ describe('SnapPermissions', () => {
     );
     expect(permissionCellTitles[20].props.children).toBe(endowmentUnknownTitle);
     expect(permissionCellDates[20].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
+    expect(permissionCellTitles[21].props.children).toBe(snapManageAccountsTitle);
+    expect(permissionCellDates[21].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
   });

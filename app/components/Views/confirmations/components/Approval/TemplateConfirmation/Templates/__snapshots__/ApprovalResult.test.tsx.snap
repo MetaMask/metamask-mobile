@@ -3,7 +3,6 @@
 exports[`ApprovalResult renders approval result with error type 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -27,7 +26,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -95,7 +94,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -119,7 +118,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -134,7 +133,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -148,7 +147,6 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
       {
         "flex": 0,
@@ -189,14 +187,13 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -215,7 +212,6 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
 exports[`ApprovalResult renders approval result with success type 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -239,7 +235,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -307,7 +303,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -331,7 +327,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       style={
         {
           "color": "#141618",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -346,7 +342,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -360,7 +356,6 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
       {
         "flex": 0,
@@ -401,14 +396,13 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,

@@ -7,7 +7,10 @@
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isZero = (value: number | any): boolean => {
-  if (value?.toString && value?.toString?.() === '0') {
+  if (
+    value?.toString &&
+    (value?.toString?.() === '0' || value?.toString?.() === '0x0')
+  ) {
     return true;
   }
   return false;

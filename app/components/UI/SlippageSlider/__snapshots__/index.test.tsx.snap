@@ -44,7 +44,6 @@ exports[`SlippageSlider should render correctly 1`] = `
       }
     >
       <View
-        key="0"
         style={
           {
             "backgroundColor": "#0376c9",
@@ -56,7 +55,6 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       />
       <View
-        key="1"
         style={
           {
             "backgroundColor": "#0376c9",
@@ -68,7 +66,6 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       />
       <View
-        key="2"
         style={
           {
             "backgroundColor": "#0376c9",
@@ -80,7 +77,6 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       />
       <View
-        key="3"
         style={
           {
             "backgroundColor": "#0376c9",
@@ -92,7 +88,6 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       />
       <View
-        key="4"
         style={
           {
             "backgroundColor": "#0376c9",
@@ -105,21 +100,18 @@ exports[`SlippageSlider should render correctly 1`] = `
       />
     </View>
   </View>
-  <ForwardRef(AnimatedComponentWrapper)
+  <View
+    collapsable={false}
     style={
-      [
-        {
-          "borderRadius": 9,
-          "bottom": 10.5,
-          "height": 9,
-          "left": 11,
-          "overflow": "hidden",
-          "position": "absolute",
-        },
-        {
-          "width": 15,
-        },
-      ]
+      {
+        "borderRadius": 9,
+        "bottom": 10.5,
+        "height": 9,
+        "left": 11,
+        "overflow": "hidden",
+        "position": "absolute",
+        "width": -15,
+      }
     }
   >
     <Image
@@ -137,35 +129,71 @@ exports[`SlippageSlider should render correctly 1`] = `
         }
       }
     />
-  </ForwardRef(AnimatedComponentWrapper)>
-  <ForwardRef(AnimatedComponentWrapper)
+  </View>
+  <View
+    collapsable={false}
     style={
-      [
-        {
-          "alignItems": "center",
-          "justifyContent": "center",
-          "minHeight": 36,
-          "minWidth": 40,
-          "position": "absolute",
-          "top": 4,
-        },
-        {
-          "left": -5,
-        },
-      ]
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+        "left": -35,
+        "minHeight": 36,
+        "minWidth": 40,
+        "position": "absolute",
+        "top": 4,
+      }
     }
   >
-    <Svg
+    <RNSVGSvgView
+      align="xMidYMid"
+      bbHeight={36}
+      bbWidth={40}
+      focusable={false}
       height={36}
-      preserveAspectRatio="xMidYMid meet"
-      viewBox="0 0 40 36"
+      meetOrSlice={0}
+      minX={0}
+      minY={0}
+      style={
+        [
+          {
+            "backgroundColor": "transparent",
+            "borderWidth": 0,
+          },
+          {
+            "flex": 0,
+            "height": 36,
+            "width": 40,
+          },
+        ]
+      }
+      vbHeight={36}
+      vbWidth={40}
       width={40}
     >
-      <Path
-        d="M0 8C0 3.58172 3.58172 0 8 0H32C36.4183 0 40 3.58172 40 8V20.6866C40 25.1049 36.4183 28.6866 32 28.6866H27.7778L20 36L12.2222 28.6866H8C3.58172 28.6866 0 25.1049 0 20.6866V8Z"
-        fill="#000000cc"
-      />
-    </Svg>
+      <RNSVGGroup
+        fill={
+          {
+            "payload": 4278190080,
+            "type": 0,
+          }
+        }
+      >
+        <RNSVGPath
+          d="M0 8C0 3.58172 3.58172 0 8 0H32C36.4183 0 40 3.58172 40 8V20.6866C40 25.1049 36.4183 28.6866 32 28.6866H27.7778L20 36L12.2222 28.6866H8C3.58172 28.6866 0 25.1049 0 20.6866V8Z"
+          fill={
+            {
+              "payload": 3422552064,
+              "type": 0,
+            }
+          }
+          propList={
+            [
+              "fill",
+            ]
+          }
+        />
+      </RNSVGGroup>
+    </RNSVGSvgView>
     <Text
       style={
         {
@@ -185,8 +213,9 @@ exports[`SlippageSlider should render correctly 1`] = `
     >
       undefined%
     </Text>
-  </ForwardRef(AnimatedComponentWrapper)>
-  <ForwardRef(AnimatedComponentWrapper)
+  </View>
+  <View
+    collapsable={false}
     onMoveShouldSetResponder={[Function]}
     onMoveShouldSetResponderCapture={[Function]}
     onResponderEnd={[Function]}
@@ -200,28 +229,24 @@ exports[`SlippageSlider should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     onStartShouldSetResponderCapture={[Function]}
     style={
-      [
-        {
-          "borderColor": "#ffffff",
-          "borderRadius": 30,
-          "borderWidth": 1,
-          "bottom": 0,
-          "height": 30,
-          "position": "absolute",
-          "shadowColor": "#0000001a",
-          "shadowOffset": {
-            "height": 2,
-            "width": 0,
-          },
-          "shadowOpacity": 1,
-          "shadowRadius": 16,
-          "width": 30,
+      {
+        "backgroundColor": "rgba(3, 118, 201, 1)",
+        "borderColor": "#ffffff",
+        "borderRadius": 30,
+        "borderWidth": 1,
+        "bottom": 0,
+        "height": 30,
+        "left": -30,
+        "position": "absolute",
+        "shadowColor": "#0000001a",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
         },
-        {
-          "backgroundColor": "rgba(3, 118, 201, 1)",
-          "left": 0,
-        },
-      ]
+        "shadowOpacity": 1,
+        "shadowRadius": 16,
+        "width": 30,
+      }
     }
   />
 </View>

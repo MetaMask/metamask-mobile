@@ -52,6 +52,7 @@ describe('InstallSnapPermissionsRequest', () => {
         approvalRequest={installSnapDataApprovalRequest}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        snapId="mockId"
       />,
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSION_CELL);

@@ -23,9 +23,11 @@ import {
   isNumberScientificNotationWhenString,
   isZeroValue,
   limitToMaximumDecimalPlaces,
+  localizeLargeNumber,
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  safeBNToHex,
   safeNumberToBN,
   toBN,
   toHexadecimal,
@@ -411,6 +413,66 @@ describe('Number utils :: renderFromWei', () => {
     expect(renderFromWei(new BN('133700000000000000'))).toEqual('0.1337');
     expect(renderFromWei(new BN('1337'))).toEqual('< 0.00001');
     expect(renderFromWei(new BN('0'))).toEqual('0');
+  });
+});
+
+describe('Number utils :: localizeLargeNumber', () => {
+  let i18n: { t: unknown };
+
+  beforeEach(() => {
+    i18n = {
+      t: jest.fn((key: string) => {
+        const translations: Record<string, string> = {
+          'token.trillion_abbreviation': 'T',
+          'token.billion_abbreviation': 'B',
+          'token.million_abbreviation': 'M',
+        };
+        return translations[key];
+      }),
+    };
+  });
+
+  it('should localize numbers in the trillions correctly', () => {
+    const number = 1500000000000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50T');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
+  });
+
+  it('should localize numbers in the billions correctly', () => {
+    const number = 1500000000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50B');
+    expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
+  });
+
+  it('should localize numbers in the millions correctly', () => {
+    const number = 1500000;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('1.50M');
+    expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
+  });
+
+  it('should format numbers below one million correctly', () => {
+    const number = 123456.789;
+    const result = localizeLargeNumber(i18n, number);
+    expect(result).toBe('123456.79');
+    expect(i18n.t).not.toHaveBeenCalled();
+  });
+
+  it('should handle exact boundary conditions correctly', () => {
+    const trillion = 1000000000000;
+    const billion = 1000000000;
+    const million = 1000000;
+
+    expect(localizeLargeNumber(i18n, trillion)).toBe('1.00T');
+    expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
+
+    expect(localizeLargeNumber(i18n, billion)).toBe('1.00B');
+    expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
+
+    expect(localizeLargeNumber(i18n, million)).toBe('1.00M');
+    expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
   });
 });
 
@@ -987,4 +1049,17 @@ describe('Number utils :: formatValueToMatchTokenDecimals', () => {
   it('should return a formatted value if the value decimal is greater than the submitted decimal', () => {
     expect(formatValueToMatchTokenDecimals('1.234567', 4)).toBe('1.2346');
   });
+});
+
+describe('Number utils :: safeBNToHex', () => {
+  it('returns hex string', () => {
+    expect(safeBNToHex(new BN('255'))).toBe('0xff');
+  });
+
+  it.each([undefined, null])(
+    'returns original value if input is %s',
+    (value) => {
+      expect(safeBNToHex(value)).toBe(value);
+    },
+  );
 });

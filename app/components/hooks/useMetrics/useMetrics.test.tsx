@@ -6,6 +6,7 @@ import {
 } from '../../../core/Analytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -30,7 +31,6 @@ const expectedDataDeleteRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
 
 const mockMetrics = {
   trackEvent: jest.fn(),
-  trackAnonymousEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   createDataDeletionTask: jest.fn(() =>
@@ -47,9 +47,19 @@ const mockMetrics = {
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
+class MockEventDataBuilder extends MetricsEventBuilder {
+  addProperties = jest.fn().mockReturnThis();
+  addSensitiveProperties = jest.fn().mockReturnThis();
+  setSaveDataRecording = jest.fn().mockReturnThis();
+  build = jest.fn().mockReturnThis();
+}
+
 describe('useMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(MetricsEventBuilder, 'createEventBuilder')
+      .mockImplementation((event) => new MockEventDataBuilder(event));
   });
 
   it('uses MetaMetrics instance', async () => {
@@ -59,14 +69,14 @@ describe('useMetrics', () => {
         "addTraitsToUser": [MockFunction],
         "checkDataDeleteStatus": [MockFunction],
         "createDataDeletionTask": [MockFunction],
+        "createEventBuilder": [MockFunction],
         "enable": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
         "getMetaMetricsId": undefined,
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
-        "trackAnonymousEvent": [Function],
-        "trackEvent": [Function],
+        "trackEvent": [MockFunction],
       }
     `);
   });
@@ -80,7 +90,6 @@ describe('useMetrics', () => {
 
     const {
       trackEvent,
-      trackAnonymousEvent,
       enable,
       addTraitsToUser,
       createDataDeletionTask,
@@ -100,7 +109,6 @@ describe('useMetrics', () => {
 
     await act(async () => {
       trackEvent(event);
-      trackAnonymousEvent(event);
       await enable(true);
       await addTraitsToUser({});
       deletionTaskIdValue = await createDataDeletionTask();
@@ -111,12 +119,7 @@ describe('useMetrics', () => {
       isEnabledValue = isEnabled();
     });
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event, {}, true);
-    expect(mockMetrics.trackAnonymousEvent).toHaveBeenCalledWith(
-      event,
-      {},
-      true,
-    );
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event);
     expect(mockMetrics.enable).toHaveBeenCalledWith(true);
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({});
 

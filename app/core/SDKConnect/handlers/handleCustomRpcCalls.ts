@@ -9,6 +9,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
+import { createBuyNavigationDetails } from '../../../components/UI/Ramp/routes/utils';
 
 export const handleCustomRpcCalls = async ({
   rpc,
@@ -116,7 +117,7 @@ export const handleCustomRpcCalls = async ({
       );
       navigation?.navigate(Routes.SWAPS);
     } else {
-      navigation?.navigate(Routes.RAMP.BUY);
+      navigation?.navigate(...createBuyNavigationDetails());
     }
 
     if (connection) {

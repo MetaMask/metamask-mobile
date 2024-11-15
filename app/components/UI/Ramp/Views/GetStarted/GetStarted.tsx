@@ -14,17 +14,26 @@ import useAnalytics from '../../hooks/useAnalytics';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { RampIntent } from '../../types';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const { getStarted, setGetStarted, sdkError, selectedChainId, isBuy } =
-    useRampSDK();
+  const {
+    getStarted,
+    setGetStarted,
+    sdkError,
+    selectedChainId,
+    isBuy,
+    setIntent,
+  } = useRampSDK();
   const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
+  const params = useParams<RampIntent>();
 
   const { colors } = useTheme();
 
@@ -41,6 +50,12 @@ const GetStarted: React.FC = () => {
       });
     }
   }, [isBuy, selectedChainId, trackEvent]);
+
+  useEffect(() => {
+    if (params) {
+      setIntent(params);
+    }
+  }, [params, setIntent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -69,7 +84,14 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     if (getStarted) {
-      if (!isNetworkRampSupported) {
+      // Redirects to Network Switcher view if the current network is not supported by Ramp
+      // or if the chainId from the URL params doesn't match the selected chainId.
+      // The Network Switcher handles adding or switching to the network specified in the URL params
+      // and continues the intent with any additional params (like token and amount).
+      if (
+        !isNetworkRampSupported ||
+        (params?.chainId && params.chainId !== selectedChainId)
+      ) {
         navigation.reset({
           index: 0,
           routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
@@ -93,7 +115,14 @@ const GetStarted: React.FC = () => {
         });
       }
     }
-  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);
+  }, [
+    getStarted,
+    isNetworkRampSupported,
+    navigation,
+    selectedChainId,
+    selectedRegion,
+    params,
+  ]);
 
   if (sdkError) {
     return (

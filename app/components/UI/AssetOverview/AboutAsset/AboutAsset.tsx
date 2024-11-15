@@ -1,7 +1,8 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React from 'react';
-import { View } from 'react-native';
+import { DimensionValue, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { Hex } from '@metamask/utils';
 import i18n, { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import Title from '../../../Base/Title';
@@ -14,13 +15,20 @@ import ContentDisplay from './ContentDisplay';
 
 interface AboutAssetProps {
   asset: Asset;
-  chainId: string;
+  chainId: Hex;
+}
+
+interface SkeletonPlaceholderItem {
+  width: DimensionValue;
+  height: DimensionValue;
+  borderRadius: number;
+  marginBottom: number;
 }
 
 const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { styles } = useStyles(styleSheet, {});
   const locale: keyof TokenDescriptions = i18n.locale;
-  const skeletonProps = {
+  const skeletonProps: SkeletonPlaceholderItem = {
     width: '100%',
     height: 18,
     borderRadius: 6,
@@ -29,7 +37,7 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
   const { data: descriptions, isLoading: isDescriptionLoading } =
     useTokenDescriptions({
       address: asset.isETH ? zeroAddress() : asset.address,
-      chainId: chainId as string,
+      chainId,
     });
 
   const description = descriptions[locale] || descriptions.en;

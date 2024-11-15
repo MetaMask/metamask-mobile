@@ -1,64 +1,121 @@
+import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
+import {
+  AccountListViewSelectorsIDs,
+  AccountListViewSelectorsText,
+} from '../selectors/AccountListView.selectors';
+import { WalletViewSelectorsIDs } from '../selectors/wallet/WalletView.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../selectors/Browser/ConnectAccountBottomSheet.selectors';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 import TestHelpers from '../helpers';
 
-import {
-  ACCOUNT_LIST_ID,
-  ACCOUNT_LIST_ADD_BUTTON_ID,
-} from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
-import { AccountListViewSelectorsText } from '../selectors/AccountListView.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
-
-export default class AccountListView {
-  static async tapAccountIndex(index) {
-    await TestHelpers.tapItemAtIndex(CellModalSelectorsIDs.MULTISELECT, index);
+class AccountListView {
+  get accountList() {
+    return Matchers.getElementByID(AccountListViewSelectorsIDs.ACCOUNT_LIST_ID);
   }
 
-  static async tapAddAccountButton() {
-    await TestHelpers.waitAndTap(ACCOUNT_LIST_ADD_BUTTON_ID);
+  get accountTypeLabel() {
+    return Matchers.getElementByID(
+      AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
+    );
   }
 
-  static async tapImportAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectorsText.IMPORT_ACCOUNT);
+  get accountTagLabel() {
+    return Matchers.getElementByID(CellModalSelectorsIDs.TAG_LABEL);
   }
 
-  static async tapCreateAccountButton() {
-    await TestHelpers.tapByText(AccountListViewSelectorsText.CREATE_ACCOUNT);
+  get title() {
+    return Matchers.getElementByText(
+      AccountListViewSelectorsText.ACCOUNTS_LIST_TITLE,
+    );
   }
 
-  static async longPressImportedAccount() {
-    await TestHelpers.tapAndLongPressAtIndex(CellModalSelectorsIDs.SELECT, 1);
-  }
-  static async swipeToDimssAccountsModal() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
-    } else {
-      await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
-    }
+  get addAccountButton() {
+    return Matchers.getElementByID(
+      AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
   }
 
-  static async tapYesToRemoveImportedAccountAlertButton() {
-    await TestHelpers.tapAlertWithButton(
+  get removeAccountAlertText() {
+    return Matchers.getElementByText(
       AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ACCOUNT_LIST_ID);
-  }
-
-  static async isAccount2VisibleAtIndex(index) {
-    await expect(
-      element(by.id(CellModalSelectorsIDs.BASE_TITLE)).atIndex(index),
-    ).not.toHaveText('Account 1');
-  }
-
-  static async accountNameNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
-  }
-
-  static async connectAccountsButton() {
-    await TestHelpers.waitAndTap(
-      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+  get connectAccountsButton() {
+    return Matchers.getElementByID(
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
+
+  getAccountElementAtIndex(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
+  }
+
+  getAccountElementByAccountName(accountName) {
+    return Matchers.getElementByIDAndLabel(
+      CellModalSelectorsIDs.BASE_TITLE,
+      accountName,
+    );
+  }
+
+  getSelectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
+  }
+
+  getMultiselectElement(index) {
+    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
+  }
+
+  getSelectWithMenuElement(index) {
+    return Matchers.getElementByID(
+      CellModalSelectorsIDs.SELECT_WITH_MENU,
+      index,
+    );
+  }
+
+  async tapEditAccountActionsAtIndex(index) {
+    const accountActionsButton = Matchers.getElementByID(
+      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+    );
+    await Gestures.waitAndTap(accountActionsButton);
+  }
+
+  async accountNameInList(accountName) {
+    return Matchers.getElementByText(accountName, 1);
+  }
+  async tapAccountIndex(index) {
+    await Gestures.tap(this.getMultiselectElement(index));
+  }
+
+  async tapToSelectActiveAccountAtIndex(index) {
+    await Gestures.tap(this.getSelectWithMenuElement(index));
+  }
+
+  async longPressAccountAtIndex(index) {
+    await Gestures.tapAndLongPress(this.getSelectWithMenuElement(index));
+  }
+
+  async tapAddAccountButton() {
+    await Gestures.waitAndTap(this.addAccountButton);
+  }
+
+  async longPressImportedAccount() {
+    await Gestures.tapAndLongPress(this.getSelectElement(1));
+  }
+
+  async swipeToDismissAccountsModal() {
+    await Gestures.swipe(this.title, 'down', 'fast', 0.6);
+    await TestHelpers.delay(2000);
+  }
+
+  async tapYesToRemoveImportedAccountAlertButton() {
+    await Gestures.waitAndTap(this.removeAccountAlertText);
+  }
+
+  async tapConnectAccountsButton() {
+    await Gestures.waitAndTap(this.connectAccountsButton);
+  }
 }
+
+export default new AccountListView();

@@ -8,7 +8,7 @@ import {
   ERC721,
   ERC1155,
 } from '@metamask/controller-utils';
-import { isEIP1559Transaction } from '@metamask/transaction-controller';
+import { isEIP1559Transaction, TransactionType } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -124,6 +124,9 @@ const reviewActionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.tx_review_set_approval_for_all',
   ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
@@ -142,6 +145,9 @@ const actionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.set_approval_for_all',
   ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
@@ -217,7 +223,7 @@ export function isApprovalTransaction(data) {
  * Generates ERC20 approval data
  *
  * @param {object} opts - Object containing spender address, value and data
- * @param {string} opts.spender - The address of the spender
+ * @param {string | null} opts.spender - The address of the spender
  * @param {string} opts.value - The amount of tokens to be approved or increased
  * @param {string} [opts.data] - The data of the transaction
  * @returns {String} - String containing the generated data, by default for approve method
@@ -353,9 +359,11 @@ export async function isSmartContractAddress(address, chainId) {
   ) {
     return Promise.resolve(true);
   }
-  const { TransactionController } = Engine.context;
+
+  const ethQuery = Engine.getGlobalEthQuery();
+
   const code = address
-    ? await query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(ethQuery, 'getCode', [address])
     : undefined;
   const isSmartContract = isSmartContractCode(code);
   return isSmartContract;
@@ -393,33 +401,38 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  // This condition is needed until the transaction reducer be refactored
-  if (!transaction.txParams) {
-    transaction.txParams = transaction.transaction;
+  const { type } = transaction ?? {};
+  const txParams = transaction.txParams ?? transaction.transaction ?? {};
+  const { data, to } = txParams;
+
+  if ([TransactionType.stakingClaim, TransactionType.stakingDeposit, TransactionType.stakingUnstake].includes(type)) {
+    return type;
   }
-  const { txParams: { data, to } = {} } = transaction;
-  if (!to) return CONTRACT_METHOD_DEPLOY;
-  if (to === getSwapsContractAddress(chainId))
+
+  if (!to) {
+    return CONTRACT_METHOD_DEPLOY;
+  }
+
+  if (to === getSwapsContractAddress(chainId)) {
     return SWAPS_TRANSACTION_ACTION_KEY;
-  let ret;
+  }
+
   // if data in transaction try to get method data
   if (data && data !== '0x') {
-    const methodData = await getMethodData(data);
-    const { name } = methodData;
+    const { name } = await getMethodData(data);
     if (name) return name;
   }
+
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
       : await isSmartContractAddress(to);
+
   if (toSmartContract) {
-    // There is no data or unknown method data, if is smart contract
-    ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
-  } else {
-    // If there is no data and no smart contract interaction
-    ret = SEND_ETHER_ACTION_KEY;
+    return SMART_CONTRACT_INTERACTION_ACTION_KEY;
   }
-  return ret;
+
+  return SEND_ETHER_ACTION_KEY;
 }
 
 /**
@@ -453,11 +466,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -476,7 +489,7 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
  * @returns {string} - Transaction function type
  */
 export async function getTransactionReviewActionKey(transaction, chainId) {
-  const actionKey = await getTransactionActionKey({ transaction }, chainId);
+  const actionKey = await getTransactionActionKey(transaction, chainId);
   const transactionReviewActionKey = reviewActionKeys[actionKey];
   if (transactionReviewActionKey) {
     return transactionReviewActionKey;
@@ -517,7 +530,7 @@ export function getEther(ticker) {
  * @param {object} config.addressBook - Object of address book entries
  * @param {string} config.chainId - network id
  * @param {string} config.toAddress - hex address of tx recipient
- * @param {object} config.identities - object of identities
+ * @param {array} config.internalAccounts - array of accounts objects from AccountsController
  * @param {string} config.ensRecipient - name of ens recipient
  * @returns {string} - recipient name
  */
@@ -525,7 +538,7 @@ export function getTransactionToName({
   addressBook,
   chainId,
   toAddress,
-  identities,
+  internalAccounts,
   ensRecipient,
 }) {
   if (ensRecipient) {
@@ -535,11 +548,19 @@ export function getTransactionToName({
   const networkAddressBook = addressBook[chainId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
+  // Convert internalAccounts array to a map for quick lookup
+  const internalAccountsMap = internalAccounts.reduce((acc, account) => {
+    acc[toChecksumAddress(account.address)] = account;
+    return acc;
+  }, {});
+
+  const matchingAccount = internalAccountsMap[checksummedToAddress];
+
   const transactionToName =
     (networkAddressBook &&
       networkAddressBook[checksummedToAddress] &&
       networkAddressBook[checksummedToAddress].name) ||
-    (identities[checksummedToAddress] && identities[checksummedToAddress].name);
+    (matchingAccount && matchingAccount.metadata.name);
 
   return transactionToName;
 }
@@ -1019,7 +1040,7 @@ export const parseTransactionEIP1559 = (
     maxPriorityFeeNative,
     nativeCurrency,
     Boolean(maxPriorityFeePerGasTimesGasLimitHex) &&
-      maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
+    maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
   );
   const renderableMaxPriorityFeeConversion = formatCurrency(
     maxPriorityFeeConversion,
@@ -1518,7 +1539,7 @@ export const getIsSwapApproveOrSwapTransaction = (
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          swapsUtils.getSwapsContractAddress(chainId)))
+        swapsUtils.getSwapsContractAddress(chainId)))
   );
 };
 

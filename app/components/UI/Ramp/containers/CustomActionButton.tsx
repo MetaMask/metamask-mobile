@@ -90,7 +90,7 @@ const CustomActionButton: React.FC<
         selectedAsset?.id as string,
         selectedFiatCurrencyId as string,
         amount,
-        selectedAddress,
+        selectedAddress as string,
       );
 
       if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {

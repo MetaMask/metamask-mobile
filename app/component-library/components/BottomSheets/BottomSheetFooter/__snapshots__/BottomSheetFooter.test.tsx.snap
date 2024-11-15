@@ -35,14 +35,13 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       }
     }
     testID="bottomsheetfooter-button"
-    variant="Secondary"
   >
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#0376c9",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -76,14 +75,13 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       }
     }
     testID="bottomsheetfooter-button-subsequent"
-    variant="Primary"
   >
     <Text
       accessibilityRole="text"
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "Euclid Circular B",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

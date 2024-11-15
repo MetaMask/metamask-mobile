@@ -5,7 +5,6 @@ import {
   StyleSheet,
   View,
   Image,
-  Platform,
   FlatList,
   RefreshControl,
   ActivityIndicator,
@@ -30,7 +29,6 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
 import { MAINNET } from '../../../constants/network';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
   selectProviderType,
@@ -41,12 +39,10 @@ import {
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
-import {
-  IMPORT_NFT_BUTTON_ID,
-  NFT_TAB_CONTAINER_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
+import { debounce } from 'lodash';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -94,6 +90,10 @@ const createStyles = (colors) =>
     },
   });
 
+const debouncedNavigation = debounce((navigation, collectible) => {
+  navigation.navigate('NftDetails', { collectible });
+}, 200);
+
 /**
  * View that renders a list of CollectibleContract
  * ERC-721 and ERC-1155
@@ -125,8 +125,8 @@ const CollectibleContracts = ({
     networkType === MAINNET && !useNftDetection;
 
   const onItemPress = useCallback(
-    (collectible, contractName) => {
-      navigation.navigate('CollectiblesDetails', { collectible, contractName });
+    (collectible) => {
+      debouncedNavigation(navigation, collectible);
     },
     [navigation],
   );
@@ -239,7 +239,7 @@ const CollectibleContracts = ({
         <TouchableOpacity
           onPress={goToAddCollectible}
           disabled={!isAddNFTEnabled}
-          {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
+          testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
         >
           <Text style={styles.addText}>
             {strings('wallet.add_collectibles')}
@@ -376,7 +376,7 @@ const CollectibleContracts = ({
   return (
     <View
       style={styles.wrapper}
-      {...generateTestId(Platform, NFT_TAB_CONTAINER_ID)}
+      testID={WalletViewSelectorsIDs.NFT_TAB_CONTAINER}
     >
       {renderList()}
     </View>

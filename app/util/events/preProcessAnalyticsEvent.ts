@@ -1,16 +1,12 @@
 import { JsonMap } from '@segment/analytics-react-native';
 
-function preProcessAnalyticsEvent(params: JsonMap) {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userParams = {} as any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anonymousParams = {} as any;
+function preProcessAnalyticsEvent(properties: JsonMap) {
+  const nonAnonymousProperties: JsonMap = {};
+  const anonymousProperties: JsonMap = {};
 
-  if (params) {
-    Object.keys(params).forEach((key) => {
-      const property = params[key];
+  if (properties) {
+    Object.keys(properties).forEach((key) => {
+      const property = properties[key];
 
       if (
         property &&
@@ -18,22 +14,20 @@ function preProcessAnalyticsEvent(params: JsonMap) {
         !Array.isArray(property)
       ) {
         if (property.anonymous) {
-          // Anonymous property - add only to anonymous params
-          anonymousParams[key] = property.value;
+          // Anonymous property - add only to anonymous properties
+          anonymousProperties[key] = property.value;
         } else {
-          // Non-anonymous property - add to both
-          userParams[key] = property.value;
-          anonymousParams[key] = property.value;
+          // Non-anonymous property - add only to non-anonymous properties
+          nonAnonymousProperties[key] = property.value;
         }
       } else {
-        // Non-anonymous properties - add to both
-        userParams[key] = property;
-        anonymousParams[key] = property;
+        // Non-anonymous properties - add only to non-anonymous properties
+        nonAnonymousProperties[key] = property;
       }
     });
   }
 
-  return [userParams, anonymousParams];
+  return [nonAnonymousProperties, anonymousProperties];
 }
 
 export default preProcessAnalyticsEvent;

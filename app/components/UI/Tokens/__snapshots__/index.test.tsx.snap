@@ -142,7 +142,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -235,7 +234,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -313,48 +311,157 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                       }
                       testID="tokens"
                     >
-                      <RCTScrollView
-                        ListFooterComponent={[Function]}
-                        ListHeaderComponent={
-                          <View
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingBottom": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
+                            "paddingTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="sort-by"
+                        >
+                          <Text
+                            accessibilityRole="none"
                             style={
                               {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginHorizontal": 16,
-                                "marginVertical": 24,
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
                               }
                             }
                           >
-                            <Text
-                              style={
-                                {
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 32,
-                                  "fontWeight": "500",
-                                  "lineHeight": 40,
-                                }
+                            Sort by
+                          </Text>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
                               }
-                              testID="total-balance-text"
-                            >
-                              0 USD
-                            </Text>
-                            <Button
-                              endIconName="Export"
-                              label="Portfolio"
-                              onPress={[Function]}
-                              size="40"
-                              style={
-                                {
-                                  "marginVertical": 5,
-                                }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="import-token-button"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Add"
+                            style={
+                              {
+                                "height": 16,
+                                "marginRight": 8,
+                                "width": 16,
                               }
-                              testID="portfolio-button"
-                              variant="Secondary"
-                              width="full"
-                            />
-                          </View>
+                            }
+                            width={16}
+                          />
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Import
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      <RCTScrollView
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            showDetectedTokens={[Function]}
+                            tokens={
+                              [
+                                {
+                                  "address": "0x0",
+                                  "balanceFiat": "< $0.01",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": true,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                  "tokenFiatAmount": NaN,
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                  "tokenFiatAmount": NaN,
+                                },
+                              ]
+                            }
+                          />
                         }
                         data={
                           [
@@ -366,6 +473,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "isETH": true,
                               "name": "Ethereum",
                               "symbol": "ETH",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
@@ -374,6 +482,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
+                              "tokenFiatAmount": NaN,
                             },
                           ]
                         }
@@ -403,96 +512,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
                         <View>
-                          <View
-                            onLayout={[Function]}
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginHorizontal": 16,
-                                  "marginVertical": 24,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
-                                  }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "transparent",
-                                    "borderColor": "#0376c9",
-                                    "borderRadius": 20,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 40,
-                                    "justifyContent": "center",
-                                    "marginVertical": 5,
-                                    "paddingHorizontal": 16,
-                                  }
-                                }
-                                testID="portfolio-button"
-                                variant="Secondary"
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Portfolio
-                                </Text>
-                                <SvgMock
-                                  color="#0376c9"
-                                  height={16}
-                                  name="Export"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "marginLeft": 8,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                          </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
@@ -532,7 +556,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -620,7 +644,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -690,7 +714,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -743,7 +767,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -757,7 +781,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 16,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -765,7 +789,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -782,22 +806,21 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     />
                                   </View>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -828,21 +851,50 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                 ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                   ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -885,7 +937,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "width": 32,
                                       }
                                     }
-                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -940,7 +991,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -1010,7 +1061,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1021,22 +1072,21 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     Bat
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -1067,21 +1117,50 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                &lt; 0.00001 BAT
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -1107,14 +1186,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
+                                testID="import-token-footer-link"
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -1128,7 +1207,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     style={
                                       {
                                         "color": "#6a737d",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -1316,7 +1395,6 @@ exports[`Tokens should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -1409,7 +1487,6 @@ exports[`Tokens should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1487,48 +1564,157 @@ exports[`Tokens should render correctly 1`] = `
                       }
                       testID="tokens"
                     >
-                      <RCTScrollView
-                        ListFooterComponent={[Function]}
-                        ListHeaderComponent={
-                          <View
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingBottom": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
+                            "paddingTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="sort-by"
+                        >
+                          <Text
+                            accessibilityRole="none"
                             style={
                               {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginHorizontal": 16,
-                                "marginVertical": 24,
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
                               }
                             }
                           >
-                            <Text
-                              style={
-                                {
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 32,
-                                  "fontWeight": "500",
-                                  "lineHeight": 40,
-                                }
+                            Sort by
+                          </Text>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
                               }
-                              testID="total-balance-text"
-                            >
-                              0 USD
-                            </Text>
-                            <Button
-                              endIconName="Export"
-                              label="Portfolio"
-                              onPress={[Function]}
-                              size="40"
-                              style={
-                                {
-                                  "marginVertical": 5,
-                                }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="import-token-button"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Add"
+                            style={
+                              {
+                                "height": 16,
+                                "marginRight": 8,
+                                "width": 16,
                               }
-                              testID="portfolio-button"
-                              variant="Secondary"
-                              width="full"
-                            />
-                          </View>
+                            }
+                            width={16}
+                          />
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Import
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      <RCTScrollView
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            showDetectedTokens={[Function]}
+                            tokens={
+                              [
+                                {
+                                  "address": "0x0",
+                                  "balanceFiat": "< $0.01",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": true,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                  "tokenFiatAmount": NaN,
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                  "tokenFiatAmount": NaN,
+                                },
+                              ]
+                            }
+                          />
                         }
                         data={
                           [
@@ -1540,6 +1726,7 @@ exports[`Tokens should render correctly 1`] = `
                               "isETH": true,
                               "name": "Ethereum",
                               "symbol": "ETH",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
@@ -1548,6 +1735,7 @@ exports[`Tokens should render correctly 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
+                              "tokenFiatAmount": NaN,
                             },
                           ]
                         }
@@ -1577,96 +1765,11 @@ exports[`Tokens should render correctly 1`] = `
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
                         <View>
-                          <View
-                            onLayout={[Function]}
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginHorizontal": 16,
-                                  "marginVertical": 24,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
-                                  }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "transparent",
-                                    "borderColor": "#0376c9",
-                                    "borderRadius": 20,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 40,
-                                    "justifyContent": "center",
-                                    "marginVertical": 5,
-                                    "paddingHorizontal": 16,
-                                  }
-                                }
-                                testID="portfolio-button"
-                                variant="Secondary"
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Portfolio
-                                </Text>
-                                <SvgMock
-                                  color="#0376c9"
-                                  height={16}
-                                  name="Export"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "marginLeft": 8,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                          </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
@@ -1706,7 +1809,7 @@ exports[`Tokens should render correctly 1`] = `
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -1794,7 +1897,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -1864,7 +1967,7 @@ exports[`Tokens should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -1917,7 +2020,7 @@ exports[`Tokens should render correctly 1`] = `
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -1931,7 +2034,7 @@ exports[`Tokens should render correctly 1`] = `
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 16,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -1939,7 +2042,7 @@ exports[`Tokens should render correctly 1`] = `
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -1956,22 +2059,21 @@ exports[`Tokens should render correctly 1`] = `
                                     />
                                   </View>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -2002,21 +2104,50 @@ exports[`Tokens should render correctly 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                 ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                   ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -2059,7 +2190,6 @@ exports[`Tokens should render correctly 1`] = `
                                         "width": 32,
                                       }
                                     }
-                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -2114,7 +2244,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -2184,7 +2314,7 @@ exports[`Tokens should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -2195,22 +2325,21 @@ exports[`Tokens should render correctly 1`] = `
                                     Bat
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -2241,21 +2370,50 @@ exports[`Tokens should render correctly 1`] = `
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                &lt; 0.00001 BAT
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -2281,14 +2439,14 @@ exports[`Tokens should render correctly 1`] = `
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
+                                testID="import-token-footer-link"
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -2302,7 +2460,7 @@ exports[`Tokens should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#6a737d",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -2490,7 +2648,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -2583,7 +2740,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -2661,48 +2817,166 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                       }
                       testID="tokens"
                     >
-                      <RCTScrollView
-                        ListFooterComponent={[Function]}
-                        ListHeaderComponent={
-                          <View
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingBottom": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
+                            "paddingTop": 8,
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="sort-by"
+                        >
+                          <Text
+                            accessibilityRole="none"
                             style={
                               {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                                "marginHorizontal": 16,
-                                "marginVertical": 24,
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
                               }
                             }
                           >
-                            <Text
-                              style={
-                                {
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 32,
-                                  "fontWeight": "500",
-                                  "lineHeight": 40,
-                                }
+                            Sort by
+                          </Text>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
                               }
-                              testID="total-balance-text"
-                            >
-                              0 USD
-                            </Text>
-                            <Button
-                              endIconName="Export"
-                              label="Portfolio"
-                              onPress={[Function]}
-                              size="40"
-                              style={
-                                {
-                                  "marginVertical": 5,
-                                }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#bbc0c5",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="import-token-button"
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Add"
+                            style={
+                              {
+                                "height": 16,
+                                "marginRight": 8,
+                                "width": 16,
                               }
-                              testID="portfolio-button"
-                              variant="Secondary"
-                              width="full"
-                            />
-                          </View>
+                            }
+                            width={16}
+                          />
+                          <Text
+                            accessibilityRole="none"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Import
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      <RCTScrollView
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            showDetectedTokens={[Function]}
+                            tokens={
+                              [
+                                {
+                                  "address": "0x0",
+                                  "balanceFiat": "< $0.01",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": true,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                  "tokenFiatAmount": NaN,
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                  "tokenFiatAmount": NaN,
+                                },
+                                {
+                                  "address": "0x02",
+                                  "balanceFiat": "$0",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "name": "Link",
+                                  "symbol": "LINK",
+                                  "tokenFiatAmount": NaN,
+                                },
+                              ]
+                            }
+                          />
                         }
                         data={
                           [
@@ -2714,6 +2988,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "isETH": true,
                               "name": "Ethereum",
                               "symbol": "ETH",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x01",
@@ -2722,6 +2997,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
+                              "tokenFiatAmount": NaN,
                             },
                             {
                               "address": "0x02",
@@ -2730,6 +3006,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "iconUrl": "",
                               "name": "Link",
                               "symbol": "LINK",
+                              "tokenFiatAmount": NaN,
                             },
                           ]
                         }
@@ -2759,96 +3036,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
                         <View>
-                          <View
-                            onLayout={[Function]}
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginHorizontal": 16,
-                                  "marginVertical": 24,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 32,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 40,
-                                  }
-                                }
-                                testID="total-balance-text"
-                              >
-                                0 USD
-                              </Text>
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                onPress={[Function]}
-                                onPressIn={[Function]}
-                                onPressOut={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "alignSelf": "stretch",
-                                    "backgroundColor": "transparent",
-                                    "borderColor": "#0376c9",
-                                    "borderRadius": 20,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 40,
-                                    "justifyContent": "center",
-                                    "marginVertical": 5,
-                                    "paddingHorizontal": 16,
-                                  }
-                                }
-                                testID="portfolio-button"
-                                variant="Secondary"
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#0376c9",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Portfolio
-                                </Text>
-                                <SvgMock
-                                  color="#0376c9"
-                                  height={16}
-                                  name="Export"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "marginLeft": 8,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                          </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
@@ -2888,7 +3080,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -2976,7 +3168,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -3046,7 +3238,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3099,7 +3291,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         {
                                           "color": "#141618",
-                                          "fontFamily": "Euclid Circular B",
+                                          "fontFamily": "EuclidCircularB-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -3113,7 +3305,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         style={
                                           {
                                             "color": "#0376c9",
-                                            "fontFamily": "Euclid Circular B",
+                                            "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 16,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -3121,7 +3313,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           }
                                         }
                                       >
-                                        Stake 
+                                        Earn 
                                       </Text>
                                     </Text>
                                     <SvgMock
@@ -3138,22 +3330,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     />
                                   </View>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -3184,21 +3375,50 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                 ETH
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                   ETH
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -3241,7 +3461,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "width": 32,
                                       }
                                     }
-                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -3296,7 +3515,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -3366,7 +3585,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3377,22 +3596,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Bat
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -3423,21 +3641,50 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                &lt; 0.00001 BAT
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -3480,7 +3727,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "width": 32,
                                       }
                                     }
-                                    variant="Token"
                                   >
                                     <Image
                                       onError={[Function]}
@@ -3535,7 +3781,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "opacity": 0,
                                       }
                                     }
-                                    testID="badge-network"
+                                    testID="badgenetwork"
                                   >
                                     <View
                                       style={
@@ -3605,7 +3851,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       {
                                         "color": "#141618",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
@@ -3616,22 +3862,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Link
                                   </Text>
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                      "textTransform": "uppercase",
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
-                                  }
-                                >
-                                  &lt; $0.01
-                                </Text>
+                                  />
+                                </View>
                               </View>
                               <Modal
                                 animationType="none"
@@ -3662,21 +3907,50 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 transparent={true}
                                 visible={false}
                               />
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "Euclid Circular B",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
                                   }
                                 }
                               >
-                                0 LINK
-                              </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  0 LINK
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  &lt; $0.01
+                                </Text>
+                              </View>
                             </TouchableOpacity>
                           </View>
                           <View
@@ -3702,14 +3976,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     "justifyContent": "center",
                                   }
                                 }
-                                testID="import-token-button"
+                                testID="import-token-footer-link"
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
                                     {
                                       "color": "#141618",
-                                      "fontFamily": "Euclid Circular B",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -3723,7 +3997,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       {
                                         "color": "#6a737d",
-                                        "fontFamily": "Euclid Circular B",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,

@@ -16,7 +16,7 @@ import {
 const VAULT_BACKUP_KEY = 'VAULT_BACKUP';
 
 const options: Options = {
-  accessible: ACCESSIBLE.WHEN_UNLOCKED,
+  accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
 interface KeyringBackupResponse {

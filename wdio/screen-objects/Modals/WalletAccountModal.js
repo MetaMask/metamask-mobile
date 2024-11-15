@@ -1,23 +1,18 @@
-import {
-  ACCOUNT_OVERVIEW_ID,
-  WALLET_ACCOUNT_NAME_LABEL_INPUT,
-  WALLET_ACCOUNT_NAME_LABEL_TEXT,
-} from '../testIDs/Screens/WalletView.testIds';
-
+import { WalletViewSelectorsIDs } from '../../../e2e/selectors/wallet/WalletView.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class WalletAccountModal {
   get accountNameLabelText() {
-    return Selectors.getXpathElementByResourceId(WALLET_ACCOUNT_NAME_LABEL_TEXT);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
   }
 
   get accountNameLabelInput() {
-    return Selectors.getElementByPlatform(WALLET_ACCOUNT_NAME_LABEL_INPUT);
+    return Selectors.getElementByPlatform(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT);
   }
 
   get walletAccountOverview() {
-    return Selectors.getXpathElementByResourceId(ACCOUNT_OVERVIEW_ID);
+    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_OVERVIEW);
   }
 
   async longPressAccountNameLabel() {

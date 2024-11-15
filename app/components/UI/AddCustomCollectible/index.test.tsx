@@ -3,15 +3,11 @@ import { shallow } from 'enzyme';
 import AddCustomCollectible from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import initialRootState from '../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
-const initialState = {
-  engine: {
-    backgroundState: initialBackgroundState,
-  },
-};
-const store = mockStore(initialState);
+
+const store = mockStore(initialRootState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

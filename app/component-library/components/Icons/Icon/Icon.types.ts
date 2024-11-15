@@ -208,7 +208,7 @@ export enum IconName {
   Star = 'Star',
   Student = 'Student',
   SwapHorizontal = 'SwapHorizontal',
-  SwapVertival = 'SwapVertival',
+  SwapVertical = 'SwapVertical',
   Tag = 'Tag',
   Tilde = 'Tilde',
   Timer = 'Timer',

@@ -1,21 +1,15 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { FunctionComponent } from 'react';
 
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         useTokenDetection: true,
-        selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-        identities: {
-          '0x0': {
-            address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
-            name: 'Account 1',
-          },
-        },
       },
     },
   },
@@ -24,7 +18,7 @@ const mockInitialState = {
 describe('SearchTokenAutocomplete', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
-      SearchTokenAutocomplete,
+      SearchTokenAutocomplete as FunctionComponent,
       { name: 'SearchTokenAutocomplete' },
       {
         state: mockInitialState,

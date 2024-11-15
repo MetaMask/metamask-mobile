@@ -4,7 +4,7 @@ import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
 import { ONBOARDING, PROTECT } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockStore = configureMockStore();
@@ -15,7 +15,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },

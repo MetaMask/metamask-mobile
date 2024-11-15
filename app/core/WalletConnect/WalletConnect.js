@@ -4,7 +4,7 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
 import {
   CLIENT_OPTIONS,
   WALLET_CONNECT_ORIGIN,
@@ -38,7 +38,6 @@ const METHODS_TO_REDIRECT = {
   eth_requestAccounts: true,
   eth_sendTransaction: true,
   eth_signTransaction: true,
-  eth_sign: true,
   personal_sign: true,
   eth_signTypedData: true,
   eth_signTypedData_v3: true,
@@ -59,7 +58,10 @@ const persistSessions = async () => {
       lastTimeConnected: new Date(),
     }));
 
-  await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
+  await StorageWrapper.setItem(
+    WALLETCONNECT_SESSIONS,
+    JSON.stringify(sessions),
+  );
 };
 
 const waitForInitialization = async () => {
@@ -171,7 +173,7 @@ class WalletConnect {
           if (payload.method === 'eth_sendTransaction') {
             try {
               const selectedAddress =
-                Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+                Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
 
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
@@ -305,7 +307,7 @@ class WalletConnect {
   startSession = async (sessionData, existing) => {
     const chainId = selectChainId(store.getState());
     const selectedAddress =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+      Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
     const approveData = {
       chainId: parseInt(chainId, 10),
       accounts: [selectedAddress],
@@ -381,7 +383,7 @@ class WalletConnect {
 
 const instance = {
   async init() {
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await StorageWrapper.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
 
@@ -442,7 +444,7 @@ const instance = {
   },
   getSessions: async () => {
     let sessions = [];
-    const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
+    const sessionData = await StorageWrapper.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       sessions = JSON.parse(sessionData);
     }

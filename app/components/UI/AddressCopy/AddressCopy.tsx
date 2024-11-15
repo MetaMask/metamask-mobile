@@ -3,12 +3,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // External dependencies
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { formatAddress } from '../../../util/address';
 import Icon, {
   IconColor,
   IconName,
@@ -18,19 +13,18 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
-import { AddressCopyProps } from './AddressCopy.types';
-import { selectIdentities } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
+const AddressCopy = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
@@ -49,22 +43,14 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
-
-  /**
-   * An object containing each identity in the format address => account
-   */
-  const identities = useSelector(selectIdentities);
-
-  const account = {
-    ...identities[selectedAddress],
-    address: selectedAddress,
-  };
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const copyAccountToClipboard = async () => {
-    await ClipboardManager.setString(selectedAddress);
+    if (selectedInternalAccount?.address) {
+      await ClipboardManager.setString(
+        toChecksumHexAddress(selectedInternalAccount.address),
+      );
+    }
     handleShowAlert({
       isVisible: true,
       autodismiss: 1500,
@@ -77,26 +63,15 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   };
   return (
     <View style={styles.address}>
-      <Text variant={TextVariant.BodySMBold}>
-        {strings('asset_overview.address')}:
-      </Text>
       <TouchableOpacity
         style={styles.copyButton}
         onPress={copyAccountToClipboard}
-        {...generateTestId(Platform, 'wallet-account-copy-button')}
+        testID={WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON}
       >
-        <Text
-          color={TextColor.Primary}
-          variant={TextVariant.BodySM}
-          {...generateTestId(Platform, 'wallet-account-address')}
-        >
-          {formatAddress(account.address, formatAddressType)}
-        </Text>
         <Icon
           name={IconName.Copy}
-          size={IconSize.Sm}
-          color={IconColor.Primary}
-          style={styles.icon}
+          size={IconSize.Lg}
+          color={IconColor.Default}
         />
       </TouchableOpacity>
     </View>

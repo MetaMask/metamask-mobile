@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
@@ -10,6 +12,9 @@ import EditGasFeeLegacy from '../../../../components/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
 import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../../..//selectors/gasFeeController';
+import { RootState } from '../../../../../../../reducers';
+import { selectPrimaryCurrency } from '../../../../../../..//selectors/settings';
 
 const CustomGasModal = ({
   gasSelected,
@@ -27,33 +32,15 @@ const CustomGasModal = ({
 }: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const transaction = useSelector((state: any) => state.transaction);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const gasFeeEstimate = useSelector((state: any) =>
-    selectGasFeeEstimates(state),
-  );
-  const primaryCurrency = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.primaryCurrency,
-  );
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chainId = useSelector((state: any) => selectChainId(state));
+
+  const transaction = useSelector((state: RootState) => state.transaction);
+  const gasFeeEstimate = useSelector(selectGasFeeEstimates);
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
+  const chainId = useSelector(selectChainId);
   const selectedAsset = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.transaction.selectedAsset,
+    (state: RootState) => state.transaction.selectedAsset,
   );
-  const gasEstimateType = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
-  );
+  const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
   const [selectedGas, setSelectedGas] = useState(gasSelected);
   const [eip1559Txn, setEIP1559Txn] = useState(EIP1559GasTxn);

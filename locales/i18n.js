@@ -1,5 +1,5 @@
 import ReactNative from 'react-native';
-import AsyncStorage from '../app/store/async-storage-wrapper';
+import StorageWrapper from '../app/store/storage-wrapper';
 import I18n from 'react-native-i18n';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -98,7 +98,7 @@ export const isRTL = false; // currentLocale.indexOf('jaJp') === 0;
 export async function setLocale(locale) {
   I18n.locale = locale;
   // Platform.OS === 'ios' && getLocaleData(locale);
-  await AsyncStorage.setItem(LANGUAGE, locale);
+  await StorageWrapper.setItem(LANGUAGE, locale);
   I18nEvents.emit('localeChanged', locale);
 }
 
@@ -133,7 +133,7 @@ export function strings(name, params = {}) {
 
 // Allow persist locale after app closed
 async function getUserPreferableLocale() {
-  const locale = await AsyncStorage.getItem(LANGUAGE);
+  const locale = await StorageWrapper.getItem(LANGUAGE);
   if (locale) {
     I18n.locale = locale;
   }

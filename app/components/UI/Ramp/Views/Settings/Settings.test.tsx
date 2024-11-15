@@ -4,13 +4,12 @@ import Settings from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../reducers/fiatOrders/types';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -21,7 +20,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
       },
     },

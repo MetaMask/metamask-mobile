@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useDispatch } from 'react-redux';
 
 import Coachmark from '../Coachmark';
@@ -12,8 +12,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -64,7 +63,7 @@ const Step1 = ({ onClose }: Step1Props) => {
   return (
     <View
       style={styles.main}
-      {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
+      testID={OnboardingWizardModalSelectorsIDs.STEP_ONE_CONTAINER}
     >
       <View style={styles.coachmarkContainer}>
         <Coachmark

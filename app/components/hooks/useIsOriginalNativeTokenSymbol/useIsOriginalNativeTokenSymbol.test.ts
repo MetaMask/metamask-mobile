@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from './useIsOriginalNativeTokenSymbol';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../app/util/test/initial-root-state';
 import axios from 'axios';
 
 jest.mock('react-redux', () => ({
@@ -25,7 +25,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -69,7 +69,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -112,7 +112,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -144,7 +144,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -188,7 +188,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -233,7 +233,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: false,
           },
@@ -276,7 +276,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },

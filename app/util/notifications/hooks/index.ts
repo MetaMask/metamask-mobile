@@ -1,71 +1,75 @@
 import { useCallback, useEffect } from 'react';
-import notifee, {
-  Event as NotifeeEvent,
-  EventType,
-} from '@notifee/react-native';
-import NotificationManager from '../../../core/NotificationManager';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
+import { useSelector } from 'react-redux';
+import {
+  isNotificationsFeatureEnabled,
+  Notification,
+} from '../../../util/notifications';
+
+import FCMService from '../services/FCMService';
+import NotificationsService from '../services/NotificationService';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { Linking } from 'react-native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { setupAndroidChannel } from '../setupAndroidChannels';
-import { SimpleNotification } from '../types';
-import Device from '../../../util/device';
 
-const useNotificationHandler = (
-  bootstrapAndroidInitialNotification: () => Promise<void>,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any,
-) => {
-  const performActionBasedOnOpenedNotificationType = useCallback(
-    async (notification: SimpleNotification) => {
-      const { data } = notification;
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
 
-      if (data && data.action === 'tx') {
-        if (data.id) {
-          NotificationManager.setTransactionToView(data.id);
-        }
-        if (navigation) {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
-        }
+const useNotificationHandler = (navigation: NavigationContainerRef) => {
+  /**
+   * Handles the action based on the type of notification (sent from the backend & following Notification types) that is opened
+   * @param notification - The notification that is opened
+   */
+
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
+  const handleNotificationCallback = useCallback(
+    async (notification: Notification) => {
+      if (!notification) {
+        return;
+      }
+      if (
+        notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+        notification.data.externalLink
+      ) {
+        Linking.openURL(notification.data.externalLink.externalLinkUrl);
+      } else {
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       }
     },
     [navigation],
   );
 
-  const handleOpenedNotification = useCallback(
-    (notification?: SimpleNotification) => {
-      if (!notification) {
-        return;
-      }
-      performActionBasedOnOpenedNotificationType(notification);
-    },
-    [performActionBasedOnOpenedNotificationType],
-  );
-
-  const handleNotificationPressed = useCallback(
-    (event: NotifeeEvent) => {
-      if (event.type === EventType.PRESS) {
-        handleOpenedNotification(event.detail.notification);
-      }
-    },
-    [handleOpenedNotification],
-  );
+  const notificationEnabled = isNotificationsFeatureEnabled() && isNotificationEnabled;
 
   useEffect(() => {
-    // Reset badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
-    notifee.setBadgeCount(0);
+    if (!notificationEnabled) return;
 
-    bootstrapAndroidInitialNotification();
-    setTimeout(() => {
-      if (Device.isAndroid()) {
-        setupAndroidChannel();
-      }
-      notifee.onForegroundEvent(handleNotificationPressed);
-    }, 1000);
-  }, [
-    bootstrapAndroidInitialNotification,
-    navigation,
-    handleNotificationPressed,
-  ]);
+    // Firebase Cloud Messaging
+    FCMService.registerAppWithFCM();
+    FCMService.saveFCMToken();
+    FCMService.getFCMToken();
+    FCMService.listenForMessagesBackground();
+
+    // Notifee
+    NotificationsService.onBackgroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handleNotificationCallback,
+        }),
+    );
+
+    const unsubscribeForegroundEvent = FCMService.listenForMessagesForeground();
+
+    return () => {
+      unsubscribeForegroundEvent();
+    };
+  }, [handleNotificationCallback, notificationEnabled]);
 };
 
 export default useNotificationHandler;

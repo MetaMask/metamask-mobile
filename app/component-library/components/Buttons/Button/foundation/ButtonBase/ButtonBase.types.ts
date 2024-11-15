@@ -4,6 +4,7 @@ import { ColorValue, TouchableOpacityProps } from 'react-native';
 // External dependencies.
 import { IconProps } from '../../../../Icons/Icon';
 import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
+import { TextVariant } from '../../../../Texts/Text';
 
 /**
  * ButtonBase component props.
@@ -17,6 +18,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Optional prop for the color of label. Applies to icon too.
    */
   labelColor?: string | ColorValue;
+  /**
+   * Optional prop for the text variant of the label.
+   */
+  labelTextVariant?: TextVariant;
   /**
    * Optional prop for the icon name of the icon that will be displayed before the label.
    */
@@ -46,6 +51,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Optional param to disable the button.
    */
   isDisabled?: boolean;
+  /**
+   * An optional loading state of Button.
+   */
+  loading?: boolean;
 }
 
 /**

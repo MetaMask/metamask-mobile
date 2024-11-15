@@ -3,6 +3,10 @@ import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
+import TransactionTypes from '../TransactionTypes';
+
+const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
@@ -186,7 +190,16 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
 export const getPermittedAccounts = async (
   hostname: string,
 ): Promise<string[]> => {
+  const { AccountsController } = Engine.context;
+
   try {
+    if (INTERNAL_ORIGINS.includes(hostname)) {
+      const selectedAccountAddress =
+        AccountsController.getSelectedAccount().address;
+
+      return [selectedAccountAddress];
+    }
+
     const accounts =
       await Engine.context.PermissionController.executeRestrictedMethod(
         hostname,

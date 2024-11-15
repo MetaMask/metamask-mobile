@@ -179,7 +179,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -206,7 +206,6 @@ exports[`NetworksSettings should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
           {
             "bottom": -1,
@@ -299,7 +298,6 @@ exports[`NetworksSettings should render correctly 1`] = `
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -415,11 +413,14 @@ exports[`NetworksSettings should render correctly 1`] = `
                           
                         </Text>
                         <TextInput
+                          onBlur={[Function]}
                           onChangeText={[Function]}
-                          placeholder="Search for previously added network"
+                          onFocus={[Function]}
+                          placeholder="Search"
                           placeholderTextColor="#141618"
                           style={
                             {
+                              "borderColor": "#bbc0c5",
                               "color": "#141618",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",

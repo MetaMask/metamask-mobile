@@ -107,7 +107,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -122,7 +122,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -155,14 +155,13 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -195,7 +194,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -249,7 +248,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -267,7 +266,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -300,7 +299,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -353,7 +352,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -386,112 +385,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
-                  "fontSize": 16,
-                  "fontWeight": "500",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Eth_sign requests
-            </Text>
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "marginLeft": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                onPress={[Function]}
-                style={
-                  {
-                    "color": "#141618",
-                    "fontFamily": "Euclid Circular B",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 20,
-                    "marginRight": 8,
-                  }
-                }
-              >
-                (Recommended)
-              </Text>
-              <RCTSwitch
-                accessibilityLabel="Eth_sign requests"
-                accessibilityRole="switch"
-                onChange={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
-                style={
-                  [
-                    {
-                      "height": 31,
-                      "width": 51,
-                    },
-                    [
-                      {
-                        "alignSelf": "flex-start",
-                      },
-                      {
-                        "backgroundColor": "#bbc0c566",
-                        "borderRadius": 16,
-                      },
-                    ],
-                  ]
-                }
-                testID="eth-sign-switch"
-                thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
-                value={false}
-              />
-            </View>
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "marginTop": 8,
-              }
-            }
-          >
-            If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "marginTop": 32,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -544,7 +438,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -562,7 +456,6 @@ exports[`AdvancedSettings should render correctly 1`] = `
               "marginTop": 32,
             }
           }
-          testID="token-detection-toggle"
         >
           <View
             style={
@@ -578,7 +471,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -586,7 +479,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 }
               }
             >
-              Enhanced Token Detection
+              Autodetect tokens
             </Text>
             <View
               style={
@@ -620,6 +513,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
+                testID="token-detection-toggle"
                 thumbTintColor="#ffffff"
                 tintColor="#bbc0c566"
                 value={true}
@@ -631,7 +525,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -664,7 +558,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -718,7 +612,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -742,7 +636,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -757,7 +651,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -790,14 +684,13 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

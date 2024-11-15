@@ -7,7 +7,7 @@ import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
 import {
-  isprivateConnection,
+  isPrivateConnection,
   toggleUseSafeChainsListValidation,
 } from '../../../util/networks';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
@@ -23,7 +23,7 @@ import {
 
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -33,6 +33,22 @@ import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
 import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toHex } from '@metamask/controller-utils';
+import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
+import Logger from '../../../util/Logger';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+  AddNetworkFields,
+} from '@metamask/network-controller';
+
+export interface SafeChain {
+  chainId: string;
+  name: string;
+  nativeCurrency: { symbol: string };
+  rpc: string[];
+}
 
 interface NetworkProps {
   isVisible: boolean;
@@ -45,6 +61,8 @@ interface NetworkProps {
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
   onNetworkSwitch?: () => void;
+  showPopularNetworkModal: boolean;
+  safeChains?: SafeChain[];
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -60,10 +78,12 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    showPopularNetworkModal,
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
+    safeChains,
   } = props;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -90,9 +110,39 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const validUrl = validateRpcUrl(rpcUrl);
+    const isValidUrl = validateRpcUrl(rpcUrl);
+    if (showPopularNetworkModal) {
+      // track popular network
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+          .addProperties({
+            chain_id: toHex(chainId),
+            source: 'Popular network list',
+            symbol: ticker,
+          })
+          .build(),
+      );
+    } else if (safeChains) {
+      const { safeChain, safeRPCUrl } = rpcIdentifierUtility(
+        rpcUrl,
+        safeChains,
+      );
+      // track custom network, this shouldn't be in popular networks modal
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+          .addProperties({
+            chain_id: toHex(safeChain.chainId),
+            source: { anonymous: true, value: 'Custom Network Added' },
+            symbol: safeChain.nativeCurrency.symbol,
+          })
+          .addSensitiveProperties({ rpcUrl: safeRPCUrl })
+          .build(),
+      );
+    } else {
+      Logger.log('MetaMetrics - Unable to capture custom network');
+    }
 
-    setNetworkAdded(validUrl);
+    setNetworkAdded(isValidUrl);
   };
 
   const cancelButtonProps: ButtonProps = {
@@ -100,7 +150,7 @@ const NetworkModals = (props: NetworkProps) => {
     label: strings('accountApproval.cancel'),
     size: ButtonSize.Lg,
     onPress: showCheckNetworkModal,
-    testID: NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON,
+    testID: NetworkApprovalBottomSheetSelectorsIDs.CANCEL_BUTTON,
   };
 
   const confirmButtonProps: ButtonProps = {
@@ -111,11 +161,15 @@ const NetworkModals = (props: NetworkProps) => {
       toggleUseSafeChainsListValidation(true);
       showCheckNetworkModal();
     },
-    testID: NetworkApprovalModalSelectorsIDs.CONFIRM_NETWORK_CHECK,
+    testID: NetworkApprovalBottomSheetSelectorsIDs.CONFIRM_NETWORK_CHECK,
   };
 
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,
+  );
+
+  const networkConfigurationByChainId = useSelector(
+    selectNetworkConfigurations,
   );
 
   const customNetworkInformation = {
@@ -145,61 +199,152 @@ const NetworkModals = (props: NetworkProps) => {
     checkNetwork();
   }, [checkNetwork]);
 
-  const closeModal = () => {
+  const closeModal = async () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-    NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: url.href,
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
+
+    const existingNetwork = networkConfigurationByChainId[chainId];
+    let networkClientId;
+
+    if (existingNetwork) {
+      const updatedNetwork = await NetworkController.updateNetwork(
+        existingNetwork.chainId,
+        existingNetwork,
+        existingNetwork.chainId === chainId
+          ? {
+              replacementSelectedRpcEndpointIndex:
+                existingNetwork.defaultRpcEndpointIndex,
+            }
+          : undefined,
+      );
+
+      networkClientId =
+        updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
+    } else {
+      const addedNetwork = await NetworkController.addNetwork({
         chainId,
-        ticker,
-        nickname,
-        rpcPrefs: { blockExplorerUrl },
-      },
-      {
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
-    );
+        blockExplorerUrls: [blockExplorerUrl],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: nickname,
+        nativeCurrency: ticker,
+        rpcEndpoints: [
+          {
+            url: rpcUrl,
+            name: nickname,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+
+      networkClientId =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
+          ?.networkClientId;
+    }
+
+    if (networkClientId) {
+      await NetworkController.setActiveNetwork(networkClientId);
+    }
+
     onClose();
   };
 
-  const switchNetwork = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
-    const url = new URLPARSE(rpcUrl);
-    CurrencyRateController.updateExchangeRate(ticker);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-    NetworkController.upsertNetworkConfiguration(
-      {
-        rpcUrl: url.href,
-        chainId,
-        ticker,
-        nickname,
-        rpcPrefs: { blockExplorerUrl },
-      },
-      {
-        setActive: true,
-        // Metrics-related properties required, but the metric event is a no-op
-        // TODO: Use events for controller metric events
-        referrer: 'ignored',
-        source: 'ignored',
-      },
+  const handleExistingNetwork = async (
+    existingNetwork: NetworkConfiguration,
+    networkId: string,
+  ) => {
+    const { NetworkController } = Engine.context;
+    const updatedNetwork = await NetworkController.updateNetwork(
+      existingNetwork.chainId,
+      existingNetwork,
+      existingNetwork.chainId === networkId
+        ? {
+            replacementSelectedRpcEndpointIndex:
+              existingNetwork.defaultRpcEndpointIndex,
+          }
+        : undefined,
     );
 
-    const analyticsParamsAdd = {
-      chain_id: getDecimalChainId(chainId),
-      source: 'Popular network list',
-      symbol: ticker,
-    };
+    const { networkClientId } =
+      updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
+      {};
 
-    trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    await NetworkController.setActiveNetwork(networkClientId);
+  };
 
-    closeModal();
+  const handleNewNetwork = async (
+    networkId: `0x${string}`,
+    networkRpcUrl: string,
+    name: string,
+    nativeCurrency: string,
+    networkBlockExplorerUrl: string,
+  ) => {
+    const { NetworkController } = Engine.context;
+    const networkConfig = {
+      chainId: networkId,
+      blockExplorerUrls: networkBlockExplorerUrl
+        ? [networkBlockExplorerUrl]
+        : [],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
+      name,
+      nativeCurrency,
+      rpcEndpoints: [
+        {
+          url: networkRpcUrl,
+          name,
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    } as AddNetworkFields;
+
+    return NetworkController.addNetwork(networkConfig);
+  };
+
+  const handleNavigation = (
+    onSwitchNetwork: () => void,
+    networkSwitchPopToWallet: boolean,
+  ) => {
+    if (onSwitchNetwork) {
+      onSwitchNetwork();
+    } else {
+      networkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
+    }
+  };
+
+  const switchNetwork = async () => {
+    const { NetworkController } = Engine.context;
+    const url = new URLPARSE(rpcUrl);
+    const existingNetwork = networkConfigurationByChainId[chainId];
+
+    if (!isPrivateConnection(url.hostname)) {
+      url.set('protocol', 'https:');
+    }
+
+    if (existingNetwork) {
+      await handleExistingNetwork(existingNetwork, chainId);
+    } else {
+      const addedNetwork = await handleNewNetwork(
+        chainId,
+        rpcUrl,
+        nickname,
+        ticker,
+        blockExplorerUrl,
+      );
+      const { networkClientId } =
+        addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
+        {};
+
+      NetworkController.setActiveNetwork(networkClientId);
+    }
+    onClose();
+
     if (onNetworkSwitch) {
-      onNetworkSwitch();
+      handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
     } else {
       shouldNetworkSwitchPopToWallet
         ? navigation.navigate('WalletView')

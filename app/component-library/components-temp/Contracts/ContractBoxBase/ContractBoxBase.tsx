@@ -39,7 +39,7 @@ const ContractBoxBase = ({
     theme: { colors },
   } = useStyles(styleSheet, {});
 
-  const IconView = ({ onPress, name, size, testID }: IconViewProps) => (
+  const renderIconView = ({ onPress, name, size, testID }: IconViewProps) => (
     <Pressable style={styles.icon} onPress={onPress} testID={testID}>
       <Icon color={colors.icon.alternative} name={name} size={size} />
     </Pressable>
@@ -70,7 +70,7 @@ const ContractBoxBase = ({
           <View testID={CONTRACT_BOX_NO_PET_NAME_TEST_ID}>
             <Button
               variant={ButtonVariants.Link}
-              textVariant={TextVariant.HeadingMD}
+              labelTextVariant={TextVariant.HeadingMD}
               label={formattedAddress}
               onPress={onContractPress}
             />
@@ -78,20 +78,19 @@ const ContractBoxBase = ({
         )}
       </View>
       <View style={styles.iconContainer}>
-        <IconView
-          onPress={onCopyAddress}
-          name={IconName.Copy}
-          size={IconSize.Lg}
-          testID={COPY_ICON_TEST_ID}
-        />
-        {hasBlockExplorer && (
-          <IconView
-            name={IconName.Export}
-            onPress={onExportAddress}
-            size={IconSize.Md}
-            testID={EXPORT_ICON_TEST_ID}
-          />
-        )}
+        {renderIconView({
+          onPress: onCopyAddress,
+          name: IconName.Copy,
+          size: IconSize.Lg,
+          testID: COPY_ICON_TEST_ID,
+        })}
+        {hasBlockExplorer &&
+          renderIconView({
+            onPress: onExportAddress,
+            name: IconName.Export,
+            size: IconSize.Md,
+            testID: EXPORT_ICON_TEST_ID,
+          })}
       </View>
     </View>
   );

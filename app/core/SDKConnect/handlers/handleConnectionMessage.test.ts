@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
@@ -17,10 +16,16 @@ import checkPermissions from './checkPermissions';
 import handleConnectionMessage from './handleConnectionMessage';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { AccountsController } from '@metamask/accounts-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
+import { mockNetworkState } from '../../../util/test/network';
 
+jest.mock('../../Engine');
 jest.mock('@metamask/keyring-controller');
 jest.mock('@metamask/network-controller');
-jest.mock('@metamask/preferences-controller');
+jest.mock('@metamask/accounts-controller');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
@@ -28,6 +33,12 @@ jest.mock('../utils/wait.util');
 jest.mock('./checkPermissions');
 jest.mock('./handleCustomRpcCalls');
 jest.mock('./handleSendMessage');
+
+const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+const MOCK_INTERNAL_ACCOUNT = createMockInternalAccount(
+  MOCK_ADDRESS,
+  'Account 1',
+);
 
 describe('handleConnectionMessage', () => {
   const mockHandleSendMessage = handleSendMessage as jest.MockedFunction<
@@ -59,16 +70,17 @@ describe('handleConnectionMessage', () => {
   const mockSetLoading = jest.fn();
   const mockOnTerminate = jest.fn();
   const mockSendAuthorized = jest.fn();
-  const mockRpcQueueManagerAdd = jest.fn();
   const mockBackgroundBridgeOnMessage = jest.fn();
 
   let connection = {} as unknown as Connection;
-  let engine = {} as unknown as typeof Engine;
   let message = {
     id: '01',
     method: 'eth_requestAccounts',
     params: [],
   } as unknown as CommunicationLayerMessage;
+
+  const mockGetId = jest.fn();
+  const mockAdd = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -79,7 +91,8 @@ describe('handleConnectionMessage', () => {
       onTerminate: mockOnTerminate,
       sendAuthorized: mockSendAuthorized,
       rpcQueueManager: {
-        add: mockRpcQueueManagerAdd,
+        getId: mockGetId,
+        add: mockAdd,
       },
       remote: {
         hasRelayPersistence: () => false,
@@ -89,23 +102,28 @@ describe('handleConnectionMessage', () => {
       },
     } as unknown as Connection;
 
-    engine = {
-      context: {
-        KeyringController: {} as unknown as KeyringController,
-        NetworkController: {
-          state: {
-            providerConfig: {
-              chainId: '0x1',
-            },
+    (Engine.context as unknown) = {
+      KeyringController: {} as unknown as KeyringController,
+      NetworkController: {
+        getNetworkClientById: () => ({
+          configuration: {
+            chainId: '0x1',
           },
-        } as unknown as NetworkController,
-        PreferencesController: {
-          state: {
-            selectedAddress: '',
-          },
-        } as unknown as PreferencesController,
-      },
-    } as unknown as typeof Engine;
+        }),
+        state: {
+          ...mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+            blockExplorerUrl: 'https://goerli.lineascan.build',
+          }),
+        },
+      } as unknown as NetworkController,
+      AccountsController: {
+        getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
+      } as unknown as AccountsController,
+    };
 
     message = {
       type: MessageType.OTP,
@@ -124,7 +142,7 @@ describe('handleConnectionMessage', () => {
     it('should handle termination messages correctly', async () => {
       message.type = MessageType.TERMINATE;
 
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(connection.onTerminate).toHaveBeenCalledTimes(1);
       expect(connection.onTerminate).toHaveBeenCalledWith({
@@ -134,7 +152,7 @@ describe('handleConnectionMessage', () => {
     it('should log and return on ping messages', async () => {
       message.type = MessageType.PING;
 
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockDevLoggerLog).toHaveBeenCalledTimes(1);
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
@@ -147,7 +165,7 @@ describe('handleConnectionMessage', () => {
       message.method = '';
       message.id = '';
 
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockDevLoggerLog).toHaveBeenCalledTimes(1);
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
@@ -164,29 +182,29 @@ describe('handleConnectionMessage', () => {
       message.id = '1';
     });
     it('should set loading to false', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockSetLoading).toHaveBeenCalledTimes(1);
       expect(mockSetLoading).toHaveBeenCalledWith(false);
     });
     it('should wait for keychain to be unlocked before handling RPC calls', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockWaitForKeychainUnlocked).toHaveBeenCalledTimes(1);
       expect(mockWaitForKeychainUnlocked).toHaveBeenCalledWith({
-        keyringController: engine.context.KeyringController,
+        keyringController: Engine.context.KeyringController,
         context: 'connection::on_message',
       });
     });
     it('should retrieve necessary data from the engine context', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
-      expect(engine.context.KeyringController).toBeDefined();
-      expect(engine.context.NetworkController).toBeDefined();
-      expect(engine.context.PreferencesController).toBeDefined();
+      expect(Engine.context.KeyringController).toBeDefined();
+      expect(Engine.context.NetworkController).toBeDefined();
+      expect(Engine.context.AccountsController).toBeDefined();
     });
     it('should wait for connection readiness', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockWaitForConnectionReadiness).toHaveBeenCalledTimes(1);
       expect(mockWaitForConnectionReadiness).toHaveBeenCalledWith({
@@ -194,7 +212,7 @@ describe('handleConnectionMessage', () => {
       });
     });
     it('should handle the sendAuthorized process', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockSendAuthorized).toHaveBeenCalledTimes(1);
     });
@@ -206,7 +224,7 @@ describe('handleConnectionMessage', () => {
     });
 
     it('should send error message using handleSendMessage on permission error', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockCheckPermissions).toBeCalledTimes(1);
 
@@ -230,17 +248,15 @@ describe('handleConnectionMessage', () => {
       mockCheckPermissions.mockResolvedValueOnce(true);
     });
     it('should process custom RPC calls correctly', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockHandleCustomRpcCalls).toHaveBeenCalledTimes(1);
       expect(mockHandleCustomRpcCalls).toHaveBeenCalledWith({
         batchRPCManager: connection.batchRPCManager,
         navigation: undefined,
         connection,
-        selectedAddress:
-          engine.context.PreferencesController.state.selectedAddress,
-        selectedChainId:
-          engine.context.NetworkController.state.providerConfig.chainId,
+        selectedAddress: toChecksumHexAddress(MOCK_ADDRESS),
+        selectedChainId: NETWORKS_CHAIN_ID.MAINNET,
         rpc: {
           method: message.method,
           params: message.params,
@@ -253,22 +269,17 @@ describe('handleConnectionMessage', () => {
   describe('RPC Queue Manager interactions', () => {
     beforeEach(() => {
       mockCheckPermissions.mockResolvedValueOnce(true);
+      mockGetId.mockReturnValue(null); // Simulate that the message hasn't been processed
     });
 
     describe('When handleCustomRpcCalls return processedRpc', () => {
       let processedRpc: {
         method: string;
         id: string;
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        params: any[];
+        params: unknown[];
         jsonrpc: string;
-      } = {
-        method: '',
-        id: '',
-        params: [],
-        jsonrpc: '',
       };
+
       beforeEach(() => {
         processedRpc = {
           method: 'eth_requestAccounts',
@@ -279,27 +290,27 @@ describe('handleConnectionMessage', () => {
 
         mockHandleCustomRpcCalls.mockResolvedValueOnce(processedRpc);
       });
-      it('should add processed RPC to the RPC queue', async () => {
-        await handleConnectionMessage({ message, engine, connection });
 
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(1);
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledWith({
-          id: processedRpc?.id,
-          method: processedRpc?.method,
+      it('should add processed RPC to the RPC queue', async () => {
+        await handleConnectionMessage({ message, engine: Engine, connection });
+
+        expect(mockAdd).toHaveBeenCalledTimes(1);
+        expect(mockAdd).toHaveBeenCalledWith({
+          id: processedRpc.id,
+          method: processedRpc.method,
         });
       });
     });
 
     describe('When handleCustomRpcCalls do NOT return processedRpc', () => {
       beforeEach(() => {
-        // @ts-ignore
         mockHandleCustomRpcCalls.mockResolvedValueOnce(undefined);
       });
 
-      it('should add processed RPC to the RPC queue', async () => {
-        await handleConnectionMessage({ message, engine, connection });
+      it('should not add processed RPC to the RPC queue', async () => {
+        await handleConnectionMessage({ message, engine: Engine, connection });
 
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(0);
+        expect(mockAdd).not.toHaveBeenCalled();
       });
     });
   });
@@ -308,15 +319,8 @@ describe('handleConnectionMessage', () => {
     let processedRpc: {
       method: string;
       id: string;
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params: any[];
+      params: unknown[];
       jsonrpc: string;
-    } = {
-      method: '',
-      id: '',
-      params: [],
-      jsonrpc: '',
     };
     beforeEach(() => {
       processedRpc = {
@@ -331,7 +335,7 @@ describe('handleConnectionMessage', () => {
     });
 
     it('should send the processed RPC message to the background bridge', async () => {
-      await handleConnectionMessage({ message, engine, connection });
+      await handleConnectionMessage({ message, engine: Engine, connection });
 
       expect(mockBackgroundBridgeOnMessage).toHaveBeenCalledTimes(1);
       expect(mockBackgroundBridgeOnMessage).toHaveBeenCalledWith({

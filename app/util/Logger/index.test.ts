@@ -1,7 +1,7 @@
 import Logger from '.';
 import { captureException, withScope } from '@sentry/react-native';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -13,7 +13,7 @@ const mockedWithScope = jest.mocked(withScope);
 
 describe('Logger', () => {
   beforeEach(() => {
-    DefaultPreference.get = jest.fn((key: string) => {
+    StorageWrapper.getItem = jest.fn((key: string) => {
       switch (key) {
         case METRICS_OPT_IN:
           return Promise.resolve(AGREED);
@@ -37,7 +37,7 @@ describe('Logger', () => {
     });
 
     it('skips captureException if metrics is opted out', async () => {
-      DefaultPreference.get = jest.fn((key: string) => {
+      StorageWrapper.getItem = jest.fn((key: string) => {
         switch (key) {
           case METRICS_OPT_IN:
             return Promise.resolve('');

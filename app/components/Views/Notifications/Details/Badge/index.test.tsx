@@ -7,7 +7,7 @@ import NotificationBadge from '.';
 import { createStyles } from '../styles';
 import { mockTheme } from '../../../../../util/theme';
 import { TRIGGER_TYPES } from '../../../../../util/notifications';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('@react-navigation/native');
 
@@ -18,9 +18,7 @@ const mockStyles = {
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
 };
 

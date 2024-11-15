@@ -21,28 +21,23 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/address';
+import {
+  importAccountFromPrivateKey,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
+
 import {
   default as MorphText,
   TextVariant,
@@ -50,9 +45,19 @@ import {
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
 import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
+import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import AddressCopy from '../AddressCopy';
+import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
+import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
+import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -91,12 +96,12 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   notificationButton: {
-    marginRight: 4,
+    marginHorizontal: 4,
   },
   disabled: {
     opacity: 0.3,
   },
-  leftButtonContainer: {
+  rightElementContainer: {
     marginRight: 12,
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -114,10 +119,23 @@ const styles = StyleSheet.create({
   metamaskNameWrapper: {
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
-  fox: {
-    width: 24,
-    height: 24,
+  leftElementContainer: {
     marginLeft: 16,
+  },
+  notificationsWrapper: {
+    marginHorizontal: 4,
+  },
+  notificationsBadge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+
+    position: 'absolute',
+    top: 2,
+    right: 10,
+  },
+  addressCopyWrapper: {
+    marginHorizontal: 4,
   },
 });
 
@@ -290,7 +308,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         <TouchableOpacity
           onPress={rightAction}
           style={styles.backButton}
-          {...generateTestId(Platform, EDIT_BUTTON)}
+          testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>
             {editMode
@@ -346,7 +364,7 @@ export function getPaymentRequestOptionsTitle(
         <TouchableOpacity
           onPress={goBack}
           style={styles.backButton}
-          {...generateTestId(Platform, REQUEST_SEARCH_RESULTS_BACK_BUTTON)}
+          testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
         >
           <IonicIcon
             name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -889,22 +907,41 @@ export function getOfflineModalNavbar() {
 }
 
 /**
- * Function that returns the navigation options
- * for our wallet screen,
+ * Function that returns the navigation options for the wallet screen.
  *
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ * @param {Object} accountActionsRef - The ref object for the account actions
+ * @param {string} selectedAddress - The currently selected Ethereum address
+ * @param {string} accountName - The name of the currently selected account
+ * @param {string} accountAvatarType - The type of avatar for the currently selected account
+ * @param {string} networkName - The name of the current network
+ * @param {Object} networkImageSource - The image source for the network icon
+ * @param {Function} onPressTitle - Callback function when the title is pressed
+ * @param {Object} navigation - The navigation object
+ * @param {Object} themeColors - The theme colors object
+ * @param {boolean} isNotificationEnabled - Whether notifications are enabled
+ * @param {boolean | null} isProfileSyncingEnabled - Whether profile syncing is enabled
+ * @param {number} unreadNotificationCount - The number of unread notifications
+ * @param {number} readNotificationCount - The number of read notifications
+ * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
+  accountActionsRef,
+  selectedAddress,
+  accountName,
+  accountAvatarType,
   networkName,
   networkImageSource,
   onPressTitle,
   navigation,
   themeColors,
   isNotificationEnabled,
+  isProfileSyncingEnabled,
+  unreadNotificationCount,
+  readNotificationCount,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
+      backgroundColor: themeColors.background,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -963,7 +1000,7 @@ export function getWalletNavbarOptions(
   };
 
   function openQRScanner() {
-    navigation.navigate('QRScanner', {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
@@ -972,47 +1009,85 @@ export function getWalletNavbarOptions(
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED, {
+        unread_count: unreadNotificationCount,
+        read_count: readNotificationCount,
+      });
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
+        action_type: 'started',
+        is_profile_syncing_enabled: isProfileSyncingEnabled,
+      });
     }
   }
 
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={onPressTitle}
-          {...generateTestId(Platform, NAVBAR_NETWORK_BUTTON)}
+        <PickerAccount
+          ref={accountActionsRef}
+          accountAddress={selectedAddress}
+          accountName={accountName}
+          accountAvatarType={accountAvatarType}
+          onPress={() => {
+            navigation.navigate(...createAccountSelectorNavDetails({}));
+          }}
+          accountTypeLabel={getLabelTextByAddress(selectedAddress) || undefined}
+          showAddress
+          cellAccountContainerStyle={styles.account}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
         />
       </View>
     ),
     headerLeft: () => (
-      <Image
-        source={metamask_fox}
-        style={styles.fox}
-        resizeMethod={'auto'}
-        testID={CommonSelectorsIDs.FOX_ICON}
-      />
+      <View style={styles.leftElementContainer}>
+        <PickerNetwork
+          label={networkName}
+          imageSource={networkImageSource}
+          onPress={onPressTitle}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+          hideNetworkName
+        />
+      </View>
     ),
     headerRight: () => (
-      <View style={styles.leftButtonContainer}>
-        {isNotificationsFeatureEnabled() && (
-          <ButtonIcon
-            iconColor={IconColor.Primary}
-            onPress={handleNotificationOnPress}
-            iconName={IconName.Notification}
-            size={IconSize.Xl}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            style={styles.notificationButton}
-          />
-        )}
+      <View style={styles.rightElementContainer}>
+        <View
+          testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+          style={styles.addressCopyWrapper}
+        >
+          <AddressCopy />
+        </View>
+        <View style={styles.notificationsWrapper}>
+          {isNotificationsFeatureEnabled() && (
+            <ButtonIcon
+              iconColor={IconColor.Primary}
+              onPress={handleNotificationOnPress}
+              iconName={IconName.Notification}
+              size={IconSize.Xl}
+              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+              style={styles.notificationButton}
+            />
+          )}
+          {isNotificationEnabled && (
+            <View
+              style={[
+                styles.notificationsBadge,
+                {
+                  backgroundColor: unreadNotificationCount
+                    ? themeColors.error.default
+                    : themeColors.background.transparent,
+                },
+              ]}
+            />
+          )}
+        </View>
 
         <ButtonIcon
-          iconColor={IconColor.Primary}
+          iconColor={IconColor.Default}
           onPress={openQRScanner}
-          iconName={IconName.Scan}
+          iconName={IconName.ScanBarcode}
           size={IconSize.Xl}
           testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
         />
@@ -1078,7 +1153,7 @@ export function getImportTokenNavbarOptions(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <ButtonIcon
           iconName={IconName.Close}
@@ -1099,6 +1174,110 @@ export function getImportTokenNavbarOptions(
       </TouchableOpacity>
     ),
     headerLeft: null,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
+  };
+}
+
+export function getNftDetailsNavbarOptions(
+  navigation,
+  themeColors,
+  onRightPress,
+  contentOffset = 0,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    headerBackIcon: {
+      color: themeColors.icon.default,
+    },
+  });
+  return {
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={() => navigation.pop()}
+        style={styles.backButton}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+      >
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Lg}
+          style={innerStyles.headerBackIcon}
+        />
+      </TouchableOpacity>
+    ),
+    headerRight: onRightPress
+      ? () => (
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Lg}
+              style={innerStyles.headerBackIcon}
+            />
+          </TouchableOpacity>
+        )
+      : () => <View />,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
+  };
+}
+
+export function getNftFullImageNavbarOptions(
+  navigation,
+  themeColors,
+  contentOffset = 0,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    headerBackIcon: {
+      color: themeColors.icon.default,
+    },
+  });
+  return {
+    headerRight: () => (
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.pop()}
+      >
+        <Icon
+          name={IconName.Close}
+          size={IconSize.Lg}
+          style={innerStyles.headerBackIcon}
+        />
+      </TouchableOpacity>
+    ),
+    headerLeft: () => <View />,
     headerStyle: [
       innerStyles.headerStyle,
       contentOffset && innerStyles.headerShadow,
@@ -1156,7 +1335,7 @@ export function getNetworkNavbarOptions(
       <TouchableOpacity
         onPress={() => navigation.pop()}
         style={styles.backButton}
-        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
       >
         <IonicIcon
           name={'ios-close'}
@@ -1204,7 +1383,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
     headerIcon: {
-      color: themeColors.primary.default,
+      color: themeColors.default,
     },
   });
 
@@ -1679,3 +1858,71 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
     ...innerStyles,
   };
 };
+
+/**
+ *
+ * @param {String} title - Navbar Title.
+ * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
+ * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [options] - Optional options for navbar.
+ * @returns Staking Navbar Component.
+ */
+export function getStakingNavbar(title, navigation, themeColors, options) {
+  const { hasBackButton = true, hasCancelButton = true } = options ?? {};
+
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor:
+        options?.backgroundColor ?? themeColors.background.default,
+      shadowOffset: null,
+    },
+    headerLeft: {
+      marginHorizontal: 16,
+    },
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerTitle: {
+      alignItems: 'center',
+    },
+  });
+
+  function navigationPop() {
+    navigation.goBack();
+  }
+
+  return {
+    headerTitle: () => (
+      <View style={innerStyles.headerTitle}>
+        <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
+      </View>
+    ),
+    headerStyle: innerStyles.headerStyle,
+    headerLeft: () =>
+      hasBackButton ? (
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.ArrowLeft}
+          onPress={navigationPop}
+          style={innerStyles.headerLeft}
+        />
+      ) : (
+        <></>
+      ),
+    headerRight: () =>
+      hasCancelButton ? (
+        <TouchableOpacity
+          onPress={() => navigation.dangerouslyGetParent()?.pop()}
+          style={styles.closeButton}
+        >
+          <Text style={innerStyles.headerButtonText}>
+            {strings('navigation.cancel')}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <></>
+      ),
+  };
+}

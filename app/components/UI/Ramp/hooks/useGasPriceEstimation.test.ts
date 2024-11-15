@@ -1,13 +1,12 @@
 import { merge } from 'lodash';
 import type { GasFeeState } from '@metamask/gas-fee-controller';
 import useGasPriceEstimation from './useGasPriceEstimation';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import Engine from '../../../../core/Engine';
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -23,7 +22,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 
@@ -71,7 +70,7 @@ describe('useGasPriceEstimation', () => {
   });
 
   it('should call stopPolling if there is no poll token', async () => {
-    Engine.context.GasFeeController.getGasFeeEstimatesAndStartPolling.mockResolvedValueOnce(
+    Engine.context.GasFeeController.getGasFeeEstimatesAndStartPolling(
       undefined,
     );
     const { result, unmount } = renderHookWithProvider(

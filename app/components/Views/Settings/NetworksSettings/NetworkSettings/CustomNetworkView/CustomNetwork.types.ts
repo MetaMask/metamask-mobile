@@ -18,10 +18,15 @@ export interface Network {
 }
 
 export interface ExtendedNetwork extends Network {
+  name?: string;
   formattedRpcUrl?: string | null;
 }
 
 export interface CustomNetworkProps {
+  /**
+   * Boolean check to track if Popular network or Custom network form is open
+   */
+  showPopularNetworkModal: boolean;
   /**
    * is network modal open
    */
@@ -41,7 +46,7 @@ export interface CustomNetworkProps {
   /**
    * show network modal
    */
-  showNetworkModal: (networkConfiguration: Network) => void;
+  showNetworkModal: (networkConfiguration: Network & ExtendedNetwork) => void;
   /**
    * Switch tab between popular and custom networks
    */
@@ -63,6 +68,10 @@ export interface CustomNetworkProps {
    * List of custom networks
    */
   customNetworksList?: Network[];
+  /**
+   * Display "Continue" for selected networks
+   */
+  displayContinue?: boolean;
   /**
    * If this list of networks is used in a filtered way for example when the user is using a search box to filter networks,
    * we should take that into consideration before displaying an empty state telling the user he has already added all networks.

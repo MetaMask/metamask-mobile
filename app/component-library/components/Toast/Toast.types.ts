@@ -4,6 +4,7 @@ import { ImageSourcePropType } from 'react-native';
 // External Dependencies.
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import { ButtonProps } from '../Buttons/Button/Button.types';
+import { IconName } from '../Icons/Icon';
 
 /**
  * Toast variants.
@@ -68,7 +69,7 @@ interface NetworkToastOption extends BaseToastVariants {
 
 interface IconToastOption extends BaseToastVariants {
   variant: ToastVariants.Icon;
-  iconName?: string;
+  iconName: IconName;
   iconColor?: string;
   backgroundColor?: string;
 }

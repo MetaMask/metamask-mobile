@@ -11,7 +11,7 @@ import {
 import { BadgeNetworkProps } from './BadgeNetwork.types';
 
 // Test IDs
-export const BADGE_NETWORK_TEST_ID = 'badge-network';
+export const BADGENETWORK_TEST_ID = 'badgenetwork';
 
 // Defaults
 export const DEFAULT_BADGENETWORK_NETWORKICON_SIZE = AvatarSize.Md;
@@ -22,4 +22,5 @@ const SAMPLE_BADGENETWORK_IMAGESOURCE = SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL;
 export const SAMPLE_BADGENETWORK_PROPS: BadgeNetworkProps = {
   name: SAMPLE_BADGENETWORK_NAME,
   imageSource: SAMPLE_BADGENETWORK_IMAGESOURCE,
+  isScaled: true,
 };

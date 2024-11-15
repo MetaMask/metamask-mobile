@@ -37,7 +37,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -66,7 +66,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -97,7 +97,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -118,6 +118,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "backgroundColor": "transparent",
               "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
             }
           }
           suppressHighlighting={true}
@@ -127,7 +132,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -186,7 +191,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -218,14 +223,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -250,7 +254,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -265,7 +269,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -299,14 +303,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
           testID="change-password-button"
-          variant="Secondary"
         >
           <Text
             accessibilityRole="text"
             style={
               {
                 "color": "#0376c9",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -331,7 +334,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -346,7 +349,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -491,7 +494,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -543,7 +546,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -569,7 +572,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -584,7 +587,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -615,14 +618,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
-          variant="Primary"
+          testID="show-private-key"
         >
           <Text
             accessibilityRole="text"
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -650,7 +653,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -694,7 +697,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -703,7 +706,24 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia and Base.
+        This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn more.
+        </Text>
       </Text>
       <View
         style={
@@ -720,7 +740,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -738,7 +758,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -771,7 +791,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#141618",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -809,7 +829,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -824,7 +844,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -843,7 +863,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -867,7 +887,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -882,7 +902,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -921,14 +941,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -956,7 +975,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -971,7 +990,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1010,14 +1029,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1072,7 +1090,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1087,7 +1105,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1128,14 +1146,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1154,14 +1171,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="clear-cookies-section"
       >
         <Text
           accessibilityRole="text"
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1176,7 +1192,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1217,14 +1233,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1271,7 +1286,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1304,7 +1319,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1356,7 +1371,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1371,7 +1386,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -1391,7 +1406,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1424,7 +1439,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1476,7 +1491,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1485,7 +1500,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.
+          Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
         </Text>
       </View>
       <View
@@ -1501,7 +1516,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1516,7 +1531,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1540,9 +1555,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": {
-                  "uri": "MockImage",
+                  "default": {
+                    "uri": "MockImage",
+                  },
                 },
-                "name": "Ethereum Main Network",
+                "name": "Ethereum Mainnet",
                 "variant": "Network",
               }
             }
@@ -1557,7 +1574,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Ethereum Main Network"
+            title="Ethereum Mainnet"
           >
             <View
               style={
@@ -1586,7 +1603,9 @@ exports[`SecuritySettings should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "uri": "MockImage",
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
                   style={
@@ -1612,7 +1631,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1621,7 +1640,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Ethereum Main Network
+                  Ethereum Mainnet
                 </Text>
                 <Text
                   accessibilityRole="text"
@@ -1629,7 +1648,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1670,6 +1689,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
+                  testID="incoming-mainnet-toggle"
                   thumbTintColor="#ffffff"
                   tintColor="#bbc0c566"
                   value={true}
@@ -1681,9 +1701,11 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": {
-                  "uri": "MockImage",
+                  "default": {
+                    "uri": "MockImage",
+                  },
                 },
-                "name": "Linea Main Network",
+                "name": "Linea",
                 "variant": "Network",
               }
             }
@@ -1698,7 +1720,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="celldisplay"
-            title="Linea Main Network"
+            title="Linea"
           >
             <View
               style={
@@ -1727,7 +1749,9 @@ exports[`SecuritySettings should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "uri": "MockImage",
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
                   style={
@@ -1753,7 +1777,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1762,7 +1786,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Linea Main Network
+                  Linea
                 </Text>
                 <Text
                   accessibilityRole="text"
@@ -1770,7 +1794,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   style={
                     {
                       "color": "#6a737d",
-                      "fontFamily": "Euclid Circular B",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1811,6 +1835,579 @@ exports[`SecuritySettings should render correctly 1`] = `
                       ],
                     ]
                   }
+                  testID="incoming-linea-mainnet-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": undefined,
+                "name": "Goerli",
+                "variant": "Network",
+              }
+            }
+            secondaryText="etherscan.io"
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Goerli"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#f2f4f6",
+                    "borderRadius": 16,
+                    "borderWidth": 1,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  G
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Goerli
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  etherscan.io
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376c9"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#bbc0c566",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID=""
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": {
+                  "default": {
+                    "uri": "MockImage",
+                  },
+                },
+                "name": "Sepolia",
+                "variant": "Network",
+              }
+            }
+            secondaryText="etherscan.io"
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Sepolia"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    {
+                      "default": {
+                        "uri": "MockImage",
+                      },
+                    }
+                  }
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Sepolia
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  etherscan.io
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376c9"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#bbc0c566",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID=""
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": undefined,
+                "name": "Linea Goerli",
+                "variant": "Network",
+              }
+            }
+            secondaryText="lineascan.build"
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Linea Goerli"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#f2f4f6",
+                    "borderRadius": 16,
+                    "borderWidth": 1,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  L
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Linea Goerli
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  lineascan.build
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376c9"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#bbc0c566",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID=""
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": {
+                  "default": {
+                    "uri": "MockImage",
+                  },
+                },
+                "name": "Linea Sepolia",
+                "variant": "Network",
+              }
+            }
+            secondaryText="lineascan.build"
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Linea Sepolia"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    {
+                      "default": {
+                        "uri": "MockImage",
+                      },
+                    }
+                  }
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Linea Sepolia
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  lineascan.build
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#0376c9"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#bbc0c566",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID=""
                   thumbTintColor="#ffffff"
                   tintColor="#bbc0c566"
                   value={true}
@@ -1870,7 +2467,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1921,7 +2518,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1941,6 +2538,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -1950,7 +2552,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1968,7 +2570,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1985,7 +2587,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 16,
           }
         }
-        testID="nft-display-media-mode-section"
       >
         <View
           style={
@@ -2001,7 +2602,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2041,7 +2642,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
-              testID="display-nft-toggle"
+              testID="nft-display-media-mode-section"
               thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
               value={true}
@@ -2053,7 +2654,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2065,90 +2666,92 @@ exports[`SecuritySettings should render correctly 1`] = `
           Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
       </View>
-      <View
-        style={
-          {
-            "marginTop": 32,
-          }
-        }
-        testID="nft-opensea-autodetect-mode-section"
-      >
+      <View>
         <View
           style={
             {
-              "alignItems": "center",
-              "flexDirection": "row",
+              "marginTop": 32,
             }
           }
         >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "flex": 1,
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Autodetect NFTs
+            </Text>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376c9"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#bbc0c566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="nft-opensea-autodetect-mode-section"
+                thumbTintColor="#ffffff"
+                tintColor="#bbc0c566"
+                value={true}
+              />
+            </View>
+          </View>
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "flex": 1,
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 22,
+                "marginTop": 8,
               }
             }
           >
-            Autodetect NFTs
+            Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
           </Text>
-          <View
-            style={
-              {
-                "marginLeft": 16,
-              }
-            }
-          >
-            <RCTSwitch
-              accessibilityRole="switch"
-              onChange={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              onTintColor="#0376c9"
-              style={
-                [
-                  {
-                    "height": 31,
-                    "width": 51,
-                  },
-                  [
-                    {
-                      "alignSelf": "flex-start",
-                    },
-                    {
-                      "backgroundColor": "#bbc0c566",
-                      "borderRadius": 16,
-                    },
-                  ],
-                ]
-              }
-              thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
-              value={true}
-            />
-          </View>
         </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-              "marginTop": 8,
-            }
-          }
-        >
-          Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
-        </Text>
       </View>
       <View
         style={
@@ -2156,7 +2759,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="ipfs-gateway-section"
       >
         <View
           style={
@@ -2172,7 +2774,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2212,6 +2814,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   ],
                 ]
               }
+              testID="IPFS_GATEWAY_SECTION"
               thumbTintColor="#ffffff"
               tintColor="#bbc0c566"
               value={true}
@@ -2223,7 +2826,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2246,7 +2849,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2280,7 +2883,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2313,7 +2916,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 {
                   "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2364,7 +2967,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2382,7 +2985,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "Euclid Circular B",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2415,7 +3018,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2467,7 +3070,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2488,6 +3091,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2497,7 +3105,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2532,7 +3140,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2584,7 +3192,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2608,7 +3216,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -2623,7 +3231,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2637,7 +3245,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2658,6 +3266,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2667,7 +3280,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2684,7 +3297,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2700,7 +3313,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2721,6 +3334,11 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2730,7 +3348,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2772,14 +3390,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="delete-metrics-button"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2833,7 +3450,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -2848,7 +3465,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#6a737d",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2890,14 +3507,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="security-settings-delete-wallet-buttons"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2940,6 +3556,215 @@ exports[`SecuritySettings should render correctly 1`] = `
         visible={false}
       />
     </View>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={true}
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "backgroundColor": "#00000099",
+            "bottom": 0,
+            "height": 1334,
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "width": 750,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        deviceHeight={null}
+        deviceWidth={null}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onMoveShouldSetResponder={[Function]}
+        onMoveShouldSetResponderCapture={[Function]}
+        onResponderEnd={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderReject={[Function]}
+        onResponderRelease={[Function]}
+        onResponderStart={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onStartShouldSetResponderCapture={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        pointerEvents="box-none"
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        style={
+          {
+            "flex": 1,
+            "justifyContent": "flex-end",
+            "left": 0,
+            "margin": 37.5,
+            "marginHorizontal": 0,
+            "top": 0,
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          }
+        }
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#bbc0c5",
+              "borderRadius": 16,
+              "borderWidth": 2,
+              "margin": 16,
+              "minHeight": 120,
+              "paddingBottom": 24,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "marginVertical": 12,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "borderColor": "#f2f4f6",
+                  "borderRadius": 64,
+                  "borderWidth": 3.5,
+                  "height": 36,
+                  "width": 36,
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                style={
+                  {
+                    "height": 40,
+                    "left": -5.5,
+                    "position": "relative",
+                    "top": -5.5,
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                    "width": 40,
+                  }
+                }
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#0376c9",
+                        "fontSize": 36,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </View>
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "center",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+                "marginVertical": 12,
+                "paddingHorizontal": 24,
+              }
+            }
+          >
+            Disabling profile syncing...
+          </Text>
+        </View>
+      </View>
+    </Modal>
   </View>
 </RCTScrollView>
 `;

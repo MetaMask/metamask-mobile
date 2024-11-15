@@ -1,5 +1,5 @@
 'use strict';
-import WalletView from '../../pages/WalletView';
+import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -10,12 +10,10 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import NftDetectionModal from '../../pages/modals/NftDetectionModal';
 import { SmokeAssets } from '../../tags';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+
 import { NftDetectionModalSelectorsText } from '../../selectors/Modals/NftDetectionModal.selectors';
 
 describe(SmokeAssets('NFT Detection Modal'), () => {
-  const ETHEREUM = 'Ethereum Main Network';
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
@@ -25,7 +23,6 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
           .withPreferencesController({
             useNftDetection: false,
           })
@@ -35,16 +32,14 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
       },
       async () => {
         await loginToApp();
-
-        // Switch to Mainnet
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo(ETHEREUM);
-        await NetworkEducationModal.tapGotItButton();
-
         await Assertions.checkIfVisible(NftDetectionModal.container);
+
+        // fix flaky test: toast should desapear to get access to cancel button
+        await TestHelpers.delay(5000);
+
         await NftDetectionModal.tapCancelButton();
         // Check that we are on the wallet screen
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is visible
         await WalletView.tapNftTab();
@@ -61,7 +56,6 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withGanacheNetwork()
           .withPreferencesController({
             useNftDetection: false,
           })
@@ -72,15 +66,10 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
       async () => {
         await loginToApp();
 
-        // Switch to Mainnet
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo(ETHEREUM);
-        await NetworkEducationModal.tapGotItButton();
-
         await Assertions.checkIfVisible(NftDetectionModal.container);
         await NftDetectionModal.tapAllowButton();
         // Check that we are on the wallet screen
-        await WalletView.isVisible();
+        await Assertions.checkIfVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is NOT visible
         await WalletView.tapNftTab();

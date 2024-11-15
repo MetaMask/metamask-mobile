@@ -1,16 +1,23 @@
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
+import * as NetworkControllerSelectors from '../../selectors/networkController'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
+// eslint-disable-next-line import/no-namespace
+import * as securityAlertAPI from './security-alerts-api';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { Hex } from '@metamask/utils';
 import {
-  isSecurityAlertsAPIEnabled,
-  validateWithSecurityAlertsAPI,
-} from './security-alerts-api';
+  NetworkClientType,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 const CHAIN_ID_MOCK = '0x1';
 
 jest.mock('./security-alerts-api');
+jest.mock('../../util/blockaid');
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -28,9 +35,28 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    NetworkController: {
+    AccountsController: {
       state: {
-        providerConfig: { chainId: CHAIN_ID_MOCK },
+        internalAccounts: { accounts: [] },
+      },
+      listAccounts: jest.fn().mockReturnValue([]),
+    },
+  },
+  backgroundState: {
+    NetworkController: {
+      selectedNetworkClientId: 'mainnet',
+      networksMetadata: {},
+      networkConfigurations: {
+        mainnet: {
+          id: 'mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Sepolia network',
+          rpcPrefs: {
+            blockExplorerUrl: 'https://etherscan.com',
+          },
+        },
       },
     },
   },
@@ -76,10 +102,19 @@ const mockSignatureRequest = {
 
 describe('PPOM Utils', () => {
   const validateWithSecurityAlertsAPIMock = jest.mocked(
-    validateWithSecurityAlertsAPI,
+    securityAlertAPI.validateWithSecurityAlertsAPI,
   );
 
-  const isSecurityAlertsEnabledMock = jest.mocked(isSecurityAlertsAPIEnabled);
+  const isSecurityAlertsEnabledMock = jest.mocked(
+    securityAlertAPI.isSecurityAlertsAPIEnabled,
+  );
+
+  const mockIsBlockaidFeatureEnabled = jest.mocked(isBlockaidFeatureEnabled);
+
+  const getSupportedChainIdsMock = jest.spyOn(
+    securityAlertAPI,
+    'getSecurityAlertsAPISupportedChainIds',
+  );
 
   const normalizeTransactionParamsMock = jest.mocked(
     normalizeTransactionParams,
@@ -87,10 +122,44 @@ describe('PPOM Utils', () => {
 
   beforeEach(() => {
     MockEngine.context.PreferencesController.state.securityAlertsEnabled = true;
-    MockEngine.context.NetworkController.state.providerConfig.chainId =
-      CHAIN_ID_MOCK;
+
+    MockEngine.context.NetworkController = {
+      getNetworkClientById: () => ({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        configuration: {
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          chainId: CHAIN_ID_MOCK as Hex,
+          ticker: 'ETH',
+          type: NetworkClientType.Custom,
+        },
+      }),
+      state: {
+        networkConfigurationsByChainId: {
+          [NETWORKS_CHAIN_ID.MAINNET]: {
+            blockExplorerUrls: ['http://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Mainnet',
+            nativeCurrency: 'ETH',
+            defaultBlockExplorerUrlIndex: 0,
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Custom,
+                name: 'ethereum',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
+          },
+        },
+        networksMetadata: {},
+        selectedNetworkClientId: 'mainnet',
+      },
+    };
 
     normalizeTransactionParamsMock.mockImplementation((params) => params);
+    mockIsBlockaidFeatureEnabled.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -99,6 +168,7 @@ describe('PPOM Utils', () => {
 
   describe('validateRequest', () => {
     it('should not validate if preference securityAlertsEnabled is false', async () => {
+      mockIsBlockaidFeatureEnabled.mockResolvedValue(false);
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
@@ -110,16 +180,42 @@ describe('PPOM Utils', () => {
       expect(spyTransactionAction).toBeCalledTimes(0);
     });
 
-    it('should not validate user if on a non supporting blockaid network', async () => {
+    it('should not validate if request is send to users own account ', async () => {
       const spyTransactionAction = jest.spyOn(
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      MockEngine.context.NetworkController.state.providerConfig.chainId =
-        '0xfa';
+      MockEngine.context.AccountsController.listAccounts = jest
+        .fn()
+        .mockReturnValue([
+          {
+            address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
+          },
+        ]);
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
+      MockEngine.context.AccountsController.listAccounts = jest
+        .fn()
+        .mockReturnValue([]);
+    });
+
+    it('should not validate user if on a non supporting blockaid network', async () => {
+      mockIsBlockaidFeatureEnabled.mockResolvedValue(false);
+      const spyTransactionAction = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      jest
+        .spyOn(NetworkControllerSelectors, 'selectChainId')
+        .mockReturnValue('0xfa');
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should not validate if requested method is not allowed', async () => {
@@ -136,8 +232,10 @@ describe('PPOM Utils', () => {
         },
         CHAIN_ID_MOCK,
       );
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should not validate transaction and update response as failed if method type is eth_sendTransaction and transactionid is not defined', async () => {
@@ -146,13 +244,17 @@ describe('PPOM Utils', () => {
         'setTransactionSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(mockRequest);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(1);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
+      expect(spyTransactionAction).toHaveBeenCalledTimes(1);
     });
 
     it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(1);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('should update transaction with validation result', async () => {
@@ -161,13 +263,13 @@ describe('PPOM Utils', () => {
         'setTransactionSecurityAlertResponse',
       );
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
     });
 
     it('should update signature requests with validation result', async () => {
       const spy = jest.spyOn(SignatureRequestActions, 'default');
       await PPOMUtil.validateRequest(mockSignatureRequest);
-      expect(spy).toBeCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
     });
 
     it('normalizes transaction requests before validation', async () => {
@@ -193,13 +295,13 @@ describe('PPOM Utils', () => {
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
-      expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
-      expect(normalizeTransactionParamsMock).toBeCalledWith(
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledWith(
         mockRequest.params[0],
       );
 
-      expect(validateMock).toBeCalledTimes(1);
-      expect(validateMock).toBeCalledWith({
+      expect(validateMock).toHaveBeenCalledTimes(1);
+      expect(validateMock).toHaveBeenCalledWith({
         ...mockRequest,
         params: [normalizedTransactionParamsMock],
       });
@@ -225,19 +327,20 @@ describe('PPOM Utils', () => {
         CHAIN_ID_MOCK,
       );
 
-      expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
-      expect(normalizeTransactionParamsMock).toBeCalledWith(
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
+      expect(normalizeTransactionParamsMock).toHaveBeenCalledWith(
         mockRequest.params[0],
       );
 
-      expect(validateMock).toBeCalledTimes(1);
-      expect(validateMock).toBeCalledWith({
+      expect(validateMock).toHaveBeenCalledTimes(1);
+      expect(validateMock).toHaveBeenCalledWith({
         ...mockRequest,
       });
     });
 
     it('uses security alerts API if enabled', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
+      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
@@ -252,6 +355,7 @@ describe('PPOM Utils', () => {
 
     it('uses controller if security alerts API throws', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
+      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       validateWithSecurityAlertsAPIMock.mockRejectedValue(
         new Error('Test Error'),
@@ -268,6 +372,18 @@ describe('PPOM Utils', () => {
         CHAIN_ID_MOCK,
         mockRequest,
       );
+    });
+
+    it('validates correctly if security alerts API throws', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+      jest
+        .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
+        .mockRejectedValue(new Error('Test Error'));
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toHaveBeenCalledTimes(2);
     });
   });
 });

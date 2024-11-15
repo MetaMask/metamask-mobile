@@ -30,6 +30,9 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
+import { InternalAccount } from '@metamask/keyring-api';
+import { Hex } from '@metamask/utils';
+import { BigNumber } from 'ethers';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -123,7 +126,7 @@ const useAccounts = ({
     let yOffset = 0;
     let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
-      (internalAccount, index) => {
+      (internalAccount: InternalAccount, index: number) => {
         const {
           address,
           metadata: {
@@ -131,7 +134,8 @@ const useAccounts = ({
             keyring: { type },
           },
         } = internalAccount;
-        const checksummedAddress = toChecksumHexAddress(address);
+        // This should be changed at controller-utils core package
+        const checksummedAddress = toChecksumHexAddress(address) as Hex;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
@@ -139,12 +143,15 @@ const useAccounts = ({
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
-        const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
+        const stakedBalanceWeiHex =
+          accountInfoByAddress?.[checksummedAddress]?.stakedBalance || '0x0';
+        const totalBalanceWeiHex = BigNumber.from(balanceWeiHex).add(BigNumber.from(stakedBalanceWeiHex)).toHexString();
+        const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(balanceWeiHex) as any,
+            hexToBN(totalBalanceWeiHex) as any,
             conversionRate,
             currentCurrency,
           ) || '';

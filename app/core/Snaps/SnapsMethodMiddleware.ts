@@ -4,16 +4,25 @@ import {
   RequestedPermissions,
   SubjectType,
 } from '@metamask/permission-controller';
+import { SnapRpcHookArgs } from '@metamask/snaps-utils';
 import { RestrictedMethods } from '../Permissions/constants';
+import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+import { SnapId } from '@metamask/snaps-sdk';
+import { EngineContext } from '../Engine';
+import { handleSnapRequest } from './utils';
 
+export function getSnapIdFromRequest(
+  request: Record<string, unknown>,
+): SnapId | null {
+  const { snapId } = request;
+  return typeof snapId === 'string' ? snapId as SnapId : null;
+}
 // Snaps middleware
 /*
     from extension https://github.dev/MetaMask/metamask-extension/blob/1d5e8a78400d7aaaf2b3cbdb30cff9399061df34/app/scripts/metamask-controller.js#L3830-L3861
     */
 const snapMethodMiddlewareBuilder = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  engineContext: any,
+  engineContext: EngineContext,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   controllerMessenger: any,
@@ -36,6 +45,11 @@ const snapMethodMiddlewareBuilder = (
       engineContext.PermissionController,
       origin,
     ),
+    hasPermission: engineContext.PermissionController.hasPermission.bind(
+      engineContext.PermissionController,
+      origin,
+    ),
+    getAllowedKeyringMethods: keyringSnapPermissionsBuilder(origin),
     getSnapFile: controllerMessenger.call.bind(
       controllerMessenger,
       'SnapController:getFile',
@@ -51,6 +65,26 @@ const snapMethodMiddlewareBuilder = (
       origin,
       RestrictedMethods.wallet_snap,
     ),
+    getSnap: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapController:get',
+    ),
+    handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
+      const snapId = getSnapIdFromRequest(request);
+
+      if (!snapId) {
+        throw new Error(
+          'snapMethodMiddlewareBuilder handleSnapRpcRequest: Invalid snap request: snapId not found',
+        );
+      }
+
+      return await handleSnapRequest(controllerMessenger, {
+        snapId,
+        origin,
+        handler: request.handler,
+        request: request.request,
+      });
+    },
   });
 
 export default snapMethodMiddlewareBuilder;

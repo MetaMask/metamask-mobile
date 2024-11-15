@@ -1,9 +1,4 @@
-import type {
-  JsonMap,
-  UserTraits,
-  GroupTraits,
-} from '@segment/analytics-react-native';
-
+import type { UserTraits, GroupTraits } from '@segment/analytics-react-native';
 /**
  * custom implementation of the Segment ClientMethods type
  * Allows to mock the Segment client
@@ -51,27 +46,25 @@ export interface IMetaMetrics {
    */
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
-   * track an anonymous event, providing only anonymousId
-   * @param event - Analytics event
-   * @param properties - Object containing any event relevant traits or properties (optional)
+   * Track an event (deprecated legacy signature)
+   *
+   * @param event - Legacy analytics event
+   * @param properties - Object containing any event relevant traits or properties (optional).
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   */
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties?: JsonMap,
-    saveDataRecording?: boolean,
-  ): void;
-  /**
-   * track an event
-   * @param event - Analytics event
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
    */
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap,
+    properties?: CombinedProperties,
     saveDataRecording?: boolean,
   ): void;
+  /**
+   * Track an event (new signature)
+   *
+   * @param event - Analytics event built with {@link MetricsEventBuilder}
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   */
+  trackEvent(event: ITrackingEvent, saveDataRecording?: boolean): void;
   /**
    * clear the internal state of the library for the current user and group.
    */
@@ -101,7 +94,48 @@ export interface IMetaMetrics {
 }
 
 /**
- * MetaMetrics event interface
+ * represents values that can be passed as properties to the event tracking function
+ * It's a proxy type to the JsonValue type from Segment SDK in order to decouple the SDK from the app
+ */
+export type JsonValue =
+  | boolean
+  | number
+  | string
+  | null
+  | JsonValue[]
+  | JsonMap
+  | undefined;
+
+/**
+ * represents the map object used to pass properties to the event tracking function
+ * It's a proxy type to the JsonMap type from Segment SDK in order to decouple the SDK from the app
+ */
+export interface JsonMap {
+  [key: string]: JsonValue;
+  [index: number]: JsonValue;
+}
+
+/**
+ * type guard to check if the event is a new ITrackingEvent
+ */
+export const isTrackingEvent = (
+  event: IMetaMetricsEvent | ITrackingEvent,
+): event is ITrackingEvent =>
+  (event as ITrackingEvent).saveDataRecording !== undefined;
+
+/*
+ * new event properties structure with two distinct properties lists
+ */
+export interface ITrackingEvent {
+  readonly name: string;
+  properties: JsonMap;
+  sensitiveProperties: JsonMap;
+  saveDataRecording: boolean;
+  get isAnonymous(): boolean;
+  get hasProperties(): boolean;
+}
+/**
+ * legacy MetaMetrics event interface
  */
 export interface IMetaMetricsEvent {
   category: string;
@@ -152,3 +186,27 @@ export interface IDeleteRegulationStatus {
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }
+
+/*
+ * Legacy event properties structure with two distinct properties lists
+ * for sensitive (anonymous) and regular (non-anonymous) properties
+ * this structure and naming is mirroring how the extension metrics works.
+ * @deprecated use ITrackingEvent with MetricsEventBuilder instead
+ */
+export interface EventProperties {
+  properties?: JsonMap;
+  sensitiveProperties?: JsonMap;
+}
+
+export const isCombinedProperties = (
+  properties: CombinedProperties | boolean | undefined,
+): properties is CombinedProperties =>
+  typeof properties === 'object' &&
+  properties !== null &&
+  !Array.isArray(properties);
+
+/*
+ * EventProperties type is now legacy, direct JsonMap is for backward compatibility
+ * @deprecated use ITrackingEvent with MetricsEventBuilder instead
+ */
+export type CombinedProperties = JsonMap | EventProperties;

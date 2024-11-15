@@ -1,16 +1,29 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import React from 'react';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import AccountRightButton from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { RootState } from '../../../reducers';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
-        providerConfig: {
-          chainId: 0x1,
-        },
+        ...mockNetworkState({
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+        }),
+      },
+      SelectedNetworkController: {
+        domains: {},
       },
     },
   },
@@ -19,7 +32,13 @@ const mockInitialState = {
 describe('AccountRightButton', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
-      AccountRightButton,
+      () => (
+        <AccountRightButton
+          selectedAddress="0x123"
+          onPress={() => undefined}
+          isNetworkVisible
+        />
+      ),
       {
         name: 'AccountRightButton',
       },

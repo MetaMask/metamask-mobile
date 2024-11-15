@@ -1,3 +1,4 @@
+import { TokenListToken } from '@metamask/assets-controllers';
 import { NameType } from '../../UI/Name/Name.types';
 import useTokenList from './useTokenList';
 
@@ -7,16 +8,18 @@ export interface UseTokenListEntriesRequest {
 }
 
 export function useTokenListEntries(requests: UseTokenListEntriesRequest[]) {
-  const tokenList = useTokenList();
+  const tokenListArray = useTokenList();
 
   return requests.map(({ value, type }) => {
-    if (type !== NameType.EthereumAddress) {
+    if (type !== NameType.EthereumAddress || !value) {
       return null;
     }
 
     const normalizedValue = value.toLowerCase();
 
-    return tokenList[normalizedValue];
+    return tokenListArray.find(
+      (token: TokenListToken) => token.address === normalizedValue,
+    );
   });
 }
 

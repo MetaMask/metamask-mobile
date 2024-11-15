@@ -1,4 +1,4 @@
-import { TokenListMap } from '@metamask/assets-controllers';
+import { TokenListToken } from '@metamask/assets-controllers';
 import { NameType } from '../../UI/Name/Name.types';
 import { useTokenListEntry } from './useTokenListEntry';
 import useTokenList from './useTokenList';
@@ -18,12 +18,13 @@ describe('useTokenListEntry', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useTokenListMock.mockReturnValue({
-      [TOKEN_ADDRESS_MOCK.toLowerCase()]: {
+    useTokenListMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_MOCK.toLowerCase(),
         name: TOKEN_NAME_MOCK,
         symbol: TOKEN_SYMBOL_MOCK,
       },
-    } as TokenListMap);
+    ] as unknown as TokenListToken[]);
   });
 
   it('returns undefined if no token found', () => {

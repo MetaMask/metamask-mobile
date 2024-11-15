@@ -8,13 +8,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import {
   SimulationErrorCode,
   SimulationTokenStandard,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 
 import {
   default as SimulationDetails,
   type SimulationDetailsProps,
 } from './SimulationDetails';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 
 const backdropStyle = { backgroundColor: 'white', padding: 16 };
 type Story = StoryObj<SimulationDetailsProps>;

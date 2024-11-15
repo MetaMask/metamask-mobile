@@ -27,8 +27,6 @@ import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBal
 import { Asset } from '../../../../hooks/useAddressBalance/useAddressBalance.types';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
 
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
 import BaseSelectorButton from '../../../../Base/SelectorButton';
 import StyledButton from '../../../StyledButton';
 
@@ -71,11 +69,18 @@ import {
   fromTokenMinimalUnitString,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import useIntentAmount from '../../hooks/useIntentAmount';
 
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
@@ -183,6 +188,13 @@ const BuildQuote = () => {
 
   const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
     useLimits();
+
+  useIntentAmount(
+    setAmount,
+    setAmountNumber,
+    setAmountBNMinimalUnit,
+    currentFiatCurrency,
+  );
 
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved
@@ -355,8 +367,7 @@ const BuildQuote = () => {
 
         if (
           selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount &&
-          maxSellAmount.lt(amountPercentage)
+          maxSellAmount?.lt(amountPercentage)
         ) {
           amountToSet = maxSellAmount;
         }
@@ -597,25 +608,29 @@ const BuildQuote = () => {
               <SkeletonText thick smaller spacingHorizontal />
             </View>
             <SkeletonText thin small spacingTop spacingVertical />
-            <Box>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <ListItem.Icon>
-                    <SkeletonText />
-                  </ListItem.Icon>
-                </ListItem.Body>
-                <SkeletonText smaller thin />
-              </ListItem.Content>
+            <Box compact>
+              <ListItem>
+                <ListItemColumn>
+                  <SkeletonText />
+                </ListItemColumn>
+                <ListItemColumnEnd widthType={WidthType.Fill}>
+                  <SkeletonText thin smaller />
+                </ListItemColumnEnd>
+              </ListItem>
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
             <SkeletonText thin smaller spacingVertical />
-            <Box>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <SkeletonText small />
-                </ListItem.Body>
-                <SkeletonText smaller thin />
-              </ListItem.Content>
+            <Box compact>
+              <ListItem>
+                <ListItemColumn>
+                  <View style={styles.flexRow}>
+                    <SkeletonText medium />
+                  </View>
+                </ListItemColumn>
+                <ListItemColumnEnd widthType={WidthType.Fill}>
+                  <SkeletonText thin small />
+                </ListItemColumnEnd>
+              </ListItem>
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
           </ScreenLayout.Content>
@@ -713,9 +728,7 @@ const BuildQuote = () => {
                 accessible
                 onPress={handleChangeRegion}
               >
-                <Text reset style={styles.flagText}>
-                  {selectedRegion?.emoji}
-                </Text>
+                <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
               </SelectorButton>
               {isSell ? (
                 <>
@@ -725,7 +738,7 @@ const BuildQuote = () => {
                     accessible
                     onPress={handleFiatSelectorPress}
                   >
-                    <Text primary centered>
+                    <Text variant={TextVariant.BodyLGMedium}>
                       {currentFiatCurrency?.symbol}
                     </Text>
                   </SelectorButton>
@@ -751,7 +764,10 @@ const BuildQuote = () => {
             />
             {addressBalance ? (
               <Row>
-                <Text small grey>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
                   {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
                   {addressBalance}
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
@@ -778,21 +794,21 @@ const BuildQuote = () => {
               !hasInsufficientBalance &&
               amountIsOverGas && (
                 <Row>
-                  <Text red small>
+                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                     {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
                   </Text>
                 </Row>
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text red small>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text red small>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -807,7 +823,7 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text red small>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}

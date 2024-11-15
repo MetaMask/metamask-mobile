@@ -14,7 +14,7 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -43,12 +43,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '@metamask/react-native-animated-fox';
+import AnimatedFox from '../../Base/AnimatedFox';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -249,7 +250,7 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
     if (existingUser !== null) {
       this.setState({ existingUser: true });
     }
@@ -275,7 +276,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
-    const action = async () => {
+    const action = () => {
       const { metrics } = this.props;
       if (metrics.isEnabled()) {
         this.props.navigation.navigate('ChoosePassword', {
@@ -293,6 +294,7 @@ class Onboarding extends PureComponent {
         });
       }
     };
+
     this.handleExistingUser(action);
   };
 

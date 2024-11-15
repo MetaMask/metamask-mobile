@@ -1,8 +1,8 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
@@ -16,6 +16,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useParams } from '../../../util/navigation/navUtils';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -32,6 +33,8 @@ const ActivityView = () => {
   );
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  const tabViewRef = useRef();
+  const params = useParams();
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -64,13 +67,22 @@ const ActivityView = () => {
 
   const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (hasOrders && params.redirectToOrders) {
+        navigation.setParams({ redirectToOrders: false });
+        tabViewRef.current?.goToPage(1);
+      }
+    }, [hasOrders, navigation, params.redirectToOrders]),
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <View style={styles.wrapper}>
         <ScrollableTabView
+          ref={tabViewRef}
           renderTabBar={renderTabBar}
           locked={!hasOrders}
-          page={!hasOrders ? 0 : undefined}
         >
           <TransactionsView tabLabel={strings('transactions_view.title')} />
           {hasOrders && (

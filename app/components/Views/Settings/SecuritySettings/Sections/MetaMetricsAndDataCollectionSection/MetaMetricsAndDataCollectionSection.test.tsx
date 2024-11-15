@@ -1,6 +1,6 @@
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
@@ -41,7 +41,6 @@ jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   trackEvent: jest.fn(),
-  trackAnonymousEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   isEnabled: jest.fn(() => false),
@@ -61,7 +60,7 @@ jest.mock(
 
 const initialStateMarketingTrue = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   security: {
     dataCollectionForMarketing: true,
@@ -70,7 +69,7 @@ const initialStateMarketingTrue = {
 
 const initialStateMarketingFalse = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   security: {
     dataCollectionForMarketing: false,
@@ -215,7 +214,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { is_metrics_opted_in: true, updated_after_onboarding: true },
-            true,
           );
         });
       });
@@ -300,7 +298,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               1,
               MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
               { is_metrics_opted_in: true, updated_after_onboarding: true },
-              true,
             );
           }
 
@@ -316,7 +313,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             !metaMetricsInitiallyEnabled ? 2 : 1,
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { has_marketing_consent: true, location: 'settings' },
-            true,
           );
         });
       };
@@ -367,7 +363,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
             { has_marketing_consent: false, location: 'settings' },
-            true,
           );
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.MODAL.ROOT_MODAL_FLOW,

@@ -21,14 +21,11 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import notifee from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
-import Device from '../../../util/device';
-import Routes from '../../../constants/navigation/Routes';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -36,12 +33,12 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
+
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
-import useNotificationHandler from '../../../util/notifications/hooks';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -52,7 +49,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import { colors as importedColors } from '../../../styles/common';
 import {
   ToastContext,
   ToastVariants,
@@ -62,6 +58,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -70,6 +67,8 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
+
+import useNotificationHandler from '../../../util/notifications/hooks';
 import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
@@ -81,9 +80,8 @@ import {
   startIncomingTransactionPolling,
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
+import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
+import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 
 const Stack = createStackNavigator();
 
@@ -101,20 +99,20 @@ const createStyles = (colors) =>
   });
 
 const Main = (props) => {
-  const [connected, setConnected] = useState(true);
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
-  const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
+  const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
+  const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
+  useNotificationHandler(props.navigation);
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
@@ -136,26 +134,11 @@ const Main = (props) => {
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
-  const connectionChangeHandler = useCallback(
-    (state) => {
-      if (!state) return;
-      const { isConnected } = state;
-      // Show the modal once the status changes to offline
-      if (connected && isConnected === false) {
-        props.navigation.navigate('OfflineModeView');
-      }
-      if (connected !== isConnected && isConnected !== null) {
-        setConnected(isConnected);
-      }
-    },
-    [connected, setConnected, props.navigation],
-  );
-
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const { TransactionController } = Engine.context;
-        await query(TransactionController.ethQuery, 'blockNumber', []);
+        const ethQuery = Engine.getGlobalEthQuery();
+        await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
@@ -237,8 +220,10 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
   const previousProviderConfig = useRef(undefined);
+  const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
   const networkImage = useSelector(selectNetworkImageSource);
 
@@ -264,6 +249,40 @@ const Main = (props) => {
     previousProviderConfig.current = providerConfig;
   }, [providerConfig, networkName, networkImage, toastRef]);
 
+  // Show add network confirmation.
+  useEffect(() => {
+    if (!isNetworkUiRedesignEnabled()) return;
+
+    // Memoized values to avoid recalculations
+    const currentNetworkValues = Object.values(networkConfigurations);
+    const previousNetworkValues = Object.values(
+      previousNetworkConfigurations.current ?? {},
+    );
+
+    if (
+      previousNetworkValues.length &&
+      currentNetworkValues.length !== previousNetworkValues.length
+    ) {
+      // Find the newly added network
+      const newNetwork = currentNetworkValues.find(
+        (network) => !previousNetworkValues.includes(network),
+      );
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: `${newNetwork?.name ?? strings('asset_details.network')} `,
+            isBold: true,
+          },
+          { label: strings('toast.network_added') },
+        ],
+        networkImageSource: networkImage,
+      });
+    }
+    previousNetworkConfigurations.current = networkConfigurations;
+  }, [networkConfigurations, networkName, networkImage, toastRef]);
+
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
@@ -271,22 +290,6 @@ const Main = (props) => {
       return;
     }
   });
-
-  const bootstrapAndroidInitialNotification = useCallback(async () => {
-    if (Device.isAndroid()) {
-      const initialNotification = await notifee.getInitialNotification();
-
-      if (
-        initialNotification?.data?.action === 'tx' &&
-        initialNotification.data.id
-      ) {
-        NotificationManager.setTransactionToView(initialNotification.data.id);
-        props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
-    }
-  }, [props.navigation]);
-
-  useNotificationHandler(bootstrapAndroidInitialNotification, props.navigation);
 
   // Remove all notifications that aren't visible
   useEffect(() => {
@@ -319,7 +322,7 @@ const Main = (props) => {
         removeConnectionStatusListener.current();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connectionChangeHandler]);
 
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {
@@ -365,15 +368,6 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-        }
-        <View>
-          <SnapsExecutionWebView />
-        </View>
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
@@ -484,7 +478,6 @@ const MainFlow = () => (
     mode={'modal'}
     screenOptions={{
       headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
     <Stack.Screen name={'Main'} component={ConnectedMain} />

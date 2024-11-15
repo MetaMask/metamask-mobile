@@ -14,7 +14,6 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTicker } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { fontStyles } from '../../../styles/common';
 import {
   getLabelTextByAddress,
@@ -32,6 +31,7 @@ import {
 } from '../../../util/transactions';
 import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
 import Identicon from '../Identicon';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -111,9 +111,9 @@ class AccountInfoCard extends PureComponent {
      */
     accounts: PropTypes.object,
     /**
-     * List of accounts from the PreferencesController
+     * List of accounts from the AccountsController
      */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.array,
     /**
      * A number that specifies the ETH/USD conversion rate
      */
@@ -135,14 +135,13 @@ class AccountInfoCard extends PureComponent {
      */
     ticker: PropTypes.string,
     transaction: PropTypes.object,
-    activeTabUrl: PropTypes.string,
     origin: PropTypes.string,
   };
 
   render() {
     const {
       accounts,
-      identities,
+      internalAccounts,
       conversionRate,
       currentCurrency,
       operation,
@@ -150,7 +149,6 @@ class AccountInfoCard extends PureComponent {
       showFiatBalance = true,
       fromAddress: rawFromAddress,
       transaction,
-      activeTabUrl,
       origin,
     } = this.props;
 
@@ -162,7 +160,7 @@ class AccountInfoCard extends PureComponent {
       ? hexToBN(accounts[fromAddress].balance)
       : 0;
     const balance = `${renderFromWei(weiBalance)} ${getTicker(ticker)}`;
-    const accountLabel = renderAccountName(fromAddress, identities);
+    const accountLabel = renderAccountName(fromAddress, internalAccounts);
     const address = renderShortAddress(fromAddress);
     const dollarBalance = showFiatBalance
       ? weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase()
@@ -180,16 +178,14 @@ class AccountInfoCard extends PureComponent {
       url: isOriginUrl ? origin : originatorInfo?.url ?? strings('sdk.unknown'),
       icon: originatorInfo?.icon,
     };
+    const actualOriginUrl = isOriginUrl
+      ? origin
+      : originatorInfo?.url ?? strings('sdk.unknown');
 
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
-        origin={
-          (isOriginUrl
-            ? origin
-            : originatorInfo?.url ?? strings('sdk.unknown')) ||
-          transaction.origin
-        }
-        url={activeTabUrl}
+        origin={actualOriginUrl}
+        url={actualOriginUrl}
         from={rawFromAddress}
         sdkDappMetadata={sdkDappMetadata}
       />
@@ -237,7 +233,7 @@ class AccountInfoCard extends PureComponent {
         {accountLabelTag && (
           <View style={styles.tag}>
             <Text variant={TextVariant.BodySMBold} style={styles.tagText}>
-              {strings(accountLabelTag)}
+              {accountLabelTag}
             </Text>
           </View>
         )}
@@ -248,7 +244,7 @@ class AccountInfoCard extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  identities: selectIdentities(state),
+  internalAccounts: selectInternalAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   ticker: selectTicker(state),
