@@ -148,7 +148,7 @@ export const selectNetworkStatus = createSelector(
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurationsByChainId,
+    networkControllerState?.networkConfigurationsByChainId,
 );
 
 export const selectNetworkClientId = createSelector(

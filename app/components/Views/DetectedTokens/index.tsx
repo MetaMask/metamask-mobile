@@ -168,8 +168,8 @@ const DetectedTokens = () => {
             if (isPortfolioViewEnabled) {
               const tokensByChainId = tokensToImport.reduce<Map<Hex, Token[]>>(
                 (acc, token) => {
-                  const tokenChainId: Hex = (token as TokenI & { chainId: Hex })
-                    .chainId;
+                  const tokenChainId: Hex =
+                    (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
                   if (!acc.has(tokenChainId)) {
                     acc.set(tokenChainId, []);
@@ -181,28 +181,18 @@ const DetectedTokens = () => {
                 new Map(),
               );
 
-              console.log(
-                'tokensByChainId .....',
-                Object.fromEntries(tokensByChainId),
-              );
-
               const importPromises = Array.from(tokensByChainId.entries()).map(
                 async ([networkId, tokens]) => {
                   const chainConfig = allNetworks[networkId as Hex];
                   const { defaultRpcEndpointIndex } = chainConfig;
                   const { networkClientId: networkInstanceId } =
                     chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-                  console.log('tokens .....', tokens.length);
-                  console.log('networkInstanceId .....', networkInstanceId);
-
                   await TokensController.addTokens(tokens, networkInstanceId);
                 },
               );
 
               await Promise.all(importPromises);
             } else {
-              console.log('NEVER HAPPEN  .....');
               const tokensByChainId = organizeTokensByChainId(
                 tokensToImport as TokenI[],
               );
@@ -283,16 +273,6 @@ const DetectedTokens = () => {
     const isChecked = !ignoredTokens[address];
 
     return (
-      // <BadgeWrapper
-      //   // style={styles.badgeWrapper}
-      //   badgeElement={
-      //     <Badge
-      //       variant={BadgeVariant.Network}
-      //       imageSource={NetworkBadgeSource(chainId, item.symbol)}
-      //       // name={networkName}
-      //     />
-      //   }
-      // >
       <Token
         token={item}
         selected={isChecked}
@@ -306,7 +286,6 @@ const DetectedTokens = () => {
           setIgnoredTokens(newIgnoredTokens);
         }}
       />
-      // </BadgeWrapper>
     );
   };
 

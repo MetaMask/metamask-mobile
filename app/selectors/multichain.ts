@@ -25,6 +25,7 @@ import {
   weiToFiat,
   hexToBN,
 } from '../util/number';
+import { toHex } from '@metamask/controller-utils';
 
 interface AccountInfo {
   balance: string;
@@ -102,12 +103,15 @@ export function getSelectedAccountTokensAcrossChains(state: RootState): {
   const selectedAddress = selectSelectedInternalAccount(state)?.address;
   const allTokens = selectAllTokens(state) as AllTokens;
   const tokenBalances = selectTokensBalances(state) as TokenBalances;
+  const networkConfigurations = selectNetworkConfigurations(state);
+
   const nativeTokenBalancesByChainId =
     getSelectedAccountNativeTokenCachedBalanceByChainId(state);
 
   // selectors for token exchange rates and currency rates
   const tokenExchangeRates = selectMarketData(state);
   const currentCurrency = selectCurrentCurrency(state);
+
   const networkConfigurationsByChainId = selectNetworkConfigurations(state);
   const tokensByChain: { [chainId: string]: TokenI[] } = {};
 
@@ -116,10 +120,8 @@ export function getSelectedAccountTokensAcrossChains(state: RootState): {
   }
 
   // Create a Set of all chainIds from both tokens and native balances
-  const chainIds = new Set([
-    ...Object.keys(allTokens || {}),
-    ...Object.keys(nativeTokenBalancesByChainId || {}),
-  ]);
+
+  const chainIds = Object.keys(networkConfigurations);
 
   // Iterate through all chains
   Array.from(chainIds).forEach((chainId) => {
@@ -179,7 +181,7 @@ export function getSelectedAccountTokensAcrossChains(state: RootState): {
 
     // Add native token if it exists for this chain
     const nativeBalance = nativeTokenBalancesByChainId[chainId];
-    if (nativeBalance) {
+    if (nativeBalance && nativeBalance !== toHex(0)) {
       const nativeTokenInfo = getNativeTokenInfo(state, chainId as Hex);
 
       // Calculate native token balance
