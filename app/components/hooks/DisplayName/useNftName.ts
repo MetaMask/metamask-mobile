@@ -1,8 +1,5 @@
+import { UseDisplayNameRequest } from './useDisplayName';
 import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
-
-export interface UseNFTNameRequest {
-  value: string;
-}
 
 export interface UseNFTNameResponse {
   nftCollectionName: string | undefined;
@@ -15,7 +12,7 @@ export interface UseNFTNameResponse {
  * @param value The value to get the display name for.
  */
 export function useNFTNames(
-  requests: UseNFTNameRequest[],
+  requests: UseDisplayNameRequest[],
 ): UseNFTNameResponse[] {
   const nftCollections = useNftCollectionsMetadata(requests);
 
@@ -37,4 +34,3 @@ export function useNFTNames(
     };
   });
 }
-
