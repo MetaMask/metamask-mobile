@@ -8,6 +8,7 @@ import {
 } from '../../../../../../../../util/test/accountsControllerTestUtils';
 
 import Address from './Address';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockInitialState = {
   engine: {
@@ -22,9 +23,12 @@ const mockInitialState = {
 
 describe('InfoAddress', () => {
   it('should match snapshot', async () => {
-    const container = renderWithProvider(<Address address={MOCK_ADDRESS_1} />, {
-      state: mockInitialState,
-    });
+    const container = renderWithProvider(
+      <Address address={MOCK_ADDRESS_1} chainId={CHAIN_IDS.MAINNET} />,
+      {
+        state: mockInitialState,
+      },
+    );
     expect(container).toMatchSnapshot();
   });
 });

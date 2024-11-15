@@ -27,7 +27,7 @@ const AccountNetworkInfoExpanded = () => {
     <View>
       <InfoSection>
         <InfoRow label={strings('confirm.account')}>
-          <Address address={accountAddress}></Address>
+          <Address address={accountAddress} chainId={chainId} />
         </InfoRow>
         <InfoRow label={strings('confirm.balance')}>{accountBalance}</InfoRow>
       </InfoSection>
