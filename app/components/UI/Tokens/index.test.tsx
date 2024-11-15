@@ -40,7 +40,7 @@ jest.mock('../../../core/Engine', () => ({
       updateExchangeRate: jest.fn(() => Promise.resolve()),
     },
     TokenRatesController: {
-      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -359,7 +359,7 @@ describe('Tokens', () => {
         Engine.context.CurrencyRateController.updateExchangeRate,
       ).toHaveBeenCalled();
       expect(
-        Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+        Engine.context.TokenRatesController.updateExchangeRates,
       ).toHaveBeenCalled();
     });
   });
