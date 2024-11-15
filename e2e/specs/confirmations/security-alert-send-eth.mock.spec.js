@@ -39,7 +39,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   const runTest = async (testSpecificMock, alertAssertion) => {
     await withFixtures(
       {
-        fixture: defaultFixture, // You can adjust this if needed
+        fixture: defaultFixture,
         restartDevice: true,
         testSpecificMock,
       },
