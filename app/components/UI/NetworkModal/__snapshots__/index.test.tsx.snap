@@ -233,6 +233,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     style={null}
                   >
                     <View
+                      accessibilityLabel="Test Network"
                       style={
                         {
                           "alignItems": "center",
@@ -245,6 +246,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                           "width": 16,
                         }
                       }
+                      testID="network-avatar-picker"
                     >
                       <Text
                         accessibilityRole="text"

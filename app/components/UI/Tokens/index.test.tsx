@@ -37,7 +37,7 @@ jest.mock('../../../core/Engine', () => ({
       refresh: jest.fn(() => Promise.resolve()),
     },
     CurrencyRateController: {
-      startPolling: jest.fn(() => Promise.resolve()),
+      updateExchangeRate: jest.fn(() => Promise.resolve()),
     },
     TokenRatesController: {
       updateExchangeRates: jest.fn(() => Promise.resolve()),
@@ -356,7 +356,7 @@ describe('Tokens', () => {
         Engine.context.AccountTrackerController.refresh,
       ).toHaveBeenCalled();
       expect(
-        Engine.context.CurrencyRateController.startPolling,
+        Engine.context.CurrencyRateController.updateExchangeRate,
       ).toHaveBeenCalled();
       expect(
         Engine.context.TokenRatesController.updateExchangeRates,
@@ -365,9 +365,9 @@ describe('Tokens', () => {
   });
 
   it('triggers bottom sheet when sort controls are pressed', async () => {
-    const { getByText } = renderComponent(initialState);
+    const { getByTestId } = renderComponent(initialState);
 
-    await fireEvent.press(getByText('Sort by'));
+    await fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
 
     await waitFor(() => {
       expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
