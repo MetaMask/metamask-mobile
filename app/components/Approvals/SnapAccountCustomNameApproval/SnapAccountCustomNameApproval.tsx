@@ -39,49 +39,38 @@ const SnapAccountCustomNameApproval = () => {
 
   const { styles } = useStyles(styleSheet, {});
 
-  const onAddAccountPressed = useCallback(() => {
+  const onAddAccountPressed = () => {
     if (!isNameTaken) {
       onConfirm(undefined, { success: true, name: accountName });
     }
-  }, [accountName, onConfirm, isNameTaken]);
+  };
 
-  const checkIfNameTaken = useCallback(
-    (name: string) =>
-      internalAccounts.some((account) => account.metadata.name === name),
-    [internalAccounts],
-  );
+  const checkIfNameTaken = (name: string) =>
+    internalAccounts.some((account) => account.metadata.name === name);
 
-  const generateUniqueNameWithSuffix = useCallback(
-    (baseName: string): string => {
+  useEffect(() => {
+    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
+    const initialName = suggestedName
+      ? generateUniqueNameWithSuffix(suggestedName)
+      : Engine.context.AccountsController.getNextAvailableAccountName(
+          KeyringTypes.snap,
+        );
+    setAccountName(initialName);
+
+    function generateUniqueNameWithSuffix(baseName: string): string {
       let suffix = 1;
       let candidateName = baseName;
-
-      while (checkIfNameTaken(candidateName)) {
+      while (
+        internalAccounts.some(
+          (account) => account.metadata.name === candidateName,
+        )
+      ) {
         suffix += 1;
         candidateName = `${baseName} ${suffix}`;
       }
       return candidateName;
-    },
-    [checkIfNameTaken],
-  );
-
-  const getInitialAccountName = useCallback(
-    (suggestedName?: string): string => {
-      if (suggestedName) {
-        return generateUniqueNameWithSuffix(suggestedName);
-      }
-      return Engine.context.AccountsController.getNextAvailableAccountName(
-        KeyringTypes.snap,
-      );
-    },
-    [generateUniqueNameWithSuffix],
-  );
-
-  useEffect(() => {
-    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
-    const initialName = getInitialAccountName(suggestedName);
-    setAccountName(initialName);
-  }, [approvalRequest, getInitialAccountName]);
+    }
+  }, [approvalRequest, internalAccounts]);
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
