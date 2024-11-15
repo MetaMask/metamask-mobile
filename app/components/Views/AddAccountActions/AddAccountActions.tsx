@@ -83,7 +83,8 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       // eslint-disable-next-line no-console
       console.log('Bitcoin account creation failed', error);
     } finally {
-      setIsLoading(true);
+      onBack();
+      setIsLoading(false);
     }
   };
   ///: END:ONLY_INCLUDE_IF
