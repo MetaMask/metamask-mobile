@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  CHAIN_IDS,
   SimulationData,
   SimulationErrorCode,
 } from '@metamask/transaction-controller';
@@ -22,10 +23,13 @@ import {
   useSimulationMetrics,
 } from './useSimulationMetrics';
 import useLoadingTime from './useLoadingTime';
+import { selectChainId } from '../../../selectors/networkController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSelector: (fn: any) => fn(),
 }));
 
 jest.mock('react', () => ({
@@ -38,6 +42,7 @@ jest.mock('./useLoadingTime');
 jest.mock('../../hooks/DisplayName/useDisplayName');
 jest.mock('../../../core/redux/slices/transactionMetrics');
 jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../selectors/networkController');
 
 const TRANSACTION_ID_MOCK = 'testTransactionId';
 const LOADING_TIME_MOCK = 0.123;
@@ -51,7 +56,6 @@ const BALANCE_CHANGE_MOCK = {
 } as unknown as BalanceChange;
 
 const DISPLAY_NAME_UNKNOWN_MOCK = {
-  name: null,
   variant: DisplayNameVariant.Unknown,
 };
 
@@ -63,7 +67,6 @@ const DISPLAY_NAME_SAVED_MOCK = {
 
 describe('useSimulationMetrics', () => {
   const updateTransactionMetricsMock = jest.mocked(updateTransactionMetrics);
-
   const useDispatchMock = jest.mocked(useDispatch);
   const useStateMock = jest.mocked(useState);
   const useEffectMock = jest.mocked(useEffect);
@@ -71,6 +74,7 @@ describe('useSimulationMetrics', () => {
   const useLoadingTimeMock = jest.mocked(useLoadingTime);
   const useMetricsMock = jest.mocked(useMetrics);
   const setLoadingCompleteMock = jest.fn();
+  const selectChainIdMock = jest.mocked(selectChainId);
 
   // TODO: Replace `any` with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,6 +135,7 @@ describe('useSimulationMetrics', () => {
     // TODO: Replace `any` with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     useMetricsMock.mockReturnValue({ trackEvent: trackEventMock } as any);
+    selectChainIdMock.mockReturnValue(CHAIN_IDS.MAINNET);
   });
 
   describe('updates transaction simulation metrics', () => {
