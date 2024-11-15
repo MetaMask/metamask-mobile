@@ -26,5 +26,3 @@ export interface TokenI {
   chainId?: string; // TODO: may need to remove optional
   isNative?: boolean; // TODO: may need to remove optional
 }
-
-export type HexString = `0x${string}`;

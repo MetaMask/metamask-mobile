@@ -68,6 +68,26 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   },
 );
 
+// TODO: This isn't working fully, once a network has been selected then it
+// can detect all tokens in that network. But by default it only shows
+// detected tokens if the user has chosen it in the past
+export const selectAllDetectedTokensFlat = createSelector(
+  selectAllDetectedTokensForSelectedAddress,
+  (detectedTokensByChain) => {
+    if (Object.keys(detectedTokensByChain).length === 0) {
+      return [];
+    }
+
+    return Object.entries(detectedTokensByChain).reduce<Token[]>(
+      (acc, [_, addressTokens]) => {
+        const tokensForChain = Object.values(addressTokens).flat();
+        return acc.concat(tokensForChain);
+      },
+      [],
+    );
+  },
+);
+
 export const selectAllTokensFlat = createSelector(
   selectAllTokens,
   (tokensByAccountByChain) => {

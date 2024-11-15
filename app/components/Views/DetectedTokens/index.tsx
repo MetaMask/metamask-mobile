@@ -1,11 +1,17 @@
 // Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  InteractionManager,
+  ViewStyle,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
-
+import { Hex } from '@metamask/utils';
 // External Dependencies
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
@@ -19,16 +25,23 @@ import { useTheme } from '../../../util/theme';
 import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import { selectDetectedTokens } from '../../../selectors/tokensController';
+import {
+  selectDetectedTokens,
+  selectAllDetectedTokensFlat,
+} from '../../../selectors/tokensController';
 import {
   selectChainId,
   selectNetworkClientId,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
+import { TokenI } from '../../UI/Tokens/types';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import { organizeTokensByChainId } from '../../UI/Tokens/util/organizeTokensByChainId';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,9 +66,7 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...(fontStyles.normal as ViewStyle),
       fontSize: 18,
       paddingVertical: 16,
       color: colors.text.default,
@@ -74,22 +85,42 @@ interface IgnoredTokensByAddress {
   [address: string]: true;
 }
 
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
 const DetectedTokens = () => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
+  const allDetectedTokens = useSelector(
+    selectAllDetectedTokensFlat,
+  ) as TokenI[];
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
+  // TODO: Can probably create "isAllNetworks" selector for these
+  // since they are re-used in multiple places
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter); // X
+  const allNetworks = useSelector(selectNetworkConfigurations); // X
+  const isAllNetworks =
+    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length; // X
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const currentDetectedTokens =
+    isPortfolioViewEnabled && isAllNetworks
+      ? allDetectedTokens
+      : detectedTokens;
+
   const detectedTokensForAnalytics = useMemo(
-    () => detectedTokens.map((token) => `${token.symbol} - ${token.address}`),
-    [detectedTokens],
+    () =>
+      currentDetectedTokens.map(
+        (token) => `${token.symbol} - ${token.address}`,
+      ),
+    [currentDetectedTokens],
   );
 
   const dismissModalAndTriggerAction = useCallback(
@@ -101,7 +132,7 @@ const DetectedTokens = () => {
       let description = '';
       let errorMsg = '';
       const tokensToIgnore: string[] = [];
-      const tokensToImport = detectedTokens.filter((token) => {
+      const tokensToImport = currentDetectedTokens.filter((token) => {
         const isIgnored = ignoreAllTokens || ignoredTokens[token.address];
         if (isIgnored) {
           tokensToIgnore.push(token.address);
@@ -134,7 +165,21 @@ const DetectedTokens = () => {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
-            await TokensController.addTokens(tokensToImport, networkClientId);
+            if (isPortfolioViewEnabled) {
+              console.log('tokens to import ->', tokensToImport);
+              console.log('network client id ->', networkClientId);
+              await TokensController.addTokens(tokensToImport, networkClientId);
+            } else {
+              const tokensByChainId = organizeTokensByChainId(
+                tokensToImport as TokenI[],
+              );
+              Object.keys(tokensByChainId).forEach(async (chainIdKey) => {
+                await TokensController.addTokens(
+                  tokensByChainId[chainIdKey as Hex],
+                  chainIdKey,
+                );
+              });
+            }
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
                 trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
@@ -157,7 +202,13 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens, trackEvent, networkClientId],
+    [
+      chainId,
+      currentDetectedTokens,
+      ignoredTokens,
+      trackEvent,
+      networkClientId,
+    ],
   );
 
   const triggerIgnoreAllTokens = () => {
@@ -190,9 +241,11 @@ const DetectedTokens = () => {
   const renderHeader = () => (
     <Text style={styles.headerLabel}>
       {strings(
-        `detected_tokens.title${detectedTokens.length > 1 ? '_plural' : ''}`,
+        `detected_tokens.title${
+          currentDetectedTokens.length > 1 ? '_plural' : ''
+        }`,
         {
-          tokenCount: detectedTokens.length,
+          tokenCount: currentDetectedTokens.length,
         },
       )}
     </Text>
@@ -224,7 +277,7 @@ const DetectedTokens = () => {
   const renderDetectedTokens = () => (
     <FlatList
       style={styles.tokenList}
-      data={detectedTokens}
+      data={currentDetectedTokens}
       keyExtractor={getTokenId}
       renderItem={renderToken}
       showsVerticalScrollIndicator={false}
@@ -233,7 +286,7 @@ const DetectedTokens = () => {
 
   const renderButtons = () => {
     const importTokenCount =
-      detectedTokens.length - Object.keys(ignoredTokens).length;
+      currentDetectedTokens.length - Object.keys(ignoredTokens).length;
     return (
       <View style={styles.buttonsContainer}>
         <StyledButton

@@ -8,7 +8,10 @@ import Text, {
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { selectDetectedTokens } from '../../../../../selectors/tokensController';
+import {
+  selectDetectedTokens,
+  selectAllDetectedTokensFlat,
+} from '../../../../../selectors/tokensController';
 import { isZero } from '../../../../../util/lodash';
 import useRampNetwork from '../../../Ramp/hooks/useRampNetwork';
 import { createBuyNavigationDetails } from '../../../Ramp/routes/utils';
@@ -23,9 +26,15 @@ import {
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../../selectors/networkController';
 import { TokenI } from '../../types';
-import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
+import {
+  selectUseTokenDetection,
+  selectTokenNetworkFilter,
+} from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
@@ -33,6 +42,21 @@ interface TokenListFooterProps {
   showDetectedTokens: () => void;
   isAddTokenEnabled: boolean;
 }
+
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
+const getDetectedTokensCount = (
+  isPortfolioEnabled: boolean,
+  isAllNetworksSelected: boolean,
+  allTokens: TokenI[],
+  filteredTokens: TokenI[] | undefined,
+): number => {
+  if (!isPortfolioEnabled) {
+    return filteredTokens?.length ?? 0;
+  }
+
+  return isAllNetworksSelected ? allTokens.length : filteredTokens?.length ?? 0;
+};
 
 export const TokenListFooter = ({
   tokens,
@@ -45,9 +69,18 @@ export const TokenListFooter = ({
   const { trackEvent } = useMetrics();
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
-  const detectedTokens = useSelector(selectDetectedTokens);
+  const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const allDetectedTokens = useSelector(
+    selectAllDetectedTokensFlat,
+  ) as TokenI[];
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
+  // TODO: Can probably create "isAllNetworks" selector for these
+  // since they are re-used in multiple places
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter); // X
+  const allNetworks = useSelector(selectNetworkConfigurations); // X
+  const isAllNetworks =
+    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length; // X
 
   const styles = createStyles(colors);
 
@@ -67,10 +100,19 @@ export const TokenListFooter = ({
     });
   };
 
+  const tokenCount = getDetectedTokensCount(
+    isPortfolioViewEnabled,
+    isAllNetworks,
+    allDetectedTokens,
+    detectedTokens,
+  );
+
+  const areTokensDetected = tokenCount > 0;
+
   return (
     <>
       {/* renderTokensDetectedSection */}
-      {detectedTokens?.length !== 0 && isTokenDetectionEnabled && (
+      {areTokensDetected && isTokenDetectionEnabled && (
         <TouchableOpacity
           style={styles.tokensDetectedButton}
           onPress={showDetectedTokens}
@@ -80,8 +122,8 @@ export const TokenListFooter = ({
             testID={WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON}
           >
             {strings('wallet.tokens_detected_in_account', {
-              tokenCount: detectedTokens.length,
-              tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
+              tokenCount,
+              tokensLabel: tokenCount > 1 ? 'tokens' : 'token',
             })}
           </Text>
         </TouchableOpacity>

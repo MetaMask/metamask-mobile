@@ -32,8 +32,11 @@ const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
-import { CHAIN_ID_TOKEN_IMAGE_MAP } from './networks';
-import { PopularList, UnpopularNetworkList } from './customNetworks';
+import {
+  PopularList,
+  UnpopularNetworkList,
+  CustomNetworkImgMapping,
+} from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
   getEtherscanAddressUrl,
@@ -434,7 +437,7 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
     (networkConfig) => networkConfig.chainId === chainId,
   );
 
-  const customNetworkImg = CHAIN_ID_TOKEN_IMAGE_MAP[chainId];
+  const customNetworkImg = CustomNetworkImgMapping[chainId];
 
   const popularNetwork = PopularList.find(
     (networkConfig) => networkConfig.chainId === chainId,
