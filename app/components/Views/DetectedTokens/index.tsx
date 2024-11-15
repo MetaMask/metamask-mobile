@@ -42,11 +42,6 @@ import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/Dete
 import { TokenI } from '../../UI/Tokens/types';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { organizeTokensByChainId } from '../../UI/Tokens/util/organizeTokensByChainId';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { NetworkBadgeSource } from '../../UI/AssetOverview/Balance/Balance';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,7 +94,7 @@ const DetectedTokens = () => {
   const detectedTokens = useSelector(selectDetectedTokens);
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
-  ) as TokenI[];
+  ) as (TokenI & { chainId: Hex })[];
   const chainId = useSelector(selectChainId);
   const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
@@ -171,10 +166,43 @@ const DetectedTokens = () => {
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
             if (isPortfolioViewEnabled) {
-              console.log('tokens to import ->', tokensToImport);
-              console.log('network client id ->', networkClientId);
-              await TokensController.addTokens(tokensToImport, networkClientId);
+              const tokensByChainId = tokensToImport.reduce<Map<Hex, Token[]>>(
+                (acc, token) => {
+                  const tokenChainId: Hex = (token as TokenI & { chainId: Hex })
+                    .chainId;
+
+                  if (!acc.has(tokenChainId)) {
+                    acc.set(tokenChainId, []);
+                  }
+
+                  acc.get(tokenChainId)?.push(token);
+                  return acc;
+                },
+                new Map(),
+              );
+
+              console.log(
+                'tokensByChainId .....',
+                Object.fromEntries(tokensByChainId),
+              );
+
+              const importPromises = Array.from(tokensByChainId.entries()).map(
+                async ([networkId, tokens]) => {
+                  const chainConfig = allNetworks[networkId as Hex];
+                  const { defaultRpcEndpointIndex } = chainConfig;
+                  const { networkClientId: networkInstanceId } =
+                    chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+                  console.log('tokens .....', tokens.length);
+                  console.log('networkInstanceId .....', networkInstanceId);
+
+                  await TokensController.addTokens(tokens, networkInstanceId);
+                },
+              );
+
+              await Promise.all(importPromises);
             } else {
+              console.log('NEVER HAPPEN  .....');
               const tokensByChainId = organizeTokensByChainId(
                 tokensToImport as TokenI[],
               );
@@ -207,13 +235,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [
-      chainId,
-      currentDetectedTokens,
-      ignoredTokens,
-      trackEvent,
-      networkClientId,
-    ],
+    [chainId, currentDetectedTokens, ignoredTokens, trackEvent, allNetworks],
   );
 
   const triggerIgnoreAllTokens = () => {

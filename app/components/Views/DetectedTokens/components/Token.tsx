@@ -10,6 +10,7 @@ import { fontStyles } from '../../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { selectChainId } from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
@@ -128,11 +129,13 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
   const tokenExchangeRatesAllChains = useSelector(selectTokenMarketData);
+  const currentChainId = useSelector(selectChainId);
   const tokenExchangeRates = tokenExchangeRatesAllChains[token.chainId];
   const tokenBalancesAllChains = useSelector(selectTokensBalances);
   const balanceAllChainsForAccount =
     tokenBalancesAllChains[accountAddress as Hex];
-  const tokenBalances = balanceAllChainsForAccount[token.chainId as Hex];
+  const tokenBalances =
+    balanceAllChainsForAccount[(token.chainId as Hex) ?? currentChainId];
   const conversionRateByChainId = useSelector(selectConversionRateFoAllChains);
 
   const conversionRate =
