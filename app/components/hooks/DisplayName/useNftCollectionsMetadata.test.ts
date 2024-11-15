@@ -7,6 +7,7 @@ import {
 } from './useNftCollectionsMetadata';
 import Engine from '../../../core/Engine';
 import { getTokenDetails } from '../../../util/address';
+import { NameType } from '../../UI/Name/Name.types';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -76,9 +77,11 @@ describe('useNftCollectionsMetadata', () => {
       useNftCollectionsMetadata([
         {
           value: ERC_721_ADDRESS_1,
+          type: NameType.EthereumAddress,
         },
         {
           value: ERC_721_ADDRESS_2,
+          type: NameType.EthereumAddress,
         },
       ]),
     );
@@ -111,6 +114,7 @@ describe('useNftCollectionsMetadata', () => {
         useNftCollectionsMetadata([
           {
             value: '0xERC20Address',
+            type: NameType.EthereumAddress,
           },
         ]),
       );
@@ -124,6 +128,7 @@ describe('useNftCollectionsMetadata', () => {
         useNftCollectionsMetadata([
           {
             value: '0xERC20Address',
+            type: NameType.EthereumAddress,
           },
         ]),
       );
@@ -136,9 +141,11 @@ describe('useNftCollectionsMetadata', () => {
       useNftCollectionsMetadata([
         {
           value: ERC_721_ADDRESS_1,
+          type: NameType.EthereumAddress,
         },
         {
           value: ERC_721_ADDRESS_2,
+          type: NameType.EthereumAddress,
         },
       ]),
     );

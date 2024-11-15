@@ -3,7 +3,7 @@ import { NameType } from '../../UI/Name/Name.types';
 import { useFirstPartyContractNames } from './useFirstPartyContractName';
 import { useWatchedNFTNames } from './useWatchedNFTName';
 import { useTokenListEntries } from './useTokenListEntry';
-import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
+import { useNFTNames } from './useNftName';
 
 export interface UseDisplayNameRequest {
   value: string;
@@ -76,9 +76,9 @@ export function useDisplayNames(
   const firstPartyContractNames = useFirstPartyContractNames(requests);
   const watchedNftNames = useWatchedNFTNames(requests);
   const tokenListNames = useTokenListEntries(requests);
-  const nftCollections = useNftCollectionsMetadata(requests);
+  const nftNames = useNFTNames(requests);
 
-  return requests.map(({ preferContractSymbol, value }, index) => {
+  return requests.map(({ preferContractSymbol }, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
     const tokenListName = tokenListNames[index];
@@ -86,16 +86,7 @@ export function useDisplayNames(
       preferContractSymbol && tokenListName?.symbol
         ? tokenListName.symbol
         : tokenListName?.name;
-    const nftCollectionProperties = nftCollections[value.toLowerCase()];
-
-    const isNotSpam = nftCollectionProperties?.isSpam === false;
-
-    const nftCollectionName = isNotSpam
-      ? nftCollectionProperties?.name
-      : undefined;
-    const nftCollectionImage = isNotSpam
-      ? nftCollectionProperties?.image
-      : undefined;
+    const { nftCollectionName, nftCollectionImage } = nftNames[index] || {};
 
     const recognizedName =
       watchedNftName ||

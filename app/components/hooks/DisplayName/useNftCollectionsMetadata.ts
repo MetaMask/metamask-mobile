@@ -6,11 +6,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { useAsyncResult } from '../useAsyncResult';
 import Engine from '../../../core/Engine';
 import { getTokenDetails } from '../../../util/address';
-
-export interface UseNftCollectionsMetadataRequest {
-  value: string;
-  chainId?: string;
-}
+import { UseDisplayNameRequest } from './useDisplayName';
 
 interface CollectionsData {
   [key: string]: Collection;
@@ -68,14 +64,18 @@ async function fetchCollections(
 }
 
 export function useNftCollectionsMetadata(
-  requests: UseNftCollectionsMetadataRequest[],
+  requests: UseDisplayNameRequest[],
   providedChainId?: Hex,
 ) {
   const chainId = useSelector(selectChainId) || providedChainId;
 
-  const memoisedContracts = useMemo(() => requests
-      .filter(({ value }) => value)
-      .map(({ value }) => value.toLowerCase()), [requests]);
+  const memoisedContracts = useMemo(
+    () =>
+      requests
+        .filter(({ value }) => value)
+        .map(({ value }) => value.toLowerCase()),
+    [requests],
+  );
 
   const { value: collectionsMetadata } = useAsyncResult(
     () => fetchCollections(memoisedContracts, chainId),
