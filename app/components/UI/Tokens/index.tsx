@@ -1,4 +1,5 @@
 import React, { useRef, useState, LegacyRef, useMemo } from 'react';
+import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
@@ -42,7 +43,7 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
-import { getSelectedAccountTokensAcrossChains } from '../../../selectors/multichain';
+import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
 
 // this will be imported from TokenRatesController when it is exported from there
@@ -109,7 +110,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   ];
   const allNetworks = useSelector(selectNetworkConfigurations);
   const selectedAccountTokensChains = useSelector(
-    getSelectedAccountTokensAcrossChains,
+    selectAccountTokensAcrossChains,
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -127,7 +128,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     if (isPortfolioViewEnabled) {
       // MultiChain implementation
       const allTokens = Object.values(selectedAccountTokensChains).flat();
-      const filteredAssets = filterAssets(allTokens, [
+
+      // First filter zero balance tokens if setting is enabled
+      const tokensWithBalance = hideZeroBalanceTokens
+        ? allTokens.filter((token) => !isZero(token.balance) || token.isNative)
+        : allTokens;
+
+      // Then apply network filters
+      const filteredAssets = filterAssets(tokensWithBalance, [
         {
           key: 'chainId',
           opts: tokenNetworkFilter,
@@ -232,7 +240,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       const actions = [
         TokenDetectionController.detectTokens({
-          chainIds: [chainIds] as Hex[],
+          chainIds: chainIds as Hex[],
           selectedAddress,
         }),
         AccountTrackerController.refresh(),

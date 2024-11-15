@@ -56,3 +56,13 @@ export const selectConversionRateByTicker = createSelector(
         0
       : 0,
 );
+
+export const selectConversionRateByTickerAlt = createSelector(
+  selectCurrencyRateControllerState,
+  (_: RootState, ticker: string) => ticker,
+  (currencyRateControllerState: CurrencyRateState, ticker: string) =>
+    ticker
+      ? currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate ||
+        0
+      : 0,
+);

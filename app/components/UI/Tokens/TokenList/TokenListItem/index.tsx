@@ -189,9 +189,8 @@ export const TokenListItem = ({
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
-      if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-
       if (!isPortfolioViewEnabled) {
+        if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
         if (isMainnet) return images.ETHEREUM;
 
         if (isLineaMainnet) return images['LINEA-MAINNET'];
@@ -202,6 +201,8 @@ export const TokenListItem = ({
 
         return ticker ? images[ticker] : undefined;
       }
+      if (isTestNet(currentChainId))
+        return getTestNetImageByChainId(currentChainId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as any;
 
