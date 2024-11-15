@@ -78,7 +78,7 @@ const Name: React.FC<NameProperties> = ({
         address={value}
         diameter={16}
         imageUri={image}
-        customStyle={styles.imageStyle}
+        customStyle={styles.image}
       />
       <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
         {name}
