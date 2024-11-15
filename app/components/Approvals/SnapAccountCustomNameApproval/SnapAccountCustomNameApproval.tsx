@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
@@ -49,19 +49,12 @@ const SnapAccountCustomNameApproval = () => {
     internalAccounts.some((account) => account.metadata.name === name);
 
   useEffect(() => {
-    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
-    const initialName = suggestedName
-      ? generateUniqueNameWithSuffix(suggestedName)
-      : Engine.context.AccountsController.getNextAvailableAccountName(
-          KeyringTypes.snap,
-        );
-    setAccountName(initialName);
-
     function generateUniqueNameWithSuffix(baseName: string): string {
       let suffix = 1;
       let candidateName = baseName;
       while (
         internalAccounts.some(
+          // eslint-disable-next-line no-loop-func
           (account) => account.metadata.name === candidateName,
         )
       ) {
@@ -70,6 +63,14 @@ const SnapAccountCustomNameApproval = () => {
       }
       return candidateName;
     }
+
+    const suggestedName = approvalRequest?.requestData.snapSuggestedAccountName;
+    const initialName = suggestedName
+      ? generateUniqueNameWithSuffix(suggestedName)
+      : Engine.context.AccountsController.getNextAvailableAccountName(
+          KeyringTypes.snap,
+        );
+    setAccountName(initialName);
   }, [approvalRequest, internalAccounts]);
 
   const cancelButtonProps: ButtonProps = {
