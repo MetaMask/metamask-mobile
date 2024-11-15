@@ -37,7 +37,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
@@ -190,7 +190,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
@@ -343,7 +343,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
@@ -505,7 +505,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         "paddingLeft": 8,
       }
     }
-    testID="banneralert"
+    testID="security-alert-response-failed-banner"
   >
     <View
       style={
@@ -598,7 +598,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={

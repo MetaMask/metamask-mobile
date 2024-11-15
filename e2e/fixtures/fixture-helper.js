@@ -104,7 +104,6 @@ export async function withFixtures(options, testSuite) {
   } = options;
 
   const fixtureServer = new FixtureServer();
-  // let mockServer;
 
   if (testSpecificMock) {
     await startMockServer(testSpecificMock);
