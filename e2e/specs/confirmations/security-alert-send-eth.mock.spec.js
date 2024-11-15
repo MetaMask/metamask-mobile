@@ -32,7 +32,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await WalletActionsModal.tapSendButton();
     await SendView.inputAddress(BENIGN_ADDRESS_MOCK);
     await SendView.tapNextButton();
-    await AmountView.typeInTransactionAmount(0);
+    await AmountView.typeInTransactionAmount('0');
     await AmountView.tapNextButton();
   };
 
