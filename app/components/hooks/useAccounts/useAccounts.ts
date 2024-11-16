@@ -31,7 +31,6 @@ import {
   UseAccountsParams,
 } from './useAccounts.types';
 import { InternalAccount, EthAccountType } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
 import { BigNumber } from 'ethers';
 
 /**
