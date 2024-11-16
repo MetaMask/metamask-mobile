@@ -59,6 +59,8 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { EthAccountType, BtcAccountType } from '@metamask/keyring-api';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const trackEvent = (event) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -918,7 +920,7 @@ export function getOfflineModalNavbar() {
  * Function that returns the navigation options for the wallet screen.
  *
  * @param {Object} accountActionsRef - The ref object for the account actions
- * @param {string} selectedAddress - The currently selected Ethereum address
+ * @param {Object} selectedInternalAccount - The currently selected internal account
  * @param {string} accountName - The name of the currently selected account
  * @param {string} accountAvatarType - The type of avatar for the currently selected account
  * @param {string} networkName - The name of the current network
@@ -934,7 +936,7 @@ export function getOfflineModalNavbar() {
  */
 export function getWalletNavbarOptions(
   accountActionsRef,
-  selectedAddress,
+  selectedInternalAccount,
   accountName,
   accountAvatarType,
   networkName,
@@ -962,6 +964,15 @@ export function getWalletNavbarOptions(
       flex: 1,
     },
   });
+
+  console.log('Bitcoin/ selectedInternalAccount', selectedInternalAccount);
+  console.log('Bitcoin/ network name', networkName);
+
+  const formattedAddress =
+    selectedInternalAccount.type === EthAccountType.Eoa ||
+    selectedInternalAccount.type === EthAccountType.Erc4337
+      ? toChecksumHexAddress(selectedInternalAccount.address)
+      : selectedInternalAccount.address;
 
   const onScanSuccess = (data, content) => {
     if (data.private_key) {
@@ -1051,13 +1062,15 @@ export function getWalletNavbarOptions(
       <View style={innerStyles.headerTitle}>
         <PickerAccount
           ref={accountActionsRef}
-          accountAddress={selectedAddress}
+          accountAddress={formattedAddress}
           accountName={accountName}
           accountAvatarType={accountAvatarType}
           onPress={() => {
             navigation.navigate(...createAccountSelectorNavDetails({}));
           }}
-          accountTypeLabel={getLabelTextByAddress(selectedAddress) || undefined}
+          accountTypeLabel={
+            getLabelTextByAddress(formattedAddress) || undefined
+          }
           showAddress
           cellAccountContainerStyle={styles.account}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
@@ -1066,13 +1079,17 @@ export function getWalletNavbarOptions(
     ),
     headerLeft: () => (
       <View style={styles.leftElementContainer}>
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={onPressTitle}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-        />
+        {selectedInternalAccount.type === BtcAccountType.P2wpkh ? (
+          <Text>Bitcoin</Text>
+        ) : (
+          <PickerNetwork
+            label={networkName}
+            imageSource={networkImageSource}
+            onPress={onPressTitle}
+            testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+            hideNetworkName
+          />
+        )}
       </View>
     ),
     headerRight: () => (

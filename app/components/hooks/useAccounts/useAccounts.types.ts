@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { Hex } from '@metamask/utils';
 
 // External dependencies.
 import { AvatarTokenProps } from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.types';
