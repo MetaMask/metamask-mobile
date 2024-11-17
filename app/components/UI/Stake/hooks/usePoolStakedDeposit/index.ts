@@ -9,7 +9,8 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { formatEther } from 'ethers/lib/utils';
 import { useStakeContext } from '../useStakeContext';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { getGlobalNetworkClientId } from '../../../../../util/networks/global-network';
+import { NetworkClientId } from '@metamask/network-controller';
+import { Stake } from '../../sdk/stakeSdkProvider';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -28,7 +29,10 @@ const generateDepositTxParams = (
 });
 
 const attemptDepositTransaction =
-  (pooledStakingContract: PooledStakingContract) =>
+  (
+    pooledStakingContract: PooledStakingContract,
+    networkClientId: NetworkClientId,
+  ) =>
   async (
     depositValueWei: string,
     receiver: string, // the address that can claim exited ETH
@@ -61,8 +65,6 @@ const attemptDepositTransaction =
         chainId,
       );
 
-      const networkClientId = getGlobalNetworkClientId();
-
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
@@ -76,12 +78,14 @@ const attemptDepositTransaction =
   };
 
 const usePoolStakedDeposit = () => {
-  const stakeContext = useStakeContext();
-
-  const stakingContract = stakeContext.stakingContract as PooledStakingContract;
+  const { networkClientId, stakingContract } =
+    useStakeContext() as Required<Stake>;
 
   return {
-    attemptDepositTransaction: attemptDepositTransaction(stakingContract),
+    attemptDepositTransaction: attemptDepositTransaction(
+      stakingContract,
+      networkClientId,
+    ),
   };
 };
 

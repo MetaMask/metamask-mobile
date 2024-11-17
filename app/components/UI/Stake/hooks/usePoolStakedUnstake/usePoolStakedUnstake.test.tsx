@@ -35,6 +35,7 @@ const MOCK_UNSTAKE_GAS_LIMIT = 73135;
 const MOCK_UNSTAKE_VALUE_WEI = '10000000000000000'; // 0.01 ETH
 const MOCK_STAKED_BALANCE_VALUE_WEI = '20000000000000000'; // 0.02 ETH
 const MOCK_UNSTAKE_ALL_VALUE_WEI = MOCK_STAKED_BALANCE_VALUE_WEI;
+const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
 
 const ENCODED_TX_UNSTAKE_DATA = {
   chainId: 1,
@@ -106,6 +107,7 @@ const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
+  networkClientId: MOCK_NETWORK_CLIENT_ID,
 };
 
 const mockBalance: Pick<ReturnType<typeof useBalance>, 'stakedBalanceWei'> = {
@@ -148,10 +150,15 @@ describe('usePoolStakedUnstake', () => {
     });
 
     it('attempts to create and submit an unstake all transaction', async () => {
-      jest.spyOn(ethers.utils, 'Interface').mockImplementation(() => ({
-        encodeFunctionData: jest.fn(),
-        decodeFunctionResult: jest.fn().mockReturnValue([BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI)]),
-      } as unknown as ethers.utils.Interface));
+      jest.spyOn(ethers.utils, 'Interface').mockImplementation(
+        () =>
+          ({
+            encodeFunctionData: jest.fn(),
+            decodeFunctionResult: jest
+              .fn()
+              .mockReturnValue([BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI)]),
+          } as unknown as ethers.utils.Interface),
+      );
 
       const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
         state: mockInitialState,
@@ -165,7 +172,11 @@ describe('usePoolStakedUnstake', () => {
       expect(mockConvertToShares).toHaveBeenCalledTimes(0);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI).toString(), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(
+        BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI).toString(),
+        MOCK_RECEIVER_ADDRESS,
+        { gasLimit: MOCK_UNSTAKE_GAS_LIMIT },
+      );
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });

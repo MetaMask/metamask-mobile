@@ -56,7 +56,7 @@ describe('Transaction Controller Util', () => {
 
       expect(
         Engine.context.TransactionController.estimateGas,
-      ).toHaveBeenCalledWith(TRANSACTION_MOCK);
+      ).toHaveBeenCalledWith(TRANSACTION_MOCK, NETWORK_CLIENT_ID_MOCK);
     });
   });
 

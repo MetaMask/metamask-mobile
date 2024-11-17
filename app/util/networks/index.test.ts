@@ -384,7 +384,7 @@ describe('network-utils', () => {
         }),
       ).toBe(nonceMock);
 
-      expect(getNonceLock).toHaveBeenCalledWith(fromMock);
+      expect(getNonceLock).toHaveBeenCalledWith(fromMock, networkClientIdMock);
     });
 
     it('releases nonce lock', async () => {

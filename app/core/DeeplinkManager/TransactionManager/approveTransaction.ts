@@ -9,7 +9,7 @@ import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { getGlobalNetworkClientId } from '../../../util/networks/global-network';
+import { Hex } from '@metamask/utils';
 
 async function approveTransaction({
   deeplinkManager,
@@ -42,6 +42,7 @@ async function approveTransaction({
     parameters?.address || '',
     chain_id as string,
   );
+
   if (!spenderAddress) {
     NotificationManager.showSimpleNotification({
       status: 'simple_notification_rejected',
@@ -61,7 +62,9 @@ async function approveTransaction({
     data: generateApprovalData({ spender: spenderAddress, value }),
   };
 
-  const networkClientId = getGlobalNetworkClientId();
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    chain_id as Hex,
+  );
 
   addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,

@@ -41,6 +41,7 @@ import {
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Provider } from '@metamask/network-controller';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -53,8 +54,6 @@ const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
 
-ENGINE_MOCK.getGlobalEthQuery = () => null;
-
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
 const MOCK_ADDRESS3 = '0xb794f5ea0ba39494ce839613fffba74279579268';
@@ -64,6 +63,15 @@ const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const MOCK_CHAIN_ID = '1';
 const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
+
+ENGINE_MOCK.context = {
+  NetworkController: {
+    findNetworkClientIdByChainId: () => MOCK_NETWORK_CLIENT_ID,
+    getNetworkClientById: () => ({
+      provider: {} as Provider,
+    }),
+  },
+};
 
 const spyOnQueryMethod = (returnValue: string | undefined) =>
   jest.spyOn(controllerUtilsModule, 'query').mockImplementation(

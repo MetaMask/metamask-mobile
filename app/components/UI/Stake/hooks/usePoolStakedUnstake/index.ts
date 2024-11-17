@@ -10,7 +10,8 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import useBalance from '../useBalance';
-import { getGlobalNetworkClientId } from '../../../../../util/networks/global-network';
+import { Stake } from '../../sdk/stakeSdkProvider';
+import { NetworkClientId } from '@metamask/network-controller';
 
 const generateUnstakeTxParams = (
   activeAccountAddress: string,
@@ -26,7 +27,11 @@ const generateUnstakeTxParams = (
 });
 
 const attemptUnstakeTransaction =
-  (pooledStakingContract: PooledStakingContract, stakedBalanceWei: string) =>
+  (
+    pooledStakingContract: PooledStakingContract,
+    stakedBalanceWei: string,
+    networkClientId: NetworkClientId,
+  ) =>
   // Note: receiver is the user address attempting to unstake.
   async (valueWei: string, receiver: string) => {
     try {
@@ -44,11 +49,15 @@ const attemptUnstakeTransaction =
           'function getShares(address) returns (uint256)',
         ]);
         const data = tempInterface.encodeFunctionData('getShares', [receiver]);
-        const sharesResult = await pooledStakingContract?.contract.provider.call({
-          to: pooledStakingContract?.contract.address,
-          data,
-        });
-        const [sharesBN] = tempInterface.decodeFunctionResult('getShares', sharesResult);
+        const sharesResult =
+          await pooledStakingContract?.contract.provider.call({
+            to: pooledStakingContract?.contract.address,
+            data,
+          });
+        const [sharesBN] = tempInterface.decodeFunctionResult(
+          'getShares',
+          sharesResult,
+        );
         shares = sharesBN.toString();
       } else {
         shares = await pooledStakingContract.convertToShares(valueWei);
@@ -73,8 +82,6 @@ const attemptUnstakeTransaction =
         chainId,
       );
 
-      const networkClientId = getGlobalNetworkClientId();
-
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
@@ -91,13 +98,17 @@ const attemptUnstakeTransaction =
   };
 
 const usePoolStakedUnstake = () => {
-  const stakeContext = useStakeContext();
+  const { networkClientId, stakingContract } =
+    useStakeContext() as Required<Stake>;
+
   const { stakedBalanceWei } = useBalance();
 
-  const stakingContract = stakeContext.stakingContract as PooledStakingContract;
-
   return {
-    attemptUnstakeTransaction: attemptUnstakeTransaction(stakingContract, stakedBalanceWei),
+    attemptUnstakeTransaction: attemptUnstakeTransaction(
+      stakingContract,
+      stakedBalanceWei,
+      networkClientId,
+    ),
   };
 };
 

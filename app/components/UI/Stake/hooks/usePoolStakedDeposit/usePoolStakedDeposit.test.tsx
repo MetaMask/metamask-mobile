@@ -12,6 +12,7 @@ import { Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
 
 const MOCK_ADDRESS_1 = '0x0';
+const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
@@ -93,6 +94,7 @@ const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
+  networkClientId: MOCK_NETWORK_CLIENT_ID,
 };
 
 jest.mock('../useStakeContext', () => ({
