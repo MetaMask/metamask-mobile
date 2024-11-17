@@ -1,7 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import React from 'react';
-import { shallow } from 'enzyme';
-// eslint-disable-next-line import/named
+import { render } from '@testing-library/react';
 import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
@@ -59,7 +58,6 @@ function renderUseSwapConfirmedEventHook({
   swapsTransactions,
   trackSwaps,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   swapsTransactions: any;
   trackSwaps?: jest.Func;
 }) {
@@ -98,8 +96,8 @@ describe('Main', () => {
         <Main />
       </NavigationContainer>
     );
-    const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toMatchSnapshot();
+    const { container } = render(<MainAppContainer />);
+    expect(container).toMatchSnapshot();
   });
 
   describe('useSwapConfirmedEvent', () => {
