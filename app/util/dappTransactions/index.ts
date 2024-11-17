@@ -28,6 +28,7 @@ interface Transaction {
   gas: BN;
   gasPrice: BN;
   id: string;
+  networkClientId: string;
   nonce: string | undefined;
   origin: string;
   paymentRequest: boolean | undefined;
@@ -67,7 +68,7 @@ export const estimateGas = async (
   opts: opts,
   transaction: Transaction,
 ): Promise<EstimatedGas> => {
-  const { from, selectedAsset } = transaction;
+  const { from, networkClientId, selectedAsset } = transaction;
   const {
     amount = transaction.value,
     data = transaction.data,
@@ -81,7 +82,7 @@ export const estimateGas = async (
       from,
       data,
       to: selectedAsset?.address ? selectedAsset.address : to,
-    });
+    }, networkClientId);
   } catch (e) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,

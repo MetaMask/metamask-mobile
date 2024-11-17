@@ -12,6 +12,7 @@ import {
   isRequestClaimable,
   transformAggregatedClaimableExitRequestToMulticallArgs,
 } from './utils';
+import { getGlobalNetworkClientId } from '../../../../../util/networks/global-network';
 
 const attemptMultiCallClaimTransaction = async (
   pooledStakesData: PooledStake,
@@ -42,8 +43,11 @@ const attemptMultiCallClaimTransaction = async (
     gasLimit.toString(),
   );
 
+  const networkClientId = getGlobalNetworkClientId();
+
   return addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
+    networkClientId,
     origin: ORIGIN_METAMASK,
     type: TransactionType.stakingClaim,
   });
@@ -85,8 +89,11 @@ const attemptSingleClaimTransaction = async (
     gasLimit.toString(),
   );
 
+  const networkClientId = getGlobalNetworkClientId();
+
   return addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
+    networkClientId,
     origin: ORIGIN_METAMASK,
     type: TransactionType.stakingClaim,
   });

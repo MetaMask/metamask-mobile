@@ -10,6 +10,7 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import useBalance from '../useBalance';
+import { getGlobalNetworkClientId } from '../../../../../util/networks/global-network';
 
 const generateUnstakeTxParams = (
   activeAccountAddress: string,
@@ -72,8 +73,11 @@ const attemptUnstakeTransaction =
         chainId,
       );
 
+      const networkClientId = getGlobalNetworkClientId();
+
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: ORIGIN_METAMASK,
         type: TransactionType.stakingUnstake,
       });

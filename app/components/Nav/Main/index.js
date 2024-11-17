@@ -58,6 +58,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
@@ -82,6 +83,7 @@ import {
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
+import { getGlobalEthQuery } from '../../../util/networks/global-network';
 
 const Stack = createStackNavigator();
 
@@ -137,7 +139,7 @@ const Main = (props) => {
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const ethQuery = Engine.getGlobalEthQuery();
+        const ethQuery = getGlobalEthQuery();
         await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
@@ -175,11 +177,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
+          await updateIncomingTransactions([props.networkClientId]);
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications],
+    [backgroundMode, removeNotVisibleNotifications, props.networkClientId],
   );
 
   const initForceReload = () => {
@@ -447,6 +449,10 @@ Main.propTypes = {
    * backup seed phrase modal visible
    */
   backUpSeedphraseVisible: PropTypes.bool,
+  /**
+   * ID of the global network client
+   */
+  networkClientId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
@@ -454,6 +460,7 @@ const mapStateToProps = (state) => ({
     selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 

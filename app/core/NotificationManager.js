@@ -409,9 +409,7 @@ class NotificationManager {
     const ticker = useSelector(selectTicker);
 
     /// Find the incoming TX
-    const transactions = TransactionController.getTransactions({
-      filterToCurrentNetwork: false,
-    });
+    const transactions = TransactionController.getTransactions();
 
     // If a TX has been confirmed more than 10 min ago, it's considered old
     const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;

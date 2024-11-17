@@ -7,8 +7,11 @@ const { addTransaction, estimateGas, ...proxyMethods } =
   TransactionControllerUtils;
 
 const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
+const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
+
 const TRANSACTION_OPTIONS_MOCK = {
   deviceConfirmedOn: WalletDevice.MM_MOBILE,
+  networkClientId: NETWORK_CLIENT_ID_MOCK,
   origin: 'origin',
 };
 
@@ -49,7 +52,7 @@ describe('Transaction Controller Util', () => {
 
   describe('estimateGas', () => {
     it('should call estimateGas with correct parameters', async () => {
-      await estimateGas(TRANSACTION_MOCK);
+      await estimateGas(TRANSACTION_MOCK, NETWORK_CLIENT_ID_MOCK);
 
       expect(
         Engine.context.TransactionController.estimateGas,

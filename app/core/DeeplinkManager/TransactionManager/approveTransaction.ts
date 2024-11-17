@@ -9,6 +9,7 @@ import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { getGlobalNetworkClientId } from '../../../util/networks/global-network';
 
 async function approveTransaction({
   deeplinkManager,
@@ -60,8 +61,11 @@ async function approveTransaction({
     data: generateApprovalData({ spender: spenderAddress, value }),
   };
 
+  const networkClientId = getGlobalNetworkClientId();
+
   addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
+    networkClientId,
     origin,
   });
 }

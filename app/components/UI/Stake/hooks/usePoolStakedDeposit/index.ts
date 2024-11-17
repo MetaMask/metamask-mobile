@@ -9,6 +9,7 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { formatEther } from 'ethers/lib/utils';
 import { useStakeContext } from '../useStakeContext';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { getGlobalNetworkClientId } from '../../../../../util/networks/global-network';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -60,9 +61,11 @@ const attemptDepositTransaction =
         chainId,
       );
 
-      // TODO: Add Stake/Unstake/Claim TransactionType to display contract method in confirmation screen.
+      const networkClientId = getGlobalNetworkClientId();
+
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: ORIGIN_METAMASK,
         type: TransactionType.stakingDeposit,
       });

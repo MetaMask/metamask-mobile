@@ -2,6 +2,7 @@ import Engine from '../core/Engine';
 import { BNToHex } from '../util/number';
 import Logger from '../util/Logger';
 import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
+import { getGlobalEthQuery } from './networks/global-network';
 
 const HD_KEY_TREE_ERROR = 'MetamaskController - No HD Key Tree found';
 const ZERO_BALANCE = '0x0';
@@ -31,7 +32,7 @@ const getBalance = async (address, ethQuery) =>
 export default async () => {
   const { KeyringController } = Engine.context;
 
-  const ethQuery = Engine.getGlobalEthQuery();
+  const ethQuery = getGlobalEthQuery();
   let accounts = await KeyringController.getAccounts();
   let lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
 

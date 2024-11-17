@@ -50,6 +50,7 @@ import {
 
 import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
+import { getGlobalEthQuery } from '../networks/global-network';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -314,7 +315,7 @@ export function decodeTransferData(type, data) {
  * @param {string} data - Transaction data
  * @returns {MethodData} - Method data object containing the name if is valid
  */
-export async function getMethodData(data) {
+export async function getMethodData(data, networkClientId) {
   if (data.length < 10) return {};
   const fourByteSignature = getFourByteSignature(data);
   if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
@@ -332,7 +333,7 @@ export async function getMethodData(data) {
   }
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await handleMethodData(fourByteSignature);
+    const registryObject = await handleMethodData(fourByteSignature, networkClientId);
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }
@@ -360,7 +361,7 @@ export async function isSmartContractAddress(address, chainId) {
     return Promise.resolve(true);
   }
 
-  const ethQuery = Engine.getGlobalEthQuery();
+  const ethQuery = getGlobalEthQuery();
 
   const code = address
     ? await query(ethQuery, 'getCode', [address])
@@ -401,7 +402,7 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  const { type } = transaction ?? {};
+  const { networkClientId, type } = transaction ?? {};
   const txParams = transaction.txParams ?? transaction.transaction ?? {};
   const { data, to } = txParams;
 
@@ -419,7 +420,7 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   // if data in transaction try to get method data
   if (data && data !== '0x') {
-    const { name } = await getMethodData(data);
+    const { name } = await getMethodData(data, networkClientId);
     if (name) return name;
   }
 

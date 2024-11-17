@@ -114,6 +114,7 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
+import { getGlobalEthQuery } from '../../../util/networks/global-network';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -794,7 +795,7 @@ function SwapsQuotesView({
 
   const updateSwapsTransactions = useCallback(
     async (transactionMeta, approvalTransactionMetaId) => {
-      const ethQuery = Engine.getGlobalEthQuery();
+      const ethQuery = getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
         blockNumber,

@@ -512,6 +512,7 @@ class WalletConnect2Session {
         origin,
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         securityAlertResponse: undefined,
+        networkClientId: 'testNetworkClientId',
       });
 
       const id = trx.transactionMeta.id;
