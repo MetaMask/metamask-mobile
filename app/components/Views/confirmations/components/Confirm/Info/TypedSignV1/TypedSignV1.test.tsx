@@ -2,11 +2,11 @@ import React from 'react';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
-import PersonalSign from './PersonalSign';
+import TypedSignV1 from './index';
 
-describe('PersonalSign', () => {
+describe('TypedSignV1', () => {
   it('should match snapshot', async () => {
-    const container = renderWithProvider(<PersonalSign />, {
+    const container = renderWithProvider(<TypedSignV1 />, {
       state: personalSignatureConfirmationState,
     });
     expect(container).toMatchSnapshot();
