@@ -52,7 +52,7 @@ export interface SubmitSmartTransactionRequest {
       | {
           expectedDeadline: number;
           maxDeadline: number;
-          returnTxHashAsap: boolean;
+          mobileReturnTxHashAsap: boolean;
         }
       | Record<string, never>;
   };
@@ -74,7 +74,7 @@ class SmartTransactionHook {
     smartTransactions: {
       expectedDeadline?: number;
       maxDeadline?: number;
-      returnTxHashAsap?: boolean;
+      mobileReturnTxHashAsap?: boolean;
     };
   };
   #shouldUseSmartTransaction: boolean;
@@ -262,10 +262,10 @@ class SmartTransactionHook {
     uuid: string,
   ) => {
     let transactionHash: string | undefined | null;
-    const returnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.returnTxHashAsap;
+    const mobileReturnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap;
 
-    if (returnTxHashAsap && submitTransactionResponse?.txHash) {
+    if (mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
       transactionHash = submitTransactionResponse.txHash;
     } else {
       transactionHash = await this.#waitForTransactionHash({

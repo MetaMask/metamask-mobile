@@ -57,6 +57,9 @@ const NativeAssetPill: React.FC = () => {
 const AssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // TODO: Remove global network selector usage once simulations refactored.
+  const chainId = useSelector(selectChainId);
+
   return (
     <View style={styles.assetPill}>
       {asset.type === AssetType.Native ? (
@@ -66,7 +69,8 @@ const AssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
           preferContractSymbol
           testID="simulation-details-asset-pill-name"
           type={NameType.EthereumAddress}
-          value={asset.address as Hex}
+          value={asset.address}
+          variation={chainId}
         />
       )}
     </View>
