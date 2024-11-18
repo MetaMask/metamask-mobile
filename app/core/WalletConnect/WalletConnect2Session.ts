@@ -27,6 +27,7 @@ import { getPermittedAccounts } from '../Permissions';
 import { hideWCLoadingState, showWCLoadingState } from './wc-utils';
 import { getDefaultNetworkByChainId } from '../../util/networks';
 import { ERROR_MESSAGES } from './WalletConnectV2';
+import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -508,11 +509,13 @@ class WalletConnect2Session {
     origin: string,
   ) {
     try {
+      const networkClientId = getGlobalNetworkClientId();
+
       const trx = await addTransaction(methodParams[0], {
-        origin,
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
+        origin,
         securityAlertResponse: undefined,
-        networkClientId: 'testNetworkClientId',
       });
 
       const id = trx.transactionMeta.id;

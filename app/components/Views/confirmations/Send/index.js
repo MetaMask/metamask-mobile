@@ -50,6 +50,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
 } from '../../../../selectors/networkController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
@@ -127,6 +128,10 @@ class Send extends PureComponent {
      * The chain ID of the current selected network
      */
     chainId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
     /**
      * List of accounts from the AccountsController
      */
@@ -551,6 +556,7 @@ class Send extends PureComponent {
     const {
       transaction: { selectedAsset, assetType },
       chainId,
+      networkClientId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -562,6 +568,7 @@ class Send extends PureComponent {
       }
       const { result, transactionMeta } = await addTransaction(transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: TransactionTypes.MMM,
       });
       await KeyringController.resetQRKeyringState();
@@ -787,6 +794,7 @@ const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   internalAccounts: selectInternalAccounts(state),
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
