@@ -49,11 +49,7 @@ import {
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import Engine from '../../../core/Engine';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import Routes from '../../../constants/navigation/Routes';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -90,7 +86,6 @@ export const Browser = (props) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const [isNetworkPermitted, setIsNetworkPermitted] = useState(true);
 
   // networkConfigurations has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
   const nonTestnetNetworks =
@@ -149,72 +144,11 @@ export const Browser = (props) => {
     });
   };
 
-  const checkTabPermissions = useCallback(
-    (tab) => {
-      if (!tab) return;
-
-      const hostname = new URL(tab.url).hostname;
-      const permissionsControllerState =
-        Engine.context.PermissionController.state;
-      const permittedAccounts = getPermittedAccountsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-
-      const isConnected = permittedAccounts.length > 0;
-
-      if (isConnected) {
-        let permittedChains = [];
-        try {
-          const caveat = Engine.context.PermissionController.getCaveat(
-            hostname,
-            PermissionKeys.permittedChains,
-            CaveatTypes.restrictNetworkSwitching,
-          );
-          permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
-
-          const currentChainId = props.chainId;
-          const isNetworkPermitted = permittedChains.includes(currentChainId);
-          setIsNetworkPermitted(isNetworkPermitted);
-
-          if (!isNetworkPermitted) {
-            // console.log(
-            //   '>>> network not permitted, opening account permissions screen',
-            // );
-
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-              params: {
-                isNonDappNetworkSwitch: true,
-                hostInfo: {
-                  metadata: {
-                    origin: new URL(tab.url).hostname,
-                  },
-                },
-                isRenderedAsBottomSheet: true,
-                initialScreen: AccountPermissionsScreens.Connected,
-              },
-            });
-          }
-        } catch (e) {
-          // console.log('>>> Browser Tab Check exception', e);
-          setIsNetworkPermitted(false);
-        }
-      } else {
-        setIsNetworkPermitted(true);
-        // console.log('>>> dapp not connected, skipping permission check: ');
-      }
-    },
-    [props.chainId, navigation],
-  );
-
   const switchToTab = (tab) => {
     trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
-
-    isMultichainVersion1Enabled && checkTabPermissions(tab);
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
@@ -225,13 +159,7 @@ export const Browser = (props) => {
       const permittedAccounts = await getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
 
-      // If multichain is not enabled, only check for active account
-      // If multichain is enabled, check both active account and network permission
-      const shouldShowToast = isMultichainVersion1Enabled
-        ? activeAccountAddress && isNetworkPermitted
-        : activeAccountAddress;
-
-      if (shouldShowToast) {
+      if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
           accountAddress: activeAccountAddress,
           accounts,
@@ -262,14 +190,7 @@ export const Browser = (props) => {
       hasAccounts.current = true;
       prevSiteHostname.current = hostname;
     }
-  }, [
-    browserUrl,
-    accounts,
-    ensByAccountAddress,
-    accountAvatarType,
-    toastRef,
-    isNetworkPermitted,
-  ]);
+  }, [browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
 
   // componentDidMount
   useEffect(
@@ -455,6 +376,7 @@ export const Browser = (props) => {
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
+        isInTabsView={route.params?.showTabs}
       />
     ));
 
