@@ -1541,13 +1541,7 @@ export const BrowserTab = (props) => {
   );
 
   const checkTabPermissions = useCallback(() => {
-    console.log('>>> checking tab permssions for url', url.current);
-    console.log('>>> and chain id', props.chainId);
-    console.log('>>> isActiveTab', isTabActive);
-
-    if (!url.current) {
-      return;
-    }
+    if (!url.current) return;
 
     const hostname = new URL(url.current).hostname;
     const permissionsControllerState =
@@ -1558,7 +1552,6 @@ export const BrowserTab = (props) => {
     );
 
     const isConnected = permittedAccounts.length > 0;
-    console.log('>>> is connected', isConnected);
 
     if (isConnected) {
       let permittedChains = [];
@@ -1575,7 +1568,6 @@ export const BrowserTab = (props) => {
           permittedChains.includes(currentChainId);
 
         if (!isCurrentChainIdAlreadyPermitted) {
-          console.log('>>> not permitted');
           props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
             params: {
@@ -1589,32 +1581,26 @@ export const BrowserTab = (props) => {
               initialScreen: AccountPermissionsScreens.Connected,
             },
           });
-        } else {
-          console.log('>>> is permitted');
         }
       } catch (e) {
-        console.log('>>> error', e);
+        Logger.error(e, 'Error in checkTabPermissions');
       }
     }
   }, [props.chainId, props.navigation]);
 
+  const urlRef = useRef(url.current);
   useEffect(() => {
+    urlRef.current = url.current;
     if (
       isMultichainVersion1Enabled &&
-      url.current &&
+      urlRef.current &&
       isFocused &&
       !props.isInTabsView &&
       isTabActive
     ) {
       checkTabPermissions();
     }
-  }, [
-    checkTabPermissions,
-    url.current,
-    isFocused,
-    props.isInTabsView,
-    isTabActive,
-  ]);
+  }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
   /**
    * Main render
@@ -1778,6 +1764,10 @@ BrowserTab.propTypes = {
    * Represents the current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * Boolean indicating if browser is in tabs view
+   */
+  isInTabsView: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {

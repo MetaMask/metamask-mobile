@@ -78,7 +78,6 @@ const NetworkSelectorList = ({
       renderRightAccessory,
       isSelectionDisabled,
       onSelectNetwork,
-      styles,
       isMultiSelect,
     ],
   );

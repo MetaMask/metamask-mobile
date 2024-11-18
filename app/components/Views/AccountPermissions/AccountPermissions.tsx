@@ -443,7 +443,13 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       };
       toastRef?.current?.showToast(networkToastProps);
     }
-  }, [networkSelectorUserIntent, hideSheet, faviconSource, toastRef]);
+  }, [
+    networkSelectorUserIntent,
+    hideSheet,
+    faviconSource,
+    toastRef,
+    isNonDappNetworkSwitch,
+  ]);
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
@@ -684,6 +690,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,
+      isNonDappNetworkSwitch,
     ],
   );
 
