@@ -100,12 +100,15 @@ interface Props {
   route: {
     params: {
       address: Hex;
+      chainId: string;
     };
   };
 }
 
 const AssetDetails = (props: Props) => {
-  const { address } = props.route.params;
+  const { address, chainId: networkId } = props.route.params;
+  console.log('networkId .....', networkId);
+
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
@@ -125,6 +128,7 @@ const AssetDetails = (props: Props) => {
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
   );
+
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
   const getNetworkName = () => {

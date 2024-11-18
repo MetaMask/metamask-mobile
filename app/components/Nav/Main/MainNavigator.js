@@ -135,7 +135,9 @@ const AssetStackFlow = (props) => (
     <Stack.Screen
       name={'AssetDetails'}
       component={AssetDetails}
-      initialParams={{ address: props.route.params?.address }}
+      initialParams={{
+        address: props.route.params?.address,
+      }}
     />
   </Stack.Navigator>
 );
