@@ -87,7 +87,6 @@ const AssetOptions = (props: Props) => {
     goToBrowserUrl(url, title);
   };
 
-  console.log('networkId ++++++.....', networkId);
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
       navigation.navigate('AssetDetails', { address, chainId: networkId });

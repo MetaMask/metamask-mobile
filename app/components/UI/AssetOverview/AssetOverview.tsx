@@ -137,6 +137,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
+    if (asset.chainId !== selectedChainId) {
+      const { NetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          asset.chainId as Hex,
+        );
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await NetworkController.setActiveNetwork(networkClientId as string);
+    }
     if (asset.isETH && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
