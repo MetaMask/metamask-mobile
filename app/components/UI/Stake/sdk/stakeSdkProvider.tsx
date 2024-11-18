@@ -26,7 +26,7 @@ export interface Stake {
   stakingApiService?: StakingApiService;
   sdkType?: StakingType;
   setSdkType: (stakeType: StakingType) => void;
-  networkClientId: string;
+  networkClientId?: string;
 }
 
 export const StakeContext = createContext<Stake | undefined>(undefined);
