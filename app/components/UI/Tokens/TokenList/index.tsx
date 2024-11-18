@@ -45,7 +45,6 @@ export const TokenList = ({
   goToAddToken,
   setIsAddTokenEnabled,
 }: TokenListProps) => {
-  console.log('tokens .....', tokens);
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>

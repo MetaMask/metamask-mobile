@@ -76,7 +76,6 @@ export const TokenListItem = ({
   setShowScamWarningModal,
   privacyMode,
 }: TokenListItemProps) => {
-  console.log('asset +++++.....', asset.chainId);
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { data: tokenBalances } = useTokenBalancesController();
@@ -233,17 +232,14 @@ export const TokenListItem = ({
   );
 
   const onItemPress = (token: TokenI) => {
-    console.log('asset .....', token.chainId);
     // if the asset is staked, navigate to the native asset details
     if (asset.isStaked) {
       return navigation.navigate('Asset', {
         ...token.nativeAsset,
-        // chainId: token?.chainId,
       });
     }
     navigation.navigate('Asset', {
       ...token,
-      // chainId: token?.chainId,
     });
   };
 

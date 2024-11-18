@@ -46,7 +46,6 @@ interface Props {
 
 const AssetOptions = (props: Props) => {
   const { address, isNativeCurrency, chainId: networkId } = props.route.params;
-  console.log('chainId ++++++.....', networkId);
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -88,8 +87,7 @@ const AssetOptions = (props: Props) => {
     goToBrowserUrl(url, title);
   };
 
-  // navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url } });
-
+  console.log('networkId ++++++.....', networkId);
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
       navigation.navigate('AssetDetails', { address, chainId: networkId });

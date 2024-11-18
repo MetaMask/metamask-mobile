@@ -39,13 +39,17 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
+import {
+  selectAllTokens,
+  selectTokens,
+} from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -107,15 +111,21 @@ interface Props {
 
 const AssetDetails = (props: Props) => {
   const { address, chainId: networkId } = props.route.params;
-  console.log('networkId .....', networkId);
-
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
-  const tokens = useSelector(selectTokens);
+  const allTokens = useSelector(selectAllTokens);
+  const selectedAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+  const tokens = useMemo(
+    () => allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? {},
+    [allTokens, networkId, selectedAccountAddress],
+  );
+
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const chainId = useSelector(selectChainId);

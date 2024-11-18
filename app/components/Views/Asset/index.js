@@ -196,8 +196,6 @@ class Asset extends PureComponent {
       networkConfigurations,
     );
 
-    console.log('chainId +++++.....', chainId);
-
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
     const asset = navigation && params;
@@ -216,7 +214,7 @@ class Asset extends PureComponent {
                 params: {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
-                  chainId,
+                  chainId: route.params?.chainId,
                 },
               })
           : undefined,

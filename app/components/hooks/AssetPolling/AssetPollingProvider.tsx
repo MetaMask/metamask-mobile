@@ -9,11 +9,11 @@ import useTokenDetectionPolling from './useTokenAutoDetectionPolling';
 // Eventually, individual UI components will call the use*Polling hooks to
 // poll and return particular data. This polls globally in the meantime.
 export const AssetPollingProvider = ({ children }: { children: ReactNode }) => {
-  useCurrencyRatePolling();
-  useTokenRatesPolling();
-  useTokenListPolling();
-  useTokenBalancesPolling();
-  useTokenDetectionPolling();
+  // useCurrencyRatePolling();
+  // useTokenRatesPolling();
+  // useTokenListPolling();
+  // useTokenBalancesPolling();
+  // useTokenDetectionPolling();
 
   return <>{children}</>;
 };
