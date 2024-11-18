@@ -1874,16 +1874,19 @@ export class Engine {
 
   startPolling() {
     const {
+      NetworkController,
       TokenDetectionController,
       TokenListController,
       TransactionController,
       TokenRatesController,
     } = this.context;
 
+    const networkClientId = getGlobalNetworkClientId(NetworkController);
+
     TokenListController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling();
+    TransactionController.startIncomingTransactionPolling([networkClientId]);
     TokenRatesController.start();
   }
 

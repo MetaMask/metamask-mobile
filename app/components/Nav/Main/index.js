@@ -118,6 +118,8 @@ const Main = (props) => {
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
+  const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
+
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
       setShowDeprecatedAlert(true);
@@ -127,14 +129,12 @@ const Main = (props) => {
   }, [props.chainId]);
 
   useEffect(() => {
-    const chainId = props.chainId;
+    stopIncomingTransactionPolling();
 
-    if (props.showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling();
-    } else {
-      stopIncomingTransactionPolling();
+    if (showIncomingTransactionsNetworks[chainId]) {
+      startIncomingTransactionPolling([networkClientId]);
     }
-  }, [props.showIncomingTransactionsNetworks, props.chainId]);
+  }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
