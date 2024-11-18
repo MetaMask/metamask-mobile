@@ -1586,10 +1586,6 @@ export class Engine {
           ],
         }),
         interval: 180000,
-        // tokens: [
-        //   ...tokensController.state.tokens,
-        //   ...tokensController.state.detectedTokens,
-        // ],
         state: initialState.TokenBalancesController,
       }),
       new TokenRatesController({
@@ -1802,7 +1798,7 @@ export class Engine {
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
-    // this.handleVaultBackup();
+    this.handleVaultBackup();
     this._addTransactionControllerListeners();
 
     Engine.instance = this;
