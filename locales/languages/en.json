@@ -439,6 +439,9 @@
     },
     "import": "Import",
     "sort_by": "Sort by",
+    "filter_by": "Filter by",
+    "current_network": "Current Network",
+    "all_networks": "All Networks",
     "declining_balance": "Declining balance ({{currency}} high-low)",
     "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
@@ -3508,7 +3511,10 @@
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
     },
     "use_max": "Use max",
-    "estimated_unstaking_time": "1 to 11 days"
+    "estimated_unstaking_time": "1 to 11 days",
+    "proceed_anyway": "Proceed anyway",
+    "gas_cost_impact": "Gas cost impact",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3586,7 +3592,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "It can take between 1 and 11 days for your unstaking request to be processed. The exact duration depends on ETH staking activity."
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {

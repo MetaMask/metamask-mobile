@@ -115,6 +115,7 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
+    TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
   },
   BROWSER: {
@@ -155,6 +156,7 @@ const Routes = {
     MODALS: {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
+      GAS_IMPACT: 'GasImpact',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
